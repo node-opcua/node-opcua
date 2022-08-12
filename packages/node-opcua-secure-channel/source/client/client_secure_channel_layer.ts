@@ -119,7 +119,8 @@ function process_request_callback(requestData: RequestData, err?: Error | null, 
         err = new Error(" serviceResult = " + response.responseHeader.serviceResult.toString());
         //  "  returned by server \n response:" + response.toString() + "\n  request: " + request.toString());
         (err as any).response = response;
-        ((err as any).request = request), (response = undefined);
+        (err as any).request = request;
+        response = undefined;
     }
 
     const theCallbackFunction = requestData.callback;
@@ -1721,7 +1722,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         // istanbul ignore next
         if (!this.derivedKeys || !this.derivedKeys.derivedClientKeys) {
             errorLog("derivedKeys not set but security mode = ", MessageSecurityMode[this.securityMode]);
-            return null; // 
+            return null; //
             // throw new Error("internal error expecting valid derivedKeys while security mode is " + MessageSecurityMode[this.securityMode]);
         }
 

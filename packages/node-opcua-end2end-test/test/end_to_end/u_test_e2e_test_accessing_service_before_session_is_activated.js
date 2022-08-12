@@ -29,6 +29,7 @@ module.exports = function(test) {
 
             let session1;
             let last_response;
+            let last_response_err;
             let activate_error;
             async.series([
 
@@ -58,6 +59,7 @@ module.exports = function(test) {
                         console.log(err ? err.toString() : "null");
                         console.log(response ? response.toString() : "null");
                         last_response = response;
+                        last_response_err = err;
                         callback();
                     });
                 },
@@ -81,7 +83,7 @@ module.exports = function(test) {
                 if (err) {
                     return done(err);
                 }
-                last_response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionNotActivated);
+                last_response_err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadSessionNotActivated);
                 should.exist(activate_error, 
                     "Activate Session should return an error if there has been an attempt to use it before being activated");
                 activate_error.message.should.match(/BadSessionIdInvalid|BadSessionClosed/);

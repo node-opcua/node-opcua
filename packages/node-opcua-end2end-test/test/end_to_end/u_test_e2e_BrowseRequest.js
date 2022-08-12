@@ -164,10 +164,10 @@ module.exports = function(test) {
                     const browseNextRequest = new BrowseNextRequest({
                         continuationPoints: null
                     });
-                    g_session.performMessageTransaction(browseNextRequest, function(err, response) {
+                    g_session.performMessageTransaction(browseNextRequest, function(err, _response) {
                         err.message.should.match(/BadNothingToDo/);
                         // console.log(response.toString());
-                        response.responseHeader.serviceResult.should.equal(StatusCodes.BadNothingToDo);
+                        err.response.responseHeader.serviceResult.should.equal(StatusCodes.BadNothingToDo);
                         callback();
                     });
                 }

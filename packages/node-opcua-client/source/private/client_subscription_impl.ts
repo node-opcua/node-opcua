@@ -471,8 +471,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
         session.setTriggering(setTriggeringRequest, (err: Error | null, response?: SetTriggeringResponse) => {
             if (err) {
-                // use soft error, no exceptions
-                return callback(null, response);
+                if (response) {
+                    // use soft error, no exceptions
+                    return callback(null, response);
+                } else {
+                    return callback(err);
+                }
             }
             // istanbul ignore next
             if (!response) {

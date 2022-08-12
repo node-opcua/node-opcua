@@ -11,7 +11,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { PublishRequest, PublishResponse, SubscriptionAcknowledgement } from "node-opcua-types";
+import { PublishRequest, PublishResponse, ServiceFault, SubscriptionAcknowledgement } from "node-opcua-types";
 import { Subscription } from "./server_subscription";
 import { SubscriptionState } from "./server_subscription";
 import { IServerSidePublishEngine, INotifMsg, IClosedOrTransferredSubscription } from "./i_server_side_publish_engine";
@@ -36,7 +36,7 @@ interface PublishData {
     request: PublishRequest;
     serverTimeWhenReceived: number;
     results: StatusCode[];
-    callback: (request: PublishRequest, response: PublishResponse) => void;
+    callback: (request: PublishRequest, response: PublishResponse | ServiceFault) => void;
 }
 
 function _assertValidPublishData(publishData: PublishData) {
@@ -137,7 +137,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         const tmp = srcPublishEngine.detach_subscription(subscription);
         destPublishEngine.add_subscription(tmp);
-        
+
         subscription.resetLifeTimeCounter();
         if (sendInitialValues) {
             /*  A Boolean parameter with the following values:
@@ -327,11 +327,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
     public on_close_subscription(subscription: IClosedOrTransferredSubscription): void {
         doDebug && debugLog("ServerSidePublishEngine#on_close_subscription", subscription.id);
         if (subscription.hasPendingNotifications) {
-            doDebug && debugLog(
-                "ServerSidePublishEngine#on_close_subscription storing subscription",
-                subscription.id,
-                " to _closed_subscriptions because it has pending notification"
-            );
+            doDebug &&
+                debugLog(
+                    "ServerSidePublishEngine#on_close_subscription storing subscription",
+                    subscription.id,
+                    " to _closed_subscriptions because it has pending notification"
+                );
             this._closed_subscriptions.push(subscription);
         } else {
             doDebug && debugLog("ServerSidePublishEngine#on_close_subscription disposing subscription", subscription.id);
@@ -402,7 +403,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      */
     public _on_PublishRequest(
         request: PublishRequest,
-        callback?: (request1: PublishRequest, response: PublishResponse) => void
+        callback?: (request1: PublishRequest, response: PublishResponse| ServiceFault) => void
     ): void {
         callback = callback || dummy_function;
         assert(typeof callback === "function");
@@ -483,9 +484,10 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                                 s.timeToKeepAlive +
                                 " m?=" +
                                 s.hasUncollectedMonitoredItemNotifications +
-                                " " + 
+                                " " +
                                 SubscriptionState[s.state] +
-                                " " + s.messageSent + 
+                                " " +
+                                s.messageSent +
                                 "]"
                         )
                         .join(" \n")
@@ -508,7 +510,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             }
             const starving_subscription = this._find_starving_subscription();
             if (starving_subscription) {
-                doDebug && debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
+                doDebug &&
+                    debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
                 starving_subscription.process_subscription();
             }
         });
@@ -537,10 +540,10 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     private _send_error_for_request(publishData: PublishData, statusCode: StatusCode): void {
         _assertValidPublishData(publishData);
-        const publishResponse = new PublishResponse({
+        const response = new ServiceFault({
             responseHeader: { serviceResult: statusCode }
         });
-        this._send_response_for_request(publishData, publishResponse);
+        this._send_response_for_request(publishData, response);
     }
 
     private _cancelPendingPublishRequest(statusCode: StatusCode): void {
@@ -629,7 +632,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         assert(this.pendingPublishRequestCount > 0);
         assert(response.subscriptionId !== 0xffffff);
         const publishData = this._publish_request_queue.shift()!;
-        this._send_response_for_request(publishData, response);
+        this._send_valid_response_for_request(publishData, response);
     }
 
     public _on_tick(): void {
@@ -654,15 +657,17 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
             this._send_error_for_request(publishData, StatusCodes.BadTimeout);
         }
     }
-
-    public _send_response_for_request(publishData: PublishData, response: PublishResponse): void {
+    public _send_response_for_request(publishData: PublishData, response: PublishResponse | ServiceFault): void {
+        response.responseHeader.requestHandle = publishData.request.requestHeader.requestHandle;
+        publishData.callback(publishData.request, response);
+    }
+    public _send_valid_response_for_request(publishData: PublishData, response: PublishResponse): void {
         if (doDebug) {
             debugLog("_send_response_for_request ", response.toString());
         }
         _assertValidPublishData(publishData);
         // xx assert(response.responseHeader.requestHandle !== 0,"expecting a valid requestHandle");
         response.results = publishData.results;
-        response.responseHeader.requestHandle = publishData.request.requestHeader.requestHandle;
-        publishData.callback(publishData.request, response);
+        this._send_response_for_request(publishData, response);
     }
 }

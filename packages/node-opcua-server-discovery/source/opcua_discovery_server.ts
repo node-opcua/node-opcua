@@ -15,7 +15,7 @@ import { UAString } from "node-opcua-basic-types";
 import { makeApplicationUrn } from "node-opcua-common";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
-import { Message, Response, ServerSecureChannelLayer } from "node-opcua-secure-channel";
+import { Message, Response, ServerSecureChannelLayer, ServiceFault } from "node-opcua-secure-channel";
 import { OPCUABaseServer, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
 
 import {
@@ -390,7 +390,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         function sendError(statusCode: StatusCode): Response {
             debugLog(chalk.red("_on_RegisterServer(2)Request error"), statusCode.toString());
-            const response1 = new RegisterServerXResponse({
+            const response1 = new ServiceFault({
                 responseHeader: { serviceResult: statusCode }
             });
             return response1;

@@ -302,6 +302,10 @@ if (isMainThread) {
                 if (key.name === "l") {
                     dumpRunningTests();
                 }
+                if (key.name === "i") {
+                    dumpRunningTests();
+                    dumpRunningTestsLogs();
+                }
             });
         }
 
@@ -315,14 +319,7 @@ if (isMainThread) {
         const infoTimer = setInterval(() => {
             console.log("----------------------------------------------- RUNNING TESTS ");
             dumpRunningTests();
-            const runningTests = [...runningPages].map((i) => testFiles[i]);
-            for (let file of runningTests) {
-                const outputs = outputFor[file];
-                if (outputs && outputs.length) {
-                    console.log(chalk.green("log for", file));
-                    console.log(outputs.join("\n"));
-                }
-            }
+            dumpRunningTestsLogs();
         }, testWatchDogTimeout);
 
         fileMax = testFiles.length;
@@ -341,4 +338,14 @@ if (isMainThread) {
 } else {
     const { workerThread } = require("./parallel_test_worker");
     workerThread();
+}
+function dumpRunningTestsLogs() {
+    const runningTests = [...runningPages].map((i) => testFiles[i]);
+    for (let file of runningTests) {
+        const outputs = outputFor[file];
+        if (outputs && outputs.length) {
+            console.log(chalk.green("log for", file));
+            console.log(outputs.join("\n"));
+        }
+    }
 }

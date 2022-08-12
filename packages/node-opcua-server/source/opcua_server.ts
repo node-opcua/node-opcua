@@ -145,7 +145,8 @@ import {
     BuildInfoOptions,
     MonitoredItemCreateResult,
     IssuedIdentityToken,
-    BrowseResultOptions
+    BrowseResultOptions,
+    ServiceFault
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -184,7 +185,7 @@ const warningLog = make_warningLog(__filename);
 const default_maxConnectionsPerEndpoint = 10;
 
 function g_sendError(channel: ServerSecureChannelLayer, message: Message, ResponseClass: any, statusCode: StatusCode): void {
-    const response = new ResponseClass({
+    const response = new ServiceFault({
         responseHeader: { serviceResult: statusCode }
     });
     return channel.send_response("MSG", response, message);
@@ -2233,7 +2234,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         function sendResponse(response1: Response) {
             try {
-                assert(response1 instanceof ResponseClass);
+                assert(response1 instanceof ResponseClass || response1 instanceof ServiceFault);
                 if (message.session) {
                     const counterName = ResponseClass.name.replace("Response", "");
                     message.session.incrementRequestTotalCounter(counterName);
@@ -3071,7 +3072,7 @@ export class OPCUAServer extends OPCUABaseServer {
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
                 assert(session);
                 assert(session.publishEngine); // server.publishEngine doesn't exists, OPCUAServer has probably shut down already
-                session.publishEngine._on_PublishRequest(request, (request1: PublishRequest, response: PublishResponse) => {
+                session.publishEngine._on_PublishRequest(request, (_request1, response) => {
                     sendResponse(response);
                 });
             }
@@ -3180,16 +3181,20 @@ export class OPCUAServer extends OPCUABaseServer {
                     linksToAdd,
                     linksToRemove
                 );
-                const response = new SetTriggeringResponse({
-                    responseHeader: { serviceResult: statusCode },
+                if (statusCode !== StatusCodes.Good) {
+                    const response = new ServiceFault({ responseHeader: { serviceResult: statusCode } });
+                    sendResponse(response);
+                } else {
+                    const response = new SetTriggeringResponse({
+                        responseHeader: { serviceResult: statusCode },
 
-                    addResults,
-                    removeResults,
-                    addDiagnosticInfos: null,
-                    removeDiagnosticInfos: null
-                });
-
-                sendResponse(response);
+                        addResults,
+                        removeResults,
+                        addDiagnosticInfos: null,
+                        removeDiagnosticInfos: null
+                    });
+                    sendResponse(response);
+                }
             }
         );
     }
@@ -3390,11 +3395,8 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                let response;
-
                 if (!request.nodesToRegister || request.nodesToRegister.length === 0) {
-                    response = new RegisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
-                    return sendResponse(response);
+                    return sendError(StatusCodes.BadNothingToDo);
                 }
                 if (this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
                     if (request.nodesToRegister.length > this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes) {
@@ -3410,7 +3412,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 // NodeId from the request.
                 const registeredNodeIds = request.nodesToRegister.map((nodeId) => session.registerNode(nodeId));
 
-                response = new RegisterNodesResponse({
+                const response = new RegisterNodesResponse({
                     registeredNodeIds
                 });
                 sendResponse(response);
@@ -3427,13 +3429,10 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                let response;
-
                 request.nodesToUnregister = request.nodesToUnregister || [];
 
                 if (!request.nodesToUnregister || request.nodesToUnregister.length === 0) {
-                    response = new UnregisterNodesResponse({ responseHeader: { serviceResult: StatusCodes.BadNothingToDo } });
-                    return sendResponse(response);
+                    return sendError(StatusCodes.BadNothingToDo);
                 }
 
                 if (this.engine.serverCapabilities.operationLimits.maxNodesPerRegisterNodes > 0) {
@@ -3446,7 +3445,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
                 request.nodesToUnregister.map((nodeId: NodeId) => session.unRegisterNode(nodeId));
 
-                response = new UnregisterNodesResponse({});
+                const response = new UnregisterNodesResponse({});
                 sendResponse(response);
             }
         );
