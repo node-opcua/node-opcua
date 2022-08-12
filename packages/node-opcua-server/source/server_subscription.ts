@@ -629,7 +629,7 @@ export class Subscription extends EventEmitter {
         this.messageSent = false;
 
         this.timerId = null;
-        this._start_timer();
+        this._start_timer({ firstTime: true });
 
         debugLog(chalk.green(`creating subscription ${this.id}`));
 
@@ -686,7 +686,7 @@ export class Subscription extends EventEmitter {
             // todo
         }
         this._stop_timer();
-        this._start_timer();
+        this._start_timer({ firstTime: false });
     }
 
     /**
@@ -732,7 +732,7 @@ export class Subscription extends EventEmitter {
     public increaseLifeTimeCounter(): void {
         this._life_time_counter += 1;
         if (this._life_time_counter >= this.lifeTimeCount) {
-           this.emit("lifeTimeExpired");
+            this.emit("lifeTimeExpired");
         }
         this.emit("lifeTimeCounterChanged", this._life_time_counter);
     }
@@ -1458,7 +1458,7 @@ export class Subscription extends EventEmitter {
         }
     }
 
-    private _start_timer() {
+    private _start_timer({ firstTime }: { firstTime: boolean }) {
         debugLog(
             chalk.bgWhite.blue("Subscription#_start_timer  subscriptionId="),
             this.id,
@@ -1478,8 +1478,11 @@ export class Subscription extends EventEmitter {
         // make sure that a keep-alive Message will be send at the end of the first publishing cycle
         // if there are no Notifications ready.
         this._keep_alive_counter = 0; // this.maxKeepAliveCount;
-        assert(this.messageSent === false);
-        assert(this.state === SubscriptionState.CREATING);
+
+        if (firstTime) {
+            assert(this.messageSent === false);
+            assert(this.state === SubscriptionState.CREATING);
+        }
 
         assert(this.publishingInterval >= Subscription.minimumPublishingInterval);
         this.timerId = setInterval(this._tick.bind(this), this.publishingInterval);

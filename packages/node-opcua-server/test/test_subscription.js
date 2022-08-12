@@ -1062,6 +1062,71 @@ describe("Subscriptions", function () {
         subscription.dispose();
     });
 
+    it("T17 - should be possible to  modify subscription publishing interval", function(){
+        // pretend the client has sent many pending PublishRequests
+        fake_publish_engine.pendingPublishRequestCount = 1000;
+
+        /**
+         * When a Subscription is created, the first Message is sent at the end of the first publishing cycle to
+         * inform the Client that the Subscription is operational. A Notification Message is sent if there are
+         * Notifications ready to be reported. If there are none, a keep-alive Message is sent instead that
+         * contains a sequence number of 1, indicating that the first Notification Message has not yet been
+         * sent. This is the only time a keep-alive Message is sent without waiting for the maximum keep-alive
+         * count to be reached, as specified in (f) above.
+         *
+         */
+        const subscription = new Subscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20,
+            //
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
+        const monitoredItem = add_mock_monitored_item(subscription);
+
+        // pretend that we already have notification messages
+        // a notification finally arrived !
+        monitoredItem.simulateMonitoredItemAddingNotification();
+
+        const notification_event_spy = sinon.spy();
+        const keepalive_event_spy = sinon.spy();
+        const expire_event_spy = sinon.spy();
+
+        subscription.on("notification", notification_event_spy);
+        subscription.on("keepalive", keepalive_event_spy);
+        subscription.on("expired", expire_event_spy);
+
+        test.clock.tick(200);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(0);
+
+        test.clock.tick(1000);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(1);
+
+        test.clock.tick(1000);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(1);
+
+        monitoredItem.simulateMonitoredItemAddingNotification();
+        // now change the publishin Intervale
+        subscription.modify({ requestedPublishingInterval: 2000});
+       
+        test.clock.tick(1000);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(1);
+
+        test.clock.tick(1010);
+        keepalive_event_spy.callCount.should.equal(0);
+        notification_event_spy.callCount.should.eql(2);
+
+        subscription.terminate();
+        subscription.dispose();
+
+    });
+
+
     xit("closing a Subscription causes its MonitoredItems to be deleted. ", function () {
         /** */
     });
