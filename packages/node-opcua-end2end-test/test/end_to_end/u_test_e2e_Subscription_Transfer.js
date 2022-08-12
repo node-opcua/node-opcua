@@ -456,10 +456,17 @@ module.exports = function (test) {
                         const response1 = spy_publish_session2.getCall(1).args[1];
                         const response2 = spy_publish_session2.getCall(2).args[1];
                         const response3 = spy_publish_session2.getCall(3).args[1];
+                        should.not.exist(response1);
+                        should.not.exist(response2);
+                        should.not.exist(response3);
 
-                        response1.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-                        response2.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-                        response3.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+                        const err1 = spy_publish_session2.getCall(1).args[0];
+                        const err2 = spy_publish_session2.getCall(2).args[0];
+                        const err3 = spy_publish_session2.getCall(3).args[0];
+                        
+                        err1.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+                        err2.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+                        err3.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
                         //xx console.log(response1.toString())
                         //xx console.log(response2.toString())
                         //xx console.log(response3.toString())

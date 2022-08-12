@@ -39,9 +39,9 @@ const {
     Variant,
     Subscription,
     SubscriptionState,
-    installSessionLogging
+    installSessionLogging,
+    ServiceFault
 } = require("node-opcua");
-
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 
@@ -726,7 +726,8 @@ module.exports = function (test) {
                                 },
                                 function (callback) {
                                     function publish_callback(err, response) {
-                                        should.exist(response);
+                                        should.not.exist(response);
+                                        err.response.should.be.instanceOf(ServiceFault);
                                         should(err.message).match(/BadNoSubscription/);
                                     }
 
@@ -825,7 +826,8 @@ module.exports = function (test) {
                                         subscriptionIds: []
                                     },
                                     function (err, response) {
-                                        should.exist(response);
+                                        should.not.exist(response);
+                                        should.exist(err);
                                         err.message.should.match(/BadNothingToDo/);
                                         callback();
                                     }
@@ -1518,7 +1520,8 @@ module.exports = function (test) {
                     });
                     session.createMonitoredItems(createMonitoredItemsRequest, function (err, createMonitoredItemsResponse) {
                         should(err.message).match(/BadNothingToDo/);
-                        createMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                        should.not.exist(createMonitoredItemsResponse);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                         callback();
                     });
                 },
@@ -1581,7 +1584,8 @@ module.exports = function (test) {
                     });
                     session.modifyMonitoredItems(modifyMonitoredItemsRequest, function (err, modifyMonitoredItemsResponse) {
                         should(err.message).match(/BadNothingToDo/);
-                        modifyMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                        should.not.exist(modifyMonitoredItemsResponse);
                         callback();
                     });
                 },
@@ -1600,7 +1604,8 @@ module.exports = function (test) {
                     });
                     session.deleteMonitoredItems(deleteMonitoredItemsRequest, function (err, deleteMonitoredItemsResponse) {
                         should(err.message).match(/BadNothingToDo/);
-                        deleteMonitoredItemsResponse.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                        should.not.exist(deleteMonitoredItemsResponse);
                         callback();
                     });
                 },
@@ -1793,6 +1798,7 @@ module.exports = function (test) {
                             requestedPublishingInterval: -1
                         },
                         function (err, createSubscriptionResponse) {
+                            should.not.exist(err);
                             createSubscriptionResponse.revisedPublishingInterval.should.be.greaterThan(10);
 
                             inner_done(err);
@@ -1902,7 +1908,6 @@ module.exports = function (test) {
             server = test.server;
 
             installSessionLogging(server);
-
 
             endpointUrl = test.endpointUrl;
             temperatureVariableId = server.temperatureVariableId;
@@ -2139,13 +2144,13 @@ module.exports = function (test) {
                             })
                         ],
                         (err) => {
-                            tracelog("inner", err ? err.message: "");
+                            tracelog("inner", err ? err.message : "");
                             inner_done(err);
                         }
                     );
                 },
                 (err) => {
-                    tracelog("done", err ? err.message: "");
+                    tracelog("done", err ? err.message : "");
                     done(err);
                 }
             );
@@ -4064,8 +4069,9 @@ module.exports = function (test) {
                     });
                     g_session.republish(request, function (err, response) {
                         should.exist(err);
-                        response.should.be.instanceof(RepublishResponse);
-                        response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
+                        should.not.exist(response);
+                        err.response.should.be.instanceof(ServiceFault);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadMessageNotAvailable);
                         done();
                     });
                 }, done);
@@ -4081,8 +4087,9 @@ module.exports = function (test) {
                     });
                     g_session.republish(request, function (err, response) {
                         should.exist(err);
-                        response.should.be.instanceof(RepublishResponse);
-                        response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
+                        should.not.exist(response);
+                        err.response.should.be.instanceof(ServiceFault);
+                        err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadSubscriptionIdInvalid);
                         done();
                     });
                 }, done);

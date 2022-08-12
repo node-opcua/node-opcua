@@ -10,7 +10,7 @@ import {
     ExtraDataTypeManager,
     getExtensionObjectConstructor,
     getExtraDataTypeManager,
-    promoteOpaqueStructure,
+    promoteOpaqueStructure
 } from "node-opcua-client-dynamic-extension-object";
 import { Certificate, Nonce } from "node-opcua-crypto";
 import { attributeNameById, BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
@@ -82,7 +82,13 @@ import {
 import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-write";
 import { StatusCode, StatusCodes, Callback, CallbackT } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
-import { BrowseNextRequest, BrowseNextResponse, HistoryReadValueIdOptions, WriteValueOptions } from "node-opcua-types";
+import {
+    BrowseNextRequest,
+    BrowseNextResponse,
+    HistoryReadValueIdOptions,
+    ServiceFault,
+    WriteValueOptions
+} from "node-opcua-types";
 import { buffer_ellipsis, getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
@@ -1540,6 +1546,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
                 debugLog("Transaction on Invalid Session ", request.constructor.name);
                 request.requestHeader.requestHandle = requestHandleNotSetValue;
+                warningLog("client is now attempting to recreate a session");
                 this.recreate_session_and_reperform_transaction(request, callback);
                 return;
             }
@@ -1595,6 +1602,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
                 return callback(err);
             }
+
             /* istanbul ignore next */
             if (!response) {
                 return callback(new Error("internal Error"));

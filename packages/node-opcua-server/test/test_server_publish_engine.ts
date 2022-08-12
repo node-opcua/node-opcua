@@ -185,7 +185,7 @@ describe("Testing the server publish engine", function (this: any) {
         serverSidePublishEngine.dispose();
     });
 
-    it("ZDZ-5 a server should return BadNoSubscription as a response for a publish Request if there is no subscription available for this session. ", () => {
+    it("ZDZ-5 a server should return ServiceFault(BadNoSubscription) as a response for a publish Request if there is no subscription available for this session. ", () => {
         // create a server - server has no subscription
         const publish_server = new ServerSidePublishEngine();
 
@@ -199,7 +199,7 @@ describe("Testing the server publish engine", function (this: any) {
         flushPending();
 
         send_response_for_request_spy.callCount.should.equal(1);
-        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("ServiceFault");
         send_response_for_request_spy.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
 
         publish_server.shutdown();
@@ -309,25 +309,23 @@ describe("Testing the server publish engine", function (this: any) {
         // xx console.log(send_response_for_request_spy.getCall(0).args[1].responseHeader.toString());
         // xx console.log(send_response_for_request_spy.getCall(1).args[1].responseHeader.toString());
 
-        send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(1).args[1].schema.name.should.equal("ServiceFault");
         send_response_for_request_spy
             .getCall(1)
             .args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTooManyPublishRequests);
         send_response_for_request_spy.getCall(1).args[1].responseHeader.requestHandle.should.eql(2);
-        send_response_for_request_spy.getCall(1).args[1].results!.should.eql([]);
-
+       
         publish_server._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 8 } }));
         flushPending();
 
         send_response_for_request_spy.callCount.should.be.equal(3);
         // xx console.log(send_response_for_request_spy.getCall(2).args[1].responseHeader.toString());
-        send_response_for_request_spy.getCall(2).args[1].schema.name.should.equal("PublishResponse");
+        send_response_for_request_spy.getCall(2).args[1].schema.name.should.equal("ServiceFault");
         send_response_for_request_spy
             .getCall(2)
             .args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadTooManyPublishRequests);
         send_response_for_request_spy.getCall(2).args[1].responseHeader.requestHandle.should.eql(3);
-        send_response_for_request_spy.getCall(2).args[1].results!.should.eql([]);
-
+    
         subscription.terminate();
         subscription.dispose();
         publish_server.shutdown();

@@ -6,6 +6,7 @@ const { MonitoringMode, PublishRequest } = require("node-opcua-service-subscript
 const { StatusCodes, StatusCode } = require("node-opcua-status-code");
 const { TimestampsToReturn } = require("node-opcua-service-read");
 const { MonitoredItemCreateRequest } = require("node-opcua-service-subscription");
+const { ServiceFault } = require("node-opcua-types");
 
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 
@@ -402,19 +403,22 @@ describe("ServerEngine Subscriptions service", function () {
             publishSpy.callCount.should.eql(4);
 
             publishSpy.getCall(1).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-            publishSpy.getCall(1).args[1].subscriptionId.should.eql(0xffffffff);
-            publishSpy.getCall(1).args[1].notificationMessage.sequenceNumber.should.eql(0);
-            publishSpy.getCall(1).args[1].notificationMessage.notificationData.length.should.eql(0);
+            publishSpy.getCall(1).args[1].should.be.instanceOf(ServiceFault);
+            // publishSpy.getCall(1).args[1].subscriptionId.should.eql(0xffffffff);
+            // publishSpy.getCall(1).args[1].notificationMessage.sequenceNumber.should.eql(0);
+            // publishSpy.getCall(1).args[1].notificationMessage.notificationData.length.should.eql(0);
 
             publishSpy.getCall(2).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-            publishSpy.getCall(2).args[1].subscriptionId.should.eql(0xffffffff);
-            publishSpy.getCall(2).args[1].notificationMessage.sequenceNumber.should.eql(0);
-            publishSpy.getCall(2).args[1].notificationMessage.notificationData.length.should.eql(0);
+            publishSpy.getCall(2).args[1].should.be.instanceOf(ServiceFault);
+            // publishSpy.getCall(2).args[1].subscriptionId.should.eql(0xffffffff);
+            // publishSpy.getCall(2).args[1].notificationMessage.sequenceNumber.should.eql(0);
+            // publishSpy.getCall(2).args[1].notificationMessage.notificationData.length.should.eql(0);
 
             publishSpy.getCall(3).args[1].responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-            publishSpy.getCall(3).args[1].subscriptionId.should.eql(0xffffffff);
-            publishSpy.getCall(3).args[1].notificationMessage.sequenceNumber.should.eql(0);
-            publishSpy.getCall(3).args[1].notificationMessage.notificationData.length.should.eql(0);
+            publishSpy.getCall(3).args[1].should.be.instanceOf(ServiceFault);
+            // publishSpy.getCall(3).args[1].subscriptionId.should.eql(0xffffffff);
+            // publishSpy.getCall(3).args[1].notificationMessage.sequenceNumber.should.eql(0);
+            // publishSpy.getCall(3).args[1].notificationMessage.notificationData.length.should.eql(0);
 
             await engine.closeSession(session.authenticationToken, true, "CloseSession");
         });

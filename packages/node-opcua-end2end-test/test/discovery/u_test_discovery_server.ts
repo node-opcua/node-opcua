@@ -18,7 +18,8 @@ import {
     StatusCodes,
     RegisterServerMethod,
     makeApplicationUrn,
-    OPCUADiscoveryServer
+    OPCUADiscoveryServer,
+    ServiceFault
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
@@ -132,13 +133,15 @@ export function t(test: any) {
                 }
             });
 
-            function check_response(err: Error | null, response: any): void {
-                should.not.exist(err);
+            function check_error_response(err: Error | null, response: any): void {
+                should.exist(err);
+                should.not.exist(response);
+                (err as any).response.should.be.instanceOf(ServiceFault);
                 //xx console.log(response.toString());
-                response.responseHeader.serviceResult.should.eql(StatusCodes.BadDiscoveryUrlMissing);
+                (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadDiscoveryUrlMissing);
             }
 
-            await send_registered_server_request(discoveryServerEndpointUrl, request, check_response);
+            await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
         });
 
         it("DISCO1-2 should fail to register server to the discover server if server type is Client (BadInvalidArgument)", async () => {
@@ -161,13 +164,15 @@ export function t(test: any) {
                 }
             });
 
-            function check_response(err: Error | null, response: any) {
-                should.not.exist(err);
+            function check_error_response(err: Error | null, response: any) {
+                should.exist(err);
+                should.not.exist(response);
                 //xx debugLog(response.toString());
-                response.responseHeader.serviceResult.should.eql(StatusCodes.BadInvalidArgument);
+                (err as any).response.should.be.instanceOf(ServiceFault);
+                (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadInvalidArgument);
             }
 
-            await send_registered_server_request(discoveryServerEndpointUrl, request, check_response);
+            await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
         });
 
         it("DISCO1-3 should fail to register server to the discover server if server name array is empty (BadServerNameMissing)", async () => {
@@ -190,12 +195,14 @@ export function t(test: any) {
                 }
             });
 
-            function check_response(err: Error | null, response: any) {
-                should.not.exist(err);
-                response.responseHeader.serviceResult.should.eql(StatusCodes.BadServerNameMissing);
+            function check_error_response(err: Error | null, response: any) {
+                should.exist(err);
+                should.not.exist(response);
+                (err as any).response.should.be.instanceOf(ServiceFault);
+                (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadServerNameMissing);
             }
 
-            await send_registered_server_request(discoveryServerEndpointUrl, request, check_response);
+            await send_registered_server_request(discoveryServerEndpointUrl, request, check_error_response);
         });
     });
 
@@ -207,7 +214,8 @@ export function t(test: any) {
         let server: OPCUAServer;
 
         before(() => {
-            OPCUAServer.registry.count().should.eql(0);1162
+            OPCUAServer.registry.count().should.eql(0);
+            1162;
         });
 
         after(() => {
