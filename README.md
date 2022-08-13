@@ -3,7 +3,6 @@ node-opcua
 
 node-opcua is an implementation of an OPC UA stack fully written in Typescript for NodeJS.
 
-
 [![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](https://www.npmtrends.com/node-opcua)
 [![NPM version](https://badge.fury.io/js/node-opcua.png)](https://badge.fury.io/js/node-opcua)
 
@@ -65,26 +64,13 @@ $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcuademo.sterfive.com:26543"
 
 ## Minimum nodejs requirement 
 
-  * nodejs version 12 or above
+  * nodejs version 14 or above
 
-### API Documentation
-   
- * check out the [API documentation](https://node-opcua.github.io/api_doc/index.html)
                 
 ## tutorials and guided examples
 
 
 [![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample).  This book provides a large number of practical and ready-to-use and fully documented example. It's the best starting point to learn about node-opcua.
-
-## About licensing 
-
-The node-opcua core module is [copyrighted and licenced under the term of the "The MIT License"](./LICENSE). 
-
-This means that :
-- node-opcua comes without any warranty of any kind.
-- you can freely reuse in an open-source application or a commercial application 
-- you have to clearly include the software copyright notice in all copies or substantial portions of the software.
-
 
 ## Sponsors & Backers 
 
@@ -109,7 +95,12 @@ To get professional support, consider subscribing to the node-opcua membership c
 
 [![Professional Support](https://img.shields.io/static/v1?style=for-the-badge&label=Professional&message=Support&labelColor=blue&color=green&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDQ5MS41MiA0OTEuNTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDQ5MS41MiA0OTEuNTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxnPg0KCQk8cGF0aCBkPSJNNDg3Ljk4OSwzODkuNzU1bC05My4xMDktOTIuOTc2Yy00LjgxMy00LjgwNi0xMi42NDItNC42NzQtMTcuMjczLDAuMzA3Yy03LjE0OCw3LjY4OS0xNC42NCwxNS41NTQtMjEuNzMsMjIuNjM0ICAgIGMtMC4yNzEsMC4yNy0wLjUwMSwwLjQ5My0wLjc2MywwLjc1NUw0NjcuMyw0MzIuNTA0YzguOTEtMTAuNjE0LDE2LjY1Ny0yMC40MSwyMS43My0yNi45NyAgICBDNDkyLjcyLDQwMC43NjIsNDkyLjI1NywzOTQuMDE5LDQ4Ny45ODksMzg5Ljc1NXoiLz4NCgk8L2c+DQo8L2c+DQo8Zz4NCgk8Zz4NCgkJPHBhdGggZD0iTTMzNC4zLDMzNy42NjFjLTM0LjMwNCwxMS4zNzktNzcuNTYsMC40MTMtMTE0LjU1NC0yOS41NDJjLTQ5LjAyMS0zOS42OTMtNzUuOTcyLTEwMi42NDItNjUuODM4LTE1MC41OTNMMzcuNjM0LDQxLjQxOCAgICBDMTcuNjUzLDU5LjQyNCwwLDc4LjU0NSwwLDkwYzAsMTQxLjc1MSwyNjAuMzQ0LDQxNS44OTYsNDAxLjUwMyw0MDAuOTMxYzExLjI5Ni0xLjE5OCwzMC4xNzYtMTguNjUxLDQ4LjA2Mi0zOC4xNjdMMzM0LjMsMzM3LjY2MSAgICB6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQoJPGc+DQoJCTxwYXRoIGQ9Ik0xOTMuODU0LDk2LjA0MUwxMDEuMjEzLDMuNTNjLTQuMjI1LTQuMjItMTAuODgyLTQuNzI0LTE1LjY2NC0xLjE0NWMtNi42NTQsNC45ODMtMTYuNjQ4LDEyLjY1MS0yNy40NTMsMjEuNDk4ICAgIGwxMTEuOTQ1LDExMS43ODVjMC4wNjEtMC4wNiwwLjExMS0wLjExMywwLjE3Mi0wLjE3NGM3LjIzOC03LjIyOCwxNS4zNTUtMTQuODg1LDIzLjI5MS0yMi4xNjcgICAgQzE5OC41MzQsMTA4LjcxMywxOTguNjg0LDEwMC44NjMsMTkzLjg1NCw5Ni4wNDF6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPC9zdmc+)](https://support.sterfive.com)
 
-or contact [sterfive](https://www.sterfive.com) for dedicated consulting and more advanced support or for a certificed version of node-opcua. (contact@sterfive.com).
+Registered members have access to a extended set of online documentation. 
+
+Registered members can post and query sterfive for any question related to NodeOPCUA in a private chat room. 
+
+or contact [sterfive](https://www.sterfive.com) for dedicated consulting and more advanced support or for a certified version of node-opcua. (contact@sterfive.com).
+
 
 ## Road-map
 
@@ -156,6 +147,11 @@ Those are the items we would like to achieve in the next version of the API.
  * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  * [create a client in typescript](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client_typescript.md)
    
+  *  more tutorials are available in the book (https://leanpub.com/node-opcuabyexample)
+  *  more advanced examples and training material are available for the NodeOPCUA Subscription members at (https://support.sterfive.com)
+
+### API reference
+ * check out the [API documentation](https://node-opcua.github.io/api_doc/index.html)
 
                      
 ## Contributing
@@ -225,6 +221,8 @@ Those are the items we would like to achieve in the next version of the API.
 |Query Service Set           |                       ||
 |                            |QueryFirst()           |:new_moon:|
 |                            |QueryNext()            |:new_moon:|
+| PubSUB                     | as a commercial module |:white_check_mark:|
+| GDS                        | as a commercial module |:white_check_mark:|
 
 
 |                                        |                          |                    |
@@ -287,3 +285,21 @@ Those are the items we would like to achieve in the next version of the API.
   
   * if you have a particular wish or found a issue, let us known and [create an issue](https://github.com/node-opcua/node-opcua/issues?state=open)
 
+
+## About licensing 
+
+The node-opcua core module is [copyrighted and licenced under the term of the "The MIT License"](./LICENSE). 
+
+This means that :
+- node-opcua comes without any warranty of any kind.
+- you can freely reuse in an open-source application or a commercial application 
+- you have to clearly include the software copyright notice in all copies or substantial portions of the software.
+
+You are strongly encourage to apply to our [NodeOPCUA Membership](https://support.sterfive.com) to get additional benefits and support.
+
+
+## Copyright
+
+Copyright (c) 2022  Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
+
+Copyright (c) 2014-2022 Etienne Rossignon
