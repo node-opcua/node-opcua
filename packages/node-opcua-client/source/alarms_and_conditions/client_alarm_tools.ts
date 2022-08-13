@@ -84,7 +84,8 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     const fields = await extractConditionFields(session, "AlarmConditionType");
 
-    const eventFilter = constructEventFilter(fields, [resolveNodeId("AcknowledgeableConditionType")]);
+    // Remove ConditionId in fields. SelectClause entry for ConditionId is added via conditionTypes argument.
+    const eventFilter = constructEventFilter(fields.slice(0, -1), [resolveNodeId("AcknowledgeableConditionType")]);
 
     const monitoringParameters: MonitoringParametersOptions = {
         discardOldest: false,
