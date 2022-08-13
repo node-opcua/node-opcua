@@ -12,15 +12,8 @@ IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION, WE MIGHT CLOSE YOUR ISSUE WITHO
 
 !! Please do not submit support requests here. !!
 
-**for community support**
 
-      - use [gitter](https://gitter.im/node-opcua/node-opcua)
-      - use [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
-      - access the "NodeOPCUA by example" book at https://leanpub.com/node-opcuabyexample
-
-**for professional support** 
-
-You can access sterfive professional support by subscribing to our **[NODE-OPCUA membership program](https://support.sterfive.com)**
+For technical support, please consider subscribing to our **[NODE-OPCUA membership program](https://support.sterfive.com)**
      
                            https://support.sterfive.com
                  
@@ -31,7 +24,6 @@ Professional support ensures the following:
 - 🔍 dedicated investigation for your issue
 - 🐛 prompt resolution of bugs or issues
 - 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample)
-
 
 
 You may also [contact Sterfive directly](https://www.sterfive.com) for dedicated professional support: mailto:contact@sterfive.com
@@ -64,7 +56,6 @@ Grants ensure the following:
 Features requests are considered in order of relevance and thanks to the support of our sponsors.
 
 -->
-
 
 
 
