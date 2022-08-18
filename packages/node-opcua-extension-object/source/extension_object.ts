@@ -4,7 +4,14 @@
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject, IStructuredTypeSchema, is_internal_id, registerBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
+import {
+    BaseUAObject,
+    constructObject,
+    IStructuredTypeSchema,
+    is_internal_id,
+    registerBuiltInType,
+    StructuredTypeSchema
+} from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
@@ -186,14 +193,17 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         // causing 2 extra member to be added.
         debugLog(chalk.bgWhiteBright.red("========================================="));
 
-        // tslint:disable-next-line:no-console
         warningLog(
-            "WARNING => Extension object decoding error on ",
+            "WARNING => decodeExtensionObject: Extension object decoding error on ",
             object.constructor.name,
             " expected size was",
             length,
             "but only this amount of bytes have been read :",
-            stream.length - streamLengthBefore
+            stream.length - streamLengthBefore,
+            "\n           encoding nodeId = ",
+            nodeId.toString(),
+            "encodingType = ",
+            encodingType
         );
         stream.length = streamLengthBefore + length;
     }
