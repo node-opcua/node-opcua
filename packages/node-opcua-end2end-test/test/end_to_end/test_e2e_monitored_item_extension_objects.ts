@@ -81,7 +81,9 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
                 }
             }
         });
-        const s = server.engine.addressSpace?.rootFolder.objects.server!;
+        
+        const s = server.engine.addressSpace!.rootFolder.objects.server!;
+
         s.raiseEvent(rfidScanEventType, {
             scanResult: {
                 dataType: DataType.ExtensionObject,

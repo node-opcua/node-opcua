@@ -48,7 +48,6 @@ export * from "./pseudo_session";
 
 export * from "./helpers/dump_tools";
 export * from "./helpers/make_optionals_map";
-export * from "./helpers/check_event_clause";
 export * from "./helpers/argument_list";
 export * from "./helpers/call_helpers";
 export * from "./helpers/ensure_secure_access";
@@ -62,7 +61,6 @@ export * from "./loader/generateAddressSpaceRaw";
 export * from "./namespace";
 export * from "./namespace_data_access";
 
-export { extractEventFields,checkWhereClause, checkFilter, FilterContext} from "../src/alarms_and_conditions";
 export { instantiateCertificateExpirationAlarm } from "../src/alarms_and_conditions/ua_certificate_expiration_alarm_impl";
 
 export { NodeIdManager, ConstructNodeIdOptions } from "../src/nodeid_manager";

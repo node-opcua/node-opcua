@@ -297,7 +297,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         // for which state or sub-state should be used. It is up to the Server and will depend on the
         // semantics of the StateMachineType
         //
-        // EffectiveDisplayName will be constructed by adding the EnableState
+        // EffectiveDisplayName will be constructed by adding the EnabledState
         // and the State of the addTrue state
         if (this.effectiveDisplayName) {
             this.id.on("value_changed", () => {

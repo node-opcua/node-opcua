@@ -5,7 +5,7 @@ import * as util from "util";
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { DataTypeIds } from "node-opcua-constants";
 
@@ -22,6 +22,7 @@ import {
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 
 export function _findFieldSchema(typeDictionary: DataTypeFactory, field: StructuredTypeField, value: any): IStructuredTypeSchema {
     const fieldType = field.fieldType;
@@ -293,11 +294,13 @@ export class DataTypeFactory {
     }
 
     private _registerFactory(dataTypeNodeId: NodeId, typeName: string, constructor: ConstructorFuncWithSchema): void {
+
         /* istanbul ignore next */
-        if (this.hasStructuredType(typeName)) {
-            console.log(this.getStructureTypeConstructor(typeName));
-            console.log("target namespace =", this.targetNamespace);
-            throw new Error(" registerFactory  : " + typeName + " already registered");
+        if (this._structureTypeConstructorByNameMap.has(typeName)) {
+            warningLog(this.getStructureTypeConstructor(typeName));
+            warningLog("target namespace = `" + this.targetNamespace + "`");
+            warningLog(" registerFactory  : " + typeName + " already registered. dataTypeNodeId=", dataTypeNodeId.toString());
+            return;
         }
         debugLog("registering typeName ", typeName, dataTypeNodeId.toString());
         this._structureTypeConstructorByNameMap.set(typeName, constructor);

@@ -3,10 +3,10 @@ import * as should from "should";
 
 import { Benchmarker } from "node-opcua-benchmarker";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { constructEventFilter } from "node-opcua-service-filter";
+import { constructEventFilter, checkSelectClause } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
 
-import { AddressSpace, Namespace, checkSelectClause } from "..";
+import { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
@@ -114,7 +114,7 @@ describe("AddressSpace : add event type ", () => {
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        eventFilter.selectClauses!.length.should.eql(3);
+        eventFilter.selectClauses!.length.should.eql(4, "expecting 3 select clauses + ConditionId");
 
         let statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses![0]);
         statusCode.should.eql(StatusCodes.Good);
@@ -125,12 +125,14 @@ describe("AddressSpace : add event type ", () => {
         statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses![2]);
         statusCode.should.eql(StatusCodes.Good);
     });
+
+    
     it("should select node in a EventType using a SelectClause  n AuditEventType", () => {
         // browseNodeByTargetName
         const auditEventType = addressSpace.findEventType("AuditEventType")!;
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        eventFilter.selectClauses!.length.should.eql(3);
+        eventFilter.selectClauses!.length.should.eql(4, "expecting 3 select clauses + ConditionId");
 
         let statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses![0]);
         statusCode.should.eql(StatusCodes.Good);
@@ -195,8 +197,8 @@ describe("AddressSpace : add event type ", () => {
         const data1 = addressSpace.constructEventData(auditEventType, data);
 
         const expected_fields = [
+            "$cache",
             "$eventDataSource",
-            "__nodes",
             "actionTimeStamp",
             "clientAuditEntryId",
             "clientUserId",
@@ -210,7 +212,7 @@ describe("AddressSpace : add event type ", () => {
             "sourceName",
             "sourceNode",
             "status",
-            "time"
+            "time",
         ];
 
         Object.keys(data1).sort().should.eql(expected_fields);

@@ -18,6 +18,7 @@
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
         "node-opcua-address-space": "2.74.0",
+        "node-opcua-address-space-base": "2.74.0",
         "node-opcua-assert": "2.74.0",
         "node-opcua-basic-types": "2.74.0",
         "node-opcua-binary-stream": "2.74.0",

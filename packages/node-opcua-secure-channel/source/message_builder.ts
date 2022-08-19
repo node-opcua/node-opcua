@@ -364,7 +364,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     }
                     warningLog(chalk.red("MessageBuilder : ERROR DETECTED IN 'message' event handler"));
                     if (err instanceof Error) {
-                        debugLog(err.stack);
+                        warningLog(err.message);
+                        warningLog(err.stack);
                     }
                 }
             } else {

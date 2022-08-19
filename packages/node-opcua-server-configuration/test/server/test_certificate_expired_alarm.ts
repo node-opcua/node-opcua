@@ -185,7 +185,7 @@ describe("Test CertificateExpiredAlarm", function () {
 
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 const alarms = alarmList.alarms();
-                uninstallAlarmMonitoring(session);
+                await uninstallAlarmMonitoring(session);
 
                 return alarms;
             }

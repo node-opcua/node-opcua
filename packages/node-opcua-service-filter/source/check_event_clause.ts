@@ -1,9 +1,8 @@
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-console
 import { NodeClass } from "node-opcua-data-model";
-import { SimpleAttributeOperand } from "node-opcua-service-filter";
+import { SimpleAttributeOperand } from "node-opcua-types";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { BaseNode, UAObjectType } from "node-opcua-address-space-base";
@@ -35,7 +34,7 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
 
     // istanbul ignore next
     if (eventTypeNode.nodeClass !== NodeClass.ObjectType) {
-        throw new Error("Expecting a ObjectType");
+        return StatusCodes.BadTypeMismatch;
     }
 
     // navigate to the innerNode specified by the browsePath [ QualifiedName]

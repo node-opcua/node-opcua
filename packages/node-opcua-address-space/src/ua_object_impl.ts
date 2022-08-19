@@ -156,8 +156,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         // coerce EventType
         eventTypeNode = addressSpace.findEventType(eventType as UAEventType) as UAEventType;
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
-        assert(eventTypeNode.isSupertypeOf(baseEventType));
-
+   
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = data.sourceNode || { dataType: DataType.NodeId, value: this.nodeId };
 

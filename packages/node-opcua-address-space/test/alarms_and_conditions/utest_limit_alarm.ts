@@ -73,12 +73,12 @@ function ellipsis(a: string): string {
 function dumpSpy(spyOnEvent: any) {
     for (let i = 0; i < spyOnEvent.getCalls().length; i++) {
         debugLog("call ", i);
-        debugLog("  time      ", spyOnEvent.getCalls()[i].args[0].time.toString());
-        debugLog("  eventId   ", spyOnEvent.getCalls()[i].args[0].eventId.toString());
-        debugLog("  eventType ", ellipsis(spyOnEvent.getCalls()[i].args[0].eventType.toString()));
-        debugLog("  branchId  ", spyOnEvent.getCalls()[i].args[0].branchId.toString());
-        debugLog("  message   ", ellipsis(spyOnEvent.getCalls()[i].args[0].message.toString()));
-        debugLog("  acked     ", spyOnEvent.getCalls()[i].args[0].ackedState.toString());
+        debugLog("  time      ", spyOnEvent.getCalls()[i].args[0]["time"].toString());
+        debugLog("  eventId   ", spyOnEvent.getCalls()[i].args[0]["eventId"].toString());
+        debugLog("  eventType ", ellipsis(spyOnEvent.getCalls()[i].args[0]["eventType"].toString()));
+        debugLog("  branchId  ", spyOnEvent.getCalls()[i].args[0]["branchId"].toString());
+        debugLog("  message   ", ellipsis(spyOnEvent.getCalls()[i].args[0]["message"].toString()));
+        debugLog("  acked     ", spyOnEvent.getCalls()[i].args[0]["ackedState"].toString());
     }
 }
 
@@ -142,9 +142,9 @@ export function utest_limit_alarm(test: any): void {
             alarm.activeState.getValue().should.eql(true);
 
             spyOnEvent.callCount.should.eql(1);
-            spyOnEvent.getCalls()[0].args[0].message.value.text.should.eql("Condition value is -100 and state is LowLow");
-            spyOnEvent.getCalls()[0].args[0].branchId.value.should.eql(NodeId.nullNodeId);
-            const call0_eventId = spyOnEvent.getCalls()[0].args[0].eventId.toString();
+            spyOnEvent.getCalls()[0].args[0]["message"].value.text.should.eql("Condition value is -100 and state is LowLow");
+            spyOnEvent.getCalls()[0].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
+            const call0_eventId = spyOnEvent.getCalls()[0].args[0]["eventId"].toString();
 
             // InputNode goes a little bit low - alarm stays active - state changes to low - 1 event raised
             // ----------------------------------------------------------------------------------------------
@@ -156,9 +156,9 @@ export function utest_limit_alarm(test: any): void {
 
             // in this case we are reusing an existing alarm
             // Note: We need to check if in this case we need to create a branch as well
-            spyOnEvent.getCalls()[1].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
-            spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.nullNodeId);
-            const call1_eventId = spyOnEvent.getCalls()[1].args[0].eventId.toString();
+            spyOnEvent.getCalls()[1].args[0]["message"].value.text.should.eql("Condition value is -9 and state is Low");
+            spyOnEvent.getCalls()[1].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
+            const call1_eventId = spyOnEvent.getCalls()[1].args[0]["eventId"].toString();
 
             call1_eventId.should.not.eql(call0_eventId, "Event Id must be different");
 
@@ -170,20 +170,20 @@ export function utest_limit_alarm(test: any): void {
             alarm.activeState.getValue().should.eql(false);
             spyOnEvent.callCount.should.eql(4);
 
-            const call2_eventId = spyOnEvent.getCalls()[2].args[0].eventId.toString();
-            const call3_eventId = spyOnEvent.getCalls()[3].args[0].eventId.toString();
+            const call2_eventId = spyOnEvent.getCalls()[2].args[0]["eventId"].toString();
+            const call3_eventId = spyOnEvent.getCalls()[3].args[0]["eventId"].toString();
 
             // The state reverts to normal but previous alarms has not been acknowledged, therefore we receive 2 events
             // one for the new branch created with a snapshot version of the current state, and an other one
             // with the null branch
-            spyOnEvent.getCalls()[3].args[0].message.value.text.should.eql("Back to normal");
-            spyOnEvent.getCalls()[3].args[0].branchId.value.should.eql(NodeId.nullNodeId);
+            spyOnEvent.getCalls()[3].args[0]["message"].value.text.should.eql("Back to normal");
+            spyOnEvent.getCalls()[3].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
             call3_eventId.should.not.eql(call0_eventId, "Event Id must be different");
             call3_eventId.should.not.eql(call1_eventId, "Event Id must be different");
 
             // checking the created branch
-            spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Condition value is -9 and state is Low");
-            spyOnEvent.getCalls()[2].args[0].branchId.value.should.not.eql(NodeId.nullNodeId);
+            spyOnEvent.getCalls()[2].args[0]["message"].value.text.should.eql("Condition value is -9 and state is Low");
+            spyOnEvent.getCalls()[2].args[0]["branchId"].value.should.not.eql(NodeId.nullNodeId);
             call2_eventId.should.not.eql(call0_eventId, "Event Id must be different");
             call2_eventId.should.not.eql(call1_eventId, "Event Id must be different");
 
@@ -194,8 +194,8 @@ export function utest_limit_alarm(test: any): void {
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(5);
-            spyOnEvent.getCalls()[4].args[0].message.value.text.should.eql("Condition value is 11 and state is High");
-            spyOnEvent.getCalls()[4].args[0].branchId.value.should.eql(NodeId.nullNodeId);
+            spyOnEvent.getCalls()[4].args[0]["message"].value.text.should.eql("Condition value is 11 and state is High");
+            spyOnEvent.getCalls()[4].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
 
             // InputNode goes very very high  - alarm stays active - state changes to HighHigh - 1 event raised
             // --------------------------------------------------------------------------------------------------
@@ -204,8 +204,8 @@ export function utest_limit_alarm(test: any): void {
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(6);
-            spyOnEvent.getCalls()[5].args[0].message.value.text.should.eql("Condition value is 200 and state is HighHigh");
-            spyOnEvent.getCalls()[5].args[0].branchId.value.should.eql(NodeId.nullNodeId);
+            spyOnEvent.getCalls()[5].args[0]["message"].value.text.should.eql("Condition value is 200 and state is HighHigh");
+            spyOnEvent.getCalls()[5].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
 
             setVariableValue(11);
             setVariableValue(4);
@@ -283,7 +283,7 @@ export function utest_limit_alarm(test: any): void {
             setVariableValue(0);
         });
 
-        it("Alarm should not trigger event if state change but enableState is false", () => {
+        it("Alarm should not trigger event if state change but enabledState is false", () => {
             setVariableValue(0);
 
             const alarm = addressSpace.getOwnNamespace().instantiateNonExclusiveLimitAlarm("NonExclusiveLimitAlarmType", {
@@ -311,15 +311,15 @@ export function utest_limit_alarm(test: any): void {
             setVariableValue(-100);
             spyOnEvent.callCount.should.eql(1); // LOW LOW & LOW
 
-            spyOnEvent.getCall(0).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
+            spyOnEvent.getCall(0).args[0]["eventType"].value.toString().should.eql("ns=0;i=9906");
             dumpEvent(addressSpace, fields, spyOnEvent.getCall(0).args[0]);
 
             setVariableValue(0);
             spyOnEvent.callCount.should.eql(3); // BACK TO NORMAL ??
 
             // We have 2 events here because a branch has been created
-            spyOnEvent.getCall(1).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
-            spyOnEvent.getCall(2).args[0].eventType.value.toString().should.eql("ns=0;i=9906");
+            spyOnEvent.getCall(1).args[0]["eventType"].value.toString().should.eql("ns=0;i=9906");
+            spyOnEvent.getCall(2).args[0]["eventType"].value.toString().should.eql("ns=0;i=9906");
 
             if (doDebug) {
                 dumpEvent(addressSpace, fields, spyOnEvent.getCall(1).args[0]);
@@ -331,7 +331,7 @@ export function utest_limit_alarm(test: any): void {
             if (doDebug) {
                 dumpEvent(addressSpace, fields, spyOnEvent.getCall(3).args[0]);
             }
-            // should not trigger event if state change but enableState is false
+            // should not trigger event if state change but enabledState is false
             setVariableValue(-100);
             spyOnEvent.callCount.should.eql(4); // no more new EVENT, as alarm is disabled
 
@@ -346,7 +346,7 @@ export function utest_limit_alarm(test: any): void {
             // xx debugLog(spyOnEvent.getCall(4).args[0]);
             spyOnEvent
                 .getCall(4)
-                .args[0].message.value.text.should.eql(
+                .args[0]["message"].value.text.should.eql(
                     "Condition value is -100 and state is " + '{"highHigh":false,"high":false,"low":true,"lowLow":true}'
                 );
 
@@ -357,11 +357,11 @@ export function utest_limit_alarm(test: any): void {
             // the branch
             spyOnEvent
                 .getCall(6)
-                .args[0].message.value.text.should.eql(
+                .args[0]["message"].value.text.should.eql(
                     "Condition value is -100 and state is" + ' {"highHigh":false,"high":false,"low":true,"lowLow":true}'
                 );
 
-            spyOnEvent.getCall(7).args[0].message.value.text.should.eql("Back to normal");
+            spyOnEvent.getCall(7).args[0]["message"].value.text.should.eql("Back to normal");
 
             source.removeListener("on", spyOnEvent);
         });
@@ -544,7 +544,7 @@ export function utest_limit_alarm(test: any): void {
                     dataType
                 });
 
-               (function instantiateExclusiveLimitAlarm() {
+                (function instantiateExclusiveLimitAlarm() {
                     const alarm = namespace.instantiateExclusiveLimitAlarm("ExclusiveLimitAlarmType", {
                         browseName: "MyExclusiveAlarm",
                         conditionSource: source,
@@ -554,7 +554,7 @@ export function utest_limit_alarm(test: any): void {
                         lowLimit: 1.0,
                         lowLowLimit: -10.0
                     });
-                }).should.throw(Error, /inputNode must be of type /);
+                }.should.throw(Error, /inputNode must be of type /));
             });
         });
     });

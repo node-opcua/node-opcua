@@ -543,9 +543,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n serverNonce  ............. : " + (this.serverNonce ? this.serverNonce.toString("hex") : "null");
         str += "\n clientNonce  ............. : " + (this.clientNonce ? this.clientNonce.toString("hex") : "null");
         str += "\n transportTimeout ......... : " + this.transportTimeout;
-        str += "\n maxMessageSize (to send..) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
-        str += "\n maxChunkCount  (to send..) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
-        str += "\n receiveBufferSize(server)  : " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
+        str += "\n transportParameters: ..... : " + this.transportTimeout;
+        str += "\n   maxMessageSize (to send) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
+        str += "\n   maxChunkCount  (to send) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
+        str += "\n   receiveBufferSize(server): " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
         str += "\n";
         return str;
     }

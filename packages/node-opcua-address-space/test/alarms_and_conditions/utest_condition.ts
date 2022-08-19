@@ -275,30 +275,32 @@ export function utest_condition(test: any): void {
 
                 // An event should have been raised to specify that the condition has entered a Disabled State
                 spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal Disabled State");
-                // xx console.log( spyOnEvent.getCalls()[1].args[0]);
-                spyOnEvent.getCalls()[1].args[0].branchId.value.should.eql(NodeId.nullNodeId);
+                
+                // console.log( spyOnEvent.getCalls()[1].args[0]);
+                
+                spyOnEvent.getCalls()[1].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
                 spyOnEvent
                     .getCalls()[1]
-                    .args[0].message.toString()
+                    .args[0]["message"].toString()
                     .should.eql("Variant(Scalar<StatusCode>, value: BadConditionDisabled (0x80990000))");
 
                 // In a disabled state those value must be provided
                 // EventId, EventType, Source Node, Source Name, Time, and EnabledState.
-                spyOnEvent.getCalls()[1].args[0].enabledState.value.text.should.eql("Disabled");
+                spyOnEvent.getCalls()[1].args[0]["enabledState"].value.text.should.eql("Disabled");
                 spyOnEvent.getCalls()[1].args[0]["enabledState.id"].value.should.eql(false);
                 spyOnEvent.getCalls()[1].args[0]["enabledState.effectiveDisplayName"].value.text.should.eql("Disabled");
                 spyOnEvent.getCalls()[1].args[0]["enabledState.transitionTime"].value.should.be.instanceof(Date);
 
-                spyOnEvent.getCalls()[1].args[0].eventId.value.should.be.instanceof(Buffer);
-                spyOnEvent.getCalls()[1].args[0].sourceNode.value.should.be.instanceof(NodeId);
-                spyOnEvent.getCalls()[1].args[0].sourceName.value.should.eql("1:Motor.RPM");
-                spyOnEvent.getCalls()[1].args[0].time.value.should.be.instanceof(Date);
+                spyOnEvent.getCalls()[1].args[0]["eventId"].value.should.be.instanceof(Buffer);
+                spyOnEvent.getCalls()[1].args[0]["sourceNode"].value.should.be.instanceof(NodeId);
+                spyOnEvent.getCalls()[1].args[0]["sourceName"].value.should.eql("1:Motor.RPM");
+                spyOnEvent.getCalls()[1].args[0]["time"].value.should.be.instanceof(Date);
 
                 // any other shall return an BadConditionDisabled status Code
-                spyOnEvent.getCalls()[1].args[0].retain.value.should.eql(StatusCodes.BadConditionDisabled);
-                spyOnEvent.getCalls()[1].args[0].quality.value.should.eql(StatusCodes.BadConditionDisabled);
-                spyOnEvent.getCalls()[1].args[0].message.value.should.eql(StatusCodes.BadConditionDisabled);
-                spyOnEvent.getCalls()[1].args[0].comment.value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0]["retain"].value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0]["quality"].value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0]["message"].value.should.eql(StatusCodes.BadConditionDisabled);
+                spyOnEvent.getCalls()[1].args[0]["comment"].value.should.eql(StatusCodes.BadConditionDisabled);
 
                 // when the condition enter an enable state agin
                 statusCode = condition.setEnabledState(true);
@@ -310,17 +312,17 @@ export function utest_condition(test: any): void {
 
                 // Note : the specs are not clear about wheither an specific event for enable state is required ....
                 spyOnEvent.callCount.should.eql(3, "an event should have been raised to signal Enabled State");
-                spyOnEvent.getCalls()[2].args[0].enabledState.value.text.should.eql("Enabled");
+                spyOnEvent.getCalls()[2].args[0]["enabledState"].value.text.should.eql("Enabled");
                 spyOnEvent.getCalls()[2].args[0]["enabledState.id"].value.should.eql(true);
                 spyOnEvent.getCalls()[2].args[0]["enabledState.effectiveDisplayName"].value.text.should.eql("Enabled");
                 spyOnEvent.getCalls()[2].args[0]["enabledState.transitionTime"].value.should.be.instanceof(Date);
 
-                spyOnEvent.getCalls()[2].args[0].branchId.value.should.eql(NodeId.nullNodeId);
+                spyOnEvent.getCalls()[2].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
 
-                spyOnEvent.getCalls()[2].args[0].retain.toString().should.eql("Variant(Scalar<Boolean>, value: true)");
-                spyOnEvent.getCalls()[2].args[0].quality.value.should.eql(StatusCodes.Good);
-                spyOnEvent.getCalls()[2].args[0].message.value.text.should.eql("Hello Message");
-                spyOnEvent.getCalls()[2].args[0].comment.value.text.should.eql("");
+                spyOnEvent.getCalls()[2].args[0]["retain"].toString().should.eql("Variant(Scalar<Boolean>, value: true)");
+                spyOnEvent.getCalls()[2].args[0]["quality"].value.should.eql(StatusCodes.Good);
+                spyOnEvent.getCalls()[2].args[0]["message"].value.text.should.eql("Hello Message");
+                spyOnEvent.getCalls()[2].args[0]["comment"].value.text.should.eql("");
 
                 condition.removeListener("on", spyOnEvent);
             });
@@ -589,16 +591,16 @@ export function utest_condition(test: any): void {
                 // Xx console.log(" EVENT ID :",       evtData.eventId.readValue().value.toString("hex"));
 
                 should.exist(evtData.eventId.value, "Event must have a unique eventId");
-                evtData.severity.value.should.eql(1235); // ,"the severity should match expecting severity");
-                evtData.quality.value.should.eql(StatusCodes.Good);
+                evtData["severity"].value.should.eql(1235); // ,"the severity should match expecting severity");
+                evtData["quality"].value.should.eql(StatusCodes.Good);
 
                 // the sourceName of the event should match the ConditionSourceNode
 
                 // xx todo evtData.getSourceName().text.should.eql(source.browseName.toString());
 
-                evtData.eventType.value.should.eql(myCustomConditionType.nodeId);
-                evtData.message.value.text.should.eql("Hello Message");
-                evtData.sourceNode.value.should.eql(source.nodeId);
+                evtData["eventType"].value.should.eql(myCustomConditionType.nodeId);
+                evtData["message"].value.text.should.eql("Hello Message");
+                evtData["sourceNode"].value.should.eql(source.nodeId);
 
                 // raise an other event
                 condition.raiseNewCondition({
@@ -613,9 +615,9 @@ export function utest_condition(test: any): void {
                 // xx console.log(" EVENT RECEIVED :", evtData1.sourceName.readValue().value.value);
                 // xx console.log(" EVENT ID :", evtData1.eventId.readValue().value.value.toString("hex"));
 
-                should(evtData1.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
-                evtData1.severity.value.should.eql(1000, "the severity should match expecting severity");
-                evtData1.quality.value.should.eql(StatusCodes.Bad);
+                should(evtData1["eventId"].value).not.eql(evtData["eventId"].value, "EventId must be different from previous one");
+                evtData1["severity"].value.should.eql(1000, "the severity should match expecting severity");
+                evtData1["quality"].value.should.eql(StatusCodes.Bad);
                 // raise with only severity
                 condition.raiseNewCondition({
                     severity: 1001
@@ -625,9 +627,9 @@ export function utest_condition(test: any): void {
                 // xx console.log(" EVENT RECEIVED :", evtData2.sourceName.readValue().value.value);
                 // xx console.log(" EVENT ID :", evtData2.eventId.readValue().value.value.toString("hex"));
 
-                should(evtData2.eventId.value).not.eql(evtData.eventId.value, "EventId must be different from previous one");
-                evtData2.severity.value.should.eql(1001, "the severity should match expecting severity");
-                evtData2.quality.value.should.eql(StatusCodes.Bad);
+                should(evtData2["eventId"].value).not.eql(evtData["eventId"].value, "EventId must be different from previous one");
+                evtData2["severity"].value.should.eql(1001, "the severity should match expecting severity");
+                evtData2["quality"].value.should.eql(StatusCodes.Bad);
             });
 
             describe("Condition Branches", () => {
@@ -696,7 +698,7 @@ export function utest_condition(test: any): void {
                                 //
                                 // spy_on_event.callCount.should.eql(4," expecting 3 events");
                                 for (let i = 0; i < spy_on_event.callCount; i++) {
-                                    const t = spy_on_event.getCall(i).args[0].eventType.toString();
+                                    const t = spy_on_event.getCall(i).args[0]["eventType"].toString();
                                     //    console.log(" i=",i,t)
                                 }
 
@@ -707,14 +709,14 @@ export function utest_condition(test: any): void {
                                 spy_on_event.getCall(0).args.length.should.eql(1);
                                 spy_on_event
                                     .getCall(0)
-                                    .args[0].eventType.toString()
+                                    .args[0]["eventType"].toString()
                                     .should.eql("Variant(Scalar<NodeId>, value: RefreshStartEventType (ns=0;i=2787))");
 
                                 // xx console.log("spy_on_event.getCall(0).args[0]=",spy_on_event.getCall(1).args[0]);
                                 spy_on_event.getCall(1).thisValue.browseName.toString().should.eql("Server");
                                 spy_on_event
                                     .getCall(1)
-                                    .args[0].eventType.value.toString()
+                                    .args[0]["eventType"].value.toString()
                                     .should.eql(myCustomConditionType.nodeId.toString());
 
                                 const last = spy_on_event.callCount - 1;
@@ -722,7 +724,7 @@ export function utest_condition(test: any): void {
                                 spy_on_event.getCall(last).thisValue.browseName.toString().should.eql("Server");
                                 spy_on_event
                                     .getCall(last)
-                                    .args[0].eventType.toString()
+                                    .args[0]["eventType"].toString()
                                     .should.eql("Variant(Scalar<NodeId>, value: RefreshEndEventType (ns=0;i=2788))");
                             }
                         );

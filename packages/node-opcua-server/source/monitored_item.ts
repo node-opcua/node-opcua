@@ -4,16 +4,9 @@
 import { EventEmitter } from "events";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import {
-    BaseNode,
-    IEventData,
-    extractEventFields,
-    makeAttributeEventName,
-    SessionContext,
-    UAVariable,
-    checkWhereClause,
-    AddressSpace
-} from "node-opcua-address-space";
+import { BaseNode, IEventData, makeAttributeEventName, SessionContext, UAVariable, AddressSpace } from "node-opcua-address-space";
+
+import { extractEventFields } from "node-opcua-service-filter";
 import { DateTime, UInt32 } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
@@ -61,6 +54,7 @@ import { sameVariant, Variant } from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
+import { checkWhereClauseOnAdressSpace } from "./filter/check_where_clause_on_address_space";
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
 
@@ -925,7 +919,7 @@ export class MonitoredItem extends EventEmitter {
 
         const addressSpace: AddressSpace = eventData.$eventDataSource?.addressSpace as AddressSpace;
 
-        if (!checkWhereClause(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
+        if (!checkWhereClauseOnAdressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
             return;
         }
 
