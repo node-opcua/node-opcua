@@ -35,7 +35,7 @@
       </Column>
       <Column column="1">
        <ItemData role="0" rolename="DisplayRole">
-        <Value typename="QString" type="10" data="opc.tcp://STERFIVEPC2:26543"/>
+        <Value typename="QString" type="10" data="opc.tcp://DESKTOP-F0VVBQ0:26543"/>
        </ItemData>
        <ChildRows size="0"/>
       </Column>
@@ -259,7 +259,7 @@
        <ItemData role="0" rolename="DisplayRole">
         <Value typename="QString" type="10" data="Capabilities"/>
        </ItemData>
-       <ChildRows size="11">
+       <ChildRows size="12">
         <Row row="0">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
@@ -656,6 +656,44 @@
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
            <Value typename="QString" type="10" data="The time in miliseconds which is needed by the server to ensure that the written value has been set in the underlying device."/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="2"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="11">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Max Browse Nodes"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="The MAXIMUM number of browse nodes used when building the object model. 0 = no maximum"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -1382,7 +1420,7 @@
                 <ItemData role="0" rolename="DisplayRole">
                  <Value typename="QString" type="10" data="Scalar"/>
                 </ItemData>
-                <ChildRows size="34">
+                <ChildRows size="33">
                  <Row row="0">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
@@ -2108,44 +2146,6 @@
                  <Row row="19">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="Time"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="1">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data=""/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="2">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="QString" type="10" data="The NodeId of a Node whose Value attribute is of type:TIME&lt;br>&lt;font color=&quot;blue&quot;>Access: Read/Write&lt;/font>&lt;br>&lt;font color=&quot;red&quot;>Leave empty if your system does not support this type&lt;/font>"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="3">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="1"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="4">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="0"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                  <Column column="5">
-                   <ItemData role="0" rolename="DisplayRole">
-                    <Value typename="int" type="2" data="5"/>
-                   </ItemData>
-                   <ChildRows size="0"/>
-                  </Column>
-                 </Row>
-                 <Row row="20">
-                  <Column column="0">
-                   <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="UInteger"/>
                    </ItemData>
                    <ChildRows size="0"/>
@@ -2181,7 +2181,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="21">
+                 <Row row="20">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="UtcTime"/>
@@ -2219,7 +2219,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="22">
+                 <Row row="21">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="UInt16"/>
@@ -2257,7 +2257,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="23">
+                 <Row row="22">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="UInt32"/>
@@ -2295,7 +2295,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="24">
+                 <Row row="23">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="UInt64"/>
@@ -2333,7 +2333,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="25">
+                 <Row row="24">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="XmlElement"/>
@@ -2371,7 +2371,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="26">
+                 <Row row="25">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="Variant"/>
@@ -2409,7 +2409,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="27">
+                 <Row row="26">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="Enumeration"/>
@@ -2447,7 +2447,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="28">
+                 <Row row="27">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="Image"/>
@@ -2485,7 +2485,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="29">
+                 <Row row="28">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="ImageBMP"/>
@@ -2523,7 +2523,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="30">
+                 <Row row="29">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="ImageGIF"/>
@@ -2561,7 +2561,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="31">
+                 <Row row="30">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="ImageJPG"/>
@@ -2599,7 +2599,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="32">
+                 <Row row="31">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="ImagePNG"/>
@@ -2637,7 +2637,7 @@
                    <ChildRows size="0"/>
                   </Column>
                  </Row>
-                 <Row row="33">
+                 <Row row="32">
                   <Column column="0">
                    <ItemData role="0" rolename="DisplayRole">
                     <Value typename="QString" type="10" data="Decimal"/>
@@ -13438,23 +13438,860 @@
        <ItemData role="0" rolename="DisplayRole">
         <Value typename="QString" type="10" data="Alarms and Conditions"/>
        </ItemData>
-       <ChildRows size="1">
+       <ChildRows size="4">
         <Row row="0">
          <Column column="0">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Processing Time"/>
+           <Value typename="QString" type="10" data="Supported Condition Types"/>
           </ItemData>
-          <ChildRows size="0"/>
+          <ChildRows size="19">
+           <Row row="0">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ConditionType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for ConditionType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="1">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="AcknowledgeableConditionType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for AcknowledgeableConditionType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="2">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="AlarmConditionType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for AlarmConditionType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="3">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="DiscrepancyAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for DiscrepancyAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="4">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="LimitAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for LimitAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="5">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ExclusiveLimitAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for ExclusiveLimitAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="6">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ExclusiveLevelAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for ExclusiveLevelAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="7">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ExclusiveDeviationAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for ExclusiveDeviationAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="8">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Exclusive Deviation Setpoint Source"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Setpoint Source Nodes to monitor for ExclusiveDeviationAlarmType"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="9">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="ExclusiveRateOfChangeAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for ExclusiveRateOfChangeAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="10">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NonExclusiveLimitAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for NonExclusiveLimitAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="11">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NonExclusiveLevelAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for NonExclusiveLevelAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="12">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NonExclusiveDeviationAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for NonExclusiveDeviationAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="13">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NonExclusive Deviation Setpoint Source"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Setpoint Source Nodes to monitor for NonExclusiveDeviationAlarmType"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="14">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="NonExclusiveRateOfChangeAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for NonExclusiveRateOfChangeAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="15">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="DiscreteAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for DiscreteAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="16">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="OffNormalAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for OffNormalAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="17">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="SystemOffNormalAlarmType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for SystemOffNormalAlarmType and Derived Alarm Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+           <Row row="18">
+            <Column column="0">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="DialogConditionType Sources"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="1">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data=""/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="2">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="QString" type="10" data="Source Nodes to monitor for DialogConditionType and Derived Type Events"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="3">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="1"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="4">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+            <Column column="5">
+             <ItemData role="0" rolename="DisplayRole">
+              <Value typename="int" type="2" data="0"/>
+             </ItemData>
+             <ChildRows size="0"/>
+            </Column>
+           </Row>
+          </ChildRows>
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="60000"/>
+           <Value typename="QString" type="10" data=""/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="The time in milliseconds that an Alarm Conformance Unit Tests will wait for all conditions"/>
+           <Value typename="QString" type="10" data=""/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="1">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Alarm Cycle Time"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="60"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="The time in seconds that an Alarm Condition will typically complete a cycle through all states"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="2"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="2">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Time Tolerance"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="1000"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="The time in milliseconds that an Event can be different from the Source data change"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="3">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="1"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="4">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="0"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="5">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="int" type="2" data="2"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+        </Row>
+        <Row row="3">
+         <Column column="0">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="Maximum Event Count"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="1">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="100000"/>
+          </ItemData>
+          <ChildRows size="0"/>
+         </Column>
+         <Column column="2">
+          <ItemData role="0" rolename="DisplayRole">
+           <Value typename="QString" type="10" data="The maximum number of events to keep before discarding"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -20674,7 +21511,7 @@
          </Column>
          <Column column="1">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="&quot;http://opcfoundation.org/UA/&quot;, &quot;urn:STERFIVEPC2:NodeOPCUA-Server-for-CTT&quot;, &quot;http://opcfoundation.org/UA/DI/&quot;, &quot;http://opcfoundation.org/UA/ADI/&quot;, &quot;http://opcfoundation.org/UA/AutoID/&quot;, &quot;http://opcfoundation.org/UA/MachineVision&quot;, &quot;http://opcfoundation.org/UA/Robotics/&quot;, &quot;http://opcfoundation.org/UA/CommercialKitchenEquipment/&quot;, &quot;urn://node-opcua-simulator&quot;, &quot;http://sterfive.com/UA/CoffeeMachine/&quot;"/>
+           <Value typename="QString" type="10" data="&quot;http://opcfoundation.org/UA/&quot;, &quot;urn:DESKTOP-F0VVBQ0:NodeOPCUA-Server-for-CTT&quot;, &quot;http://opcfoundation.org/UA/DI/&quot;, &quot;http://opcfoundation.org/UA/ADI/&quot;, &quot;http://opcfoundation.org/UA/AutoID/&quot;, &quot;http://opcfoundation.org/UA/MachineVision&quot;, &quot;http://opcfoundation.org/UA/Robotics/&quot;, &quot;http://opcfoundation.org/UA/CommercialKitchenEquipment/&quot;, &quot;urn://node-opcua-simulator&quot;, &quot;http://sterfive.com/UA/CoffeeMachine/&quot;"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -21559,7 +22396,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to suppress the verification of the certificate's validity regarding the expiry date/time. A server may be configured to allow connections using trusted but expired certificates.&lt;br>&lt;font color=red>In the lab this check will not be disabled.&lt;/font>"/>
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to suppress the verification of the certificate's validity regarding the expiry date/time. A server may be configured to allow connections using trusted but expired certificates.&lt;br>&lt;font color=red>When the CTT is run in the lab, none of these flags will be checked.&lt;/font>"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -21597,7 +22434,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to suppress errors caused by unavailable revocation list. If this flag is not set the server must have a revocation list (even an empty one) for each and every one trusted CA.&lt;br>&lt;font color=red>In the lab this check will not be disabled.&lt;/font>"/>
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to suppress errors caused by unavailable revocation list. If this flag is not set the server must have a revocation list (even an empty one) for each and every one trusted CA.&lt;br>&lt;font color=red>When the CTT is run in the lab, none of these flags will be checked.&lt;/font>"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -21635,7 +22472,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to ignore informational content of a certificate. Server can be configured to suppress set of optional uses of the certificate.&lt;br>&lt;font color=red>In the lab this check will not be disabled.&lt;/font>"/>
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to ignore informational content of a certificate. Server can be configured to suppress set of optional uses of the certificate.&lt;br>&lt;font color=red>When the CTT is run in the lab, none of these flags will be checked.&lt;/font>"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
@@ -21673,7 +22510,7 @@
          </Column>
          <Column column="2">
           <ItemData role="0" rolename="DisplayRole">
-           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to ignore domain- and/or hostname mismatch when comparing the URL used to connect with the content of the certificate. Note: most server will have this supression flag set, because they technically can not resolve the domain name of an incoming service call and by this can not compare it to match the domain name in the certificate.&lt;br>&lt;font color=red>In the lab this check will not be disabled.&lt;/font>"/>
+           <Value typename="QString" type="10" data="Set this flag to reflect that the server is configured to ignore domain- and/or hostname mismatch when comparing the URL used to connect with the content of the certificate.&lt;br>&lt;font color=red>When the CTT is run in the lab, none of these flags will be checked.&lt;/font>"/>
           </ItemData>
           <ChildRows size="0"/>
          </Column>
