@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
+import { DataType } from "node-opcua-basic-types";
 import { NodeId } from "node-opcua-nodeid";
 import { ClientAlarm, EventStuff } from "./client_alarm";
 

@@ -7,7 +7,6 @@ export * from "../source/helpers/dump_tools";
 export * from "../source/helpers/adjust_browse_direction";
 export * from "../source/pseudo_session";
 export * from "../source/helpers/make_optionals_map";
-export * from "../source/helpers/check_event_clause";
 export * from "../source/helpers/argument_list";
 export * from "../source/helpers/call_helpers";
 export * from "../source/helpers/ensure_secure_access";

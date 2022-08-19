@@ -7,34 +7,17 @@ import {
     AttributeOperand,
     ElementOperand
 } from "node-opcua-types";
+import { ExtensionObject } from "node-opcua-extension-object";
 import { DataType, Variant } from "node-opcua-variant";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import {
-    BaseNode,
-    IAddressSpace,
-    IEventData,
-    ISessionContext,
-    UADataType,
-    UAObject,
-    UAObjectType,
-    UAReferenceType,
-    UAVariable,
-    UAVariableType
-} from "node-opcua-address-space-base";
 import { make_warningLog } from "node-opcua-debug";
-
+//
+import { FilterContext } from "./filter_context";
 import { resolveOperand } from "./resolve_operand";
-import { extractEventFields } from "./extract_event_fields";
 
 const warningLog = make_warningLog("Filter");
 
-export interface FilterContext {
-    addressSpace: IAddressSpace;
-    sessionContext: ISessionContext;
-    rootNode: BaseNode;
-    extractValue?(operatand: SimpleAttributeOperand | AttributeOperand): Variant;
-}
 function _coerceToBoolean(value: Variant | number | string | null | boolean): boolean {
     if (value instanceof Variant) {
         return _coerceToBoolean(value.value);
@@ -64,9 +47,9 @@ function evaluateOperand<T>(
     coerce: (value: any) => T
 ): T {
     if (operand instanceof AttributeOperand) {
-        return coerce(extractValue(filterContext, operand));
+        return coerce(resolveOperand(filterContext, operand));
     } else if (operand instanceof SimpleAttributeOperand) {
-        return coerce(extractValue(filterContext, operand));
+        return coerce(resolveOperand(filterContext, operand));
     } else if (operand instanceof LiteralOperand) {
         return coerce(operand.value);
     } else if (operand instanceof ElementOperand) {
@@ -77,67 +60,49 @@ function evaluateOperand<T>(
     return coerce(null);
 }
 
-// eslint-disable-next-line complexity
-function checkOfType(filterContext: FilterContext, ofType: LiteralOperand | undefined): boolean {
+function checkOfType(filterContext: FilterContext, ofType: ExtensionObject | null): boolean {
     // istanbul ignore next
-    if (!ofType) {
-        throw new Error("invalid operand");
+    if (!ofType || !(ofType instanceof LiteralOperand)) {
+        warningLog("checkOfType : unsupported case ! ofType is not a LiteralOperand , ofType = ", ofType?.toString());
+        return false;
     }
     // istanbul ignore next
     if (ofType.value.dataType !== DataType.NodeId) {
-        throw new Error("invalid operand type (expecting NodeId); got " + DataType[ofType.value.dataType]);
+        warningLog("invalid operand type (expecting NodeId); got " + DataType[ofType.value.dataType]);
+        return false;
     }
 
-    const ofTypeNode = filterContext.addressSpace.findNode(ofType.value.value);
-
+    const ofTypeNode: NodeId = ofType.value.value;
     // istanbul ignore next
     if (!ofTypeNode) {
         return false; // the ofType node is not known, we don't know what to do
     }
+    const ofTypeNodeNodeClass = filterContext.getNodeClass(ofTypeNode);
 
     // istanbul ignore next
     if (
-        ofTypeNode.nodeClass !== NodeClass.ObjectType &&
-        ofTypeNode.nodeClass !== NodeClass.VariableType &&
-        ofTypeNode.nodeClass !== NodeClass.DataType &&
-        ofTypeNode.nodeClass !== NodeClass.ReferenceType
+        ofTypeNodeNodeClass !== NodeClass.ObjectType &&
+        ofTypeNodeNodeClass !== NodeClass.VariableType &&
+        ofTypeNodeNodeClass !== NodeClass.DataType &&
+        ofTypeNodeNodeClass !== NodeClass.ReferenceType
     ) {
-        throw new Error("operand should be a ObjectType " + ofTypeNode.nodeId.toString());
-    }
-    const node = filterContext.rootNode;
-
-    if (!node) {
-        warningLog("invalid filterContext.rootNode - must be specifed ");
+        warningLog("operand should be a ObjectType " + ofTypeNode.toString());
         return false;
     }
 
-    if (node.nodeClass === NodeClass.ObjectType) {
-        if (ofTypeNode.nodeClass !== NodeClass.ObjectType) return false;
-        return (node as UAObjectType).isSupertypeOf(ofTypeNode as UAObjectType);
+    if (!filterContext.eventSource || filterContext.eventSource.isEmpty()) {
+        return false;
     }
-    if (node.nodeClass === NodeClass.VariableType) {
-        if (ofTypeNode.nodeClass !== NodeClass.VariableType) return false;
-        return (node as UAVariableType).isSupertypeOf(ofTypeNode as UAVariableType);
+
+    let sourceTypeDefinition = filterContext.eventSource;
+    const sourceNodeClass = filterContext.getNodeClass(filterContext.eventSource);
+    if (sourceNodeClass === NodeClass.Object || sourceNodeClass === NodeClass.Variable) {
+        sourceTypeDefinition = filterContext.getTypeDefinition(filterContext.eventSource)!;
+        if (!sourceTypeDefinition) {
+            return false;
+        }
     }
-    if (node.nodeClass === NodeClass.ReferenceType) {
-        if (ofTypeNode.nodeClass !== NodeClass.ReferenceType) return false;
-        return (node as UAReferenceType).isSupertypeOf(ofTypeNode as UAReferenceType);
-    }
-    if (node.nodeClass === NodeClass.DataType) {
-        if (ofTypeNode.nodeClass !== NodeClass.DataType) return false;
-        return (node as UADataType).isSupertypeOf(ofTypeNode as UADataType);
-    }
-    if (node.nodeClass === NodeClass.Object) {
-        if (ofTypeNode.nodeClass !== NodeClass.ObjectType) return false;
-        const obj = node as UAObject;
-        return obj.typeDefinitionObj.isSupertypeOf(ofTypeNode as UAObjectType);
-    }
-    if (node.nodeClass === NodeClass.Variable) {
-        if (ofTypeNode.nodeClass !== NodeClass.VariableType) return false;
-        const obj = node as UAVariable;
-        return obj.typeDefinitionObj.isSupertypeOf(ofTypeNode as UAVariableType);
-    }
-    return false;
+    return filterContext.isSubtypeOf(sourceTypeDefinition, ofTypeNode);
 }
 
 function checkNot(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
@@ -211,7 +176,14 @@ function checkBetween(filterContext: FilterContext, filter: ContentFilter, filte
     return operandA >= operandLow && operandA <= operandHigh;
 }
 
-function checkInList(filterContext: FilterContext, filterOperands: FilterOperand[]): boolean {
+/**
+ * 
+ * InList
+ * TRUE if operand[0] is equal to one or more of the remaining operands.
+ * The Equals Operator is evaluated for operand[0] and each remaining operand in the
+ * list. If any Equals evaluation is TRUE, InList returns TRUE
+ x*/
+function checkInList(context: FilterContext, filterOperands: FilterOperand[]): boolean {
     const operand0 = filterOperands[0];
 
     // istanbul ignore next
@@ -220,7 +192,7 @@ function checkInList(filterContext: FilterContext, filterOperands: FilterOperand
         warningLog("FilterOperator.InList operand0 is not a SimpleAttributeOperand " + operand0.constructor.name);
         return false;
     }
-    const value = extractValue(filterContext, operand0);
+    const value = resolveOperand(context, operand0);
 
     // istanbul ignore next
     if (value.dataType !== DataType.NodeId) {
@@ -235,13 +207,15 @@ function checkInList(filterContext: FilterContext, filterOperands: FilterOperand
     }
 
     function _is(nodeId1: NodeId, operandX: LiteralOperand): boolean {
-        const operandNode = filterContext.addressSpace.findNode(operandX.value.value as NodeId);
-
-        // istanbul ignore next
-        if (!operandNode) {
+        if (operandX.value.dataType !== DataType.NodeId) {
             return false;
         }
-        return sameNodeId(nodeId1, operandNode.nodeId);
+        const nodeId2 = operandX.value.value as NodeId;
+        const nodeClass = context.getNodeClass(nodeId2);
+        if (nodeClass === NodeClass.Unspecified) {
+            return false;
+        }
+        return sameNodeId(nodeId1, nodeId2);
     }
 
     for (let i = 1; i < filterOperands.length; i++) {
@@ -288,7 +262,7 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
             return checkNot(filterContext, filter, filterOperands);
 
         case FilterOperator.OfType:
-            return checkOfType(filterContext, element.filterOperands![0] as LiteralOperand);
+            return checkOfType(filterContext, element.filterOperands![0]);
         case FilterOperator.InList:
             return checkInList(filterContext, filterOperands);
 
@@ -310,32 +284,4 @@ function checkFilterAtIndex(filterContext: FilterContext, filter: ContentFilter,
 
 export function checkFilter(filterContext: FilterContext, contentFilter: ContentFilter): boolean {
     return checkFilterAtIndex(filterContext, contentFilter, 0);
-}
-
-export function checkWhereClause(
-    addressSpace: IAddressSpace,
-    sessionContext: ISessionContext,
-    whereClause: ContentFilter,
-    eventData: IEventData
-): boolean {
-    const filterContext: FilterContext = {
-        addressSpace,
-        sessionContext,
-        rootNode: eventData.$eventDataSource!,
-        extractValue(operand: FilterOperand) {
-            if (operand instanceof SimpleAttributeOperand) {
-                return extractEventFields(filterContext.sessionContext, [operand], eventData)[0];
-            } else {
-                return new Variant({ dataType: DataType.Null });
-            }
-        }
-    };
-    return checkFilter(filterContext, whereClause);
-}
-
-export function extractValue(filterContext: FilterContext, operand: SimpleAttributeOperand | AttributeOperand): Variant {
-    if (filterContext.extractValue) {
-        return filterContext.extractValue(operand);
-    }
-    return resolveOperand(filterContext.addressSpace, filterContext.rootNode, operand);
 }

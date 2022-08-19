@@ -8,7 +8,7 @@ import { assert } from "node-opcua-assert";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { EventFilter } from "node-opcua-service-filter";
 import { ReadValueId, ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
@@ -29,6 +29,7 @@ import { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItem_create, ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export type PrepareForMonitoringResult =
@@ -216,8 +217,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         try {
             this.emit("changed", eventFields);
         } catch (err) {
-            debugLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            debugLog("Please verify the application using this node-opcua client");
+            warningLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
+            warningLog("Please verify the application using this node-opcua client");
         }
     }
 

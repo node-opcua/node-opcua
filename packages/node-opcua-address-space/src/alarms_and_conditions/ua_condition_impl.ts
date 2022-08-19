@@ -1123,11 +1123,11 @@ function _add_comment_method(
     callback: CallbackT<CallMethodResultOptions>
 ) {
     //
-    // The AddComment Method is used to apply a comment to a specific state of a Condition
-    // instance. Normally, the NodeId of the object instance as the ObjectId is passed to the Call
-    // Service. However, some Servers do not expose Condition instances in the AddressSpace.
-    // Therefore all Servers shall also allow Clients to call the AddComment Method by specifying
-    // ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the
+    // The AddComment Method is used to apply a comment to a specific state of a Condition 
+    // instance. Normally, the NodeId of the Object instance is passed as the ObjectId to the Call 
+    // Service. However, some Servers do not expose Condition instances in the AddressSpace. 
+    // Therefore, all Servers shall also allow Clients to call the AddComment Method by specifying 
+    // ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the 
     // ConditionType Node.
     // Signature
     //   - EventId EventId identifying a particular Event Notification where a state was reported for a

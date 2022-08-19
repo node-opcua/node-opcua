@@ -6,9 +6,7 @@
 import { EventEmitter } from "events";
 import * as chalk from "chalk";
 
-import { AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
-import { checkSelectClauses } from "node-opcua-address-space";
-import { SessionContext } from "node-opcua-address-space";
+import { SessionContext,AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { Byte, UInt32 } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
@@ -18,7 +16,7 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { SequenceNumberGenerator } from "node-opcua-secure-channel";
-import { EventFilter } from "node-opcua-service-filter";
+import { EventFilter, checkSelectClauses } from "node-opcua-service-filter";
 import { AggregateFilter } from "node-opcua-service-subscription";
 import {
     DataChangeNotification,

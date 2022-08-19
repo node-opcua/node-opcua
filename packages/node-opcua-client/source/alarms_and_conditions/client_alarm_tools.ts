@@ -3,8 +3,8 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { constructEventFilter } from "node-opcua-service-filter";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { Variant } from "node-opcua-variant";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { DataType, Variant } from "node-opcua-variant";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientSubscription } from "../client_subscription";
@@ -16,6 +16,7 @@ import { callConditionRefresh } from "./client_tools";
 
 const doDebug = checkDebugFlag("A&E");
 const debugLog = make_debugLog("A&E");
+const warningLog = make_warningLog("A&E");
 
 function r(_key: string, o: { dataType?: unknown; value?: unknown }) {
     if (o && o.dataType === "Null") {
@@ -67,7 +68,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     _sessionPriv.$clientAlarmList = clientAlarmList;
 
     const request: CreateSubscriptionRequestOptions = {
-        maxNotificationsPerPublish: 10000,
+        maxNotificationsPerPublish: 100,
         priority: 6,
         publishingEnabled: true,
         requestedLifetimeCount: 10000,
@@ -110,8 +111,13 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     let inInit = true;
     eventMonitoringItem.on("changed", (eventFields: Variant[]) => {
-        debugLog("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED");
         const pojo = fieldsToJson(fields, eventFields) as EventStuff;
+        debugLog(
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED " +
+                pojo.eventType.value.toString() +
+                " " +
+                pojo.eventId.value?.toString("hex")
+        );
         try {
             if (pojo.eventType.value.toString() === RefreshStartEventType) {
                 return;
@@ -119,8 +125,14 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
             if (pojo.eventType.value.toString() === RefreshEndEventType) {
                 return;
             }
-            if (!pojo.conditionId || !pojo.conditionId.value || pojo.conditionId.dataType === 0) {
+            if (!pojo.conditionId || !pojo.conditionId.value || pojo.conditionId.dataType === DataType.Null) {
                 // not a acknowledgeable condition
+                warningLog(
+                    " not acknowledgeable condition ---- " + pojo.eventType.value.toString() + " ",
+                    pojo.conditionId,
+                    (pojo as any).conditionName.value,
+                    " " + pojo.eventId.value?.toString("hex")
+                );
                 return;
             }
             queueEvent.push(pojo);
@@ -128,10 +140,8 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
                 setTimeout(() => flushQueue(), 10);
             }
         } catch (err) {
-            // tslint:disable-next-line: no-console
-            console.log(JSON.stringify(pojo, r, " "));
-            // tslint:disable-next-line: no-console
-            console.log("Error !!", err);
+            warningLog(JSON.stringify(pojo, r, " "));
+            warningLog("Error !!", err);
         }
 
         // Release 1.04 8 OPC Unified Architecture, Part 9
@@ -150,7 +160,11 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     try {
         await callConditionRefresh(subscription);
     } catch (err) {
-        console.log("Server may not implement condition refresh", (<Error>err).message);
+        if ((err as Error).message.match(/BadNothingToDo/)) {
+            /** fine! nothing to do */
+        } else {
+            warningLog("Server may not implement condition refresh", (<Error>err).message);
+        }
     }
     _sessionPriv.$monitoredItemForAlarmList = eventMonitoringItem;
 

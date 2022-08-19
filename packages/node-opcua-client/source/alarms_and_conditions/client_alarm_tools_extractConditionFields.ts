@@ -113,7 +113,7 @@ export async function extractConditionFields(session: IBasicSession, conditionNo
     }
     await _investigateLevel(conditionNodeId);
 
-    // add this field which will always be added
-    addField("ConditionId");
+    //xx add this field which will always be added
+    //xx addField("ConditionId");
     return fields1;
 }

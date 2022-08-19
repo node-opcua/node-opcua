@@ -1,21 +1,35 @@
 /**
  * @module node-opcua-service-filter
  */
-// tslint:disable:object-literal-shorthand
-// tslint:disable:only-arrow-functions
-// tslint:disable:max-line-length
-
-import { assert } from "node-opcua-assert";
+import { DataType } from "node-opcua-basic-types";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, stringToQualifiedName } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { DataType, Variant } from "node-opcua-variant";
+import { makeNodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 
-import { EventFilter, SimpleAttributeOperand } from "./imports";
+import {
+    ContentFilterElementOptions,
+    ContentFilterOptions,
+    EventFilter,
+    FilterOperator,
+    LiteralOperand,
+    SimpleAttributeOperand
+} from "./imports";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+export function ofType(nodeId: NodeIdLike): ContentFilterElementOptions {
+    const element: ContentFilterElementOptions = {
+        filterOperator: FilterOperator.OfType,
+        filterOperands: [
+            new LiteralOperand({
+                value: {
+                    dataType: DataType.NodeId,
+                    value: resolveNodeId(nodeId)
+                }
+            })
+        ]
+    };
+    return element;
+}
 
 /**
  * helper to construct event filters:
@@ -33,7 +47,7 @@ const doDebug = checkDebugFlag(__filename);
  *     constructEventFilter(["SourceName" ,"EnabledState.EffectiveDisplayName" ]);
  *
  */
-export function constructEventFilter(arrayOfNames: string[] | string, conditionTypes?: NodeId[] | NodeId): EventFilter {
+export function constructEventFilter(arrayOfNames: string[] | string, conditionTypes?: NodeIdLike[] | NodeIdLike): EventFilter {
     if (!Array.isArray(arrayOfNames)) {
         return constructEventFilter([arrayOfNames], conditionTypes);
     }
@@ -45,28 +59,15 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
         throw new Error("internal error");
     }
     // replace "string" element in the form A.B.C into [ "A","B","C"]
-    const arrayOfNames2 = arrayOfNames.map((path) => {
-        if (typeof path !== "string") {
-            return path;
-        }
-        return path.split(".");
-    });
+    const arrayOfNames2 = arrayOfNames.map((path) => (typeof path !== "string" ? path : path.split(".")));
 
-    const arrayOfNames3 = arrayOfNames2.map((path) => {
-        if (Array.isArray(path)) {
-            return path.map(stringToQualifiedName);
-        }
-        return path;
-    });
+    const arrayOfNames3 = arrayOfNames2.map((path) => (Array.isArray(path) ? path.map(stringToQualifiedName) : path));
+
     // replace "string" elements in arrayOfName with QualifiedName in namespace 0
-    const arrayOfNames4 = arrayOfNames3.map((s) => {
-        return typeof s === "string" ? stringToQualifiedName(s) : s;
-    });
+    const arrayOfNames4 = arrayOfNames3.map((s) => (typeof s === "string" ? stringToQualifiedName(s) : s));
 
     // construct browse paths array
-    const browsePaths = arrayOfNames4.map((s) => {
-        return Array.isArray(s) ? s : [s];
-    });
+    const browsePaths = arrayOfNames4.map((s) => (Array.isArray(s) ? s : [s]));
 
     // Part 4 page 127:
     // In some cases the same BrowsePath will apply to multiple EventTypes. If the Client specifies the BaseEventType
@@ -76,93 +77,65 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
     // The SimpleAttributeOperand structure allows the Client to specify any Attribute, however, the Server is only
     // required to support the Value Attribute for Variable Nodes and the NodeId Attribute for Object Nodes.
     // That said, profiles defined in Part 7 may make support for additional Attributes mandatory.
-    let selectClauses = browsePaths.map((browsePath) => {
+    const selectClauses = browsePaths.map((browsePath) => {
         return new SimpleAttributeOperand({
             attributeId: AttributeIds.Value,
             browsePath,
             indexRange: undefined, //  NumericRange
-            typeDefinitionId: makeNodeId(ObjectTypeIds.BaseEventType) // i=2041
+            typeDefinitionId: ObjectTypeIds.BaseEventType// i=2041
         });
     });
 
-    if (conditionTypes && conditionTypes instanceof Array) {
-        const extraSelectClauses = conditionTypes.map((nodeId) => {
-            return new SimpleAttributeOperand({
-                attributeId: AttributeIds.NodeId,
-                browsePath: undefined,
-                indexRange: undefined, //  NumericRange
-                typeDefinitionId: nodeId // conditionType for instance
+    // special case
+    //
+    // The NodeId of the Condition instance is used as ConditionId. It is not explicitly modelled as a
+    // component of the ConditionType. However, it can be requested with the following
+    // SimpleAttributeOperand (see Table 10) in the SelectClause of the EventFilter:
+    //
+    //  SimpleAttributeOperand
+    //  Name          Type          Description
+    //  typeId        NodeId        NodeId of the ConditionType Node
+    //  browsePath[]  QualifiedName empty
+    //  attributeId   IntegerId     Id of the NodeId Attribute
+    //
+    selectClauses.push(
+        new SimpleAttributeOperand({
+            attributeId: AttributeIds.NodeId,
+            browsePath: null,
+            indexRange: undefined, //  NumericRange
+            typeDefinitionId:ObjectTypeIds.ConditionType // i=2782
+        })
+    );
+
+    let whereClause: ContentFilterOptions | undefined;
+    if (conditionTypes && conditionTypes instanceof Array && conditionTypes.length >= 1) {
+        if (conditionTypes.length === 1) {
+            whereClause = {
+                elements: [ofType(conditionTypes[0])]
+            };
+        } else {
+            const whereClauseOfTypeArgs = conditionTypes.map((nodeId) => {
+                return new SimpleAttributeOperand({
+                    attributeId: AttributeIds.NodeId,
+                    browsePath: undefined,
+                    indexRange: undefined, //  NumericRange
+                    typeDefinitionId: resolveNodeId(nodeId) // conditionType for instance
+                });
             });
-        });
-        selectClauses = selectClauses.concat(extraSelectClauses);
+            whereClause = {
+                elements: [
+                    {
+                        filterOperator: FilterOperator.InList,
+                        filterOperands: whereClauseOfTypeArgs
+                    }
+                ]
+            };
+        }
     }
 
     const filter = new EventFilter({
         selectClauses,
-        whereClause: {
-            // ContentFilter
-            elements: [
-                // ContentFilterElement
-                // {
-                //    filterOperator: FilterOperator.IsNull,
-                //    filterOperands: [ //
-                //        new ElementOperand({
-                //            index: 123
-                //        }),
-                //        new AttributeOperand({
-                //            nodeId: "i=10",
-                //            alias: "someText",
-                //            browsePath: { //RelativePath
-                //
-                //            },
-                //            attributeId: AttributeIds.Value
-                //        })
-                //    ]
-                // }
-            ]
-        }
+        whereClause
     });
     return filter;
-}
-
-/**
- * @class SimpleAttributeOperand
- * @method toPath
- * @return {String}
- *
- * @example:
- *
- *
- */
-function simpleAttributeOperandToPath(self: SimpleAttributeOperand): string {
-    if (!self.browsePath) {
-        return "";
-    }
-    return self.browsePath
-        .map((a) => {
-            return a.name;
-        })
-        .join("/");
-}
-
-/**
- * @class SimpleAttributeOperand
- * @method toShortString
- * @return {String}
- *
- * @example:
- *
- *
- */
-export function simpleAttributeOperandToShortString(
-    self: SimpleAttributeOperand,
-    addressSpace: any // Address Space
-): string {
-    let str = "";
-    if (addressSpace) {
-        const n = addressSpace.findNode(self.typeDefinitionId)!;
-        str += n.BrowseName.toString();
-    }
-    str += "[" + self.typeDefinitionId.toString() + "]" + simpleAttributeOperandToPath(self);
-    return str;
 }

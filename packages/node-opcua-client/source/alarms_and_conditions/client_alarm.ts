@@ -1,10 +1,13 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
+import { make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCode } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant } from "node-opcua-variant";
 import { ClientSession } from "../client_session";
+
+const warningLog = make_warningLog(__filename);
 
 export interface TVariant<T> extends Variant {
     value: T;
@@ -20,6 +23,7 @@ export interface EventStuff {
     activeState: TTwoStateStatus;
     ackedState: TTwoStateStatus;
     confirmedState: TTwoStateStatus;
+    conditionName?: TVariant<string>;
 }
 
 export interface ClientAlarm {
@@ -86,7 +90,9 @@ export class ClientAlarm extends EventEmitter {
 
 // ------------------------------------------------------------------------------------------------------------------------------
 export function fieldsToJson(fields: string[], eventFields: Variant[]): EventStuff {
-    function setProperty(_data: any, fieldName: string, value: Variant) {
+
+
+    function setProperty(_data: Record<string, unknown>, fieldName: string, value: Variant) {
         let name: string;
         if (!fieldName || value === null) {
             return;
@@ -99,15 +105,14 @@ export function fieldsToJson(fields: string[], eventFields: Variant[]): EventStu
             for (let i = 0; i < f.length - 1; i++) {
                 name = lowerFirstLetter(f[i]);
                 _data[name] = _data[name] || {};
-                _data = _data[name];
+                _data = _data[name] as Record<string, unknown>;
             }
             name = lowerFirstLetter(f[f.length - 1]);
             _data[name] = value;
         }
     }
     if (fields.length > eventFields.length) {
-        // tslint:disable-next-line: no-console
-        console.log("warning fields.length !==  eventFields.length", fields.length, eventFields.length);
+        warningLog("warning fields.length !==  eventFields.length", fields.length, eventFields.length);
     }
     const data: any = {};
     for (let index = 0; index < fields.length; index++) {
@@ -115,5 +120,6 @@ export function fieldsToJson(fields: string[], eventFields: Variant[]): EventStu
         setProperty(data, fields[index], variant);
     }
     setProperty(data, "conditionId", eventFields[eventFields.length - 1]);
+    
     return data;
 }

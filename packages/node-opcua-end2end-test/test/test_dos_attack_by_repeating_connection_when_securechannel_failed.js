@@ -77,14 +77,14 @@ describe("testing Server resilience to DDOS attacks 2", function () {
         rejected_connections = 0;
 
         const serverCertificateManager = await createServerCertificateManager(port);
-        
+
         const cert = await readCertificate(validCertificate);
         await serverCertificateManager.trustCertificate(cert);
 
         server = new OPCUAServer({
             port,
             maxConnectionsPerEndpoint,
-            serverCapabilities: {maxSessions},
+            serverCapabilities: { maxSessions },
             //xx nodeset_filename: empty_nodeset_filename
             serverCertificateManager
         });
@@ -222,7 +222,7 @@ describe("testing Server resilience to DDOS attacks 2", function () {
             client.disconnect();
             console.log("----- Well done!");
         } catch (err) {
-            console.log("error",err.message);
+            console.log("error", err.message);
             throw err;
         }
     });
@@ -236,7 +236,7 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
         connectionRefusedCount = 0;
         const server = new OPCUAServer({
             port,
-            serverCapabilities: {maxSessions: 4},
+            serverCapabilities: { maxSessions: 4 },
             maxConnectionsPerEndpoint: 3
         });
         await server.start();
@@ -269,7 +269,6 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
             await client.disconnect();
         }
         await Promise.all(promises);
-
     });
 
     async function simulateDDOSAttack() {
@@ -312,19 +311,22 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
                 clientName: "NormalClient" + i + "!!"
             });
             client.on("backoff", () => {
-                console.log("backoff ");
+                console.log("backoff ", client.clientName);
             });
 
             await client.connect(server.getEndpointUrl());
-            const session = await client.createSession();
 
-            const dataValue = await session.read({
-                nodeId: "i=2258",
-                attributeId: AttributeIds.Value
-            });
-            console.log(dataValue.toString());
-            await session.close();
-            await client.disconnect();
+            try {
+                const session = await client.createSession();
+                const dataValue = await session.read({
+                    nodeId: "i=2258",
+                    attributeId: AttributeIds.Value
+                });
+                console.log(dataValue.toString());
+                await session.close();
+            } finally {
+                await client.disconnect();
+            }
         } catch (err) {
             return false;
         }
@@ -334,16 +336,19 @@ describe("testing Server resilience to DDOS attacks - ability to recover", funct
         // Given a server with a limited number of sessions
         // When the server is victim of a DDOS attack
         await simulateDDOSAttack();
-        // and When the server start refusing connections    
-        await new Promise((resolve)=> server.once("connectionRefused",()=> resolve()));
-        await new Promise((resolve) => setTimeout(resolve, requestedSessionTimeout/10));
+
+        // and When the server start refusing connections
+        await new Promise((resolve) => server.once("connectionRefused", () => resolve()));
+
+        await new Promise((resolve) => setTimeout(resolve, requestedSessionTimeout / 10));
+
         console.log(chalk.bgYellowBright("========================================================================"));
         connectionRefusedCount.should.be.greaterThanOrEqual(1);
 
         // then a normal client should  not be able to connect immediately
         const success1 = await normalClientConnection();
         //xx should(success1).eql(false, "expecting client to fail to connect");
-    
+
         // but server should eventually accept a normal connection, once the DDOS attack is over and all sessions have timed out
         await new Promise((resolve) => setTimeout(resolve, requestedSessionTimeout * 3));
         const success2 = await normalClientConnection();

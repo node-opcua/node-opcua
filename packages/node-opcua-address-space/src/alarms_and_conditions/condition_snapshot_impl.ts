@@ -3,7 +3,7 @@
  */
 import { EventEmitter } from "events";
 
-import { IEventData, UAVariable, BaseNode, ISessionContext, UAObject } from "node-opcua-address-space-base";
+import { IEventData, UAVariable, BaseNode, UAObject } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { UInt16 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
@@ -12,8 +12,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { UAAcknowledgeableCondition } from "node-opcua-nodeset-ua";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
-import * as utils from "node-opcua-utils";
+import { TimeZoneDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 
 import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
@@ -26,18 +25,17 @@ import { UAConditionImpl } from "./ua_condition_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
-
 function normalizeName(str: string): string {
-    return str.split(".").map(utils.lowerFirstLetter).join(".");
+    // return str.split(".").map(utils.lowerFirstLetter).join(".");
+    return str;
 }
 
 function _visit(self: any, node: BaseNode, prefix: string): void {
     const aggregates = node.getAggregates();
     for (const aggregate of aggregates) {
         if (aggregate.nodeClass === NodeClass.Variable) {
-            let name = aggregate.browseName.toString();
-            name = utils.lowerFirstLetter(name);
-
+            const name = aggregate.browseName.toString();
+           
             const key = prefix + name;
 
             // istanbul ignore next
@@ -65,9 +63,8 @@ function _installOnChangeEventHandlers(self: any, node: BaseNode, prefix: string
     const aggregates = node.getAggregates();
     for (const aggregate of aggregates) {
         if (aggregate.nodeClass === NodeClass.Variable) {
-            let name = aggregate.browseName.toString();
-            name = utils.lowerFirstLetter(name);
-
+            const name = aggregate.browseName.toString();
+        
             const key = prefix + name;
 
             // istanbul ignore next
@@ -93,9 +90,8 @@ function _ensure_condition_values_correctness(self: any, node: BaseNode, prefix:
 
     for (const aggregate of aggregates) {
         if (aggregate.nodeClass === NodeClass.Variable) {
-            let name = aggregate.browseName.toString();
-            name = utils.lowerFirstLetter(name);
-
+            const name = aggregate.browseName.toString();
+            
             const key = prefix + name;
 
             const snapshot_value = self._map[key].toString();
@@ -132,29 +128,31 @@ const disabledVar = new Variant({
 // list of Condition variables that should not be published as BadConditionDisabled when the condition
 // is in a disabled state.
 const _varTable = {
-    branchId: 1,
-    conditionClassId: 1,
-    conditionClassName: 1,
-    conditionName: 1,
-    enabledState: 1,
-    "enabledState.effectiveDisplayName": 1,
-    "enabledState.id": 1,
-    "enabledState.transitionTime": 1,
-    eventId: 1,
-    eventType: 1,
-    localTime: 1,
-    sourceName: 1,
-    sourceNode: 1,
-    time: 1
+    BranchId: 1,
+    ConditionClassId: 1,
+    ConditionClassName: 1,
+    ConditionName: 1,
+    EnabledState: 1,
+    "EnabledState.EffectiveDisplayName": 1,
+    "EnabledState.Id": 1,
+    "EnabledState.TransitionTime": 1,
+    EventId: 1,
+    EventType: 1,
+    LocalTime: 1,
+    SourceName: 1,
+    SourceNode: 1,
+    Time: 1
 };
+type FullBrowsePath = string;
 export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnapshot {
     public static normalizeName = normalizeName;
 
     public condition: BaseNode;
     public eventData: IEventData | null = null;
     public branchId: NodeId | null = null;
-    private _map: { [key: string]: Variant } = {};
-    private _node_index: { [key: string]: UAVariable } = {};
+
+    private _map: Record<FullBrowsePath, Variant> = {};
+    private _node_index: Record<FullBrowsePath, UAVariable> = {};
 
     /**
      * @class ConditionSnapshot
@@ -175,7 +173,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         if (sameNodeId(branchId, NodeId.nullNodeId)) {
             _installOnChangeEventHandlers(this, condition, "");
         }
-        this._set_var("branchId", DataType.NodeId, branchId);
+        this._set_var("BranchId", DataType.NodeId, branchId);
     }
 
     public _constructEventData(): IEventData {
@@ -185,49 +183,41 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         const c = this.condition as UAConditionImpl;
         const isDisabled = !c.getEnabledState();
         const eventData = new EventData(this.condition!);
-        for (const key of Object.keys(this._map)) {
-            const node = this._node_index[key];
+
+        for (const fullBrowsePath of Object.keys(this._map)) {
+            const node = this._node_index[fullBrowsePath];
             if (!node) {
-                debugLog("cannot node for find key", key);
+                debugLog("cannot node for find key", fullBrowsePath);
                 continue;
             }
-            if (isDisabled && !Object.prototype.hasOwnProperty.call(_varTable, key)) {
-                eventData.setValue(key, node, disabledVar);
+            if (isDisabled && !Object.prototype.hasOwnProperty.call(_varTable, fullBrowsePath)) {
+                eventData._createValue(fullBrowsePath, node, disabledVar);
             } else {
-                eventData.setValue(key, node, this._map[key]);
+                eventData._createValue(fullBrowsePath, node, this._map[fullBrowsePath]);
             }
         }
-
         return eventData;
     }
 
-    /**
-     * @method resolveSelectClause
-     * @param selectClause {SelectClause}
-     */
-    public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
-        return this.eventData?.resolveSelectClause(selectClause) || null;
-    }
+    // /**
+    //  *
+    //  */
+    // public readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
+    //     const c = this.condition as UAConditionImpl;
+    //     const isDisabled = !c.getEnabledState();
+    //     if (isDisabled) {
+    //         return disabledVar;
+    //     }
 
-    /**
-     *
-     */
-    public readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
-        const c = this.condition as UAConditionImpl;
-        const isDisabled = !c.getEnabledState();
-        if (isDisabled) {
-            return disabledVar;
-        }
-
-        const key = nodeId.toString();
-        const variant = this._map[key];
-        if (!variant) {
-            // the value is not handled by us .. let's delegate
-            // to the eventData helper object
-            return this.eventData?.readValue(sessionContext, nodeId, selectClause) || disabledVar;
-        }
-        return variant;
-    }
+    //     const key = nodeId.toString();
+    //     const variant = this._map[key];
+    //     if (!variant) {
+    //         // the value is not handled by us .. let's delegate
+    //         // to the eventData helper object
+    //         return this.eventData?.readValue(sessionContext, nodeId, selectClause) || disabledVar;
+    //     }
+    //     return variant;
+    // }
 
     public _get_var(varName: string): any {
         const c = this.condition as UAConditionImpl;
@@ -238,6 +228,9 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
 
         const key = normalizeName(varName);
         const variant = this._map[key];
+        if (!variant) {
+            throw new Error("cannot find key " + key);
+        }
         return variant.value;
     }
 
@@ -255,8 +248,8 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
             value
         });
 
-        if (this._map[key + ".sourceTimestamp"]) {
-            this._map[key + ".sourceTimestamp"] = new Variant({
+        if (this._map[key + ".SourceTimestamp"]) {
+            this._map[key + ".SourceTimestamp"] = new Variant({
                 dataType: DataType.DateTime,
                 value: new Date()
             });
@@ -278,7 +271,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {NodeId}
      */
     public getBranchId(): NodeId {
-        return this._get_var("branchId") as NodeId;
+        return this._get_var("BranchId") as NodeId;
     }
 
     /**
@@ -286,7 +279,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {ByteString}
      */
     public getEventId(): Buffer {
-        return this._get_var("eventId") as Buffer;
+        return this._get_var("EventId") as Buffer;
     }
 
     /**
@@ -294,7 +287,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {Boolean}
      */
     public getRetain(): boolean {
-        return this._get_var("retain") as boolean;
+        return this._get_var("Retain") as boolean;
     }
 
     /**
@@ -304,7 +297,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setRetain(retainFlag: boolean): void {
         retainFlag = !!retainFlag;
-        return this._set_var("retain", DataType.Boolean, retainFlag);
+        return this._set_var("Retain", DataType.Boolean, retainFlag);
     }
 
     /**
@@ -315,7 +308,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         const addressSpace = this.condition.addressSpace;
         // create a new event  Id for this new condition
         const eventId = addressSpace.generateEventId();
-        const ret = this._set_var("eventId", DataType.ByteString, eventId.value);
+        const ret = this._set_var("EventId", DataType.ByteString, eventId.value);
 
         // xx var branch = self; console.log("MMMMMMMMrenewEventId branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
@@ -328,7 +321,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {Boolean}
      */
     public getEnabledState(): boolean {
-        return this._get_twoStateVariable("enabledState");
+        return this._get_twoStateVariable("EnabledState");
     }
 
     /**
@@ -337,7 +330,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return void
      */
     public setEnabledState(value: boolean): void {
-        return this._set_twoStateVariable("enabledState", value);
+        return this._set_twoStateVariable("EnabledState", value);
     }
 
     /**
@@ -345,7 +338,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {String}
      */
     public getEnabledStateAsString(): string {
-        return this._get_var("enabledState").text;
+        return this._get_var("EnabledState").text;
     }
 
     /**
@@ -353,7 +346,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {LocalizedText}
      */
     public getComment(): LocalizedText {
-        return this._get_var("comment");
+        return this._get_var("Comment");
     }
 
     /**
@@ -370,7 +363,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setComment(txtMessage: LocalizedTextLike): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
-        this._set_var("comment", DataType.LocalizedText, txtMessage1);
+        this._set_var("Comment", DataType.LocalizedText, txtMessage1);
     }
 
     /**
@@ -380,7 +373,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setMessage(txtMessage: LocalizedTextLike | LocalizedText): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
-        return this._set_var("message", DataType.LocalizedText, txtMessage1);
+        return this._set_var("Message", DataType.LocalizedText, txtMessage1);
     }
 
     /**
@@ -388,7 +381,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @param userIdentity {String}
      */
     public setClientUserId(userIdentity: string): void {
-        return this._set_var("clientUserId", DataType.String, userIdentity.toString());
+        return this._set_var("ClientUserId", DataType.String, userIdentity.toString());
     }
 
     /*
@@ -422,7 +415,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @param quality {StatusCode}
      */
     public setQuality(quality: StatusCode): void {
-        this._set_var("quality", DataType.StatusCode, quality);
+        this._set_var("Quality", DataType.StatusCode, quality);
     }
 
     /**
@@ -430,7 +423,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {StatusCode}
      */
     public getQuality(): StatusCode {
-        return this._get_var("quality") as StatusCode;
+        return this._get_var("Quality") as StatusCode;
     }
 
     /*
@@ -473,7 +466,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         // record automatically last severity
         const lastSeverity = this.getSeverity();
         this.setLastSeverity(lastSeverity);
-        this._set_var("severity", DataType.UInt16, severity);
+        this._set_var("Severity", DataType.UInt16, severity);
     }
 
     /**
@@ -483,7 +476,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     public getSeverity(): UInt16 {
         const c = this.condition as UAConditionImpl;
         assert(c.getEnabledState(), "condition must be enabled");
-        const value = this._get_var("severity");
+        const value = this._get_var("Severity");
         return +value;
     }
 
@@ -500,7 +493,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setLastSeverity(severity: UInt16): void {
         severity = +severity;
-        return this._set_var("lastSeverity", DataType.UInt16, severity);
+        return this._set_var("LastSeverity", DataType.UInt16, severity);
     }
 
     /**
@@ -508,7 +501,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {UInt16}
      */
     public getLastSeverity(): UInt16 {
-        const value = this._get_var("lastSeverity");
+        const value = this._get_var("LastSeverity");
         return +value;
     }
 
@@ -533,7 +526,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setReceiveTime(time: UtcTime): void {
         assert(time instanceof Date);
-        return this._set_var("receiveTime", DataType.DateTime, time);
+        return this._set_var("ReceiveTime", DataType.DateTime, time);
     }
 
     /**
@@ -547,7 +540,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setTime(time: Date): void {
         assert(time instanceof Date);
-        return this._set_var("time", DataType.DateTime, time);
+        return this._set_var("Time", DataType.DateTime, time);
     }
 
     /**
@@ -562,12 +555,12 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setLocalTime(localTime: TimeZoneDataType): void {
         assert(localTime instanceof TimeZoneDataType);
-        return this._set_var("localTime", DataType.ExtensionObject, new TimeZoneDataType(localTime));
+        return this._set_var("LocalTime", DataType.ExtensionObject, new TimeZoneDataType(localTime));
     }
 
     // read only !
     public getSourceName(): LocalizedText {
-        return this._get_var("sourceName");
+        return this._get_var("SourceName");
     }
 
     /**
@@ -575,7 +568,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * return {NodeId}
      */
     public getSourceNode(): NodeId {
-        return this._get_var("sourceNode");
+        return this._get_var("SourceNode");
     }
 
     /**
@@ -583,15 +576,15 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * return {NodeId}
      */
     public getEventType(): NodeId {
-        return this._get_var("eventType");
+        return this._get_var("EventType");
     }
 
     public getMessage(): LocalizedText {
-        return this._get_var("message");
+        return this._get_var("Message");
     }
 
     public isCurrentBranch(): boolean {
-        return sameNodeId(this._get_var("branchId"), NodeId.nullNodeId);
+        return sameNodeId(this._get_var("BranchId"), NodeId.nullNodeId);
     }
 
     // -- ACKNOWLEDGEABLE -------------------------------------------------------------------
@@ -607,7 +600,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
                     " has no AckedState"
             );
         }
-        return this._get_twoStateVariable("ackedState");
+        return this._get_twoStateVariable("AckedState");
     }
 
     public setAckedState(ackedState: boolean): StatusCode {
@@ -619,7 +612,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     public getConfirmedState(): boolean {
         const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         assert(acknowledgeableCondition.confirmedState, "Must have a confirmed state");
-        return this._get_twoStateVariable("confirmedState");
+        return this._get_twoStateVariable("ConfirmedState");
     }
 
     public setConfirmedStateIfExists(confirmedState: boolean): void {
@@ -631,7 +624,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
             return;
         }
         // todo deal with Error code BadConditionBranchAlreadyConfirmed
-        return this._set_twoStateVariable("confirmedState", confirmedState);
+        return this._set_twoStateVariable("ConfirmedState", confirmedState);
     }
 
     public setConfirmedState(confirmedState: boolean): void {
@@ -649,7 +642,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @return {Boolean}
      */
     public getSuppressedState(): boolean {
-        return this._get_twoStateVariable("suppressedState");
+        return this._get_twoStateVariable("SuppressedState");
     }
 
     /**
@@ -658,11 +651,11 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      */
     public setSuppressedState(suppressed: boolean): void {
         suppressed = !!suppressed;
-        this._set_twoStateVariable("suppressedState", suppressed);
+        this._set_twoStateVariable("SuppressedState", suppressed);
     }
 
     public getActiveState(): boolean {
-        return this._get_twoStateVariable("activeState");
+        return this._get_twoStateVariable("ActiveState");
     }
 
     public setActiveState(newActiveState: boolean): StatusCode {
@@ -670,7 +663,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         // xx if (activeState === newActiveState) {
         // xx     return StatusCodes.Bad;
         // xx }
-        this._set_twoStateVariable("activeState", newActiveState);
+        this._set_twoStateVariable("ActiveState", newActiveState);
         return StatusCodes.Good;
     }
 
@@ -717,7 +710,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         value = !!value;
 
         const hrKey = ConditionSnapshotImpl.normalizeName(varName);
-        const idKey = ConditionSnapshotImpl.normalizeName(varName) + ".id";
+        const idKey = ConditionSnapshotImpl.normalizeName(varName + ".Id");
 
         const variant = new Variant({ dataType: DataType.Boolean, value });
         this._map[idKey] = variant;
@@ -750,7 +743,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     protected _get_twoStateVariable(varName: string): any {
-        const key = ConditionSnapshotImpl.normalizeName(varName) + ".id";
+        const key = ConditionSnapshotImpl.normalizeName(varName) + ".Id";
         const variant = this._map[key];
 
         // istanbul ignore next

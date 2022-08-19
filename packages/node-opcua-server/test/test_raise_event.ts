@@ -11,10 +11,8 @@ import * as should from "should";
 
 import {
     AddressSpace,
-    checkSelectClauses,
     IEventData,
     EventData,
-    extractEventFields,
     Namespace,
     UAEventType,
     UAObject,
@@ -22,14 +20,16 @@ import {
     BaseNode
 } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
-
 import { AttributeIds, NodeClass, coerceQualifiedName } from "node-opcua-data-model";
 import { EventFilter, SimpleAttributeOperand } from "node-opcua-service-filter";
 import { EventFieldList } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
 import { NodeId } from "node-opcua-nodeid";
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
+import { checkSelectClauses } from "node-opcua-service-filter";
+import { extractEventFields } from "node-opcua-service-filter/source/on_address_space/extract_event_fields";
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

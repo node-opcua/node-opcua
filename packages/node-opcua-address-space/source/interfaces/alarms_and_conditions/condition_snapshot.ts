@@ -1,47 +1,29 @@
+/**
+ * @module node-opcua-address-space.AlarmsAndConditions
+ */
 import { EventEmitter } from "events";
 import { Variant } from "node-opcua-variant";
-import { IEventData, UAVariable, BaseNode, ISessionContext, UAObject } from "node-opcua-address-space-base";
-import { assert } from "node-opcua-assert";
+import { IEventData, UAVariable, BaseNode } from "node-opcua-address-space-base";
 import { UInt16 } from "node-opcua-basic-types";
-import { coerceLocalizedText, LocalizedText, LocalizedTextLike, NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { NodeId, sameNodeId } from "node-opcua-nodeid";
-import { UAAcknowledgeableCondition } from "node-opcua-nodeset-ua";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { SimpleAttributeOperand, TimeZoneDataType } from "node-opcua-types";
-import * as utils from "node-opcua-utils";
+import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
+import { NodeId } from "node-opcua-nodeid";
+import { StatusCode } from "node-opcua-status-code";
+import { TimeZoneDataType } from "node-opcua-types";
 import { UtcTime } from "../state_machine/ua_state_machine_type";
 
 export interface ConditionSnapshot {
     on(eventName: "value_changed", eventHandler: (node: UAVariable, variant: Variant) => void): this;
 }
-/**
- * @module node-opcua-address-space.AlarmsAndConditions
- */
 
-function normalizeName(str: string): string {
-    return str.split(".").map(utils.lowerFirstLetter).join(".");
-}
 
 export interface ConditionSnapshot extends EventEmitter {
     // static normalizeName = normalizeName;
 
     condition: BaseNode;
-    eventData: IEventData| null;
-    branchId: NodeId| null;
+    eventData: IEventData | null;
+    branchId: NodeId | null;
 
-    /**
-     * @method resolveSelectClause
-     * @param selectClause {SelectClause}
-     */
-    resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null;
-
-    /**
-     *
-     */
-    readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant;
-
+   
     /**
      * @method getBrandId
      * @return {NodeId}
@@ -293,5 +275,5 @@ export interface ConditionSnapshot extends EventEmitter {
     /**
      * @private
      */
-    _constructEventData(): IEventData 
+    _constructEventData(): IEventData;
 }
