@@ -1,8 +1,8 @@
 import * as should from "should";
 
 import { StatusCodes } from "node-opcua-status-code";
-import { Variant } from "node-opcua-variant";
-import { AddressSpace, UAExclusiveDeviationAlarm, UAExclusiveDeviationAlarmEx, UAObject, UAVariable } from "../..";
+import { DataType, Variant } from "node-opcua-variant";
+import { AddressSpace, UAExclusiveDeviationAlarm, UAExclusiveDeviationAlarmEx, UAObject, UAVariable, UAVariableT } from "../..";
 
 export function utest_exclusive_deviation_alarm(test: any): void {
     describe("Deviation Alarms : ExclusiveDeviation Alarms ", () => {
@@ -10,7 +10,7 @@ export function utest_exclusive_deviation_alarm(test: any): void {
         let source: UAObject;
         let engine: UAObject;
         let variableWithAlarm: UAVariable;
-        let setpointNodeNode: UAVariable;
+        let setpointNodeNode: UAVariableT<number, DataType.Double>;
 
         before(() => {
             addressSpace = test.addressSpace;
@@ -50,20 +50,20 @@ export function utest_exclusive_deviation_alarm(test: any): void {
             it("should provide correct properties", () => {
                 alarm.getInputNodeValue().should.eql(0);
 
-                alarm.getSetpointNodeNode().should.eql(setpointNodeNode);
+                alarm.getSetpointNodeNode()!.should.eql(setpointNodeNode);
                 setpointNodeNode.readValue().value.should.eql(
                     new Variant({
                         dataType: "Double",
                         value: 0
                     })
                 );
-                alarm.getSetpointValue().should.eql(0);
+                alarm.getSetpointValue()!.should.eql(0);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 10 });
-                alarm.getSetpointValue().should.eql(10);
+                alarm.getSetpointValue()!.should.eql(10);
 
                 setpointNodeNode.setValueFromSource({ dataType: "Double", value: 0 });
-                alarm.getSetpointValue().should.eql(0);
+                alarm.getSetpointValue()!.should.eql(0);
             });
 
             it("ExclusiveDeviationAlarm - setpointNode Value is zero", () => {

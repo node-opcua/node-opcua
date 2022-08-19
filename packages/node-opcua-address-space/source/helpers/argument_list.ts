@@ -57,6 +57,8 @@ export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stre
 }
 
 export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStream): any[] {
+
+    // istanbul ignore next
     if (!Array.isArray(definition)) {
         throw new Error(
             "This BaseDataType cannot be decoded because it has no definition.\n" +

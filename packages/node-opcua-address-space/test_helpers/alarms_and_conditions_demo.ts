@@ -69,7 +69,10 @@ export function construct_demo_alarm_in_address_space(test: IAlarmTestData, addr
         optionals: [
             "ConfirmedState",
             "Confirm" // confirm state and confirm Method
-        ]
+        ],
+
+        setpointNode: null,
+
     }) as UAExclusiveLimitAlarmEx;
 
     assert(tankLevelCondition.browseName.toString() === "1:TankLevelCondition");

@@ -26,6 +26,5 @@ export interface UANonExclusiveDeviationAlarmEx
         >,
         UANonExclusiveLimitAlarmEx,
         DeviationStuff {
-    setpointNode: UAVariableT<NodeId, DataType.NodeId>;
-    setpointNodeNode: UAVariable;
+    setpointNodeNode: UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float>;
 }

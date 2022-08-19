@@ -6,8 +6,8 @@ import { assert } from "node-opcua-assert";
 
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { VariantOptions } from "node-opcua-variant";
-import { UAVariable } from "node-opcua-address-space-base";
+import { DataType, VariantOptions } from "node-opcua-variant";
+import { UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { NamespacePrivate } from "../namespace_private";
 import { AddressSpace } from "../address_space";
 import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
@@ -20,6 +20,8 @@ import {
 } from "./deviation_alarm_helper";
 import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 import { UANonExclusiveLimitAlarmImpl } from "./ua_non_exclusive_limit_alarm_impl";
+
+
 export declare interface UANonExclusiveDeviationAlarmImpl extends UANonExclusiveLimitAlarmImpl, UANonExclusiveDeviationAlarmEx {
     on(eventName: string, eventHandler: any): this;
     get addressSpace(): AddressSpace;
@@ -63,7 +65,7 @@ export class UANonExclusiveDeviationAlarmImpl extends UANonExclusiveLimitAlarmIm
         super._setStateBasedOnInputValue(value - setpointValue);
     }
 
-    public getSetpointNodeNode(): UAVariable {
+    public getSetpointNodeNode(): UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float> | undefined  {
         return DeviationAlarmHelper_getSetpointNodeNode.call(this);
     }
 
