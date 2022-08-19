@@ -45,7 +45,7 @@ export function utest_off_normal_alarm(test: any): void {
                 browseName: "MyOffNormalAlarm",
                 conditionSource: null,
                 inputNode: multiStateDiscreteNode,
-                normalState: normalStateNode
+                normalState: normalStateNode.nodeId
             });
             alarm.browseName.toString().should.eql("1:MyOffNormalAlarm");
             alarm.activeState.getValue().should.eql(false);

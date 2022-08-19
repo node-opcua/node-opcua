@@ -28,7 +28,7 @@ import {
     RolePermissionTypeOptions
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
-import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, VariantOptions, verifyRankAndDimensions } from "node-opcua-variant";
 import {
     AddBaseNodeOptions,
     AddEnumerationTypeOptions,
@@ -67,7 +67,14 @@ import {
 } from "../source/address_space_ts";
 import { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type";
 import { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
-import { UATwoStateDiscreteEx, UAYArrayItemEx } from "../source";
+import {
+    InstantiateAlarmConditionOptions,
+    InstantiateExclusiveLimitAlarmOptions,
+    InstantiateLimitAlarmOptions,
+    InstantiateOffNormalAlarmOptions,
+    UATwoStateDiscreteEx,
+    UAYArrayItemEx
+} from "../source";
 import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
 import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
@@ -79,22 +86,19 @@ import { UALimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_li
 import { UANonExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
 import { UANonExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
 import { UAConditionEx } from "../source/interfaces/alarms_and_conditions/ua_condition_ex";
+import { InstantiateExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options";
+import { InstantiateNonExclusiveLimitAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options";
+import { InstantiateNonExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options";
 
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
 import { UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
-import {
-    UAExclusiveDeviationAlarmImpl
-} from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
-import {  UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
-import {  UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
-import {
-    UANonExclusiveDeviationAlarmImpl
-} from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
-import {
-    UANonExclusiveLimitAlarmImpl
-} from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
+import { UAExclusiveDeviationAlarmImpl } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
+import { UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
+import { UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
+import { UANonExclusiveDeviationAlarmImpl } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
+import { UANonExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
 import { UAAcknowledgeableConditionImpl, UAAlarmConditionImpl } from "./alarms_and_conditions";
 import { UAOffNormalAlarmEx, UAOffNormalAlarmImpl } from "./alarms_and_conditions/ua_off_normal_alarm_impl";
 import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff";
@@ -1541,52 +1545,69 @@ export class NamespaceImpl implements NamespacePrivate {
 
     public instantiateAcknowledgeableCondition(
         conditionTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAcknowledgeableConditionImpl {
         return UAAcknowledgeableConditionImpl.instantiate(this, conditionTypeId, options, data);
     }
 
     public instantiateAlarmCondition(
         alarmConditionTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAlarmConditionEx {
         return UAAlarmConditionImpl.instantiate(this, alarmConditionTypeId, options, data);
     }
 
-    public instantiateLimitAlarm(limitAlarmTypeId: UAEventType | NodeId | string, options: any, data: any): UALimitAlarmEx {
+    public instantiateLimitAlarm(
+        limitAlarmTypeId: UAEventType | NodeId | string,
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UALimitAlarmEx {
         return UALimitAlarmImpl.instantiate(this, limitAlarmTypeId, options, data);
     }
 
     public instantiateExclusiveLimitAlarm(
         exclusiveLimitAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UAExclusiveLimitAlarmEx {
         return UAExclusiveLimitAlarmImpl.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
     }
 
-    public instantiateExclusiveDeviationAlarm(options: any, data: any): UAExclusiveDeviationAlarmEx {
+    public instantiateExclusiveDeviationAlarm(
+        options: InstantiateExclusiveDeviationAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UAExclusiveDeviationAlarmEx {
         return UAExclusiveDeviationAlarmImpl.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
     }
 
     public instantiateNonExclusiveLimitAlarm(
         nonExclusiveLimitAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateNonExclusiveLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UANonExclusiveLimitAlarmEx {
         return UANonExclusiveLimitAlarmImpl.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
     }
 
-    public instantiateNonExclusiveDeviationAlarm(options: any, data: any): UANonExclusiveDeviationAlarmEx {
+    public instantiateNonExclusiveDeviationAlarm(
+        options: InstantiateNonExclusiveDeviationAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UANonExclusiveDeviationAlarmEx {
         return UANonExclusiveDeviationAlarmImpl.instantiate(this, "NonExclusiveDeviationAlarmType", options, data);
     }
 
-    public instantiateDiscreteAlarm(discreteAlarmType: UAEventType | NodeId | string, options: any, data: any): UADiscreteAlarmEx {
+    public instantiateDiscreteAlarm(
+        discreteAlarmType: UAEventType | NodeId | string,
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
+    ): UADiscreteAlarmEx {
         return UADiscreteAlarmImpl.instantiate(this, discreteAlarmType, options, data);
     }
-    public instantiateOffNormalAlarm(options: any, data: any): UAOffNormalAlarmEx {
+    public instantiateOffNormalAlarm(
+        options: InstantiateOffNormalAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UAOffNormalAlarmEx {
         return UAOffNormalAlarmImpl.instantiate(this, "OffNormalAlarmType", options, data);
     }
 

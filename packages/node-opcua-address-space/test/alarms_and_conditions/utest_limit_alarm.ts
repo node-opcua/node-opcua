@@ -238,45 +238,45 @@ export function utest_limit_alarm(test: any): void {
 
             //
             alarm.activeState.getValue().should.eql(false);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(false);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(false);
+            alarm.highHighState!.getValue().should.eql(false);
 
             setVariableValue(-100);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState.getValue().should.eql(true);
-            alarm.lowState.getValue().should.eql(true);
-            alarm.highState.getValue().should.eql(false);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(true);
+            alarm.lowState!.getValue().should.eql(true);
+            alarm.highState!.getValue().should.eql(false);
+            alarm.highHighState!.getValue().should.eql(false);
 
             setVariableValue(-9);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(true);
-            alarm.highState.getValue().should.eql(false);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(true);
+            alarm.highState!.getValue().should.eql(false);
+            alarm.highHighState!.getValue().should.eql(false);
 
             setVariableValue(4);
             alarm.activeState.getValue().should.eql(false);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(false);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(false);
+            alarm.highHighState!.getValue().should.eql(false);
 
             setVariableValue(11);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(true);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(true);
+            alarm.highHighState!.getValue().should.eql(false);
 
             setVariableValue(200);
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(true);
-            alarm.highHighState.getValue().should.eql(true);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(true);
+            alarm.highHighState!.getValue().should.eql(true);
 
             setVariableValue(11);
             setVariableValue(4);
@@ -390,10 +390,10 @@ export function utest_limit_alarm(test: any): void {
             setVariableValue(6);
 
             alarm.activeState.getValue().should.eql(false);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(false);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(false);
+            alarm.highHighState!.getValue().should.eql(false);
 
             const spyOnEvent = sinon.spy();
             alarm.on("event", spyOnEvent);
@@ -403,10 +403,10 @@ export function utest_limit_alarm(test: any): void {
             alarm.setHighLimit(5);
 
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(true);
-            alarm.highHighState.getValue().should.eql(false);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(true);
+            alarm.highHighState!.getValue().should.eql(false);
 
             spyOnEvent.callCount.should.eql(1, "one event should have been triggered automatically");
 
@@ -414,10 +414,10 @@ export function utest_limit_alarm(test: any): void {
             alarm.setHighLimit(1);
 
             alarm.activeState.getValue().should.eql(true);
-            alarm.lowLowState.getValue().should.eql(false);
-            alarm.lowState.getValue().should.eql(false);
-            alarm.highState.getValue().should.eql(true);
-            alarm.highHighState.getValue().should.eql(true);
+            alarm.lowLowState!.getValue().should.eql(false);
+            alarm.lowState!.getValue().should.eql(false);
+            alarm.highState!.getValue().should.eql(true);
+            alarm.highHighState!.getValue().should.eql(true);
 
             spyOnEvent.callCount.should.eql(2);
 

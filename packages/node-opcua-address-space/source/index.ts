@@ -62,7 +62,7 @@ export * from "./loader/generateAddressSpaceRaw";
 export * from "./namespace";
 export * from "./namespace_data_access";
 
-export { extractEventFields,checkWhereClause} from "../src/alarms_and_conditions";
+export { extractEventFields,checkWhereClause, checkFilter, FilterContext} from "../src/alarms_and_conditions";
 export { instantiateCertificateExpirationAlarm } from "../src/alarms_and_conditions/ua_certificate_expiration_alarm_impl";
 
 export { NodeIdManager, ConstructNodeIdOptions } from "../src/nodeid_manager";

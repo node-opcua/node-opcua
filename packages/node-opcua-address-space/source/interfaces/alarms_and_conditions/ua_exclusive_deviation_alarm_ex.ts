@@ -15,6 +15,7 @@ export interface UAExclusiveDeviationAlarmEx
             | "shelvingState"
             | "silenceState"
             | "suppressedState"
+            | "setpointNode"
         >,
         UAExclusiveLimitAlarmEx,
         DeviationStuff {}

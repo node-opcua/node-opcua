@@ -12,7 +12,7 @@ import { DataType, VariantOptions } from "node-opcua-variant";
 import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
 import { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
 import { AddressSpacePrivate } from "../address_space_private";
-import {  UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
+import { UADiscreteAlarmImpl } from "./ua_discrete_alarm_impl";
 
 function isEqual(value1: any, value2: any) {
     return value1 === value2;
@@ -38,7 +38,6 @@ export declare interface UAOffNormalAlarmEx
 
     setNormalStateValue(value: any): void;
 }
-
 
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
     on(eventName: string, eventHandler: any): this;
@@ -103,21 +102,24 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
          * If this Variable is not in the AddressSpace, a NULL NodeId shall be provided.
          *
          */
-        const normalState = addressSpace._coerceNode(options.normalState) as UAVariable | null;
-        const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
-        alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
-        alarmNode.normalState.on("value_changed", (newDataValue: DataValue /*, oldDataValue: DataValue*/) => {
-            // The node that contains the normalState value has changed.
-            //   we must remove the listener on current normalState and replace
-            //   normalState with the new one and set listener again
-            //   to do:
-        });
-
-        if (normalState) {
-            // install normalState monitoring for change
-            normalState.on("value_changed", (newDataValue: DataValue /*, oldDataValue: DataValue*/) => {
-                alarmNode._onNormalStateDataValueChange(newDataValue);
+        if (options.normalState) {
+            const normalState = addressSpace._coerceNode(options.normalState) as UAVariable | null;
+            const normalStateNodeId = normalState ? normalState.nodeId : new NodeId();
+            alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: normalStateNodeId });
+            alarmNode.normalState.on("value_changed", (newDataValue: DataValue /*, oldDataValue: DataValue*/) => {
+                // The node that contains the normalState value has changed.
+                //   we must remove the listener on current normalState and replace
+                //   normalState with the new one and set listener again
+                //   to do:
             });
+            if (normalState) {
+                // install normalState monitoring for change
+                normalState.on("value_changed", (newDataValue: DataValue /*, oldDataValue: DataValue*/) => {
+                    alarmNode._onNormalStateDataValueChange(newDataValue);
+                });
+            }
+        } else {
+            alarmNode.normalState.setValueFromSource({ dataType: DataType.NodeId, value: NodeId.nullNodeId });
         }
 
         alarmNode._mayBe_updateAlarmState();

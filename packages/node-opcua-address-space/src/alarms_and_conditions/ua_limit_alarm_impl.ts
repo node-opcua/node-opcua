@@ -14,9 +14,7 @@ import { UAShelvedStateMachineEx } from "../../source";
 import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
 import { UALimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
 import { NamespacePrivate } from "../namespace_private";
-import {
-    UAAlarmConditionImpl
-} from "./ua_alarm_condition_impl";
+import { UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
 
@@ -35,11 +33,11 @@ const uaLimitAlarmInputSupportedDataType: DataType[] = [
     DataType.UInt32
 ];
 
-export interface UALimitAlarmImpl extends UALimitAlarmEx  {
+export interface UALimitAlarmImpl extends UALimitAlarmEx {
     shelvingState?: UAShelvedStateMachineEx;
 }
 export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAlarmEx {
-   /**
+    /**
      * @method (static)UALimitAlarm.instantiate
      * @param namespace {INamespace}
      * @param limitAlarmTypeId
@@ -127,8 +125,8 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
             throw new Error(message);
         }
 
-        if (Object.prototype.hasOwnProperty.call(options, "highHighLimit")) {
-            alarmNode.setHighHighLimit(options.highHighLimit);
+        if (Object.prototype.hasOwnProperty.call(options, "highHighLimit") && options.highHighLimit !== undefined) {
+            alarmNode.setHighHighLimit(options.highHighLimit!);
         }
         if (Object.prototype.hasOwnProperty.call(options, "highLimit")) {
             alarmNode.setHighLimit(options.highLimit);
@@ -136,7 +134,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         if (Object.prototype.hasOwnProperty.call(options, "lowLimit")) {
             alarmNode.setLowLimit(options.lowLimit);
         }
-        if (Object.prototype.hasOwnProperty.call(options, "lowLowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options, "lowLowLimit") && options.lowLowLimit != undefined) {
             alarmNode.setLowLowLimit(options.lowLowLimit);
         }
 

@@ -5,13 +5,12 @@ import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, VariantOptions } from "node-opcua-variant";
-import { UAExclusiveDeviationAlarm_Base } from "node-opcua-nodeset-ua";
 import { UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { AddressSpace } from "../address_space";
 import { NamespacePrivate } from "../namespace_private";
 import { UAExclusiveDeviationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
 import { InstantiateExclusiveLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_exclusive_limit_alarm_options";
-import { InstallSetPointOptions } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options";
+import { InstallSetPointOptions, SetPointSupport } from "../../source/interfaces/alarms_and_conditions/install_setpoint_options";
 import {
     DeviationAlarmHelper_getSetpointNodeNode,
     DeviationAlarmHelper_getSetpointValue,
@@ -30,6 +29,8 @@ export declare interface UAExclusiveDeviationAlarmImpl extends UAExclusiveDeviat
 }
 
 export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl implements UAExclusiveDeviationAlarmEx {
+
+
     public static instantiate(
         namespace: NamespacePrivate,
         type: string | NodeId,
@@ -57,7 +58,7 @@ export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl imp
         return alarm;
     }
 
-    public getSetpointNodeNode(): UAVariable {
+    public getSetpointNodeNode(): UAVariableT<number, DataType.Double> | UAVariableT<number, DataType.Float> | undefined  {
         return DeviationAlarmHelper_getSetpointNodeNode.call(this);
     }
 
@@ -83,9 +84,7 @@ export class UAExclusiveDeviationAlarmImpl extends UAExclusiveLimitAlarmImpl imp
         UAExclusiveLimitAlarmImpl.prototype._setStateBasedOnInputValue.call(this, value - setpointValue);
     }
 }
-export interface UAExclusiveDeviationAlarmHelper {
-    setpointNode: UAVariableT<NodeId, DataType.NodeId>;
-    setpointNodeNode: UAVariable;
+export interface UAExclusiveDeviationAlarmHelper  extends SetPointSupport{
 }
 
 /*
