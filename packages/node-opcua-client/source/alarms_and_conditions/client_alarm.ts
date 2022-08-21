@@ -114,6 +114,5 @@ export function fieldsToJson(fields: string[], eventFields: Variant[]): EventStu
         const variant = eventFields[index];
         setProperty(data, fields[index], variant);
     }
-    setProperty(data, "conditionId", eventFields[eventFields.length - 1]);
     return data;
 }

@@ -8,9 +8,15 @@ const {
     OPCUAClient,
     acknwoledgeAllConditions,
     confirmAllConditions,
-    dumpEvent
+    dumpEvent,
+    extractConditionFields,
+    resolveNodeId,
+    AttributeIds
 } = require("node-opcua-client");
+
 const { construct_demo_alarm_in_address_space } = require("node-opcua-address-space/testHelpers");
+
+const { constructEventFilter } = require("node-opcua-service-filter");
 
 const Table = require("cli-table3");
 const truncate = require('cli-truncate');
@@ -274,6 +280,42 @@ module.exports = function(test) {
                         alarms.length.should.eql(0);
 
                         await uninstallAlarmMonitoring(session);
+
+                        await pause();
+
+                    } catch (err) {
+                        console.log(err);
+                        throw err;
+                    }
+                });
+
+        });
+        it("should create correct eventFilter selectClause", async () => {
+
+            await perform_operation_on_subscription_async(client, test.endpointUrl,
+                async (session, subscription) => {
+
+                    try {
+
+                        await pause();
+                        await pause();
+                        console.log("---------------------------------------------------------------------- After Wait");
+
+                        const fields = await extractConditionFields(session, "AcknowledgeableConditionType");
+
+                        // Remove ConditionId in fields. SelectClause entry for ConditionId is added via conditionTypes argument.
+                        const eventFilterGood = constructEventFilter(fields.slice(0, -1), [resolveNodeId("AcknowledgeableConditionType")]);
+                        const eventFilterBad = constructEventFilter(fields, [resolveNodeId("AcknowledgeableConditionType")]);
+                        
+                        // number of field entries should match number of selectClauses. One selectClause for each field.
+                        eventFilterGood.selectClauses.length.should.eql(fields.length);
+                        eventFilterBad.selectClauses.length.should.not.eql(fields.length);
+
+                        // last element of selectClause, should be special attributid for ConditionId
+                        const lengthSelectClause = eventFilterGood.selectClauses.length;
+                        eventFilterGood.selectClauses[lengthSelectClause - 1].attributeId.should.eql(AttributeIds.NodeId);
+                        fields[fields.length - 1].should.eql("ConditionId");
+                        eventFilterGood.selectClauses[lengthSelectClause - 2].attributeId.should.eql(AttributeIds.Value);
 
                         await pause();
 
