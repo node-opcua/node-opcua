@@ -88,26 +88,32 @@ export class ClientAlarm extends EventEmitter {
     }
 }
 
-// ------------------------------------------------------------------------------------------------------------------------------
-export function fieldsToJson(fields: string[], eventFields: Variant[]): EventStuff {
-
+/**
+ * @private
+ */
+export function fieldsToJson(fields: string[], eventFields: Variant[], flat?: boolean): EventStuff {
 
     function setProperty(_data: Record<string, unknown>, fieldName: string, value: Variant) {
         let name: string;
         if (!fieldName || value === null) {
             return;
         }
-        const f = fieldName.split(".");
-        if (f.length === 1) {
-            fieldName = lowerFirstLetter(fieldName);
-            _data[fieldName] = value;
-        } else {
-            for (let i = 0; i < f.length - 1; i++) {
-                name = lowerFirstLetter(f[i]);
-                _data[name] = _data[name] || {};
-                _data = _data[name] as Record<string, unknown>;
+        if (!flat) {
+            const f = fieldName.split(".");
+            if (f.length === 1) {
+                fieldName = lowerFirstLetter(fieldName);
+                _data[fieldName] = value;
+            } else {
+                for (let i = 0; i < f.length - 1; i++) {
+                    name = lowerFirstLetter(f[i]);
+                    _data[name] = _data[name] || {};
+                    _data = _data[name] as Record<string, unknown>;
+                }
+                name = lowerFirstLetter(f[f.length - 1]);
+                _data[name] = value;
             }
-            name = lowerFirstLetter(f[f.length - 1]);
+        } else {
+            const name = fieldName.split(".").map(lowerFirstLetter).join(".");
             _data[name] = value;
         }
     }
@@ -119,7 +125,6 @@ export function fieldsToJson(fields: string[], eventFields: Variant[]): EventStu
         const variant = eventFields[index];
         setProperty(data, fields[index], variant);
     }
-    setProperty(data, "conditionId", eventFields[eventFields.length - 1]);
-    
+
     return data;
 }

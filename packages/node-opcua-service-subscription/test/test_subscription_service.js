@@ -1,14 +1,11 @@
 "use strict";
+
 const { assert } = require("node-opcua-assert");
+const { makeBufferFromTrace } = require("node-opcua-debug");
+const { redirectToFile } = require("node-opcua-debug/nodeJS");
 
 const StatusCodes = require("node-opcua-status-code").StatusCodes;
 const read_service = require("node-opcua-service-read");
-const filter_service = require("node-opcua-service-filter");
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
-const NumericRange = require("node-opcua-numeric-range").NumericRange;
-
-const subscription_service = require("..");
-
 
 const { makeNodeId } = require("node-opcua-nodeid");
 const { makeBuffer } = require("node-opcua-buffer-utils");
@@ -16,8 +13,8 @@ const { makeBuffer } = require("node-opcua-buffer-utils");
 const { verify_multi_chunk_message } = require("node-opcua-secure-channel/dist/test_helpers");
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const { makeBufferFromTrace } = require("node-opcua-debug");
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
+
+const subscription_service = require("..");
 
 describe("testing subscription objects", function() {
 
@@ -111,64 +108,6 @@ describe("testing subscription objects", function() {
         done();
     });
 
-    it("should encode and decode a MonitoringParameters with EventFilter filter", function(done) {
-
-        const obj = new subscription_service.MonitoringParameters({
-            samplingInterval: 10,
-            discardOldest: true,
-            queueSize: 10,
-            filter: new filter_service.EventFilter({
-                selectClauses: [// SimpleAttributeOperand
-                    {
-                        typeDefinitionId: "i=123", // NodeId
-
-                        browsePath: [    // QualifiedName
-                            { namespaceIndex: 1, name: "A" }, { namespaceIndex: 1, name: "B" }, {
-                                namespaceIndex: 1,
-                                name: "C"
-                            }
-                        ],
-                        attributeId: AttributeIds.Value,
-                        indexRange: new NumericRange()
-                    },
-                    {
-                        // etc...
-                    },
-                    {
-                        // etc...
-                    }
-                ],
-                whereClause: { //ContentFilter
-                    elements: [ // ContentFilterElement
-                        {
-                            filterOperator: filter_service.FilterOperator.InList,
-                            filterOperands: [ //
-                                new filter_service.ElementOperand({
-                                    index: 123
-                                }),
-                                new filter_service.AttributeOperand({
-                                    nodeId: "i=10",
-                                    alias: "someText",
-                                    browsePath: { //RelativePath
-
-                                    },
-                                    attributeId: AttributeIds.Value
-                                })
-                            ]
-                        }
-                    ]
-                }
-            })
-        });
-        const obj_reloaded = encode_decode_round_trip_test(obj);
-
-        obj_reloaded.filter.selectClauses.length.should.eql(3);
-        obj_reloaded.filter.whereClause.elements.length.should.eql(1);
-
-        obj_reloaded.filter.whereClause.elements[0].filterOperands[1].attributeId.should.eql(AttributeIds.Value);
-
-        done();
-    });
 
     it("should encode and decode a DeleteMonitoredItemsRequest", function(done) {
         const obj = new subscription_service.DeleteMonitoredItemsRequest({

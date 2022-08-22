@@ -3,9 +3,8 @@
  */
 import { DataType } from "node-opcua-basic-types";
 import { ObjectTypeIds } from "node-opcua-constants";
-import { AttributeIds, stringToQualifiedName } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { makeNodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { AttributeIds, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
+import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 
 import {
     ContentFilterElementOptions,
@@ -35,6 +34,7 @@ export function ofType(nodeId: NodeIdLike): ContentFilterElementOptions {
  * helper to construct event filters:
  * construct a simple event filter
  *
+ *  "ConditionId" in the arrayOfNames has a special meaning
  *
  * @example
  *
@@ -73,39 +73,41 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
     // In some cases the same BrowsePath will apply to multiple EventTypes. If the Client specifies the BaseEventType
     // in the SimpleAttributeOperand then the Server shall evaluate the BrowsePath without considering the Type.
 
+    const isBrowsePathForConditionId = (browsePath: QualifiedName[]) =>
+        browsePath.length === 1 && browsePath[0].namespaceIndex === 0 && browsePath[0].name === "ConditionId";
+
     // [..]
     // The SimpleAttributeOperand structure allows the Client to specify any Attribute, however, the Server is only
     // required to support the Value Attribute for Variable Nodes and the NodeId Attribute for Object Nodes.
     // That said, profiles defined in Part 7 may make support for additional Attributes mandatory.
-    const selectClauses = browsePaths.map((browsePath) => {
-        return new SimpleAttributeOperand({
-            attributeId: AttributeIds.Value,
-            browsePath,
-            indexRange: undefined, //  NumericRange
-            typeDefinitionId: ObjectTypeIds.BaseEventType// i=2041
-        });
+    const selectClauses = browsePaths.map((browsePath: QualifiedName[]) => {
+        if (isBrowsePathForConditionId(browsePath)) {
+            // special case
+            //
+            // The NodeId of the Condition instance is used as ConditionId. It is not explicitly modelled as a
+            // component of the ConditionType. However, it can be requested with the following
+            // SimpleAttributeOperand (see Table 10) in the SelectClause of the EventFilter:
+            //
+            //  SimpleAttributeOperand
+            //  Name          Type          Description
+            //  typeId        NodeId        NodeId of the ConditionType Node
+            //  browsePath[]  QualifiedName empty
+            //  attributeId   IntegerId     Id of the NodeId Attribute
+            //
+            return new SimpleAttributeOperand({
+                attributeId: AttributeIds.NodeId,
+                browsePath: null,
+                indexRange: undefined, //  NumericRange
+                typeDefinitionId: ObjectTypeIds.ConditionType // i=2782
+            });
+        } else
+            return new SimpleAttributeOperand({
+                attributeId: AttributeIds.Value,
+                browsePath,
+                indexRange: undefined, //  NumericRange
+                typeDefinitionId: ObjectTypeIds.BaseEventType // i=2041
+            });
     });
-
-    // special case
-    //
-    // The NodeId of the Condition instance is used as ConditionId. It is not explicitly modelled as a
-    // component of the ConditionType. However, it can be requested with the following
-    // SimpleAttributeOperand (see Table 10) in the SelectClause of the EventFilter:
-    //
-    //  SimpleAttributeOperand
-    //  Name          Type          Description
-    //  typeId        NodeId        NodeId of the ConditionType Node
-    //  browsePath[]  QualifiedName empty
-    //  attributeId   IntegerId     Id of the NodeId Attribute
-    //
-    selectClauses.push(
-        new SimpleAttributeOperand({
-            attributeId: AttributeIds.NodeId,
-            browsePath: null,
-            indexRange: undefined, //  NumericRange
-            typeDefinitionId:ObjectTypeIds.ConditionType // i=2782
-        })
-    );
 
     let whereClause: ContentFilterOptions | undefined;
     if (conditionTypes && conditionTypes instanceof Array && conditionTypes.length >= 1) {

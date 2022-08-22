@@ -85,20 +85,19 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     const fields = await extractConditionFields(session, "AlarmConditionType");
 
-    const eventFilter = constructEventFilter(fields, [resolveNodeId("AcknowledgeableConditionType")]);
+    const AcknowledgeableConditionType = resolveNodeId("AcknowledgeableConditionType");
+
+    const eventFilter = constructEventFilter(fields, AcknowledgeableConditionType);
 
     const monitoringParameters: MonitoringParametersOptions = {
         discardOldest: false,
         filter: eventFilter,
-        queueSize: 10000,
+        queueSize: 1000,
         samplingInterval: 0
     };
 
     // now create a event monitored Item
     const eventMonitoringItem = await subscription.monitor(itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
-
-    const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
-    const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
     const queueEvent: EventStuff[] = [];
     function flushQueue() {
@@ -111,27 +110,24 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     let inInit = true;
     eventMonitoringItem.on("changed", (eventFields: Variant[]) => {
-        const pojo = fieldsToJson(fields, eventFields) as EventStuff;
+        
+        const pojo = fieldsToJson(fields, eventFields);
+        const { eventType, eventId, conditionId, conditionName } = pojo;
+
         debugLog(
             "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx ---- ALARM RECEIVED " +
-                pojo.eventType.value.toString() +
+                eventType.value.toString() +
                 " " +
-                pojo.eventId.value?.toString("hex")
+                eventId.value?.toString("hex")
         );
         try {
-            if (pojo.eventType.value.toString() === RefreshStartEventType) {
-                return;
-            }
-            if (pojo.eventType.value.toString() === RefreshEndEventType) {
-                return;
-            }
-            if (!pojo.conditionId || !pojo.conditionId.value || pojo.conditionId.dataType === DataType.Null) {
+            if (!conditionId || !conditionId.value || conditionId.dataType === DataType.Null) {
                 // not a acknowledgeable condition
                 warningLog(
-                    " not acknowledgeable condition ---- " + pojo.eventType.value.toString() + " ",
-                    pojo.conditionId,
-                    (pojo as any).conditionName.value,
-                    " " + pojo.eventId.value?.toString("hex")
+                    " not acknowledgeable condition ---- " + eventType.value.toString() + " ",
+                    conditionId,
+                    conditionName?.value,
+                    " " + eventId.value?.toString("hex")
                 );
                 return;
             }

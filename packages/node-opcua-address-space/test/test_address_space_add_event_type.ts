@@ -114,7 +114,7 @@ describe("AddressSpace : add event type ", () => {
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        eventFilter.selectClauses!.length.should.eql(4, "expecting 3 select clauses + ConditionId");
+        eventFilter.selectClauses!.length.should.eql(3, "expecting 3 select clauses");
 
         let statusCode = checkSelectClause(baseEventType, eventFilter.selectClauses![0]);
         statusCode.should.eql(StatusCodes.Good);
@@ -132,7 +132,7 @@ describe("AddressSpace : add event type ", () => {
         const auditEventType = addressSpace.findEventType("AuditEventType")!;
 
         const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-        eventFilter.selectClauses!.length.should.eql(4, "expecting 3 select clauses + ConditionId");
+        eventFilter.selectClauses!.length.should.eql(3, "expecting 3 select clauses");
 
         let statusCode = checkSelectClause(auditEventType, eventFilter.selectClauses![0]);
         statusCode.should.eql(StatusCodes.Good);

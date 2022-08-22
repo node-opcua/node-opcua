@@ -115,10 +115,12 @@ module.exports = function (test) {
             "AckedState.Id",
             "ConfirmedState",
             "ConfirmedState.Id",
-            "LimitState",
-            "LimitState.Id",
+            // "LimitState", is an object
+            "LimitState.CurrentState",
+            "LimitState.CurrentState.Id",
             "ActiveState",
-            "ActiveState.Id"
+            "ActiveState.Id",
+            "ConditionId"
         ];
 
         function extract_value_for_field(fieldName, result) {
@@ -159,7 +161,7 @@ module.exports = function (test) {
             test.monitoredItem1.on("changed", test.spy_monitored_item1_changes);
         }
 
-        it("GGG1 -  Limit Alarm should trigger Event when ever the input node goes out of limit", function (done) {
+        it("A&C-01 -  Limit Alarm should trigger Event when ever the input node goes out of limit", function (done) {
             perform_operation_on_subscription(
                 client,
                 test.endpointUrl,
@@ -215,7 +217,7 @@ module.exports = function (test) {
             );
         });
 
-        it("GGG2 - ConditionRefresh", function (done) {
+        it("A&C-02 - ConditionRefresh", function (done) {
             function wait_until_refresh_end(callback) {
                 let alreadyCalled = false;
                 const lambda = (values) => {
@@ -364,22 +366,22 @@ module.exports = function (test) {
        return a status of Bad_ConditionDisabled. The Event that reports the Disabled state
        should report the properties as NULL or with a status of Bad_ConditionDisabled.
        */
-            it("KKL should raise an event when a Condition get disabled", function (done) {
+            it("A&C-03 should raise an event when a Condition get disabled", function (done) {
                 perform_operation_on_subscription(
                     client,
                     test.endpointUrl,
                     function (session, subscription, callback) {
                         async.series(
                             [
-                                function given_a_enabled_condition(callback) {
+                                f(function given_a_enabled_condition(callback) {
                                     test.tankLevelCondition.enabledState.setValue(true);
                                     test.tankLevelCondition.enabledState.getValue().should.eql(true);
                                     callback();
-                                },
+                                }),
 
-                                given_an_installed_event_monitored_item.bind(test, subscription),
+                                f(given_an_installed_event_monitored_item.bind(test, subscription)),
 
-                                function when_the_condition_is_disabled_by_the_client(callback) {
+                                f(function when_the_condition_is_disabled_by_the_client(callback) {
                                     //xx test.tankLevelCondition.enabledState.setValue(false);
                                     //xx test.tankLevelCondition.enabledState.getValue().should.eql(false);
                                     const methodToCalls = [];
@@ -392,16 +394,16 @@ module.exports = function (test) {
                                     session.call(methodToCalls, function (err, results) {
                                         callback(err);
                                     });
-                                },
+                                }),
 
-                                function then_we_should_verify_that_the_client_has_received_a_notification(callback) {
+                                f(function then_we_should_verify_that_the_client_has_received_a_notification(callback) {
                                     setTimeout(function () {
                                         test.spy_monitored_item1_changes.callCount.should.eql(1);
                                         callback();
                                     }, 500);
-                                },
+                                }),
 
-                                function and_we_should_verify_that_the_propertie_are_null_or_with_status_Bad_ConditionDisabled() {
+                                f(function and_we_should_verify_that_the_propertie_are_null_or_with_status_Bad_ConditionDisabled() {
                                     // The Event that reports the Disabled state
                                     // should report the properties as NULL or with a status of Bad_ConditionDisabled.
                                     const results = test.spy_monitored_item1_changes.getCall(0).args[0];
@@ -420,7 +422,7 @@ module.exports = function (test) {
                                     value_severity.should.eql(conditionDisabledVar);
 
                                     callback();
-                                }
+                                })
 
                                 // to do : same test when disable/enable is set by the server
                             ],
@@ -431,7 +433,7 @@ module.exports = function (test) {
                 );
             });
 
-            xit("EventId, EventType, Source Node, Source Name, Time, and EnabledState shall return valid values when condition is disabled ", function (done) {
+            xit("A&C-04 EventId, EventType, Source Node, Source Name, Time, and EnabledState shall return valid values when condition is disabled ", function (done) {
                 //             "EventId",
                 //             "ConditionName",
                 //             "ConditionClassName",
@@ -461,12 +463,12 @@ module.exports = function (test) {
                 done();
             });
 
-            xit("reading no longer provided variables of a disabled Condition shall return Bad_ConditionDisabled", function (done) {
+            xit("A&C-05 reading no longer provided variables of a disabled Condition shall return Bad_ConditionDisabled", function (done) {
                 done();
             });
         });
 
-        it("should raise an (OPCUA) event when commenting a Condition ", function (done) {
+        it("A&C-06 should raise an (OPCUA) event when commenting a Condition ", function (done) {
             const levelNode = test.tankLevel;
             const alarmNode = test.tankLevelCondition;
 
@@ -485,6 +487,7 @@ module.exports = function (test) {
                             given_an_installed_event_monitored_item.bind(test, subscription),
 
                             wait_a_little_bit_to_let_events_to_be_processed,
+
                             function when_a_notification_event_is_raised_by_the_condition(callback) {
                                 test.spy_monitored_item1_changes.resetHistory();
                                 levelNode.setValueFromSource({ dataType: "Double", value: 1000 });
@@ -565,7 +568,7 @@ module.exports = function (test) {
             );
         });
 
-        it("should raise an (INTERNAL) event when client is commenting", function (done) {
+        it("A&C-07 should raise an (INTERNAL) event when client is commenting", function (done) {
             const levelNode = test.tankLevel;
             const alarmNode = test.tankLevelCondition;
 
@@ -630,11 +633,11 @@ module.exports = function (test) {
             );
         });
 
-        xit("should raise an event when acknowledging an AcknowledgeableCondition ", function (done) {
+        xit("A&C-08 should raise an event when acknowledging an AcknowledgeableCondition ", function (done) {
             done();
         });
 
-        xit("a condition should expose ReadOnly condition values", function (done) {
+        xit("A&C-09 a condition should expose ReadOnly condition values", function (done) {
             done();
         });
 
@@ -1291,11 +1294,12 @@ module.exports = function (test) {
             );
         }
 
-        it("A&C1 Example of a Condition that maintains previous states via branches - with exclusive condition", function (done) {
+        it("A&C-10 Example of a Condition that maintains previous states via branches - with exclusive condition", function (done) {
             // ns=0;i=9341 => ExclusiveLimitAlarmType
             perform_test_with_condition("ns=0;i=9341", test.tankLevel, test.tankLevelCondition, done);
         });
-        it("A&C2 Example of a Condition that maintains previous states via branches - with non exclusive condition", function (done) {
+
+        it("A&C-11 Example of a Condition that maintains previous states via branches - with non exclusive condition", function (done) {
             // ns=0;i=9906 => NonExclusiveLimitAlarmType
             perform_test_with_condition("ns=0;i=9906", test.tankLevel2, test.tankLevelCondition2, done);
         });

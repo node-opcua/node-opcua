@@ -5,7 +5,6 @@ import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "n
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientSession } from "../client_session";
 import { EventStuff, fieldsToJson } from "./client_alarm";
 import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
