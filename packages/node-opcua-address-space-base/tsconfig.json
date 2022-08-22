@@ -17,16 +17,7 @@
             "path": "../node-opcua-basic-types"
         },
         {
-            "path": "../node-opcua-client-dynamic-extension-object"
-        },
-        {
-            "path": "../node-opcua-common"
-        },
-        {
             "path": "../node-opcua-constants"
-        },
-        {
-            "path": "../node-opcua-data-access"
         },
         {
             "path": "../node-opcua-data-model"
@@ -38,10 +29,10 @@
             "path": "../node-opcua-date-time"
         },
         {
-            "path": "../node-opcua-enum"
+            "path": "../node-opcua-extension-object"
         },
         {
-            "path": "../node-opcua-factory"
+            "path": "../node-opcua-client-dynamic-extension-object"
         },
         {
             "path": "../node-opcua-nodeid"
@@ -50,34 +41,7 @@
             "path": "../node-opcua-numeric-range"
         },
         {
-            "path": "../node-opcua-object-registry"
-        },
-        {
-            "path": "../node-opcua-pseudo-session"
-        },
-        {
             "path": "../node-opcua-schemas"
-        },
-        {
-            "path": "../node-opcua-service-browse"
-        },
-        {
-            "path": "../node-opcua-service-call"
-        },
-        {
-            "path": "../node-opcua-service-filter"
-        },
-        {
-            "path": "../node-opcua-service-history"
-        },
-        {
-            "path": "../node-opcua-service-session"
-        },
-        {
-            "path": "../node-opcua-service-translate-browse-path"
-        },
-        {
-            "path": "../node-opcua-service-write"
         },
         {
             "path": "../node-opcua-status-code"
@@ -85,23 +49,9 @@
         {
             "path": "../node-opcua-types"
         },
-        {
-            "path": "../node-opcua-utils"
-        },
+
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-buffer-utils"
-        },
-        {
-            "path": "../node-opcua-extension-object"
-        },
-        {
-            "path": "../node-opcua-generator"
-        },
-        {
-            "path": "../node-opcua-guid"
         }
     ],
     "exclude": ["node_modules", "source/limbo/*.ts", "dist"]
