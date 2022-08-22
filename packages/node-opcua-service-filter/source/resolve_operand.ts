@@ -21,7 +21,6 @@ const warningLog = make_warningLog("FILTER");
 
 export function resolveOperand(context: FilterContext, operand: SimpleAttributeOperand | AttributeOperand): Variant {
     if (operand instanceof SimpleAttributeOperand) {
-        
         const browsePath = constructBrowsePathFromQualifiedName({ nodeId: context.eventSource }, operand.browsePath);
 
         const target: NodeId | null = context.browsePath(browsePath);
@@ -31,7 +30,7 @@ export function resolveOperand(context: FilterContext, operand: SimpleAttributeO
         }
         const nodeClass = context.getNodeClass(target);
         if (nodeClass !== NodeClass.Variable) {
-            warningLog("resolveOperand: cannot find variable here ", browsePath.toString());
+            warningLog("resolveOperand: cannot find variable here but got nodeClass", NodeClass[nodeClass], browsePath.toString());
             return new Variant({ dataType: DataType.StatusCode, value: StatusCodes.BadNodeClassInvalid });
         }
         const value = context.readNodeValue(target);

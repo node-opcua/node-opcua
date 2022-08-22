@@ -50,7 +50,7 @@ function displayAlarms(alarms /*: ClientAlarmList*/) {
         const fields = alarm.fields; /* as any*/
         const isEnabled = fields.enabledState.id.value;
         table.push([
-            alarm.eventType.toString({addressSpace: alarms.addressSpace}),
+            alarm.eventType.toString({ addressSpace: alarms.addressSpace }),
             alarm.conditionId.toString(),
             fields.branchId.value.toString(),
             ellipsys(alarm.eventId.toString("hex")),
@@ -202,14 +202,14 @@ module.exports = function (test) {
                     console.log("---------------------------------------------------------------------- After Wait");
                     const alarms = await installAlarmMonitoring(session);
                     displayAlarms(alarms);
-             
-                    alarms.length.should.eql(0,"we should have no alarm  to start with");
+
+                    alarms.length.should.eql(0, "we should have no alarm  to start with");
 
                     // When tankLevel goes to 0.1 then alarm should switch to LowLow
                     console.log("---------------------------------------------------------------------- ");
                     console.log("   When tankLevel goes to 0.1 then alarm should switch to LowL");
                     console.log("---------------------------------------------------------------------- ");
-                
+
                     setAlarmLowLow();
                     // test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.1 });
 
@@ -224,7 +224,7 @@ module.exports = function (test) {
                     console.log("---------------------------------------------------------------------- ");
                     console.log("     When tankLevel2 goes to 0.1 then alarm should switch to LowLow");
                     console.log("---------------------------------------------------------------------- ");
-           
+
                     test.tankLevel2.setValueFromSource({ dataType: "Double", value: 0.1 });
                     await pause();
                     displayAlarms(alarms);
@@ -244,7 +244,7 @@ module.exports = function (test) {
                     console.log("---------------------------------------------------------------------- ");
                     console.log("         When tankLevel goes back to  0.5  (normal)");
                     console.log("---------------------------------------------------------------------- ");
-               
+
                     test.tankLevel.setValueFromSource({ dataType: "Double", value: 0.5 });
                     await pause();
                     displayAlarms(alarms);
@@ -253,7 +253,7 @@ module.exports = function (test) {
                     console.log("---------------------------------------------------------------------- ");
                     console.log("  back to normal for alarm 2 also");
                     console.log("---------------------------------------------------------------------- ");
-                    
+
                     test.tankLevel2.setValueFromSource({ dataType: "Double", value: 0.5 });
                     await pause();
                     displayAlarms(alarms);
@@ -261,7 +261,7 @@ module.exports = function (test) {
                     console.log("---------------------------------------------------------------------- ");
                     console.log("now lets acknoweldege all alarms");
                     console.log("---------------------------------------------------------------------- ");
-                    
+
                     await acknwoledgeAllConditions(session, "Acked by test");
 
                     alarms.alarms()[0].fields.ackedState.id.value.should.eql(true);
@@ -279,11 +279,9 @@ module.exports = function (test) {
                     console.log("---------------------------------------------------------------------- ");
                     await confirmAllConditions(session, "Confirmed by test");
 
-
                     await pause();
                     displayAlarms(alarms);
                     alarms.length.should.eql(2);
-
 
                     // console.log(alarms.alarms()[0].fields);
                     alarms.alarms()[0].fields.ackedState.id.value.should.eql(true);
@@ -297,15 +295,15 @@ module.exports = function (test) {
                     alarms.alarms()[1].fields.activeState.id.value.should.eql(false);
 
                     console.log("---------------------------------------------------------------------- ");
-                    console.log("purgeUnusedAlarms")
+                    console.log("purgeUnusedAlarms");
                     console.log("---------------------------------------------------------------------- ");
-             
+
                     alarms.purgeUnusedAlarms();
                     displayAlarms(alarms);
                     alarms.length.should.eql(0);
 
                     console.log("---------------------------------------------------------------------- ");
-                    console.log("uninstallAlarmMonitoring")
+                    console.log("uninstallAlarmMonitoring");
                     console.log("---------------------------------------------------------------------- ");
                     await uninstallAlarmMonitoring(session);
 

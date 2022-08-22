@@ -2,15 +2,11 @@ import { BrowseDirection, NodeClassMask, QualifiedName } from "node-opcua-data-m
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { BrowseDescriptionOptions } from "node-opcua-service-browse";
+import { NodeClass } from "node-opcua-types";
 
-/**
- *
- * @param session
- * @param conditionNodeId
- */
 export async function extractConditionFields(session: IBasicSession, conditionNodeId: NodeIdLike): Promise<string[]> {
     // conditionNodeId could be a Object of type ConditionType
-    // or it could be directly a ObhectType which is a  subType of ConditionType
+    // or it could be directly a ObjectType which is a subType of ConditionType
 
     const _duplicateMap: any = {};
     const fields1: string[] = [];
@@ -63,7 +59,9 @@ export async function extractConditionFields(session: IBasicSession, conditionNo
 
             for (const ref of result.references) {
                 const n = name + "." + ref.browseName.toString();
-                addField(n);
+                if (ref.nodeClass === NodeClass.Variable) {
+                    addField(n);
+                }
                 deferObjectOrVariableInvestigation(ref.nodeId, n);
             }
         }
@@ -83,8 +81,10 @@ export async function extractConditionFields(session: IBasicSession, conditionNo
         const nodeToBrowse2: BrowseDescriptionOptions = {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
+
             // tslint:disable-next-line: no-bitwise
             nodeClassMask: NodeClassMask.Object | NodeClassMask.Variable,
+
             nodeId: conditionNodeId,
             referenceTypeId: resolveNodeId("HasChild"),
             resultMask: 63
@@ -92,12 +92,11 @@ export async function extractConditionFields(session: IBasicSession, conditionNo
         const nodesToBrowse = [nodeToBrowse1, nodeToBrowse2];
         const browseResults = await session.browse(nodesToBrowse);
 
-        // console.log(browseResults[0].toString());
-        // console.log(browseResults[1].toString());
-
         if (browseResults[1] && browseResults[1].references) {
             for (const ref of browseResults[1].references) {
-                addField(ref.browseName.toString());
+                if (ref.nodeClass === NodeClass.Variable) {
+                    addField(ref.browseName.toString());
+                }
                 deferObjectOrVariableInvestigation(ref.nodeId, ref.browseName.toString());
             }
         }
@@ -113,7 +112,8 @@ export async function extractConditionFields(session: IBasicSession, conditionNo
     }
     await _investigateLevel(conditionNodeId);
 
-    //xx add this field which will always be added
-    //xx addField("ConditionId");
+    // add this field which will always be added
+    addField("ConditionId");
+
     return fields1;
 }

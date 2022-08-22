@@ -159,7 +159,7 @@ module.exports = function (test) {
         // check if nodeID exists
         it("ZZ2 should create a monitoredItem on a event with an Event Filter ", function (done) {
             const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
-            eventFilter.selectClauses.length.should.eql(4, "expecting 4 selectClauses");
+            eventFilter.selectClauses.length.should.eql(3, "expecting 3 selectClauses");
 
             //xx console.log("filter = ",filter.toString());
 
@@ -210,7 +210,7 @@ module.exports = function (test) {
                             filterResult.should.be.instanceof(EventFilterResult);
 
                             // verify selectClauseResults count
-                            eventFilter.selectClauses.length.should.eql(4, "expecting 4 selectClauses");
+                            eventFilter.selectClauses.length.should.eql(3, "expecting 3 selectClauses");
                             filterResult.selectClauseResults.length.should.eql(eventFilter.selectClauses.length);
                             filterResult.selectClauseResults[0].should.eql(StatusCodes.Good);
                             filterResult.selectClauseResults[1].should.eql(StatusCodes.Good);
