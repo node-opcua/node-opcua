@@ -21,6 +21,7 @@
         "node-opcua-factory": "2.74.0",
         "node-opcua-nodeid": "2.74.0",
         "node-opcua-numeric-range": "2.74.0",
+        "node-opcua-packet-analyzer": "2.74.0",
         "node-opcua-service-translate-browse-path": "2.74.0",
         "node-opcua-status-code": "2.74.0",
         "node-opcua-types": "2.74.0",
