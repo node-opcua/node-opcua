@@ -1,8 +1,9 @@
 const { MonitoringParameters } = require("node-opcua-types");
 const { AttributeIds } = require("node-opcua-data-model");
 const { NumericRange } = require("node-opcua-numeric-range");
-const { EventFilter, FilterOperator, ElementOperand, AttributeOperand } = require("..");
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+const { EventFilter, FilterOperator, ElementOperand, AttributeOperand } = require("..");
+
 
 
 describe("Filter Service", function () {

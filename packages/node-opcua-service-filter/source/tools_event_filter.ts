@@ -1,63 +1,19 @@
 /**
  * @module node-opcua-service-filter
  */
-import { DataType } from "node-opcua-basic-types";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { AttributeIds, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 
-import {
-    ContentFilterElementOptions,
-    ContentFilterOptions,
-    EventFilter,
-    FilterOperator,
-    LiteralOperand,
-    SimpleAttributeOperand
-} from "./imports";
+import { ContentFilter, ContentFilterElement, ContentFilterOptions, EventFilter, FilterOperator, SimpleAttributeOperand } from "./imports";
 
-export function ofType(nodeId: NodeIdLike): ContentFilterElementOptions {
-    const element: ContentFilterElementOptions = {
-        filterOperator: FilterOperator.OfType,
-        filterOperands: [
-            new LiteralOperand({
-                value: {
-                    dataType: DataType.NodeId,
-                    value: resolveNodeId(nodeId)
-                }
-            })
-        ]
-    };
-    return element;
-}
+import { ofType } from "./make_content_filter";
 
-/**
- * helper to construct event filters:
- * construct a simple event filter
- *
- *  "ConditionId" in the arrayOfNames has a special meaning
- *
- * @example
- *
- *     constructEventFilter(["SourceName","Message","ReceiveTime"]);
- *
- *     constructEventFilter(["SourceName",{namespaceIndex:2 , "MyData"}]);
- *     constructEventFilter(["SourceName","2:MyData" ]);
- *
- *     constructEventFilter(["SourceName" ,["EnabledState","EffectiveDisplayName"] ]);
- *     constructEventFilter(["SourceName" ,"EnabledState.EffectiveDisplayName" ]);
- *
- */
-export function constructEventFilter(arrayOfNames: string[] | string, conditionTypes?: NodeIdLike[] | NodeIdLike): EventFilter {
+export function constructSelectClause(arrayOfNames: string | string[]): SimpleAttributeOperand[] {
     if (!Array.isArray(arrayOfNames)) {
-        return constructEventFilter([arrayOfNames], conditionTypes);
+        return constructSelectClause([arrayOfNames]);
     }
-    if (conditionTypes && !Array.isArray(conditionTypes)) {
-        return constructEventFilter(arrayOfNames, [conditionTypes]);
-    }
-    // istanbul ignore next
-    if (!(arrayOfNames instanceof Array)) {
-        throw new Error("internal error");
-    }
+
     // replace "string" element in the form A.B.C into [ "A","B","C"]
     const arrayOfNames2 = arrayOfNames.map((path) => (typeof path !== "string" ? path : path.split(".")));
 
@@ -108,33 +64,34 @@ export function constructEventFilter(arrayOfNames: string[] | string, conditionT
                 typeDefinitionId: ObjectTypeIds.BaseEventType // i=2041
             });
     });
+    return selectClauses;
+}
+/**
+ * helper to construct event filters:
+ * construct a simple event filter
+ *
+ *  "ConditionId" in the arrayOfNames has a special meaning
+ *
+ * @example
+ *
+ *     constructEventFilter(["SourceName","Message","ReceiveTime"]);
+ *
+ *     constructEventFilter(["SourceName",{namespaceIndex:2 , "MyData"}]);
+ *     constructEventFilter(["SourceName","2:MyData" ]);
+ *
+ *     constructEventFilter(["SourceName" ,["EnabledState","EffectiveDisplayName"] ]);
+ *     constructEventFilter(["SourceName" ,"EnabledState.EffectiveDisplayName" ]);
+ *
+ */
+export function constructEventFilter(
+    arrayOfNames: string[] | string,
+    whereClause?: ContentFilterOptions | ContentFilterElement
+): EventFilter {
+    const selectClauses = constructSelectClause(arrayOfNames);
 
-    let whereClause: ContentFilterOptions | undefined;
-    if (conditionTypes && conditionTypes instanceof Array && conditionTypes.length >= 1) {
-        if (conditionTypes.length === 1) {
-            whereClause = {
-                elements: [ofType(conditionTypes[0])]
-            };
-        } else {
-            const whereClauseOfTypeArgs = conditionTypes.map((nodeId) => {
-                return new SimpleAttributeOperand({
-                    attributeId: AttributeIds.NodeId,
-                    browsePath: undefined,
-                    indexRange: undefined, //  NumericRange
-                    typeDefinitionId: resolveNodeId(nodeId) // conditionType for instance
-                });
-            });
-            whereClause = {
-                elements: [
-                    {
-                        filterOperator: FilterOperator.InList,
-                        filterOperands: whereClauseOfTypeArgs
-                    }
-                ]
-            };
-        }
+    if (whereClause instanceof ContentFilterElement) {
+        whereClause = new ContentFilter({ elements: [whereClause] });
     }
-
     const filter = new EventFilter({
         selectClauses,
         whereClause

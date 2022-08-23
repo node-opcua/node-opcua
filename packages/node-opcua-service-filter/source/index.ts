@@ -6,6 +6,7 @@ export * from "./check_where_clause";
 export * from "./extract_event_field";
 export * from "./filter_context";
 export * from "./imports";
+export * from "./make_content_filter";
 export * from "./on_address_space/extract_event_fields";
 export * from "./resolve_operand";
 export * from "./tools_event_filter";

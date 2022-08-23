@@ -1,6 +1,6 @@
 import { AttributeIds } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { constructEventFilter } from "node-opcua-service-filter";
+import { constructEventFilter, ofType } from "node-opcua-service-filter";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
@@ -87,7 +87,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     const AcknowledgeableConditionType = resolveNodeId("AcknowledgeableConditionType");
 
-    const eventFilter = constructEventFilter(fields, AcknowledgeableConditionType);
+    const eventFilter = constructEventFilter(fields, ofType(AcknowledgeableConditionType));
 
     const monitoringParameters: MonitoringParametersOptions = {
         discardOldest: false,
