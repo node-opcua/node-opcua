@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-discovery",
-    "version": "2.74.0",
+    "version": "2.75.0",
     "description": "pure nodejs OPCUA SDK - module -service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -15,14 +15,14 @@
         "node-opcua-assert": "2.74.0",
         "node-opcua-basic-types": "2.74.0",
         "node-opcua-binary-stream": "2.74.0",
-        "node-opcua-data-model": "2.74.0",
+        "node-opcua-data-model": "2.75.0",
         "node-opcua-debug": "2.74.0",
-        "node-opcua-factory": "2.74.0",
+        "node-opcua-factory": "2.75.0",
         "node-opcua-nodeid": "2.74.0",
         "node-opcua-object-registry": "2.74.0",
-        "node-opcua-service-endpoints": "2.74.0",
-        "node-opcua-service-secure-channel": "2.74.0",
-        "node-opcua-types": "2.74.0",
+        "node-opcua-service-endpoints": "2.75.0",
+        "node-opcua-service-secure-channel": "2.75.0",
+        "node-opcua-types": "2.75.0",
         "sterfive-bonjour-service": "1.1.4"
     },
     "author": "Etienne Rossignon",
