@@ -32,6 +32,7 @@ import {
     NodeCrawler,
     NodeId,
     ObjectTypeIds,
+    ofType,
     OPCUAClient,
     OPCUAClientOptions,
     QueryFirstRequestOptions,
@@ -751,7 +752,7 @@ async function main() {
         "Value"
     ];
 
-    const eventFilter = constructEventFilter(fields, [resolveNodeId("ConditionType")]);
+    const eventFilter = constructEventFilter(fields, ofType("ConditionType"));
 
     const event_monitoringItem = ClientMonitoredItem.create(
         theSubscription,

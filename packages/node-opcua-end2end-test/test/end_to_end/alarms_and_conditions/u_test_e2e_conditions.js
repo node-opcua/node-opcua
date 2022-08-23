@@ -23,9 +23,7 @@ const {
     sameNodeId
 } = require("node-opcua");
 
-const conditionTypeId = resolveNodeId("ConditionType");
-
-const { constructEventFilter } = require("node-opcua-service-filter");
+const { constructEventFilter, ofType } = require("node-opcua-service-filter");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 
@@ -35,6 +33,7 @@ const { f } = require("../../discovery/_helper");
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
+
 
 function wait_a_little_bit_to_let_events_to_be_processed(callback) {
     setTimeout(callback, 400);
@@ -130,7 +129,7 @@ module.exports = function (test) {
             return result[index];
         }
 
-        const eventFilter = constructEventFilter(fields, "BaseEventType");
+        const eventFilter = constructEventFilter(fields, ofType("BaseEventType"));
 
         function given_an_installed_event_monitored_item(subscription, callback) {
             // eslint-disable-next-line @typescript-eslint/no-this-alias

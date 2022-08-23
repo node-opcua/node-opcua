@@ -19,7 +19,7 @@ const {
     resolveNodeId,
     StatusCodes,
     TimestampsToReturn,
-    VariableIds
+    VariableIds,
 } = require("node-opcua");
 const {
     perform_operation_on_subscription_async,
@@ -235,8 +235,6 @@ module.exports = function (test) {
         it("ZZ2B should modify parameters of a monitoredItem on a event (Modify Event)", function (done) {
             // this test should verify that server deals appropriately if a sampling interval is provided
             // ( event don't use sampling interval)
-
-            const constructEventFilter = require("node-opcua-service-filter").constructEventFilter;
 
             const eventFilter = constructEventFilter(["SourceName", "EventId", "ReceiveTime"]);
 

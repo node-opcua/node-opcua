@@ -4,7 +4,7 @@ const should = require("should");
 const { AttributeIds } = require("node-opcua-data-model");
 const { DataType } = require("node-opcua-variant");
 const { SimpleAttributeOperand } = require("node-opcua-types");
-const { FilterOperator, LiteralOperand, constructEventFilter } = require("..");
+const { FilterOperator, LiteralOperand, constructEventFilter, ofType } = require("..");
 
 describe("test constructEventFilter", function () {
     it("should construct a simple event filter with a single string (with namespace)", function () {
@@ -147,7 +147,7 @@ describe("test constructEventFilter", function () {
     });
 
     it("should construct a event filter with ConditionType", function () {
-        const ef = constructEventFilter([], ["i=9999"]);
+        const ef = constructEventFilter([], ofType("i=9999"));
 
         !ef.selectClauses || ef.selectClauses.length.should.eql(0);
 
