@@ -34,7 +34,7 @@ import { generateAddressSpace } from "../nodeJS";
 
 const doDebug = false;
 
-interface UAServiceCounterVariableEx extends UABaseDataVariable<DTServiceCounter, /*z*/ DataType.ExtensionObject> {
+interface UAServiceCounterVariableEx extends UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject> {
     totalCount: UAVariableT<UInt32, DataType.UInt32>;
     errorCount: UAVariableT<UInt32, DataType.UInt32>;
 }
