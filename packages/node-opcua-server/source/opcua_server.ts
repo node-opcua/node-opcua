@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /**
  * @module node-opcua-server
  */
@@ -38,7 +39,8 @@ import {
     ISessionContext,
     UAView,
     EventTypeLike,
-    UAObjectType
+    UAObjectType,
+    PseudoVariantStringPredefined
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
@@ -146,13 +148,15 @@ import {
     MonitoredItemCreateResult,
     IssuedIdentityToken,
     BrowseResultOptions,
-    ServiceFault
+    ServiceFault,
+    ServerDiagnosticsSummaryDataType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { matchUri } from "node-opcua-utils";
 
 import { UAString } from "node-opcua-basic-types";
+import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
 import { OPCUABaseServer, OPCUABaseServerOptions } from "./base_server";
 import { Factory } from "./factory";
 import { IRegisterServerManager } from "./i_register_server_manager";
@@ -1356,6 +1360,19 @@ export class OPCUAServer extends OPCUABaseServer {
         }
     }
 
+    public raiseEvent(eventType: "AuditSessionEventType", options: RaiseEventAuditSessionEventData): void;
+    public raiseEvent(eventType: "AuditCreateSessionEventType", options: RaiseEventAuditCreateSessionEventData): void;
+    public raiseEvent(eventType: "AuditActivateSessionEventType", options: RaiseEventAuditActivateSessionEventData): void;
+    public raiseEvent(eventType: "AuditCreateSessionEventType", options: RaiseEventData): void;
+    public raiseEvent(eventType: "AuditConditionCommentEventType", options: RaiseEventAuditConditionCommentEventData): void;
+    public raiseEvent(eventType: "AuditUrlMismatchEventType", options: RaiseEventAuditUrlMismatchEventTypeData): void;
+    public raiseEvent(eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
+    public raiseEvent(eventType: "AuditCertificateInvalidEventType", options: RaiseAuditCertificateInvalidEventData): void;
+    public raiseEvent(eventType: "AuditCertificateExpiredEventType", options: RaiseAuditCertificateExpiredEventData): void;
+    public raiseEvent(eventType: "AuditCertificateUntrustedEventType", options: RaiseAuditCertificateUntrustedEventData): void;
+    public raiseEvent(eventType: "AuditCertificateRevokedEventType", options: RaiseAuditCertificateRevokedEventData): void;
+    public raiseEvent(eventType: "AuditCertificateMismatchEventType", options: RaiseAuditCertificateMismatchEventData): void;
+
     public raiseEvent(eventType: EventTypeLike | UAObjectType, options: RaiseEventData): void {
         /* istanbul ignore next */
         if (!this.engine.addressSpace) {
@@ -1496,6 +1513,8 @@ export class OPCUAServer extends OPCUABaseServer {
         }
 
         if (!userTokenSignature || !userTokenSignature.signature) {
+            this.raiseEvent("AuditCreateSessionEventType", {});
+
             return callback(null, StatusCodes.BadUserSignatureInvalid);
         }
 
@@ -1525,6 +1544,45 @@ export class OPCUAServer extends OPCUABaseServer {
             if (err) {
                 return callback(err);
             }
+            if (this.isAuditing) {
+                switch (certificateStatus) {
+                    case StatusCodes.Good:
+                        break;
+                    case StatusCodes.BadCertificateUntrusted:
+                        this.raiseEvent("AuditCertificateUntrustedEventType", {
+                            certificate: { dataType: DataType.ByteString, value: certificate },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" }
+                        });
+                        break;
+                    case StatusCodes.BadCertificateTimeInvalid:
+                    case StatusCodes.BadCertificateIssuerTimeInvalid:
+                        this.raiseEvent("AuditCertificateExpiredEventType", {
+                            certificate: { dataType: DataType.ByteString, value: certificate },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" },
+                            comment: { dataType: DataType.String, value: certificateStatus.toString() }
+                        });
+                        break;
+                    case StatusCodes.BadCertificateRevoked:
+                    case StatusCodes.BadCertificateRevocationUnknown:
+                    case StatusCodes.BadCertificateIssuerRevocationUnknown:
+                        this.raiseEvent("AuditCertificateRevokedEventType", {
+                            certificate: { dataType: DataType.ByteString, value: certificate },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" },
+                            comment: { dataType: DataType.String, value: certificateStatus.toString() }
+                        });
+                        break;
+                    case StatusCodes.BadCertificateIssuerUseNotAllowed:
+                    case StatusCodes.BadCertificateUseNotAllowed:
+                    case StatusCodes.BadSecurityChecksFailed:
+                        this.raiseEvent("AuditCertificateMismatchEventType", {
+                            certificate: { dataType: DataType.ByteString, value: certificate },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" },
+                            comment: { dataType: DataType.String, value: certificateStatus.toString() }
+                        });
+                        break;
+                    
+                }
+            }
             if (
                 StatusCodes.BadCertificateUntrusted === certificateStatus ||
                 StatusCodes.BadCertificateTimeInvalid === certificateStatus ||
@@ -1538,6 +1596,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 StatusCodes.Good !== certificateStatus
             ) {
                 debugLog("isValidX509IdentityToken => certificateStatus = ", certificateStatus?.toString());
+
                 return callback(null, StatusCodes.BadIdentityTokenRejected);
             }
             if (StatusCodes.Good !== certificateStatus) {
@@ -3642,6 +3701,87 @@ export interface RaiseEventTransitionEventData extends RaiseEventData {}
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
 }
+
+/**
+ * The SourceName for Events of this type shall be “Security/Certificate”.
+ */
+export interface RaiseAuditCertificateEventData extends RaiseEventData {
+    certificate: PseudoVariantByteString;
+    sourceName: PseudoVariantStringPredefined<"Security/Certificate">;
+}
+
+/**
+ * This EventType inherits all Properties of the AuditCertificateEventType.
+ * Either the InvalidHostname or InvalidUri shall be provided.
+ */
+export interface RaiseAuditCertificateDataMismatchEventData extends RaiseAuditCertificateEventData {
+    /**
+     * InvalidHostname is the string that represents the host name passed in as part of the URL
+     * that is found to be invalid. If the host name was not invalid it can be null.
+     */
+    invalidHostname: PseudoVariantString;
+    /*
+     * InvalidUri is the URI that was passed in and found to not match what is contained in
+     * the certificate. If the URI was not invalid it can be null.
+     */
+    invalidUri: PseudoVariantString;
+}
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
+/**
+ * This EventType inherits all Properties of the AuditCertificateEventType.
+ *
+ * The SourceName for Events of this type shall be “Security/Certificate”.
+ *
+ * The Message Variable shall include a description of why the certificate was expired
+ * (i.e. time before start or time after end).
+ *
+ * There are no additional Properties defined for this EventType.
+ *
+ */
+export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData {}
+/**
+ * This EventType inherits all Properties of the AuditCertificateEventType.
+ *
+ * The SourceName for Events of this type shall be “Security/Certificate”.
+ *
+ * The Message shall include a description of why the certificate is invalid.
+ *
+ * There are no additional Properties defined for this EventType.
+ */
+export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData {}
+/**
+ * This EventType inherits all Properties of the AuditCertificateEventType.
+ *
+ * The SourceName for Events of this type shall be “Security/Certificate”.
+ *
+ * The Message Variable shall include a description of why the certificate is not trusted.
+ * If a trust chain is involved then the certificate that failed in the trust chain should be described.
+ * There are no additional Properties defined for this EventType.
+ */
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
+/**
+ * This EventType inherits all Properties of the AuditCertificateEventType.
+ *
+ * The SourceName for Events of this type shall be “Security/Certificate”.
+ *
+ * The Message Variable shall include a description of why the certificate is revoked
+ * (was the revocation list unavailable or was the certificate on the list).
+ *
+ *  There are no additional Properties defined for this EventType.
+ */
+export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertificateEventData {
+    sourceName: PseudoVariantStringPredefined<"Security/Certificate">;
+}
+/**
+ * This EventType inherits all Properties of the AuditCertificateEventType.
+ *
+ * The SourceName for Events of this type shall be “Security/Certificate”.
+ *
+ * The Message Variable shall include a description of misuse of the certificate.
+ *
+ * There are no additional Properties defined for this EventType
+ */
+export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
 export interface OPCUAServer {
     /**
      * @internal
@@ -3661,6 +3801,12 @@ export interface OPCUAServer {
     raiseEvent(eventType: "AuditUrlMismatchEventType", options: RaiseEventAuditUrlMismatchEventTypeData): void;
 
     raiseEvent(eventType: "TransitionEventType", options: RaiseEventTransitionEventData): void;
+
+    raiseEvent(eventType: "AuditCertificateInvalidEventType", options: RaiseAuditCertificateInvalidEventData): void;
+    raiseEvent(eventType: "AuditCertificateExpiredEventType", options: RaiseAuditCertificateExpiredEventData): void;
+    raiseEvent(eventType: "AuditCertificateUntrustedEventType", options: RaiseAuditCertificateUntrustedEventData): void;
+    raiseEvent(eventType: "AuditCertificateRevokedEventType", options: RaiseAuditCertificateRevokedEventData): void;
+    raiseEvent(eventType: "AuditCertificateMismatchEventType", options: RaiseAuditCertificateMismatchEventData): void;
 }
 
 export interface OPCUAServer extends EventEmitter {
