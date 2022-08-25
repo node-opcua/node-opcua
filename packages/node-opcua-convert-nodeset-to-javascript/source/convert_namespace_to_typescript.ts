@@ -8,9 +8,7 @@ import { convertTypeToTypescript } from "./convert_to_typescript";
 import { constructCache } from "./private/cache";
 import { Options } from "./options";
 
-function getPackageInfo(dependency: string, options: Options) {
-    //xx console.log("getPackageInfo", dependency);
-
+function getPackageFolder(dependency: string, options: Options) {
     const l = [...(options.lookupFolders || [])];
     l.push(path.join(__dirname, "../../"));
     for (const folder of l) {
@@ -18,10 +16,14 @@ function getPackageInfo(dependency: string, options: Options) {
         if (!fs.existsSync(d)) {
             continue;
         }
-        const p = JSON.parse(fs.readFileSync(d, "utf8"));
-        return p;
+        return d;
     }
     throw new Error("cannot find package.json for " + dependency);
+}
+function getPackageInfo(dependency: string, options: Options) {
+    const d = getPackageFolder(dependency, options);
+    const p = JSON.parse(fs.readFileSync(d, "utf8"));
+    return p;
 }
 
 interface Info {
@@ -146,7 +148,7 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
 
     fs.writeFileSync(packagejson, content2.join("\n"));
 }
-async function _output_tsconfig_json(info: Info): Promise<void> {
+async function _output_tsconfig_json(info: Info, options: Options): Promise<void> {
     const tsconfig = path.join(info.folder, "tsconfig.json");
     const content3: string[] = [];
     content3.push(`{`);
@@ -164,7 +166,10 @@ async function _output_tsconfig_json(info: Info): Promise<void> {
     // content3.push(`      { "path": "../node-opcua-address-space-base" }`);
     const l = [] as string[];
     for (const dep of info.dependencies) {
-        l.push(`     { "path": "../${dep}" }`);
+        // only add in dep if not found in node_module
+        if (!isIn_node_modules_Folder(dep)) {
+            l.push(`     { "path": "../${dep}" }`);
+        }
     }
     content3.push(l.join(",\n"));
     content3.push(`   ],`);
@@ -175,6 +180,11 @@ async function _output_tsconfig_json(info: Info): Promise<void> {
     content3.push(`}`);
 
     fs.writeFileSync(tsconfig, content3.join("\n"));
+
+    function isIn_node_modules_Folder(dep: string) {
+        const c = getPackageFolder(dep, options);
+        return !!c.match(/node_modules/);
+    }
 }
 async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     for (const info of Object.values(infos) as Info[]) {
@@ -183,6 +193,6 @@ async function outputFiles(infos: { [key: string]: Info }, options: Options) {
 
         await _output_package_json(info, options);
 
-        await _output_tsconfig_json(info);
+        await _output_tsconfig_json(info, options);
     }
 }
