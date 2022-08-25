@@ -142,7 +142,7 @@ export function utest_limit_alarm(test: any): void {
             alarm.activeState.getValue().should.eql(true);
 
             spyOnEvent.callCount.should.eql(1);
-            spyOnEvent.getCalls()[0].args[0]["message"].value.text.should.eql("Condition value is -100 and state is LowLow");
+            spyOnEvent.getCalls()[0].args[0]["message"].value.text.should.eql("Condition is -100.000 and state is LowLow");
             spyOnEvent.getCalls()[0].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
             const call0_eventId = spyOnEvent.getCalls()[0].args[0]["eventId"].toString();
 
@@ -156,7 +156,7 @@ export function utest_limit_alarm(test: any): void {
 
             // in this case we are reusing an existing alarm
             // Note: We need to check if in this case we need to create a branch as well
-            spyOnEvent.getCalls()[1].args[0]["message"].value.text.should.eql("Condition value is -9 and state is Low");
+            spyOnEvent.getCalls()[1].args[0]["message"].value.text.should.eql("Condition is -9.000 and state is Low");
             spyOnEvent.getCalls()[1].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
             const call1_eventId = spyOnEvent.getCalls()[1].args[0]["eventId"].toString();
 
@@ -182,7 +182,7 @@ export function utest_limit_alarm(test: any): void {
             call3_eventId.should.not.eql(call1_eventId, "Event Id must be different");
 
             // checking the created branch
-            spyOnEvent.getCalls()[2].args[0]["message"].value.text.should.eql("Condition value is -9 and state is Low");
+            spyOnEvent.getCalls()[2].args[0]["message"].value.text.should.eql("Condition is -9.000 and state is Low");
             spyOnEvent.getCalls()[2].args[0]["branchId"].value.should.not.eql(NodeId.nullNodeId);
             call2_eventId.should.not.eql(call0_eventId, "Event Id must be different");
             call2_eventId.should.not.eql(call1_eventId, "Event Id must be different");
@@ -194,7 +194,7 @@ export function utest_limit_alarm(test: any): void {
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(5);
-            spyOnEvent.getCalls()[4].args[0]["message"].value.text.should.eql("Condition value is 11 and state is High");
+            spyOnEvent.getCalls()[4].args[0]["message"].value.text.should.eql("Condition is 11.000 and state is High");
             spyOnEvent.getCalls()[4].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
 
             // InputNode goes very very high  - alarm stays active - state changes to HighHigh - 1 event raised
@@ -204,7 +204,7 @@ export function utest_limit_alarm(test: any): void {
             alarm.limitState.currentState.readValue().statusCode.should.eql(StatusCodes.Good);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(6);
-            spyOnEvent.getCalls()[5].args[0]["message"].value.text.should.eql("Condition value is 200 and state is HighHigh");
+            spyOnEvent.getCalls()[5].args[0]["message"].value.text.should.eql("Condition is 200.000 and state is HighHigh");
             spyOnEvent.getCalls()[5].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
 
             setVariableValue(11);
@@ -347,7 +347,7 @@ export function utest_limit_alarm(test: any): void {
             spyOnEvent
                 .getCall(4)
                 .args[0]["message"].value.text.should.eql(
-                    "Condition value is -100 and state is " + '{"highHigh":false,"high":false,"low":true,"lowLow":true}'
+                    "Condition is -100.000 and state is " + '{"highHigh":false,"high":false,"low":true,"lowLow":true}'
                 );
 
             setVariableValue(0);
@@ -358,7 +358,7 @@ export function utest_limit_alarm(test: any): void {
             spyOnEvent
                 .getCall(6)
                 .args[0]["message"].value.text.should.eql(
-                    "Condition value is -100 and state is" + ' {"highHigh":false,"high":false,"low":true,"lowLow":true}'
+                    "Condition is -100.000 and state is" + ' {"highHigh":false,"high":false,"low":true,"lowLow":true}'
                 );
 
             spyOnEvent.getCall(7).args[0]["message"].value.text.should.eql("Back to normal");

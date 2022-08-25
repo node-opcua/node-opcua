@@ -106,7 +106,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
     }
 
     public _calculateConditionInfo(
-        states: string | null,
+        state: string | null,
         isActive: boolean,
         value: string,
         oldConditionInfo: ConditionInfo
@@ -120,7 +120,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
             });
         } else {
             return new ConditionInfoImpl({
-                message: "Condition value is " + value + " and state is " + states,
+                message: "Condition is " + value + " and state is " + state,
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 150
@@ -196,7 +196,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
         });
 
         if (count > 0) {
-            this._signalNewCondition2(states, isActive, value.toString());
+            this._signalNewCondition2(states, isActive, value.toFixed(3));
         }
     }
 }

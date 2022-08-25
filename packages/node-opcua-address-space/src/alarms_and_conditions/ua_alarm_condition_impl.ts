@@ -418,7 +418,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
             });
         } else {
             return new ConditionInfoImpl({
-                message: "Condition value is " + value + " and state is " + stateData,
+                message: "Condition is " + value + " and state is " + stateData,
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 150

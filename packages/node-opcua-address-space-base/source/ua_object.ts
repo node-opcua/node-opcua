@@ -23,6 +23,11 @@ export interface PseudoVariantString {
     value: UAString;
 }
 
+export interface PseudoVariantStringPredefined<S extends string> {
+    dataType: "String" | DataType.String;
+    value: S;
+}
+
 export interface PseudoVariantBoolean {
     dataType: "Boolean" | DataType.Boolean;
     value: boolean;

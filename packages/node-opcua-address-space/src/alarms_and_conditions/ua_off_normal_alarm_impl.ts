@@ -1,11 +1,13 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { INamespace, UAVariable } from "node-opcua-address-space-base";
+import { INamespace, UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
+
 import { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
+import { NumericalRangeInvalid } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { DataType, VariantOptions } from "node-opcua-variant";
@@ -32,11 +34,11 @@ export declare interface UAOffNormalAlarmEx
             | "suppressedState"
         >,
         UADiscreteAlarmEx {
-    getNormalStateNode(): UAVariable | null;
+    getNormalStateNode(): UAVariableT<NodeId, DataType.NodeId> | null;
 
-    getNormalStateValue(): any;
+    getNormalStateValue(): NodeId | null;
 
-    setNormalStateValue(value: any): void;
+    setNormalStateValue(value: NodeIdLike): void;
 }
 
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
@@ -53,7 +55,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
      * When the value of inputNode doesn't match the normalState node value, then the alarm is raised.
      *
      */
-    public static instantiate(
+    public static instantiate<T, DT extends DataType>(
         namespace: INamespace,
         limitAlarmTypeId: string | NodeId,
         options: InstantiateOffNormalAlarmOptions,
@@ -136,9 +138,9 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     // Property the Alarm is Active. If this Variable is not in the AddressSpace, a Null NodeId shall
     // be provided.
 
-    public getNormalStateNode(): UAVariable | null {
+    public getNormalStateNode(): UAVariableT<NodeId, DataType.NodeId> | null {
         const nodeId = this.normalState.readValue().value.value;
-        const node = this.addressSpace.findNode(nodeId) as UAVariable;
+        const node = this.addressSpace.findNode(nodeId) as UAVariableT<NodeId, DataType.NodeId>;
         if (!node) {
             return null;
         }
@@ -148,19 +150,19 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     /**
      * @method getNormalStateValue
      */
-    public getNormalStateValue(): any | null {
+    public getNormalStateValue(): NodeId | null {
         const normalStateNode = this.getNormalStateNode();
         if (!normalStateNode) {
             return null;
         }
-        return normalStateNode.readValue().value.value;
+        return normalStateNode.readValue().value.value as NodeId;
     }
 
     /**
      * @method setNormalStateValue
      * @param value
      */
-    public setNormalStateValue(value: any): void {
+    public setNormalStateValue(value: NodeIdLike): void {
         const normalStateNode = this.getNormalStateNode();
         throw new Error("Not Implemented yet");
     }

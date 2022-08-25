@@ -104,7 +104,7 @@ export class UAExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UAExc
         }
 
         if (state !== oldState) {
-            this._signalNewCondition(state, isActive, value.toString());
+            this._signalNewCondition(state, isActive, value.toFixed(3));
         }
     }
 }
