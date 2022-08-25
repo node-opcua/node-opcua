@@ -14,18 +14,18 @@ import { DTRolePermission } from "./dt_role_permission"
  * |isAbstract      |false                                             |
  */
 export interface UANamespaceMetadata_Base {
-    "$namespaceUri": UAProperty<UAString, /*z*/DataType.String>;
-    namespaceVersion: UAProperty<UAString, /*z*/DataType.String>;
-    namespacePublicationDate: UAProperty<Date, /*z*/DataType.DateTime>;
-    isNamespaceSubset: UAProperty<boolean, /*z*/DataType.Boolean>;
-    staticNodeIdTypes: UAProperty<EnumId[], /*z*/DataType.Int32>;
-    staticNumericNodeIdRange: UAProperty<UAString[], /*z*/DataType.String>;
-    staticStringNodeIdPattern: UAProperty<UAString, /*z*/DataType.String>;
+    "$namespaceUri": UAProperty<UAString, DataType.String>;
+    namespaceVersion: UAProperty<UAString, DataType.String>;
+    namespacePublicationDate: UAProperty<Date, DataType.DateTime>;
+    isNamespaceSubset: UAProperty<boolean, DataType.Boolean>;
+    staticNodeIdTypes: UAProperty<EnumId[], DataType.Int32>;
+    staticNumericNodeIdRange: UAProperty<UAString[], DataType.String>;
+    staticStringNodeIdPattern: UAProperty<UAString, DataType.String>;
     namespaceFile?: UAAddressSpaceFile;
-    defaultRolePermissions?: UAProperty<DTRolePermission[], /*z*/DataType.ExtensionObject>;
-    defaultUserRolePermissions?: UAProperty<DTRolePermission[], /*z*/DataType.ExtensionObject>;
-    defaultAccessRestrictions?: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    configurationVersion?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    defaultRolePermissions?: UAProperty<DTRolePermission[], DataType.ExtensionObject>;
+    defaultUserRolePermissions?: UAProperty<DTRolePermission[], DataType.ExtensionObject>;
+    defaultAccessRestrictions?: UAProperty<UInt16, DataType.UInt16>;
+    configurationVersion?: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UANamespaceMetadata extends UAObject, UANamespaceMetadata_Base {
 }

@@ -8,5 +8,4 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |1:FetchResultDataType                             |
  * | isAbstract|true                                              |
  */
-export interface DTFetchResult extends DTStructure  {
-}
+export type DTFetchResult = DTStructure;

@@ -15,11 +15,11 @@ import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryEventUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
-    updatedNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    performInsertReplace: UAProperty<EnumPerformUpdate, /*z*/DataType.Int32>;
-    filter: UAProperty<DTEventFilter, /*z*/DataType.ExtensionObject>;
-    newValues: UAProperty<DTHistoryEventFieldList[], /*z*/DataType.ExtensionObject>;
-    oldValues: UAProperty<DTHistoryEventFieldList[], /*z*/DataType.ExtensionObject>;
+    updatedNode: UAProperty<NodeId, DataType.NodeId>;
+    performInsertReplace: UAProperty<EnumPerformUpdate, DataType.Int32>;
+    filter: UAProperty<DTEventFilter, DataType.ExtensionObject>;
+    newValues: UAProperty<DTHistoryEventFieldList[], DataType.ExtensionObject>;
+    oldValues: UAProperty<DTHistoryEventFieldList[], DataType.ExtensionObject>;
 }
 export interface UAAuditHistoryEventUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryEventUpdateEvent_Base {
 }

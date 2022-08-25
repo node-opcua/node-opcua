@@ -12,9 +12,9 @@ import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
  * |isAbstract      |false                                             |
  */
 export interface UAPackaging_Base extends UABaseMaterial_Base {
-    cornerProtection: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    perimeterProtection: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    spacer: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    cornerProtection: UABaseDataVariable<UAString, DataType.String>;
+    perimeterProtection: UABaseDataVariable<UAString, DataType.String>;
+    spacer: UABaseDataVariable<UAString, DataType.String>;
 }
 export interface UAPackaging extends UABaseMaterial, UAPackaging_Base {
 }

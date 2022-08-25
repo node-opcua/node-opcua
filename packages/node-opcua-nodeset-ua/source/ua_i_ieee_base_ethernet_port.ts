@@ -15,9 +15,9 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeBaseEthernetPort_Base extends UABaseInterface_Base {
-    speed: UAAnalogUnit<UInt64, /*z*/DataType.UInt64>;
-    duplex: UABaseDataVariable<EnumDuplex, /*z*/DataType.Int32>;
-    maxFrameLength: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+    speed: UAAnalogUnit<UInt64, DataType.UInt64>;
+    duplex: UABaseDataVariable<EnumDuplex, DataType.Int32>;
+    maxFrameLength: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 export interface UAIIeeeBaseEthernetPort extends UABaseInterface, UAIIeeeBaseEthernetPort_Base {
 }

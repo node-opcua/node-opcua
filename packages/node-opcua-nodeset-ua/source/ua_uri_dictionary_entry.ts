@@ -8,7 +8,6 @@ import { UADictionaryEntry, UADictionaryEntry_Base } from "./ua_dictionary_entry
  * |typedDefinition |UriDictionaryEntryType ns=0;i=17600               |
  * |isAbstract      |false                                             |
  */
-export interface UAUriDictionaryEntry_Base extends UADictionaryEntry_Base {
-}
+export type UAUriDictionaryEntry_Base = UADictionaryEntry_Base;
 export interface UAUriDictionaryEntry extends UADictionaryEntry, UAUriDictionaryEntry_Base {
 }

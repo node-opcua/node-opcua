@@ -12,7 +12,7 @@ import { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redunda
  * |isAbstract      |false                                             |
  */
 export interface UANonTransparentRedundancy_Base extends UAServerRedundancy_Base {
-    serverUriArray: UAProperty<UAString[], /*z*/DataType.String>;
+    serverUriArray: UAProperty<UAString[], DataType.String>;
 }
 export interface UANonTransparentRedundancy extends UAServerRedundancy, UANonTransparentRedundancy_Base {
 }

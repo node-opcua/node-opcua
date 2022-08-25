@@ -8,7 +8,6 @@ import { UAState, UAState_Base } from "./ua_state"
  * |typedDefinition |ChoiceStateType ns=0;i=15109                      |
  * |isAbstract      |false                                             |
  */
-export interface UAChoiceState_Base extends UAState_Base {
-}
+export type UAChoiceState_Base = UAState_Base;
 export interface UAChoiceState extends UAState, UAChoiceState_Base {
 }

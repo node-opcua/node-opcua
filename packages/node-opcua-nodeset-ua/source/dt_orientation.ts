@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |Orientation                                       |
  * | isAbstract|true                                              |
  */
-export interface DTOrientation extends DTStructure  {
-}
+export type DTOrientation = DTStructure;

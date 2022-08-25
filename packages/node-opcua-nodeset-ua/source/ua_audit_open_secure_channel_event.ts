@@ -14,13 +14,13 @@ import { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channe
  * |isAbstract      |true                                              |
  */
 export interface UAAuditOpenSecureChannelEvent_Base extends UAAuditChannelEvent_Base {
-    clientCertificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
-    clientCertificateThumbprint: UAProperty<UAString, /*z*/DataType.String>;
-    requestType: UAProperty<EnumSecurityTokenRequest, /*z*/DataType.Int32>;
-    securityPolicyUri: UAProperty<UAString, /*z*/DataType.String>;
-    securityMode: UAProperty<EnumMessageSecurityMode, /*z*/DataType.Int32>;
-    requestedLifetime: UAProperty<number, /*z*/DataType.Double>;
-    certificateErrorEventId?: UAProperty<UAString, /*z*/DataType.String>;
+    clientCertificate: UAProperty<Buffer, DataType.ByteString>;
+    clientCertificateThumbprint: UAProperty<UAString, DataType.String>;
+    requestType: UAProperty<EnumSecurityTokenRequest, DataType.Int32>;
+    securityPolicyUri: UAProperty<UAString, DataType.String>;
+    securityMode: UAProperty<EnumMessageSecurityMode, DataType.Int32>;
+    requestedLifetime: UAProperty<number, DataType.Double>;
+    certificateErrorEventId?: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditOpenSecureChannelEvent extends UAAuditChannelEvent, UAAuditOpenSecureChannelEvent_Base {
 }

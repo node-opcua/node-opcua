@@ -24,18 +24,18 @@ export interface UAProductionJob_state extends Omit<UAProductionStateMachine, "c
  */
 export interface UAProductionJob_Base {
     abortJob?: UAMethod;
-    endTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    identifier: UAProperty<UAString, /*z*/DataType.String>;
+    endTime: UABaseDataVariable<Date, DataType.DateTime>;
+    identifier: UAProperty<UAString, DataType.String>;
     inputMaterials: UAFolder;
     instruction: UAInstruction;
-    jobGroup?: UAProperty<UAString, /*z*/DataType.String>;
+    jobGroup?: UAProperty<UAString, DataType.String>;
     lock?: UALockingServices;
-    name?: UAProperty<UAString, /*z*/DataType.String>;
-    numberInList: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    name?: UAProperty<UAString, DataType.String>;
+    numberInList: UAProperty<UInt16, DataType.UInt16>;
     outputMaterials: UAFolder;
     queueJob?: UAMethod;
     releaseJob?: UAMethod;
-    startTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
+    startTime: UABaseDataVariable<Date, DataType.DateTime>;
     state: UAProductionJob_state;
     suspendJob?: UAMethod;
 }

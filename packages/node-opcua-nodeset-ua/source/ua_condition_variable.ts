@@ -12,8 +12,8 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |false                                             |
  */
-export interface UAConditionVariable_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
-    sourceTimestamp: UAProperty<Date, /*z*/DataType.DateTime>;
+export interface UAConditionVariable_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
+    sourceTimestamp: UAProperty<Date, DataType.DateTime>;
 }
-export interface UAConditionVariable<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UAConditionVariable_Base<T, DT /*A*/> {
+export interface UAConditionVariable<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAConditionVariable_Base<T, DT> {
 }

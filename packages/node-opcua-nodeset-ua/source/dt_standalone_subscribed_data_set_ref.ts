@@ -9,6 +9,6 @@ import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
  * | name      |StandaloneSubscribedDataSetRefDataType            |
  * | isAbstract|false                                             |
  */
-export interface DTStandaloneSubscribedDataSetRef extends DTSubscribedDataSet  {
+export interface DTStandaloneSubscribedDataSetRef extends DTSubscribedDataSet {
   dataSetName: UAString; // String ns=0;i=12
 }

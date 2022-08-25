@@ -10,7 +10,7 @@ import { DTDataSetMeta } from "./dt_data_set_meta"
  * | name      |StandaloneSubscribedDataSetDataType               |
  * | isAbstract|false                                             |
  */
-export interface DTStandaloneSubscribedDataSet extends DTSubscribedDataSet  {
+export interface DTStandaloneSubscribedDataSet extends DTSubscribedDataSet {
   name: UAString; // String ns=0;i=12
   dataSetFolder: UAString[]; // String ns=0;i=12
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523

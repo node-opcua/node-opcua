@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |DataTypeDefinition                                |
  * | isAbstract|true                                              |
  */
-export interface DTDataTypeDefinition extends DTStructure  {
-}
+export type DTDataTypeDefinition = DTStructure;

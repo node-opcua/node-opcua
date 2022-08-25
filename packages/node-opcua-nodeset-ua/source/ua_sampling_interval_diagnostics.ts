@@ -13,11 +13,11 @@ import { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostic
  * |dataType Name   |DTSamplingIntervalDiagnostics ns=0;i=856          |
  * |isAbstract      |false                                             |
  */
-export interface UASamplingIntervalDiagnostics_Base<T extends DTSamplingIntervalDiagnostics/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    samplingInterval: UABaseDataVariable<number, /*z*/DataType.Double>;
-    sampledMonitoredItemsCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    maxSampledMonitoredItemsCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    disabledMonitoredItemsSamplingCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+export interface UASamplingIntervalDiagnostics_Base<T extends DTSamplingIntervalDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    samplingInterval: UABaseDataVariable<number, DataType.Double>;
+    sampledMonitoredItemsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
+    maxSampledMonitoredItemsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
+    disabledMonitoredItemsSamplingCount: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UASamplingIntervalDiagnostics<T extends DTSamplingIntervalDiagnostics/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UASamplingIntervalDiagnostics_Base<T /*B*/> {
+export interface UASamplingIntervalDiagnostics<T extends DTSamplingIntervalDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASamplingIntervalDiagnostics_Base<T> {
 }

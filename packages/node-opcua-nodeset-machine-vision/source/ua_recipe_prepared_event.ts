@@ -14,9 +14,9 @@ import { DTProductId } from "./dt_product_id"
  * |isAbstract      |false                                             |
  */
 export interface UARecipePreparedEvent_Base extends UABaseEvent_Base {
-    externalId?: UAProperty<DTRecipeIdExternal, /*z*/DataType.ExtensionObject>;
-    internalId: UAProperty<DTRecipeIdInternal, /*z*/DataType.ExtensionObject>;
-    productId?: UAProperty<DTProductId, /*z*/DataType.ExtensionObject>;
+    externalId?: UAProperty<DTRecipeIdExternal, DataType.ExtensionObject>;
+    internalId: UAProperty<DTRecipeIdInternal, DataType.ExtensionObject>;
+    productId?: UAProperty<DTProductId, DataType.ExtensionObject>;
 }
 export interface UARecipePreparedEvent extends UABaseEvent, UARecipePreparedEvent_Base {
 }

@@ -14,13 +14,13 @@ import { UAProductionPlan } from "./ua_production_plan"
  */
 export interface UAProduction_Base {
     changePositionInList?: UAMethod;
-    currentCountOfJobs?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    currentCountOfJobs?: UAProperty<UInt32, DataType.UInt32>;
     deleteJob?: UAMethod;
     insertJob?: UAMethod;
-    jobListIsRecommendation: UAProperty<boolean, /*z*/DataType.Boolean>;
-    maxCountOfJobs?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    jobListIsRecommendation: UAProperty<boolean, DataType.Boolean>;
+    maxCountOfJobs?: UAProperty<UInt32, DataType.UInt32>;
     productionPlan: UAProductionPlan;
-    supportedMaterialTypes?: UAProperty<NodeId[], /*z*/DataType.NodeId>;
+    supportedMaterialTypes?: UAProperty<NodeId[], DataType.NodeId>;
 }
 export interface UAProduction extends UAObject, UAProduction_Base {
 }

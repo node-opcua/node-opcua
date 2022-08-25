@@ -13,8 +13,8 @@ import { UAMultiStateDictionaryEntryDiscreteBase, UAMultiStateDictionaryEntryDis
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UAMultiStateDictionaryEntryDiscrete_Base<T, DT extends DataType>  extends UAMultiStateDictionaryEntryDiscreteBase_Base<T/*g*/, DT> {
-    valueAsDictionaryEntries: UAProperty<NodeId[], /*z*/DataType.NodeId>;
+export interface UAMultiStateDictionaryEntryDiscrete_Base<T, DT extends DataType>  extends UAMultiStateDictionaryEntryDiscreteBase_Base<T, DT> {
+    valueAsDictionaryEntries: UAProperty<NodeId[], DataType.NodeId>;
 }
-export interface UAMultiStateDictionaryEntryDiscrete<T, DT extends DataType> extends Omit<UAMultiStateDictionaryEntryDiscreteBase<T, /*m*/DT>, "valueAsDictionaryEntries">, UAMultiStateDictionaryEntryDiscrete_Base<T, DT /*A*/> {
+export interface UAMultiStateDictionaryEntryDiscrete<T, DT extends DataType> extends Omit<UAMultiStateDictionaryEntryDiscreteBase<T, DT>, "valueAsDictionaryEntries">, UAMultiStateDictionaryEntryDiscrete_Base<T, DT> {
 }

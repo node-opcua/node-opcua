@@ -14,7 +14,8 @@ export interface UAOrderedList_$OrderedObject$ extends UAObject { // Object
  * |isAbstract      |false                                             |
  */
 export interface UAOrderedList_Base {
-    nodeVersion?: UAProperty<UAString, /*z*/DataType.String>;
+   // PlaceHolder for $OrderedObject$
+    nodeVersion?: UAProperty<UAString, DataType.String>;
 }
 export interface UAOrderedList extends UAObject, UAOrderedList_Base {
 }

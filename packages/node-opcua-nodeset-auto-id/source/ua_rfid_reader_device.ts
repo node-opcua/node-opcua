@@ -21,28 +21,28 @@ export interface UARfidReaderDevice_runtimeParameters extends UAAutoIdDevice_run
        * Supported CodeTypes and selected CodeType for the
        * diagnostics value RWData.
        */
-      codeTypesRWData?: UAMultiStateDiscrete<UInt32[], /*z*/DataType.UInt32>;
+      codeTypesRWData?: UAMultiStateDiscrete<UInt32[], DataType.UInt32>;
       /**
        * enableAntennas
        * Antennas that shall be used by the device for its
        * operation.
        */
-      enableAntennas?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+      enableAntennas?: UABaseDataVariable<UInt32, DataType.UInt32>;
       /**
        * minRssi
        * Lowest acceptable RSSI value.
        */
-      minRssi?: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
+      minRssi?: UABaseDataVariable<Int32, DataType.Int32>;
       /**
        * rfPower
        * Radio transmission power of the antenna.
        */
-      rfPower?: UABaseDataVariable<SByte, /*z*/DataType.SByte>;
+      rfPower?: UABaseDataVariable<SByte, DataType.SByte>;
       /**
        * tagTypes
        * Expected tags in a multi-type environment.
        */
-      tagTypes?: UAMultiStateDiscrete<UInt32[], /*z*/DataType.UInt32>;
+      tagTypes?: UAMultiStateDiscrete<UInt32[], DataType.UInt32>;
 }
 /**
  * |                |                                                  |
@@ -53,7 +53,7 @@ export interface UARfidReaderDevice_runtimeParameters extends UAAutoIdDevice_run
  * |isAbstract      |false                                             |
  */
 export interface UARfidReaderDevice_Base extends UAAutoIdDevice_Base {
-    antennaNames?: UAProperty<DTAntennaNameIdPair[], /*z*/DataType.ExtensionObject>;
+    antennaNames?: UAProperty<DTAntennaNameIdPair[], DataType.ExtensionObject>;
     /**
      * diagnostics
      * Diagnostic data from AutoID Devices.
@@ -65,13 +65,13 @@ export interface UARfidReaderDevice_Base extends UAAutoIdDevice_Base {
      * ID of the antenna with which the last AutoID
      * Identifier was scanned.
      */
-    lastScanAntenna?: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
+    lastScanAntenna?: UABaseDataVariable<Int32, DataType.Int32>;
     /**
      * lastScanRSSI
      * RSSI Value with which the last AutoID Identifier
      * was scanned.
      */
-    lastScanRSSI?: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
+    lastScanRSSI?: UABaseDataVariable<Int32, DataType.Int32>;
     lockTag?: UAMethod;
     readTag?: UAMethod;
     runtimeParameters?: UARfidReaderDevice_runtimeParameters;

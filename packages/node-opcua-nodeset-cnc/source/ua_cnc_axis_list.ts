@@ -18,6 +18,7 @@ import { DTCncPosition } from "./dt_cnc_position"
  * |isAbstract      |false                                             |
  */
 export interface UACncAxisList_Base {
+   // PlaceHolder for $CncAxis$
 }
 export interface UACncAxisList extends UAObject, UACncAxisList_Base {
 }

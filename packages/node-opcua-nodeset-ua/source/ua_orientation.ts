@@ -14,8 +14,8 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |DTOrientation ns=0;i=18811                        |
  * |isAbstract      |true                                              |
  */
-export interface UAOrientation_Base<T extends DTOrientation/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    angleUnit?: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+export interface UAOrientation_Base<T extends DTOrientation>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    angleUnit?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAOrientation<T extends DTOrientation/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAOrientation_Base<T /*B*/> {
+export interface UAOrientation<T extends DTOrientation> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAOrientation_Base<T> {
 }

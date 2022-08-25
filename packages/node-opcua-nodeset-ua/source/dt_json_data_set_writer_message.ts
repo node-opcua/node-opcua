@@ -9,6 +9,6 @@ import { DTDataSetWriterMessage } from "./dt_data_set_writer_message"
  * | name      |JsonDataSetWriterMessageDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTJsonDataSetWriterMessage extends DTDataSetWriterMessage  {
+export interface DTJsonDataSetWriterMessage extends DTDataSetWriterMessage {
   dataSetMessageContentMask: UInt32; // UInt32 ns=0;i=15658
 }

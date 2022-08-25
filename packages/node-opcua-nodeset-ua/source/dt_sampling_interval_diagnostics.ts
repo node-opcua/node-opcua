@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |SamplingIntervalDiagnosticsDataType               |
  * | isAbstract|false                                             |
  */
-export interface DTSamplingIntervalDiagnostics extends DTStructure  {
+export interface DTSamplingIntervalDiagnostics extends DTStructure {
   samplingInterval: number; // Double ns=0;i=290
   monitoredItemCount: UInt32; // UInt32 ns=0;i=7
   maxMonitoredItemCount: UInt32; // UInt32 ns=0;i=7

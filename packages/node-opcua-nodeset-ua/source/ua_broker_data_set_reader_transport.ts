@@ -13,11 +13,11 @@ import { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_da
  * |isAbstract      |false                                             |
  */
 export interface UABrokerDataSetReaderTransport_Base extends UADataSetReaderTransport_Base {
-    queueName: UAProperty<UAString, /*z*/DataType.String>;
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
-    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, /*z*/DataType.Int32>;
-    metaDataQueueName: UAProperty<UAString, /*z*/DataType.String>;
+    queueName: UAProperty<UAString, DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    authenticationProfileUri: UAProperty<UAString, DataType.String>;
+    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, DataType.Int32>;
+    metaDataQueueName: UAProperty<UAString, DataType.String>;
 }
 export interface UABrokerDataSetReaderTransport extends UADataSetReaderTransport, UABrokerDataSetReaderTransport_Base {
 }

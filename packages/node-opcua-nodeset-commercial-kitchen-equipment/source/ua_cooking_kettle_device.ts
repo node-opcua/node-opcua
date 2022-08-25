@@ -19,9 +19,9 @@ import { UACookingKettleParameter } from "./ua_cooking_kettle_parameter"
  */
 export interface UACookingKettleDevice_Base extends UACommercialKitchenDevice_Base {
     cookingKettle: UACookingKettleParameter;
-    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
-    isWithAgitator: UAProperty<boolean, /*z*/DataType.Boolean>;
-    isWithCooling: UAProperty<boolean, /*z*/DataType.Boolean>;
+    energySource: UAProperty<EnumEnergySource, DataType.Int32>;
+    isWithAgitator: UAProperty<boolean, DataType.Boolean>;
+    isWithCooling: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UACookingKettleDevice extends UACommercialKitchenDevice, UACookingKettleDevice_Base {
 }

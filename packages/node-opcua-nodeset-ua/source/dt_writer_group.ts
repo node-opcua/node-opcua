@@ -15,7 +15,7 @@ import { DTDataSetWriter } from "./dt_data_set_writer"
  * | name      |WriterGroupDataType                               |
  * | isAbstract|false                                             |
  */
-export interface DTWriterGroup extends DTPubSubGroup  {
+export interface DTWriterGroup extends DTPubSubGroup {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
   securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302

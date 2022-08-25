@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |ServiceCounterDataType                            |
  * | isAbstract|false                                             |
  */
-export interface DTServiceCounter extends DTStructure  {
+export interface DTServiceCounter extends DTStructure {
   totalCount: UInt32; // UInt32 ns=0;i=7
   errorCount: UInt32; // UInt32 ns=0;i=7
 }

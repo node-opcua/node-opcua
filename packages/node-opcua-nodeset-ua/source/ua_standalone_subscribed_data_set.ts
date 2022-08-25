@@ -13,8 +13,8 @@ import { DTDataSetMeta } from "./dt_data_set_meta"
  */
 export interface UAStandaloneSubscribedDataSet_Base {
     subscribedDataSet: UASubscribedDataSet;
-    dataSetMetaData: UAProperty<DTDataSetMeta, /*z*/DataType.ExtensionObject>;
-    isConnected: UAProperty<boolean, /*z*/DataType.Boolean>;
+    dataSetMetaData: UAProperty<DTDataSetMeta, DataType.ExtensionObject>;
+    isConnected: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAStandaloneSubscribedDataSet extends UAObject, UAStandaloneSubscribedDataSet_Base {
 }

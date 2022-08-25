@@ -19,9 +19,9 @@ import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
  * |dataType Name   |DTRange ns=0;i=884                                |
  * |isAbstract      |false                                             |
  */
-export interface UACapacityRange_Base<T extends DTRange/*j*/>  extends UADataItem_Base<T, /*e*/DataType.ExtensionObject> {
-    engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-    resolution: UAProperty<number, /*z*/DataType.Double>;
+export interface UACapacityRange_Base<T extends DTRange>  extends UADataItem_Base<T, DataType.ExtensionObject> {
+    engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+    resolution: UAProperty<number, DataType.Double>;
 }
-export interface UACapacityRange<T extends DTRange/*j*/> extends UADataItem<T, /*n*/DataType.ExtensionObject>, UACapacityRange_Base<T /*B*/> {
+export interface UACapacityRange<T extends DTRange> extends UADataItem<T, DataType.ExtensionObject>, UACapacityRange_Base<T> {
 }

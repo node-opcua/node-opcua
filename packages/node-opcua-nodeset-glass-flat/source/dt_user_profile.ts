@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |13:UserProfileType                                |
  * | isAbstract|false                                             |
  */
-export interface DTUserProfile extends DTStructure  {
+export interface DTUserProfile extends DTStructure {
   name: UAString; // String ns=0;i=12
   loginTime: Date; // DateTime ns=0;i=13
   language: UAString; // String ns=0;i=295

@@ -18,18 +18,18 @@ import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
  */
 export interface UAGlass_Base extends UABaseMaterial_Base {
     absorption?: UAAnalogUnit<any, any>;
-    coatingClass: UAProperty<EnumCoatingClass, /*z*/DataType.Int32>;
+    coatingClass: UAProperty<EnumCoatingClass, DataType.Int32>;
     coatingEmessivity?: UAAnalogUnit<any, any>;
-    coatingSubClass?: UAProperty<UAString, /*z*/DataType.String>;
+    coatingSubClass?: UAProperty<UAString, DataType.String>;
     electricalConductivity?: UAAnalogUnit<any, any>;
     orientation: UAProperty<any, any>;
     reflection?: UAAnalogUnit<any, any>;
-    significantSide: UAProperty<EnumSignificantSide, /*z*/DataType.Int32>;
-    structureAlignment: UAProperty<EnumStructureAlignment, /*z*/DataType.Int32>;
-    structureClass: UAProperty<UAString, /*z*/DataType.String>;
+    significantSide: UAProperty<EnumSignificantSide, DataType.Int32>;
+    structureAlignment: UAProperty<EnumStructureAlignment, DataType.Int32>;
+    structureClass: UAProperty<UAString, DataType.String>;
     transmission?: UAAnalogUnit<any, any>;
-    x: UAAnalogUnit<number, /*z*/DataType.Double>;
-    y: UAAnalogUnit<number, /*z*/DataType.Double>;
+    x: UAAnalogUnit<number, DataType.Double>;
+    y: UAAnalogUnit<number, DataType.Double>;
 }
 export interface UAGlass extends Omit<UABaseMaterial, "x"|"y">, UAGlass_Base {
 }

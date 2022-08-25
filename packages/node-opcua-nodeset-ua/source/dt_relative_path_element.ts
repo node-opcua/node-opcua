@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |RelativePathElement                               |
  * | isAbstract|false                                             |
  */
-export interface DTRelativePathElement extends DTStructure  {
+export interface DTRelativePathElement extends DTStructure {
   referenceTypeId: NodeId; // NodeId ns=0;i=17
   isInverse: boolean; // Boolean ns=0;i=1
   includeSubtypes: boolean; // Boolean ns=0;i=1

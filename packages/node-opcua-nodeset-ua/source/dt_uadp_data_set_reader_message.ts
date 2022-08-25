@@ -9,7 +9,7 @@ import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
  * | name      |UadpDataSetReaderMessageDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTUadpDataSetReaderMessage extends DTDataSetReaderMessage  {
+export interface DTUadpDataSetReaderMessage extends DTDataSetReaderMessage {
   groupVersion: UInt32; // UInt32 ns=0;i=20998
   networkMessageNumber: UInt16; // UInt16 ns=0;i=5
   dataSetOffset: UInt16; // UInt16 ns=0;i=5

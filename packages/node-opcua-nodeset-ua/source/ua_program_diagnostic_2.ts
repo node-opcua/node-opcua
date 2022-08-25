@@ -17,19 +17,19 @@ import { DTArgument } from "./dt_argument"
  * |dataType Name   |DTProgramDiagnostic2 ns=0;i=24033                 |
  * |isAbstract      |false                                             |
  */
-export interface UAProgramDiagnostic2_Base<T extends DTProgramDiagnostic2/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    createSessionId: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
-    createClientName: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    invocationCreationTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    lastTransitionTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    lastMethodCall: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    lastMethodSessionId: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
-    lastMethodInputArguments: UABaseDataVariable<DTArgument[], /*z*/DataType.ExtensionObject>;
-    lastMethodOutputArguments: UABaseDataVariable<DTArgument[], /*z*/DataType.ExtensionObject>;
+export interface UAProgramDiagnostic2_Base<T extends DTProgramDiagnostic2>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    createSessionId: UABaseDataVariable<NodeId, DataType.NodeId>;
+    createClientName: UABaseDataVariable<UAString, DataType.String>;
+    invocationCreationTime: UABaseDataVariable<Date, DataType.DateTime>;
+    lastTransitionTime: UAProperty<Date, DataType.DateTime>;
+    lastMethodCall: UABaseDataVariable<UAString, DataType.String>;
+    lastMethodSessionId: UABaseDataVariable<NodeId, DataType.NodeId>;
+    lastMethodInputArguments: UABaseDataVariable<DTArgument[], DataType.ExtensionObject>;
+    lastMethodOutputArguments: UABaseDataVariable<DTArgument[], DataType.ExtensionObject>;
     lastMethodInputValues: UABaseDataVariable<any, any>;
     lastMethodOutputValues: UABaseDataVariable<any, any>;
-    lastMethodCallTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    lastMethodReturnStatus: UABaseDataVariable<StatusCode, /*z*/DataType.StatusCode>;
+    lastMethodCallTime: UABaseDataVariable<Date, DataType.DateTime>;
+    lastMethodReturnStatus: UABaseDataVariable<StatusCode, DataType.StatusCode>;
 }
-export interface UAProgramDiagnostic2<T extends DTProgramDiagnostic2/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAProgramDiagnostic2_Base<T /*B*/> {
+export interface UAProgramDiagnostic2<T extends DTProgramDiagnostic2> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAProgramDiagnostic2_Base<T> {
 }

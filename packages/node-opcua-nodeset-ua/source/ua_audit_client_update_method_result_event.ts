@@ -14,11 +14,11 @@ import { UAAuditClientEvent, UAAuditClientEvent_Base } from "./ua_audit_client_e
  * |isAbstract      |false                                             |
  */
 export interface UAAuditClientUpdateMethodResultEvent_Base extends UAAuditClientEvent_Base {
-    objectId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    methodId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    statusCodeId: UAProperty<StatusCode, /*z*/DataType.StatusCode>;
-    inputArguments: UAProperty<DTArgument[], /*z*/DataType.ExtensionObject>;
-    outputArguments: UAProperty<DTArgument[], /*z*/DataType.ExtensionObject>;
+    objectId: UAProperty<NodeId, DataType.NodeId>;
+    methodId: UAProperty<NodeId, DataType.NodeId>;
+    statusCodeId: UAProperty<StatusCode, DataType.StatusCode>;
+    inputArguments: UAProperty<DTArgument[], DataType.ExtensionObject>;
+    outputArguments: UAProperty<DTArgument[], DataType.ExtensionObject>;
 }
 export interface UAAuditClientUpdateMethodResultEvent extends UAAuditClientEvent, UAAuditClientUpdateMethodResultEvent_Base {
 }

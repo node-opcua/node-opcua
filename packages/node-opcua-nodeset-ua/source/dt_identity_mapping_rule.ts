@@ -10,7 +10,7 @@ import { EnumIdentityCriteria } from "./enum_identity_criteria"
  * | name      |IdentityMappingRuleType                           |
  * | isAbstract|true                                              |
  */
-export interface DTIdentityMappingRule extends DTStructure  {
+export interface DTIdentityMappingRule extends DTStructure {
   criteriaType: EnumIdentityCriteria; // Int32 ns=0;i=15632
   criteria: UAString; // String ns=0;i=12
 }

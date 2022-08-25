@@ -8,7 +8,6 @@ import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-
  * |typedDefinition |6:KeyCredentialRevokedAuditEventType ns=6;i=1075  |
  * |isAbstract      |false                                             |
  */
-export interface UAKeyCredentialRevokedAuditEvent_Base extends UAKeyCredentialAuditEvent_Base {
-}
+export type UAKeyCredentialRevokedAuditEvent_Base = UAKeyCredentialAuditEvent_Base;
 export interface UAKeyCredentialRevokedAuditEvent extends UAKeyCredentialAuditEvent, UAKeyCredentialRevokedAuditEvent_Base {
 }

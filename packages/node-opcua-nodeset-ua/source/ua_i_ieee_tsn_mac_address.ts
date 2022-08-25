@@ -12,8 +12,8 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeTsnMacAddress_Base extends UABaseInterface_Base {
-    destinationAddress: UABaseDataVariable<Byte[], /*z*/DataType.Byte>;
-    sourceAddress?: UABaseDataVariable<Byte[], /*z*/DataType.Byte>;
+    destinationAddress: UABaseDataVariable<Byte[], DataType.Byte>;
+    sourceAddress?: UABaseDataVariable<Byte[], DataType.Byte>;
 }
 export interface UAIIeeeTsnMacAddress extends UABaseInterface, UAIIeeeTsnMacAddress_Base {
 }

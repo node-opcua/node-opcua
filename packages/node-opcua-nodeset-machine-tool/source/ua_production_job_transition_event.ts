@@ -7,8 +7,8 @@ import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/source/ua_transition_event"
-export interface UAProductionJobTransitionEvent_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, /*b*/DT> { // Variable
-      isValid: UAProperty<boolean, /*z*/DataType.Boolean>;
+export interface UAProductionJobTransitionEvent_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
+      isValid: UAProperty<boolean, DataType.Boolean>;
 }
 /**
  * |                |                                                  |
@@ -19,11 +19,11 @@ export interface UAProductionJobTransitionEvent_runsPlanned<T, DT extends DataTy
  * |isAbstract      |true                                              |
  */
 export interface UAProductionJobTransitionEvent_Base extends UATransitionEvent_Base {
-    customerOrderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    identifier: UAProperty<UAString, /*z*/DataType.String>;
-    orderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    runsCompleted: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    runsPlanned: UAProductionJobTransitionEvent_runsPlanned<UInt32, /*z*/DataType.UInt32>;
+    customerOrderIdentifier?: UAProperty<UAString, DataType.String>;
+    identifier: UAProperty<UAString, DataType.String>;
+    orderIdentifier?: UAProperty<UAString, DataType.String>;
+    runsCompleted: UABaseDataVariable<UInt32, DataType.UInt32>;
+    runsPlanned: UAProductionJobTransitionEvent_runsPlanned<UInt32, DataType.UInt32>;
 }
 export interface UAProductionJobTransitionEvent extends UATransitionEvent, UAProductionJobTransitionEvent_Base {
 }

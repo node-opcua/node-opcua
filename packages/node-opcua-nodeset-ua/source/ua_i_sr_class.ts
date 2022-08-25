@@ -12,9 +12,9 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAISrClass_Base extends UABaseInterface_Base {
-    id: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
-    priority: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
-    vid: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+    id: UABaseDataVariable<Byte, DataType.Byte>;
+    priority: UABaseDataVariable<Byte, DataType.Byte>;
+    vid: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 export interface UAISrClass extends UABaseInterface, UAISrClass_Base {
 }

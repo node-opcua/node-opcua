@@ -9,6 +9,6 @@ import { DTEnumField } from "./dt_enum_field"
  * | name      |EnumDefinition                                    |
  * | isAbstract|false                                             |
  */
-export interface DTEnumDefinition extends DTDataTypeDefinition  {
+export interface DTEnumDefinition extends DTDataTypeDefinition {
   fields: DTEnumField[]; // ExtensionObject ns=0;i=102
 }

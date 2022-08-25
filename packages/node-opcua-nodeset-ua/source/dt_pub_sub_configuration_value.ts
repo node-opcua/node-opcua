@@ -10,7 +10,7 @@ import { DTPubSubConfigurationRef } from "./dt_pub_sub_configuration_ref"
  * | name      |PubSubConfigurationValueDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTPubSubConfigurationValue extends DTStructure  {
+export interface DTPubSubConfigurationValue extends DTStructure {
   configurationElement: DTPubSubConfigurationRef; // ExtensionObject ns=0;i=25519
   name: UAString; // String ns=0;i=12
   identifier: undefined; // Null ns=0;i=0

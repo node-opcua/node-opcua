@@ -14,14 +14,14 @@ export interface UAMotor_parameterSet extends UAObject { // Object
        * motor is free to run. FALSE means that the motor
        * shaft is locked by the brake.
        */
-      brakeReleased?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+      brakeReleased?: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
        * motorTemperature
        * The motor temperature provides the temperature of
        * the motor. If there is no temperature sensor the
        * value is set to \"null\".
        */
-      motorTemperature: UAAnalogUnit<number, /*z*/DataType.Double>;
+      motorTemperature: UAAnalogUnit<number, DataType.Double>;
       /**
        * effectiveLoadRate
        * EffectiveLoadRate is expressed as a percentage of
@@ -30,7 +30,7 @@ export interface UAMotor_parameterSet extends UAObject { // Object
        * Duration should be defined and documented by the
        * vendor.
        */
-      effectiveLoadRate?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+      effectiveLoadRate?: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 /**
  * The MotorType is for representing instances of
@@ -49,10 +49,10 @@ export interface UAMotor_Base extends UAComponent_Base {
      * Flat list of Parameters
      */
     parameterSet: UAMotor_parameterSet;
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    model: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    productCode: UAProperty<UAString, /*z*/DataType.String>;
-    serialNumber: UAProperty<UAString, /*z*/DataType.String>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
+    productCode: UAProperty<UAString, DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
 }
 export interface UAMotor extends Omit<UAComponent, "parameterSet"|"manufacturer"|"model"|"productCode"|"serialNumber">, UAMotor_Base {
 }

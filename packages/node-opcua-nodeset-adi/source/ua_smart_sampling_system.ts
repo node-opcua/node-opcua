@@ -8,7 +8,6 @@ import { UAAccessory, UAAccessory_Base } from "./ua_accessory"
  * |typedDefinition |2:SmartSamplingSystemType ns=2;i=9359             |
  * |isAbstract      |false                                             |
  */
-export interface UASmartSamplingSystem_Base extends UAAccessory_Base {
-}
+export type UASmartSamplingSystem_Base = UAAccessory_Base;
 export interface UASmartSamplingSystem extends UAAccessory, UASmartSamplingSystem_Base {
 }

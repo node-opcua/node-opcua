@@ -12,10 +12,10 @@ import { UASystemOffNormalAlarm, UASystemOffNormalAlarm_Base } from "./ua_system
  * |isAbstract      |false                                             |
  */
 export interface UACertificateExpirationAlarm_Base extends UASystemOffNormalAlarm_Base {
-    expirationDate: UAProperty<Date, /*z*/DataType.DateTime>;
-    expirationLimit?: UAProperty<number, /*z*/DataType.Double>;
-    certificateType: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    certificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
+    expirationDate: UAProperty<Date, DataType.DateTime>;
+    expirationLimit?: UAProperty<number, DataType.Double>;
+    certificateType: UAProperty<NodeId, DataType.NodeId>;
+    certificate: UAProperty<Buffer, DataType.ByteString>;
 }
 export interface UACertificateExpirationAlarm extends UASystemOffNormalAlarm, UACertificateExpirationAlarm_Base {
 }

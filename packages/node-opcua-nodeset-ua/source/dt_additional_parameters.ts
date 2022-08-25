@@ -9,6 +9,6 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |AdditionalParametersType                          |
  * | isAbstract|false                                             |
  */
-export interface DTAdditionalParameters extends DTStructure  {
+export interface DTAdditionalParameters extends DTStructure {
   parameters: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
 }

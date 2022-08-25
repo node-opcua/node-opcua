@@ -12,10 +12,10 @@ import { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_sessio
  * |isAbstract      |true                                              |
  */
 export interface UAAuditCreateSessionEvent_Base extends UAAuditSessionEvent_Base {
-    secureChannelId: UAProperty<UAString, /*z*/DataType.String>;
-    clientCertificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
-    clientCertificateThumbprint: UAProperty<UAString, /*z*/DataType.String>;
-    revisedSessionTimeout: UAProperty<number, /*z*/DataType.Double>;
+    secureChannelId: UAProperty<UAString, DataType.String>;
+    clientCertificate: UAProperty<Buffer, DataType.ByteString>;
+    clientCertificateThumbprint: UAProperty<UAString, DataType.String>;
+    revisedSessionTimeout: UAProperty<number, DataType.Double>;
 }
 export interface UAAuditCreateSessionEvent extends UAAuditSessionEvent, UAAuditCreateSessionEvent_Base {
 }

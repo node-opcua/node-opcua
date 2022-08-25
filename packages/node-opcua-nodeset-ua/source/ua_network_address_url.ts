@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |false                                             |
  */
 export interface UANetworkAddressUrl_Base extends UANetworkAddress_Base {
-    url: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    url: UABaseDataVariable<UAString, DataType.String>;
 }
 export interface UANetworkAddressUrl extends UANetworkAddress, UANetworkAddressUrl_Base {
 }

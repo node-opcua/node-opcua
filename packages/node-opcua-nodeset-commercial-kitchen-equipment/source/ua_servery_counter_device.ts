@@ -14,7 +14,6 @@ import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_
  * |typedDefinition |5:ServeryCounterDeviceType ns=5;i=1028            |
  * |isAbstract      |false                                             |
  */
-export interface UAServeryCounterDevice_Base extends UACommercialKitchenDevice_Base {
-}
+export type UAServeryCounterDevice_Base = UACommercialKitchenDevice_Base;
 export interface UAServeryCounterDevice extends UACommercialKitchenDevice, UAServeryCounterDevice_Base {
 }

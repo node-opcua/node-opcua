@@ -12,7 +12,7 @@ import { UAWriterGroupMessage, UAWriterGroupMessage_Base } from "./ua_writer_gro
  * |isAbstract      |false                                             |
  */
 export interface UAJsonWriterGroupMessage_Base extends UAWriterGroupMessage_Base {
-    networkMessageContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    networkMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAJsonWriterGroupMessage extends UAWriterGroupMessage, UAJsonWriterGroupMessage_Base {
 }

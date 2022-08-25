@@ -13,8 +13,8 @@ import { DTScanResult } from "./dt_scan_result"
  * |isAbstract      |true                                              |
  */
 export interface UAAutoIdScanEvent_Base extends UABaseEvent_Base {
-    deviceName: UAProperty<UAString, /*z*/DataType.String>;
-    scanResult: UAProperty<DTScanResult[], /*z*/DataType.ExtensionObject>;
+    deviceName: UAProperty<UAString, DataType.String>;
+    scanResult: UAProperty<DTScanResult[], DataType.ExtensionObject>;
 }
 export interface UAAutoIdScanEvent extends UABaseEvent, UAAutoIdScanEvent_Base {
 }

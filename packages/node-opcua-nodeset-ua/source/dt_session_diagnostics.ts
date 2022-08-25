@@ -12,7 +12,7 @@ import { DTServiceCounter } from "./dt_service_counter"
  * | name      |SessionDiagnosticsDataType                        |
  * | isAbstract|false                                             |
  */
-export interface DTSessionDiagnostics extends DTStructure  {
+export interface DTSessionDiagnostics extends DTStructure {
   sessionId: NodeId; // NodeId ns=0;i=17
   sessionName: UAString; // String ns=0;i=12
   clientDescription: DTApplicationDescription; // ExtensionObject ns=0;i=308

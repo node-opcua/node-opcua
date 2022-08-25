@@ -10,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:BinaryIdBaseDataType                            |
  * | isAbstract|true                                              |
  */
-export interface DTBinaryIdBase extends DTStructure  {
+export interface DTBinaryIdBase extends DTStructure {
 /** Id is a system-wide unique name for identifying the recipe.*/
   id: UAString; // String ns=4;i=3017
 /** Represents an optional version number of the identified recipe. It is recommended to be of the format Major.minor.patch.build or a subset thereof, but the actual format is implementation defined.*/

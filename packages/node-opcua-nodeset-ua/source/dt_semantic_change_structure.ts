@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |SemanticChangeStructureDataType                   |
  * | isAbstract|false                                             |
  */
-export interface DTSemanticChangeStructure extends DTStructure  {
+export interface DTSemanticChangeStructure extends DTStructure {
   affected: NodeId; // NodeId ns=0;i=17
   affectedType: NodeId; // NodeId ns=0;i=17
 }

@@ -14,10 +14,10 @@ import { UACertificateGroupFolder } from "./ua_certificate_group_folder"
  */
 export interface UAServerConfiguration_Base {
     certificateGroups: UACertificateGroupFolder;
-    serverCapabilities: UAProperty<UAString[], /*z*/DataType.String>;
-    supportedPrivateKeyFormats: UAProperty<UAString[], /*z*/DataType.String>;
-    maxTrustListSize: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    multicastDnsEnabled: UAProperty<boolean, /*z*/DataType.Boolean>;
+    serverCapabilities: UAProperty<UAString[], DataType.String>;
+    supportedPrivateKeyFormats: UAProperty<UAString[], DataType.String>;
+    maxTrustListSize: UAProperty<UInt32, DataType.UInt32>;
+    multicastDnsEnabled: UAProperty<boolean, DataType.Boolean>;
     updateCertificate: UAMethod;
     applyChanges: UAMethod;
     createSigningRequest: UAMethod;

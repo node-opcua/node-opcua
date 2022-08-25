@@ -20,13 +20,13 @@ import { UAObligation } from "./ua_obligation"
  * |isAbstract      |false                                             |
  */
 export interface UAMachineOperationMonitoring_Base {
-    feedOverride?: UAAnalogUnitRange<number, /*z*/DataType.Double>;
-    isWarmUp?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    feedOverride?: UAAnalogUnitRange<number, DataType.Double>;
+    isWarmUp?: UABaseDataVariable<boolean, DataType.Boolean>;
     machineryItemState?: UAMachineryItemState_StateMachine;
     machineryOperationMode?: UAMachineOperationModeStateMachine;
     obligation?: UAObligation;
-    operationMode: UABaseDataVariable<EnumMachineOperationMode, /*z*/DataType.Int32>;
-    powerOnDuration?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    operationMode: UABaseDataVariable<EnumMachineOperationMode, DataType.Int32>;
+    powerOnDuration?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 export interface UAMachineOperationMonitoring extends UAObject, UAMachineOperationMonitoring_Base {
 }

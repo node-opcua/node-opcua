@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |PortableQualifiedName                             |
  * | isAbstract|false                                             |
  */
-export interface DTPortableQualifiedName extends DTStructure  {
+export interface DTPortableQualifiedName extends DTStructure {
   namespaceUri: UAString; // String ns=0;i=12
   name: UAString; // String ns=0;i=12
 }

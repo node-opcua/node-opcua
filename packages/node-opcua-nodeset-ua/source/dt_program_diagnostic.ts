@@ -12,7 +12,7 @@ import { DTStatusResult } from "./dt_status_result"
  * | name      |ProgramDiagnosticDataType                         |
  * | isAbstract|false                                             |
  */
-export interface DTProgramDiagnostic extends DTStructure  {
+export interface DTProgramDiagnostic extends DTStructure {
   createSessionId: NodeId; // NodeId ns=0;i=17
   createClientName: UAString; // String ns=0;i=12
   invocationCreationTime: Date; // DateTime ns=0;i=294

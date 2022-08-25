@@ -17,7 +17,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |PubSubConfiguration2DataType                      |
  * | isAbstract|false                                             |
  */
-export interface DTPubSubConfiguration2 extends DTPubSubConfiguration  {
+export interface DTPubSubConfiguration2 extends DTPubSubConfiguration {
   publishedDataSets: DTPublishedDataSet[]; // ExtensionObject ns=0;i=15578
   connections: DTPubSubConnection[]; // ExtensionObject ns=0;i=15617
   enabled: boolean; // Boolean ns=0;i=1

@@ -9,37 +9,37 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
 import { EnumPressureCookingKettleMode } from "./enum_pressure_cooking_kettle_mode"
 import { EnumSignalMode } from "./enum_signal_mode"
-export interface UAPressureCookingKettleParameter_actualCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_actualCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_actualPressureAbsolute<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_actualPressureAbsolute<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_actualPressureKettle<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_actualPressureKettle<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_actualTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_actualTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_setCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_setCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_setProcessTime<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_setProcessTime<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_setTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_setTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAPressureCookingKettleParameter_timeRemaining<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAPressureCookingKettleParameter_timeRemaining<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |
@@ -50,20 +50,20 @@ export interface UAPressureCookingKettleParameter_timeRemaining<T, DT extends Da
  * |isAbstract      |false                                             |
  */
 export interface UAPressureCookingKettleParameter_Base extends UAKitchenDeviceParameter_Base {
-    actualCoreTemperature: UAPressureCookingKettleParameter_actualCoreTemperature<number, /*z*/DataType.Float>;
-    actualPressureAbsolute: UAPressureCookingKettleParameter_actualPressureAbsolute<number, /*z*/DataType.Float>;
-    actualPressureKettle: UAPressureCookingKettleParameter_actualPressureKettle<number, /*z*/DataType.Float>;
-    actualTemperature: UAPressureCookingKettleParameter_actualTemperature<number, /*z*/DataType.Float>;
-    cookingLevel: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
-    isLidLocked: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isOpenExpressActive?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isSteamActive: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    programMode: UABaseDataVariable<EnumPressureCookingKettleMode, /*z*/DataType.Int32>;
-    setCoreTemperature: UAPressureCookingKettleParameter_setCoreTemperature<number, /*z*/DataType.Float>;
-    setProcessTime: UAPressureCookingKettleParameter_setProcessTime<Int32, /*z*/DataType.Int32>;
-    setTemperature: UAPressureCookingKettleParameter_setTemperature<number, /*z*/DataType.Float>;
-    signalMode: UABaseDataVariable<EnumSignalMode, /*z*/DataType.Int32>;
-    timeRemaining: UAPressureCookingKettleParameter_timeRemaining<Int32, /*z*/DataType.Int32>;
+    actualCoreTemperature: UAPressureCookingKettleParameter_actualCoreTemperature<number, DataType.Float>;
+    actualPressureAbsolute: UAPressureCookingKettleParameter_actualPressureAbsolute<number, DataType.Float>;
+    actualPressureKettle: UAPressureCookingKettleParameter_actualPressureKettle<number, DataType.Float>;
+    actualTemperature: UAPressureCookingKettleParameter_actualTemperature<number, DataType.Float>;
+    cookingLevel: UABaseDataVariable<Int32, DataType.Int32>;
+    isLidLocked: UABaseDataVariable<boolean, DataType.Boolean>;
+    isOpenExpressActive?: UABaseDataVariable<boolean, DataType.Boolean>;
+    isSteamActive: UABaseDataVariable<boolean, DataType.Boolean>;
+    programMode: UABaseDataVariable<EnumPressureCookingKettleMode, DataType.Int32>;
+    setCoreTemperature: UAPressureCookingKettleParameter_setCoreTemperature<number, DataType.Float>;
+    setProcessTime: UAPressureCookingKettleParameter_setProcessTime<Int32, DataType.Int32>;
+    setTemperature: UAPressureCookingKettleParameter_setTemperature<number, DataType.Float>;
+    signalMode: UABaseDataVariable<EnumSignalMode, DataType.Int32>;
+    timeRemaining: UAPressureCookingKettleParameter_timeRemaining<Int32, DataType.Int32>;
 }
 export interface UAPressureCookingKettleParameter extends UAKitchenDeviceParameter, UAPressureCookingKettleParameter_Base {
 }

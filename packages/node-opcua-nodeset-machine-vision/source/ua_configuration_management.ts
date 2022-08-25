@@ -16,7 +16,7 @@ import { UAConfigurationTransfer } from "./ua_configuration_transfer"
  */
 export interface UAConfigurationManagement_Base {
     activateConfiguration: UAMethod;
-    activeConfiguration: UABaseDataVariable<DTConfiguration, /*z*/DataType.ExtensionObject>;
+    activeConfiguration: UABaseDataVariable<DTConfiguration, DataType.ExtensionObject>;
     addConfiguration?: UAMethod;
     configurations?: UAConfigurationFolder;
     configurationTransfer?: UAConfigurationTransfer;

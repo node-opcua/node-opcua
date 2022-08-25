@@ -15,11 +15,11 @@ import { EnumDiagnosticsLevel } from "./enum_diagnostics_level"
  * |dataType Name   |UInt32 ns=0;i=7                                   |
  * |isAbstract      |false                                             |
  */
-export interface UAPubSubDiagnosticsCounter_Base<T extends UInt32/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.UInt32> {
-    active: UAProperty<boolean, /*z*/DataType.Boolean>;
-    classification: UAProperty<EnumPubSubDiagnosticsCounterClassification, /*z*/DataType.Int32>;
-    diagnosticsLevel: UAProperty<EnumDiagnosticsLevel, /*z*/DataType.Int32>;
-    timeFirstChange?: UAProperty<Date, /*z*/DataType.DateTime>;
+export interface UAPubSubDiagnosticsCounter_Base<T extends UInt32>  extends UABaseDataVariable_Base<T, DataType.UInt32> {
+    active: UAProperty<boolean, DataType.Boolean>;
+    classification: UAProperty<EnumPubSubDiagnosticsCounterClassification, DataType.Int32>;
+    diagnosticsLevel: UAProperty<EnumDiagnosticsLevel, DataType.Int32>;
+    timeFirstChange?: UAProperty<Date, DataType.DateTime>;
 }
-export interface UAPubSubDiagnosticsCounter<T extends UInt32/*j*/> extends UABaseDataVariable<T, /*n*/DataType.UInt32>, UAPubSubDiagnosticsCounter_Base<T /*B*/> {
+export interface UAPubSubDiagnosticsCounter<T extends UInt32> extends UABaseDataVariable<T, DataType.UInt32>, UAPubSubDiagnosticsCounter_Base<T> {
 }

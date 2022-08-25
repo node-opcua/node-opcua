@@ -9,6 +9,6 @@ import { DTNetworkAddress } from "./dt_network_address"
  * | name      |DatagramConnectionTransportDataType               |
  * | isAbstract|false                                             |
  */
-export interface DTDatagramConnectionTransport extends DTConnectionTransport  {
+export interface DTDatagramConnectionTransport extends DTConnectionTransport {
   discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502
 }

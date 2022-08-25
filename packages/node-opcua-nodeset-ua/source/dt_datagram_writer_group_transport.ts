@@ -9,7 +9,7 @@ import { DTWriterGroupTransport } from "./dt_writer_group_transport"
  * | name      |DatagramWriterGroupTransportDataType              |
  * | isAbstract|false                                             |
  */
-export interface DTDatagramWriterGroupTransport extends DTWriterGroupTransport  {
+export interface DTDatagramWriterGroupTransport extends DTWriterGroupTransport {
   messageRepeatCount: Byte; // Byte ns=0;i=3
   messageRepeatDelay: number; // Double ns=0;i=290
 }

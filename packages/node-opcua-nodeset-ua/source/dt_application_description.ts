@@ -11,7 +11,7 @@ import { EnumApplication } from "./enum_application"
  * | name      |ApplicationDescription                            |
  * | isAbstract|false                                             |
  */
-export interface DTApplicationDescription extends DTStructure  {
+export interface DTApplicationDescription extends DTStructure {
   applicationUri: UAString; // String ns=0;i=12
   productUri: UAString; // String ns=0;i=12
   applicationName: LocalizedText; // LocalizedText ns=0;i=21

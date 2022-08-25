@@ -8,7 +8,6 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
  * |typedDefinition |AuditUpdateEventType ns=0;i=2099                  |
  * |isAbstract      |true                                              |
  */
-export interface UAAuditUpdateEvent_Base extends UAAuditEvent_Base {
-}
+export type UAAuditUpdateEvent_Base = UAAuditEvent_Base;
 export interface UAAuditUpdateEvent extends UAAuditEvent, UAAuditUpdateEvent_Base {
 }

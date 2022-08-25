@@ -13,11 +13,11 @@ import { UAWriterGroupMessage, UAWriterGroupMessage_Base } from "./ua_writer_gro
  * |isAbstract      |false                                             |
  */
 export interface UAUadpWriterGroupMessage_Base extends UAWriterGroupMessage_Base {
-    groupVersion: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    dataSetOrdering: UAProperty<EnumDataSetOrdering, /*z*/DataType.Int32>;
-    networkMessageContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    samplingOffset?: UAProperty<number, /*z*/DataType.Double>;
-    publishingOffset: UAProperty<number[], /*z*/DataType.Double>;
+    groupVersion: UAProperty<UInt32, DataType.UInt32>;
+    dataSetOrdering: UAProperty<EnumDataSetOrdering, DataType.Int32>;
+    networkMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
+    samplingOffset?: UAProperty<number, DataType.Double>;
+    publishingOffset: UAProperty<number[], DataType.Double>;
 }
 export interface UAUadpWriterGroupMessage extends UAWriterGroupMessage, UAUadpWriterGroupMessage_Base {
 }

@@ -13,7 +13,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |UABinaryFileDataType                              |
  * | isAbstract|false                                             |
  */
-export interface DTUABinaryFile extends DTDataTypeSchemaHeader  {
+export interface DTUABinaryFile extends DTDataTypeSchemaHeader {
   namespaces: UAString[]; // String ns=0;i=12
   structureDataTypes: DTStructureDescription[]; // ExtensionObject ns=0;i=15487
   enumDataTypes: DTEnumDescription[]; // ExtensionObject ns=0;i=15488

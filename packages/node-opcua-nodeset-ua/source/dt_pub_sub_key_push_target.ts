@@ -11,7 +11,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |PubSubKeyPushTargetDataType                       |
  * | isAbstract|false                                             |
  */
-export interface DTPubSubKeyPushTarget extends DTStructure  {
+export interface DTPubSubKeyPushTarget extends DTStructure {
   applicationUri: UAString; // String ns=0;i=12
   pushTargetFolder: UAString[]; // String ns=0;i=12
   endpointUrl: UAString; // String ns=0;i=12

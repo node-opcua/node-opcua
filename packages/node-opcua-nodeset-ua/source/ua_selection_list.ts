@@ -13,10 +13,10 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |false                                             |
  */
-export interface UASelectionList_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
+export interface UASelectionList_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
     selections: UAProperty<any, any>;
-    selectionDescriptions?: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
-    restrictToList?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    selectionDescriptions?: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    restrictToList?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UASelectionList<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UASelectionList_Base<T, DT /*A*/> {
+export interface UASelectionList<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UASelectionList_Base<T, DT> {
 }

@@ -13,7 +13,6 @@ import { EnumProcessIrregularity } from "./enum_process_irregularity"
  * |typedDefinition |10:ProductionJobListType ns=10;i=30               |
  * |isAbstract      |false                                             |
  */
-export interface UAProductionJobList_Base extends UAOrderedList_Base {
-}
+export type UAProductionJobList_Base = UAOrderedList_Base;
 export interface UAProductionJobList extends Omit<UAOrderedList, "$OrderedObject$">, UAProductionJobList_Base {
 }

@@ -12,7 +12,7 @@ import { DTDataSetWriterMessage } from "./dt_data_set_writer_message"
  * | name      |DataSetWriterDataType                             |
  * | isAbstract|false                                             |
  */
-export interface DTDataSetWriter extends DTStructure  {
+export interface DTDataSetWriter extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
   dataSetWriterId: UInt16; // UInt16 ns=0;i=5

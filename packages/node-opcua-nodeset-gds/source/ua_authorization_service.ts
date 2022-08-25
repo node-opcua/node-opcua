@@ -12,9 +12,9 @@ import { DTUserTokenPolicy } from "node-opcua-nodeset-ua/source/dt_user_token_po
  * |isAbstract      |false                                             |
  */
 export interface UAAuthorizationService_Base {
-    serviceUri: UAProperty<UAString, /*z*/DataType.String>;
-    serviceCertificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
-    userTokenPolicies?: UAProperty<DTUserTokenPolicy[], /*z*/DataType.ExtensionObject>;
+    serviceUri: UAProperty<UAString, DataType.String>;
+    serviceCertificate: UAProperty<Buffer, DataType.ByteString>;
+    userTokenPolicies?: UAProperty<DTUserTokenPolicy[], DataType.ExtensionObject>;
     getServiceDescription: UAMethod;
     requestAccessToken?: UAMethod;
 }

@@ -20,17 +20,17 @@ export interface UAAutoIdAccessEvent_Base extends UAAutoIdDiagnosticsEvent_Base 
      * accessResult
      * Result values of the access.
      */
-    accessResult: UAProperty<DTAccessResult[], /*z*/DataType.ExtensionObject>;
+    accessResult: UAProperty<DTAccessResult[], DataType.ExtensionObject>;
     /**
      * client
      * Client which was the originator of the command.
      */
-    client?: UAProperty<UAString, /*z*/DataType.String>;
+    client?: UAProperty<UAString, DataType.String>;
     /**
      * command
      * Access command
      */
-    command?: UAProperty<UAString, /*z*/DataType.String>;
+    command?: UAProperty<UAString, DataType.String>;
 }
 export interface UAAutoIdAccessEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdAccessEvent_Base {
 }

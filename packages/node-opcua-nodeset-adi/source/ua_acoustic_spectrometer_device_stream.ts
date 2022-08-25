@@ -8,7 +8,6 @@ import { UAStream, UAStream_Base } from "./ua_stream"
  * |typedDefinition |2:AcousticSpectrometerDeviceStreamType ns=2;i=1033|
  * |isAbstract      |false                                             |
  */
-export interface UAAcousticSpectrometerDeviceStream_Base extends UAStream_Base {
-}
+export type UAAcousticSpectrometerDeviceStream_Base = UAStream_Base;
 export interface UAAcousticSpectrometerDeviceStream extends UAStream, UAAcousticSpectrometerDeviceStream_Base {
 }

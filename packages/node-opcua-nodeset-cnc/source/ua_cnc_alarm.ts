@@ -23,20 +23,20 @@ export interface UACncAlarm_Base extends UADiscreteAlarm_Base {
      * alarmIdentifier
      * Unique alarm number.
      */
-    alarmIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+    alarmIdentifier: UAProperty<UAString, DataType.String>;
     /**
      * auxParameters
      * Array of auxiliary parameter for additional alarm
      * description.
      */
-    auxParameters?: UAProperty<UAString[], /*z*/DataType.String>;
+    auxParameters?: UAProperty<UAString[], DataType.String>;
     /**
      * helpSource
      * Additional information to message giving
      * information on how to solve problem that caused
      * the alarm.
      */
-    helpSource?: UAProperty<UAString, /*z*/DataType.String>;
+    helpSource?: UAProperty<UAString, DataType.String>;
 }
 export interface UACncAlarm extends UADiscreteAlarm, UACncAlarm_Base {
 }

@@ -12,7 +12,7 @@ import { DTRfidSighting } from "./dt_rfid_sighting"
  * | name      |3:RfidScanResult                                  |
  * | isAbstract|false                                             |
  */
-export interface DTRfidScanResult extends DTScanResult  {
+export interface DTRfidScanResult extends DTScanResult {
 /** Defines the format of the ScanData as string.*/
   codeType: UAString; // String ns=3;i=3031
 /** Holds the information about the detected objects e.g. the detected transponders.*/

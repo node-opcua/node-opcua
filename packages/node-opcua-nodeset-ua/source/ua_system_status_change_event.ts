@@ -12,7 +12,7 @@ import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
  * |isAbstract      |true                                              |
  */
 export interface UASystemStatusChangeEvent_Base extends UASystemEvent_Base {
-    systemState: UAProperty<EnumServerState, /*z*/DataType.Int32>;
+    systemState: UAProperty<EnumServerState, DataType.Int32>;
 }
 export interface UASystemStatusChangeEvent extends UASystemEvent, UASystemStatusChangeEvent_Base {
 }

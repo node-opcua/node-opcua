@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |StatusResult                                      |
  * | isAbstract|false                                             |
  */
-export interface DTStatusResult extends DTStructure  {
+export interface DTStatusResult extends DTStructure {
   statusCode: StatusCode; // StatusCode ns=0;i=19
   diagnosticInfo: DiagnosticInfo; // DiagnosticInfo ns=0;i=25
 }

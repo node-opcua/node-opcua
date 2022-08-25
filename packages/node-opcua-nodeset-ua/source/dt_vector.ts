@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |Vector                                            |
  * | isAbstract|true                                              |
  */
-export interface DTVector extends DTStructure  {
-}
+export type DTVector = DTStructure;

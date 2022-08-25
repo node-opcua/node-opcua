@@ -12,14 +12,14 @@ import { DTUserTokenPolicy } from "./dt_user_token_policy"
  * |isAbstract      |false                                             |
  */
 export interface UAPubSubKeyPushTarget_Base {
-    applicationUri: UAProperty<UAString, /*z*/DataType.String>;
-    endpointUrl: UAProperty<UAString, /*z*/DataType.String>;
-    securityPolicyUri: UAProperty<UAString, /*z*/DataType.String>;
-    userTokenType: UAProperty<DTUserTokenPolicy, /*z*/DataType.ExtensionObject>;
-    requestedKeyCount: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    retryInterval: UAProperty<number, /*z*/DataType.Double>;
-    lastPushExecutionTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    lastPushErrorTime: UAProperty<Date, /*z*/DataType.DateTime>;
+    applicationUri: UAProperty<UAString, DataType.String>;
+    endpointUrl: UAProperty<UAString, DataType.String>;
+    securityPolicyUri: UAProperty<UAString, DataType.String>;
+    userTokenType: UAProperty<DTUserTokenPolicy, DataType.ExtensionObject>;
+    requestedKeyCount: UAProperty<UInt16, DataType.UInt16>;
+    retryInterval: UAProperty<number, DataType.Double>;
+    lastPushExecutionTime: UAProperty<Date, DataType.DateTime>;
+    lastPushErrorTime: UAProperty<Date, DataType.DateTime>;
     connectSecurityGroups: UAMethod;
     disconnectSecurityGroups: UAMethod;
     triggerKeyUpdate: UAMethod;

@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIVlanId_Base extends UABaseInterface_Base {
-    vlanId: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+    vlanId: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 export interface UAIVlanId extends UABaseInterface, UAIVlanId_Base {
 }

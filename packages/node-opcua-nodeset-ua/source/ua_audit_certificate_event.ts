@@ -11,7 +11,7 @@ import { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_secu
  * |isAbstract      |true                                              |
  */
 export interface UAAuditCertificateEvent_Base extends UAAuditSecurityEvent_Base {
-    certificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
+    certificate: UAProperty<Buffer, DataType.ByteString>;
 }
 export interface UAAuditCertificateEvent extends UAAuditSecurityEvent, UAAuditCertificateEvent_Base {
 }

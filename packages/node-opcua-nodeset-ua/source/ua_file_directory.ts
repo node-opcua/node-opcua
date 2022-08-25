@@ -17,6 +17,8 @@ export interface UAFileDirectory_Base extends UAFolder_Base {
     createFile: UAMethod;
     delete: UAMethod;
     moveOrCopy: UAMethod;
+   // PlaceHolder for $FileDirectoryName$
+   // PlaceHolder for $FileName$
 }
 export interface UAFileDirectory extends UAFolder, UAFileDirectory_Base {
 }

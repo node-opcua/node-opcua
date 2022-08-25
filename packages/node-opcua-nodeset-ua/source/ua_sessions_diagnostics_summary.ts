@@ -16,6 +16,7 @@ import { UASessionSecurityDiagnosticsArray } from "./ua_session_security_diagnos
 export interface UASessionsDiagnosticsSummary_Base {
     sessionDiagnosticsArray: UASessionDiagnosticsArray<DTSessionDiagnostics[]>;
     sessionSecurityDiagnosticsArray: UASessionSecurityDiagnosticsArray<DTSessionSecurityDiagnostics[]>;
+   // PlaceHolder for $ClientName$
 }
 export interface UASessionsDiagnosticsSummary extends UAObject, UASessionsDiagnosticsSummary_Base {
 }

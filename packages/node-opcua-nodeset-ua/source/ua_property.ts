@@ -13,5 +13,5 @@ import { DataType } from "node-opcua-variant"
  */
 export interface UAProperty_Base<T, DT extends DataType>  {
 }
-export interface UAProperty<T, DT extends DataType> extends UAVariableT<T, /*m*/DT>, UAProperty_Base<T, DT /*A*/> {
+export interface UAProperty<T, DT extends DataType> extends UAVariableT<T, DT>, UAProperty_Base<T, DT> {
 }

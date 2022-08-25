@@ -13,9 +13,9 @@ import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryAnnotationUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
-    performInsertReplace: UAProperty<EnumPerformUpdate, /*z*/DataType.Int32>;
-    newValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
-    oldValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
+    performInsertReplace: UAProperty<EnumPerformUpdate, DataType.Int32>;
+    newValues: UAProperty<DataValue[], DataType.DataValue>;
+    oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
 export interface UAAuditHistoryAnnotationUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryAnnotationUpdateEvent_Base {
 }

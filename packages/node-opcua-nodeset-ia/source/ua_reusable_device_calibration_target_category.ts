@@ -12,7 +12,6 @@ import { UAReusableCalibrationTargetCategory, UAReusableCalibrationTargetCategor
  * |typedDefinition |9:ReusableDeviceCalibrationTargetCategoryType ns=9;i=1016|
  * |isAbstract      |false                                             |
  */
-export interface UAReusableDeviceCalibrationTargetCategory_Base extends UAReusableCalibrationTargetCategory_Base {
-}
+export type UAReusableDeviceCalibrationTargetCategory_Base = UAReusableCalibrationTargetCategory_Base;
 export interface UAReusableDeviceCalibrationTargetCategory extends UAReusableCalibrationTargetCategory, UAReusableDeviceCalibrationTargetCategory_Base {
 }

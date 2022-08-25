@@ -13,12 +13,12 @@ import { DTEndpoint } from "./dt_endpoint"
  * |isAbstract      |false                                             |
  */
 export interface UARole_Base {
-    identities: UAProperty<DTIdentityMappingRule[], /*z*/DataType.ExtensionObject>;
-    applicationsExclude?: UAProperty<boolean, /*z*/DataType.Boolean>;
-    applications?: UAProperty<UAString[], /*z*/DataType.String>;
-    endpointsExclude?: UAProperty<boolean, /*z*/DataType.Boolean>;
-    endpoints?: UAProperty<DTEndpoint[], /*z*/DataType.ExtensionObject>;
-    customConfiguration?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    identities: UAProperty<DTIdentityMappingRule[], DataType.ExtensionObject>;
+    applicationsExclude?: UAProperty<boolean, DataType.Boolean>;
+    applications?: UAProperty<UAString[], DataType.String>;
+    endpointsExclude?: UAProperty<boolean, DataType.Boolean>;
+    endpoints?: UAProperty<DTEndpoint[], DataType.ExtensionObject>;
+    customConfiguration?: UAProperty<boolean, DataType.Boolean>;
     addIdentity?: UAMethod;
     removeIdentity?: UAMethod;
     addApplication?: UAMethod;

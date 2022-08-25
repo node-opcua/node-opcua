@@ -8,7 +8,6 @@ import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcu
  * |typedDefinition |10:ToolChangeConditionClassType ns=10;i=58        |
  * |isAbstract      |true                                              |
  */
-export interface UAToolChangeConditionClass_Base extends UAProcessConditionClass_Base {
-}
+export type UAToolChangeConditionClass_Base = UAProcessConditionClass_Base;
 export interface UAToolChangeConditionClass extends UAProcessConditionClass, UAToolChangeConditionClass_Base {
 }

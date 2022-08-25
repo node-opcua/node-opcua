@@ -9,166 +9,166 @@ import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UAAnalyserChannel_OperatingModeExecuteSubStateMachine } from "./ua_analyser_channel_operating_mode_execute_sub_state_machine"
 import { UAAnalyserChannelOperatingExecuteState } from "./ua_analyser_channel_operating_execute_state"
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_stoppedToResettingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_resettingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_resettingToIdleTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_idleToStartingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_startingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_startingToExecuteTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_executeToCompletingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completingToCompleteTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completeToStoppedTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_executeToHoldingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_holdingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_holdingToHeldTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_heldToUnholdingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unholdingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unholdingToHoldingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unholdingToExecuteTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_executeToSuspendingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendingToSuspendedTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendedToUnsuspendingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unsuspendingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unsuspendingToSuspendingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unsuspendingToExecuteTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_stoppingToStoppedTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_abortingToAbortedTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_abortedToClearingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_clearingToStoppedTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_resettingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_idleToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_startingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_executeToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completeToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendedToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unsuspendingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_holdingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_heldToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unholdingToStoppingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_stoppedToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_resettingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_idleToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_startingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_executeToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_completeToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_suspendedToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unsuspendingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_holdingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_heldToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_unholdingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_stoppingToAbortingTransition extends Omit<UATransition, "transitionNumber"> { // Object
-      transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 /**
  * AnalyserChannel OperatingMode SubStateMachine

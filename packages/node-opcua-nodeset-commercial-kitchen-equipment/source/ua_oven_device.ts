@@ -13,7 +13,6 @@ import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_
  * |typedDefinition |5:OvenDeviceType ns=5;i=1013                      |
  * |isAbstract      |false                                             |
  */
-export interface UAOvenDevice_Base extends UACommercialKitchenDevice_Base {
-}
+export type UAOvenDevice_Base = UACommercialKitchenDevice_Base;
 export interface UAOvenDevice extends UACommercialKitchenDevice, UAOvenDevice_Base {
 }

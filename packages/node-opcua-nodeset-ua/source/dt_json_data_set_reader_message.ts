@@ -9,7 +9,7 @@ import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
  * | name      |JsonDataSetReaderMessageDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTJsonDataSetReaderMessage extends DTDataSetReaderMessage  {
+export interface DTJsonDataSetReaderMessage extends DTDataSetReaderMessage {
   networkMessageContentMask: UInt32; // UInt32 ns=0;i=15654
   dataSetMessageContentMask: UInt32; // UInt32 ns=0;i=15658
 }

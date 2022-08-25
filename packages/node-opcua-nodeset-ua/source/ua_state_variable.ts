@@ -14,11 +14,11 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |LocalizedText ns=0;i=21                           |
  * |isAbstract      |false                                             |
  */
-export interface UAStateVariable_Base<T extends LocalizedText/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.LocalizedText> {
+export interface UAStateVariable_Base<T extends LocalizedText>  extends UABaseDataVariable_Base<T, DataType.LocalizedText> {
     id: UAProperty<any, any>;
-    name?: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
-    number?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    effectiveDisplayName?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    name?: UAProperty<QualifiedName, DataType.QualifiedName>;
+    number?: UAProperty<UInt32, DataType.UInt32>;
+    effectiveDisplayName?: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAStateVariable<T extends LocalizedText/*j*/> extends UABaseDataVariable<T, /*n*/DataType.LocalizedText>, UAStateVariable_Base<T /*B*/> {
+export interface UAStateVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UAStateVariable_Base<T> {
 }

@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:JobIdDataType                                   |
  * | isAbstract|false                                             |
  */
-export interface DTJobId extends DTStructure  {
+export interface DTJobId extends DTStructure {
 /** Id is a system-wide unique identifier/name for identifying the job carried out.*/
   id: UAString; // String ns=4;i=3017
 }

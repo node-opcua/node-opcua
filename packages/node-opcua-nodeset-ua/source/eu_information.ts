@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |EUInformation                                     |
  * | isAbstract|false                                             |
  */
-export interface EUInformation extends DTStructure  {
+export interface EUInformation extends DTStructure {
   namespaceUri: UAString; // String ns=0;i=12
   unitId: Int32; // Int32 ns=0;i=6
   displayName: LocalizedText; // LocalizedText ns=0;i=21

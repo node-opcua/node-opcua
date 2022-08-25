@@ -11,7 +11,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |StructureField                                    |
  * | isAbstract|false                                             |
  */
-export interface DTStructureField extends DTStructure  {
+export interface DTStructureField extends DTStructure {
   name: UAString; // String ns=0;i=12
   description: LocalizedText; // LocalizedText ns=0;i=21
   dataType: NodeId; // NodeId ns=0;i=17

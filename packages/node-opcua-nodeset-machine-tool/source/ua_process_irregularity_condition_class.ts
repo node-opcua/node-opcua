@@ -8,7 +8,6 @@ import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcu
  * |typedDefinition |10:ProcessIrregularityConditionClassType ns=10;i=55|
  * |isAbstract      |true                                              |
  */
-export interface UAProcessIrregularityConditionClass_Base extends UAProcessConditionClass_Base {
-}
+export type UAProcessIrregularityConditionClass_Base = UAProcessConditionClass_Base;
 export interface UAProcessIrregularityConditionClass extends UAProcessConditionClass, UAProcessIrregularityConditionClass_Base {
 }

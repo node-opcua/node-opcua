@@ -8,7 +8,6 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_au
  * |typedDefinition |RoleMappingRuleChangedAuditEventType ns=0;i=17641 |
  * |isAbstract      |true                                              |
  */
-export interface UARoleMappingRuleChangedAuditEvent_Base extends UAAuditUpdateMethodEvent_Base {
-}
+export type UARoleMappingRuleChangedAuditEvent_Base = UAAuditUpdateMethodEvent_Base;
 export interface UARoleMappingRuleChangedAuditEvent extends UAAuditUpdateMethodEvent, UARoleMappingRuleChangedAuditEvent_Base {
 }

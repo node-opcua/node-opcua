@@ -10,7 +10,7 @@ import { DTFetchResult } from "./dt_fetch_result"
  * | name      |1:TransferResultErrorDataType                     |
  * | isAbstract|false                                             |
  */
-export interface DTTransferResultError extends DTFetchResult  {
+export interface DTTransferResultError extends DTFetchResult {
   status: Int32; // Int32 ns=0;i=6
   diagnostics: DiagnosticInfo; // DiagnosticInfo ns=0;i=25
 }

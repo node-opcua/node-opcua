@@ -10,7 +10,7 @@ import { EnumDataSetOrdering } from "./enum_data_set_ordering"
  * | name      |UadpWriterGroupMessageDataType                    |
  * | isAbstract|false                                             |
  */
-export interface DTUadpWriterGroupMessage extends DTWriterGroupMessage  {
+export interface DTUadpWriterGroupMessage extends DTWriterGroupMessage {
   groupVersion: UInt32; // UInt32 ns=0;i=20998
   dataSetOrdering: EnumDataSetOrdering; // Int32 ns=0;i=20408
   networkMessageContentMask: UInt32; // UInt32 ns=0;i=15642

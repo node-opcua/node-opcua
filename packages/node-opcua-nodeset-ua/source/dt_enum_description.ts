@@ -12,7 +12,7 @@ import { DTEnumDefinition } from "./dt_enum_definition"
  * | name      |EnumDescription                                   |
  * | isAbstract|false                                             |
  */
-export interface DTEnumDescription extends DTDataTypeDescription  {
+export interface DTEnumDescription extends DTDataTypeDescription {
   dataTypeId: NodeId; // NodeId ns=0;i=17
   name: QualifiedName; // QualifiedName ns=0;i=20
   enumDefinition: DTEnumDefinition; // ExtensionObject ns=0;i=100

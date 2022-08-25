@@ -12,18 +12,18 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UAOperationLimits_Base extends UAFolder_Base {
-    maxNodesPerRead?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerHistoryReadData?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerHistoryReadEvents?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerWrite?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerHistoryUpdateData?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerHistoryUpdateEvents?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerMethodCall?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerBrowse?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerRegisterNodes?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerTranslateBrowsePathsToNodeIds?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxNodesPerNodeManagement?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxMonitoredItemsPerCall?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    maxNodesPerRead?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerHistoryReadData?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerHistoryReadEvents?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerWrite?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerHistoryUpdateData?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerHistoryUpdateEvents?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerMethodCall?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerBrowse?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerRegisterNodes?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerTranslateBrowsePathsToNodeIds?: UAProperty<UInt32, DataType.UInt32>;
+    maxNodesPerNodeManagement?: UAProperty<UInt32, DataType.UInt32>;
+    maxMonitoredItemsPerCall?: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAOperationLimits extends UAFolder, UAOperationLimits_Base {
 }

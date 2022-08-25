@@ -9,6 +9,6 @@ import { DTContentFilterElement } from "./dt_content_filter_element"
  * | name      |ContentFilter                                     |
  * | isAbstract|false                                             |
  */
-export interface DTContentFilter extends DTStructure  {
+export interface DTContentFilter extends DTStructure {
   elements: DTContentFilterElement[]; // ExtensionObject ns=0;i=583
 }

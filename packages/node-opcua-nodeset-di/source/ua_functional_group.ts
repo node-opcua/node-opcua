@@ -15,6 +15,7 @@ import { UAUIElement } from "./ua_ui_element"
  * |isAbstract      |false                                             |
  */
 export interface UAFunctionalGroup_Base extends UAFolder_Base {
+   // PlaceHolder for $GroupIdentifier$
     /**
      * uiElement
      * A user interface element assigned to this group.

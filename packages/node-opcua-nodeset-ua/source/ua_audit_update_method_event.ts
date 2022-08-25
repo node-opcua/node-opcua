@@ -12,7 +12,7 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
  * |isAbstract      |true                                              |
  */
 export interface UAAuditUpdateMethodEvent_Base extends UAAuditEvent_Base {
-    methodId: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    methodId: UAProperty<NodeId, DataType.NodeId>;
     inputArguments: UAProperty<any, any>;
 }
 export interface UAAuditUpdateMethodEvent extends UAAuditEvent, UAAuditUpdateMethodEvent_Base {

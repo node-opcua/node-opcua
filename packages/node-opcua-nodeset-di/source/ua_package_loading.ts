@@ -18,8 +18,8 @@ import { UASoftwareVersion } from "./ua_software_version"
 export interface UAPackageLoading_Base extends UASoftwareLoading_Base {
     currentVersion: UASoftwareVersion;
     fileTransfer: UATemporaryFileTransfer;
-    errorMessage: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    writeBlockSize?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    errorMessage: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    writeBlockSize?: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAPackageLoading extends UASoftwareLoading, UAPackageLoading_Base {
 }

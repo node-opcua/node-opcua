@@ -13,10 +13,12 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UASubscribedDataSetFolder_Base extends UAFolder_Base {
+   // PlaceHolder for $StandaloneSubscribedDataSetName$
     addSubscribedDataSet?: UAMethod;
     removeSubscribedDataSet?: UAMethod;
     addDataSetFolder?: UAMethod;
     removeDataSetFolder?: UAMethod;
+   // PlaceHolder for $SubscribedDataSetFolderName$
 }
 export interface UASubscribedDataSetFolder extends UAFolder, UASubscribedDataSetFolder_Base {
 }

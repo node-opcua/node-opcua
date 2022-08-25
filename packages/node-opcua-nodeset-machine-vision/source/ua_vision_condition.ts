@@ -24,20 +24,20 @@ import { DTResultId } from "./dt_result_id"
  * |isAbstract      |true                                              |
  */
 export interface UAVisionCondition_Base extends UAAcknowledgeableCondition_Base {
-    blockReaction: UAProperty<boolean, /*z*/DataType.Boolean>;
-    causePath?: UAProperty<UAString, /*z*/DataType.String>;
-    errorCode?: UAProperty<UInt64, /*z*/DataType.UInt64>;
-    errorString?: UAProperty<UAString, /*z*/DataType.String>;
-    externalConfigurationId?: UAProperty<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    externalRecipeId?: UAProperty<DTRecipeIdExternal, /*z*/DataType.ExtensionObject>;
-    internalConfigurationId?: UAProperty<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    internalRecipeId?: UAProperty<DTRecipeIdInternal, /*z*/DataType.ExtensionObject>;
-    jobId?: UAProperty<DTJobId, /*z*/DataType.ExtensionObject>;
-    measId?: UAProperty<DTMeasId, /*z*/DataType.ExtensionObject>;
-    partId?: UAProperty<DTPartId, /*z*/DataType.ExtensionObject>;
-    productId?: UAProperty<DTProductId, /*z*/DataType.ExtensionObject>;
-    resultId?: UAProperty<DTResultId, /*z*/DataType.ExtensionObject>;
-    stopReaction: UAProperty<boolean, /*z*/DataType.Boolean>;
+    blockReaction: UAProperty<boolean, DataType.Boolean>;
+    causePath?: UAProperty<UAString, DataType.String>;
+    errorCode?: UAProperty<UInt64, DataType.UInt64>;
+    errorString?: UAProperty<UAString, DataType.String>;
+    externalConfigurationId?: UAProperty<DTConfigurationId, DataType.ExtensionObject>;
+    externalRecipeId?: UAProperty<DTRecipeIdExternal, DataType.ExtensionObject>;
+    internalConfigurationId?: UAProperty<DTConfigurationId, DataType.ExtensionObject>;
+    internalRecipeId?: UAProperty<DTRecipeIdInternal, DataType.ExtensionObject>;
+    jobId?: UAProperty<DTJobId, DataType.ExtensionObject>;
+    measId?: UAProperty<DTMeasId, DataType.ExtensionObject>;
+    partId?: UAProperty<DTPartId, DataType.ExtensionObject>;
+    productId?: UAProperty<DTProductId, DataType.ExtensionObject>;
+    resultId?: UAProperty<DTResultId, DataType.ExtensionObject>;
+    stopReaction: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAVisionCondition extends UAAcknowledgeableCondition, UAVisionCondition_Base {
 }

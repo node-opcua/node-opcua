@@ -15,7 +15,6 @@ import { DTFileFormat } from "./dt_file_format"
  * |typedDefinition |13:ProductionPlanType ns=13;i=1023                |
  * |isAbstract      |false                                             |
  */
-export interface UAProductionPlan_Base extends UAOrderedList_Base {
-}
+export type UAProductionPlan_Base = UAOrderedList_Base;
 export interface UAProductionPlan extends Omit<UAOrderedList, "$OrderedObject$">, UAProductionPlan_Base {
 }

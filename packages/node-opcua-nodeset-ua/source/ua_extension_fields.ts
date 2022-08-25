@@ -10,6 +10,7 @@ import { DataType } from "node-opcua-variant"
  * |isAbstract      |false                                             |
  */
 export interface UAExtensionFields_Base {
+   // PlaceHolder for $ExtensionFieldName$
     addExtensionField: UAMethod;
     removeExtensionField: UAMethod;
 }

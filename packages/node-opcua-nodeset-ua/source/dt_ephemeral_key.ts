@@ -8,7 +8,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |EphemeralKeyType                                  |
  * | isAbstract|false                                             |
  */
-export interface DTEphemeralKey extends DTStructure  {
+export interface DTEphemeralKey extends DTStructure {
   publicKey: Buffer; // ByteString ns=0;i=15
   signature: Buffer; // ByteString ns=0;i=15
 }

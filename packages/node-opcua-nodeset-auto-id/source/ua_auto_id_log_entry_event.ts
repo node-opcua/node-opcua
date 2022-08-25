@@ -10,7 +10,6 @@ import { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_au
  * |typedDefinition |3:AutoIdLogEntryEventType ns=3;i=1017             |
  * |isAbstract      |true                                              |
  */
-export interface UAAutoIdLogEntryEvent_Base extends UAAutoIdDiagnosticsEvent_Base {
-}
+export type UAAutoIdLogEntryEvent_Base = UAAutoIdDiagnosticsEvent_Base;
 export interface UAAutoIdLogEntryEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdLogEntryEvent_Base {
 }

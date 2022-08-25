@@ -19,11 +19,12 @@ import { EnumAlarmState } from "./enum_alarm_state"
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |false                                             |
  */
-export interface UAMVAOutputParameter_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
-    warningLimits?: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
-    alarmLimits?: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
-    alarmState: UAProperty<EnumAlarmState, /*z*/DataType.Int32>;
-    vendorSpecificError?: UAProperty<UAString, /*z*/DataType.String>;
+export interface UAMVAOutputParameter_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
+    warningLimits?: UAProperty<DTRange, DataType.ExtensionObject>;
+    alarmLimits?: UAProperty<DTRange, DataType.ExtensionObject>;
+    alarmState: UAProperty<EnumAlarmState, DataType.Int32>;
+    vendorSpecificError?: UAProperty<UAString, DataType.String>;
+   // PlaceHolder for statistics
 }
-export interface UAMVAOutputParameter<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UAMVAOutputParameter_Base<T, DT /*A*/> {
+export interface UAMVAOutputParameter<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAMVAOutputParameter_Base<T, DT> {
 }

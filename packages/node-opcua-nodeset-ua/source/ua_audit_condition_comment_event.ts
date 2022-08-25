@@ -12,8 +12,8 @@ import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_co
  * |isAbstract      |false                                             |
  */
 export interface UAAuditConditionCommentEvent_Base extends UAAuditConditionEvent_Base {
-    conditionEventId: UAProperty<Buffer, /*z*/DataType.ByteString>;
-    comment: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    conditionEventId: UAProperty<Buffer, DataType.ByteString>;
+    comment: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
 export interface UAAuditConditionCommentEvent extends UAAuditConditionEvent, UAAuditConditionCommentEvent_Base {
 }

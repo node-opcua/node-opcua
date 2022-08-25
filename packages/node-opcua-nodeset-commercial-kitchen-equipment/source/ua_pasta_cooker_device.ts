@@ -18,8 +18,8 @@ import { UAPastaCookerParameter } from "./ua_pasta_cooker_parameter"
  * |isAbstract      |false                                             |
  */
 export interface UAPastaCookerDevice_Base extends UACommercialKitchenDevice_Base {
-    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
-    isWithLift: UAProperty<boolean, /*z*/DataType.Boolean>;
+    energySource: UAProperty<EnumEnergySource, DataType.Int32>;
+    isWithLift: UAProperty<boolean, DataType.Boolean>;
     pastaCooker: UAPastaCookerParameter;
 }
 export interface UAPastaCookerDevice extends UACommercialKitchenDevice, UAPastaCookerDevice_Base {

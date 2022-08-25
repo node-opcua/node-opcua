@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |ServerDiagnosticsSummaryDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTServerDiagnosticsSummary extends DTStructure  {
+export interface DTServerDiagnosticsSummary extends DTStructure {
   serverViewCount: UInt32; // UInt32 ns=0;i=7
   currentSessionCount: UInt32; // UInt32 ns=0;i=7
   cumulatedSessionCount: UInt32; // UInt32 ns=0;i=7

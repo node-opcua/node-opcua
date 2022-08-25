@@ -12,7 +12,7 @@ import { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audi
  * |isAbstract      |true                                              |
  */
 export interface UAAuditProgramTransitionEvent_Base extends UAAuditUpdateStateEvent_Base {
-    transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAuditProgramTransitionEvent extends UAAuditUpdateStateEvent, UAAuditProgramTransitionEvent_Base {
 }

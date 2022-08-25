@@ -18,6 +18,7 @@ export interface UAConnectionPoint_Base extends UATopologyElement_Base {
      * The address of the device on this network.
      */
     networkAddress: UAFunctionalGroup;
+   // PlaceHolder for $ProfileIdentifier$
 }
 export interface UAConnectionPoint extends UATopologyElement, UAConnectionPoint_Base {
 }

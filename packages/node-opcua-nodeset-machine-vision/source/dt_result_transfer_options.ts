@@ -9,7 +9,7 @@ import { DTResultId } from "./dt_result_id"
  * | name      |4:ResultTransferOptions                           |
  * | isAbstract|false                                             |
  */
-export interface DTResultTransferOptions extends DTStructure  {
+export interface DTResultTransferOptions extends DTStructure {
 /** The Id of the result to be transferred to the client.*/
   id: DTResultId; // ExtensionObject ns=4;i=3021
 }

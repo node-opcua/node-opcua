@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |RolePermissionType                                |
  * | isAbstract|false                                             |
  */
-export interface DTRolePermission extends DTStructure  {
+export interface DTRolePermission extends DTStructure {
   roleId: NodeId; // NodeId ns=0;i=17
   permissions: UInt32; // UInt32 ns=0;i=94
 }

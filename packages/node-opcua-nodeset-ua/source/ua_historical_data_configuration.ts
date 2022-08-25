@@ -16,15 +16,15 @@ import { UAFolder } from "./ua_folder"
 export interface UAHistoricalDataConfiguration_Base {
     aggregateConfiguration: UAAggregateConfiguration;
     aggregateFunctions?: UAFolder;
-    stepped: UAProperty<boolean, /*z*/DataType.Boolean>;
-    definition?: UAProperty<UAString, /*z*/DataType.String>;
-    maxTimeInterval?: UAProperty<number, /*z*/DataType.Double>;
-    minTimeInterval?: UAProperty<number, /*z*/DataType.Double>;
-    exceptionDeviation?: UAProperty<number, /*z*/DataType.Double>;
-    exceptionDeviationFormat?: UAProperty<EnumExceptionDeviationFormat, /*z*/DataType.Int32>;
-    startOfArchive?: UAProperty<Date, /*z*/DataType.DateTime>;
-    startOfOnlineArchive?: UAProperty<Date, /*z*/DataType.DateTime>;
-    serverTimestampSupported?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    stepped: UAProperty<boolean, DataType.Boolean>;
+    definition?: UAProperty<UAString, DataType.String>;
+    maxTimeInterval?: UAProperty<number, DataType.Double>;
+    minTimeInterval?: UAProperty<number, DataType.Double>;
+    exceptionDeviation?: UAProperty<number, DataType.Double>;
+    exceptionDeviationFormat?: UAProperty<EnumExceptionDeviationFormat, DataType.Int32>;
+    startOfArchive?: UAProperty<Date, DataType.DateTime>;
+    startOfOnlineArchive?: UAProperty<Date, DataType.DateTime>;
+    serverTimestampSupported?: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAHistoricalDataConfiguration extends UAObject, UAHistoricalDataConfiguration_Base {
 }

@@ -9,29 +9,29 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_discrete"
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
 import { EnumBeverageSML } from "./enum_beverage_sml"
-export interface UACoffeeMachineRecipeParameter_beverageSize<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACoffeeMachineRecipeParameter_beverageSize<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACoffeeMachineRecipeParameter_foamAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACoffeeMachineRecipeParameter_foamAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACoffeeMachineRecipeParameter_groundsAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACoffeeMachineRecipeParameter_groundsAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACoffeeMachineRecipeParameter_groundsWater<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACoffeeMachineRecipeParameter_groundsWater<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACoffeeMachineRecipeParameter_milkAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACoffeeMachineRecipeParameter_milkAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACoffeeMachineRecipeParameter_powderAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACoffeeMachineRecipeParameter_powderAmount<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |
@@ -42,16 +42,16 @@ export interface UACoffeeMachineRecipeParameter_powderAmount<T, DT extends DataT
  * |isAbstract      |false                                             |
  */
 export interface UACoffeeMachineRecipeParameter_Base extends UAKitchenDeviceParameter_Base {
-    beverageSize: UACoffeeMachineRecipeParameter_beverageSize<number, /*z*/DataType.Float>;
-    beverageSML: UABaseDataVariable<EnumBeverageSML, /*z*/DataType.Int32>;
-    coffeeType: UAMultiStateDiscrete<UInt32, /*z*/DataType.UInt32>;
-    container: UAMultiStateDiscrete<UInt32, /*z*/DataType.UInt32>;
-    foamAmount: UACoffeeMachineRecipeParameter_foamAmount<number, /*z*/DataType.Float>;
-    groundsAmount: UACoffeeMachineRecipeParameter_groundsAmount<number, /*z*/DataType.Float>;
-    groundsWater: UACoffeeMachineRecipeParameter_groundsWater<number, /*z*/DataType.Float>;
-    milkAmount: UACoffeeMachineRecipeParameter_milkAmount<number, /*z*/DataType.Float>;
-    powderAmount: UACoffeeMachineRecipeParameter_powderAmount<number, /*z*/DataType.Float>;
-    rcpType: UAMultiStateDiscrete<UInt32, /*z*/DataType.UInt32>;
+    beverageSize: UACoffeeMachineRecipeParameter_beverageSize<number, DataType.Float>;
+    beverageSML: UABaseDataVariable<EnumBeverageSML, DataType.Int32>;
+    coffeeType: UAMultiStateDiscrete<UInt32, DataType.UInt32>;
+    container: UAMultiStateDiscrete<UInt32, DataType.UInt32>;
+    foamAmount: UACoffeeMachineRecipeParameter_foamAmount<number, DataType.Float>;
+    groundsAmount: UACoffeeMachineRecipeParameter_groundsAmount<number, DataType.Float>;
+    groundsWater: UACoffeeMachineRecipeParameter_groundsWater<number, DataType.Float>;
+    milkAmount: UACoffeeMachineRecipeParameter_milkAmount<number, DataType.Float>;
+    powderAmount: UACoffeeMachineRecipeParameter_powderAmount<number, DataType.Float>;
+    rcpType: UAMultiStateDiscrete<UInt32, DataType.UInt32>;
 }
 export interface UACoffeeMachineRecipeParameter extends UAKitchenDeviceParameter, UACoffeeMachineRecipeParameter_Base {
 }

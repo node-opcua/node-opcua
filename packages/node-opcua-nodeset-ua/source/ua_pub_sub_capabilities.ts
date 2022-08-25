@@ -11,12 +11,12 @@ import { UInt32 } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAPubSubCapabilities_Base {
-    maxPubSubConnections: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxWriterGroups: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxReaderGroups: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxDataSetWriters: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxDataSetReaders: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxFieldsPerDataSet: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    maxPubSubConnections: UAProperty<UInt32, DataType.UInt32>;
+    maxWriterGroups: UAProperty<UInt32, DataType.UInt32>;
+    maxReaderGroups: UAProperty<UInt32, DataType.UInt32>;
+    maxDataSetWriters: UAProperty<UInt32, DataType.UInt32>;
+    maxDataSetReaders: UAProperty<UInt32, DataType.UInt32>;
+    maxFieldsPerDataSet: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAPubSubCapabilities extends UAObject, UAPubSubCapabilities_Base {
 }

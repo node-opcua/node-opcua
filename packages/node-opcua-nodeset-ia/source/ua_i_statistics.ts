@@ -20,7 +20,7 @@ export interface UAIStatistics_Base extends UABaseInterface_Base {
      * collection of the statistical data has been
      * started.
      */
-    startTime?: UAProperty<Date, /*z*/DataType.DateTime>;
+    startTime?: UAProperty<Date, DataType.DateTime>;
 }
 export interface UAIStatistics extends UABaseInterface, UAIStatistics_Base {
 }

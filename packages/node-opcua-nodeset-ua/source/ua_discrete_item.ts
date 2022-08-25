@@ -11,7 +11,6 @@ import { UADataItem, UADataItem_Base } from "./ua_data_item"
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |true                                              |
  */
-export interface UADiscreteItem_Base<T, DT extends DataType>  extends UADataItem_Base<T/*g*/, DT> {
-}
-export interface UADiscreteItem<T, DT extends DataType> extends UADataItem<T, /*m*/DT>, UADiscreteItem_Base<T, DT /*A*/> {
+export type UADiscreteItem_Base<T, DT extends DataType> = UADataItem_Base<T, DT>;
+export interface UADiscreteItem<T, DT extends DataType> extends UADataItem<T, DT>, UADiscreteItem_Base<T, DT> {
 }

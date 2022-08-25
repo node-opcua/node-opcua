@@ -13,11 +13,11 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeBaseTsnStream_Base extends UABaseInterface_Base {
-    streamId: UABaseDataVariable<Byte[], /*z*/DataType.Byte>;
-    streamName: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    state: UABaseDataVariable<EnumTsnStreamState, /*z*/DataType.Int32>;
-    accumulatedLatency?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    srClassId?: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
+    streamId: UABaseDataVariable<Byte[], DataType.Byte>;
+    streamName: UABaseDataVariable<UAString, DataType.String>;
+    state: UABaseDataVariable<EnumTsnStreamState, DataType.Int32>;
+    accumulatedLatency?: UABaseDataVariable<UInt32, DataType.UInt32>;
+    srClassId?: UABaseDataVariable<Byte, DataType.Byte>;
 }
 export interface UAIIeeeBaseTsnStream extends UABaseInterface, UAIIeeeBaseTsnStream_Base {
 }

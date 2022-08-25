@@ -14,13 +14,13 @@ import { UANetworkAddress } from "./ua_network_address"
  * |isAbstract      |false                                             |
  */
 export interface UADatagramWriterGroupTransport_Base extends UAWriterGroupTransport_Base {
-    messageRepeatCount?: UAProperty<Byte, /*z*/DataType.Byte>;
-    messageRepeatDelay?: UAProperty<number, /*z*/DataType.Double>;
+    messageRepeatCount?: UAProperty<Byte, DataType.Byte>;
+    messageRepeatDelay?: UAProperty<number, DataType.Double>;
     address?: UANetworkAddress;
-    qosCategory?: UAProperty<UAString, /*z*/DataType.String>;
-    datagramQos?: UAProperty<DTTransmitQos[], /*z*/DataType.ExtensionObject>;
-    discoveryAnnounceRate?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    topic?: UAProperty<UAString, /*z*/DataType.String>;
+    qosCategory?: UAProperty<UAString, DataType.String>;
+    datagramQos?: UAProperty<DTTransmitQos[], DataType.ExtensionObject>;
+    discoveryAnnounceRate?: UAProperty<UInt32, DataType.UInt32>;
+    topic?: UAProperty<UAString, DataType.String>;
 }
 export interface UADatagramWriterGroupTransport extends UAWriterGroupTransport, UADatagramWriterGroupTransport_Base {
 }

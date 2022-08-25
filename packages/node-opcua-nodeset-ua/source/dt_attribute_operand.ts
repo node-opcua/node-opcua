@@ -11,7 +11,7 @@ import { DTRelativePath } from "./dt_relative_path"
  * | name      |AttributeOperand                                  |
  * | isAbstract|false                                             |
  */
-export interface DTAttributeOperand extends DTFilterOperand  {
+export interface DTAttributeOperand extends DTFilterOperand {
   nodeId: NodeId; // NodeId ns=0;i=17
   alias: UAString; // String ns=0;i=12
   browsePath: DTRelativePath; // ExtensionObject ns=0;i=540

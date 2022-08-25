@@ -14,7 +14,7 @@ import { DTReaderGroup } from "./dt_reader_group"
  * | name      |PubSubConnectionDataType                          |
  * | isAbstract|false                                             |
  */
-export interface DTPubSubConnection extends DTStructure  {
+export interface DTPubSubConnection extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
   publisherId: undefined; // Null ns=0;i=0

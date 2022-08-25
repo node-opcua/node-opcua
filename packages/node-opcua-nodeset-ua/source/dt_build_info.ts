@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |BuildInfo                                         |
  * | isAbstract|false                                             |
  */
-export interface DTBuildInfo extends DTStructure  {
+export interface DTBuildInfo extends DTStructure {
   productUri: UAString; // String ns=0;i=12
   manufacturerName: UAString; // String ns=0;i=12
   productName: UAString; // String ns=0;i=12

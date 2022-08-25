@@ -10,7 +10,7 @@ import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_qua
  * | name      |BrokerDataSetWriterTransportDataType              |
  * | isAbstract|false                                             |
  */
-export interface DTBrokerDataSetWriterTransport extends DTDataSetWriterTransport  {
+export interface DTBrokerDataSetWriterTransport extends DTDataSetWriterTransport {
   queueName: UAString; // String ns=0;i=12
   resourceUri: UAString; // String ns=0;i=12
   authenticationProfileUri: UAString; // String ns=0;i=12

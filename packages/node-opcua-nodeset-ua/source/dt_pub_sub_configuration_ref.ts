@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |PubSubConfigurationRefDataType                    |
  * | isAbstract|false                                             |
  */
-export interface DTPubSubConfigurationRef extends DTStructure  {
+export interface DTPubSubConfigurationRef extends DTStructure {
   configurationMask: UInt32; // UInt32 ns=0;i=25517
   elementIndex: UInt16; // UInt16 ns=0;i=5
   connectionIndex: UInt16; // UInt16 ns=0;i=5

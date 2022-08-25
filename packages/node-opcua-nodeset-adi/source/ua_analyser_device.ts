@@ -19,7 +19,7 @@ export interface UAAnalyserDevice_parameterSet extends UAObject { // Object
        * diagnosticStatus
        * General health status of the analyser
        */
-      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, DataType.Int32>;
       /**
        * configData
        * Optional analyser device large configuration
@@ -43,18 +43,18 @@ export interface UAAnalyserDevice_identification extends UAFunctionalGroup { // 
        * manufacturer
        * Name of the company that manufactured the device
        */
-      manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+      manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
       /**
        * model
        * Model name of the device
        */
-      model: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+      model: UAProperty<LocalizedText, DataType.LocalizedText>;
       /**
        * serialNumber
        * Identifier that uniquely identifies, within a
        * manufacturer, a device instance
        */
-      serialNumber: UAProperty<UAString, /*z*/DataType.String>;
+      serialNumber: UAProperty<UAString, DataType.String>;
 }
 export interface UAAnalyserDevice_configuration extends UAFunctionalGroup { // Object
       /**
@@ -68,7 +68,7 @@ export interface UAAnalyserDevice_status extends UAFunctionalGroup { // Object
        * diagnosticStatus
        * General health status of the analyser
        */
-      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, DataType.Int32>;
 }
 /**
  * |                |                                                  |
@@ -99,6 +99,8 @@ export interface UAAnalyserDevice_Base extends UADevice_Base {
     status: UAAnalyserDevice_status;
     factorySettings: UAFunctionalGroup;
     analyserStateMachine: UAAnalyserDeviceStateMachine;
+   // PlaceHolder for $ChannelIdentifier$
+   // PlaceHolder for $AccessorySlotIdentifier$
 }
 export interface UAAnalyserDevice extends Omit<UADevice, "parameterSet"|"methodSet"|"identification">, UAAnalyserDevice_Base {
 }

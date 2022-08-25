@@ -8,14 +8,14 @@ import { EnumExecutionCycle } from "./enum_execution_cycle"
 import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
 import { UAStream_parameterSet, UAStream_acquisitionData, UAStream, UAStream_Base } from "./ua_stream"
 export interface UAParticleSizeMonitorDeviceStream_parameterSet extends UAStream_parameterSet { // Object
-      background?: UAYArrayItem<number, /*z*/DataType.Float>;
-      sizeDistribution: UAYArrayItem<number, /*z*/DataType.Float>;
-      backgroundAcquisitionTime: UADataItem<Date, /*z*/DataType.DateTime>;
+      background?: UAYArrayItem<number, DataType.Float>;
+      sizeDistribution: UAYArrayItem<number, DataType.Float>;
+      backgroundAcquisitionTime: UADataItem<Date, DataType.DateTime>;
 }
 export interface UAParticleSizeMonitorDeviceStream_acquisitionData extends UAStream_acquisitionData { // Object
-      background?: UAYArrayItem<number, /*z*/DataType.Float>;
-      sizeDistribution: UAYArrayItem<number, /*z*/DataType.Float>;
-      backgroundAcquisitionTime: UADataItem<Date, /*z*/DataType.DateTime>;
+      background?: UAYArrayItem<number, DataType.Float>;
+      sizeDistribution: UAYArrayItem<number, DataType.Float>;
+      backgroundAcquisitionTime: UADataItem<Date, DataType.DateTime>;
 }
 /**
  * |                |                                                  |

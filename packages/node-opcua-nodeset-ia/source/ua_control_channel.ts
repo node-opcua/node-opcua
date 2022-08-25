@@ -26,7 +26,7 @@ export interface UAControlChannel_Base {
      * blinking, flashing) the channel operates when
      * switched on.
      */
-    channelColor: UABaseDataVariable<EnumSignalColor, /*z*/DataType.Int32>;
+    channelColor: UABaseDataVariable<EnumSignalColor, DataType.Int32>;
     /**
      * intensity
      * Shows the channel’s intensity, thus its
@@ -37,18 +37,18 @@ export interface UAControlChannel_Base {
      * interpreted as 0 percent, the highest is
      * interpreted as 100 percent.
      */
-    intensity?: UAAnalogItem<number, /*z*/DataType.Float>;
+    intensity?: UAAnalogItem<number, DataType.Float>;
     /**
      * signalMode
      * Contains a list of audio signals used by this
      * acoustic stacklight element.
      */
-    signalMode: UABaseDataVariable<EnumSignalModeLight, /*z*/DataType.Int32>;
+    signalMode: UABaseDataVariable<EnumSignalModeLight, DataType.Int32>;
     /**
      * signalOn
      * Indicates if the colour is switched on.
      */
-    signalOn: UAProperty<boolean, /*z*/DataType.Boolean>;
+    signalOn: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAControlChannel extends UAObject, UAControlChannel_Base {
 }

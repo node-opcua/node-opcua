@@ -26,7 +26,7 @@ export interface UAAuxiliaryComponent_Base extends UADevice_Base {
      * information displayed on type shields or in ERP
      * systems.
      */
-    productCode: UAProperty<UAString, /*z*/DataType.String>;
+    productCode: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuxiliaryComponent extends Omit<UADevice, "productCode">, UAAuxiliaryComponent_Base {
 }

@@ -12,8 +12,8 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeTsnVlanTag_Base extends UABaseInterface_Base {
-    vlanId: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    priorityCodePoint: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
+    vlanId: UABaseDataVariable<UInt16, DataType.UInt16>;
+    priorityCodePoint: UABaseDataVariable<Byte, DataType.Byte>;
 }
 export interface UAIIeeeTsnVlanTag extends UABaseInterface, UAIIeeeTsnVlanTag_Base {
 }

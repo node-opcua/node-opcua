@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |ModelChangeStructureDataType                      |
  * | isAbstract|false                                             |
  */
-export interface DTModelChangeStructure extends DTStructure  {
+export interface DTModelChangeStructure extends DTStructure {
   affected: NodeId; // NodeId ns=0;i=17
   affectedType: NodeId; // NodeId ns=0;i=17
   verb: Byte; // Byte ns=0;i=3

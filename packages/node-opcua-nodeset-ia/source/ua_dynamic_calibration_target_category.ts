@@ -18,7 +18,6 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * |typedDefinition |9:DynamicCalibrationTargetCategoryType ns=9;i=1018|
  * |isAbstract      |false                                             |
  */
-export interface UADynamicCalibrationTargetCategory_Base extends UABaseCalibrationTargetCategory_Base {
-}
+export type UADynamicCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
 export interface UADynamicCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UADynamicCalibrationTargetCategory_Base {
 }

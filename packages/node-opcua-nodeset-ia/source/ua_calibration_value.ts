@@ -17,8 +17,8 @@ import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_dat
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UACalibrationValue_Base<T, DT extends DataType>  extends UADataItem_Base<T/*g*/, DT> {
-    engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+export interface UACalibrationValue_Base<T, DT extends DataType>  extends UADataItem_Base<T, DT> {
+    engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UACalibrationValue<T, DT extends DataType> extends UADataItem<T, /*m*/DT>, UACalibrationValue_Base<T, DT /*A*/> {
+export interface UACalibrationValue<T, DT extends DataType> extends UADataItem<T, DT>, UACalibrationValue_Base<T, DT> {
 }

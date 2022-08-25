@@ -23,6 +23,7 @@ import { EnumCncChannelStatus } from "./enum_cnc_channel_status"
  * |isAbstract      |false                                             |
  */
 export interface UACncChannelList_Base {
+   // PlaceHolder for $CncChannel$
 }
 export interface UACncChannelList extends UAObject, UACncChannelList_Base {
 }

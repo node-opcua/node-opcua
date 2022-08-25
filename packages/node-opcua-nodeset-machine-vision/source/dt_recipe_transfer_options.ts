@@ -9,7 +9,7 @@ import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
  * | name      |4:RecipeTransferOptions                           |
  * | isAbstract|false                                             |
  */
-export interface DTRecipeTransferOptions extends DTStructure  {
+export interface DTRecipeTransferOptions extends DTStructure {
 /** The InternalId of the recipe to be transferred to or from the client.*/
   internalId: DTRecipeIdInternal; // ExtensionObject ns=4;i=3013
 }

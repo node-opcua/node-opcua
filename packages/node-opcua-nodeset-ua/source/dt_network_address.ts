@@ -9,6 +9,6 @@ import { DTStructure } from "./dt_structure"
  * | name      |NetworkAddressDataType                            |
  * | isAbstract|true                                              |
  */
-export interface DTNetworkAddress extends DTStructure  {
+export interface DTNetworkAddress extends DTStructure {
   networkInterface: UAString; // String ns=0;i=12
 }

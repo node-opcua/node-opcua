@@ -13,12 +13,12 @@ import { UADataSetWriterTransport, UADataSetWriterTransport_Base } from "./ua_da
  * |isAbstract      |false                                             |
  */
 export interface UABrokerDataSetWriterTransport_Base extends UADataSetWriterTransport_Base {
-    queueName: UAProperty<UAString, /*z*/DataType.String>;
-    metaDataQueueName: UAProperty<UAString, /*z*/DataType.String>;
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
-    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, /*z*/DataType.Int32>;
-    metaDataUpdateTime: UAProperty<number, /*z*/DataType.Double>;
+    queueName: UAProperty<UAString, DataType.String>;
+    metaDataQueueName: UAProperty<UAString, DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    authenticationProfileUri: UAProperty<UAString, DataType.String>;
+    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, DataType.Int32>;
+    metaDataUpdateTime: UAProperty<number, DataType.Double>;
 }
 export interface UABrokerDataSetWriterTransport extends UADataSetWriterTransport, UABrokerDataSetWriterTransport_Base {
 }

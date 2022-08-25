@@ -13,9 +13,9 @@ import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
  * |isAbstract      |false                                             |
  */
 export interface UAToolLoadPrognosis_Base extends UAPrognosis_Base {
-    location: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    toolIdentifier?: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    toolName?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    location: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    toolIdentifier?: UABaseDataVariable<UAString, DataType.String>;
+    toolName?: UABaseDataVariable<UAString, DataType.String>;
 }
 export interface UAToolLoadPrognosis extends UAPrognosis, UAToolLoadPrognosis_Base {
 }

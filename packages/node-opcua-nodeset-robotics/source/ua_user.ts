@@ -20,13 +20,13 @@ export interface UAUser_Base {
      * The weight of the load mounted on one mounting
      * point.
      */
-    level: UAProperty<UAString, /*z*/DataType.String>;
+    level: UAProperty<UAString, DataType.String>;
     /**
      * name
      * The name for the current user within the control
      * system.
      */
-    name?: UAProperty<UAString, /*z*/DataType.String>;
+    name?: UAProperty<UAString, DataType.String>;
 }
 export interface UAUser extends UAObject, UAUser_Base {
 }

@@ -11,7 +11,7 @@ import { EnumApplication } from "./enum_application"
  * | name      |RegisteredServer                                  |
  * | isAbstract|false                                             |
  */
-export interface DTRegisteredServer extends DTStructure  {
+export interface DTRegisteredServer extends DTStructure {
   serverUri: UAString; // String ns=0;i=12
   productUri: UAString; // String ns=0;i=12
   serverNames: LocalizedText[]; // LocalizedText ns=0;i=21

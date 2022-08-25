@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |UserManagementDataType                            |
  * | isAbstract|false                                             |
  */
-export interface DTUserManagement extends DTStructure  {
+export interface DTUserManagement extends DTStructure {
   userName: UAString; // String ns=0;i=12
   userConfiguration: UInt32; // UInt32 ns=0;i=24279
   description: UAString; // String ns=0;i=12

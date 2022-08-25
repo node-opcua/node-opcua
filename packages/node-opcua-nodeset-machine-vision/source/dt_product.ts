@@ -9,7 +9,7 @@ import { DTProductId } from "./dt_product_id"
  * | name      |4:ProductDataType                                 |
  * | isAbstract|false                                             |
  */
-export interface DTProduct extends DTStructure  {
+export interface DTProduct extends DTStructure {
 /** Identification of the product used by the environment. This argument must not be empty.*/
   externalId: DTProductId; // ExtensionObject ns=4;i=3003
 }

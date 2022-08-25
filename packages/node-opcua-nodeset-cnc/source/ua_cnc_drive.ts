@@ -7,21 +7,21 @@ import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
 import { UACncComponent, UACncComponent_Base } from "./ua_cnc_component"
-export interface UACncDrive_actLoad<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncDrive_actLoad<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncDrive_actPower<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncDrive_actPower<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncDrive_actTorque<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncDrive_actTorque<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncDrive_cmdTorque<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncDrive_cmdTorque<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * Base component for CNC specific drive componentes
@@ -41,39 +41,39 @@ export interface UACncDrive_Base extends UACncComponent_Base {
      * that administrates this drive to expose drive’s
      * channel affiliation.
      */
-    actChannel: UADataItem<NodeId, /*z*/DataType.NodeId>;
+    actChannel: UADataItem<NodeId, DataType.NodeId>;
     /**
      * actLoad
      * Drive load actual value.
      */
-    actLoad: UACncDrive_actLoad<number, /*z*/DataType.Double>;
+    actLoad: UACncDrive_actLoad<number, DataType.Double>;
     /**
      * actPower
      * Drive power actual value.
      */
-    actPower: UACncDrive_actPower<number, /*z*/DataType.Double>;
+    actPower: UACncDrive_actPower<number, DataType.Double>;
     /**
      * actTorque
      * Drive torque actual value.
      */
-    actTorque: UACncDrive_actTorque<number, /*z*/DataType.Double>;
+    actTorque: UACncDrive_actTorque<number, DataType.Double>;
     /**
      * cmdTorque
      * Drive torque setpoint value.
      */
-    cmdTorque: UACncDrive_cmdTorque<number, /*z*/DataType.Double>;
+    cmdTorque: UACncDrive_cmdTorque<number, DataType.Double>;
     /**
      * isInactive
      * Drive inactive state (true in case of inactive
      * drive, else false).
      */
-    isInactive: UADataItem<boolean, /*z*/DataType.Boolean>;
+    isInactive: UADataItem<boolean, DataType.Boolean>;
     /**
      * isVirtual
      * Virtual axis (no hardware present; true in case
      * of virtual axis, else fals).
      */
-    isVirtual: UADataItem<boolean, /*z*/DataType.Boolean>;
+    isVirtual: UADataItem<boolean, DataType.Boolean>;
 }
 export interface UACncDrive extends UACncComponent, UACncDrive_Base {
 }

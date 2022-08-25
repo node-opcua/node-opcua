@@ -8,7 +8,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |SignedSoftwareCertificate                         |
  * | isAbstract|false                                             |
  */
-export interface DTSignedSoftwareCertificate extends DTStructure  {
+export interface DTSignedSoftwareCertificate extends DTStructure {
   certificateData: Buffer; // ByteString ns=0;i=15
   signature: Buffer; // ByteString ns=0;i=15
 }

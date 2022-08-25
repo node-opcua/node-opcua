@@ -8,7 +8,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |OptionSet                                         |
  * | isAbstract|true                                              |
  */
-export interface DTOptionSet extends DTStructure  {
+export interface DTOptionSet extends DTStructure {
   value: Buffer; // ByteString ns=0;i=15
   validBits: Buffer; // ByteString ns=0;i=15
 }

@@ -12,8 +12,8 @@ import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_work
  * |isAbstract      |false                                             |
  */
 export interface UAEDMGeneratorMonitoring_Base extends UAWorkingUnitMonitoring_Base {
-    edMGeneratorState: UABaseDataVariable<EnumEDMGeneratorState, /*z*/DataType.Int32>;
-    isOn: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    edMGeneratorState: UABaseDataVariable<EnumEDMGeneratorState, DataType.Int32>;
+    isOn: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UAEDMGeneratorMonitoring extends UAWorkingUnitMonitoring, UAEDMGeneratorMonitoring_Base {
 }

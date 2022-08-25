@@ -10,7 +10,7 @@ import { DT3DOrientation } from "./dt_3_d_orientation"
  * | name      |3DFrame                                           |
  * | isAbstract|false                                             |
  */
-export interface DT3DFrame extends DTFrame  {
+export interface DT3DFrame extends DTFrame {
   cartesianCoordinates: DT3DCartesianCoordinates; // ExtensionObject ns=0;i=18810
   orientation: DT3DOrientation; // ExtensionObject ns=0;i=18812
 }

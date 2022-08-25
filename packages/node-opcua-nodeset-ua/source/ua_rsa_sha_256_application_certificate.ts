@@ -8,7 +8,6 @@ import { UAApplicationCertificate, UAApplicationCertificate_Base } from "./ua_ap
  * |typedDefinition |RsaSha256ApplicationCertificateType ns=0;i=12560  |
  * |isAbstract      |false                                             |
  */
-export interface UARsaSha256ApplicationCertificate_Base extends UAApplicationCertificate_Base {
-}
+export type UARsaSha256ApplicationCertificate_Base = UAApplicationCertificate_Base;
 export interface UARsaSha256ApplicationCertificate extends UAApplicationCertificate, UARsaSha256ApplicationCertificate_Base {
 }

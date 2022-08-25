@@ -13,8 +13,8 @@ import { UASessionDiagnosticsVariable } from "./ua_session_diagnostics_variable"
  * |dataType Name   |DTSessionDiagnostics[] ns=0;i=865                 |
  * |isAbstract      |false                                             |
  */
-export interface UASessionDiagnosticsArray_Base<T extends DTSessionDiagnostics[]/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
+export interface UASessionDiagnosticsArray_Base<T extends DTSessionDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     sessionDiagnostics: UASessionDiagnosticsVariable<DTSessionDiagnostics>;
 }
-export interface UASessionDiagnosticsArray<T extends DTSessionDiagnostics[]/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UASessionDiagnosticsArray_Base<T /*B*/> {
+export interface UASessionDiagnosticsArray<T extends DTSessionDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionDiagnosticsArray_Base<T> {
 }

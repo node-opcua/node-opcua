@@ -13,7 +13,7 @@ import { DTFileFormat } from "./dt_file_format"
  */
 export interface UAInstruction_Base {
     plan: UAFile;
-    planFileFormat: UAProperty<DTFileFormat, /*z*/DataType.ExtensionObject>;
+    planFileFormat: UAProperty<DTFileFormat, DataType.ExtensionObject>;
 }
 export interface UAInstruction extends UAObject, UAInstruction_Base {
 }

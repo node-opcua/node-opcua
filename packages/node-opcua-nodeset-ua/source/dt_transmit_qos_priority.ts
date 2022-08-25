@@ -9,6 +9,6 @@ import { DTTransmitQos } from "./dt_transmit_qos"
  * | name      |TransmitQosPriorityDataType                       |
  * | isAbstract|false                                             |
  */
-export interface DTTransmitQosPriority extends DTTransmitQos  {
+export interface DTTransmitQosPriority extends DTTransmitQos {
   priorityLabel: UAString; // String ns=0;i=12
 }

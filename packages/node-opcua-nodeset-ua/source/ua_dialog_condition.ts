@@ -17,12 +17,12 @@ import { UATwoStateVariable } from "./ua_two_state_variable"
 export interface UADialogCondition_Base extends UACondition_Base {
     enabledState: UATwoStateVariable<LocalizedText>;
     dialogState: UATwoStateVariable<LocalizedText>;
-    prompt: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    responseOptionSet: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
-    defaultResponse: UAProperty<Int32, /*z*/DataType.Int32>;
-    okResponse: UAProperty<Int32, /*z*/DataType.Int32>;
-    cancelResponse: UAProperty<Int32, /*z*/DataType.Int32>;
-    lastResponse: UAProperty<Int32, /*z*/DataType.Int32>;
+    prompt: UAProperty<LocalizedText, DataType.LocalizedText>;
+    responseOptionSet: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    defaultResponse: UAProperty<Int32, DataType.Int32>;
+    okResponse: UAProperty<Int32, DataType.Int32>;
+    cancelResponse: UAProperty<Int32, DataType.Int32>;
+    lastResponse: UAProperty<Int32, DataType.Int32>;
     respond: UAMethod;
     respond2: UAMethod;
 }

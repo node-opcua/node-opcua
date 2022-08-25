@@ -13,9 +13,9 @@ import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
  * |isAbstract      |true                                              |
  */
 export interface UAPubSubStatusEvent_Base extends UASystemEvent_Base {
-    connectionId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    groupId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    state: UAProperty<EnumPubSubState, /*z*/DataType.Int32>;
+    connectionId: UAProperty<NodeId, DataType.NodeId>;
+    groupId: UAProperty<NodeId, DataType.NodeId>;
+    state: UAProperty<EnumPubSubState, DataType.Int32>;
 }
 export interface UAPubSubStatusEvent extends UASystemEvent, UAPubSubStatusEvent_Base {
 }

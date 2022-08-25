@@ -20,7 +20,6 @@ import { DTResultId } from "./dt_result_id"
  * |typedDefinition |4:ResultFolderType ns=4;i=1016                    |
  * |isAbstract      |false                                             |
  */
-export interface UAResultFolder_Base extends UAFolder_Base {
-}
+export type UAResultFolder_Base = UAFolder_Base;
 export interface UAResultFolder extends UAFolder, UAResultFolder_Base {
 }

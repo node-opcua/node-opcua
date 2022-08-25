@@ -12,7 +12,7 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
  * |isAbstract      |true                                              |
  */
 export interface UAAuditClientEvent_Base extends UAAuditEvent_Base {
-    serverUri: UAProperty<UAString, /*z*/DataType.String>;
+    serverUri: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditClientEvent extends UAAuditEvent, UAAuditClientEvent_Base {
 }

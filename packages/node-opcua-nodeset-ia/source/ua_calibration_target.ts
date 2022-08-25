@@ -9,20 +9,20 @@ import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UABaseCalibrationTargetCategory } from "./ua_base_calibration_target_category"
 export interface UACalibrationTarget_identification extends UAFunctionalGroup { // Object
-      assetId?: UAProperty<UAString, /*z*/DataType.String>;
-      componentName?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-      deviceClass?: UAProperty<UAString, /*z*/DataType.String>;
-      deviceManual?: UAProperty<UAString, /*z*/DataType.String>;
-      deviceRevision?: UAProperty<UAString, /*z*/DataType.String>;
-      hardwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
-      manufacturer?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-      manufacturerUri?: UAProperty<UAString, /*z*/DataType.String>;
-      model?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-      productCode?: UAProperty<UAString, /*z*/DataType.String>;
-      productInstanceUri?: UAProperty<UAString, /*z*/DataType.String>;
-      revisionCounter?: UAProperty<Int32, /*z*/DataType.Int32>;
-      serialNumber?: UAProperty<UAString, /*z*/DataType.String>;
-      softwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
+      assetId?: UAProperty<UAString, DataType.String>;
+      componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
+      deviceClass?: UAProperty<UAString, DataType.String>;
+      deviceManual?: UAProperty<UAString, DataType.String>;
+      deviceRevision?: UAProperty<UAString, DataType.String>;
+      hardwareRevision?: UAProperty<UAString, DataType.String>;
+      manufacturer?: UAProperty<LocalizedText, DataType.LocalizedText>;
+      manufacturerUri?: UAProperty<UAString, DataType.String>;
+      model?: UAProperty<LocalizedText, DataType.LocalizedText>;
+      productCode?: UAProperty<UAString, DataType.String>;
+      productInstanceUri?: UAProperty<UAString, DataType.String>;
+      revisionCounter?: UAProperty<Int32, DataType.Int32>;
+      serialNumber?: UAProperty<UAString, DataType.String>;
+      softwareRevision?: UAProperty<UAString, DataType.String>;
 }
 /**
  * Provides information about a calibration target.
@@ -56,7 +56,7 @@ export interface UACalibrationTarget_Base {
      * available. Otherwise, the Property should be
      * omitted.
      */
-    certificateUri?: UAProperty<UAString, /*z*/DataType.String>;
+    certificateUri?: UAProperty<UAString, DataType.String>;
     /**
      * identification
      * Provides identification information.
@@ -70,7 +70,7 @@ export interface UACalibrationTarget_Base {
      * calibration target was bought or created should
      * be used.
      */
-    lastValidationDate?: UAProperty<Date, /*z*/DataType.DateTime>;
+    lastValidationDate?: UAProperty<Date, DataType.DateTime>;
     /**
      * nextValidationDate
      * Provides the date, when the calibration target
@@ -80,7 +80,7 @@ export interface UACalibrationTarget_Base {
      * the past, when the next validation did not take
      * place.
      */
-    nextValidationDate?: UAProperty<Date, /*z*/DataType.DateTime>;
+    nextValidationDate?: UAProperty<Date, DataType.DateTime>;
     /**
      * operationalConditions
      * A folder containing information about operational
@@ -103,7 +103,7 @@ export interface UACalibrationTarget_Base {
      * lowest. The semantic of the quality is
      * application-specific.
      */
-    quality?: UAProperty<Byte, /*z*/DataType.Byte>;
+    quality?: UAProperty<Byte, DataType.Byte>;
 }
 export interface UACalibrationTarget extends UAObject, UACalibrationTarget_Base {
 }

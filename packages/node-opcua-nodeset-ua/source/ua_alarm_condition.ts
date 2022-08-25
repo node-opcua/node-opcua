@@ -21,22 +21,23 @@ import { UAAlarmGroup } from "./ua_alarm_group"
 export interface UAAlarmCondition_Base extends UAAcknowledgeableCondition_Base {
     enabledState: UATwoStateVariable<LocalizedText>;
     activeState: UATwoStateVariable<LocalizedText>;
-    inputNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    inputNode: UAProperty<NodeId, DataType.NodeId>;
     suppressedState?: UATwoStateVariable<LocalizedText>;
     outOfServiceState?: UATwoStateVariable<LocalizedText>;
     shelvingState?: UAShelvedStateMachine;
-    suppressedOrShelved: UAProperty<boolean, /*z*/DataType.Boolean>;
-    maxTimeShelved?: UAProperty<number, /*z*/DataType.Double>;
-    audibleEnabled?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    suppressedOrShelved: UAProperty<boolean, DataType.Boolean>;
+    maxTimeShelved?: UAProperty<number, DataType.Double>;
+    audibleEnabled?: UAProperty<boolean, DataType.Boolean>;
     audibleSound?: UAAudioVariable<Buffer>;
     silenceState?: UATwoStateVariable<LocalizedText>;
-    onDelay?: UAProperty<number, /*z*/DataType.Double>;
-    offDelay?: UAProperty<number, /*z*/DataType.Double>;
-    firstInGroupFlag?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    onDelay?: UAProperty<number, DataType.Double>;
+    offDelay?: UAProperty<number, DataType.Double>;
+    firstInGroupFlag?: UABaseDataVariable<boolean, DataType.Boolean>;
     firstInGroup?: UAAlarmGroup;
     latchedState?: UATwoStateVariable<LocalizedText>;
-    reAlarmTime?: UAProperty<number, /*z*/DataType.Double>;
-    reAlarmRepeatCount?: UABaseDataVariable<Int16, /*z*/DataType.Int16>;
+   // PlaceHolder for $AlarmGroup$
+    reAlarmTime?: UAProperty<number, DataType.Double>;
+    reAlarmRepeatCount?: UABaseDataVariable<Int16, DataType.Int16>;
     silence?: UAMethod;
     suppress?: UAMethod;
     suppress2?: UAMethod;

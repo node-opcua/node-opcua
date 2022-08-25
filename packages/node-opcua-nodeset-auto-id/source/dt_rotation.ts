@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:Rotation                                        |
  * | isAbstract|false                                             |
  */
-export interface DTRotation extends DTStructure  {
+export interface DTRotation extends DTStructure {
   yaw: number; // Double ns=0;i=11
   pitch: number; // Double ns=0;i=11
   roll: number; // Double ns=0;i=11

@@ -20,16 +20,16 @@ import { DTResultId } from "./dt_result_id"
  * |isAbstract      |true                                              |
  */
 export interface UAVisionEvent_Base extends UABaseEvent_Base {
-    causePath?: UAProperty<UAString, /*z*/DataType.String>;
-    externalConfigurationId?: UAProperty<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    externalRecipeId?: UAProperty<DTRecipeIdExternal, /*z*/DataType.ExtensionObject>;
-    internalConfigurationId?: UAProperty<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    internalRecipeId?: UAProperty<DTRecipeIdInternal, /*z*/DataType.ExtensionObject>;
-    jobId?: UAProperty<DTJobId, /*z*/DataType.ExtensionObject>;
-    measId?: UAProperty<DTMeasId, /*z*/DataType.ExtensionObject>;
-    partId?: UAProperty<DTPartId, /*z*/DataType.ExtensionObject>;
-    productId?: UAProperty<DTProductId, /*z*/DataType.ExtensionObject>;
-    resultId?: UAProperty<DTResultId, /*z*/DataType.ExtensionObject>;
+    causePath?: UAProperty<UAString, DataType.String>;
+    externalConfigurationId?: UAProperty<DTConfigurationId, DataType.ExtensionObject>;
+    externalRecipeId?: UAProperty<DTRecipeIdExternal, DataType.ExtensionObject>;
+    internalConfigurationId?: UAProperty<DTConfigurationId, DataType.ExtensionObject>;
+    internalRecipeId?: UAProperty<DTRecipeIdInternal, DataType.ExtensionObject>;
+    jobId?: UAProperty<DTJobId, DataType.ExtensionObject>;
+    measId?: UAProperty<DTMeasId, DataType.ExtensionObject>;
+    partId?: UAProperty<DTPartId, DataType.ExtensionObject>;
+    productId?: UAProperty<DTProductId, DataType.ExtensionObject>;
+    resultId?: UAProperty<DTResultId, DataType.ExtensionObject>;
 }
 export interface UAVisionEvent extends UABaseEvent, UAVisionEvent_Base {
 }

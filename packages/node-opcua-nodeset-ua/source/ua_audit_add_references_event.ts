@@ -12,7 +12,7 @@ import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./u
  * |isAbstract      |true                                              |
  */
 export interface UAAuditAddReferencesEvent_Base extends UAAuditNodeManagementEvent_Base {
-    referencesToAdd: UAProperty<DTAddReferencesItem[], /*z*/DataType.ExtensionObject>;
+    referencesToAdd: UAProperty<DTAddReferencesItem[], DataType.ExtensionObject>;
 }
 export interface UAAuditAddReferencesEvent extends UAAuditNodeManagementEvent, UAAuditAddReferencesEvent_Base {
 }

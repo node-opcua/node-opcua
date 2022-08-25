@@ -9,6 +9,7 @@ import { UAObject } from "node-opcua-address-space-base"
  * |isAbstract      |true                                              |
  */
 export interface UADictionaryEntry_Base {
+   // PlaceHolder for $DictionaryEntryName$
 }
 export interface UADictionaryEntry extends UAObject, UADictionaryEntry_Base {
 }

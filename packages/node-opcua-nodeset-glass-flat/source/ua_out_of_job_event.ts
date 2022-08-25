@@ -8,7 +8,6 @@ import { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_ev
  * |typedDefinition |13:OutOfJobEventType ns=13;i=1036                 |
  * |isAbstract      |true                                              |
  */
-export interface UAOutOfJobEvent_Base extends UAInterruptedEvent_Base {
-}
+export type UAOutOfJobEvent_Base = UAInterruptedEvent_Base;
 export interface UAOutOfJobEvent extends UAInterruptedEvent, UAOutOfJobEvent_Base {
 }

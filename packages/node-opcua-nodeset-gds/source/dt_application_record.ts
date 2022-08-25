@@ -12,7 +12,7 @@ import { EnumApplication } from "node-opcua-nodeset-ua/source/enum_application"
  * | name      |6:ApplicationRecordDataType                       |
  * | isAbstract|false                                             |
  */
-export interface DTApplicationRecord extends DTStructure  {
+export interface DTApplicationRecord extends DTStructure {
   applicationId: NodeId; // NodeId ns=0;i=17
   applicationUri: UAString; // String ns=0;i=12
   applicationType: EnumApplication; // Int32 ns=0;i=307

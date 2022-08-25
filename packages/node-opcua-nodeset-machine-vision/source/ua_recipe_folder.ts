@@ -14,7 +14,6 @@ import { DTProductId } from "./dt_product_id"
  * |typedDefinition |4:RecipeFolderType ns=4;i=1008                    |
  * |isAbstract      |false                                             |
  */
-export interface UARecipeFolder_Base extends UAFolder_Base {
-}
+export type UARecipeFolder_Base = UAFolder_Base;
 export interface UARecipeFolder extends UAFolder, UARecipeFolder_Base {
 }

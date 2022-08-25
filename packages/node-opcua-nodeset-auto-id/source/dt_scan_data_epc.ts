@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:ScanDataEpc                                     |
  * | isAbstract|false                                             |
  */
-export interface DTScanDataEpc extends DTStructure  {
+export interface DTScanDataEpc extends DTStructure {
   PC: UInt16; // UInt16 ns=0;i=5
   uId: Buffer; // ByteString ns=0;i=15
   XPC_W1: UInt16; // UInt16 ns=0;i=5

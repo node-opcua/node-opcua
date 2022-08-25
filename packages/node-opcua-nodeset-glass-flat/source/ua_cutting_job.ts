@@ -11,34 +11,34 @@ import { UABaseMaterial } from "./ua_base_material"
 import { UAGlass } from "./ua_glass"
 import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
 export interface UACuttingJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
-      "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
-      weight?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      x?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      y?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      z?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
+      weight?: UAAnalogUnit<number, DataType.Double>;
+      x?: UAAnalogUnit<number, DataType.Double>;
+      y?: UAAnalogUnit<number, DataType.Double>;
+      z?: UAAnalogUnit<number, DataType.Double>;
 }
 export interface UACuttingJob_$OutputMaterial$ extends Omit<UAGlass, "absorption"|"coatingClass"|"coatingEmessivity"|"$description"|"electricalConductivity"|"identifier"|"location"|"materialIdentifier"|"orientation"|"reflection"|"significantSide"|"structureAlignment"|"structureClass"|"transmission"|"weight"|"x"|"y"|"z"> { // Object
       absorption: UAAnalogUnit<any, any>;
-      coatingClass: UAProperty<EnumCoatingClass, /*z*/DataType.Int32>;
+      coatingClass: UAProperty<EnumCoatingClass, DataType.Int32>;
       coatingEmessivity: UAAnalogUnit<any, any>;
-      "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+      "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
       electricalConductivity: UAAnalogUnit<any, any>;
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
       orientation: UAProperty<any, any>;
       reflection: UAAnalogUnit<any, any>;
-      significantSide: UAProperty<EnumSignificantSide, /*z*/DataType.Int32>;
-      structureAlignment: UAProperty<EnumStructureAlignment, /*z*/DataType.Int32>;
-      structureClass: UAProperty<UAString, /*z*/DataType.String>;
+      significantSide: UAProperty<EnumSignificantSide, DataType.Int32>;
+      structureAlignment: UAProperty<EnumStructureAlignment, DataType.Int32>;
+      structureClass: UAProperty<UAString, DataType.String>;
       transmission: UAAnalogUnit<any, any>;
-      weight?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      x?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      y?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      z?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      weight?: UAAnalogUnit<number, DataType.Double>;
+      x?: UAAnalogUnit<number, DataType.Double>;
+      y?: UAAnalogUnit<number, DataType.Double>;
+      z?: UAAnalogUnit<number, DataType.Double>;
 }
 /**
  * |                |                                                  |
@@ -48,7 +48,6 @@ export interface UACuttingJob_$OutputMaterial$ extends Omit<UAGlass, "absorption
  * |typedDefinition |13:CuttingJobType ns=13;i=1007                    |
  * |isAbstract      |false                                             |
  */
-export interface UACuttingJob_Base extends UAProductionJob_Base {
-}
+export type UACuttingJob_Base = UAProductionJob_Base;
 export interface UACuttingJob extends UAProductionJob, UACuttingJob_Base {
 }

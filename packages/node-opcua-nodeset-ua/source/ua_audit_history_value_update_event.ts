@@ -14,10 +14,10 @@ import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryValueUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
-    updatedNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    performInsertReplace: UAProperty<EnumPerformUpdate, /*z*/DataType.Int32>;
-    newValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
-    oldValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
+    updatedNode: UAProperty<NodeId, DataType.NodeId>;
+    performInsertReplace: UAProperty<EnumPerformUpdate, DataType.Int32>;
+    newValues: UAProperty<DataValue[], DataType.DataValue>;
+    oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
 export interface UAAuditHistoryValueUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryValueUpdateEvent_Base {
 }

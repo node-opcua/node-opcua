@@ -8,7 +8,6 @@ import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
  * |typedDefinition |2:ParticleSizeMonitorDeviceType ns=2;i=1012       |
  * |isAbstract      |false                                             |
  */
-export interface UAParticleSizeMonitorDevice_Base extends UAAnalyserDevice_Base {
-}
+export type UAParticleSizeMonitorDevice_Base = UAAnalyserDevice_Base;
 export interface UAParticleSizeMonitorDevice extends UAAnalyserDevice, UAParticleSizeMonitorDevice_Base {
 }

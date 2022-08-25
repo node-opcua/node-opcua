@@ -15,7 +15,6 @@ import { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "n
  * |typedDefinition |1:DeviceHealthDiagnosticAlarmType ns=1;i=15143    |
  * |isAbstract      |true                                              |
  */
-export interface UADeviceHealthDiagnosticAlarm_Base extends UAInstrumentDiagnosticAlarm_Base {
-}
+export type UADeviceHealthDiagnosticAlarm_Base = UAInstrumentDiagnosticAlarm_Base;
 export interface UADeviceHealthDiagnosticAlarm extends UAInstrumentDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base {
 }

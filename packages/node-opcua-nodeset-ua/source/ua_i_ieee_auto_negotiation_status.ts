@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeAutoNegotiationStatus_Base extends UABaseInterface_Base {
-    negotiationStatus: UABaseDataVariable<EnumNegotiationStatus, /*z*/DataType.Int32>;
+    negotiationStatus: UABaseDataVariable<EnumNegotiationStatus, DataType.Int32>;
 }
 export interface UAIIeeeAutoNegotiationStatus extends UABaseInterface, UAIIeeeAutoNegotiationStatus_Base {
 }

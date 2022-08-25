@@ -11,10 +11,10 @@ import { Byte } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAAggregateConfiguration_Base {
-    treatUncertainAsBad: UAProperty<boolean, /*z*/DataType.Boolean>;
-    percentDataBad: UAProperty<Byte, /*z*/DataType.Byte>;
-    percentDataGood: UAProperty<Byte, /*z*/DataType.Byte>;
-    useSlopedExtrapolation: UAProperty<boolean, /*z*/DataType.Boolean>;
+    treatUncertainAsBad: UAProperty<boolean, DataType.Boolean>;
+    percentDataBad: UAProperty<Byte, DataType.Byte>;
+    percentDataGood: UAProperty<Byte, DataType.Byte>;
+    useSlopedExtrapolation: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAAggregateConfiguration extends UAObject, UAAggregateConfiguration_Base {
 }

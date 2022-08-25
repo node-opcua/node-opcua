@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:AntennaNameIdPair                               |
  * | isAbstract|false                                             |
  */
-export interface DTAntennaNameIdPair extends DTStructure  {
+export interface DTAntennaNameIdPair extends DTStructure {
   antennaId: Int32; // Int32 ns=0;i=6
   antennaName: UAString; // String ns=0;i=12
 }

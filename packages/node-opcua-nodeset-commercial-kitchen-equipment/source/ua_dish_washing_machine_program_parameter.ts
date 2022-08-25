@@ -10,37 +10,37 @@ import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_ki
 import { EnumHygieneMode } from "./enum_hygiene_mode"
 import { EnumOperationMode } from "./enum_operation_mode"
 import { EnumProgramMode } from "./enum_program_mode"
-export interface UADishWashingMachineProgramParameter_actualFinalRinseTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_actualFinalRinseTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_actualMainTankTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_actualMainTankTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_actualPreTankTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_actualPreTankTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_actualPumpedFinalRinseTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_actualPumpedFinalRinseTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_finalRinseTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_finalRinseTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_mainTankTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_mainTankTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_preTankTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_preTankTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UADishWashingMachineProgramParameter_pumpedFinalRinseTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UADishWashingMachineProgramParameter_pumpedFinalRinseTemperatureSetpoint_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |
@@ -51,21 +51,29 @@ export interface UADishWashingMachineProgramParameter_pumpedFinalRinseTemperatur
  * |isAbstract      |false                                             |
  */
 export interface UADishWashingMachineProgramParameter_Base extends UAKitchenDeviceParameter_Base {
-    actualFinalRinseTemperatureNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    actualHygieneValue?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    actualMainTankTemperatureNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    actualPreTankTemperatureNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    actualPumpedFinalRinseTemperatureNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    finalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    hygieneMode?: UABaseDataVariable<EnumHygieneMode, /*z*/DataType.Int32>;
-    hygieneSetpoint?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    mainTankTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    operationMode: UABaseDataVariable<EnumOperationMode, /*z*/DataType.Int32>;
-    preTankTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    productGroup?: UAProperty<UAString, /*z*/DataType.String>;
-    productType?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    programMode?: UABaseDataVariable<EnumProgramMode, /*z*/DataType.Int32>;
-    pumpedFinalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+   // PlaceHolder for actualFinalRinseTemperature_$No_$
+    actualFinalRinseTemperatureNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+    actualHygieneValue?: UABaseDataVariable<UInt16, DataType.UInt16>;
+   // PlaceHolder for actualMainTankTemperature_$No_$
+    actualMainTankTemperatureNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+   // PlaceHolder for actualPreTankTemperature_$No_$
+    actualPreTankTemperatureNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+   // PlaceHolder for actualPumpedFinalRinseTemperature_$No_$
+    actualPumpedFinalRinseTemperatureNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+   // PlaceHolder for finalRinseTemperatureSetpoint_$No_$
+    finalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+    hygieneMode?: UABaseDataVariable<EnumHygieneMode, DataType.Int32>;
+    hygieneSetpoint?: UABaseDataVariable<UInt16, DataType.UInt16>;
+   // PlaceHolder for mainTankTemperatureSetpoint_$No_$
+    mainTankTemperatureSetpointNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+    operationMode: UABaseDataVariable<EnumOperationMode, DataType.Int32>;
+   // PlaceHolder for preTankTemperatureSetpoint_$No_$
+    preTankTemperatureSetpointNo: UABaseDataVariable<UInt16, DataType.UInt16>;
+    productGroup?: UAProperty<UAString, DataType.String>;
+    productType?: UAProperty<UInt32, DataType.UInt32>;
+    programMode?: UABaseDataVariable<EnumProgramMode, DataType.Int32>;
+   // PlaceHolder for pumpedFinalRinseTemperatureSetpoint_$No_$
+    pumpedFinalRinseTemperatureSetpointNo: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 export interface UADishWashingMachineProgramParameter extends UAKitchenDeviceParameter, UADishWashingMachineProgramParameter_Base {
 }

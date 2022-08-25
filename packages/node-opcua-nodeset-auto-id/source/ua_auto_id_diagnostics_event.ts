@@ -21,7 +21,7 @@ export interface UAAutoIdDiagnosticsEvent_Base extends UABaseEvent_Base {
      * deviceName
      * Name of the device of the diagnostic data.
      */
-    deviceName: UAProperty<UAString, /*z*/DataType.String>;
+    deviceName: UAProperty<UAString, DataType.String>;
 }
 export interface UAAutoIdDiagnosticsEvent extends UABaseEvent, UAAutoIdDiagnosticsEvent_Base {
 }

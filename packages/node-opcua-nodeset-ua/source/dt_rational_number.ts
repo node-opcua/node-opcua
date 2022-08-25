@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |RationalNumber                                    |
  * | isAbstract|false                                             |
  */
-export interface DTRationalNumber extends DTStructure  {
+export interface DTRationalNumber extends DTStructure {
   numerator: Int32; // Int32 ns=0;i=6
   denominator: UInt32; // UInt32 ns=0;i=7
 }

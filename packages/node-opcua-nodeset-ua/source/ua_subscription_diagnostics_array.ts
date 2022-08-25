@@ -13,8 +13,8 @@ import { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics"
  * |dataType Name   |DTSubscriptionDiagnostics[] ns=0;i=874            |
  * |isAbstract      |false                                             |
  */
-export interface UASubscriptionDiagnosticsArray_Base<T extends DTSubscriptionDiagnostics[]/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
+export interface UASubscriptionDiagnosticsArray_Base<T extends DTSubscriptionDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     subscriptionDiagnostics: UASubscriptionDiagnostics<DTSubscriptionDiagnostics>;
 }
-export interface UASubscriptionDiagnosticsArray<T extends DTSubscriptionDiagnostics[]/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UASubscriptionDiagnosticsArray_Base<T /*B*/> {
+export interface UASubscriptionDiagnosticsArray<T extends DTSubscriptionDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASubscriptionDiagnosticsArray_Base<T> {
 }

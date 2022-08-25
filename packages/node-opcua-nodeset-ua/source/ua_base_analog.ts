@@ -14,10 +14,10 @@ import { DTRange } from "./dt_range"
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UABaseAnalog_Base<T, DT extends DataType>  extends UADataItem_Base<T/*g*/, DT> {
-    instrumentRange?: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
-    euRange?: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
-    engineeringUnits?: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+export interface UABaseAnalog_Base<T, DT extends DataType>  extends UADataItem_Base<T, DT> {
+    instrumentRange?: UAProperty<DTRange, DataType.ExtensionObject>;
+    euRange?: UAProperty<DTRange, DataType.ExtensionObject>;
+    engineeringUnits?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UABaseAnalog<T, DT extends DataType> extends UADataItem<T, /*m*/DT>, UABaseAnalog_Base<T, DT /*A*/> {
+export interface UABaseAnalog<T, DT extends DataType> extends UADataItem<T, DT>, UABaseAnalog_Base<T, DT> {
 }

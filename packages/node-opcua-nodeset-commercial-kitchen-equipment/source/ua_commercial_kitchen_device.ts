@@ -24,8 +24,8 @@ export interface UACommercialKitchenDevice_Base extends UADevice_Base {
      * Indicates in which domain or for what purpose a
      * device is used.
      */
-    deviceClass: UAProperty<UAString, /*z*/DataType.String>;
-    deviceLocationName?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceClass: UAProperty<UAString, DataType.String>;
+    deviceLocationName?: UAProperty<UAString, DataType.String>;
     errorConditions: UAObject;
     haCCPValues?: UAFunctionalGroup;
     informationConditions: UAObject;

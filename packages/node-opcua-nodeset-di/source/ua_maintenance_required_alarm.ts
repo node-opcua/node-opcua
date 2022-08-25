@@ -8,7 +8,6 @@ import { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } fro
  * |typedDefinition |1:MaintenanceRequiredAlarmType ns=1;i=15739       |
  * |isAbstract      |false                                             |
  */
-export interface UAMaintenanceRequiredAlarm_Base extends UADeviceHealthDiagnosticAlarm_Base {
-}
+export type UAMaintenanceRequiredAlarm_Base = UADeviceHealthDiagnosticAlarm_Base;
 export interface UAMaintenanceRequiredAlarm extends UADeviceHealthDiagnosticAlarm, UAMaintenanceRequiredAlarm_Base {
 }

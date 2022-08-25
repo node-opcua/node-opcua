@@ -15,12 +15,12 @@ import { EnumProcessIrregularity } from "./enum_process_irregularity"
  * |isAbstract      |true                                              |
  */
 export interface UAProductionPartTransitionEvent_Base extends UATransitionEvent_Base {
-    customerOrderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    identifier?: UAProperty<UAString, /*z*/DataType.String>;
-    jobIdentifier: UAProperty<UAString, /*z*/DataType.String>;
-    name: UAProperty<UAString, /*z*/DataType.String>;
-    partQuality: UABaseDataVariable<EnumPartQuality, /*z*/DataType.Int32>;
-    processIrregularity: UABaseDataVariable<EnumProcessIrregularity, /*z*/DataType.Int32>;
+    customerOrderIdentifier?: UAProperty<UAString, DataType.String>;
+    identifier?: UAProperty<UAString, DataType.String>;
+    jobIdentifier: UAProperty<UAString, DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
+    partQuality: UABaseDataVariable<EnumPartQuality, DataType.Int32>;
+    processIrregularity: UABaseDataVariable<EnumProcessIrregularity, DataType.Int32>;
 }
 export interface UAProductionPartTransitionEvent extends UATransitionEvent, UAProductionPartTransitionEvent_Base {
 }

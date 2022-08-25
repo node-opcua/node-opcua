@@ -9,6 +9,6 @@ import { DTStructure } from "./dt_structure"
  * | name      |UserIdentityToken                                 |
  * | isAbstract|true                                              |
  */
-export interface DTUserIdentityToken extends DTStructure  {
+export interface DTUserIdentityToken extends DTStructure {
   policyId: UAString; // String ns=0;i=12
 }

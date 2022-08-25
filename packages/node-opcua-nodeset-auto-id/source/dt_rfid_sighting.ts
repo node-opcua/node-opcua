@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:RfidSighting                                    |
  * | isAbstract|false                                             |
  */
-export interface DTRfidSighting extends DTStructure  {
+export interface DTRfidSighting extends DTStructure {
 /** Returns the number of the antenna which detects the RFID tag first.*/
   antenna: Int32; // Int32 ns=0;i=6
 /** Returns the signal strength (RSSI) of the transponder. Higher values indicate a better strength.*/

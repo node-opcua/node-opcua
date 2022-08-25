@@ -11,7 +11,7 @@ import { DTReceiveQos } from "./dt_receive_qos"
  * | name      |DatagramDataSetReaderTransportDataType            |
  * | isAbstract|false                                             |
  */
-export interface DTDatagramDataSetReaderTransport extends DTDataSetReaderTransport  {
+export interface DTDatagramDataSetReaderTransport extends DTDataSetReaderTransport {
   address: DTNetworkAddress; // ExtensionObject ns=0;i=15502
   qosCategory: UAString; // String ns=0;i=12
   datagramQos: DTReceiveQos[]; // ExtensionObject ns=0;i=23608

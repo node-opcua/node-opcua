@@ -11,7 +11,7 @@ import { DTQos } from "./dt_qos"
  * | name      |DatagramConnectionTransport2DataType              |
  * | isAbstract|false                                             |
  */
-export interface DTDatagramConnectionTransport2 extends DTDatagramConnectionTransport  {
+export interface DTDatagramConnectionTransport2 extends DTDatagramConnectionTransport {
   discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502
   discoveryAnnounceRate: UInt32; // UInt32 ns=0;i=7
   discoveryMaxMessageSize: UInt32; // UInt32 ns=0;i=7

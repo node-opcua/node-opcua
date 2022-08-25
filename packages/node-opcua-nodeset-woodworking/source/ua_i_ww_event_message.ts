@@ -31,13 +31,13 @@ export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
      * formatting functions of the implementations
      * enable the localized message texts to be created.
      */
-    arguments?: UAProperty<DTWwMessageArgument[], /*z*/DataType.ExtensionObject>;
+    arguments?: UAProperty<DTWwMessageArgument[], DataType.ExtensionObject>;
     /**
      * eventCategory
      * The EventCategory Variable provides the category
      * of the event.
      */
-    eventCategory: UAProperty<EnumWwEventCategory, /*z*/DataType.Int32>;
+    eventCategory: UAProperty<EnumWwEventCategory, DataType.Int32>;
     /**
      * group
      * The Group Variable specifies the class or group
@@ -46,14 +46,14 @@ export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
      * grouping the messages, events, alarms and
      * conditions”.
      */
-    group?: UAProperty<UAString, /*z*/DataType.String>;
+    group?: UAProperty<UAString, DataType.String>;
     /**
      * localizedMessages
      * The LocalizedMessages Variable contains an array
      * of localized messages corresponding to the
      * installed server languages.
      */
-    localizedMessages?: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
+    localizedMessages?: UAProperty<LocalizedText[], DataType.LocalizedText>;
     /**
      * messageId
      * The MessageId Variable is a unique Identifier
@@ -61,7 +61,7 @@ export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
      * path (PathParts) determined Module. Example:
      * “A4711” or “1”
      */
-    messageId: UAProperty<UAString, /*z*/DataType.String>;
+    messageId: UAProperty<UAString, DataType.String>;
     /**
      * messageName
      * The MessageName Variable is a short name like a
@@ -69,7 +69,7 @@ export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
      * general message text. Example:
      * “ID_MSG_EmergencyAlarm”.
      */
-    messageName?: UAProperty<UAString, /*z*/DataType.String>;
+    messageName?: UAProperty<UAString, DataType.String>;
     /**
      * pathParts
      * The PathParts Variable is an array of Path
@@ -80,7 +80,7 @@ export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
      * SourceName. Example:  “Machine”, “FixedSide”,
      * “Sizing”, “Milling1”
      */
-    pathParts: UAProperty<UAString[], /*z*/DataType.String>;
+    pathParts: UAProperty<UAString[], DataType.String>;
 }
 export interface UAIWwEventMessage extends UABaseInterface, UAIWwEventMessage_Base {
 }

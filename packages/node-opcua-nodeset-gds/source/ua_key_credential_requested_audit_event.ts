@@ -11,7 +11,6 @@ import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-
  * |typedDefinition |6:KeyCredentialRequestedAuditEventType ns=6;i=1039|
  * |isAbstract      |false                                             |
  */
-export interface UAKeyCredentialRequestedAuditEvent_Base extends UAKeyCredentialAuditEvent_Base {
-}
+export type UAKeyCredentialRequestedAuditEvent_Base = UAKeyCredentialAuditEvent_Base;
 export interface UAKeyCredentialRequestedAuditEvent extends UAKeyCredentialAuditEvent, UAKeyCredentialRequestedAuditEvent_Base {
 }

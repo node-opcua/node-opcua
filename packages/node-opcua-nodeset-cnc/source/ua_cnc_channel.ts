@@ -12,29 +12,29 @@ import { EnumCncChannelProgramStatus } from "./enum_cnc_channel_program_status"
 import { EnumCncChannelStatus } from "./enum_cnc_channel_status"
 import { DTCncPosition } from "./dt_cnc_position"
 import { UACncPositionVariable } from "./ua_cnc_position_variable"
-export interface UACncChannel_actFeedrate<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncChannel_actFeedrate<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncChannel_actJogIncrement<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncChannel_actJogIncrement<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncChannel_actOverride<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncChannel_actOverride<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncChannel_cmdFeedrate<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncChannel_cmdFeedrate<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncChannel_cmdOverride<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncChannel_cmdOverride<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncChannel_dryRunFeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncChannel_dryRunFeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * CNC channel component.
@@ -47,141 +47,143 @@ export interface UACncChannel_dryRunFeed<T, DT extends DataType> extends Omit<UA
  * |isAbstract      |false                                             |
  */
 export interface UACncChannel_Base extends UACncComponent_Base {
+   // PlaceHolder for $CncAxis$
+   // PlaceHolder for $CncSpindle$
     /**
      * actFeedrate
      * Feedrate actual value.
      */
-    actFeedrate: UACncChannel_actFeedrate<number, /*z*/DataType.Double>;
+    actFeedrate: UACncChannel_actFeedrate<number, DataType.Double>;
     /**
      * actGFunctions
      * Array of active G functions; there can be several
      * G functions active at a time (modal and non-modal
      * G functions).
      */
-    actGFunctions: UADataItem<UInt32[], /*z*/DataType.UInt32>;
+    actGFunctions: UADataItem<UInt32[], DataType.UInt32>;
     /**
      * actJogIncrement
      * Active JOG increment.
      */
-    actJogIncrement: UACncChannel_actJogIncrement<number, /*z*/DataType.Double>;
+    actJogIncrement: UACncChannel_actJogIncrement<number, DataType.Double>;
     /**
      * actMainProgramFile
      * Path of active CNC main program.
      */
-    actMainProgramFile: UADataItem<UAString, /*z*/DataType.String>;
+    actMainProgramFile: UADataItem<UAString, DataType.String>;
     /**
      * actMainProgramFileOffset
      * File offset of active CNC main program file.
      */
-    actMainProgramFileOffset?: UADataItem<UInt32, /*z*/DataType.UInt32>;
+    actMainProgramFileOffset?: UADataItem<UInt32, DataType.UInt32>;
     /**
      * actMainProgramLine
      * Line number of active CNC main program.
      */
-    actMainProgramLine?: UADataItem<UAString, /*z*/DataType.String>;
+    actMainProgramLine?: UADataItem<UAString, DataType.String>;
     /**
      * actMainProgramName
      * Name of active CNC main program.
      */
-    actMainProgramName: UADataItem<UAString, /*z*/DataType.String>;
+    actMainProgramName: UADataItem<UAString, DataType.String>;
     /**
      * actMFunctions
      * Array of active M functions: there can be several
      * M functions active at a time (modal and non-modal
      * M functions).
      */
-    actMFunctions: UADataItem<UInt32[], /*z*/DataType.UInt32>;
+    actMFunctions: UADataItem<UInt32[], DataType.UInt32>;
     /**
      * actModalOffsetFunction
      * Active zero offset function.
      */
-    actModalOffsetFunction: UADataItem<UInt32, /*z*/DataType.UInt32>;
+    actModalOffsetFunction: UADataItem<UInt32, DataType.UInt32>;
     /**
      * actOperationMode
      * Channel's active mode of operation.
      */
-    actOperationMode: UADataItem<EnumCncOperationMode, /*z*/DataType.Int32>;
+    actOperationMode: UADataItem<EnumCncOperationMode, DataType.Int32>;
     /**
      * actOverride
      * Axis override actual value.
      */
-    actOverride: UACncChannel_actOverride<number, /*z*/DataType.Double>;
+    actOverride: UACncChannel_actOverride<number, DataType.Double>;
     /**
      * actProgramBlock
      * Block of lines containing the previous, actual
      * and subsequent lines of a CNC part program.
      */
-    actProgramBlock: UADataItem<UAString[], /*z*/DataType.String>;
+    actProgramBlock: UADataItem<UAString[], DataType.String>;
     /**
      * actProgramFile
      * Path of active CNC program file (main or
      * subprogram).
      */
-    actProgramFile: UADataItem<UAString, /*z*/DataType.String>;
+    actProgramFile: UADataItem<UAString, DataType.String>;
     /**
      * actProgramFileOffset
      * File offset of active CNC program file (main or
      * subprogram).
      */
-    actProgramFileOffset?: UADataItem<UInt32, /*z*/DataType.UInt32>;
+    actProgramFileOffset?: UADataItem<UInt32, DataType.UInt32>;
     /**
      * actProgramLine
      * Line number of active CNC program (main or
      * subprogram).
      */
-    actProgramLine?: UADataItem<UAString, /*z*/DataType.String>;
+    actProgramLine?: UADataItem<UAString, DataType.String>;
     /**
      * actProgramName
      * Name of active CNC program (main or subprogram).
      */
-    actProgramName: UADataItem<UAString, /*z*/DataType.String>;
+    actProgramName: UADataItem<UAString, DataType.String>;
     /**
      * actProgramStatus
      * Active channel program status
      */
-    actProgramStatus: UADataItem<EnumCncChannelProgramStatus, /*z*/DataType.Int32>;
+    actProgramStatus: UADataItem<EnumCncChannelProgramStatus, DataType.Int32>;
     /**
      * actStatus
      * Active status of channel.
      */
-    actStatus: UADataItem<EnumCncChannelStatus, /*z*/DataType.Int32>;
+    actStatus: UADataItem<EnumCncChannelStatus, DataType.Int32>;
     /**
      * blockMode
      * Block mode status (true in case of block mode is
      * active, else false).
      */
-    blockMode: UADataItem<boolean, /*z*/DataType.Boolean>;
+    blockMode: UADataItem<boolean, DataType.Boolean>;
     /**
      * cmdFeedrate
      * Feedrate setpoint value.
      */
-    cmdFeedrate: UACncChannel_cmdFeedrate<number, /*z*/DataType.Double>;
+    cmdFeedrate: UACncChannel_cmdFeedrate<number, DataType.Double>;
     /**
      * cmdOperationMode
      * Channel’s mode of operation setpoint value.
      */
-    cmdOperationMode: UADataItem<EnumCncOperationMode, /*z*/DataType.Int32>;
+    cmdOperationMode: UADataItem<EnumCncOperationMode, DataType.Int32>;
     /**
      * cmdOverride
      * Override setpoint value.
      */
-    cmdOverride: UACncChannel_cmdOverride<number, /*z*/DataType.Double>;
+    cmdOverride: UACncChannel_cmdOverride<number, DataType.Double>;
     /**
      * dryRunFeed
      * Test feedrate.
      */
-    dryRunFeed: UACncChannel_dryRunFeed<number, /*z*/DataType.Double>;
+    dryRunFeed: UACncChannel_dryRunFeed<number, DataType.Double>;
     /**
      * feedHold
      * Feed status (true in case of feed hold active,
      * else false).
      */
-    feedHold: UADataItem<boolean, /*z*/DataType.Boolean>;
+    feedHold: UADataItem<boolean, DataType.Boolean>;
     /**
      * id
      * Unique numeric channel identifier.
      */
-    id: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    id: UAProperty<UInt32, DataType.UInt32>;
     /**
      * posTcpBcsA
      * Actual position of the tool center point in
@@ -259,7 +261,7 @@ export interface UACncChannel_Base extends UACncComponent_Base {
      * ID of active tool; returns zero if no tool is
      * present.
      */
-    toolId: UADataItem<UInt32, /*z*/DataType.UInt32>;
+    toolId: UADataItem<UInt32, DataType.UInt32>;
 }
 export interface UACncChannel extends UACncComponent, UACncChannel_Base {
 }

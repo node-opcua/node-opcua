@@ -8,7 +8,6 @@ import { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from ".
  * |typedDefinition |EccCurve25519ApplicationCertificateType ns=0;i=23542|
  * |isAbstract      |false                                             |
  */
-export interface UAEccCurve25519ApplicationCertificate_Base extends UAEccApplicationCertificate_Base {
-}
+export type UAEccCurve25519ApplicationCertificate_Base = UAEccApplicationCertificate_Base;
 export interface UAEccCurve25519ApplicationCertificate extends UAEccApplicationCertificate, UAEccCurve25519ApplicationCertificate_Base {
 }

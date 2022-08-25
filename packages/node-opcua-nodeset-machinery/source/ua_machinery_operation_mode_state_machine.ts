@@ -22,7 +22,7 @@ export interface UAMachineryOperationModeStateMachine_Base extends UAFiniteState
      * defaultInstanceBrowseName
      * The default BrowseName for instances of the type
      */
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     /**
      * fromMaintenanceToMaintenance
      * Transition from state Maintenance to state

@@ -15,7 +15,7 @@ import { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value"
  * | name      |12:WwMessageArgumentDataType                      |
  * | isAbstract|false                                             |
  */
-export interface DTWwMessageArgument extends DTArgument  {
+export interface DTWwMessageArgument extends DTArgument {
   name: UAString; // String ns=0;i=12
   dataType: NodeId; // NodeId ns=0;i=17
   valueRank: Int32; // Int32 ns=0;i=6

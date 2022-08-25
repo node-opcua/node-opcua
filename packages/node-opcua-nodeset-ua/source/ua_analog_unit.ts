@@ -13,8 +13,8 @@ import { UABaseAnalog, UABaseAnalog_Base } from "./ua_base_analog"
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UAAnalogUnit_Base<T, DT extends DataType>  extends UABaseAnalog_Base<T/*g*/, DT> {
-    engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+export interface UAAnalogUnit_Base<T, DT extends DataType>  extends UABaseAnalog_Base<T, DT> {
+    engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAAnalogUnit<T, DT extends DataType> extends Omit<UABaseAnalog<T, /*m*/DT>, "engineeringUnits">, UAAnalogUnit_Base<T, DT /*A*/> {
+export interface UAAnalogUnit<T, DT extends DataType> extends Omit<UABaseAnalog<T, DT>, "engineeringUnits">, UAAnalogUnit_Base<T, DT> {
 }

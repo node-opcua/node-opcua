@@ -13,10 +13,10 @@ import { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer
  * |isAbstract      |false                                             |
  */
 export interface UABrokerWriterGroupTransport_Base extends UAWriterGroupTransport_Base {
-    queueName: UAProperty<UAString, /*z*/DataType.String>;
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
-    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, /*z*/DataType.Int32>;
+    queueName: UAProperty<UAString, DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    authenticationProfileUri: UAProperty<UAString, DataType.String>;
+    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, DataType.Int32>;
 }
 export interface UABrokerWriterGroupTransport extends UAWriterGroupTransport, UABrokerWriterGroupTransport_Base {
 }

@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |EndpointConfiguration                             |
  * | isAbstract|false                                             |
  */
-export interface DTEndpointConfiguration extends DTStructure  {
+export interface DTEndpointConfiguration extends DTStructure {
   operationTimeout: Int32; // Int32 ns=0;i=6
   useBinaryEncoding: boolean; // Boolean ns=0;i=1
   maxStringLength: Int32; // Int32 ns=0;i=6

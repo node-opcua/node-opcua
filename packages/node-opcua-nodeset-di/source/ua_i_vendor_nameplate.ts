@@ -13,20 +13,20 @@ import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/sou
  * |isAbstract      |true                                              |
  */
 export interface UAIVendorNameplate_Base extends UABaseInterface_Base {
-    manufacturer?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    manufacturerUri?: UAProperty<UAString, /*z*/DataType.String>;
-    model?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    hardwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
-    softwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
-    deviceRevision?: UAProperty<UAString, /*z*/DataType.String>;
-    productCode?: UAProperty<UAString, /*z*/DataType.String>;
-    deviceManual?: UAProperty<UAString, /*z*/DataType.String>;
-    deviceClass?: UAProperty<UAString, /*z*/DataType.String>;
-    serialNumber?: UAProperty<UAString, /*z*/DataType.String>;
-    productInstanceUri?: UAProperty<UAString, /*z*/DataType.String>;
-    revisionCounter?: UAProperty<Int32, /*z*/DataType.Int32>;
-    softwareReleaseDate?: UAProperty<Date, /*z*/DataType.DateTime>;
-    patchIdentifiers?: UAProperty<UAString[], /*z*/DataType.String>;
+    manufacturer?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    manufacturerUri?: UAProperty<UAString, DataType.String>;
+    model?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    hardwareRevision?: UAProperty<UAString, DataType.String>;
+    softwareRevision?: UAProperty<UAString, DataType.String>;
+    deviceRevision?: UAProperty<UAString, DataType.String>;
+    productCode?: UAProperty<UAString, DataType.String>;
+    deviceManual?: UAProperty<UAString, DataType.String>;
+    deviceClass?: UAProperty<UAString, DataType.String>;
+    serialNumber?: UAProperty<UAString, DataType.String>;
+    productInstanceUri?: UAProperty<UAString, DataType.String>;
+    revisionCounter?: UAProperty<Int32, DataType.Int32>;
+    softwareReleaseDate?: UAProperty<Date, DataType.DateTime>;
+    patchIdentifiers?: UAProperty<UAString[], DataType.String>;
 }
 export interface UAIVendorNameplate extends UABaseInterface, UAIVendorNameplate_Base {
 }

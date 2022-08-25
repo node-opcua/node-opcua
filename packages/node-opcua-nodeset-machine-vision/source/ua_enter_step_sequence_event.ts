@@ -12,7 +12,7 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * |isAbstract      |false                                             |
  */
 export interface UAEnterStepSequenceEvent_Base extends UABaseEvent_Base {
-    steps: UAProperty<Int32, /*z*/DataType.Int32>;
+    steps: UAProperty<Int32, DataType.Int32>;
 }
 export interface UAEnterStepSequenceEvent extends UABaseEvent, UAEnterStepSequenceEvent_Base {
 }

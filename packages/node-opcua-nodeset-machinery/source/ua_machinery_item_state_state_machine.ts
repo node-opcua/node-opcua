@@ -23,7 +23,7 @@ export interface UAMachineryItemState_StateMachine_Base extends UAFiniteStateMac
      * defaultInstanceBrowseName
      * The default BrowseName for instances of the type
      */
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     /**
      * executing
      * The machine is available & functional and is

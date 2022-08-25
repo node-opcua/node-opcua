@@ -12,10 +12,10 @@ import { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_s
  * |isAbstract      |false                                             |
  */
 export interface UAUadpDataSetWriterMessage_Base extends UADataSetWriterMessage_Base {
-    dataSetMessageContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    configuredSize: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    networkMessageNumber: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    dataSetOffset: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    dataSetMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
+    configuredSize: UAProperty<UInt16, DataType.UInt16>;
+    networkMessageNumber: UAProperty<UInt16, DataType.UInt16>;
+    dataSetOffset: UAProperty<UInt16, DataType.UInt16>;
 }
 export interface UAUadpDataSetWriterMessage extends UADataSetWriterMessage, UAUadpDataSetWriterMessage_Base {
 }

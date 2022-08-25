@@ -11,7 +11,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |Argument                                          |
  * | isAbstract|false                                             |
  */
-export interface DTArgument extends DTStructure  {
+export interface DTArgument extends DTStructure {
   name: UAString; // String ns=0;i=12
   dataType: NodeId; // NodeId ns=0;i=17
   valueRank: Int32; // Int32 ns=0;i=6

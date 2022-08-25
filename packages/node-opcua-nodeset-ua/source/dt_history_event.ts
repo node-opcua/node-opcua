@@ -9,6 +9,6 @@ import { DTHistoryEventFieldList } from "./dt_history_event_field_list"
  * | name      |HistoryEvent                                      |
  * | isAbstract|false                                             |
  */
-export interface DTHistoryEvent extends DTStructure  {
+export interface DTHistoryEvent extends DTStructure {
   events: DTHistoryEventFieldList[]; // ExtensionObject ns=0;i=920
 }

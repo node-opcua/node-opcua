@@ -10,7 +10,7 @@ import { DTEndpointUrlList } from "./dt_endpoint_url_list"
  * | name      |NetworkGroupDataType                              |
  * | isAbstract|false                                             |
  */
-export interface DTNetworkGroup extends DTStructure  {
+export interface DTNetworkGroup extends DTStructure {
   serverUri: UAString; // String ns=0;i=12
   networkPaths: DTEndpointUrlList[]; // ExtensionObject ns=0;i=11943
 }

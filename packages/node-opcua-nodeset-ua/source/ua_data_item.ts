@@ -13,9 +13,9 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |false                                             |
  */
-export interface UADataItem_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
-    definition?: UAProperty<UAString, /*z*/DataType.String>;
-    valuePrecision?: UAProperty<number, /*z*/DataType.Double>;
+export interface UADataItem_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
+    definition?: UAProperty<UAString, DataType.String>;
+    valuePrecision?: UAProperty<number, DataType.Double>;
 }
-export interface UADataItem<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UADataItem_Base<T, DT /*A*/> {
+export interface UADataItem<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UADataItem_Base<T, DT> {
 }

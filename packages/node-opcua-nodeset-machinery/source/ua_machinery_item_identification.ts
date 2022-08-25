@@ -26,7 +26,7 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * to write strings with a length of 40 Unicode
      * characters into that field.
      */
-    assetId?: UAProperty<UAString, /*z*/DataType.String>;
+    assetId?: UAProperty<UAString, DataType.String>;
     /**
      * componentName
      * To be used by end users to store a human-readable
@@ -38,13 +38,13 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * expect to be able to write texts with a length of
      * 40 Unicode characters into that field.
      */
-    componentName?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * deviceClass
      * Indicates in which domain or for what purpose the
      * MachineryItem is used.
      */
-    deviceClass?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceClass?: UAProperty<UAString, DataType.String>;
     /**
      * hardwareRevision
      * A string representation of the revision level of
@@ -55,32 +55,32 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * due to the modular and configurable nature of the
      * machine.
      */
-    hardwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
+    hardwareRevision?: UAProperty<UAString, DataType.String>;
     /**
      * initialOperationDate
      * The date, when the MachineryItem was switched on
      * the first time after it has left the manufacturer
      * plant.
      */
-    initialOperationDate?: UAProperty<Date, /*z*/DataType.DateTime>;
+    initialOperationDate?: UAProperty<Date, DataType.DateTime>;
     /**
      * manufacturer
      * A human-readable, localized name of the
      * manufacturer of the MachineryItem.
      */
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * manufacturerUri
      * A globally unique identifier of the manufacturer
      * of the MachineryItem.
      */
-    manufacturerUri?: UAProperty<UAString, /*z*/DataType.String>;
+    manufacturerUri?: UAProperty<UAString, DataType.String>;
     /**
      * model
      * A human-readable, localized name of the model of
      * the MachineryItem.
      */
-    model?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    model?: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * monthOfConstruction
      * The month in which the manufacturing process of
@@ -88,7 +88,7 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * a number between 1 and 12, representing the month
      * from January to December.
      */
-    monthOfConstruction?: UAProperty<Byte, /*z*/DataType.Byte>;
+    monthOfConstruction?: UAProperty<Byte, DataType.Byte>;
     /**
      * productCode
      * A machine-readable string of the model of the
@@ -98,13 +98,13 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * of the vendor. For example, it can be used as
      * order information.
      */
-    productCode?: UAProperty<UAString, /*z*/DataType.String>;
+    productCode?: UAProperty<UAString, DataType.String>;
     /**
      * productInstanceUri
      * A globally unique resource identifier provided by
      * the manufacturer of the MachineryItem.
      */
-    productInstanceUri?: UAProperty<UAString, /*z*/DataType.String>;
+    productInstanceUri?: UAProperty<UAString, DataType.String>;
     /**
      * serialNumber
      * A string containing a unique production number of
@@ -114,7 +114,7 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * the model. The value shall not change during the
      * life-cycle of the MachineryItem.
      */
-    serialNumber: UAProperty<UAString, /*z*/DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
     /**
      * softwareRevision
      * A string representation of the revision level of
@@ -128,7 +128,7 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * software revision level. The value might change
      * during the life-cycle of a MachineryItem.
      */
-    softwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
+    softwareRevision?: UAProperty<UAString, DataType.String>;
     /**
      * yearOfConstruction
      * The year (Gregorian calendar) in which the
@@ -137,7 +137,7 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * and never change during the life-cycle of a
      * MachineryItem.
      */
-    yearOfConstruction?: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    yearOfConstruction?: UAProperty<UInt16, DataType.UInt16>;
 }
 export interface UAMachineryItemIdentification extends UAFunctionalGroup, UAMachineryItemIdentification_Base {
 }

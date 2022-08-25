@@ -18,7 +18,7 @@ import { UAPressureCookingKettleParameter } from "./ua_pressure_cooking_kettle_p
  * |isAbstract      |false                                             |
  */
 export interface UAPressureCookingKettleDevice_Base extends UACommercialKitchenDevice_Base {
-    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
+    energySource: UAProperty<EnumEnergySource, DataType.Int32>;
     pressureCookingKettle: UAPressureCookingKettleParameter;
 }
 export interface UAPressureCookingKettleDevice extends UACommercialKitchenDevice, UAPressureCookingKettleDevice_Base {

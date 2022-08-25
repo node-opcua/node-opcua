@@ -12,8 +12,8 @@ import { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audi
  * |isAbstract      |true                                              |
  */
 export interface UAAuditCertificateDataMismatchEvent_Base extends UAAuditCertificateEvent_Base {
-    invalidHostname: UAProperty<UAString, /*z*/DataType.String>;
-    invalidUri: UAProperty<UAString, /*z*/DataType.String>;
+    invalidHostname: UAProperty<UAString, DataType.String>;
+    invalidUri: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditCertificateDataMismatchEvent extends UAAuditCertificateEvent, UAAuditCertificateDataMismatchEvent_Base {
 }

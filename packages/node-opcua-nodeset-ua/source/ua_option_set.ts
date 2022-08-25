@@ -13,9 +13,9 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |false                                             |
  */
-export interface UAOptionSet_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
-    optionSetValues: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
-    bitMask?: UAProperty<boolean[], /*z*/DataType.Boolean>;
+export interface UAOptionSet_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
+    optionSetValues: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    bitMask?: UAProperty<boolean[], DataType.Boolean>;
 }
-export interface UAOptionSet<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UAOptionSet_Base<T, DT /*A*/> {
+export interface UAOptionSet<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAOptionSet_Base<T, DT> {
 }

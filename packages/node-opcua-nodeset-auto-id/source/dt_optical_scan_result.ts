@@ -13,7 +13,7 @@ import { DTPosition } from "./dt_position"
  * | name      |3:OpticalScanResult                               |
  * | isAbstract|false                                             |
  */
-export interface DTOpticalScanResult extends DTScanResult  {
+export interface DTOpticalScanResult extends DTScanResult {
 /** Defines the format of the ScanData as string.*/
   codeType: UAString; // String ns=3;i=3031
 /** Holds the information about the detected objects e.g. the detected transponders.*/

@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |CurrencyUnitType                                  |
  * | isAbstract|false                                             |
  */
-export interface DTCurrencyUnit extends DTStructure  {
+export interface DTCurrencyUnit extends DTStructure {
   numericCode: Int16; // Int16 ns=0;i=4
   exponent: SByte; // SByte ns=0;i=2
   alphabeticCode: UAString; // String ns=0;i=12

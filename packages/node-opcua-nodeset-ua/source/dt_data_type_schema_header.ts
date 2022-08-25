@@ -12,7 +12,7 @@ import { DTSimpleTypeDescription } from "./dt_simple_type_description"
  * | name      |DataTypeSchemaHeader                              |
  * | isAbstract|true                                              |
  */
-export interface DTDataTypeSchemaHeader extends DTStructure  {
+export interface DTDataTypeSchemaHeader extends DTStructure {
   namespaces: UAString[]; // String ns=0;i=12
   structureDataTypes: DTStructureDescription[]; // ExtensionObject ns=0;i=15487
   enumDataTypes: DTEnumDescription[]; // ExtensionObject ns=0;i=15488

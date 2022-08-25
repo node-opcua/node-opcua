@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:ResultIdDataType                                |
  * | isAbstract|false                                             |
  */
-export interface DTResultId extends DTStructure  {
+export interface DTResultId extends DTStructure {
 /** Id is a system-wide unique identifier/name for identifying the generated result.*/
   id: UAString; // String ns=4;i=3017
 }

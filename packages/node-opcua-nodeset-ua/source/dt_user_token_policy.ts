@@ -10,7 +10,7 @@ import { EnumUserToken } from "./enum_user_token"
  * | name      |UserTokenPolicy                                   |
  * | isAbstract|false                                             |
  */
-export interface DTUserTokenPolicy extends DTStructure  {
+export interface DTUserTokenPolicy extends DTStructure {
   policyId: UAString; // String ns=0;i=12
   tokenType: EnumUserToken; // Int32 ns=0;i=303
   issuedTokenType: UAString; // String ns=0;i=12

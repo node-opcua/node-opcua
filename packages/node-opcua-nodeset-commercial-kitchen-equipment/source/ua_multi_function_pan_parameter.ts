@@ -9,53 +9,53 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
 import { EnumMultiFunctionPanMode } from "./enum_multi_function_pan_mode"
 import { EnumSpecialFunctionMode } from "./enum_special_function_mode"
-export interface UAMultiFunctionPanParameter_actualCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_actualCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_actualPressureAbsolute<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_actualPressureAbsolute<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_actualTemperatureBottom<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_actualTemperatureBottom<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_actualTemperatureCup<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_actualTemperatureCup<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_actualZoneTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_actualZoneTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_setCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_setCoreTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_setProcessTimeProgram<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_setProcessTimeProgram<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_setProcessTimeStep<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_setProcessTimeStep<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_setTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_setTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_setZoneTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_setZoneTemperature_$No_$<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_timeRemainingProgram<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_timeRemainingProgram<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAMultiFunctionPanParameter_timeRemainingStep<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAMultiFunctionPanParameter_timeRemainingStep<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |
@@ -66,25 +66,27 @@ export interface UAMultiFunctionPanParameter_timeRemainingStep<T, DT extends Dat
  * |isAbstract      |false                                             |
  */
 export interface UAMultiFunctionPanParameter_Base extends UAKitchenDeviceParameter_Base {
-    actualCoreTemperature: UAMultiFunctionPanParameter_actualCoreTemperature<number, /*z*/DataType.Float>;
-    actualPressureAbsolute?: UAMultiFunctionPanParameter_actualPressureAbsolute<number, /*z*/DataType.Float>;
-    actualTemperatureBottom: UAMultiFunctionPanParameter_actualTemperatureBottom<number, /*z*/DataType.Float>;
-    actualTemperatureCup: UAMultiFunctionPanParameter_actualTemperatureCup<number, /*z*/DataType.Float>;
-    cookingLevel?: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
-    isLidLocked?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isLidOpen?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isWithCleaning?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isWithLift?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isWithPressure?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isWithTilting?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    multiFunctionPanMode: UABaseDataVariable<EnumMultiFunctionPanMode, /*z*/DataType.Int32>;
-    setCoreTemperature: UAMultiFunctionPanParameter_setCoreTemperature<number, /*z*/DataType.Float>;
-    setProcessTimeProgram: UAMultiFunctionPanParameter_setProcessTimeProgram<Int32, /*z*/DataType.Int32>;
-    setProcessTimeStep?: UAMultiFunctionPanParameter_setProcessTimeStep<Int32, /*z*/DataType.Int32>;
-    setTemperature: UAMultiFunctionPanParameter_setTemperature<number, /*z*/DataType.Float>;
-    specialFunctionMode?: UABaseDataVariable<EnumSpecialFunctionMode, /*z*/DataType.Int32>;
-    timeRemainingProgram: UAMultiFunctionPanParameter_timeRemainingProgram<Int32, /*z*/DataType.Int32>;
-    timeRemainingStep?: UAMultiFunctionPanParameter_timeRemainingStep<Int32, /*z*/DataType.Int32>;
+    actualCoreTemperature: UAMultiFunctionPanParameter_actualCoreTemperature<number, DataType.Float>;
+    actualPressureAbsolute?: UAMultiFunctionPanParameter_actualPressureAbsolute<number, DataType.Float>;
+    actualTemperatureBottom: UAMultiFunctionPanParameter_actualTemperatureBottom<number, DataType.Float>;
+    actualTemperatureCup: UAMultiFunctionPanParameter_actualTemperatureCup<number, DataType.Float>;
+   // PlaceHolder for actualZoneTemperature_$No_$
+    cookingLevel?: UABaseDataVariable<Int32, DataType.Int32>;
+    isLidLocked?: UABaseDataVariable<boolean, DataType.Boolean>;
+    isLidOpen?: UABaseDataVariable<boolean, DataType.Boolean>;
+    isWithCleaning?: UABaseDataVariable<boolean, DataType.Boolean>;
+    isWithLift?: UABaseDataVariable<boolean, DataType.Boolean>;
+    isWithPressure?: UABaseDataVariable<boolean, DataType.Boolean>;
+    isWithTilting?: UABaseDataVariable<boolean, DataType.Boolean>;
+    multiFunctionPanMode: UABaseDataVariable<EnumMultiFunctionPanMode, DataType.Int32>;
+    setCoreTemperature: UAMultiFunctionPanParameter_setCoreTemperature<number, DataType.Float>;
+    setProcessTimeProgram: UAMultiFunctionPanParameter_setProcessTimeProgram<Int32, DataType.Int32>;
+    setProcessTimeStep?: UAMultiFunctionPanParameter_setProcessTimeStep<Int32, DataType.Int32>;
+    setTemperature: UAMultiFunctionPanParameter_setTemperature<number, DataType.Float>;
+   // PlaceHolder for setZoneTemperature_$No_$
+    specialFunctionMode?: UABaseDataVariable<EnumSpecialFunctionMode, DataType.Int32>;
+    timeRemainingProgram: UAMultiFunctionPanParameter_timeRemainingProgram<Int32, DataType.Int32>;
+    timeRemainingStep?: UAMultiFunctionPanParameter_timeRemainingStep<Int32, DataType.Int32>;
 }
 export interface UAMultiFunctionPanParameter extends UAKitchenDeviceParameter, UAMultiFunctionPanParameter_Base {
 }

@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |PortableNodeId                                    |
  * | isAbstract|false                                             |
  */
-export interface DTPortableNodeId extends DTStructure  {
+export interface DTPortableNodeId extends DTStructure {
   namespaceUri: UAString; // String ns=0;i=12
   identifier: NodeId; // NodeId ns=0;i=17
 }

@@ -14,10 +14,10 @@ import { UAExtensionFields } from "./ua_extension_fields"
  * |isAbstract      |false                                             |
  */
 export interface UAPublishedDataSet_Base {
-    configurationVersion: UAProperty<DTConfigurationVersion, /*z*/DataType.ExtensionObject>;
-    dataSetMetaData: UAProperty<DTDataSetMeta, /*z*/DataType.ExtensionObject>;
-    dataSetClassId?: UAProperty<Guid, /*z*/DataType.Guid>;
-    cyclicDataSet?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    configurationVersion: UAProperty<DTConfigurationVersion, DataType.ExtensionObject>;
+    dataSetMetaData: UAProperty<DTDataSetMeta, DataType.ExtensionObject>;
+    dataSetClassId?: UAProperty<Guid, DataType.Guid>;
+    cyclicDataSet?: UAProperty<boolean, DataType.Boolean>;
     extensionFields?: UAExtensionFields;
 }
 export interface UAPublishedDataSet extends UAObject, UAPublishedDataSet_Base {

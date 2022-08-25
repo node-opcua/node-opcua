@@ -8,7 +8,7 @@ import { DTVector } from "./dt_vector"
  * | name      |3DVector                                          |
  * | isAbstract|false                                             |
  */
-export interface DT3DVector extends DTVector  {
+export interface DT3DVector extends DTVector {
   x: number; // Double ns=0;i=11
   y: number; // Double ns=0;i=11
   z: number; // Double ns=0;i=11

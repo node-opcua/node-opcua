@@ -16,50 +16,50 @@ import { DTServiceCounter } from "./dt_service_counter"
  * |dataType Name   |DTSessionDiagnostics ns=0;i=865                   |
  * |isAbstract      |false                                             |
  */
-export interface UASessionDiagnosticsVariable_Base<T extends DTSessionDiagnostics/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    sessionId: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
-    sessionName: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    clientDescription: UABaseDataVariable<DTApplicationDescription, /*z*/DataType.ExtensionObject>;
-    serverUri: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    endpointUrl: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    localeIds: UABaseDataVariable<UAString[], /*z*/DataType.String>;
-    actualSessionTimeout: UABaseDataVariable<number, /*z*/DataType.Double>;
-    maxResponseMessageSize: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    clientConnectionTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    clientLastContactTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    currentSubscriptionsCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    currentMonitoredItemsCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    currentPublishRequestsInQueue: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    totalRequestCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    unauthorizedRequestCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    readCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    historyReadCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    writeCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    historyUpdateCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    callCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    createMonitoredItemsCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    modifyMonitoredItemsCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    setMonitoringModeCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    setTriggeringCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    deleteMonitoredItemsCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    createSubscriptionCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    modifySubscriptionCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    setPublishingModeCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    publishCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    republishCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    transferSubscriptionsCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    deleteSubscriptionsCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    addNodesCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    addReferencesCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    deleteNodesCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    deleteReferencesCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    browseCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    browseNextCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    translateBrowsePathsToNodeIdsCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    queryFirstCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    queryNextCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    registerNodesCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
-    unregisterNodesCount: UABaseDataVariable<DTServiceCounter, /*z*/DataType.ExtensionObject>;
+export interface UASessionDiagnosticsVariable_Base<T extends DTSessionDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    sessionId: UABaseDataVariable<NodeId, DataType.NodeId>;
+    sessionName: UABaseDataVariable<UAString, DataType.String>;
+    clientDescription: UABaseDataVariable<DTApplicationDescription, DataType.ExtensionObject>;
+    serverUri: UABaseDataVariable<UAString, DataType.String>;
+    endpointUrl: UABaseDataVariable<UAString, DataType.String>;
+    localeIds: UABaseDataVariable<UAString[], DataType.String>;
+    actualSessionTimeout: UABaseDataVariable<number, DataType.Double>;
+    maxResponseMessageSize: UABaseDataVariable<UInt32, DataType.UInt32>;
+    clientConnectionTime: UABaseDataVariable<Date, DataType.DateTime>;
+    clientLastContactTime: UABaseDataVariable<Date, DataType.DateTime>;
+    currentSubscriptionsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
+    currentMonitoredItemsCount: UABaseDataVariable<UInt32, DataType.UInt32>;
+    currentPublishRequestsInQueue: UABaseDataVariable<UInt32, DataType.UInt32>;
+    totalRequestCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    unauthorizedRequestCount: UABaseDataVariable<UInt32, DataType.UInt32>;
+    readCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    historyReadCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    writeCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    historyUpdateCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    callCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    createMonitoredItemsCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    modifyMonitoredItemsCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    setMonitoringModeCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    setTriggeringCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    deleteMonitoredItemsCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    createSubscriptionCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    modifySubscriptionCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    setPublishingModeCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    publishCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    republishCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    transferSubscriptionsCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    deleteSubscriptionsCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    addNodesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    addReferencesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    deleteNodesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    deleteReferencesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    browseCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    browseNextCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    translateBrowsePathsToNodeIdsCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    queryFirstCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    queryNextCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    registerNodesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
+    unregisterNodesCount: UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject>;
 }
-export interface UASessionDiagnosticsVariable<T extends DTSessionDiagnostics/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UASessionDiagnosticsVariable_Base<T /*B*/> {
+export interface UASessionDiagnosticsVariable<T extends DTSessionDiagnostics> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASessionDiagnosticsVariable_Base<T> {
 }

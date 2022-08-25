@@ -15,7 +15,6 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |typedDefinition |AlarmGroupType ns=0;i=16405                       |
  * |isAbstract      |false                                             |
  */
-export interface UAAlarmGroup_Base extends UAFolder_Base {
-}
+export type UAAlarmGroup_Base = UAFolder_Base;
 export interface UAAlarmGroup extends UAFolder, UAAlarmGroup_Base {
 }

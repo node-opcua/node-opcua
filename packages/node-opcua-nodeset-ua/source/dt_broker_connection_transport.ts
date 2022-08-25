@@ -9,7 +9,7 @@ import { DTConnectionTransport } from "./dt_connection_transport"
  * | name      |BrokerConnectionTransportDataType                 |
  * | isAbstract|false                                             |
  */
-export interface DTBrokerConnectionTransport extends DTConnectionTransport  {
+export interface DTBrokerConnectionTransport extends DTConnectionTransport {
   resourceUri: UAString; // String ns=0;i=12
   authenticationProfileUri: UAString; // String ns=0;i=12
 }

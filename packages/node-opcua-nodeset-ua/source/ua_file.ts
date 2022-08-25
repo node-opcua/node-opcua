@@ -11,13 +11,13 @@ import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAFile_Base {
-    size: UAProperty<UInt64, /*z*/DataType.UInt64>;
-    writable: UAProperty<boolean, /*z*/DataType.Boolean>;
-    userWritable: UAProperty<boolean, /*z*/DataType.Boolean>;
-    openCount: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    mimeType?: UAProperty<UAString, /*z*/DataType.String>;
-    maxByteStringLength?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    lastModifiedTime?: UAProperty<Date, /*z*/DataType.DateTime>;
+    size: UAProperty<UInt64, DataType.UInt64>;
+    writable: UAProperty<boolean, DataType.Boolean>;
+    userWritable: UAProperty<boolean, DataType.Boolean>;
+    openCount: UAProperty<UInt16, DataType.UInt16>;
+    mimeType?: UAProperty<UAString, DataType.String>;
+    maxByteStringLength?: UAProperty<UInt32, DataType.UInt32>;
+    lastModifiedTime?: UAProperty<Date, DataType.DateTime>;
     open: UAMethod;
     close: UAMethod;
     read: UAMethod;

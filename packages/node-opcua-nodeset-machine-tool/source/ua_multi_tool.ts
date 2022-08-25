@@ -14,7 +14,6 @@ import { UABaseTool, UABaseTool_Base } from "./ua_base_tool"
  * |typedDefinition |10:MultiToolType ns=10;i=51                       |
  * |isAbstract      |false                                             |
  */
-export interface UAMultiTool_Base extends UABaseTool_Base {
-}
+export type UAMultiTool_Base = UABaseTool_Base;
 export interface UAMultiTool extends UABaseTool, UAMultiTool_Base {
 }

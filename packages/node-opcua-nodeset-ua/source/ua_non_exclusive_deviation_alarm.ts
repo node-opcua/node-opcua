@@ -12,8 +12,8 @@ import { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_no
  * |isAbstract      |false                                             |
  */
 export interface UANonExclusiveDeviationAlarm_Base extends UANonExclusiveLimitAlarm_Base {
-    setpointNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    baseSetpointNode?: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    setpointNode: UAProperty<NodeId, DataType.NodeId>;
+    baseSetpointNode?: UAProperty<NodeId, DataType.NodeId>;
 }
 export interface UANonExclusiveDeviationAlarm extends UANonExclusiveLimitAlarm, UANonExclusiveDeviationAlarm_Base {
 }

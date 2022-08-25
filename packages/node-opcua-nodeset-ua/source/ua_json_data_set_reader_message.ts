@@ -12,8 +12,8 @@ import { UADataSetReaderMessage, UADataSetReaderMessage_Base } from "./ua_data_s
  * |isAbstract      |false                                             |
  */
 export interface UAJsonDataSetReaderMessage_Base extends UADataSetReaderMessage_Base {
-    networkMessageContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    dataSetMessageContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    networkMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
+    dataSetMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAJsonDataSetReaderMessage extends UADataSetReaderMessage, UAJsonDataSetReaderMessage_Base {
 }

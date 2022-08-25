@@ -17,7 +17,8 @@ import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_
  * |isAbstract      |false                                             |
  */
 export interface UAMultiFunctionPanDevice_Base extends UACommercialKitchenDevice_Base {
-    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
+    energySource: UAProperty<EnumEnergySource, DataType.Int32>;
+   // PlaceHolder for multiFunctionPan_$No_$
 }
 export interface UAMultiFunctionPanDevice extends UACommercialKitchenDevice, UAMultiFunctionPanDevice_Base {
 }

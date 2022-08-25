@@ -12,7 +12,7 @@ import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./u
  * |isAbstract      |true                                              |
  */
 export interface UAAuditDeleteReferencesEvent_Base extends UAAuditNodeManagementEvent_Base {
-    referencesToDelete: UAProperty<DTDeleteReferencesItem[], /*z*/DataType.ExtensionObject>;
+    referencesToDelete: UAProperty<DTDeleteReferencesItem[], DataType.ExtensionObject>;
 }
 export interface UAAuditDeleteReferencesEvent extends UAAuditNodeManagementEvent, UAAuditDeleteReferencesEvent_Base {
 }

@@ -21,21 +21,21 @@ import { DTResultId } from "./dt_result_id"
  * |isAbstract      |false                                             |
  */
 export interface UAResultReadyEvent_Base extends UABaseEvent_Base {
-    creationTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    externalConfigurationId?: UAProperty<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    externalRecipeId?: UAProperty<DTRecipeIdExternal, /*z*/DataType.ExtensionObject>;
-    internalConfigurationId: UAProperty<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    internalRecipeId: UAProperty<DTRecipeIdInternal, /*z*/DataType.ExtensionObject>;
-    isPartial: UAProperty<boolean, /*z*/DataType.Boolean>;
-    isSimulated?: UAProperty<boolean, /*z*/DataType.Boolean>;
-    jobId: UAProperty<DTJobId, /*z*/DataType.ExtensionObject>;
-    measId?: UAProperty<DTMeasId, /*z*/DataType.ExtensionObject>;
-    partId?: UAProperty<DTPartId, /*z*/DataType.ExtensionObject>;
-    processingTimes?: UAProperty<DTProcessingTimes, /*z*/DataType.ExtensionObject>;
-    productId?: UAProperty<DTProductId, /*z*/DataType.ExtensionObject>;
+    creationTime: UAProperty<Date, DataType.DateTime>;
+    externalConfigurationId?: UAProperty<DTConfigurationId, DataType.ExtensionObject>;
+    externalRecipeId?: UAProperty<DTRecipeIdExternal, DataType.ExtensionObject>;
+    internalConfigurationId: UAProperty<DTConfigurationId, DataType.ExtensionObject>;
+    internalRecipeId: UAProperty<DTRecipeIdInternal, DataType.ExtensionObject>;
+    isPartial: UAProperty<boolean, DataType.Boolean>;
+    isSimulated?: UAProperty<boolean, DataType.Boolean>;
+    jobId: UAProperty<DTJobId, DataType.ExtensionObject>;
+    measId?: UAProperty<DTMeasId, DataType.ExtensionObject>;
+    partId?: UAProperty<DTPartId, DataType.ExtensionObject>;
+    processingTimes?: UAProperty<DTProcessingTimes, DataType.ExtensionObject>;
+    productId?: UAProperty<DTProductId, DataType.ExtensionObject>;
     resultContent?: UAProperty<any, any>;
-    resultId: UAProperty<DTResultId, /*z*/DataType.ExtensionObject>;
-    resultState: UAProperty<Int32, /*z*/DataType.Int32>;
+    resultId: UAProperty<DTResultId, DataType.ExtensionObject>;
+    resultState: UAProperty<Int32, DataType.Int32>;
 }
 export interface UAResultReadyEvent extends UABaseEvent, UAResultReadyEvent_Base {
 }

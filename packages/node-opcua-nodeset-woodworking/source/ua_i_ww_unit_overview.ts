@@ -21,13 +21,13 @@ export interface UAIWwUnitOverview_Base extends UABaseInterface_Base {
      * The CurrentMode Variable provides the generalized
      * mode of the component.
      */
-    currentMode: UABaseDataVariable<EnumWwUnitMode, /*z*/DataType.Int32>;
+    currentMode: UABaseDataVariable<EnumWwUnitMode, DataType.Int32>;
     /**
      * currentState
      * The CurrentState Variable provides the
      * generalized state of the component.
      */
-    currentState: UABaseDataVariable<EnumWwUnitState, /*z*/DataType.Int32>;
+    currentState: UABaseDataVariable<EnumWwUnitState, DataType.Int32>;
 }
 export interface UAIWwUnitOverview extends UABaseInterface, UAIWwUnitOverview_Base {
 }

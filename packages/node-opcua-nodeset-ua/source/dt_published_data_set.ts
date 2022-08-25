@@ -12,7 +12,7 @@ import { DTPublishedDataSetSource } from "./dt_published_data_set_source"
  * | name      |PublishedDataSetDataType                          |
  * | isAbstract|false                                             |
  */
-export interface DTPublishedDataSet extends DTStructure  {
+export interface DTPublishedDataSet extends DTStructure {
   name: UAString; // String ns=0;i=12
   dataSetFolder: UAString[]; // String ns=0;i=12
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523

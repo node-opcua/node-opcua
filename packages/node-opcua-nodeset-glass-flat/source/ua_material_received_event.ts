@@ -8,7 +8,6 @@ import { UAGlassMaterialEvent, UAGlassMaterialEvent_Base } from "./ua_glass_mate
  * |typedDefinition |13:MaterialReceivedEventType ns=13;i=1026         |
  * |isAbstract      |true                                              |
  */
-export interface UAMaterialReceivedEvent_Base extends UAGlassMaterialEvent_Base {
-}
+export type UAMaterialReceivedEvent_Base = UAGlassMaterialEvent_Base;
 export interface UAMaterialReceivedEvent extends UAGlassMaterialEvent, UAMaterialReceivedEvent_Base {
 }

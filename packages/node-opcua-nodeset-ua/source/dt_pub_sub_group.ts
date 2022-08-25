@@ -12,7 +12,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |PubSubGroupDataType                               |
  * | isAbstract|true                                              |
  */
-export interface DTPubSubGroup extends DTStructure  {
+export interface DTPubSubGroup extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
   securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302

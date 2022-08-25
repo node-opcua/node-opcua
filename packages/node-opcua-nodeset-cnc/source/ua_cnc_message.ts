@@ -10,7 +10,6 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * |typedDefinition |11:CncMessageType ns=11;i=1011                    |
  * |isAbstract      |false                                             |
  */
-export interface UACncMessage_Base extends UABaseEvent_Base {
-}
+export type UACncMessage_Base = UABaseEvent_Base;
 export interface UACncMessage extends UABaseEvent, UACncMessage_Base {
 }

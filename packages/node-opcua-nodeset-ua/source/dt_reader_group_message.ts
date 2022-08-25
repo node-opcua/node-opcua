@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |ReaderGroupMessageDataType                        |
  * | isAbstract|true                                              |
  */
-export interface DTReaderGroupMessage extends DTStructure  {
-}
+export type DTReaderGroupMessage = DTStructure;

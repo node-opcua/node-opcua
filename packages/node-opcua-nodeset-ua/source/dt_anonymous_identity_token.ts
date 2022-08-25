@@ -9,6 +9,6 @@ import { DTUserIdentityToken } from "./dt_user_identity_token"
  * | name      |AnonymousIdentityToken                            |
  * | isAbstract|false                                             |
  */
-export interface DTAnonymousIdentityToken extends DTUserIdentityToken  {
+export interface DTAnonymousIdentityToken extends DTUserIdentityToken {
   policyId: UAString; // String ns=0;i=12
 }

@@ -11,7 +11,7 @@ import { DTDataTypeDescription } from "./dt_data_type_description"
  * | name      |SimpleTypeDescription                             |
  * | isAbstract|false                                             |
  */
-export interface DTSimpleTypeDescription extends DTDataTypeDescription  {
+export interface DTSimpleTypeDescription extends DTDataTypeDescription {
   dataTypeId: NodeId; // NodeId ns=0;i=17
   name: QualifiedName; // QualifiedName ns=0;i=20
   baseDataType: NodeId; // NodeId ns=0;i=17

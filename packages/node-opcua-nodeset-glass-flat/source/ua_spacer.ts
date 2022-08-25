@@ -7,8 +7,8 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 import { EnumSpacerMaterialClass } from "./enum_spacer_material_class"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
-export interface UASpacer_filling<T, DT extends DataType> extends UABaseDataVariable<T, /*b*/DT> { // Variable
-      fillLevel: UAAnalogUnit<number, /*z*/DataType.Double>;
+export interface UASpacer_filling<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
+      fillLevel: UAAnalogUnit<number, DataType.Double>;
 }
 /**
  * |                |                                                  |
@@ -19,10 +19,10 @@ export interface UASpacer_filling<T, DT extends DataType> extends UABaseDataVari
  * |isAbstract      |false                                             |
  */
 export interface UASpacer_Base extends UABaseMaterial_Base {
-    filling?: UASpacer_filling<UAString, /*z*/DataType.String>;
-    sealantDepth?: UAAnalogUnit<number, /*z*/DataType.Double>;
-    spacerMaterialClass: UAProperty<EnumSpacerMaterialClass, /*z*/DataType.Int32>;
-    spacerMaterialSubClass?: UAProperty<UAString, /*z*/DataType.String>;
+    filling?: UASpacer_filling<UAString, DataType.String>;
+    sealantDepth?: UAAnalogUnit<number, DataType.Double>;
+    spacerMaterialClass: UAProperty<EnumSpacerMaterialClass, DataType.Int32>;
+    spacerMaterialSubClass?: UAProperty<UAString, DataType.String>;
 }
 export interface UASpacer extends UABaseMaterial, UASpacer_Base {
 }

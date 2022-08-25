@@ -22,6 +22,7 @@ import { UAStackRunning } from "./ua_stack_running"
  * |isAbstract      |false                                             |
  */
 export interface UABasicStacklight_Base extends UAOrderedList_Base {
+   // PlaceHolder for $OrderedObject$
     /**
      * stackLevel
      * Valid if the stacklight is used in “Levelmeter”
@@ -37,7 +38,7 @@ export interface UABasicStacklight_Base extends UAOrderedList_Base {
      * level meter, running light) the stacklight unit
      * is used.
      */
-    stacklightMode: UAProperty<EnumStacklightOperationMode, /*z*/DataType.Int32>;
+    stacklightMode: UAProperty<EnumStacklightOperationMode, DataType.Int32>;
     /**
      * stackRunning
      * Valid if the stacklight is used in

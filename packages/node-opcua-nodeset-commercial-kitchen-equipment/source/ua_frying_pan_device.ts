@@ -18,9 +18,9 @@ import { UAFryingPanParameter } from "./ua_frying_pan_parameter"
  * |isAbstract      |false                                             |
  */
 export interface UAFryingPanDevice_Base extends UACommercialKitchenDevice_Base {
-    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
+    energySource: UAProperty<EnumEnergySource, DataType.Int32>;
     fryingPan: UAFryingPanParameter;
-    isWithPressure: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isWithPressure: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAFryingPanDevice extends UACommercialKitchenDevice, UAFryingPanDevice_Base {
 }

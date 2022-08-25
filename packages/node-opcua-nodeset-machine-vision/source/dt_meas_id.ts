@@ -10,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:MeasIdDataType                                  |
  * | isAbstract|false                                             |
  */
-export interface DTMeasId extends DTStructure  {
+export interface DTMeasId extends DTStructure {
 /** Id is an identifier/name for identifying the measurement operation. This identifier is passed by the client to the vision system so no assumptions can be made about its uniqueness or other properties.*/
   id: UAString; // String ns=4;i=3017
 /** Optional short human readable description of the measurement.*/

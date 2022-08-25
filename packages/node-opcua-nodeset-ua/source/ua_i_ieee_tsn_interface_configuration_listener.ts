@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeTsnInterfaceConfigurationListener_Base extends UAIIeeeTsnInterfaceConfiguration_Base {
-    receiveOffset?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    receiveOffset?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 export interface UAIIeeeTsnInterfaceConfigurationListener extends UAIIeeeTsnInterfaceConfiguration, UAIIeeeTsnInterfaceConfigurationListener_Base {
 }

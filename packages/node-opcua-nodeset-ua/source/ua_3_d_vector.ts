@@ -13,10 +13,10 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |dataType Name   |DT3DVector ns=0;i=18808                           |
  * |isAbstract      |false                                             |
  */
-export interface UA3DVector_Base<T extends DT3DVector/*j*/>  extends UAVector_Base<T/*h*/> {
-    x: UABaseDataVariable<number, /*z*/DataType.Double>;
-    y: UABaseDataVariable<number, /*z*/DataType.Double>;
-    z: UABaseDataVariable<number, /*z*/DataType.Double>;
+export interface UA3DVector_Base<T extends DT3DVector>  extends UAVector_Base<T> {
+    x: UABaseDataVariable<number, DataType.Double>;
+    y: UABaseDataVariable<number, DataType.Double>;
+    z: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UA3DVector<T extends DT3DVector/*j*/> extends UAVector<T/*k*/>, UA3DVector_Base<T /*B*/> {
+export interface UA3DVector<T extends DT3DVector> extends UAVector<T>, UA3DVector_Base<T> {
 }

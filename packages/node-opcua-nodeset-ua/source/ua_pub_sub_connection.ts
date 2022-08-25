@@ -18,10 +18,12 @@ import { UAPubSubDiagnosticsConnection } from "./ua_pub_sub_diagnostics_connecti
  */
 export interface UAPubSubConnection_Base {
     publisherId: UAProperty<any, any>;
-    transportProfileUri: UASelectionList<UAString, /*z*/DataType.String>;
-    connectionProperties: UAProperty<DTKeyValuePair[], /*z*/DataType.ExtensionObject>;
+    transportProfileUri: UASelectionList<UAString, DataType.String>;
+    connectionProperties: UAProperty<DTKeyValuePair[], DataType.ExtensionObject>;
     address: UANetworkAddress;
     transportSettings?: UAConnectionTransport;
+   // PlaceHolder for $WriterGroupName$
+   // PlaceHolder for $ReaderGroupName$
     status: UAPubSubStatus;
     diagnostics?: UAPubSubDiagnosticsConnection;
     addWriterGroup?: UAMethod;

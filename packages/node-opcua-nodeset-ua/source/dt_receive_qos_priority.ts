@@ -9,6 +9,6 @@ import { DTReceiveQos } from "./dt_receive_qos"
  * | name      |ReceiveQosPriorityDataType                        |
  * | isAbstract|false                                             |
  */
-export interface DTReceiveQosPriority extends DTReceiveQos  {
+export interface DTReceiveQosPriority extends DTReceiveQos {
   priorityLabel: UAString; // String ns=0;i=12
 }

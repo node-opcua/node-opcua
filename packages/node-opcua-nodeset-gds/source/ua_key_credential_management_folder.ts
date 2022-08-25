@@ -11,7 +11,6 @@ import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
  * |typedDefinition |6:KeyCredentialManagementFolderType ns=6;i=55     |
  * |isAbstract      |false                                             |
  */
-export interface UAKeyCredentialManagementFolder_Base extends UAFolder_Base {
-}
+export type UAKeyCredentialManagementFolder_Base = UAFolder_Base;
 export interface UAKeyCredentialManagementFolder extends UAFolder, UAKeyCredentialManagementFolder_Base {
 }

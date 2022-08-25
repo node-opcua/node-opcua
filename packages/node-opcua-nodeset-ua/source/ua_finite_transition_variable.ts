@@ -14,8 +14,8 @@ import { UATransitionVariable, UATransitionVariable_Base } from "./ua_transition
  * |dataType Name   |LocalizedText ns=0;i=21                           |
  * |isAbstract      |false                                             |
  */
-export interface UAFiniteTransitionVariable_Base<T extends LocalizedText/*j*/>  extends UATransitionVariable_Base<T/*h*/> {
-    id: UAProperty<NodeId, /*z*/DataType.NodeId>;
+export interface UAFiniteTransitionVariable_Base<T extends LocalizedText>  extends UATransitionVariable_Base<T> {
+    id: UAProperty<NodeId, DataType.NodeId>;
 }
-export interface UAFiniteTransitionVariable<T extends LocalizedText/*j*/> extends Omit<UATransitionVariable<T/*k*/>, "id">, UAFiniteTransitionVariable_Base<T /*B*/> {
+export interface UAFiniteTransitionVariable<T extends LocalizedText> extends Omit<UATransitionVariable<T>, "id">, UAFiniteTransitionVariable_Base<T> {
 }

@@ -8,7 +8,6 @@ import { UAVisionEvent, UAVisionEvent_Base } from "./ua_vision_event"
  * |typedDefinition |4:VisionInformationEventType ns=4;i=1038          |
  * |isAbstract      |false                                             |
  */
-export interface UAVisionInformationEvent_Base extends UAVisionEvent_Base {
-}
+export type UAVisionInformationEvent_Base = UAVisionEvent_Base;
 export interface UAVisionInformationEvent extends UAVisionEvent, UAVisionInformationEvent_Base {
 }

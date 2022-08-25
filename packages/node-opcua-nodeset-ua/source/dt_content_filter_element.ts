@@ -9,7 +9,7 @@ import { EnumFilterOperator } from "./enum_filter_operator"
  * | name      |ContentFilterElement                              |
  * | isAbstract|false                                             |
  */
-export interface DTContentFilterElement extends DTStructure  {
+export interface DTContentFilterElement extends DTStructure {
   filterOperator: EnumFilterOperator; // Int32 ns=0;i=576
   filterOperands: DTStructure[]; // ExtensionObject ns=0;i=22
 }

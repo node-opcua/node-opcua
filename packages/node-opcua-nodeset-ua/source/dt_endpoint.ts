@@ -10,7 +10,7 @@ import { EnumMessageSecurityMode } from "./enum_message_security_mode"
  * | name      |EndpointType                                      |
  * | isAbstract|false                                             |
  */
-export interface DTEndpoint extends DTStructure  {
+export interface DTEndpoint extends DTStructure {
   endpointUrl: UAString; // String ns=0;i=12
   securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302
   securityPolicyUri: UAString; // String ns=0;i=12

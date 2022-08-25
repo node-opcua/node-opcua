@@ -21,7 +21,7 @@ export interface UAStacklight_Base extends UABasicStacklight_Base {
      * Contains the health status information of the
      * stacklight.
      */
-    deviceHealth?: UABaseDataVariable<EnumDeviceHealth, /*z*/DataType.Int32>;
+    deviceHealth?: UABaseDataVariable<EnumDeviceHealth, DataType.Int32>;
     /**
      * deviceHealthAlarms
      * Contains alarms of the stacklights providing more

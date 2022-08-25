@@ -10,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |11:CncPositionDataType                            |
  * | isAbstract|false                                             |
  */
-export interface DTCncPosition extends DTStructure  {
+export interface DTCncPosition extends DTStructure {
 /** Position current value.*/
   actPos: number; // Double ns=0;i=11
 /** Position setpoint value.*/

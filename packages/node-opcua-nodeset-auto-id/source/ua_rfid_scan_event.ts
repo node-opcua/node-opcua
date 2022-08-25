@@ -13,7 +13,7 @@ import { UAAutoIdScanEvent, UAAutoIdScanEvent_Base } from "./ua_auto_id_scan_eve
  * |isAbstract      |true                                              |
  */
 export interface UARfidScanEvent_Base extends UAAutoIdScanEvent_Base {
-    scanResult: UAProperty<DTRfidScanResult[], /*z*/DataType.ExtensionObject>;
+    scanResult: UAProperty<DTRfidScanResult[], DataType.ExtensionObject>;
 }
 export interface UARfidScanEvent extends Omit<UAAutoIdScanEvent, "scanResult">, UARfidScanEvent_Base {
 }

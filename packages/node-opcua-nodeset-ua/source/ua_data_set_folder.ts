@@ -15,6 +15,7 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UADataSetFolder_Base extends UAFolder_Base {
+   // PlaceHolder for $PublishedDataSetName$
     addPublishedDataItems?: UAMethod;
     addPublishedEvents?: UAMethod;
     addPublishedDataItemsTemplate?: UAMethod;
@@ -22,6 +23,7 @@ export interface UADataSetFolder_Base extends UAFolder_Base {
     removePublishedDataSet?: UAMethod;
     addDataSetFolder?: UAMethod;
     removeDataSetFolder?: UAMethod;
+   // PlaceHolder for $DataSetFolderName$
 }
 export interface UADataSetFolder extends UAFolder, UADataSetFolder_Base {
 }

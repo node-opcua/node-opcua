@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |CartesianCoordinates                              |
  * | isAbstract|true                                              |
  */
-export interface DTCartesianCoordinates extends DTStructure  {
-}
+export type DTCartesianCoordinates = DTStructure;

@@ -11,7 +11,7 @@ import { UInt32 } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAState_Base {
-    stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAState extends UAObject, UAState_Base {
 }

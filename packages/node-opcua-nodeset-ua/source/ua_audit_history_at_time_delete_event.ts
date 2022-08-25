@@ -12,8 +12,8 @@ import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryAtTimeDeleteEvent_Base extends UAAuditHistoryDeleteEvent_Base {
-    reqTimes: UAProperty<Date[], /*z*/DataType.DateTime>;
-    oldValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
+    reqTimes: UAProperty<Date[], DataType.DateTime>;
+    oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
 export interface UAAuditHistoryAtTimeDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryAtTimeDeleteEvent_Base {
 }

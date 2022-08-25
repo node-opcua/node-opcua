@@ -13,7 +13,7 @@ import { EnumDeviceHealth } from "./enum_device_health"
  * |isAbstract      |true                                              |
  */
 export interface UAIDeviceHealth_Base extends UABaseInterface_Base {
-    deviceHealth?: UABaseDataVariable<EnumDeviceHealth, /*z*/DataType.Int32>;
+    deviceHealth?: UABaseDataVariable<EnumDeviceHealth, DataType.Int32>;
     deviceHealthAlarms?: UAFolder;
 }
 export interface UAIDeviceHealth extends UABaseInterface, UAIDeviceHealth_Base {

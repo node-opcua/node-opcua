@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |AggregateConfiguration                            |
  * | isAbstract|false                                             |
  */
-export interface DTAggregateConfiguration extends DTStructure  {
+export interface DTAggregateConfiguration extends DTStructure {
   useServerCapabilitiesDefaults: boolean; // Boolean ns=0;i=1
   treatUncertainAsBad: boolean; // Boolean ns=0;i=1
   percentDataBad: Byte; // Byte ns=0;i=3

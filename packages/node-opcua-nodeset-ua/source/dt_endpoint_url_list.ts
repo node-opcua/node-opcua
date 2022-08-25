@@ -9,6 +9,6 @@ import { DTStructure } from "./dt_structure"
  * | name      |EndpointUrlListDataType                           |
  * | isAbstract|false                                             |
  */
-export interface DTEndpointUrlList extends DTStructure  {
+export interface DTEndpointUrlList extends DTStructure {
   endpointUrlList: UAString[]; // String ns=0;i=12
 }

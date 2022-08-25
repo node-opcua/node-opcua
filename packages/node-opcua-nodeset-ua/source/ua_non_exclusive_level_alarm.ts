@@ -8,7 +8,6 @@ import { UANonExclusiveLimitAlarm, UANonExclusiveLimitAlarm_Base } from "./ua_no
  * |typedDefinition |NonExclusiveLevelAlarmType ns=0;i=10060           |
  * |isAbstract      |false                                             |
  */
-export interface UANonExclusiveLevelAlarm_Base extends UANonExclusiveLimitAlarm_Base {
-}
+export type UANonExclusiveLevelAlarm_Base = UANonExclusiveLimitAlarm_Base;
 export interface UANonExclusiveLevelAlarm extends UANonExclusiveLimitAlarm, UANonExclusiveLevelAlarm_Base {
 }

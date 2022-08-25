@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:ProcessingTimesDataType                         |
  * | isAbstract|false                                             |
  */
-export interface DTProcessingTimes extends DTStructure  {
+export interface DTProcessingTimes extends DTStructure {
 /** Contains the time when the vision system started execution of the recipe.*/
   startTime: Date; // DateTime ns=0;i=294
 /** Contains the time when the vision system finished (or stopped/aborted) execution of the recipe.*/

@@ -14,15 +14,15 @@ import { DTTimeZone } from "./dt_time_zone"
  * |isAbstract      |true                                              |
  */
 export interface UABaseEvent_Base {
-    eventId: UAProperty<Buffer, /*z*/DataType.ByteString>;
-    eventType: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    sourceNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    sourceName: UAProperty<UAString, /*z*/DataType.String>;
-    time: UAProperty<Date, /*z*/DataType.DateTime>;
-    receiveTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    localTime?: UAProperty<DTTimeZone, /*z*/DataType.ExtensionObject>;
-    message: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    severity: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    eventId: UAProperty<Buffer, DataType.ByteString>;
+    eventType: UAProperty<NodeId, DataType.NodeId>;
+    sourceNode: UAProperty<NodeId, DataType.NodeId>;
+    sourceName: UAProperty<UAString, DataType.String>;
+    time: UAProperty<Date, DataType.DateTime>;
+    receiveTime: UAProperty<Date, DataType.DateTime>;
+    localTime?: UAProperty<DTTimeZone, DataType.ExtensionObject>;
+    message: UAProperty<LocalizedText, DataType.LocalizedText>;
+    severity: UAProperty<UInt16, DataType.UInt16>;
 }
 export interface UABaseEvent extends UAObject, UABaseEvent_Base {
 }

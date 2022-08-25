@@ -8,7 +8,6 @@ import { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } fro
  * |typedDefinition |1:FailureAlarmType ns=1;i=15292                   |
  * |isAbstract      |false                                             |
  */
-export interface UAFailureAlarm_Base extends UADeviceHealthDiagnosticAlarm_Base {
-}
+export type UAFailureAlarm_Base = UADeviceHealthDiagnosticAlarm_Base;
 export interface UAFailureAlarm extends UADeviceHealthDiagnosticAlarm, UAFailureAlarm_Base {
 }

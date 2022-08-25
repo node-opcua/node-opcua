@@ -16,7 +16,7 @@ import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
  * | name      |DataSetReaderDataType                             |
  * | isAbstract|false                                             |
  */
-export interface DTDataSetReader extends DTStructure  {
+export interface DTDataSetReader extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
   publisherId: undefined; // Null ns=0;i=0

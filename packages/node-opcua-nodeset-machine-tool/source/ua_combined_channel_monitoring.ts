@@ -8,7 +8,6 @@ import { UAChannelMonitoring, UAChannelMonitoring_Base } from "./ua_channel_moni
  * |typedDefinition |10:CombinedChannelMonitoringType ns=10;i=46       |
  * |isAbstract      |false                                             |
  */
-export interface UACombinedChannelMonitoring_Base extends UAChannelMonitoring_Base {
-}
+export type UACombinedChannelMonitoring_Base = UAChannelMonitoring_Base;
 export interface UACombinedChannelMonitoring extends UAChannelMonitoring, UACombinedChannelMonitoring_Base {
 }

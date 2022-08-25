@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |MonitoringFilter                                  |
  * | isAbstract|false                                             |
  */
-export interface DTMonitoringFilter extends DTStructure  {
-}
+export type DTMonitoringFilter = DTStructure;

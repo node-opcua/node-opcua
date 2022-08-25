@@ -12,8 +12,8 @@ import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryEventDeleteEvent_Base extends UAAuditHistoryDeleteEvent_Base {
-    eventIds: UAProperty<Buffer[], /*z*/DataType.ByteString>;
-    oldValues: UAProperty<DTHistoryEventFieldList, /*z*/DataType.ExtensionObject>;
+    eventIds: UAProperty<Buffer[], DataType.ByteString>;
+    oldValues: UAProperty<DTHistoryEventFieldList, DataType.ExtensionObject>;
 }
 export interface UAAuditHistoryEventDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryEventDeleteEvent_Base {
 }

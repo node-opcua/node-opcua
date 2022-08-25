@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |DataTypeDescription                               |
  * | isAbstract|true                                              |
  */
-export interface DTDataTypeDescription extends DTStructure  {
+export interface DTDataTypeDescription extends DTStructure {
   dataTypeId: NodeId; // NodeId ns=0;i=17
   name: QualifiedName; // QualifiedName ns=0;i=20
 }

@@ -14,8 +14,8 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |dataType Name   |DTXV[] ns=0;i=12080                               |
  * |isAbstract      |false                                             |
  */
-export interface UAXYArrayItem_Base<T extends DTXV[]/*j*/>  extends UAArrayItem_Base<T, /*e*/DataType.ExtensionObject> {
-    xAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
+export interface UAXYArrayItem_Base<T extends DTXV[]>  extends UAArrayItem_Base<T, DataType.ExtensionObject> {
+    xAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
 }
-export interface UAXYArrayItem<T extends DTXV[]/*j*/> extends UAArrayItem<T, /*n*/DataType.ExtensionObject>, UAXYArrayItem_Base<T /*B*/> {
+export interface UAXYArrayItem<T extends DTXV[]> extends UAArrayItem<T, DataType.ExtensionObject>, UAXYArrayItem_Base<T> {
 }

@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |KeyValuePair                                      |
  * | isAbstract|false                                             |
  */
-export interface DTKeyValuePair extends DTStructure  {
+export interface DTKeyValuePair extends DTStructure {
   key: QualifiedName; // QualifiedName ns=0;i=20
   value: undefined; // Null ns=0;i=0
 }

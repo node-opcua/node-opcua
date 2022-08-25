@@ -14,6 +14,7 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UAKeyCredentialConfigurationFolder_Base extends UAFolder_Base {
+   // PlaceHolder for $ServiceName$
     createCredential?: UAMethod;
 }
 export interface UAKeyCredentialConfigurationFolder extends UAFolder, UAKeyCredentialConfigurationFolder_Base {

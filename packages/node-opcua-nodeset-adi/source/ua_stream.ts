@@ -16,51 +16,51 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * True if this stream maybe used to perform
        * acquisition
        */
-      isEnabled: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isEnabled: UADataItem<boolean, DataType.Boolean>;
       /**
        * isForced
        * True if this stream is forced, which means that
        * is the only Stream on this AnalyserChannel that
        * can be used to perform acquisition
        */
-      isForced?: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isForced?: UADataItem<boolean, DataType.Boolean>;
       /**
        * diagnosticStatus
        * Stream health status
        */
-      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, DataType.Int32>;
       /**
        * lastCalibrationTime
        * Time at which the last calibration was run
        */
-      lastCalibrationTime?: UADataItem<Date, /*z*/DataType.DateTime>;
+      lastCalibrationTime?: UADataItem<Date, DataType.DateTime>;
       /**
        * lastValidationTime
        * Time at which the last validation was run
        */
-      lastValidationTime?: UADataItem<Date, /*z*/DataType.DateTime>;
+      lastValidationTime?: UADataItem<Date, DataType.DateTime>;
       /**
        * lastSampleTime
        * Time at which the last sample was acquired
        */
-      lastSampleTime: UADataItem<Date, /*z*/DataType.DateTime>;
+      lastSampleTime: UADataItem<Date, DataType.DateTime>;
       /**
        * timeBetweenSamples
        * Number of milliseconds between two consecutive
        * starts of acquisition
        */
-      timeBetweenSamples?: UAAnalogItem<number, /*z*/DataType.Double>;
+      timeBetweenSamples?: UAAnalogItem<number, DataType.Double>;
       /**
        * isActive
        * True if this stream is actually running,
        * acquiring data
        */
-      isActive: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isActive: UADataItem<boolean, DataType.Boolean>;
       /**
        * executionCycle
        * Indicates which Execution cycle is in progress
        */
-      executionCycle: UADataItem<EnumExecutionCycle, /*z*/DataType.Int32>;
+      executionCycle: UADataItem<EnumExecutionCycle, DataType.Int32>;
       /**
        * executionCycleSubcode
        * Indicates which Execution cycle subcode is in
@@ -73,18 +73,18 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * of percentage of completion. Its value shall be
        * between 0 and 100.
        */
-      progress: UADataItem<number, /*z*/DataType.Float>;
+      progress: UADataItem<number, DataType.Float>;
       /**
        * acquisitionCounter
        * Simple counter incremented after each Sampling
        * acquisition performed on this Stream
        */
-      acquisitionCounter: UAAnalogItem<UInt32, /*z*/DataType.UInt32>;
+      acquisitionCounter: UAAnalogItem<UInt32, DataType.UInt32>;
       /**
        * acquisitionResultStatus
        * Quality of the acquisition
        */
-      acquisitionResultStatus: UADataItem<EnumAcquisitionResultStatus, /*z*/DataType.Int32>;
+      acquisitionResultStatus: UADataItem<EnumAcquisitionResultStatus, DataType.Int32>;
       /**
        * rawData
        * Raw data produced as a result of data acquisition
@@ -103,7 +103,7 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * Difference in milliseconds between the start of
        * sample extraction and the start of the analysis.
        */
-      offset?: UADataItem<number, /*z*/DataType.Double>;
+      offset?: UADataItem<number, DataType.Double>;
       /**
        * acquisitionEndTime
        * The end time of the AnalyseSample or
@@ -112,63 +112,63 @@ export interface UAStream_parameterSet extends UAObject { // Object
        * AnalyserChannel_OperatingModeExecuteSubStateMachine
        * state machine
        */
-      acquisitionEndTime: UADataItem<Date, /*z*/DataType.DateTime>;
+      acquisitionEndTime: UADataItem<Date, DataType.DateTime>;
       /**
        * campaignId
        * Defines the current campaign
        */
-      campaignId?: UADataItem<UAString, /*z*/DataType.String>;
+      campaignId?: UADataItem<UAString, DataType.String>;
       /**
        * batchId
        * Defines the current batch
        */
-      batchId?: UADataItem<UAString, /*z*/DataType.String>;
+      batchId?: UADataItem<UAString, DataType.String>;
       /**
        * subBatchId
        * Defines the current sub-batch
        */
-      subBatchId?: UADataItem<UAString, /*z*/DataType.String>;
+      subBatchId?: UADataItem<UAString, DataType.String>;
       /**
        * lotId
        * Defines the current lot
        */
-      lotId?: UADataItem<UAString, /*z*/DataType.String>;
+      lotId?: UADataItem<UAString, DataType.String>;
       /**
        * materialId
        * Defines the current material
        */
-      materialId?: UADataItem<UAString, /*z*/DataType.String>;
+      materialId?: UADataItem<UAString, DataType.String>;
       /**
        * process
        * Current Process name
        */
-      process?: UADataItem<UAString, /*z*/DataType.String>;
+      process?: UADataItem<UAString, DataType.String>;
       /**
        * unit
        * Current Unit name
        */
-      unit?: UADataItem<UAString, /*z*/DataType.String>;
+      unit?: UADataItem<UAString, DataType.String>;
       /**
        * operation
        * Current Operation name
        */
-      operation?: UADataItem<UAString, /*z*/DataType.String>;
+      operation?: UADataItem<UAString, DataType.String>;
       /**
        * phase
        * Current Phase name
        */
-      phase?: UADataItem<UAString, /*z*/DataType.String>;
+      phase?: UADataItem<UAString, DataType.String>;
       /**
        * userId
        * Login name of the user who is logged on at the
        * device console
        */
-      userId?: UADataItem<UAString, /*z*/DataType.String>;
+      userId?: UADataItem<UAString, DataType.String>;
       /**
        * sampleId
        * Identifier for the sample
        */
-      sampleId?: UADataItem<UAString, /*z*/DataType.String>;
+      sampleId?: UADataItem<UAString, DataType.String>;
 }
 export interface UAStream_configuration extends UAFunctionalGroup { // Object
       /**
@@ -176,36 +176,36 @@ export interface UAStream_configuration extends UAFunctionalGroup { // Object
        * True if this stream maybe used to perform
        * acquisition
        */
-      isEnabled: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isEnabled: UADataItem<boolean, DataType.Boolean>;
       /**
        * isForced
        * True if this stream is forced, which means that
        * is the only Stream on this AnalyserChannel that
        * can be used to perform acquisition
        */
-      isForced?: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isForced?: UADataItem<boolean, DataType.Boolean>;
 }
 export interface UAStream_status extends UAFunctionalGroup { // Object
       /**
        * diagnosticStatus
        * Stream health status
        */
-      diagnosticStatus: UADataItem<EnumDeviceHealth, /*z*/DataType.Int32>;
+      diagnosticStatus: UADataItem<EnumDeviceHealth, DataType.Int32>;
       /**
        * lastCalibrationTime
        * Time at which the last calibration was run
        */
-      lastCalibrationTime?: UADataItem<Date, /*z*/DataType.DateTime>;
+      lastCalibrationTime?: UADataItem<Date, DataType.DateTime>;
       /**
        * lastValidationTime
        * Time at which the last validation was run
        */
-      lastValidationTime?: UADataItem<Date, /*z*/DataType.DateTime>;
+      lastValidationTime?: UADataItem<Date, DataType.DateTime>;
       /**
        * lastSampleTime
        * Time at which the last sample was acquired
        */
-      lastSampleTime: UADataItem<Date, /*z*/DataType.DateTime>;
+      lastSampleTime: UADataItem<Date, DataType.DateTime>;
 }
 export interface UAStream_acquisitionSettings extends UAFunctionalGroup { // Object
       /**
@@ -213,7 +213,7 @@ export interface UAStream_acquisitionSettings extends UAFunctionalGroup { // Obj
        * Number of milliseconds between two consecutive
        * starts of acquisition
        */
-      timeBetweenSamples?: UAAnalogItem<number, /*z*/DataType.Double>;
+      timeBetweenSamples?: UAAnalogItem<number, DataType.Double>;
 }
 export interface UAStream_acquisitionStatus extends UAFunctionalGroup { // Object
       /**
@@ -221,12 +221,12 @@ export interface UAStream_acquisitionStatus extends UAFunctionalGroup { // Objec
        * True if this stream is actually running,
        * acquiring data
        */
-      isActive: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isActive: UADataItem<boolean, DataType.Boolean>;
       /**
        * executionCycle
        * Indicates which Execution cycle is in progress
        */
-      executionCycle: UADataItem<EnumExecutionCycle, /*z*/DataType.Int32>;
+      executionCycle: UADataItem<EnumExecutionCycle, DataType.Int32>;
       /**
        * executionCycleSubcode
        * Indicates which Execution cycle subcode is in
@@ -239,7 +239,7 @@ export interface UAStream_acquisitionStatus extends UAFunctionalGroup { // Objec
        * of percentage of completion. Its value shall be
        * between 0 and 100.
        */
-      progress: UADataItem<number, /*z*/DataType.Float>;
+      progress: UADataItem<number, DataType.Float>;
 }
 export interface UAStream_acquisitionData extends UAFunctionalGroup { // Object
       /**
@@ -247,12 +247,12 @@ export interface UAStream_acquisitionData extends UAFunctionalGroup { // Object
        * Simple counter incremented after each Sampling
        * acquisition performed on this Stream
        */
-      acquisitionCounter: UAAnalogItem<UInt32, /*z*/DataType.UInt32>;
+      acquisitionCounter: UAAnalogItem<UInt32, DataType.UInt32>;
       /**
        * acquisitionResultStatus
        * Quality of the acquisition
        */
-      acquisitionResultStatus: UADataItem<EnumAcquisitionResultStatus, /*z*/DataType.Int32>;
+      acquisitionResultStatus: UADataItem<EnumAcquisitionResultStatus, DataType.Int32>;
       /**
        * rawData
        * Raw data produced as a result of data acquisition
@@ -271,7 +271,7 @@ export interface UAStream_acquisitionData extends UAFunctionalGroup { // Object
        * Difference in milliseconds between the start of
        * sample extraction and the start of the analysis.
        */
-      offset?: UADataItem<number, /*z*/DataType.Double>;
+      offset?: UADataItem<number, DataType.Double>;
       /**
        * acquisitionEndTime
        * The end time of the AnalyseSample or
@@ -280,65 +280,65 @@ export interface UAStream_acquisitionData extends UAFunctionalGroup { // Object
        * AnalyserChannel_OperatingModeExecuteSubStateMachine
        * state machine
        */
-      acquisitionEndTime: UADataItem<Date, /*z*/DataType.DateTime>;
+      acquisitionEndTime: UADataItem<Date, DataType.DateTime>;
 }
 export interface UAStream_context extends UAFunctionalGroup { // Object
       /**
        * campaignId
        * Defines the current campaign
        */
-      campaignId?: UADataItem<UAString, /*z*/DataType.String>;
+      campaignId?: UADataItem<UAString, DataType.String>;
       /**
        * batchId
        * Defines the current batch
        */
-      batchId?: UADataItem<UAString, /*z*/DataType.String>;
+      batchId?: UADataItem<UAString, DataType.String>;
       /**
        * subBatchId
        * Defines the current sub-batch
        */
-      subBatchId?: UADataItem<UAString, /*z*/DataType.String>;
+      subBatchId?: UADataItem<UAString, DataType.String>;
       /**
        * lotId
        * Defines the current lot
        */
-      lotId?: UADataItem<UAString, /*z*/DataType.String>;
+      lotId?: UADataItem<UAString, DataType.String>;
       /**
        * materialId
        * Defines the current material
        */
-      materialId?: UADataItem<UAString, /*z*/DataType.String>;
+      materialId?: UADataItem<UAString, DataType.String>;
       /**
        * process
        * Current Process name
        */
-      process?: UADataItem<UAString, /*z*/DataType.String>;
+      process?: UADataItem<UAString, DataType.String>;
       /**
        * unit
        * Current Unit name
        */
-      unit?: UADataItem<UAString, /*z*/DataType.String>;
+      unit?: UADataItem<UAString, DataType.String>;
       /**
        * operation
        * Current Operation name
        */
-      operation?: UADataItem<UAString, /*z*/DataType.String>;
+      operation?: UADataItem<UAString, DataType.String>;
       /**
        * phase
        * Current Phase name
        */
-      phase?: UADataItem<UAString, /*z*/DataType.String>;
+      phase?: UADataItem<UAString, DataType.String>;
       /**
        * userId
        * Login name of the user who is logged on at the
        * device console
        */
-      userId?: UADataItem<UAString, /*z*/DataType.String>;
+      userId?: UADataItem<UAString, DataType.String>;
       /**
        * sampleId
        * Identifier for the sample
        */
-      sampleId?: UADataItem<UAString, /*z*/DataType.String>;
+      sampleId?: UADataItem<UAString, DataType.String>;
 }
 /**
  * |                |                                                  |
@@ -354,6 +354,7 @@ export interface UAStream_Base extends UATopologyElement_Base {
      * Flat list of Parameters
      */
     parameterSet?: UAStream_parameterSet;
+   // PlaceHolder for $GroupIdentifier$
     configuration: UAStream_configuration;
     status: UAStream_status;
     acquisitionSettings: UAStream_acquisitionSettings;

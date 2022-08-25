@@ -12,7 +12,7 @@ import { DTScanData } from "./dt_scan_data"
  * | name      |3:AccessResult                                    |
  * | isAbstract|false                                             |
  */
-export interface DTAccessResult extends DTStructure  {
+export interface DTAccessResult extends DTStructure {
 /** Defines the format of Identifier as string.*/
   codeType: UAString; // String ns=3;i=3031
 /** The AutoID Identifier (e.g. a code or a transponder) which was accessed by a command.*/

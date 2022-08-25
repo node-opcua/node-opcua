@@ -17,6 +17,7 @@ import { UACoffeeMachineParameter } from "./ua_coffee_machine_parameter"
  * |isAbstract      |false                                             |
  */
 export interface UACoffeeMachineDevice_Base extends UACommercialKitchenDevice_Base {
+   // PlaceHolder for $RecipeName$
     parameters: UACoffeeMachineParameter;
 }
 export interface UACoffeeMachineDevice extends UACommercialKitchenDevice, UACoffeeMachineDevice_Base {

@@ -21,17 +21,17 @@ import { UASubscribedDataSet } from "./ua_subscribed_data_set"
  */
 export interface UADataSetReader_Base {
     publisherId: UAProperty<any, any>;
-    writerGroupId: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    dataSetWriterId: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    dataSetMetaData: UAProperty<DTDataSetMeta, /*z*/DataType.ExtensionObject>;
-    dataSetFieldContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    messageReceiveTimeout: UAProperty<number, /*z*/DataType.Double>;
-    keyFrameCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    headerLayoutUri: UAProperty<UAString, /*z*/DataType.String>;
-    securityMode?: UAProperty<EnumMessageSecurityMode, /*z*/DataType.Int32>;
-    securityGroupId?: UAProperty<UAString, /*z*/DataType.String>;
-    securityKeyServices?: UAProperty<DTEndpointDescription[], /*z*/DataType.ExtensionObject>;
-    dataSetReaderProperties: UAProperty<DTKeyValuePair[], /*z*/DataType.ExtensionObject>;
+    writerGroupId: UAProperty<UInt16, DataType.UInt16>;
+    dataSetWriterId: UAProperty<UInt16, DataType.UInt16>;
+    dataSetMetaData: UAProperty<DTDataSetMeta, DataType.ExtensionObject>;
+    dataSetFieldContentMask: UAProperty<UInt32, DataType.UInt32>;
+    messageReceiveTimeout: UAProperty<number, DataType.Double>;
+    keyFrameCount: UAProperty<UInt32, DataType.UInt32>;
+    headerLayoutUri: UAProperty<UAString, DataType.String>;
+    securityMode?: UAProperty<EnumMessageSecurityMode, DataType.Int32>;
+    securityGroupId?: UAProperty<UAString, DataType.String>;
+    securityKeyServices?: UAProperty<DTEndpointDescription[], DataType.ExtensionObject>;
+    dataSetReaderProperties: UAProperty<DTKeyValuePair[], DataType.ExtensionObject>;
     transportSettings?: UADataSetReaderTransport;
     messageSettings?: UADataSetReaderMessage;
     status: UAPubSubStatus;

@@ -17,6 +17,7 @@ import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
  * |isAbstract      |false                                             |
  */
 export interface UAStackElementLight_Base extends UAStackElement_Base {
+   // PlaceHolder for $ControlChannel$
     /**
      * intensity
      * Intensity of the lamp, thus its brightness. The
@@ -27,19 +28,19 @@ export interface UAStackElementLight_Base extends UAStackElement_Base {
      * interpreted as 0 percent, the highest is
      * interpreted as 100 percent.
      */
-    intensity?: UAAnalogItem<number, /*z*/DataType.Float>;
+    intensity?: UAAnalogItem<number, DataType.Float>;
     /**
      * signalColor
      * Indicates the colour the lamp element has when
      * switched on.
      */
-    signalColor?: UABaseDataVariable<EnumSignalColor, /*z*/DataType.Int32>;
+    signalColor?: UABaseDataVariable<EnumSignalColor, DataType.Int32>;
     /**
      * signalMode
      * Shows in what way the lamp is used (continuous
      * light, flashing, blinking) when switched on.
      */
-    signalMode?: UABaseDataVariable<EnumSignalModeLight, /*z*/DataType.Int32>;
+    signalMode?: UABaseDataVariable<EnumSignalModeLight, DataType.Int32>;
 }
 export interface UAStackElementLight extends UAStackElement, UAStackElementLight_Base {
 }

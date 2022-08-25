@@ -15,7 +15,7 @@ import { DTDataSetReader } from "./dt_data_set_reader"
  * | name      |ReaderGroupDataType                               |
  * | isAbstract|false                                             |
  */
-export interface DTReaderGroup extends DTPubSubGroup  {
+export interface DTReaderGroup extends DTPubSubGroup {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
   securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302

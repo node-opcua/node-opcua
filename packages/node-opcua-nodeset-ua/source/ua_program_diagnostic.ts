@@ -16,17 +16,17 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |DTProgramDiagnostic ns=0;i=894                    |
  * |isAbstract      |false                                             |
  */
-export interface UAProgramDiagnostic_Base<T extends DTProgramDiagnostic/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    createSessionId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    createClientName: UAProperty<UAString, /*z*/DataType.String>;
-    invocationCreationTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    lastTransitionTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    lastMethodCall: UAProperty<UAString, /*z*/DataType.String>;
-    lastMethodSessionId: UAProperty<NodeId, /*z*/DataType.NodeId>;
+export interface UAProgramDiagnostic_Base<T extends DTProgramDiagnostic>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    createSessionId: UAProperty<NodeId, DataType.NodeId>;
+    createClientName: UAProperty<UAString, DataType.String>;
+    invocationCreationTime: UAProperty<Date, DataType.DateTime>;
+    lastTransitionTime: UAProperty<Date, DataType.DateTime>;
+    lastMethodCall: UAProperty<UAString, DataType.String>;
+    lastMethodSessionId: UAProperty<NodeId, DataType.NodeId>;
     lastMethodInputArguments: UAProperty<any, any>;
     lastMethodOutputArguments: UAProperty<any, any>;
-    lastMethodCallTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    lastMethodReturnStatus: UAProperty<DTStatusResult, /*z*/DataType.ExtensionObject>;
+    lastMethodCallTime: UAProperty<Date, DataType.DateTime>;
+    lastMethodReturnStatus: UAProperty<DTStatusResult, DataType.ExtensionObject>;
 }
-export interface UAProgramDiagnostic<T extends DTProgramDiagnostic/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAProgramDiagnostic_Base<T /*B*/> {
+export interface UAProgramDiagnostic<T extends DTProgramDiagnostic> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAProgramDiagnostic_Base<T> {
 }

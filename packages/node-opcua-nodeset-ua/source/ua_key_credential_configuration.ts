@@ -12,10 +12,10 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAKeyCredentialConfiguration_Base {
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    profileUri: UAProperty<UAString, /*z*/DataType.String>;
-    endpointUrls?: UAProperty<UAString[], /*z*/DataType.String>;
-    serviceStatus?: UAProperty<StatusCode, /*z*/DataType.StatusCode>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    profileUri: UAProperty<UAString, DataType.String>;
+    endpointUrls?: UAProperty<UAString[], DataType.String>;
+    serviceStatus?: UAProperty<StatusCode, DataType.StatusCode>;
     getEncryptingKey?: UAMethod;
     updateCredential?: UAMethod;
     deleteCredential?: UAMethod;

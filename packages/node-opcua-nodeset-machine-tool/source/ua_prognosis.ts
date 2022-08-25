@@ -10,7 +10,7 @@ import { DataType } from "node-opcua-variant"
  * |isAbstract      |true                                              |
  */
 export interface UAPrognosis_Base {
-    predictedTime: UAProperty<Date, /*z*/DataType.DateTime>;
+    predictedTime: UAProperty<Date, DataType.DateTime>;
 }
 export interface UAPrognosis extends UAObject, UAPrognosis_Base {
 }

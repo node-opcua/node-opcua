@@ -12,8 +12,8 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-op
  * |isAbstract      |true                                              |
  */
 export interface UACertificateRequestedAuditEvent_Base extends UAAuditUpdateMethodEvent_Base {
-    certificateGroup: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    certificateType: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    certificateGroup: UAProperty<NodeId, DataType.NodeId>;
+    certificateType: UAProperty<NodeId, DataType.NodeId>;
 }
 export interface UACertificateRequestedAuditEvent extends UAAuditUpdateMethodEvent, UACertificateRequestedAuditEvent_Base {
 }

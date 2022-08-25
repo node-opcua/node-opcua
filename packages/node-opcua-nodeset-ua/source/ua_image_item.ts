@@ -13,9 +13,9 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |dataType Name   |undefined[] ns=0;i=0                              |
  * |isAbstract      |false                                             |
  */
-export interface UAImageItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T/*g*/, DT> {
-    xAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
-    yAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
+export interface UAImageItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T, DT> {
+    xAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
+    yAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
 }
-export interface UAImageItem<T, DT extends DataType> extends UAArrayItem<T, /*m*/DT>, UAImageItem_Base<T, DT /*A*/> {
+export interface UAImageItem<T, DT extends DataType> extends UAArrayItem<T, DT>, UAImageItem_Base<T, DT> {
 }

@@ -10,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |1:ParameterResultDataType                         |
  * | isAbstract|false                                             |
  */
-export interface DTParameterResult extends DTStructure  {
+export interface DTParameterResult extends DTStructure {
   nodePath: QualifiedName[]; // QualifiedName ns=0;i=20
   statusCode: StatusCode; // StatusCode ns=0;i=19
   diagnostics: DiagnosticInfo; // DiagnosticInfo ns=0;i=25

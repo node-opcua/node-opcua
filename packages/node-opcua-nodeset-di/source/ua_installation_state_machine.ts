@@ -17,8 +17,8 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
  * |isAbstract      |false                                             |
  */
 export interface UAInstallationStateMachine_Base extends UAFiniteStateMachine_Base {
-    percentComplete?: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
-    installationDelay?: UABaseDataVariable<number, /*z*/DataType.Double>;
+    percentComplete?: UABaseDataVariable<Byte, DataType.Byte>;
+    installationDelay?: UABaseDataVariable<number, DataType.Double>;
     installSoftwarePackage?: UAMethod;
     installFiles?: UAMethod;
     resume: UAMethod;

@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |QosDataType                                       |
  * | isAbstract|true                                              |
  */
-export interface DTQos extends DTStructure  {
-}
+export type DTQos = DTStructure;

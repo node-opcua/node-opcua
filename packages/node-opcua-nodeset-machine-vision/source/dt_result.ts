@@ -18,7 +18,7 @@ import { DTProcessingTimes } from "./dt_processing_times"
  * | name      |4:ResultDataType                                  |
  * | isAbstract|false                                             |
  */
-export interface DTResult extends DTStructure  {
+export interface DTResult extends DTStructure {
 /** System-wide unique identifier, which is assigned by the system. This ID can be used for fetching exactly this result using the pertinent result management methods and it is identical to the ResultId of the ResultReadyEventType.*/
   resultId: DTResultId; // ExtensionObject ns=4;i=3021
 /** Indicates that additional data for this result can be retrieved by temporary file transfer.*/

@@ -13,8 +13,8 @@ import { UAHistoricalDataConfiguration, UAHistoricalDataConfiguration_Base } fro
  * |isAbstract      |false                                             |
  */
 export interface UAKitchenDeviceHAConfig_Base extends UAHistoricalDataConfiguration_Base {
-    historyDuration: UAProperty<number, /*z*/DataType.Double>;
-    samplingInterval: UAProperty<number, /*z*/DataType.Double>;
+    historyDuration: UAProperty<number, DataType.Double>;
+    samplingInterval: UAProperty<number, DataType.Double>;
 }
 export interface UAKitchenDeviceHAConfig extends UAHistoricalDataConfiguration, UAKitchenDeviceHAConfig_Base {
 }

@@ -12,9 +12,9 @@ import { UASystemOffNormalAlarm, UASystemOffNormalAlarm_Base } from "./ua_system
  * |isAbstract      |false                                             |
  */
 export interface UATrustListOutOfDateAlarm_Base extends UASystemOffNormalAlarm_Base {
-    trustListId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    lastUpdateTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    updateFrequency: UAProperty<number, /*z*/DataType.Double>;
+    trustListId: UAProperty<NodeId, DataType.NodeId>;
+    lastUpdateTime: UAProperty<Date, DataType.DateTime>;
+    updateFrequency: UAProperty<number, DataType.Double>;
 }
 export interface UATrustListOutOfDateAlarm extends UASystemOffNormalAlarm, UATrustListOutOfDateAlarm_Base {
 }

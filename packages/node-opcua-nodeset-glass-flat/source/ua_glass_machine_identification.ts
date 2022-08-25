@@ -14,7 +14,7 @@ import { DTUserProfile } from "./dt_user_profile"
  * |isAbstract      |false                                             |
  */
 export interface UAGlassMachineIdentification_Base extends UAMachineIdentification_Base {
-    loggedInProfiles?: UAProperty<DTUserProfile[], /*z*/DataType.ExtensionObject>;
+    loggedInProfiles?: UAProperty<DTUserProfile[], DataType.ExtensionObject>;
 }
 export interface UAGlassMachineIdentification extends UAMachineIdentification, UAGlassMachineIdentification_Base {
 }

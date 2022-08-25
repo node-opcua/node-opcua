@@ -38,14 +38,14 @@ import { UANamespaces } from "./ua_namespaces"
  * |isAbstract      |false                                             |
  */
 export interface UAServer_Base {
-    serverArray: UAProperty<UAString[], /*z*/DataType.String>;
-    namespaceArray: UAProperty<UAString[], /*z*/DataType.String>;
-    urisVersion?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    serverArray: UAProperty<UAString[], DataType.String>;
+    namespaceArray: UAProperty<UAString[], DataType.String>;
+    urisVersion?: UAProperty<UInt32, DataType.UInt32>;
     serverStatus: UAServerStatus<DTServerStatus>;
-    serviceLevel: UAProperty<Byte, /*z*/DataType.Byte>;
-    auditing: UAProperty<boolean, /*z*/DataType.Boolean>;
-    estimatedReturnTime?: UAProperty<Date, /*z*/DataType.DateTime>;
-    localTime?: UAProperty<DTTimeZone, /*z*/DataType.ExtensionObject>;
+    serviceLevel: UAProperty<Byte, DataType.Byte>;
+    auditing: UAProperty<boolean, DataType.Boolean>;
+    estimatedReturnTime?: UAProperty<Date, DataType.DateTime>;
+    localTime?: UAProperty<DTTimeZone, DataType.ExtensionObject>;
     serverCapabilities: UAServerCapabilities;
     serverDiagnostics: UAServerDiagnostics;
     vendorServerInfo: UAVendorServerInfo;

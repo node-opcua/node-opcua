@@ -11,7 +11,7 @@ import { DTFilterOperand } from "./dt_filter_operand"
  * | name      |SimpleAttributeOperand                            |
  * | isAbstract|false                                             |
  */
-export interface DTSimpleAttributeOperand extends DTFilterOperand  {
+export interface DTSimpleAttributeOperand extends DTFilterOperand {
   typeDefinitionId: NodeId; // NodeId ns=0;i=17
   browsePath: QualifiedName[]; // QualifiedName ns=0;i=20
   attributeId: UInt32; // UInt32 ns=0;i=288

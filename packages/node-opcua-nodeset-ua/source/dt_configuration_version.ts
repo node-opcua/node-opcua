@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |ConfigurationVersionDataType                      |
  * | isAbstract|false                                             |
  */
-export interface DTConfigurationVersion extends DTStructure  {
+export interface DTConfigurationVersion extends DTStructure {
   majorVersion: UInt32; // UInt32 ns=0;i=20998
   minorVersion: UInt32; // UInt32 ns=0;i=20998
 }

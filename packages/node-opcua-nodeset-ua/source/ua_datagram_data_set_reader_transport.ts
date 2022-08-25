@@ -15,9 +15,9 @@ import { UANetworkAddress } from "./ua_network_address"
  */
 export interface UADatagramDataSetReaderTransport_Base extends UAWriterGroupTransport_Base {
     address?: UANetworkAddress;
-    qosCategory?: UAProperty<UAString, /*z*/DataType.String>;
-    datagramQos?: UAProperty<DTReceiveQos[], /*z*/DataType.ExtensionObject>;
-    topic?: UAProperty<UAString, /*z*/DataType.String>;
+    qosCategory?: UAProperty<UAString, DataType.String>;
+    datagramQos?: UAProperty<DTReceiveQos[], DataType.ExtensionObject>;
+    topic?: UAProperty<UAString, DataType.String>;
 }
 export interface UADatagramDataSetReaderTransport extends UAWriterGroupTransport, UADatagramDataSetReaderTransport_Base {
 }

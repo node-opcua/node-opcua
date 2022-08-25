@@ -29,7 +29,7 @@ export interface UAAutoIdDevice_diagnostics extends UAFunctionalGroup { // Objec
        * Current presence of AutoID Identifier (e.g. a
        * code or a transponder).
        */
-      presence?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+      presence?: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 export interface UAAutoIdDevice_runtimeParameters extends UAFunctionalGroup { // Object
       /**
@@ -37,7 +37,7 @@ export interface UAAutoIdDevice_runtimeParameters extends UAFunctionalGroup { //
        * Supported CodeTypes and selected CodeType for the
        * ScanData.
        */
-      codeTypes?: UAMultiStateDiscrete<UInt32[], /*z*/DataType.UInt32>;
+      codeTypes?: UAMultiStateDiscrete<UInt32[], DataType.UInt32>;
       /**
        * scanSettings
        * Scan settings used together with ScanActive
@@ -54,12 +54,12 @@ export interface UAAutoIdDevice_runtimeParameters extends UAFunctionalGroup { //
  * |isAbstract      |true                                              |
  */
 export interface UAAutoIdDevice_Base extends UADevice_Base {
-    autoIdModelVersion: UAProperty<UAString, /*z*/DataType.String>;
+    autoIdModelVersion: UAProperty<UAString, DataType.String>;
     /**
      * deviceInfo
      * Device status information.
      */
-    deviceInfo?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceInfo?: UAProperty<UAString, DataType.String>;
     /**
      * deviceLocation
      * Union of GPS, UTM, Local.
@@ -69,15 +69,15 @@ export interface UAAutoIdDevice_Base extends UADevice_Base {
      * deviceLocationName
      * Symbolic name of the device location.
      */
-    deviceLocationName?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceLocationName?: UAProperty<UAString, DataType.String>;
     /**
      * deviceName
      * Default could be also host name, IP address or
      * MAC. This should be a field that can be
      * configured for a device.
      */
-    deviceName: UAProperty<UAString, /*z*/DataType.String>;
-    deviceStatus: UABaseDataVariable<EnumDeviceStatus, /*z*/DataType.Int32>;
+    deviceName: UAProperty<UAString, DataType.String>;
+    deviceStatus: UABaseDataVariable<EnumDeviceStatus, DataType.Int32>;
     /**
      * diagnostics
      * Diagnostic data from AutoID Devices.
@@ -95,14 +95,14 @@ export interface UAAutoIdDevice_Base extends UADevice_Base {
      * Point of time the last AutoID Identifier was
      * scanned.
      */
-    lastScanTimestamp?: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
+    lastScanTimestamp?: UABaseDataVariable<Date, DataType.DateTime>;
     runtimeParameters?: UAAutoIdDevice_runtimeParameters;
     scan?: UAMethod;
     /**
      * scanActive
      * Triggers the scan process.
      */
-    scanActive?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    scanActive?: UABaseDataVariable<boolean, DataType.Boolean>;
     scanStart?: UAMethod;
     scanStop?: UAMethod;
 }

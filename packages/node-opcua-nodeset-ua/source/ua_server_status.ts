@@ -17,13 +17,13 @@ import { UABuildInfo } from "./ua_build_info"
  * |dataType Name   |DTServerStatus ns=0;i=862                         |
  * |isAbstract      |false                                             |
  */
-export interface UAServerStatus_Base<T extends DTServerStatus/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    startTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    currentTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    state: UABaseDataVariable<EnumServerState, /*z*/DataType.Int32>;
+export interface UAServerStatus_Base<T extends DTServerStatus>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    startTime: UABaseDataVariable<Date, DataType.DateTime>;
+    currentTime: UABaseDataVariable<Date, DataType.DateTime>;
+    state: UABaseDataVariable<EnumServerState, DataType.Int32>;
     buildInfo: UABuildInfo<DTBuildInfo>;
-    secondsTillShutdown: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    shutdownReason: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
+    secondsTillShutdown: UABaseDataVariable<UInt32, DataType.UInt32>;
+    shutdownReason: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAServerStatus<T extends DTServerStatus/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAServerStatus_Base<T /*B*/> {
+export interface UAServerStatus<T extends DTServerStatus> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAServerStatus_Base<T> {
 }

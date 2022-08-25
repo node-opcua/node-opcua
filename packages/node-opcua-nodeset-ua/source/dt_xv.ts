@@ -8,7 +8,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |XVType                                            |
  * | isAbstract|false                                             |
  */
-export interface DTXV extends DTStructure  {
+export interface DTXV extends DTStructure {
   x: number; // Double ns=0;i=11
   value: number; // Float ns=0;i=10
 }

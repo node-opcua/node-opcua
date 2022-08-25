@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:LocalCoordinate                                 |
  * | isAbstract|false                                             |
  */
-export interface DTLocalCoordinate extends DTStructure  {
+export interface DTLocalCoordinate extends DTStructure {
   x: number; // Double ns=0;i=11
   y: number; // Double ns=0;i=11
   z: number; // Double ns=0;i=11

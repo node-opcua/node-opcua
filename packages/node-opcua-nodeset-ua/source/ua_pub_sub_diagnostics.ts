@@ -22,11 +22,11 @@ export interface UAPubSubDiagnostics_counters extends UAObject { // Object
  * |isAbstract      |true                                              |
  */
 export interface UAPubSubDiagnostics_Base {
-    diagnosticsLevel: UABaseDataVariable<EnumDiagnosticsLevel, /*z*/DataType.Int32>;
+    diagnosticsLevel: UABaseDataVariable<EnumDiagnosticsLevel, DataType.Int32>;
     totalInformation: UAPubSubDiagnosticsCounter<UInt32>;
     totalError: UAPubSubDiagnosticsCounter<UInt32>;
     reset: UAMethod;
-    subError: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    subError: UABaseDataVariable<boolean, DataType.Boolean>;
     counters: UAPubSubDiagnostics_counters;
     liveValues: UAObject;
 }

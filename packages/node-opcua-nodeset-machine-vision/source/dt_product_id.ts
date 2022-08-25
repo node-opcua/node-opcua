@@ -10,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:ProductIdDataType                               |
  * | isAbstract|false                                             |
  */
-export interface DTProductId extends DTStructure  {
+export interface DTProductId extends DTStructure {
 /** Id is a system-wide unique identifier/name for identifying the product.*/
   id: UAString; // String ns=4;i=3017
 /** Optional short human readable description of the configuration*/

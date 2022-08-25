@@ -30,7 +30,7 @@ export interface UAIAggregateStatistics_Base extends UAIStatistics_Base {
      * 1000 ITEMS”, “OPERATOR”. “OPERATOR” means, that
      * an operator resets the statistics on a local HMI.
      */
-    resetCondition?: UAProperty<UAString, /*z*/DataType.String>;
+    resetCondition?: UAProperty<UAString, DataType.String>;
 }
 export interface UAIAggregateStatistics extends UAIStatistics, UAIAggregateStatistics_Base {
 }

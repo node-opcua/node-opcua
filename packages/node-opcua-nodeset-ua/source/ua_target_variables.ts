@@ -13,7 +13,7 @@ import { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_d
  * |isAbstract      |false                                             |
  */
 export interface UATargetVariables_Base extends UASubscribedDataSet_Base {
-    targetVariables: UAProperty<DTFieldTarget[], /*z*/DataType.ExtensionObject>;
+    targetVariables: UAProperty<DTFieldTarget[], DataType.ExtensionObject>;
     addTargetVariables?: UAMethod;
     removeTargetVariables?: UAMethod;
 }

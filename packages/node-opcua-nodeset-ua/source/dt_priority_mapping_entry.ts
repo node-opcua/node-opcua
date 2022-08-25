@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |PriorityMappingEntryType                          |
  * | isAbstract|false                                             |
  */
-export interface DTPriorityMappingEntry extends DTStructure  {
+export interface DTPriorityMappingEntry extends DTStructure {
   mappingUri: UAString; // String ns=0;i=12
   priorityLabel: UAString; // String ns=0;i=12
   priorityValue_PCP: Byte; // Byte ns=0;i=3

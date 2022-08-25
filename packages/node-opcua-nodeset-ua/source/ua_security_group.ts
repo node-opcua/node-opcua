@@ -11,11 +11,11 @@ import { UInt32, UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UASecurityGroup_Base {
-    securityGroupId: UAProperty<UAString, /*z*/DataType.String>;
-    keyLifetime: UAProperty<number, /*z*/DataType.Double>;
-    securityPolicyUri: UAProperty<UAString, /*z*/DataType.String>;
-    maxFutureKeyCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxPastKeyCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    securityGroupId: UAProperty<UAString, DataType.String>;
+    keyLifetime: UAProperty<number, DataType.Double>;
+    securityPolicyUri: UAProperty<UAString, DataType.String>;
+    maxFutureKeyCount: UAProperty<UInt32, DataType.UInt32>;
+    maxPastKeyCount: UAProperty<UInt32, DataType.UInt32>;
     invalidateKeys?: UAMethod;
     forceKeyRotation?: UAMethod;
 }

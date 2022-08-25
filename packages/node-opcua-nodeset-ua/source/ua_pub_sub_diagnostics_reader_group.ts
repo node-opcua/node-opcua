@@ -11,8 +11,8 @@ export interface UAPubSubDiagnosticsReaderGroup_counters extends UAPubSubDiagnos
       decryptionErrors?: UAPubSubDiagnosticsCounter<UInt32>;
 }
 export interface UAPubSubDiagnosticsReaderGroup_liveValues extends UAObject { // Object
-      configuredDataSetReaders: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-      operationalDataSetReaders: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+      configuredDataSetReaders: UABaseDataVariable<UInt16, DataType.UInt16>;
+      operationalDataSetReaders: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 /**
  * |                |                                                  |

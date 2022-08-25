@@ -34,7 +34,7 @@ export interface UAStackElementAcoustic_Base extends UAStackElement_Base {
      * percent, the highest is interpreted as 100
      * percent.
      */
-    intensity?: UAAnalogItem<number, /*z*/DataType.Float>;
+    intensity?: UAAnalogItem<number, DataType.Float>;
     /**
      * operationMode
      * Indicates what signal of the list of

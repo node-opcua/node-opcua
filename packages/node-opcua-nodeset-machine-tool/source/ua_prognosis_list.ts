@@ -11,7 +11,8 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAPrognosisList_Base {
-    nodeVersion?: UAProperty<UAString, /*z*/DataType.String>;
+   // PlaceHolder for $Prognosis$
+    nodeVersion?: UAProperty<UAString, DataType.String>;
 }
 export interface UAPrognosisList extends UAObject, UAPrognosisList_Base {
 }

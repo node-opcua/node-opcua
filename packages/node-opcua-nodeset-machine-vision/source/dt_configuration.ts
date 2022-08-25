@@ -9,7 +9,7 @@ import { DTConfigurationId } from "./dt_configuration_id"
  * | name      |4:ConfigurationDataType                           |
  * | isAbstract|false                                             |
  */
-export interface DTConfiguration extends DTStructure  {
+export interface DTConfiguration extends DTStructure {
 /** Indicates that actual content of the configuration may be transferred through temporary file transfer method.*/
   hasTransferableDataOnFile: boolean; // Boolean ns=0;i=1
 /** Identification of the configuration used by the environment. This argument must not be empty.*/

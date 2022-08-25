@@ -10,7 +10,7 @@ import { EnumLocationType } from "./enum_location_type"
  * | name      |3:ScanSettings                                    |
  * | isAbstract|false                                             |
  */
-export interface DTScanSettings extends DTStructure  {
+export interface DTScanSettings extends DTStructure {
   duration: number; // Double ns=0;i=290
   cycles: Int32; // Int32 ns=0;i=6
   dataAvailable: boolean; // Boolean ns=0;i=1

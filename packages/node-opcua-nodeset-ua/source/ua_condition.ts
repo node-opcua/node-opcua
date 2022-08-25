@@ -17,18 +17,18 @@ import { UAConditionVariable } from "./ua_condition_variable"
  * |isAbstract      |true                                              |
  */
 export interface UACondition_Base extends UABaseEvent_Base {
-    conditionClassId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    conditionClassName: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    conditionSubClassId?: UAProperty<NodeId[], /*z*/DataType.NodeId>;
-    conditionSubClassName?: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
-    conditionName: UAProperty<UAString, /*z*/DataType.String>;
-    branchId: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    retain: UAProperty<boolean, /*z*/DataType.Boolean>;
+    conditionClassId: UAProperty<NodeId, DataType.NodeId>;
+    conditionClassName: UAProperty<LocalizedText, DataType.LocalizedText>;
+    conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    conditionName: UAProperty<UAString, DataType.String>;
+    branchId: UAProperty<NodeId, DataType.NodeId>;
+    retain: UAProperty<boolean, DataType.Boolean>;
     enabledState: UATwoStateVariable<LocalizedText>;
-    quality: UAConditionVariable<StatusCode, /*z*/DataType.StatusCode>;
-    lastSeverity: UAConditionVariable<UInt16, /*z*/DataType.UInt16>;
-    comment: UAConditionVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    clientUserId: UAProperty<UAString, /*z*/DataType.String>;
+    quality: UAConditionVariable<StatusCode, DataType.StatusCode>;
+    lastSeverity: UAConditionVariable<UInt16, DataType.UInt16>;
+    comment: UAConditionVariable<LocalizedText, DataType.LocalizedText>;
+    clientUserId: UAProperty<UAString, DataType.String>;
     disable: UAMethod;
     enable: UAMethod;
     addComment: UAMethod;

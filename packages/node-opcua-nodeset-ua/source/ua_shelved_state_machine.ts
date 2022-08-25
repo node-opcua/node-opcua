@@ -13,7 +13,7 @@ import { UATransition } from "./ua_transition"
  * |isAbstract      |false                                             |
  */
 export interface UAShelvedStateMachine_Base extends UAFiniteStateMachine_Base {
-    unshelveTime: UAProperty<number, /*z*/DataType.Double>;
+    unshelveTime: UAProperty<number, DataType.Double>;
     unshelved: UAState;
     timedShelved: UAState;
     oneShotShelved: UAState;

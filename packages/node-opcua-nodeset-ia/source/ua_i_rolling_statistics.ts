@@ -25,7 +25,7 @@ export interface UAIRollingStatistics_Base extends UAIStatistics_Base {
      * between the StartTime and the current time is
      * longer.
      */
-    windowDuration?: UAProperty<number, /*z*/DataType.Double>;
+    windowDuration?: UAProperty<number, DataType.Double>;
     /**
      * windowNumberOfValues
      * The number of values before the data gets rolled
@@ -33,7 +33,7 @@ export interface UAIRollingStatistics_Base extends UAIStatistics_Base {
      * fitting into the number of values is considered,
      * even if more data were gathered since StartTime.
      */
-    windowNumberOfValues?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    windowNumberOfValues?: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAIRollingStatistics extends UAIStatistics, UAIRollingStatistics_Base {
 }

@@ -28,6 +28,7 @@ export interface UATopologyElement_Base {
      * Flat list of Methods
      */
     methodSet?: UAObject;
+   // PlaceHolder for $GroupIdentifier$
     /**
      * identification
      * Used to organize parameters for identification of

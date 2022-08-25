@@ -11,13 +11,13 @@ export interface UAAxis_parameterSet extends UAObject { // Object
        * The axis position inclusive Unit and
        * RangeOfMotion.
        */
-      actualPosition: UAAnalogUnit<number, /*z*/DataType.Double>;
+      actualPosition: UAAnalogUnit<number, DataType.Double>;
       /**
        * actualSpeed
        * The axis speed on load side (after gear/spindle)
        * inclusive Unit.
        */
-      actualSpeed?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      actualSpeed?: UAAnalogUnit<number, DataType.Double>;
       /**
        * actualAcceleration
        * : The ActualAcceleration variable provides the
@@ -25,7 +25,7 @@ export interface UAAxis_parameterSet extends UAObject { // Object
        * of the axis shall be provided by the EURange
        * property of the AnalogUnitType.
        */
-      actualAcceleration?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      actualAcceleration?: UAAnalogUnit<number, DataType.Double>;
 }
 /**
  * The AxisType describes an axis of a motion device.
@@ -48,7 +48,7 @@ export interface UAAxis_Base extends UAComponent_Base {
      * The kind of axis motion as defined with the
      * AxisMotionProfileEnumeration.
      */
-    motionProfile: UAProperty<EnumAxisMotionProfile, /*z*/DataType.Int32>;
+    motionProfile: UAProperty<EnumAxisMotionProfile, DataType.Int32>;
     /**
      * additionalLoad
      * The additional load which is mounted on this

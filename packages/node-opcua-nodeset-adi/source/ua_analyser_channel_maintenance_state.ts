@@ -8,7 +8,6 @@ import { UAState, UAState_Base } from "node-opcua-nodeset-ua/source/ua_state"
  * |typedDefinition |2:AnalyserChannelMaintenanceStateType ns=2;i=1006 |
  * |isAbstract      |false                                             |
  */
-export interface UAAnalyserChannelMaintenanceState_Base extends UAState_Base {
-}
+export type UAAnalyserChannelMaintenanceState_Base = UAState_Base;
 export interface UAAnalyserChannelMaintenanceState extends UAState, UAAnalyserChannelMaintenanceState_Base {
 }

@@ -9,6 +9,6 @@ import { DTRelativePathElement } from "./dt_relative_path_element"
  * | name      |RelativePath                                      |
  * | isAbstract|false                                             |
  */
-export interface DTRelativePath extends DTStructure  {
+export interface DTRelativePath extends DTStructure {
   elements: DTRelativePathElement[]; // ExtensionObject ns=0;i=537
 }

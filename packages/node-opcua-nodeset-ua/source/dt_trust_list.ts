@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |TrustListDataType                                 |
  * | isAbstract|false                                             |
  */
-export interface DTTrustList extends DTStructure  {
+export interface DTTrustList extends DTStructure {
   specifiedLists: UInt32; // UInt32 ns=0;i=7
   trustedCertificates: Buffer[]; // ByteString ns=0;i=15
   trustedCrls: Buffer[]; // ByteString ns=0;i=15

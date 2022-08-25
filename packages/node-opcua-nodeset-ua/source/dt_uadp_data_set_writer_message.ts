@@ -9,7 +9,7 @@ import { DTDataSetWriterMessage } from "./dt_data_set_writer_message"
  * | name      |UadpDataSetWriterMessageDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTUadpDataSetWriterMessage extends DTDataSetWriterMessage  {
+export interface DTUadpDataSetWriterMessage extends DTDataSetWriterMessage {
   dataSetMessageContentMask: UInt32; // UInt32 ns=0;i=15646
   configuredSize: UInt16; // UInt16 ns=0;i=5
   networkMessageNumber: UInt16; // UInt16 ns=0;i=5

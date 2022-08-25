@@ -13,7 +13,6 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |true                                              |
  */
-export interface UAUIElement_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
-}
-export interface UAUIElement<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UAUIElement_Base<T, DT /*A*/> {
+export type UAUIElement_Base<T, DT extends DataType> = UABaseDataVariable_Base<T, DT>;
+export interface UAUIElement<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAUIElement_Base<T, DT> {
 }

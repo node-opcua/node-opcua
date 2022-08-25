@@ -12,7 +12,7 @@ import { DTRotation } from "./dt_rotation"
  * | name      |3:RtlsLocationResult                              |
  * | isAbstract|false                                             |
  */
-export interface DTRtlsLocationResult extends DTScanResult  {
+export interface DTRtlsLocationResult extends DTScanResult {
 /** Defines the format of the ScanData as string.*/
   codeType: UAString; // String ns=3;i=3031
 /** Holds the information about the detected objects e.g. the detected transponders.*/

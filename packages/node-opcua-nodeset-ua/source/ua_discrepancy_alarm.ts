@@ -12,9 +12,9 @@ import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
  * |isAbstract      |false                                             |
  */
 export interface UADiscrepancyAlarm_Base extends UAAlarmCondition_Base {
-    targetValueNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    expectedTime: UAProperty<number, /*z*/DataType.Double>;
-    tolerance?: UAProperty<number, /*z*/DataType.Double>;
+    targetValueNode: UAProperty<NodeId, DataType.NodeId>;
+    expectedTime: UAProperty<number, DataType.Double>;
+    tolerance?: UAProperty<number, DataType.Double>;
 }
 export interface UADiscrepancyAlarm extends UAAlarmCondition, UADiscrepancyAlarm_Base {
 }

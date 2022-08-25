@@ -8,7 +8,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |DoubleComplexNumberType                           |
  * | isAbstract|false                                             |
  */
-export interface DTDoubleComplexNumber extends DTStructure  {
+export interface DTDoubleComplexNumber extends DTStructure {
   real: number; // Double ns=0;i=11
   imaginary: number; // Double ns=0;i=11
 }

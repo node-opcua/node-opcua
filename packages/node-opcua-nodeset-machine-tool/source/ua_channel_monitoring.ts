@@ -18,11 +18,11 @@ import { UAChannelModifier } from "./ua_channel_modifier"
  * |isAbstract      |false                                             |
  */
 export interface UAChannelMonitoring_Base extends UAElementMonitoring_Base {
-    channelMode: UABaseDataVariable<EnumChannelMode, /*z*/DataType.Int32>;
+    channelMode: UABaseDataVariable<EnumChannelMode, DataType.Int32>;
     channelModifiers?: UAChannelModifier;
-    channelState: UABaseDataVariable<EnumChannelState, /*z*/DataType.Int32>;
-    feedOverride: UAAnalogUnitRange<number, /*z*/DataType.Double>;
-    rapidOverride?: UAAnalogUnitRange<number, /*z*/DataType.Double>;
+    channelState: UABaseDataVariable<EnumChannelState, DataType.Int32>;
+    feedOverride: UAAnalogUnitRange<number, DataType.Double>;
+    rapidOverride?: UAAnalogUnitRange<number, DataType.Double>;
 }
 export interface UAChannelMonitoring extends UAElementMonitoring, UAChannelMonitoring_Base {
 }

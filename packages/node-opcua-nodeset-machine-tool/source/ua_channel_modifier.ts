@@ -11,11 +11,11 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |false                                             |
  */
 export interface UAChannelModifier_Base {
-    blockSkip?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    dryRun: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    optionalStop: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    singleStep: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    testMode?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    blockSkip?: UABaseDataVariable<boolean, DataType.Boolean>;
+    dryRun: UABaseDataVariable<boolean, DataType.Boolean>;
+    optionalStop: UABaseDataVariable<boolean, DataType.Boolean>;
+    singleStep: UABaseDataVariable<boolean, DataType.Boolean>;
+    testMode?: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UAChannelModifier extends UAObject, UAChannelModifier_Base {
 }

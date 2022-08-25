@@ -8,19 +8,19 @@ import { UABaseMaterial } from "./ua_base_material"
 import { UAAssembly } from "./ua_assembly"
 import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
 export interface UAAssemblyJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object
-      "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
-      weight?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      x?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      y?: UAAnalogUnit<number, /*z*/DataType.Double>;
-      z?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
+      weight?: UAAnalogUnit<number, DataType.Double>;
+      x?: UAAnalogUnit<number, DataType.Double>;
+      y?: UAAnalogUnit<number, DataType.Double>;
+      z?: UAAnalogUnit<number, DataType.Double>;
 }
 export interface UAAssemblyJob_$OutputMaterial$ extends Omit<UAAssembly, "identifier"|"location"|"materialIdentifier"> { // Object
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 /**
  * |                |                                                  |
@@ -30,7 +30,6 @@ export interface UAAssemblyJob_$OutputMaterial$ extends Omit<UAAssembly, "identi
  * |typedDefinition |13:AssemblyJobType ns=13;i=1008                   |
  * |isAbstract      |false                                             |
  */
-export interface UAAssemblyJob_Base extends UAProductionJob_Base {
-}
+export type UAAssemblyJob_Base = UAProductionJob_Base;
 export interface UAAssemblyJob extends UAProductionJob, UAAssemblyJob_Base {
 }

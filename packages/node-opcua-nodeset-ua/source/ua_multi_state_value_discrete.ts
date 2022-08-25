@@ -14,9 +14,9 @@ import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UAMultiStateValueDiscrete_Base<T, DT extends DataType>  extends UADiscreteItem_Base<T/*g*/, DT> {
-    enumValues: UAProperty<DTEnumValue[], /*z*/DataType.ExtensionObject>;
-    valueAsText: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+export interface UAMultiStateValueDiscrete_Base<T, DT extends DataType>  extends UADiscreteItem_Base<T, DT> {
+    enumValues: UAProperty<DTEnumValue[], DataType.ExtensionObject>;
+    valueAsText: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UAMultiStateValueDiscrete<T, DT extends DataType> extends UADiscreteItem<T, /*m*/DT>, UAMultiStateValueDiscrete_Base<T, DT /*A*/> {
+export interface UAMultiStateValueDiscrete<T, DT extends DataType> extends UADiscreteItem<T, DT>, UAMultiStateValueDiscrete_Base<T, DT> {
 }

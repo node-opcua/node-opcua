@@ -11,7 +11,7 @@ import { EnumRedundancySupport } from "./enum_redundancy_support"
  * |isAbstract      |false                                             |
  */
 export interface UAServerRedundancy_Base {
-    redundancySupport: UAProperty<EnumRedundancySupport, /*z*/DataType.Int32>;
+    redundancySupport: UAProperty<EnumRedundancySupport, DataType.Int32>;
 }
 export interface UAServerRedundancy extends UAObject, UAServerRedundancy_Base {
 }

@@ -8,7 +8,6 @@ import { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_ev
  * |typedDefinition |13:ProcessParameterOutOfRangeType ns=13;i=1034    |
  * |isAbstract      |true                                              |
  */
-export interface UAProcessParameterOutOfRange_Base extends UAInterruptedEvent_Base {
-}
+export type UAProcessParameterOutOfRange_Base = UAInterruptedEvent_Base;
 export interface UAProcessParameterOutOfRange extends UAInterruptedEvent, UAProcessParameterOutOfRange_Base {
 }

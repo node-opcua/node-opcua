@@ -11,7 +11,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |PublishedVariableDataType                         |
  * | isAbstract|false                                             |
  */
-export interface DTPublishedVariable extends DTStructure  {
+export interface DTPublishedVariable extends DTStructure {
   publishedVariable: NodeId; // NodeId ns=0;i=17
   attributeId: UInt32; // UInt32 ns=0;i=288
   samplingIntervalHint: number; // Double ns=0;i=290

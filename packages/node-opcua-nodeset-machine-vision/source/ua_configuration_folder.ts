@@ -10,7 +10,6 @@ import { DTConfiguration } from "./dt_configuration"
  * |typedDefinition |4:ConfigurationFolderType ns=4;i=1011             |
  * |isAbstract      |false                                             |
  */
-export interface UAConfigurationFolder_Base extends UAFolder_Base {
-}
+export type UAConfigurationFolder_Base = UAFolder_Base;
 export interface UAConfigurationFolder extends UAFolder, UAConfigurationFolder_Base {
 }

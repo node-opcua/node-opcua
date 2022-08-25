@@ -30,7 +30,6 @@ export interface UAIWwSubUnits_$SubUnit$ extends UAObject { // Object
  * |typedDefinition |12:IWwSubUnitsType ns=12;i=7                      |
  * |isAbstract      |true                                              |
  */
-export interface UAIWwSubUnits_Base extends UABaseInterface_Base {
-}
+export type UAIWwSubUnits_Base = UABaseInterface_Base;
 export interface UAIWwSubUnits extends UABaseInterface, UAIWwSubUnits_Base {
 }

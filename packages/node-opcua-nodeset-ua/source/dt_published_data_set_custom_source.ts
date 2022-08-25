@@ -8,6 +8,6 @@ import { DTPublishedDataSetSource } from "./dt_published_data_set_source"
  * | name      |PublishedDataSetCustomSourceDataType              |
  * | isAbstract|false                                             |
  */
-export interface DTPublishedDataSetCustomSource extends DTPublishedDataSetSource  {
+export interface DTPublishedDataSetCustomSource extends DTPublishedDataSetSource {
   cyclicDataSet: boolean; // Boolean ns=0;i=1
 }

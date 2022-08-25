@@ -16,10 +16,10 @@ import { UAAnalogUnit } from "./ua_analog_unit"
  * |isAbstract      |false                                             |
  */
 export interface UAIetfBaseNetworkInterface_Base {
-    adminStatus: UABaseDataVariable<EnumInterfaceAdminStatus, /*z*/DataType.Int32>;
-    operStatus: UABaseDataVariable<EnumInterfaceOperStatus, /*z*/DataType.Int32>;
-    physAddress?: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    speed: UAAnalogUnit<UInt64, /*z*/DataType.UInt64>;
+    adminStatus: UABaseDataVariable<EnumInterfaceAdminStatus, DataType.Int32>;
+    operStatus: UABaseDataVariable<EnumInterfaceOperStatus, DataType.Int32>;
+    physAddress?: UABaseDataVariable<UAString, DataType.String>;
+    speed: UAAnalogUnit<UInt64, DataType.UInt64>;
 }
 export interface UAIetfBaseNetworkInterface extends UAObject, UAIetfBaseNetworkInterface_Base {
 }

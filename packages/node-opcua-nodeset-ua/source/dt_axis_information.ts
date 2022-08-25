@@ -12,7 +12,7 @@ import { EnumAxisScale } from "./enum_axis_scale"
  * | name      |AxisInformation                                   |
  * | isAbstract|false                                             |
  */
-export interface DTAxisInformation extends DTStructure  {
+export interface DTAxisInformation extends DTStructure {
   engineeringUnits: EUInformation; // ExtensionObject ns=0;i=887
   euRange: DTRange; // ExtensionObject ns=0;i=884
   title: LocalizedText; // LocalizedText ns=0;i=21

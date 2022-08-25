@@ -14,7 +14,6 @@ import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_dat
  * |dataType Name   |undefined ns=0;i=0                                |
  * |isAbstract      |false                                             |
  */
-export interface UAEngineeringValue_Base<T, DT extends DataType>  extends UADataItem_Base<T/*g*/, DT> {
-}
-export interface UAEngineeringValue<T, DT extends DataType> extends UADataItem<T, /*m*/DT>, UAEngineeringValue_Base<T, DT /*A*/> {
+export type UAEngineeringValue_Base<T, DT extends DataType> = UADataItem_Base<T, DT>;
+export interface UAEngineeringValue<T, DT extends DataType> extends UADataItem<T, DT>, UAEngineeringValue_Base<T, DT> {
 }

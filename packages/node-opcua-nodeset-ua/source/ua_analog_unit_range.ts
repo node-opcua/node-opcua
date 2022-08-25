@@ -13,8 +13,8 @@ import { UAAnalogItem, UAAnalogItem_Base } from "./ua_analog_item"
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UAAnalogUnitRange_Base<T, DT extends DataType>  extends UAAnalogItem_Base<T/*g*/, DT> {
-    engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+export interface UAAnalogUnitRange_Base<T, DT extends DataType>  extends UAAnalogItem_Base<T, DT> {
+    engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAAnalogUnitRange<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*m*/DT>, "engineeringUnits">, UAAnalogUnitRange_Base<T, DT /*A*/> {
+export interface UAAnalogUnitRange<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits">, UAAnalogUnitRange_Base<T, DT> {
 }

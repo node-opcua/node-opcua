@@ -12,7 +12,7 @@ import { UABaseModelChangeEvent, UABaseModelChangeEvent_Base } from "./ua_base_m
  * |isAbstract      |true                                              |
  */
 export interface UAGeneralModelChangeEvent_Base extends UABaseModelChangeEvent_Base {
-    changes: UAProperty<DTModelChangeStructure[], /*z*/DataType.ExtensionObject>;
+    changes: UAProperty<DTModelChangeStructure[], DataType.ExtensionObject>;
 }
 export interface UAGeneralModelChangeEvent extends UABaseModelChangeEvent, UAGeneralModelChangeEvent_Base {
 }

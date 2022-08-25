@@ -16,28 +16,29 @@ import { UARoleSet } from "./ua_role_set"
  * |isAbstract      |false                                             |
  */
 export interface UAServerCapabilities_Base {
-    serverProfileArray: UAProperty<UAString[], /*z*/DataType.String>;
-    localeIdArray: UAProperty<UAString[], /*z*/DataType.String>;
-    minSupportedSampleRate: UAProperty<number, /*z*/DataType.Double>;
-    maxBrowseContinuationPoints: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    maxQueryContinuationPoints: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    maxHistoryContinuationPoints: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    softwareCertificates: UAProperty<DTSignedSoftwareCertificate[], /*z*/DataType.ExtensionObject>;
-    maxArrayLength?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxStringLength?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxByteStringLength?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    serverProfileArray: UAProperty<UAString[], DataType.String>;
+    localeIdArray: UAProperty<UAString[], DataType.String>;
+    minSupportedSampleRate: UAProperty<number, DataType.Double>;
+    maxBrowseContinuationPoints: UAProperty<UInt16, DataType.UInt16>;
+    maxQueryContinuationPoints: UAProperty<UInt16, DataType.UInt16>;
+    maxHistoryContinuationPoints: UAProperty<UInt16, DataType.UInt16>;
+    softwareCertificates: UAProperty<DTSignedSoftwareCertificate[], DataType.ExtensionObject>;
+    maxArrayLength?: UAProperty<UInt32, DataType.UInt32>;
+    maxStringLength?: UAProperty<UInt32, DataType.UInt32>;
+    maxByteStringLength?: UAProperty<UInt32, DataType.UInt32>;
     operationLimits?: UAOperationLimits;
     modellingRules: UAFolder;
     aggregateFunctions: UAFolder;
+   // PlaceHolder for $VendorCapability$
     roleSet?: UARoleSet;
-    maxSessions?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxSubscriptions?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxMonitoredItems?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxSubscriptionsPerSession?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxMonitoredItemsPerSubscription?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxSelectClauseParameters?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxWhereClauseParameters?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    conformanceUnits?: UAProperty<QualifiedName[], /*z*/DataType.QualifiedName>;
+    maxSessions?: UAProperty<UInt32, DataType.UInt32>;
+    maxSubscriptions?: UAProperty<UInt32, DataType.UInt32>;
+    maxMonitoredItems?: UAProperty<UInt32, DataType.UInt32>;
+    maxSubscriptionsPerSession?: UAProperty<UInt32, DataType.UInt32>;
+    maxMonitoredItemsPerSubscription?: UAProperty<UInt32, DataType.UInt32>;
+    maxSelectClauseParameters?: UAProperty<UInt32, DataType.UInt32>;
+    maxWhereClauseParameters?: UAProperty<UInt32, DataType.UInt32>;
+    conformanceUnits?: UAProperty<QualifiedName[], DataType.QualifiedName>;
 }
 export interface UAServerCapabilities extends UAObject, UAServerCapabilities_Base {
 }

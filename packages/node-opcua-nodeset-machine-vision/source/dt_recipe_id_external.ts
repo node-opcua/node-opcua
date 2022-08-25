@@ -10,7 +10,7 @@ import { DTBinaryIdBase } from "./dt_binary_id_base"
  * | name      |4:RecipeIdExternalDataType                        |
  * | isAbstract|false                                             |
  */
-export interface DTRecipeIdExternal extends DTBinaryIdBase  {
+export interface DTRecipeIdExternal extends DTBinaryIdBase {
 /** Id is a system-wide unique name for identifying the recipe.*/
   id: UAString; // String ns=4;i=3017
 /** Represents an optional version number of the identified recipe. It is recommended to be of the format Major.minor.patch.build or a subset thereof, but the actual format is implementation defined.*/

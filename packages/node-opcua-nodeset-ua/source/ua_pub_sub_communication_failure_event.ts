@@ -12,7 +12,7 @@ import { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_stat
  * |isAbstract      |true                                              |
  */
 export interface UAPubSubCommunicationFailureEvent_Base extends UAPubSubStatusEvent_Base {
-    error: UAProperty<StatusCode, /*z*/DataType.StatusCode>;
+    error: UAProperty<StatusCode, DataType.StatusCode>;
 }
 export interface UAPubSubCommunicationFailureEvent extends UAPubSubStatusEvent, UAPubSubCommunicationFailureEvent_Base {
 }

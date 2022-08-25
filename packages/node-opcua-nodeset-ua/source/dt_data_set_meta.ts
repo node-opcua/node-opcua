@@ -15,7 +15,7 @@ import { DTConfigurationVersion } from "./dt_configuration_version"
  * | name      |DataSetMetaDataType                               |
  * | isAbstract|false                                             |
  */
-export interface DTDataSetMeta extends DTDataTypeSchemaHeader  {
+export interface DTDataSetMeta extends DTDataTypeSchemaHeader {
   namespaces: UAString[]; // String ns=0;i=12
   structureDataTypes: DTStructureDescription[]; // ExtensionObject ns=0;i=15487
   enumDataTypes: DTEnumDescription[]; // ExtensionObject ns=0;i=15488

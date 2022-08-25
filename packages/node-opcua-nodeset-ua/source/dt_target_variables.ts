@@ -9,6 +9,6 @@ import { DTFieldTarget } from "./dt_field_target"
  * | name      |TargetVariablesDataType                           |
  * | isAbstract|false                                             |
  */
-export interface DTTargetVariables extends DTSubscribedDataSet  {
+export interface DTTargetVariables extends DTSubscribedDataSet {
   targetVariables: DTFieldTarget[]; // ExtensionObject ns=0;i=14744
 }

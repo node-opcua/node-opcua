@@ -20,7 +20,7 @@ export interface UAMachineIdentification_Base extends UAMachineryItemIdentificat
      * defaultInstanceBrowseName
      * The default BrowseName for instances of the type.
      */
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     /**
      * location
      * To be used by end users to store the location of
@@ -31,13 +31,13 @@ export interface UAMachineIdentification_Base extends UAMachineryItemIdentificat
      * strings with a length of 60 Unicode characters
      * into that field.
      */
-    location?: UAProperty<UAString, /*z*/DataType.String>;
+    location?: UAProperty<UAString, DataType.String>;
     /**
      * productInstanceUri
      * A globally unique resource identifier provided by
      * the manufacturer of the machine
      */
-    productInstanceUri: UAProperty<UAString, /*z*/DataType.String>;
+    productInstanceUri: UAProperty<UAString, DataType.String>;
 }
 export interface UAMachineIdentification extends Omit<UAMachineryItemIdentification, "productInstanceUri">, UAMachineIdentification_Base {
 }

@@ -11,13 +11,13 @@ export interface UAOpticalReaderDevice_runtimeParameters extends UAAutoIdDevice_
        * matchCode
        * Target value for 2D or OCR decoding.
        */
-      matchCode?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+      matchCode?: UABaseDataVariable<UAString, DataType.String>;
       /**
        * templateName
        * Activate template which defines a specific
        * identification task.
        */
-      templateName?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+      templateName?: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
  * |                |                                                  |

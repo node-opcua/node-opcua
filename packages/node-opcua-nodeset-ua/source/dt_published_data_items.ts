@@ -9,6 +9,6 @@ import { DTPublishedVariable } from "./dt_published_variable"
  * | name      |PublishedDataItemsDataType                        |
  * | isAbstract|false                                             |
  */
-export interface DTPublishedDataItems extends DTPublishedDataSetSource  {
+export interface DTPublishedDataItems extends DTPublishedDataSetSource {
   publishedData: DTPublishedVariable[]; // ExtensionObject ns=0;i=14273
 }

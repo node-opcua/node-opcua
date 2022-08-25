@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |Annotation                                        |
  * | isAbstract|false                                             |
  */
-export interface DTAnnotation extends DTStructure  {
+export interface DTAnnotation extends DTStructure {
   message: UAString; // String ns=0;i=12
   userName: UAString; // String ns=0;i=12
   annotationTime: Date; // DateTime ns=0;i=294

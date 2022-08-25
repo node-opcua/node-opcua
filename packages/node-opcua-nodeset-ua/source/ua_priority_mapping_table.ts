@@ -12,7 +12,7 @@ import { DTArgument } from "./dt_argument"
  * |isAbstract      |false                                             |
  */
 export interface UAPriorityMappingTable_Base {
-    priorityMapppingEntries: UAProperty<DTPriorityMappingEntry[], /*z*/DataType.ExtensionObject>;
+    priorityMapppingEntries: UAProperty<DTPriorityMappingEntry[], DataType.ExtensionObject>;
     addPriorityMappingEntry?: UAMethod;
     deletePriorityMappingEntry?: UAMethod;
 }

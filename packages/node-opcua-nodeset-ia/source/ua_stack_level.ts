@@ -22,7 +22,7 @@ export interface UAStackLevel_Base {
      * Indicates in what way the percentual value is
      * displayed with the stacklight.
      */
-    displayMode: UABaseDataVariable<EnumLevelDisplayMode, /*z*/DataType.Int32>;
+    displayMode: UABaseDataVariable<EnumLevelDisplayMode, DataType.Int32>;
     /**
      * levelPercent
      * Shows the percentual value the stacklight is
@@ -33,7 +33,7 @@ export interface UAStackLevel_Base {
      * value is interpreted as 0 percent, the highest is
      * interpreted as 100 percent.
      */
-    levelPercent: UAAnalogItem<number, /*z*/DataType.Float>;
+    levelPercent: UAAnalogItem<number, DataType.Float>;
 }
 export interface UAStackLevel extends UAObject, UAStackLevel_Base {
 }

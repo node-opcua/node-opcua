@@ -7,64 +7,64 @@ import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_selectExecutionCycle extends Omit<UAInitialState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_waitForCalibrationTrigger extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_extractCalibrationSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_prepareCalibrationSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_analyseCalibrationSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_waitForValidationTrigger extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_extractValidationSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_prepareValidationSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_analyseValidationSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_waitForSampleTrigger extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_extractSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_prepareSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_analyseSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_waitForDiagnosticTrigger extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_diagnostic extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_waitForCleaningTrigger extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_cleaning extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_publishResults extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_ejectGrabSample extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_cleanupSamplingSystem extends Omit<UAState, "stateNumber"> { // Object
-      stateNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+      stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 /**
  * |                |                                                  |

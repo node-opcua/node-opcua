@@ -12,7 +12,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |FieldMetaData                                     |
  * | isAbstract|false                                             |
  */
-export interface DTFieldMetaData extends DTStructure  {
+export interface DTFieldMetaData extends DTStructure {
   name: UAString; // String ns=0;i=12
   description: LocalizedText; // LocalizedText ns=0;i=21
   fieldFlags: UInt16; // UInt16 ns=0;i=15904

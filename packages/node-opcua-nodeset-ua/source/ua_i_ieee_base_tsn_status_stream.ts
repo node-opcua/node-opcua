@@ -15,10 +15,10 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeBaseTsnStatusStream_Base extends UABaseInterface_Base {
-    talkerStatus?: UABaseDataVariable<EnumTsnTalkerStatus, /*z*/DataType.Int32>;
-    listenerStatus?: UABaseDataVariable<EnumTsnListenerStatus, /*z*/DataType.Int32>;
-    failureCode: UABaseDataVariable<EnumTsnFailureCode, /*z*/DataType.Int32>;
-    failureSystemIdentifier: UABaseDataVariable<Byte[], /*z*/DataType.Byte>;
+    talkerStatus?: UABaseDataVariable<EnumTsnTalkerStatus, DataType.Int32>;
+    listenerStatus?: UABaseDataVariable<EnumTsnListenerStatus, DataType.Int32>;
+    failureCode: UABaseDataVariable<EnumTsnFailureCode, DataType.Int32>;
+    failureSystemIdentifier: UABaseDataVariable<Byte[], DataType.Byte>;
 }
 export interface UAIIeeeBaseTsnStatusStream extends UABaseInterface, UAIIeeeBaseTsnStatusStream_Base {
 }

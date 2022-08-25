@@ -11,7 +11,7 @@ import { EnumNodeClass } from "./enum_node_class"
  * | name      |AddNodesItem                                      |
  * | isAbstract|false                                             |
  */
-export interface DTAddNodesItem extends DTStructure  {
+export interface DTAddNodesItem extends DTStructure {
   parentNodeId: ExpandedNodeId; // ExpandedNodeId ns=0;i=18
   referenceTypeId: NodeId; // NodeId ns=0;i=17
   requestedNewNodeId: ExpandedNodeId; // ExpandedNodeId ns=0;i=18

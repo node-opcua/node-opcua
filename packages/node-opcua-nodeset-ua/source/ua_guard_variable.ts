@@ -12,7 +12,6 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |LocalizedText ns=0;i=21                           |
  * |isAbstract      |false                                             |
  */
-export interface UAGuardVariable_Base<T extends LocalizedText/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.LocalizedText> {
-}
-export interface UAGuardVariable<T extends LocalizedText/*j*/> extends UABaseDataVariable<T, /*n*/DataType.LocalizedText>, UAGuardVariable_Base<T /*B*/> {
+export type UAGuardVariable_Base<T extends LocalizedText> = UABaseDataVariable_Base<T, DataType.LocalizedText>;
+export interface UAGuardVariable<T extends LocalizedText> extends UABaseDataVariable<T, DataType.LocalizedText>, UAGuardVariable_Base<T> {
 }

@@ -19,126 +19,126 @@ export interface UACncSpindleList_$CncSpindle$ extends Omit<UACncSpindle, "actCh
        * that administrates this drive to expose drive’s
        * channel affiliation.
        */
-      actChannel: UADataItem<NodeId, /*z*/DataType.NodeId>;
+      actChannel: UADataItem<NodeId, DataType.NodeId>;
       /**
        * actFeedrate
        * Feedrate actual value.
        */
-      actFeedrate: UAAnalogItem<number, /*z*/DataType.Double>;
+      actFeedrate: UAAnalogItem<number, DataType.Double>;
       /**
        * actGear
        * Gear stage actual value.
        */
-      actGear: UADataItem<UInt32, /*z*/DataType.UInt32>;
+      actGear: UADataItem<UInt32, DataType.UInt32>;
       /**
        * actGFunctions
        * Active G function.
        */
-      actGFunctions: UADataItem<UInt32[], /*z*/DataType.UInt32>;
+      actGFunctions: UADataItem<UInt32[], DataType.UInt32>;
       /**
        * actJogIncrement
        * Active JOG increment.
        */
-      actJogIncrement: UAAnalogItem<number, /*z*/DataType.Double>;
+      actJogIncrement: UAAnalogItem<number, DataType.Double>;
       /**
        * actLoad
        * Drive load actual value.
        */
-      actLoad: UAAnalogItem<number, /*z*/DataType.Double>;
+      actLoad: UAAnalogItem<number, DataType.Double>;
       /**
        * actMainProgramFile
        * Path of active CNC main program.
        */
-      actMainProgramFile: UADataItem<UAString, /*z*/DataType.String>;
+      actMainProgramFile: UADataItem<UAString, DataType.String>;
       /**
        * actMainProgramFileOffset
        * File offset of active CNC main program file.
        */
-      actMainProgramFileOffset: UADataItem<UInt32, /*z*/DataType.UInt32>;
+      actMainProgramFileOffset: UADataItem<UInt32, DataType.UInt32>;
       /**
        * actMainProgramLine
        * Line number of active CNC main program.
        */
-      actMainProgramLine: UADataItem<UAString, /*z*/DataType.String>;
+      actMainProgramLine: UADataItem<UAString, DataType.String>;
       /**
        * actMainProgramName
        * Name of active CNC main program.
        */
-      actMainProgramName: UADataItem<UAString, /*z*/DataType.String>;
+      actMainProgramName: UADataItem<UAString, DataType.String>;
       /**
        * actMFunctions
        * Active M function.
        */
-      actMFunctions: UADataItem<UInt32[], /*z*/DataType.UInt32>;
+      actMFunctions: UADataItem<UInt32[], DataType.UInt32>;
       /**
        * actModalOffsetFunction
        * active zero offset function
        */
-      actModalOffsetFunction: UADataItem<UInt32, /*z*/DataType.UInt32>;
-      actOperationMode: UADataItem<EnumCncOperationMode, /*z*/DataType.Int32>;
+      actModalOffsetFunction: UADataItem<UInt32, DataType.UInt32>;
+      actOperationMode: UADataItem<EnumCncOperationMode, DataType.Int32>;
       /**
        * actOverride
        * Override actual value.
        */
-      actOverride: UAAnalogItem<number, /*z*/DataType.Double>;
+      actOverride: UAAnalogItem<number, DataType.Double>;
       /**
        * actPower
        * Drive power actual value.
        */
-      actPower: UAAnalogItem<number, /*z*/DataType.Double>;
+      actPower: UAAnalogItem<number, DataType.Double>;
       /**
        * actProgramBlock
        * previous, actual and subsequent CNC program lines
        */
-      actProgramBlock: UADataItem<UAString[], /*z*/DataType.String>;
+      actProgramBlock: UADataItem<UAString[], DataType.String>;
       /**
        * actProgramFile
        * Path of active CNC program file (main or
        * subprogram).
        */
-      actProgramFile: UADataItem<UAString, /*z*/DataType.String>;
+      actProgramFile: UADataItem<UAString, DataType.String>;
       /**
        * actProgramFileOffset
        * File offset of active CNC program file (main or
        * subprogram).
        */
-      actProgramFileOffset: UADataItem<UInt32, /*z*/DataType.UInt32>;
+      actProgramFileOffset: UADataItem<UInt32, DataType.UInt32>;
       /**
        * actProgramLine
        * Line number of active CNC program (main or
        * subprogram).
        */
-      actProgramLine: UADataItem<UAString, /*z*/DataType.String>;
+      actProgramLine: UADataItem<UAString, DataType.String>;
       /**
        * actProgramName
        * Name of active CNC program (main or subprogram).
        */
-      actProgramName: UADataItem<UAString, /*z*/DataType.String>;
+      actProgramName: UADataItem<UAString, DataType.String>;
       /**
        * actProgramStatus
        * Active channel program status
        */
-      actProgramStatus: UADataItem<EnumCncChannelProgramStatus, /*z*/DataType.Int32>;
+      actProgramStatus: UADataItem<EnumCncChannelProgramStatus, DataType.Int32>;
       /**
        * actSpeed
        * Speed actual value.
        */
-      actSpeed: UACncSpindle_actSpeed<number, /*z*/DataType.Double>;
+      actSpeed: UACncSpindle_actSpeed<number, DataType.Double>;
       /**
        * actStatus
        * Actual spindle state.
        */
-      actStatus: UADataItem<EnumCncSpindleStatus, /*z*/DataType.Int32>;
+      actStatus: UADataItem<EnumCncSpindleStatus, DataType.Int32>;
       /**
        * actTorque
        * Drive torque actual value.
        */
-      actTorque: UAAnalogItem<number, /*z*/DataType.Double>;
+      actTorque: UAAnalogItem<number, DataType.Double>;
       /**
        * actTurnDirection
        * Turn direction actual value.
        */
-      actTurnDirection: UADataItem<EnumCncSpindleTurnDirection, /*z*/DataType.Int32>;
+      actTurnDirection: UADataItem<EnumCncSpindleTurnDirection, DataType.Int32>;
       /**
        * anglePos
        * Spindle angular position values in case of
@@ -151,60 +151,60 @@ export interface UACncSpindleList_$CncSpindle$ extends Omit<UACncSpindle, "actCh
        * blockMode
        * block mode active
        */
-      blockMode: UADataItem<boolean, /*z*/DataType.Boolean>;
+      blockMode: UADataItem<boolean, DataType.Boolean>;
       /**
        * cmdFeedrate
        * feedrate setpoint value
        */
-      cmdFeedrate: UAAnalogItem<number, /*z*/DataType.Double>;
+      cmdFeedrate: UAAnalogItem<number, DataType.Double>;
       /**
        * cmdGear
        * Gear stage setpoint value.
        */
-      cmdGear: UADataItem<UInt32, /*z*/DataType.UInt32>;
-      cmdOperationMode: UADataItem<EnumCncOperationMode, /*z*/DataType.Int32>;
+      cmdGear: UADataItem<UInt32, DataType.UInt32>;
+      cmdOperationMode: UADataItem<EnumCncOperationMode, DataType.Int32>;
       /**
        * cmdOverride
        * Override setpoint value.
        */
-      cmdOverride: UAAnalogItem<number, /*z*/DataType.Double>;
+      cmdOverride: UAAnalogItem<number, DataType.Double>;
       /**
        * cmdSpeed
        * Speed setpoint value.
        */
-      cmdSpeed: UACncSpindle_cmdSpeed<number, /*z*/DataType.Double>;
+      cmdSpeed: UACncSpindle_cmdSpeed<number, DataType.Double>;
       /**
        * cmdTorque
        * Drive torque setpoint value.
        */
-      cmdTorque: UAAnalogItem<number, /*z*/DataType.Double>;
+      cmdTorque: UAAnalogItem<number, DataType.Double>;
       /**
        * dryRunFeed
        * test feedrate
        */
-      dryRunFeed: UAAnalogItem<number, /*z*/DataType.Double>;
+      dryRunFeed: UAAnalogItem<number, DataType.Double>;
       /**
        * feedHold
        * feed hold active
        */
-      feedHold: UADataItem<boolean, /*z*/DataType.Boolean>;
+      feedHold: UADataItem<boolean, DataType.Boolean>;
       /**
        * isInactive
        * Drive inactive state (true in case of inactive
        * drive, else false).
        */
-      isInactive: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isInactive: UADataItem<boolean, DataType.Boolean>;
       /**
        * isVirtual
        * Virtual axis (no hardware present; true in case
        * of virtual axis, else fals).
        */
-      isVirtual: UADataItem<boolean, /*z*/DataType.Boolean>;
+      isVirtual: UADataItem<boolean, DataType.Boolean>;
       /**
        * toolId
        * active tool ID
        */
-      toolId: UADataItem<UInt32, /*z*/DataType.UInt32>;
+      toolId: UADataItem<UInt32, DataType.UInt32>;
 }
 /**
  * List of CNC spindle objects.
@@ -217,6 +217,7 @@ export interface UACncSpindleList_$CncSpindle$ extends Omit<UACncSpindle, "actCh
  * |isAbstract      |false                                             |
  */
 export interface UACncSpindleList_Base {
+   // PlaceHolder for $CncSpindle$
 }
 export interface UACncSpindleList extends UAObject, UACncSpindleList_Base {
 }

@@ -14,36 +14,36 @@ export interface UAController_parameterSet extends UAObject { // Object
        * The total accumulated time the controller was
        * powered on.
        */
-      totalPowerOnTime?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+      totalPowerOnTime?: UABaseDataVariable<UAString, DataType.String>;
       /**
        * startUpTime
        * The date and time of the last start-up of the
        * controller.
        */
-      startUpTime?: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
+      startUpTime?: UABaseDataVariable<Date, DataType.DateTime>;
       /**
        * upsState
        * The vendor specific status of an integrated UPS
        * or accumulator system.
        */
-      upsState?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+      upsState?: UABaseDataVariable<UAString, DataType.String>;
       /**
        * totalEnergyConsumption
        * The total accumulated energy consumed by the
        * motion devices related with this controller
        * instance.
        */
-      totalEnergyConsumption?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      totalEnergyConsumption?: UAAnalogUnit<number, DataType.Double>;
       /**
        * cabinetFanSpeed
        * The speed of the cabinet fan.
        */
-      cabinetFanSpeed?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      cabinetFanSpeed?: UAAnalogUnit<number, DataType.Double>;
       /**
        * cpUFanSpeed
        * The speed of the CPU fan.
        */
-      cpUFanSpeed?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      cpUFanSpeed?: UAAnalogUnit<number, DataType.Double>;
       /**
        * inputVoltage
        * The input voltage of the controller which can be
@@ -51,13 +51,13 @@ export interface UAController_parameterSet extends UAObject { // Object
        * or DC supply the optional property Definition of
        * the base type DataItemType shall be used.
        */
-      inputVoltage?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      inputVoltage?: UAAnalogUnit<number, DataType.Double>;
       /**
        * temperature
        * The controller temperature given by a temperature
        * sensor inside of the controller.
        */
-      temperature?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      temperature?: UAAnalogUnit<number, DataType.Double>;
 }
 /**
  * The ControllerType describes the control unit of
@@ -77,10 +77,10 @@ export interface UAController_Base extends UAComponent_Base {
      * Flat list of Parameters
      */
     parameterSet?: UAController_parameterSet;
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    model: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    productCode: UAProperty<UAString, /*z*/DataType.String>;
-    serialNumber: UAProperty<UAString, /*z*/DataType.String>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
+    productCode: UAProperty<UAString, DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
     /**
      * currentUser
      * The given name of the device.

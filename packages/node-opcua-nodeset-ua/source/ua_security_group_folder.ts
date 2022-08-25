@@ -13,11 +13,13 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UASecurityGroupFolder_Base extends UAFolder_Base {
+   // PlaceHolder for $SecurityGroupName$
     addSecurityGroup: UAMethod;
     removeSecurityGroup: UAMethod;
     addSecurityGroupFolder?: UAMethod;
     removeSecurityGroupFolder?: UAMethod;
-    supportedSecurityPolicyUris?: UAProperty<UAString[], /*z*/DataType.String>;
+    supportedSecurityPolicyUris?: UAProperty<UAString[], DataType.String>;
+   // PlaceHolder for $SecurityGroupFolderName$
 }
 export interface UASecurityGroupFolder extends UAFolder, UASecurityGroupFolder_Base {
 }

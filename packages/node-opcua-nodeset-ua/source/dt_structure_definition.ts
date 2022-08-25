@@ -11,7 +11,7 @@ import { DTStructureField } from "./dt_structure_field"
  * | name      |StructureDefinition                               |
  * | isAbstract|false                                             |
  */
-export interface DTStructureDefinition extends DTDataTypeDefinition  {
+export interface DTStructureDefinition extends DTDataTypeDefinition {
   defaultEncodingId: NodeId; // NodeId ns=0;i=17
   baseDataType: NodeId; // NodeId ns=0;i=17
   structureType: EnumStructure; // Int32 ns=0;i=98

@@ -12,8 +12,8 @@ import { UAProductionProgramStateMachine } from "./ua_production_program_state_m
  * |isAbstract      |false                                             |
  */
 export interface UAProductionProgram_Base {
-    name: UAProperty<UAString, /*z*/DataType.String>;
-    numberInList: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    name: UAProperty<UAString, DataType.String>;
+    numberInList: UAProperty<UInt16, DataType.UInt16>;
     state?: UAProductionProgramStateMachine;
 }
 export interface UAProductionProgram extends UAObject, UAProductionProgram_Base {

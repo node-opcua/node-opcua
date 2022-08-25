@@ -9,6 +9,6 @@ import { DTFilterOperand } from "./dt_filter_operand"
  * | name      |ElementOperand                                    |
  * | isAbstract|false                                             |
  */
-export interface DTElementOperand extends DTFilterOperand  {
+export interface DTElementOperand extends DTFilterOperand {
   index: UInt32; // UInt32 ns=0;i=7
 }

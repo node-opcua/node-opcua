@@ -12,7 +12,7 @@ import { DTBuildInfo } from "./dt_build_info"
  * | name      |ServerStatusDataType                              |
  * | isAbstract|false                                             |
  */
-export interface DTServerStatus extends DTStructure  {
+export interface DTServerStatus extends DTStructure {
   startTime: Date; // DateTime ns=0;i=294
   currentTime: Date; // DateTime ns=0;i=294
   state: EnumServerState; // Int32 ns=0;i=852

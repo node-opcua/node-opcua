@@ -9,6 +9,7 @@ import { UAObject } from "node-opcua-address-space-base"
  * |isAbstract      |false                                             |
  */
 export interface UANamespaces_Base {
+   // PlaceHolder for $NamespaceIdentifier$
 }
 export interface UANamespaces extends UAObject, UANamespaces_Base {
 }

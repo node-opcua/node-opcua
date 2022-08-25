@@ -13,8 +13,8 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |dataType Name   |undefined[] ns=0;i=0                              |
  * |isAbstract      |false                                             |
  */
-export interface UAYArrayItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T/*g*/, DT> {
-    xAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
+export interface UAYArrayItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T, DT> {
+    xAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
 }
-export interface UAYArrayItem<T, DT extends DataType> extends UAArrayItem<T, /*m*/DT>, UAYArrayItem_Base<T, DT /*A*/> {
+export interface UAYArrayItem<T, DT extends DataType> extends UAArrayItem<T, DT>, UAYArrayItem_Base<T, DT> {
 }

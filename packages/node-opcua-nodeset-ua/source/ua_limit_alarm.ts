@@ -12,22 +12,22 @@ import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
  * |isAbstract      |false                                             |
  */
 export interface UALimitAlarm_Base extends UAAlarmCondition_Base {
-    highHighLimit?: UAProperty<number, /*z*/DataType.Double>;
-    highLimit?: UAProperty<number, /*z*/DataType.Double>;
-    lowLimit?: UAProperty<number, /*z*/DataType.Double>;
-    lowLowLimit?: UAProperty<number, /*z*/DataType.Double>;
-    baseHighHighLimit?: UAProperty<number, /*z*/DataType.Double>;
-    baseHighLimit?: UAProperty<number, /*z*/DataType.Double>;
-    baseLowLimit?: UAProperty<number, /*z*/DataType.Double>;
-    baseLowLowLimit?: UAProperty<number, /*z*/DataType.Double>;
-    severityHighHigh?: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    severityHigh?: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    severityLow?: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    severityLowLow?: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    highHighDeadband?: UAProperty<number, /*z*/DataType.Double>;
-    highDeadband?: UAProperty<number, /*z*/DataType.Double>;
-    lowDeadband?: UAProperty<number, /*z*/DataType.Double>;
-    lowLowDeadband?: UAProperty<number, /*z*/DataType.Double>;
+    highHighLimit?: UAProperty<number, DataType.Double>;
+    highLimit?: UAProperty<number, DataType.Double>;
+    lowLimit?: UAProperty<number, DataType.Double>;
+    lowLowLimit?: UAProperty<number, DataType.Double>;
+    baseHighHighLimit?: UAProperty<number, DataType.Double>;
+    baseHighLimit?: UAProperty<number, DataType.Double>;
+    baseLowLimit?: UAProperty<number, DataType.Double>;
+    baseLowLowLimit?: UAProperty<number, DataType.Double>;
+    severityHighHigh?: UAProperty<UInt16, DataType.UInt16>;
+    severityHigh?: UAProperty<UInt16, DataType.UInt16>;
+    severityLow?: UAProperty<UInt16, DataType.UInt16>;
+    severityLowLow?: UAProperty<UInt16, DataType.UInt16>;
+    highHighDeadband?: UAProperty<number, DataType.Double>;
+    highDeadband?: UAProperty<number, DataType.Double>;
+    lowDeadband?: UAProperty<number, DataType.Double>;
+    lowLowDeadband?: UAProperty<number, DataType.Double>;
 }
 export interface UALimitAlarm extends UAAlarmCondition, UALimitAlarm_Base {
 }

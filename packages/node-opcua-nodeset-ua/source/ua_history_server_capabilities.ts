@@ -12,22 +12,22 @@ import { UAFolder } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UAHistoryServerCapabilities_Base {
-    accessHistoryDataCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    accessHistoryEventsCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    maxReturnDataValues: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxReturnEventValues: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    insertDataCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    replaceDataCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    updateDataCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    deleteRawCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    deleteAtTimeCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    insertEventCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    replaceEventCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    updateEventCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    deleteEventCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
-    insertAnnotationCapability: UAProperty<boolean, /*z*/DataType.Boolean>;
+    accessHistoryDataCapability: UAProperty<boolean, DataType.Boolean>;
+    accessHistoryEventsCapability: UAProperty<boolean, DataType.Boolean>;
+    maxReturnDataValues: UAProperty<UInt32, DataType.UInt32>;
+    maxReturnEventValues: UAProperty<UInt32, DataType.UInt32>;
+    insertDataCapability: UAProperty<boolean, DataType.Boolean>;
+    replaceDataCapability: UAProperty<boolean, DataType.Boolean>;
+    updateDataCapability: UAProperty<boolean, DataType.Boolean>;
+    deleteRawCapability: UAProperty<boolean, DataType.Boolean>;
+    deleteAtTimeCapability: UAProperty<boolean, DataType.Boolean>;
+    insertEventCapability: UAProperty<boolean, DataType.Boolean>;
+    replaceEventCapability: UAProperty<boolean, DataType.Boolean>;
+    updateEventCapability: UAProperty<boolean, DataType.Boolean>;
+    deleteEventCapability: UAProperty<boolean, DataType.Boolean>;
+    insertAnnotationCapability: UAProperty<boolean, DataType.Boolean>;
     aggregateFunctions: UAFolder;
-    serverTimestampSupported: UAProperty<boolean, /*z*/DataType.Boolean>;
+    serverTimestampSupported: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAHistoryServerCapabilities extends UAObject, UAHistoryServerCapabilities_Base {
 }

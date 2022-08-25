@@ -9,7 +9,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |DeleteReferencesItem                              |
  * | isAbstract|false                                             |
  */
-export interface DTDeleteReferencesItem extends DTStructure  {
+export interface DTDeleteReferencesItem extends DTStructure {
   sourceNodeId: NodeId; // NodeId ns=0;i=17
   referenceTypeId: NodeId; // NodeId ns=0;i=17
   isForward: boolean; // Boolean ns=0;i=1

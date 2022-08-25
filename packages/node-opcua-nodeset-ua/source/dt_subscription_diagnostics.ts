@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |SubscriptionDiagnosticsDataType                   |
  * | isAbstract|false                                             |
  */
-export interface DTSubscriptionDiagnostics extends DTStructure  {
+export interface DTSubscriptionDiagnostics extends DTStructure {
   sessionId: NodeId; // NodeId ns=0;i=17
   subscriptionId: UInt32; // UInt32 ns=0;i=7
   priority: Byte; // Byte ns=0;i=3

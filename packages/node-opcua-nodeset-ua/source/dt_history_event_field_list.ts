@@ -8,6 +8,6 @@ import { DTStructure } from "./dt_structure"
  * | name      |HistoryEventFieldList                             |
  * | isAbstract|false                                             |
  */
-export interface DTHistoryEventFieldList extends DTStructure  {
+export interface DTHistoryEventFieldList extends DTStructure {
   eventFields: undefined[]; // Null ns=0;i=0
 }

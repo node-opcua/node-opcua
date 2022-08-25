@@ -13,9 +13,9 @@ import { EnumCoordinateSystem } from "./enum_coordinate_system"
  * |isAbstract      |false                                             |
  */
 export interface UAConfigurationRules_Base {
-    allowedEngineeringUnits?: UAProperty<EUInformation[], /*z*/DataType.ExtensionObject>;
-    allowedFileFormats?: UAProperty<DTFileFormat[], /*z*/DataType.ExtensionObject>;
-    machineProcessingCoordinateSystem: UAProperty<EnumCoordinateSystem, /*z*/DataType.Int32>;
+    allowedEngineeringUnits?: UAProperty<EUInformation[], DataType.ExtensionObject>;
+    allowedFileFormats?: UAProperty<DTFileFormat[], DataType.ExtensionObject>;
+    machineProcessingCoordinateSystem: UAProperty<EnumCoordinateSystem, DataType.Int32>;
 }
 export interface UAConfigurationRules extends UAObject, UAConfigurationRules_Base {
 }

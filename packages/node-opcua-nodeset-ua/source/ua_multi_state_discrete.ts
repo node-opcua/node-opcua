@@ -13,8 +13,8 @@ import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
  * |dataType Name   |Variant ns=0;i=28                                 |
  * |isAbstract      |false                                             |
  */
-export interface UAMultiStateDiscrete_Base<T, DT extends DataType>  extends UADiscreteItem_Base<T/*g*/, DT> {
-    enumStrings: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
+export interface UAMultiStateDiscrete_Base<T, DT extends DataType>  extends UADiscreteItem_Base<T, DT> {
+    enumStrings: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
-export interface UAMultiStateDiscrete<T, DT extends DataType> extends UADiscreteItem<T, /*m*/DT>, UAMultiStateDiscrete_Base<T, DT /*A*/> {
+export interface UAMultiStateDiscrete<T, DT extends DataType> extends UADiscreteItem<T, DT>, UAMultiStateDiscrete_Base<T, DT> {
 }

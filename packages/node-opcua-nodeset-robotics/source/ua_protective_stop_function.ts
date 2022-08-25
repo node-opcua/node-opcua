@@ -23,7 +23,7 @@ export interface UAProtectiveStopFunction_Base {
      * provides a manufacturer-specific protective stop
      * function identifier within the safety system.
      */
-    name: UAProperty<UAString, /*z*/DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
     /**
      * enabled
      * –    The Enabled variable is TRUE if this
@@ -38,7 +38,7 @@ export interface UAProtectiveStopFunction_Base {
      * enabled in manual modes and disabled in automatic
      * modes.
      */
-    enabled: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    enabled: UABaseDataVariable<boolean, DataType.Boolean>;
     /**
      * active
      * –    The Active variable is TRUE if this
@@ -46,7 +46,7 @@ export interface UAProtectiveStopFunction_Base {
      * i.e. that a stop is initiated, FALSE otherwise.
      * If Enabled is FALSE then Active shall be FALSE.
      */
-    active: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    active: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UAProtectiveStopFunction extends UAObject, UAProtectiveStopFunction_Base {
 }

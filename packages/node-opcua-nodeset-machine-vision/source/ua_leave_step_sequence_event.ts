@@ -8,7 +8,6 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * |typedDefinition |4:LeaveStepSequenceEventType ns=4;i=1029          |
  * |isAbstract      |false                                             |
  */
-export interface UALeaveStepSequenceEvent_Base extends UABaseEvent_Base {
-}
+export type UALeaveStepSequenceEvent_Base = UABaseEvent_Base;
 export interface UALeaveStepSequenceEvent extends UABaseEvent, UALeaveStepSequenceEvent_Base {
 }

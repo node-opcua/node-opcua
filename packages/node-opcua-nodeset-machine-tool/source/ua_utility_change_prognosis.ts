@@ -12,7 +12,7 @@ import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
  * |isAbstract      |false                                             |
  */
 export interface UAUtilityChangePrognosis_Base extends UAPrognosis_Base {
-    utilityName: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    utilityName: UABaseDataVariable<UAString, DataType.String>;
 }
 export interface UAUtilityChangePrognosis extends UAPrognosis, UAUtilityChangePrognosis_Base {
 }

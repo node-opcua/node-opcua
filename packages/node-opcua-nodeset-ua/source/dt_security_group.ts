@@ -11,7 +11,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |SecurityGroupDataType                             |
  * | isAbstract|false                                             |
  */
-export interface DTSecurityGroup extends DTStructure  {
+export interface DTSecurityGroup extends DTStructure {
   name: UAString; // String ns=0;i=12
   securityGroupFolder: UAString[]; // String ns=0;i=12
   keyLifetime: number; // Double ns=0;i=290

@@ -12,7 +12,7 @@ import { DTUserTokenPolicy } from "./dt_user_token_policy"
  * | name      |EndpointDescription                               |
  * | isAbstract|false                                             |
  */
-export interface DTEndpointDescription extends DTStructure  {
+export interface DTEndpointDescription extends DTStructure {
   endpointUrl: UAString; // String ns=0;i=12
   server: DTApplicationDescription; // ExtensionObject ns=0;i=308
   serverCertificate: Buffer; // ByteString ns=0;i=311

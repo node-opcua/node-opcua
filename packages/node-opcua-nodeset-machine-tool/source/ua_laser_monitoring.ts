@@ -12,8 +12,8 @@ import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_work
  * |isAbstract      |false                                             |
  */
 export interface UALaserMonitoring_Base extends UAWorkingUnitMonitoring_Base {
-    controllerIsOn: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    laserState: UABaseDataVariable<EnumLaserState, /*z*/DataType.Int32>;
+    controllerIsOn: UABaseDataVariable<boolean, DataType.Boolean>;
+    laserState: UABaseDataVariable<EnumLaserState, DataType.Int32>;
 }
 export interface UALaserMonitoring extends UAWorkingUnitMonitoring, UALaserMonitoring_Base {
 }

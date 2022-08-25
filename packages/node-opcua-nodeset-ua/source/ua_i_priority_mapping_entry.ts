@@ -12,10 +12,10 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIPriorityMappingEntry_Base extends UABaseInterface_Base {
-    mappingUri: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    priorityLabel: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    priorityValue_PCP?: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
-    priorityValue_DSCP?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    mappingUri: UABaseDataVariable<UAString, DataType.String>;
+    priorityLabel: UABaseDataVariable<UAString, DataType.String>;
+    priorityValue_PCP?: UABaseDataVariable<Byte, DataType.Byte>;
+    priorityValue_DSCP?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 export interface UAIPriorityMappingEntry extends UABaseInterface, UAIPriorityMappingEntry_Base {
 }

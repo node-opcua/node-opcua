@@ -10,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |AliasNameDataType                                 |
  * | isAbstract|false                                             |
  */
-export interface DTAliasName extends DTStructure  {
+export interface DTAliasName extends DTStructure {
   aliasName: QualifiedName; // QualifiedName ns=0;i=20
   referencedNodes: ExpandedNodeId[]; // ExpandedNodeId ns=0;i=18
 }

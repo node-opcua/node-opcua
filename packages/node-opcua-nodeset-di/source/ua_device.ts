@@ -23,52 +23,53 @@ export interface UADevice_Base extends UAComponent_Base {
      * manufacturer
      * Name of the company that manufactured the device
      */
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    manufacturerUri?: UAProperty<UAString, /*z*/DataType.String>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    manufacturerUri?: UAProperty<UAString, DataType.String>;
     /**
      * model
      * Model name of the device
      */
-    model: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * hardwareRevision
      * Revision level of the hardware of the device
      */
-    hardwareRevision: UAProperty<UAString, /*z*/DataType.String>;
+    hardwareRevision: UAProperty<UAString, DataType.String>;
     /**
      * softwareRevision
      * Revision level of the software/firmware of the
      * device
      */
-    softwareRevision: UAProperty<UAString, /*z*/DataType.String>;
+    softwareRevision: UAProperty<UAString, DataType.String>;
     /**
      * deviceRevision
      * Overall revision level of the device
      */
-    deviceRevision: UAProperty<UAString, /*z*/DataType.String>;
-    productCode?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceRevision: UAProperty<UAString, DataType.String>;
+    productCode?: UAProperty<UAString, DataType.String>;
     /**
      * deviceManual
      * Address (pathname in the file system or a URL |
      * Web address) of user manual for the device
      */
-    deviceManual: UAProperty<UAString, /*z*/DataType.String>;
-    deviceClass?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceManual: UAProperty<UAString, DataType.String>;
+    deviceClass?: UAProperty<UAString, DataType.String>;
     /**
      * serialNumber
      * Identifier that uniquely identifies, within a
      * manufacturer, a device instance
      */
-    serialNumber: UAProperty<UAString, /*z*/DataType.String>;
-    productInstanceUri?: UAProperty<UAString, /*z*/DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
+    productInstanceUri?: UAProperty<UAString, DataType.String>;
     /**
      * revisionCounter
      * An incremental counter indicating the number of
      * times the static data within the Device has been
      * modified
      */
-    revisionCounter: UAProperty<Int32, /*z*/DataType.Int32>;
-    deviceHealth?: UABaseDataVariable<EnumDeviceHealth, /*z*/DataType.Int32>;
+    revisionCounter: UAProperty<Int32, DataType.Int32>;
+   // PlaceHolder for $cPIdentifier$
+    deviceHealth?: UABaseDataVariable<EnumDeviceHealth, DataType.Int32>;
     deviceHealthAlarms?: UAFolder;
     /**
      * deviceTypeImage

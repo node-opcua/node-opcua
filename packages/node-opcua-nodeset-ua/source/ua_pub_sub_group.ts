@@ -15,11 +15,11 @@ import { UAPubSubStatus } from "./ua_pub_sub_status"
  * |isAbstract      |true                                              |
  */
 export interface UAPubSubGroup_Base {
-    securityMode: UAProperty<EnumMessageSecurityMode, /*z*/DataType.Int32>;
-    securityGroupId?: UAProperty<UAString, /*z*/DataType.String>;
-    securityKeyServices?: UAProperty<DTEndpointDescription[], /*z*/DataType.ExtensionObject>;
-    maxNetworkMessageSize: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    groupProperties: UAProperty<DTKeyValuePair[], /*z*/DataType.ExtensionObject>;
+    securityMode: UAProperty<EnumMessageSecurityMode, DataType.Int32>;
+    securityGroupId?: UAProperty<UAString, DataType.String>;
+    securityKeyServices?: UAProperty<DTEndpointDescription[], DataType.ExtensionObject>;
+    maxNetworkMessageSize: UAProperty<UInt32, DataType.UInt32>;
+    groupProperties: UAProperty<DTKeyValuePair[], DataType.ExtensionObject>;
     status: UAPubSubStatus;
 }
 export interface UAPubSubGroup extends UAObject, UAPubSubGroup_Base {

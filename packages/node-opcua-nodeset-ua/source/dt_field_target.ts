@@ -11,7 +11,7 @@ import { EnumOverrideValueHandling } from "./enum_override_value_handling"
  * | name      |FieldTargetDataType                               |
  * | isAbstract|false                                             |
  */
-export interface DTFieldTarget extends DTStructure  {
+export interface DTFieldTarget extends DTStructure {
   dataSetFieldId: Guid; // Guid ns=0;i=14
   receiverIndexRange: UAString; // String ns=0;i=291
   targetNodeId: NodeId; // NodeId ns=0;i=17

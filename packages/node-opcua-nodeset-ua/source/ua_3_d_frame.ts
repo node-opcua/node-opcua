@@ -18,9 +18,9 @@ import { UAOrientation } from "./ua_orientation"
  * |dataType Name   |DT3DFrame ns=0;i=18814                            |
  * |isAbstract      |false                                             |
  */
-export interface UA3DFrame_Base<T extends DT3DFrame/*j*/>  extends UAFrame_Base<T/*h*/> {
+export interface UA3DFrame_Base<T extends DT3DFrame>  extends UAFrame_Base<T> {
     cartesianCoordinates: UACartesianCoordinates<DT3DCartesianCoordinates>;
     orientation: UAOrientation<DT3DOrientation>;
 }
-export interface UA3DFrame<T extends DT3DFrame/*j*/> extends Omit<UAFrame<T/*k*/>, "cartesianCoordinates"|"orientation">, UA3DFrame_Base<T /*B*/> {
+export interface UA3DFrame<T extends DT3DFrame> extends Omit<UAFrame<T>, "cartesianCoordinates"|"orientation">, UA3DFrame_Base<T> {
 }

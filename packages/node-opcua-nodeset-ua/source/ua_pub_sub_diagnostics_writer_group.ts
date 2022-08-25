@@ -11,10 +11,10 @@ export interface UAPubSubDiagnosticsWriterGroup_counters extends UAPubSubDiagnos
       encryptionErrors: UAPubSubDiagnosticsCounter<UInt32>;
 }
 export interface UAPubSubDiagnosticsWriterGroup_liveValues extends UAObject { // Object
-      configuredDataSetWriters: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-      operationalDataSetWriters: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-      securityTokenID?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-      timeToNextTokenID?: UABaseDataVariable<number, /*z*/DataType.Double>;
+      configuredDataSetWriters: UABaseDataVariable<UInt16, DataType.UInt16>;
+      operationalDataSetWriters: UABaseDataVariable<UInt16, DataType.UInt16>;
+      securityTokenID?: UABaseDataVariable<UInt32, DataType.UInt32>;
+      timeToNextTokenID?: UABaseDataVariable<number, DataType.Double>;
 }
 /**
  * |                |                                                  |

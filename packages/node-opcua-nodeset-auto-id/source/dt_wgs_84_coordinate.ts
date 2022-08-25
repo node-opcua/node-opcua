@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:WGS84Coordinate                                 |
  * | isAbstract|false                                             |
  */
-export interface DTWGS84Coordinate extends DTStructure  {
+export interface DTWGS84Coordinate extends DTStructure {
   "n/S_Hemisphere": UAString; // String ns=0;i=12
   latitude: number; // Double ns=0;i=11
   "e/W_Hemisphere": UAString; // String ns=0;i=12

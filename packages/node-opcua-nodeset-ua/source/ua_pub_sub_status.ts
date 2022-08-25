@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |false                                             |
  */
 export interface UAPubSubStatus_Base {
-    state: UABaseDataVariable<EnumPubSubState, /*z*/DataType.Int32>;
+    state: UABaseDataVariable<EnumPubSubState, DataType.Int32>;
     enable?: UAMethod;
     disable?: UAMethod;
 }

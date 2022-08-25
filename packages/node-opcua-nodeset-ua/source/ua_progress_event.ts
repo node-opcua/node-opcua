@@ -13,7 +13,7 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
  */
 export interface UAProgressEvent_Base extends UABaseEvent_Base {
     context: UAProperty<any, any>;
-    progress: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    progress: UAProperty<UInt16, DataType.UInt16>;
 }
 export interface UAProgressEvent extends UABaseEvent, UAProgressEvent_Base {
 }

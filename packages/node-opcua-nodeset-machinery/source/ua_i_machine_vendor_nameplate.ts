@@ -21,7 +21,7 @@ export interface UAIMachineVendorNameplate_Base extends UAIMachineryItemVendorNa
      * A globally unique resource identifier provided by
      * the manufacturer of the machine
      */
-    productInstanceUri: UAProperty<UAString, /*z*/DataType.String>;
+    productInstanceUri: UAProperty<UAString, DataType.String>;
 }
 export interface UAIMachineVendorNameplate extends Omit<UAIMachineryItemVendorNameplate, "productInstanceUri">, UAIMachineVendorNameplate_Base {
 }

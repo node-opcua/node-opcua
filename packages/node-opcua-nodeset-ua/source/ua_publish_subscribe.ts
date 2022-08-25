@@ -29,6 +29,7 @@ import { UAFolder } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UAPublishSubscribe_Base extends UAPubSubKeyService_Base {
+   // PlaceHolder for $ConnectionName$
     setSecurityKeys?: UAMethod;
     addConnection?: UAMethod;
     removeConnection?: UAMethod;
@@ -39,9 +40,9 @@ export interface UAPublishSubscribe_Base extends UAPubSubKeyService_Base {
     diagnostics?: UAPubSubDiagnosticsRoot;
     pubSubCapablities?: UAPubSubCapabilities;
     dataSetClasses?: UAFolder;
-    supportedTransportProfiles: UAProperty<UAString[], /*z*/DataType.String>;
-    defaultDatagramPublisherId?: UAProperty<UInt64, /*z*/DataType.UInt64>;
-    configurationVersion?: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    supportedTransportProfiles: UAProperty<UAString[], DataType.String>;
+    defaultDatagramPublisherId?: UAProperty<UInt64, DataType.UInt64>;
+    configurationVersion?: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAPublishSubscribe extends UAPubSubKeyService, UAPublishSubscribe_Base {
 }

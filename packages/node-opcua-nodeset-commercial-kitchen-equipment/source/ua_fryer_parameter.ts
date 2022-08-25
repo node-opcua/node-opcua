@@ -9,21 +9,21 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAKitchenDeviceParameter, UAKitchenDeviceParameter_Base } from "./ua_kitchen_device_parameter"
 import { EnumFryerMode } from "./enum_fryer_mode"
 import { EnumSignalMode } from "./enum_signal_mode"
-export interface UAFryerParameter_actualTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAFryerParameter_actualTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAFryerParameter_setProcessTime<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAFryerParameter_setProcessTime<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAFryerParameter_setTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAFryerParameter_setTemperature<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UAFryerParameter_timeRemaining<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UAFryerParameter_timeRemaining<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |
@@ -34,13 +34,13 @@ export interface UAFryerParameter_timeRemaining<T, DT extends DataType> extends 
  * |isAbstract      |false                                             |
  */
 export interface UAFryerParameter_Base extends UAKitchenDeviceParameter_Base {
-    actualTemperature: UAFryerParameter_actualTemperature<number, /*z*/DataType.Float>;
-    isLiftUp?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    programMode: UABaseDataVariable<EnumFryerMode, /*z*/DataType.Int32>;
-    setProcessTime: UAFryerParameter_setProcessTime<Int32, /*z*/DataType.Int32>;
-    setTemperature: UAFryerParameter_setTemperature<number, /*z*/DataType.Float>;
-    signalMode: UABaseDataVariable<EnumSignalMode, /*z*/DataType.Int32>;
-    timeRemaining: UAFryerParameter_timeRemaining<Int32, /*z*/DataType.Int32>;
+    actualTemperature: UAFryerParameter_actualTemperature<number, DataType.Float>;
+    isLiftUp?: UABaseDataVariable<boolean, DataType.Boolean>;
+    programMode: UABaseDataVariable<EnumFryerMode, DataType.Int32>;
+    setProcessTime: UAFryerParameter_setProcessTime<Int32, DataType.Int32>;
+    setTemperature: UAFryerParameter_setTemperature<number, DataType.Float>;
+    signalMode: UABaseDataVariable<EnumSignalMode, DataType.Int32>;
+    timeRemaining: UAFryerParameter_timeRemaining<Int32, DataType.Int32>;
 }
 export interface UAFryerParameter extends UAKitchenDeviceParameter, UAFryerParameter_Base {
 }

@@ -13,9 +13,9 @@ import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
  * |dataType Name   |boolean ns=0;i=1                                  |
  * |isAbstract      |false                                             |
  */
-export interface UATwoStateDiscrete_Base<T extends boolean/*j*/>  extends UADiscreteItem_Base<T, /*e*/DataType.Boolean> {
-    falseState: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    trueState: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+export interface UATwoStateDiscrete_Base<T extends boolean>  extends UADiscreteItem_Base<T, DataType.Boolean> {
+    falseState: UAProperty<LocalizedText, DataType.LocalizedText>;
+    trueState: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UATwoStateDiscrete<T extends boolean/*j*/> extends UADiscreteItem<T, /*n*/DataType.Boolean>, UATwoStateDiscrete_Base<T /*B*/> {
+export interface UATwoStateDiscrete<T extends boolean> extends UADiscreteItem<T, DataType.Boolean>, UATwoStateDiscrete_Base<T> {
 }

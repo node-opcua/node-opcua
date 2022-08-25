@@ -13,9 +13,9 @@ import { UAMultiStateValueDiscrete, UAMultiStateValueDiscrete_Base } from "./ua_
  * |dataType Name   |Variant ns=0;i=26                                 |
  * |isAbstract      |false                                             |
  */
-export interface UAMultiStateDictionaryEntryDiscreteBase_Base<T, DT extends DataType>  extends UAMultiStateValueDiscrete_Base<T/*g*/, DT> {
-    enumDictionaryEntries: UAProperty<NodeId[], /*z*/DataType.NodeId>;
-    valueAsDictionaryEntries?: UAProperty<NodeId[], /*z*/DataType.NodeId>;
+export interface UAMultiStateDictionaryEntryDiscreteBase_Base<T, DT extends DataType>  extends UAMultiStateValueDiscrete_Base<T, DT> {
+    enumDictionaryEntries: UAProperty<NodeId[], DataType.NodeId>;
+    valueAsDictionaryEntries?: UAProperty<NodeId[], DataType.NodeId>;
 }
-export interface UAMultiStateDictionaryEntryDiscreteBase<T, DT extends DataType> extends UAMultiStateValueDiscrete<T, /*m*/DT>, UAMultiStateDictionaryEntryDiscreteBase_Base<T, DT /*A*/> {
+export interface UAMultiStateDictionaryEntryDiscreteBase<T, DT extends DataType> extends UAMultiStateValueDiscrete<T, DT>, UAMultiStateDictionaryEntryDiscreteBase_Base<T, DT> {
 }

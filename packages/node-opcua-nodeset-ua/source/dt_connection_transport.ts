@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |ConnectionTransportDataType                       |
  * | isAbstract|true                                              |
  */
-export interface DTConnectionTransport extends DTStructure  {
-}
+export type DTConnectionTransport = DTStructure;

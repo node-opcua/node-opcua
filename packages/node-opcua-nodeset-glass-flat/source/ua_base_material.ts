@@ -13,14 +13,14 @@ import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
  * |isAbstract      |false                                             |
  */
 export interface UABaseMaterial_Base {
-    "$description"?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    identifier?: UAProperty<UAString, /*z*/DataType.String>;
-    location: UAProperty<UAString, /*z*/DataType.String>;
-    materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
-    weight?: UAAnalogUnit<number, /*z*/DataType.Double>;
-    x?: UAAnalogUnit<number, /*z*/DataType.Double>;
-    y?: UAAnalogUnit<number, /*z*/DataType.Double>;
-    z?: UAAnalogUnit<number, /*z*/DataType.Double>;
+    "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    identifier?: UAProperty<UAString, DataType.String>;
+    location: UAProperty<UAString, DataType.String>;
+    materialIdentifier: UAProperty<UAString, DataType.String>;
+    weight?: UAAnalogUnit<number, DataType.Double>;
+    x?: UAAnalogUnit<number, DataType.Double>;
+    y?: UAAnalogUnit<number, DataType.Double>;
+    z?: UAAnalogUnit<number, DataType.Double>;
 }
 export interface UABaseMaterial extends UAObject, UABaseMaterial_Base {
 }

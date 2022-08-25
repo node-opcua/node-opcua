@@ -22,23 +22,23 @@ import { DTResultId } from "./dt_result_id"
  * |dataType Name   |DTResult ns=4;i=3006                              |
  * |isAbstract      |false                                             |
  */
-export interface UAResult_Base<T extends DTResult/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    creationTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    externalConfigurationId?: UABaseDataVariable<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    externalRecipeId?: UABaseDataVariable<DTRecipeIdExternal, /*z*/DataType.ExtensionObject>;
-    hasTransferableDataOnFile?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    internalConfigurationId: UABaseDataVariable<DTConfigurationId, /*z*/DataType.ExtensionObject>;
-    internalRecipeId: UABaseDataVariable<DTRecipeIdInternal, /*z*/DataType.ExtensionObject>;
-    isPartial: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isSimulated?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    jobId: UABaseDataVariable<DTJobId, /*z*/DataType.ExtensionObject>;
-    measId?: UABaseDataVariable<DTMeasId, /*z*/DataType.ExtensionObject>;
-    partId?: UABaseDataVariable<DTPartId, /*z*/DataType.ExtensionObject>;
-    processingTimes?: UABaseDataVariable<DTProcessingTimes, /*z*/DataType.ExtensionObject>;
-    productId?: UABaseDataVariable<DTProductId, /*z*/DataType.ExtensionObject>;
+export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    creationTime: UABaseDataVariable<Date, DataType.DateTime>;
+    externalConfigurationId?: UABaseDataVariable<DTConfigurationId, DataType.ExtensionObject>;
+    externalRecipeId?: UABaseDataVariable<DTRecipeIdExternal, DataType.ExtensionObject>;
+    hasTransferableDataOnFile?: UABaseDataVariable<boolean, DataType.Boolean>;
+    internalConfigurationId: UABaseDataVariable<DTConfigurationId, DataType.ExtensionObject>;
+    internalRecipeId: UABaseDataVariable<DTRecipeIdInternal, DataType.ExtensionObject>;
+    isPartial: UABaseDataVariable<boolean, DataType.Boolean>;
+    isSimulated?: UABaseDataVariable<boolean, DataType.Boolean>;
+    jobId: UABaseDataVariable<DTJobId, DataType.ExtensionObject>;
+    measId?: UABaseDataVariable<DTMeasId, DataType.ExtensionObject>;
+    partId?: UABaseDataVariable<DTPartId, DataType.ExtensionObject>;
+    processingTimes?: UABaseDataVariable<DTProcessingTimes, DataType.ExtensionObject>;
+    productId?: UABaseDataVariable<DTProductId, DataType.ExtensionObject>;
     resultContent?: UABaseDataVariable<any, any>;
-    resultId: UABaseDataVariable<DTResultId, /*z*/DataType.ExtensionObject>;
-    resultState: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
+    resultId: UABaseDataVariable<DTResultId, DataType.ExtensionObject>;
+    resultState: UABaseDataVariable<Int32, DataType.Int32>;
 }
-export interface UAResult<T extends DTResult/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAResult_Base<T /*B*/> {
+export interface UAResult<T extends DTResult> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAResult_Base<T> {
 }

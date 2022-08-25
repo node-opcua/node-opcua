@@ -13,10 +13,10 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |dataType Name   |undefined[] ns=0;i=0                              |
  * |isAbstract      |false                                             |
  */
-export interface UACubeItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T/*g*/, DT> {
-    xAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
-    yAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
-    zAxisDefinition: UAProperty<DTAxisInformation, /*z*/DataType.ExtensionObject>;
+export interface UACubeItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T, DT> {
+    xAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
+    yAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
+    zAxisDefinition: UAProperty<DTAxisInformation, DataType.ExtensionObject>;
 }
-export interface UACubeItem<T, DT extends DataType> extends UAArrayItem<T, /*m*/DT>, UACubeItem_Base<T, DT /*A*/> {
+export interface UACubeItem<T, DT extends DataType> extends UAArrayItem<T, DT>, UACubeItem_Base<T, DT> {
 }

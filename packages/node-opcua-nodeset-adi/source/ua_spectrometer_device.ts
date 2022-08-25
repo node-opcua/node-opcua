@@ -6,7 +6,7 @@ import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_healt
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UAAnalyserDevice_parameterSet, UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
 export interface UASpectrometerDevice_parameterSet extends UAAnalyserDevice_parameterSet { // Object
-      spectralRange?: UADataItem<DTRange[], /*z*/DataType.ExtensionObject>;
+      spectralRange?: UADataItem<DTRange[], DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |

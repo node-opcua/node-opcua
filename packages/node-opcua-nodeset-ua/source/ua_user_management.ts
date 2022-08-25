@@ -15,10 +15,10 @@ import { DTArgument } from "./dt_argument"
  * |isAbstract      |false                                             |
  */
 export interface UAUserManagement_Base {
-    users: UAProperty<DTUserManagement[], /*z*/DataType.ExtensionObject>;
-    passwordLength: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
-    passwordOptions: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    passwordRestrictions?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    users: UAProperty<DTUserManagement[], DataType.ExtensionObject>;
+    passwordLength: UAProperty<DTRange, DataType.ExtensionObject>;
+    passwordOptions: UAProperty<UInt32, DataType.UInt32>;
+    passwordRestrictions?: UAProperty<LocalizedText, DataType.LocalizedText>;
     addUser: UAMethod;
     modifyUser: UAMethod;
     removeUser: UAMethod;

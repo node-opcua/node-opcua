@@ -12,8 +12,8 @@ import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
  * |isAbstract      |false                                             |
  */
 export interface UAProcessChangeoverPrognosis_Base extends UAPrognosis_Base {
-    activity: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    location: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
+    activity: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    location: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
 }
 export interface UAProcessChangeoverPrognosis extends UAPrognosis, UAProcessChangeoverPrognosis_Base {
 }

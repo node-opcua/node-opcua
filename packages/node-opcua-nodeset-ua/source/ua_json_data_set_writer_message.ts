@@ -12,7 +12,7 @@ import { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_s
  * |isAbstract      |false                                             |
  */
 export interface UAJsonDataSetWriterMessage_Base extends UADataSetWriterMessage_Base {
-    dataSetMessageContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    dataSetMessageContentMask: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAJsonDataSetWriterMessage extends UADataSetWriterMessage, UAJsonDataSetWriterMessage_Base {
 }

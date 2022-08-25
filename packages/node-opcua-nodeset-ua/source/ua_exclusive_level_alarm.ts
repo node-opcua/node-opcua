@@ -8,7 +8,6 @@ import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusiv
  * |typedDefinition |ExclusiveLevelAlarmType ns=0;i=9482               |
  * |isAbstract      |false                                             |
  */
-export interface UAExclusiveLevelAlarm_Base extends UAExclusiveLimitAlarm_Base {
-}
+export type UAExclusiveLevelAlarm_Base = UAExclusiveLimitAlarm_Base;
 export interface UAExclusiveLevelAlarm extends UAExclusiveLimitAlarm, UAExclusiveLevelAlarm_Base {
 }

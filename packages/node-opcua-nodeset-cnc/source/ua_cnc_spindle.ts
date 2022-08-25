@@ -11,13 +11,13 @@ import { EnumCncSpindleStatus } from "./enum_cnc_spindle_status"
 import { EnumCncSpindleTurnDirection } from "./enum_cnc_spindle_turn_direction"
 import { DTCncPosition } from "./dt_cnc_position"
 import { UACncPositionVariable } from "./ua_cnc_position_variable"
-export interface UACncSpindle_actSpeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncSpindle_actSpeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
-export interface UACncSpindle_cmdSpeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, /*b*/DT>, "engineeringUnits"|"euRange"> { // Variable
-      engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-      euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+export interface UACncSpindle_cmdSpeed<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
+      engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+      euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
  * CNC spindle component.
@@ -34,27 +34,27 @@ export interface UACncSpindle_Base extends UACncDrive_Base {
      * actGear
      * Gear stage actual value.
      */
-    actGear: UADataItem<UInt32, /*z*/DataType.UInt32>;
+    actGear: UADataItem<UInt32, DataType.UInt32>;
     /**
      * actOverride
      * Override actual value.
      */
-    actOverride: UAAnalogItem<number, /*z*/DataType.Double>;
+    actOverride: UAAnalogItem<number, DataType.Double>;
     /**
      * actSpeed
      * Speed actual value.
      */
-    actSpeed: UACncSpindle_actSpeed<number, /*z*/DataType.Double>;
+    actSpeed: UACncSpindle_actSpeed<number, DataType.Double>;
     /**
      * actStatus
      * Actual spindle state.
      */
-    actStatus: UADataItem<EnumCncSpindleStatus, /*z*/DataType.Int32>;
+    actStatus: UADataItem<EnumCncSpindleStatus, DataType.Int32>;
     /**
      * actTurnDirection
      * Turn direction actual value.
      */
-    actTurnDirection: UADataItem<EnumCncSpindleTurnDirection, /*z*/DataType.Int32>;
+    actTurnDirection: UADataItem<EnumCncSpindleTurnDirection, DataType.Int32>;
     /**
      * anglePos
      * Spindle angular position values in case of
@@ -67,17 +67,17 @@ export interface UACncSpindle_Base extends UACncDrive_Base {
      * cmdGear
      * Gear stage setpoint value.
      */
-    cmdGear: UADataItem<UInt32, /*z*/DataType.UInt32>;
+    cmdGear: UADataItem<UInt32, DataType.UInt32>;
     /**
      * cmdOverride
      * Override setpoint value.
      */
-    cmdOverride: UAAnalogItem<number, /*z*/DataType.Double>;
+    cmdOverride: UAAnalogItem<number, DataType.Double>;
     /**
      * cmdSpeed
      * Speed setpoint value.
      */
-    cmdSpeed: UACncSpindle_cmdSpeed<number, /*z*/DataType.Double>;
+    cmdSpeed: UACncSpindle_cmdSpeed<number, DataType.Double>;
 }
 export interface UACncSpindle extends UACncDrive, UACncSpindle_Base {
 }

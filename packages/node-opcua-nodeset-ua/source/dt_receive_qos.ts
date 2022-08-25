@@ -8,5 +8,4 @@ import { DTQos } from "./dt_qos"
  * | name      |ReceiveQosDataType                                |
  * | isAbstract|true                                              |
  */
-export interface DTReceiveQos extends DTQos  {
-}
+export type DTReceiveQos = DTQos;

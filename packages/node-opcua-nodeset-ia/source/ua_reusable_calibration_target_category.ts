@@ -14,7 +14,6 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * |typedDefinition |9:ReusableCalibrationTargetCategoryType ns=9;i=1015|
  * |isAbstract      |false                                             |
  */
-export interface UAReusableCalibrationTargetCategory_Base extends UABaseCalibrationTargetCategory_Base {
-}
+export type UAReusableCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
 export interface UAReusableCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAReusableCalibrationTargetCategory_Base {
 }

@@ -9,7 +9,7 @@ import { DTConfigurationId } from "./dt_configuration_id"
  * | name      |4:ConfigurationTransferOptions                    |
  * | isAbstract|false                                             |
  */
-export interface DTConfigurationTransferOptions extends DTStructure  {
+export interface DTConfigurationTransferOptions extends DTStructure {
 /** The Id of the configuration to be transferred to or from the client.*/
   internalId: DTConfigurationId; // ExtensionObject ns=4;i=3008
 }

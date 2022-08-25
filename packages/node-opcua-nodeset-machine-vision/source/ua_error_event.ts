@@ -13,7 +13,6 @@ import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua
  * |typedDefinition |4:ErrorEventType ns=4;i=1019                      |
  * |isAbstract      |false                                             |
  */
-export interface UAErrorEvent_Base extends UATransitionEvent_Base {
-}
+export type UAErrorEvent_Base = UATransitionEvent_Base;
 export interface UAErrorEvent extends UATransitionEvent, UAErrorEvent_Base {
 }

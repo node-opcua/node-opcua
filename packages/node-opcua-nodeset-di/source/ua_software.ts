@@ -13,9 +13,9 @@ import { UAComponent, UAComponent_Base } from "./ua_component"
  * |isAbstract      |false                                             |
  */
 export interface UASoftware_Base extends UAComponent_Base {
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    model: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    softwareRevision: UAProperty<UAString, /*z*/DataType.String>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
+    softwareRevision: UAProperty<UAString, DataType.String>;
 }
 export interface UASoftware extends Omit<UAComponent, "manufacturer"|"model"|"softwareRevision">, UASoftware_Base {
 }

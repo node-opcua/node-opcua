@@ -12,7 +12,7 @@ import { DTArgument } from "./dt_argument"
  * | name      |ProgramDiagnostic2DataType                        |
  * | isAbstract|false                                             |
  */
-export interface DTProgramDiagnostic2 extends DTStructure  {
+export interface DTProgramDiagnostic2 extends DTStructure {
   createSessionId: NodeId; // NodeId ns=0;i=17
   createClientName: UAString; // String ns=0;i=12
   invocationCreationTime: Date; // DateTime ns=0;i=294

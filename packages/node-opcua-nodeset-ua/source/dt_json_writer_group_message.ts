@@ -9,6 +9,6 @@ import { DTWriterGroupMessage } from "./dt_writer_group_message"
  * | name      |JsonWriterGroupMessageDataType                    |
  * | isAbstract|false                                             |
  */
-export interface DTJsonWriterGroupMessage extends DTWriterGroupMessage  {
+export interface DTJsonWriterGroupMessage extends DTWriterGroupMessage {
   networkMessageContentMask: UInt32; // UInt32 ns=0;i=15654
 }

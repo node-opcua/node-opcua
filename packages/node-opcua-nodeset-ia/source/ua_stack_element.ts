@@ -19,7 +19,7 @@ export interface UAStackElement_Base {
      * contained in the mounting base shall be at the
      * beginning of the list of stack elements.
      */
-    isPartOfBase?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isPartOfBase?: UAProperty<boolean, DataType.Boolean>;
     /**
      * numberInList
      * Enumerate the stacklight elements counting
@@ -31,7 +31,7 @@ export interface UAStackElement_Base {
      * Indicates if the signal emitted by the stack
      * element is currently switched on or not.
      */
-    signalOn?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    signalOn?: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAStackElement extends UAObject, UAStackElement_Base {
 }

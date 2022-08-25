@@ -8,7 +8,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |ComplexNumberType                                 |
  * | isAbstract|false                                             |
  */
-export interface DTComplexNumber extends DTStructure  {
+export interface DTComplexNumber extends DTStructure {
   real: number; // Float ns=0;i=10
   imaginary: number; // Float ns=0;i=10
 }

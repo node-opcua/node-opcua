@@ -19,8 +19,9 @@ import { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_mo
  * |dataType Name   |Buffer ns=0;i=15                                  |
  * |isAbstract      |false                                             |
  */
-export interface UAMVAModel_Base<T extends Buffer/*j*/>  extends UAChemometricModel_Base<T/*h*/> {
-    mainDataIndex: UAProperty<Int32, /*z*/DataType.Int32>;
+export interface UAMVAModel_Base<T extends Buffer>  extends UAChemometricModel_Base<T> {
+   // PlaceHolder for $User_defined_Output_$
+    mainDataIndex: UAProperty<Int32, DataType.Int32>;
 }
-export interface UAMVAModel<T extends Buffer/*j*/> extends Omit<UAChemometricModel<T/*k*/>, "$User_defined_Output_$">, UAMVAModel_Base<T /*B*/> {
+export interface UAMVAModel<T extends Buffer> extends Omit<UAChemometricModel<T>, "$User_defined_Output_$">, UAMVAModel_Base<T> {
 }

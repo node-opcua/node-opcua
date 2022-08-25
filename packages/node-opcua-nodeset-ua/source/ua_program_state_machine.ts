@@ -13,14 +13,14 @@ import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_sta
 import { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2"
 import { UAState } from "./ua_state"
 import { UATransition } from "./ua_transition"
-export interface UAProgramStateMachine_currentState<T extends LocalizedText/*j*/> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
-      id: UAProperty<NodeId, /*z*/DataType.NodeId>;
-      number: UAProperty<UInt32, /*z*/DataType.UInt32>;
+export interface UAProgramStateMachine_currentState<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
+      id: UAProperty<NodeId, DataType.NodeId>;
+      number: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAProgramStateMachine_lastTransition<T extends LocalizedText/*j*/> extends Omit<UATransitionVariable<T>, "id"|"number"|"transitionTime"> { // Variable
-      id: UAProperty<NodeId, /*z*/DataType.NodeId>;
-      number: UAProperty<UInt32, /*z*/DataType.UInt32>;
-      transitionTime: UAProperty<Date, /*z*/DataType.DateTime>;
+export interface UAProgramStateMachine_lastTransition<T extends LocalizedText> extends Omit<UATransitionVariable<T>, "id"|"number"|"transitionTime"> { // Variable
+      id: UAProperty<NodeId, DataType.NodeId>;
+      number: UAProperty<UInt32, DataType.UInt32>;
+      transitionTime: UAProperty<Date, DataType.DateTime>;
 }
 /**
  * |                |                                                  |
@@ -33,13 +33,13 @@ export interface UAProgramStateMachine_lastTransition<T extends LocalizedText/*j
 export interface UAProgramStateMachine_Base extends UAFiniteStateMachine_Base {
     currentState: UAProgramStateMachine_currentState<LocalizedText>;
     lastTransition: UAProgramStateMachine_lastTransition<LocalizedText>;
-    creatable: UAProperty<boolean, /*z*/DataType.Boolean>;
-    deletable: UAProperty<boolean, /*z*/DataType.Boolean>;
-    autoDelete: UAProperty<boolean, /*z*/DataType.Boolean>;
-    recycleCount: UAProperty<Int32, /*z*/DataType.Int32>;
-    instanceCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxInstanceCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maxRecycleCount: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    creatable: UAProperty<boolean, DataType.Boolean>;
+    deletable: UAProperty<boolean, DataType.Boolean>;
+    autoDelete: UAProperty<boolean, DataType.Boolean>;
+    recycleCount: UAProperty<Int32, DataType.Int32>;
+    instanceCount: UAProperty<UInt32, DataType.UInt32>;
+    maxInstanceCount: UAProperty<UInt32, DataType.UInt32>;
+    maxRecycleCount: UAProperty<UInt32, DataType.UInt32>;
     programDiagnostic?: UAProgramDiagnostic2<DTProgramDiagnostic2>;
     finalResultData?: UAObject;
     halted: UAState;
@@ -55,6 +55,11 @@ export interface UAProgramStateMachine_Base extends UAFiniteStateMachine_Base {
     suspendedToHalted: UATransition;
     suspendedToReady: UATransition;
     readyToHalted: UATransition;
+   // PlaceHolder for start
+   // PlaceHolder for suspend
+   // PlaceHolder for resume
+   // PlaceHolder for halt
+   // PlaceHolder for reset
 }
 export interface UAProgramStateMachine extends Omit<UAFiniteStateMachine, "currentState"|"lastTransition">, UAProgramStateMachine_Base {
 }

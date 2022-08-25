@@ -17,7 +17,8 @@ import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_
  * |isAbstract      |false                                             |
  */
 export interface UAFryingAndGrillingDevice_Base extends UACommercialKitchenDevice_Base {
-    energySource: UAProperty<EnumEnergySource, /*z*/DataType.Int32>;
+    energySource: UAProperty<EnumEnergySource, DataType.Int32>;
+   // PlaceHolder for grillingZone_$No_$
 }
 export interface UAFryingAndGrillingDevice extends UACommercialKitchenDevice, UAFryingAndGrillingDevice_Base {
 }

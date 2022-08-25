@@ -11,7 +11,7 @@ import { DTTransmitQos } from "./dt_transmit_qos"
  * | name      |DatagramWriterGroupTransport2DataType             |
  * | isAbstract|false                                             |
  */
-export interface DTDatagramWriterGroupTransport2 extends DTDatagramWriterGroupTransport  {
+export interface DTDatagramWriterGroupTransport2 extends DTDatagramWriterGroupTransport {
   messageRepeatCount: Byte; // Byte ns=0;i=3
   messageRepeatDelay: number; // Double ns=0;i=290
   address: DTNetworkAddress; // ExtensionObject ns=0;i=15502

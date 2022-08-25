@@ -12,7 +12,7 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * |isAbstract      |true                                              |
  */
 export interface UANotificationEvent_Base extends UABaseEvent_Base {
-    identifier: UAProperty<UAString, /*z*/DataType.String>;
+    identifier: UAProperty<UAString, DataType.String>;
 }
 export interface UANotificationEvent extends UABaseEvent, UANotificationEvent_Base {
 }

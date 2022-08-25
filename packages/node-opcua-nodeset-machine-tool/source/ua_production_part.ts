@@ -31,11 +31,11 @@ export interface UAProductionPart_state extends Omit<UAProductionPartStateMachin
  * |isAbstract      |false                                             |
  */
 export interface UAProductionPart_Base {
-    customerOrderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    identifier?: UAProperty<UAString, /*z*/DataType.String>;
-    name: UAProperty<UAString, /*z*/DataType.String>;
-    partQuality: UABaseDataVariable<EnumPartQuality, /*z*/DataType.Int32>;
-    processIrregularity: UABaseDataVariable<EnumProcessIrregularity, /*z*/DataType.Int32>;
+    customerOrderIdentifier?: UAProperty<UAString, DataType.String>;
+    identifier?: UAProperty<UAString, DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
+    partQuality: UABaseDataVariable<EnumPartQuality, DataType.Int32>;
+    processIrregularity: UABaseDataVariable<EnumProcessIrregularity, DataType.Int32>;
     state?: UAProductionPart_state;
 }
 export interface UAProductionPart extends UAObject, UAProductionPart_Base {
