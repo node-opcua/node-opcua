@@ -12,6 +12,7 @@
         "test-generated": "tsc --build tsconfig-generated.json"
     },
     "dependencies": {
+        "chalk": "4.1.2",
         "@types/wordwrap": "^1.0.1",
         "case-anything": "1.1.5",
         "node-opcua-address-space": "2.75.0",
