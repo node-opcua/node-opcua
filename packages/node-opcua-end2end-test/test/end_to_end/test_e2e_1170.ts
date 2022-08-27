@@ -61,7 +61,7 @@ describe("Testing bug #1170", function() {
                 client.createSession({}, function(err, session) {
                     if (!err) {
                         the_session = session;
-                        should(client.endpoint.server.productUri).eql("NodeOPCUA-Server");
+                        should(session.serverEndpoints[0].server.productUri).eql("NodeOPCUA-Server");
                     }
                     callback(err);
                 });
