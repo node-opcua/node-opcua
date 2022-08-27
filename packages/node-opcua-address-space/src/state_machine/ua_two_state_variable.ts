@@ -5,14 +5,13 @@ import { assert } from "node-opcua-assert";
 
 import { VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, coerceLocalizedText, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { DataValueT, DataValueOptionsT } from "node-opcua-data-value";
+import { DataValueT } from "node-opcua-data-value";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes, StatusCode, StatusCodeCallback } from "node-opcua-status-code";
 import { Variant, VariantLike, VariantT } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { BaseNode, BindVariableOptions, INamespace, UAReference, UAVariable, ISessionContext } from "node-opcua-address-space-base";
-import { UATwoStateVariable } from "node-opcua-nodeset-ua";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 

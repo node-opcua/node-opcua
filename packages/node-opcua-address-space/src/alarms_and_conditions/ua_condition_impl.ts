@@ -18,7 +18,7 @@ import {
     QualifiedName
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { minDate } from "node-opcua-basic-types";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -52,6 +52,7 @@ import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 
 export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl {
     on(eventName: string, eventHandler: any): this;
@@ -450,6 +451,8 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
                     node._bubble_up_event(eventData);
                 }
             }
+        } else {
+            warningLog("Condition ", this.nodeId.toString(), "is not linked to a Object with a IsConditionOf(reversed(HasCondition))");
         }
         // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));

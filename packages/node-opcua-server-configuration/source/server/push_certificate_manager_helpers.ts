@@ -375,7 +375,9 @@ export async function promoteCertificateGroup(certificateGroup: UACertificateGro
             conditionOf: certificateGroup,
             inputNode: NodeId.nullNodeId,
             normalState: NodeId.nullNodeId,
-            optionals: ["ExpirationLimit"]
+            optionals: ["ExpirationLimit"],
+            conditionName: "CertificateExpired",                                                      
+            conditionClass: resolveNodeId("CertificateExpirationAlarmType"),
         });
     }
     certificateGroup.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
@@ -467,8 +469,6 @@ export async function installPushCertificateManagement(
     if (serverConfiguration.applyChanges) {
         serverConfiguration.applyChanges!.bindMethod(_applyChanges);
     }
-
-    //xx installCertificateExpirationAlarm(addressSpace);
 
     const cg = serverConfiguration.certificateGroups.getComponents();
 

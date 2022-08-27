@@ -105,7 +105,10 @@ async function getFolder(name: string) {
 }
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Test CertificateExpiredAlarm", function () {
+describe("Test CertificateExpiredAlarm", function (this: any) {
+
+    this.timeout(Math.max(this.timeout(), 5 * 60 * 1000));
+
     let clientCertificateManager: OPCUACertificateManager;
     let serverCertificateManager: OPCUACertificateManager;
     let userCertificateManager: OPCUACertificateManager;

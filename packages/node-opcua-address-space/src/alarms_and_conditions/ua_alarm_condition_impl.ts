@@ -191,6 +191,9 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     public activateAlarm(): void {
         // will set acknowledgeable to false and retain to true
         const branch = this.currentBranch();
+        if (!branch) {
+            return;
+        }
         branch.setRetain(true);
         branch.setActiveState(true);
         branch.setAckedState(false);

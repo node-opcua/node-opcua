@@ -28,4 +28,9 @@ export interface UACertificateExpirationAlarmEx
     setExpirationLimit(value: number): void;
     setCertificate(certificate: Certificate | null): void;
     getCertificate(): Certificate | null;
+
+    /**
+     * update the    status of the alarm
+     */
+    update(): void;
 }
