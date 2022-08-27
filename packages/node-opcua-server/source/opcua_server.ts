@@ -262,11 +262,8 @@ async function _attempt_to_close_some_old_unactivated_session(server: OPCUAServe
 
 function getRequiredEndpointInfo(endpoint: EndpointDescription) {
     assert(endpoint instanceof EndpointDescription);
-    // It is recommended that Servers only include the server.applicationUri, server.applicationType, server.applicationName,
-    // server.productUri, endpointUrl, securityMode, securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel 
-    // with all other parameters set to null. Only the recommended parameters shall be verified by
-    // the client.
-
+    // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.6.2/
+    // https://reference.opcfoundation.org/v105/Core/docs/Part4/5.6.2/
     const e = new EndpointDescription({
         endpointUrl: endpoint.endpointUrl,
         securityLevel: endpoint.securityLevel,
@@ -298,10 +295,8 @@ function getRequiredEndpointInfo(endpoint: EndpointDescription) {
 function _serverEndpointsForCreateSessionResponse(server: OPCUAServer, endpointUrl: string | null, serverUri: string | null) {
     serverUri = null; // unused then
 
-    // The Server shall return a set of EndpointDescriptions available for the serverUri specified in the request.
-    // It is recommended that Servers only include the endpointUrl, securityMode,
-    // securityPolicyUri, userIdentityTokens, transportProfileUri and securityLevel with all other parameters
-    // set to null. Only the recommended parameters shall be verified by the client.
+    // https://reference.opcfoundation.org/v104/Core/docs/Part4/5.6.2/
+    // https://reference.opcfoundation.org/v105/Core/docs/Part4/5.6.2/
     return server
         ._get_endpoints(endpointUrl)
         .filter((e) => !(e as any).restricted) // remove restricted endpoints
