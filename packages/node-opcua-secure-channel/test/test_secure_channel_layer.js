@@ -15,6 +15,8 @@ const port1 = 2043;
 const port2 = 2044;
 const port3 = 2045;
 const port4 = 2046;
+const port5 = 2047;
+
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -31,6 +33,8 @@ describe("Testing ClientSecureChannel 1", function () {
     };
 
     it("should not receive a close event with an error when attempting to connect to a non existent server", function (done) {
+
+        const port = port1;
         const secureChannel = new ClientSecureChannelLayer(options);
 
         let client_has_received_close_event = 0;
@@ -40,7 +44,7 @@ describe("Testing ClientSecureChannel 1", function () {
             client_has_received_close_event += 1;
         });
 
-        secureChannel.create(`opc.tcp://no_server_at_this_address.com:${port1}/UA/Sample`, function (err) {
+        secureChannel.create(`opc.tcp://no_server_at_this_address.com:${port}/UA/Sample`, function (err) {
             should(err).be.instanceOf(Error);
             err.message.should.match(/getaddrinfo ENOTFOUND|EAI_AGAIN/);
             client_has_received_close_event.should.eql(0);
@@ -98,8 +102,9 @@ function stopServer(holder, callback) {
     holder.server_socket = null;
 }
 describe("Testing ClientSecureChannel 2", function () {
+    const port = port2;
     beforeEach(function (done) {
-        startServer(this, port2, done);
+        startServer(this, port, done);
     });
     afterEach(function (done) {
         stopServer(this, done);
@@ -122,7 +127,7 @@ describe("Testing ClientSecureChannel 2", function () {
                 /** */
             }
         });
-        secureChannel.create(`opc.tcp://localhost:${port2}/UA/Sample`, function (err) {
+        secureChannel.create(`opc.tcp://localhost:${port}/UA/Sample`, function (err) {
             should(!err).be.eql(true, "connection expected to succeed");
 
             secureChannel.close(function () {
@@ -136,6 +141,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     this.timeout(Math.max(this.timeout(), 100000));
 
     it("WW2-a connectionStrategy: should retry many times and fail eventually ", function (done) {
+        const port = port3;
         const options = {
             connectionStrategy: {
                 maxRetry: 3,
@@ -146,7 +152,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         };
         const secureChannel = new ClientSecureChannelLayer(options);
 
-        const endpoint = `opc.tcp://localhost:${port3}/UA/Sample`;
+        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
         let nbRetry = 0;
         secureChannel.on("backoff", function (number, delay) {
             debugLog(number + " " + delay + "ms");
@@ -161,6 +167,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
     // waiting for https://github.com/MathieuTurcotte/node-backoff/issues/15 to be fixed
     it("WW2-b should be possible to interrupt the retry process  ", function (done) {
+        const port = port3;
         const options = {
             connectionStrategy: {
                 maxRetry: 3000,
@@ -172,7 +179,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         const secureChannel = new ClientSecureChannelLayer(options);
 
-        const endpoint = `opc.tcp://localhost:${port3}/UA/Sample`;
+        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
         let nbRetry = 0;
 
         secureChannel.on("backoff", function (number, delay) {
@@ -201,6 +208,8 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     const test = this;
 
     it("WW2-c secureChannel that starts before the server is up and running should eventually connect without error", function (done) {
+
+        const port = port3;
         const options = {
             connectionStrategy: {
                 maxRetry: 3000,
@@ -212,7 +221,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         const secureChannel = new ClientSecureChannelLayer(options);
 
-        const endpoint = `opc.tcp://localhost:${port3}/UA/Sample`;
+        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
         let nbRetry = 0;
 
         secureChannel.on("backoff", function (number, delay) {
@@ -234,7 +243,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         setTimeout(function () {
             // start the server with a delay
-            startServer(test, port3, function () {
+            startServer(test, port, function () {
                 debugLog("Server finally started !");
             });
         }, 5000);
@@ -255,6 +264,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     });
 
     it("MMM1 client SecureChannel should detect connection problem", async () => {
+        const port = port4;
         const options = {
             connectionStrategy: {
                 maxRetry: 3,
@@ -273,9 +283,9 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         const holder = {};
 
-        await promisify(startServer)(holder, port4);
+        await promisify(startServer)(holder, port);
 
-        const endpoint = `opc.tcp://localhost:${port4}/UA/Sample`;
+        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
         await promisify(secureChannel.create).call(secureChannel, endpoint);
 
         //-----------------------------------------------------------------
@@ -311,6 +321,9 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         debugLog("DONE! ");
     });
     it("MMM2 testing if client SecureChannel could  sabotage itself when connection problem", async () => {
+
+        const port = port5;
+
         const options = {
             connectionStrategy: {
                 maxRetry: 3,
@@ -328,10 +341,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         });
 
         const holder = {};
-        await promisify(startServer)(holder, port4);
+        await promisify(startServer)(holder, port);
 
         try {
-            const endpoint = `opc.tcp://localhost:${port4}/UA/Sample`;
+            const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
             await promisify(secureChannel.create).call(secureChannel, endpoint);
             secureChannel._closeWithError(StatusCodes.Bad, new Error("Sabotage"));
         } catch (err) {
