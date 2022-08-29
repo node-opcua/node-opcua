@@ -15,11 +15,9 @@
         "node-opcua-binary-stream": "2.74.0",
         "node-opcua-buffer-utils": "2.74.0",
         "node-opcua-date-time": "2.74.0",
-        "node-opcua-enum": "2.74.0",
         "node-opcua-guid": "2.74.0",
         "node-opcua-nodeid": "2.74.0",
-        "node-opcua-status-code": "2.74.0",
-        "node-opcua-utils": "2.74.0"
+        "node-opcua-status-code": "2.74.0"
     },
     "devDependencies": {
         "@types/node": "18.0.0",

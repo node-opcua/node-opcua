@@ -1,6 +1,6 @@
 const should = require("should");
 
-const parseEndpointUrl = require("..").parseEndpointUrl;
+const { parseEndpointUrl } = require("..");
 
 describe("testing parseEndpointUrl", function () {
     it("should parse a endpoint ", function () {

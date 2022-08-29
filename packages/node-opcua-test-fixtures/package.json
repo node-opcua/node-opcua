@@ -26,6 +26,8 @@
     ],
     "homepage": "http://node-opcua.github.io/",
     "dependencies": {
-        "node-opcua-debug": "2.74.0"
+        "node-opcua-service-secure-channel": "2.75.0",
+        "node-opcua-debug": "2.74.0",
+        "node-opcua-types": "2.75.0"
     }
 }

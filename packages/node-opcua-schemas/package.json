@@ -15,19 +15,19 @@
         "chalk": "4.1.2",
         "node-opcua-assert": "2.74.0",
         "node-opcua-binary-stream": "2.74.0",
-        "node-opcua-data-model": "2.75.0",
         "node-opcua-debug": "2.74.0",
-        "node-opcua-enum": "2.74.0",
         "node-opcua-extension-object": "2.75.0",
         "node-opcua-factory": "2.75.0",
         "node-opcua-nodeid": "2.74.0",
-        "node-opcua-utils": "2.74.0",
         "node-opcua-variant": "2.75.0",
-        "node-opcua-xml2json": "2.74.0",
-        "thenify": "^3.3.1"
+        "node-opcua-xml2json": "2.74.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.75.0"
+        "mocha": "^10.0.0",
+        "node-opcua-data-model": "2.75.0",
+        "node-opcua-packet-analyzer": "2.75.0",
+        "node-opcua-utils": "2.74.0",
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

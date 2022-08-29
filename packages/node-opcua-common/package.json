@@ -12,13 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.74.0",
-        "node-opcua-basic-types": "2.74.0",
         "node-opcua-crypto": "^1.11.0",
-        "node-opcua-data-model": "2.75.0",
-        "node-opcua-factory": "2.75.0",
-        "node-opcua-nodeid": "2.74.0",
-        "node-opcua-service-endpoints": "2.75.0",
-        "node-opcua-service-secure-channel": "2.75.0",
         "node-opcua-types": "2.75.0"
     },
     "devDependencies": {

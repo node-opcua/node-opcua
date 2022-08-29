@@ -1,6 +1,6 @@
 "use strict";
 const should = require("should");
-const SequenceNumberGenerator = require("..").SequenceNumberGenerator;
+const { SequenceNumberGenerator } = require("..");
 
 describe("SequenceNumberGenerator", function () {
 

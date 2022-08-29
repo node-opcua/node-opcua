@@ -18,6 +18,8 @@ const crypto_utils = require("node-opcua-crypto");
  */
 async function start_simple_server(options) {
     options = options || {};
+    
+    options.silent = false;
 
     const serverScript = options.server_sourcefile || path.join(__dirname, "./bin/simple_server.js");
 

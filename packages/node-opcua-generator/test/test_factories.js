@@ -1,11 +1,14 @@
 /* eslint-disable no-undef */
 "use strict";
-const fs = require("fs");
 const should = require("should");
 const _ = require("underscore");
-const utils = require("node-opcua-utils");
 const { registerEnumeration, registerBasicType } = require("node-opcua-factory");
-
+const { StatusCodes } = require("node-opcua-status-code");
+const { ExtensionObject } = require("node-opcua-status-code");
+const { parameters } = require("node-opcua-factory");
+const { getTypeMap }= require("node-opcua-factory");
+const schema_helpers = parameters;
+      
 const ec = require("node-opcua-basic-types");
 
 const { compare_obj_by_encoding, encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
@@ -71,13 +74,12 @@ function initialize() {
     });
 }
 
-let c=10000;
+let c = 10000;
 function next_available_id() {
     return c++;
 }
 xdescribe("Factories: testing object factory", function () {
     it("should handle subtype properly", function () {
-  
         exports.MyStruct_Schema = {
             name: "MyStruct",
             id: next_available_id(),
@@ -94,8 +96,6 @@ xdescribe("Factories: testing object factory", function () {
     });
 
     it("should handle StatusCode ", function () {
-        const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
         exports.MyStruct2_Schema = {
             name: "MyStruct2",
             id: next_available_id(),
@@ -149,8 +149,6 @@ xdescribe("Factories: testing object factory", function () {
     });
 
     it("should raise an exception when trying to pass an invalid field to constructor", function () {
-        const schema_helpers = require("node-opcua-factory").parameters;
-
         const old_schema_helpers_doDebug = schema_helpers.debugSchemaHelper;
         schema_helpers.debugSchemaHelper = true;
 
@@ -344,15 +342,14 @@ xdescribe("factories testing advanced cases", function () {
     });
 
     it("should accept all basic types as field scalar or field arrays", function () {
-        const ExtensionObject = require("node-opcua-status-code").ExtensionObject;
-
+    
         exports.Blob6_Schema = {
             name: "Blob6",
             id: next_available_id(),
             fields: []
         };
 
-        const _defaultTypeMap = require("node-opcua-factory").getTypeMap();
+        const _defaultTypeMap = getTypeMap();
 
         _defaultTypeMap.forEach(function (value, key, map) {
             if (key === "Any") {

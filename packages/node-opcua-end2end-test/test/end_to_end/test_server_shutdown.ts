@@ -2,7 +2,6 @@ import {
     OPCUAClient,
     OPCUAServer,
     nodesets,
-    get_empty_nodeset_filename,
     ClientSession,
     ClientSubscription,
     resolveNodeId,
@@ -11,9 +10,7 @@ import {
     TimestampsToReturn,
     ClientMonitoredItem,
     AttributeIds,
-    ServerState,
-    coerceLocalizedText
-} from "node-opcua";
+    ServerState} from "node-opcua";
 import * as chalk from "chalk";
 import sinon = require("sinon");
 import { SinonSpy } from "sinon";
@@ -154,7 +151,7 @@ describe("Testing server shutdown", () => {
         await f(then_the_client_should_automatically_be_disconnected)(client);
 
         // force disconnection
-        debugLog("Force disconnectionon");
+        debugLog("Force disconnection");
         await client.disconnect();
 
         if (doDebug) {

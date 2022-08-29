@@ -27,6 +27,7 @@ const { nodesets } = require("node-opcua-nodesets");
 const { Range, WriteValue } = require("node-opcua-types");
 const { add_eventGeneratorObject } = require("node-opcua-address-space/testHelpers");
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const { standardUnits } = require("node-opcua-data-access");
 
 const { Subscription, SubscriptionState, ServerSidePublishEngine, MonitoredItem, ServerEngine } = require("..");
 
@@ -153,8 +154,6 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
                     value: 36
                 })
             });
-
-            const standardUnits = require("node-opcua-data-access").standardUnits;
 
             function addAnalogItem(dataType) {
                 const name = "AnalogItem" + dataType;

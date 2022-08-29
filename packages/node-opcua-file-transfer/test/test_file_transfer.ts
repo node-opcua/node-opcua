@@ -20,7 +20,6 @@ import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs } fr
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 ["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {
     const useGlobalMethod = !!message.match(/FileType/);
     const withMemFS = message.match(/memory/);

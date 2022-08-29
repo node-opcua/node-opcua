@@ -1,8 +1,8 @@
 "use strict";
 const should = require("should");
 const chalk = require("chalk");
-
-const debugLog = require("node-opcua-debug").make_debugLog("TEST");
+const { make_debugLog } = require("node-opcua-debug");
+const debugLog = make_debugLog("TEST");
 const { hexDump } = require("node-opcua-debug");
 const { MessageSecurityMode } = require("node-opcua-service-secure-channel");
 const { readPrivateRsaKey } = require("node-opcua-crypto");
@@ -31,11 +31,10 @@ describe("MessageBuilder with SIGN support", function () {
     const someBuffer = Buffer.from(data, data.length);
 
     it("should not emit an error event if chunks have valid signature", function (done) {
-
         const messageBuilder = new MessageBuilder({
             maxChunkCount: 10,
             maxMessageSize: someBuffer.length * 10,
-            maxChunkSize: someBuffer.length  + 1000 ,
+            maxChunkSize: someBuffer.length + 1000
         });
         messageBuilder.privateKey = readPrivateRsaKey(private_key_filename);
 
@@ -45,7 +44,9 @@ describe("MessageBuilder with SIGN support", function () {
             .on("full_message_body", (message) => {
                 done();
             })
-            .on("message", (message) => {/** */ })
+            .on("message", (message) => {
+                /** */
+            })
             .on("error", (error) => {
                 console.log("ERROR", error);
                 done(error);
@@ -138,7 +139,9 @@ describe("MessageBuilder with SIGN & ENCRYPT support (OPN) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {/** */ })
+            .on("message", (message) => {
+                /** */
+            })
             .on("error", (error) => {
                 done(error);
             });
@@ -178,7 +181,9 @@ describe("MessageBuilder with SIGN & ENCRYPT support (MSG) ", function () {
                 message.toString().should.eql(lorem_ipsum_buffer.toString());
                 done();
             })
-            .on("message", (message) => {/** */ })
+            .on("message", (message) => {
+                /** */
+            })
             .on("error", (error) => {
                 console.log("err ", error.message);
                 done(error);

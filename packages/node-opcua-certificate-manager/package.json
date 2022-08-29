@@ -13,30 +13,21 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@types/mkdirp": "1.0.2",
-        "chalk": "4.1.2",
-        "delayed": "^2.0.0",
-        "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
         "node-opcua-assert": "2.74.0",
-        "node-opcua-basic-types": "2.74.0",
-        "node-opcua-buffer-utils": "2.74.0",
-        "node-opcua-constants": "2.74.0",
         "node-opcua-crypto": "^1.11.0",
         "node-opcua-debug": "2.74.0",
         "node-opcua-object-registry": "2.74.0",
         "node-opcua-pki": "^2.17.0",
         "node-opcua-status-code": "2.74.0",
-        "node-opcua-utils": "2.74.0",
-        "once": "^1.4.0",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "@types/async": "^3.2.13",
-        "dequeue": "^1.0.5",
         "node-opcua-leak-detector": "2.74.0",
-        "should": "^13.2.3",
-        "sinon": "^14.0.0"
-    },
+        "mocha": "^10.0.0",
+        "rimraf": "^3.0.2",
+        "should": "^13.2.3"
+     },
     "eslintConfig": {
         "env": {
             "node": true

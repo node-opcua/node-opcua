@@ -20,11 +20,11 @@
         "node-opcua-binary-stream": "2.74.0",
         "node-opcua-debug": "2.74.0",
         "node-opcua-factory": "2.75.0",
-        "node-opcua-nodeid": "2.74.0",
         "node-opcua-utils": "2.74.0"
     },
     "devDependencies": {
         "node-opcua-test-helpers": "2.74.0",
+        "node-opcua-nodeid": "2.74.0",
         "should": "^13.2.3"
     },
     "repository": {

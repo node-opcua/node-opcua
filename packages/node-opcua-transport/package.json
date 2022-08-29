@@ -20,15 +20,12 @@
         "node-opcua-chunkmanager": "2.75.0",
         "node-opcua-debug": "2.74.0",
         "node-opcua-factory": "2.75.0",
-        "node-opcua-nodeid": "2.74.0",
         "node-opcua-object-registry": "2.74.0",
         "node-opcua-packet-assembler": "2.74.0",
         "node-opcua-status-code": "2.74.0",
-        "node-opcua-types": "2.75.0",
         "node-opcua-utils": "2.74.0"
     },
     "devDependencies": {
-        "@types/node": "18.0.0",
         "should": "^13.2.3",
         "sinon": "^14.0.0"
     },

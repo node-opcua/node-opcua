@@ -7,6 +7,7 @@
 Error.stackTraceLimit = Infinity;
 const path = require("path");
 
+const { spawn } = require("child_process");
 const sinon = require("sinon");
 const should = require("should");
 const async = require("async");
@@ -419,7 +420,6 @@ describe("testing Server resilience to DDOS attacks", function () {
         function create_crashing_client(callback) {
             counter++;
             console.log(" ------------------------------------------------------------ > create_a_faulty_client");
-            const spawn = require("child_process").spawn;
             const server_script = path.join(__dirname, "../test_helpers/crashing_client");
             const options = {};
             const server_exec = spawn("node", [server_script, port], options);

@@ -3,10 +3,10 @@
 /// issues: #237 #288
 const path = require("path");
 const fs = require("fs");
+const { hostname } = require("os");
 const _ = require("underscore");
 const chalk = require("chalk");
 const async = require("async");
-
 const opcua = require("node-opcua");
 
 function server_stuff() {
@@ -111,7 +111,7 @@ const client = opcua.OPCUAClient.create({
     }
 });
 
-const endpointUrl = "opc.tcp://" + require("os").hostname() + ":53530/OPCUA/SimulationServer";
+const endpointUrl = "opc.tcp://" + hostname() + ":53530/OPCUA/SimulationServer";
 const nodeId = opcua.coerceNodeId("ns=3;s=Int32");
 const doDebug = true;
 
@@ -218,7 +218,9 @@ async.series(
                         the_subscription.publish_engine.nbPendingPublishRequests
                     );
                 })
-                .on("terminated", function (err) {/** */});
+                .on("terminated", function (err) {
+                    /** */
+                });
         },
 
         function client_create_monitoredItem(callback) {
@@ -327,6 +329,8 @@ async.series(
         } else {
             console.log("done!");
         }
-        client.disconnect(function () {/** */});
+        client.disconnect(function () {
+            /** */
+        });
     }
 );

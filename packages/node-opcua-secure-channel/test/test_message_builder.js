@@ -4,9 +4,10 @@ const should = require("should");
 const packets = require("node-opcua-transport/dist/test-fixtures");
 
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { make_debugLog} = require("node-opcua-debug");
 const { MessageBuilder } = require("..");
 const { SecurityPolicy, MessageSecurityMode } = require("..");
+const debugLog = make_debugLog(__filename);
 
 describe("MessageBuilder", function () {
     it("should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ", function (done) {

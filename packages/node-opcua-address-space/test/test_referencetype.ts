@@ -6,6 +6,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ReferenceDescription, BrowseDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { Benchmarker } from "node-opcua-benchmarker";
+import { ReferenceTypeIds } from "node-opcua-constants";
 
 import {
     AddressSpace,
@@ -333,7 +334,7 @@ describe("testing ReferenceType", () => {
 
         s.should.eql(
             "HierarchicalReferences HasChild Aggregates HasProperty HasComponent " +
-                "HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier"
+            "HasOrderedComponent HasHistoricalConfiguration HasSubtype Organizes HasEventSource HasNotifier"
         );
 
         const aggregates = addressSpace.findReferenceType("Aggregates")!;
@@ -433,7 +434,7 @@ describe(" improving performance of isSupertypeOf", () => {
     //                  +->(hasSubtype) Organizes/OrganizedBy
     //                  +->(hasSubtype) HasEventSource/EventSourceOf
 
-    const referenceTypeNames = Object.keys(require("node-opcua-constants").ReferenceTypeIds);
+    const referenceTypeNames = Object.keys(ReferenceTypeIds);
 
     let referenceTypes: UAReferenceType[] = [];
 

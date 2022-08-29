@@ -1268,7 +1268,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
     assert(methodNoArgs.nodeId.toString().match(/s=MethodNoArgs/));
 
     methodNoArgs.bindMethod((inputArguments, context, callback) => {
-        // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
             outputArguments: []
@@ -1299,7 +1298,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
         ]
     });
     methodIO.bindMethod((inputArguments, context, callback) => {
-        // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
             outputArguments: [
@@ -1328,7 +1326,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
         // xx outputArguments: []
     });
     methodI.bindMethod((inputArguments, context, callback) => {
-        // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
             outputArguments: []
@@ -1352,7 +1349,6 @@ function add_ObjectWithMethod(namespace: Namespace, parentFolder: UAObject) {
         ]
     });
     methodO.bindMethod((inputArguments, context, callback) => {
-        // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             statusCode: StatusCodes.Good,
             outputArguments: [

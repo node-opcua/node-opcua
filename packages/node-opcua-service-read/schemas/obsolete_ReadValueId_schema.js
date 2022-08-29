@@ -1,9 +1,7 @@
 "use strict";
 
 const factories = require("node-opcua-factory");
-
-const AttributeIds = require("node-opcua-data-model").AttributeIds;
-const isValidAttributeId = require("node-opcua-data-model").isValidAttributeId;
+const { AttributeIds , isValidAttributeId }= require("node-opcua-data-model");
 
 require("node-opcua-numeric-range");
 

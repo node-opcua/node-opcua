@@ -16,7 +16,6 @@
         "node-opcua-assert": "2.74.0"
     },
     "devDependencies": {
-        "@types/node": "18.0.0",
         "should": "^13.2.3",
         "sinon": "^14.0.0"
     },

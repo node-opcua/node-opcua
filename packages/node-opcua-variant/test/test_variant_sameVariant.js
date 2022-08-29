@@ -5,12 +5,7 @@ const should = require("should");
 const { assert } = require("node-opcua-assert");
 const { ExtensionObject } = require("node-opcua-extension-object");
 
-const Variant = require("..").Variant;
-const DataType = require("..").DataType;
-const VariantArrayType = require("..").VariantArrayType;
-const buildVariantArray = require("..").buildVariantArray;
-
-const sameVariant = require("..").sameVariant;
+const { sameVariant, Variant, DataType, VariantArrayType, buildVariantArray } = require("..");
 
 describe("testing return sameVariant for pull request", function () {
     it("testing same variants of type Boolean", function () {

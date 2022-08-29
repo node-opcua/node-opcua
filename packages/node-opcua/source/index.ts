@@ -100,8 +100,9 @@ export { nodesets } from "node-opcua-nodesets";
 // an incomplete but sufficient nodeset file used during testing
 export { get_empty_nodeset_filename, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 export * from "node-opcua-address-space/nodeJS";
+
 module.exports.utils = require("node-opcua-utils");
-module.exports.hexDump = require("node-opcua-debug").hexDump;
+export { hexDump } from "node-opcua-debug";
 
 // ----------------------------------------------------------------------------------------------------------
 // client services

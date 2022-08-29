@@ -23,8 +23,8 @@
         "node-opcua-service-translate-browse-path": "2.75.0",
         "node-opcua-service-write": "2.75.0",
         "node-opcua-status-code": "2.74.0",
-        "node-opcua-utils": "2.74.0",
-        "node-opcua-variant": "2.75.0"
+        "node-opcua-variant": "2.75.0",
+        "thenify": "^3.3.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

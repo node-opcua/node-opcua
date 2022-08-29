@@ -1,5 +1,5 @@
 require("node-opcua-service-secure-channel");
-const TimestampsToReturn = require("node-opcua-data-value").TimestampsToReturn;
+const { TimestampsToReturn } = require("node-opcua-data-value");
 
 /*
  * Maximum age of the value to be read in milliseconds. The age of the value is based on the difference between the

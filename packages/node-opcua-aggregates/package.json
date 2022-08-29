@@ -12,13 +12,12 @@
         "clean": "npx rimraf dist *.tsbuildinfo"
     },
     "dependencies": {
-        "@types/async": "^3.2.13",
+        "node-opcua-assert": "2.74.0",
         "node-opcua-address-space": "2.75.0",
         "node-opcua-constants": "2.74.0",
         "node-opcua-data-model": "2.75.0",
         "node-opcua-data-value": "2.75.0",
         "node-opcua-nodeid": "2.74.0",
-        "node-opcua-nodesets": "2.74.0",
         "node-opcua-numeric-range": "2.75.0",
         "node-opcua-service-history": "2.75.0",
         "node-opcua-status-code": "2.74.0",
@@ -27,12 +26,9 @@
         "node-opcua-variant": "2.75.0"
     },
     "devDependencies": {
-        "delayed": "^2.0.0",
-        "node-opcua-assert": "2.74.0",
         "node-opcua-leak-detector": "2.74.0",
         "should": "^13.2.3",
-        "sinon": "^14.0.0",
-        "yargs": "15.4.1"
+        "node-opcua-nodesets": "2.74.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

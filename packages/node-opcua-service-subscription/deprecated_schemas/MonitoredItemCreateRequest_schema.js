@@ -1,4 +1,4 @@
-const MonitoringMode = require("./MonitoringMode_enum").MonitoringMode;
+const { MonitoringMode } = require("./MonitoringMode_enum");
 
 require("node-opcua-service-read"); // for ReadValueId
 

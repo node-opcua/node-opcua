@@ -18,16 +18,14 @@
         "node-opcua-data-model": "2.75.0",
         "node-opcua-date-time": "2.74.0",
         "node-opcua-enum": "2.74.0",
-        "node-opcua-extension-object": "2.75.0",
         "node-opcua-factory": "2.75.0",
-        "node-opcua-nodeid": "2.74.0",
         "node-opcua-status-code": "2.74.0",
-        "node-opcua-utils": "2.74.0",
         "node-opcua-variant": "2.75.0"
     },
     "devDependencies": {
         "node-opcua-debug": "2.74.0",
         "node-opcua-numeric-range": "2.75.0",
+        "node-opcua-extension-object": "2.75.0",
         "node-opcua-packet-analyzer": "2.75.0",
         "should": "^13.2.3"
     },
