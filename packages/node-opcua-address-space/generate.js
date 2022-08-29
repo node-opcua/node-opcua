@@ -1,1 +1,1 @@
-const generator = require("node-opcua-generator");
+// nothing

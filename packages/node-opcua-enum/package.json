@@ -11,7 +11,6 @@
     "main": "./dist/index.js",
     "@types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.74.0"
     },
     "devDependencies": {
         "enum": "3.0.4",

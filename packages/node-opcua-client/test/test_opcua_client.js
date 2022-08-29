@@ -1,6 +1,5 @@
 "use strict";
-const OPCUAClient = require("..").OPCUAClient;
-const ClientSecureChannelLayer = require("..").ClientSecureChannelLayer;
+const { OPCUAClient,ClientSecureChannelLayer } = require("..");
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

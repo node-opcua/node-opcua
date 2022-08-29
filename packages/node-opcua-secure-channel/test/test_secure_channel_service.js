@@ -9,16 +9,18 @@ const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/di
 
 const { compare_buffers } = require("node-opcua-utils");
 const { clone_buffer } = require("node-opcua-buffer-utils");
-const { hexDump } = require("node-opcua-debug");
+const { hexDump, makeBufferFromTrace } = require("node-opcua-debug");
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { make_debugLog } = require("node-opcua-debug");
+const debugLog = make_debugLog(__filename);
 
 const { MessageBuilder, MessageChunker } = require("..");
+const fixture = require("../test_fixtures/fixture_GetEndPointResponse");
 
 describe("SecureMessageChunkManager", function () {
     it("should reconstruct a valid message when message is received in multiple chunks", function (done) {
         // a very large endPointResponse spanning on multiple chunks ...
-        const endPointResponse = require("../test_fixtures/fixture_GetEndPointResponse").fixture2;
+        const endPointResponse = fixture.fixture2;
 
         const requestId = 0x1000;
 
@@ -125,8 +127,6 @@ describe("SecureMessageChunkManager", function () {
                 should.fail();
                 done(new Error("Unexpected error event received"));
             });
-
-        const makeBufferFromTrace = require("node-opcua-debug").makeBufferFromTrace;
 
         const packet = makeBufferFromTrace(function () {
             /*

@@ -19,13 +19,11 @@
         "node-opcua-enum": "2.74.0",
         "node-opcua-factory": "2.75.0",
         "node-opcua-nodeid": "2.74.0",
-        "node-opcua-status-code": "2.74.0",
-        "node-opcua-utils": "2.74.0"
+        "node-opcua-status-code": "2.74.0"
     },
     "devDependencies": {
         "node-opcua-packet-analyzer": "2.75.0",
-        "should": "^13.2.3",
-        "source-map-support": "^0.5.21"
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

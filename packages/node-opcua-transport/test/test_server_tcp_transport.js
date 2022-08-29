@@ -11,7 +11,7 @@ const { readMessageHeader } = require("node-opcua-chunkmanager");
 
 const { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, AcknowledgeMessage, TCPErrorMessage } = require("..");
 
-const DirectTransport = require("../dist/test_helpers").DirectTransport;
+const { DirectTransport } = require("../dist/test_helpers");
 
 const packets = require("../dist/test-fixtures");
 const helloMessage = packets.helloMessage1;

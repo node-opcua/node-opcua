@@ -5,15 +5,12 @@
  */
 const util = require("util");
 const { assert } = require("node-opcua-assert");
-const resolve_schema_field_types = require("node-opcua-factory").resolve_schema_field_types;
-const initialize_field = require("node-opcua-factory").initialize_field;
-const check_options_correctness_against_schema = require("node-opcua-factory").check_options_correctness_against_schema;
+const { check_options_correctness_against_schema, initialize_field, resolve_schema_field_types } = require("node-opcua-factory");
 
 const { makeExpandedNodeId } = require("node-opcua-nodeid");
-const generate_new_id = require("node-opcua-factory").generate_new_id;
 const _enumerations = require("node-opcua-factory/src/factories_enumerations")._private._enumerations;
-const BaseUAObject = require("node-opcua-factory").BaseUAObject;
-const _defaultTypeMap = require("node-opcua-factory/src/factories_builtin_types")._defaultTypeMap;
+const { BaseUAObject, generate_new_id } = require("node-opcua-factory");
+const { _defaultTypeMap } = require("node-opcua-factory/src/factories_builtin_types");
 
 const schema = require("../../schemas/Variant_schema").Variant_Schema;
 

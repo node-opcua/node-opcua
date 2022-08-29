@@ -13,7 +13,6 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.2.0",
-        "@types/underscore": "^1.11.4",
         "async": "^3.2.4",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
@@ -34,16 +33,13 @@
         "node-opcua-data-value": "2.75.0",
         "node-opcua-date-time": "2.74.0",
         "node-opcua-debug": "2.74.0",
-        "node-opcua-enum": "2.74.0",
         "node-opcua-extension-object": "2.75.0",
         "node-opcua-factory": "2.75.0",
         "node-opcua-hostname": "2.74.0",
         "node-opcua-nodeid": "2.74.0",
-        "node-opcua-nodeset-ua": "2.75.0",
         "node-opcua-nodesets": "2.74.0",
         "node-opcua-numeric-range": "2.75.0",
         "node-opcua-object-registry": "2.74.0",
-        "node-opcua-pki": "^2.17.0",
         "node-opcua-secure-channel": "2.75.0",
         "node-opcua-service-browse": "2.75.0",
         "node-opcua-service-call": "2.75.0",
@@ -61,13 +57,14 @@
         "node-opcua-service-translate-browse-path": "2.75.0",
         "node-opcua-service-write": "2.75.0",
         "node-opcua-status-code": "2.74.0",
-        "node-opcua-transport": "2.75.0",
         "node-opcua-types": "2.75.0",
         "node-opcua-utils": "2.74.0",
-        "node-opcua-variant": "2.75.0"
+        "node-opcua-variant": "2.75.0",
+        "thenify": "^3.3.1"
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.74.0",
+        "underscore": "^1.13.4",
         "node-opcua-test-helpers": "2.74.0",
         "should": "^13.2.3",
         "sinon": "^14.0.0"

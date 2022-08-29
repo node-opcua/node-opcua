@@ -24,8 +24,12 @@ const { NumericRange } = require("node-opcua-numeric-range");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
 const { resolveNodeId } = require("node-opcua-nodeid");
+const { makeNodeId } = require("node-opcua-nodeid");
+const { analyze_object_binary_encoding } = require("node-opcua-packet-analyzer");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const { get_clock_tick } = require("node-opcua-utils");
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -554,8 +558,6 @@ describe("Variant", () => {
     });
 });
 
-const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const {
     Variant,
     DataType,
@@ -664,8 +666,6 @@ describe("Variant - Analyser", function () {
     });
 
     it("should encode/decode a very large array of Float - 1", () => {
-        const get_clock_tick = require("node-opcua-utils").get_clock_tick;
-
         const nbElements = 1500 * 1024;
 
         const t0 = get_clock_tick();
@@ -823,7 +823,7 @@ describe("benchmarking variant encode", () => {
 
         variant.value = Array.from(new Array(10000), (_, i) => i);
         const stream = new BinaryStream(variant.binaryStoreSize());
-   
+
         bench
             .add("Variant.encode", () => {
                 assert(typeof encodeVariant === "function");
@@ -1009,7 +1009,6 @@ describe("Variant with Advanced Array", () => {
             value: [0, 1, 2, 3, 4, 5]
         });
 
-        const NumericRange = require("node-opcua-numeric-range").NumericRange;
         const nr = new NumericRange("3:4");
         v.value = nr.extract_values(v.value).array;
         v.value[0].should.eql(3);

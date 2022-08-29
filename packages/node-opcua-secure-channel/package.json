@@ -11,7 +11,6 @@
         "clean": "npx rimraf dist *.tsbuildinfo"
     },
     "dependencies": {
-        "@types/underscore": "^1.11.4",
         "async": "^3.2.4",
         "backoff": "^2.5.0",
         "chalk": "4.1.2",
@@ -23,32 +22,27 @@
         "node-opcua-common": "2.75.0",
         "node-opcua-crypto": "^1.11.0",
         "node-opcua-debug": "2.74.0",
-        "node-opcua-enum": "2.74.0",
         "node-opcua-factory": "2.75.0",
         "node-opcua-nodeid": "2.74.0",
         "node-opcua-object-registry": "2.74.0",
         "node-opcua-packet-analyzer": "2.75.0",
         "node-opcua-service-secure-channel": "2.75.0",
+        "node-opcua-service-endpoints": "2.75.0",
         "node-opcua-status-code": "2.74.0",
         "node-opcua-transport": "2.75.0",
         "node-opcua-types": "2.75.0",
         "node-opcua-utils": "2.74.0"
     },
     "devDependencies": {
-        "@types/node": "18.0.0",
-        "node-opcua-buffer-utils": "2.74.0",
         "node-opcua-leak-detector": "2.74.0",
+        "node-opcua-buffer-utils": "2.74.0",
         "node-opcua-service-browse": "2.75.0",
-        "node-opcua-service-endpoints": "2.75.0",
         "node-opcua-service-read": "2.75.0",
         "node-opcua-service-session": "2.75.0",
         "node-opcua-test-fixtures": "2.74.0",
         "node-opcua-test-helpers": "2.74.0",
         "should": "^13.2.3",
-        "sinon": "^14.0.0",
-        "source-map-support": "^0.5.21",
-        "sprintf-js": "^1.1.2",
-        "underscore": "^1.13.4"
+        "sinon": "^14.0.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

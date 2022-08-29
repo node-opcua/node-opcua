@@ -1,4 +1,4 @@
-const version = require("./packages/node-opcua/package").version;
+const { version  } = require("./packages/node-opcua/package");
 module.exports = {
     name: "The NodeOPCUA API",
     description: "The NodeOPCUA API: a library to easily create OPC UA Server and Client application with node.js",

@@ -2,9 +2,9 @@
 "use strict";
 const path = require("path");
 const os = require("os");
+const { hostname} = require("os");
 const chalk = require("chalk");
 const opcua = require("node-opcua");
-
 Error.stackTraceLimit = Infinity;
 
 function constructFilename(filename) {
@@ -101,7 +101,7 @@ const server = new OPCUAServer({
     
     userManager: userManager,
     registerServerMethod: opcua.RegisterServerMethod.LDS,
-    discoveryServerEndpointUrl: argv.discoveryServerEndpointUrl || "opc.tcp://" + require("os").hostname() + ":4840"
+    discoveryServerEndpointUrl: argv.discoveryServerEndpointUrl || "opc.tcp://" + hostname() + ":4840"
 });
 
 process.title = "Node OPCUA Server on port : " + port;

@@ -1,4 +1,4 @@
-const HistoryUpdateType = require("./HistoryUpdateType_enum").HistoryUpdateType;
+const {HistoryUpdateType } = require("./HistoryUpdateType_enum");
 
 const ModificationInfo_Schema = {
     name: "ModificationInfo",

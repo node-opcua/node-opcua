@@ -1,39 +1,33 @@
 const should = require("should");
-const service = require("..");
 
-const ApplicationDescription = require("node-opcua-service-endpoints").ApplicationDescription;
-const ApplicationType = require("node-opcua-service-endpoints").ApplicationType;
-const CreateSessionRequest = service.CreateSessionRequest;
+const { ApplicationDescription, ApplicationType } = require("node-opcua-service-endpoints");
+const { CreateSessionRequest, CreateSessionResponse, ActivateSessionRequest, ActivateSessionResponse } = require("..");
 
-describe("Session Service",function() {
-
-    it("should instantiate a CreateSessionRequest",function() {
-        const obj = new service.CreateSessionRequest();
+describe("Session Service", function () {
+    it("should instantiate a CreateSessionRequest", function () {
+        const obj = new CreateSessionRequest();
     });
-    it("should instantiate a CreateSessionResponse",function() {
-        const obj = new service.CreateSessionResponse();
+    it("should instantiate a CreateSessionResponse", function () {
+        const obj = new CreateSessionResponse();
     });
 
-    it("should instantiate a ActivateSessionRequest",function() {
-        const obj = new service.ActivateSessionRequest();
+    it("should instantiate a ActivateSessionRequest", function () {
+        const obj = new ActivateSessionRequest();
     });
-    it("should instantiate a ActivateSessionResponse",function() {
-        const obj = new service.ActivateSessionResponse();
+    it("should instantiate a ActivateSessionResponse", function () {
+        const obj = new ActivateSessionResponse();
     });
-
 
     it("should create a complex type with embedded type", function () {
-
         const applicationDescription = new ApplicationDescription({
             applicationUri: "application:uri",
             productUri: "uri:product",
-            applicationName: {text: "MyApplication"},
+            applicationName: { text: "MyApplication" },
             applicationType: ApplicationType.Client,
             gatewayServerUri: undefined,
             discoveryProfileUri: undefined,
             discoveryUrls: []
         });
-
 
         const request = new CreateSessionRequest({
             clientDescription: applicationDescription,
@@ -51,9 +45,5 @@ describe("Session Service",function() {
         request.clientDescription.applicationName.text.should.equal("MyApplication");
         request.clientDescription.applicationType.should.equal(ApplicationType.Client);
         request.clientDescription.discoveryUrls.length.should.equal(0);
-
-
     });
-
 });
-

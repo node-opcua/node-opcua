@@ -10,7 +10,6 @@
         "lint": "eslint source/**/*.ts"
     },
     "dependencies": {
-        "node-opcua-assert": "2.74.0",
         "node-opcua-utils": "2.74.0"
     },
     "author": "Etienne Rossignon",

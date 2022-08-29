@@ -1,8 +1,10 @@
 "use strict";
 
 const should = require("should");
-
-const Enum = require("..").Enum;
+const EnumSlow = require("enum");
+const { Benchmarker } = require("node-opcua-benchmarker");
+const { Enum  } = require("..");
+const EnumFast  = Enum;
 
 describe("Test Enum", function() {
 
@@ -82,11 +84,6 @@ describe("Test Enum", function() {
 
 });
 
-const Benchmarker = require("node-opcua-benchmarker").Benchmarker;
-
-
-const EnumSlow = require("enum");
-const EnumFast = require("..").Enum;
 
 describe("Benchmarking Enums", function() {
 

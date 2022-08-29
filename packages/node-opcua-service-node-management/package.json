@@ -11,14 +11,6 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.74.0",
-        "node-opcua-basic-types": "2.74.0",
-        "node-opcua-binary-stream": "2.74.0",
-        "node-opcua-data-model": "2.75.0",
-        "node-opcua-extension-object": "2.75.0",
-        "node-opcua-factory": "2.75.0",
-        "node-opcua-nodeid": "2.74.0",
-        "node-opcua-service-secure-channel": "2.75.0",
         "node-opcua-types": "2.75.0"
     },
     "author": "Etienne Rossignon",

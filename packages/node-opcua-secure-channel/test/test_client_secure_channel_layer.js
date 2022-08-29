@@ -1,27 +1,22 @@
 const should = require("should");
+const sinon = require("sinon");
 const { assert } = require("node-opcua-assert");
-
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
-const packTcpMessage = require("node-opcua-transport").packTcpMessage;
-
-const ClientSecureChannelLayer = require("..").ClientSecureChannelLayer;
-const GetEndpointsRequest = require("node-opcua-service-endpoints").GetEndpointsRequest;
-
-const {
-    MockServerTransport,
-    fakeAcknowledgeMessage
-} = require("../dist/test_helpers");
-
+const { make_debugLog } = require("node-opcua-debug");
+const { packTcpMessage } = require("node-opcua-transport");
+const { GetEndpointsRequest } = require("node-opcua-service-endpoints");
 const { openSecureChannelResponse1 } = require("node-opcua-transport/dist/test-fixtures");
-assert(openSecureChannelResponse1);
-
+const fixture = require("node-opcua-transport/dist/test-fixtures");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing ClientSecureChannelLayer ", function() {
+const { ClientSecureChannelLayer } = require("..");
 
-    this.timeout(Math.max(120*1000,this.timeout()));
+const { MockServerTransport, fakeAcknowledgeMessage } = require("../dist/test_helpers");
 
-    it("should create and close a ClientSecureChannelLayer", function(done) {
+const debugLog = make_debugLog(__filename);
 
+describe("testing ClientSecureChannelLayer ", function () {
+    this.timeout(Math.max(120 * 1000, this.timeout()));
+
+    it("should create and close a ClientSecureChannelLayer", function (done) {
         // here is a mock of the answer provided by the server
         const mock = new MockServerTransport([
             // ---------------------------------------------------- Transaction 1
@@ -32,42 +27,37 @@ describe("testing ClientSecureChannelLayer ", function() {
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            function() {
-                return openSecureChannelResponse1 // OpenChannelResponse
+            function () {
+                return openSecureChannelResponse1; // OpenChannelResponse
             },
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
             //Xx packTcpMessage("CLO", fakeAcknowledgeMessage),
-            function() {
+            function () {
                 this._mockTransport.server.end();
             },
 
-            function() {
+            function () {
                 done(new Error("no more packet to mock"));
             }
         ]);
 
         mock.once("done", done);
 
-
         const clientSecureChannel = new ClientSecureChannelLayer({});
 
-        clientSecureChannel.create("fake://localhost:2033/SomeAddress", function(err) {
+        clientSecureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
             if (err) {
                 return done(err);
             }
-            clientSecureChannel.close(function(err) {
+            clientSecureChannel.close(function (err) {
                 done(err);
             });
         });
-
-
     });
 
-    it("should use token provided by server in messages", function(done) {
-
-
+    it("should use token provided by server in messages", function (done) {
         const mock = new MockServerTransport([
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
@@ -77,12 +67,12 @@ describe("testing ClientSecureChannelLayer ", function() {
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("node-opcua-transport/dist/test-fixtures").openSecureChannelResponse1,
+            fixture.openSecureChannelResponse1,
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function() {
+            function () {
                 this._mockTransport.server.end();
             }
         ]);
@@ -94,8 +84,7 @@ describe("testing ClientSecureChannelLayer ", function() {
         // before connection the securityToken shall not exist
         should(secureChannel.securityToken).equal(null);
 
-        secureChannel.create("fake://localhost:2033/SomeAddress", function(err) {
-
+        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
             if (err) {
                 return done(err);
             }
@@ -106,27 +95,25 @@ describe("testing ClientSecureChannelLayer ", function() {
             // in our server implementation, token id starts at 1
             secureChannel.securityToken.tokenId.should.equal(1);
 
-            secureChannel.close(function(err) {
+            secureChannel.close(function (err) {
                 done(err);
             });
         });
     });
 
-    it("should callback with an error if performMessageTransaction is called before connection", function(done) {
-
+    it("should callback with an error if performMessageTransaction is called before connection", function (done) {
         const secureChannel = new ClientSecureChannelLayer({});
 
         const message = new GetEndpointsRequest({});
 
-        secureChannel.performMessageTransaction(message, function(err /*, response*/) {
+        secureChannel.performMessageTransaction(message, function (err /*, response*/) {
             // err.message.should.equal("Client not connected");
             err.message.should.match(/ClientSecureChannelLayer => Socket is closed !/);
             done();
         });
     });
 
-    it("should expose the total number of bytes read and written", function(done) {
-
+    it("should expose the total number of bytes read and written", function (done) {
         const mock = new MockServerTransport([
             // ---------------------------------------------------- Transaction 1
             // Client will send a HEl_message
@@ -136,14 +123,15 @@ describe("testing ClientSecureChannelLayer ", function() {
             // ---------------------------------------------------- Transaction 2
             // client will send a "OPN" OpenSecureChannelRequest
             // Server will reply with this:
-            require("node-opcua-transport/dist/test-fixtures").openSecureChannelResponse1,
+            fixture.openSecureChannelResponse1,
 
             // ---------------------------------------------------- Transaction 3
             // client will send a "CLO" CloseSecureChannelRequest
             // Server will close the socket, without sending a response
-            function() {
+            function () {
                 this._mockTransport.server.end();
-            }]);
+            }
+        ]);
 
         mock.on("done", done);
 
@@ -152,7 +140,7 @@ describe("testing ClientSecureChannelLayer ", function() {
         secureChannel.bytesRead.should.equal(0);
         secureChannel.bytesWritten.should.equal(0);
 
-        secureChannel.create("fake://localhost:2033/SomeAddress", function(err) {
+        secureChannel.create("fake://localhost:2033/SomeAddress", function (err) {
             if (err) {
                 return done(err);
             }
@@ -163,10 +151,10 @@ describe("testing ClientSecureChannelLayer ", function() {
 
             secureChannel.isTransactionInProgress().should.eql(false);
 
-            const spyOnClose = new require("sinon").spy();
+            const spyOnClose = new sinon.spy();
             secureChannel.on("close", spyOnClose);
 
-            secureChannel.close(function(err) {
+            secureChannel.close(function (err) {
                 spyOnClose.callCount.should.eql(1, "secureChannel#close must be called once");
                 done(err);
             });

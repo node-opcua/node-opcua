@@ -11,13 +11,14 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
+        "chalk": "4.1.2",
         "memfs": "^3.4.7",
         "node-opcua-address-space": "2.75.0",
         "node-opcua-address-space-base": "2.75.0",
         "node-opcua-assert": "2.74.0",
         "node-opcua-basic-types": "2.74.0",
+        "node-opcua-binary-stream": "2.74.0",
         "node-opcua-certificate-manager": "2.74.0",
-        "node-opcua-client": "2.75.0",
         "node-opcua-common": "2.75.0",
         "node-opcua-constants": "2.74.0",
         "node-opcua-crypto": "^1.11.0",
@@ -26,7 +27,6 @@
         "node-opcua-file-transfer": "2.75.0",
         "node-opcua-hostname": "2.74.0",
         "node-opcua-nodeid": "2.74.0",
-        "node-opcua-nodesets": "2.74.0",
         "node-opcua-pki": "^2.17.0",
         "node-opcua-pseudo-session": "2.75.0",
         "node-opcua-secure-channel": "2.75.0",
@@ -38,11 +38,11 @@
         "rimraf": "^3.0.2"
     },
     "devDependencies": {
-        "node-opcua-binary-stream": "2.74.0",
-        "node-opcua-data-value": "2.75.0",
         "node-opcua-leak-detector": "2.74.0",
-        "should": "^13.2.3",
-        "sinon": "^14.0.0"
+        "node-opcua-client": "2.75.0",
+        "node-opcua-data-value": "2.75.0",
+        "node-opcua-nodesets": "2.74.0",
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -230,8 +230,7 @@ const paths = envPaths(productUri);
     server_options.alternateHostname = argv.alternateHostname;
     const server = new OPCUAServer(server_options);
 
-    const hostname = require("os").hostname();
-
+  
     await server.initialize();
 
     function post_initialize() {

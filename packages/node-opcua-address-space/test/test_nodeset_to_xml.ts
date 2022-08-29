@@ -11,7 +11,10 @@ import { checkDebugFlag } from "node-opcua-debug";
 import { AddressSpace, dumpXml, Namespace, UAVariable, UARootFolder } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
+const { createCameraType } = require("./fixture_camera_type");
+
 
 const doDebug = checkDebugFlag("TEST");
 
@@ -138,7 +141,6 @@ describe("testing nodeset to xml", () => {
     });
 
     it("KLKL7 should output a instance of object with method  to xml", () => {
-        const createCameraType = require("./fixture_camera_type").createCameraType;
 
         const cameraType = createCameraType(addressSpace);
 
@@ -513,7 +515,7 @@ describe("Namespace to NodeSet2.xml", () => {
 });
 
 describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
-    this.timeout(Math.max(40000,this.timeout()));
+    this.timeout(Math.max(40000, this.timeout()));
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;

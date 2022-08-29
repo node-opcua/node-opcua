@@ -1,11 +1,11 @@
 "use strict";
 
-const EventEmitter = require("events").EventEmitter;
+const { EventEmitter } = require("events");
 const util = require("util");
 const should = require("should");
 const sinon = require("sinon");
 
-const WatchDog = require("..").WatchDog;
+const {WatchDog } = require("..");
 
 class MyObject extends EventEmitter {
     watchdogReset() {

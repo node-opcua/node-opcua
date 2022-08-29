@@ -62,7 +62,6 @@ export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UA
                 value: severity
             }
         });
-        // console.log(require("util").inspect(context).toString());
         const callMethodResult = {
             outputArguments: [],
             statusCode: StatusCodes.Good

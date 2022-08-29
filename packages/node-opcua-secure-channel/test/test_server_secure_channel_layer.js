@@ -5,14 +5,14 @@ const { HelloMessage } = require("node-opcua-transport");
 const { OpenSecureChannelRequest, SecurityTokenRequestType, ReadRequest } = require("node-opcua-types");
 const { hexDump } = require("node-opcua-crypto");
 
-const debugLog = require("node-opcua-debug").make_debugLog(__filename);
+const { make_debugLog } = require("node-opcua-debug");
 const { DirectTransport } = require("node-opcua-transport/dist/test_helpers");
 const { GetEndpointsResponse } = require("node-opcua-service-endpoints");
 const fixtures = require("node-opcua-transport/dist/test-fixtures");
 const { BinaryStream } = require("node-opcua-binary-stream");
-
-const { ServerSecureChannelLayer, MessageSecurityMode, SecurityPolicy, MessageChunker } = require("..");
 const { pause } = require("../../node-opcua-end2end-test/test/discovery/_helper");
+const { ServerSecureChannelLayer, MessageSecurityMode, SecurityPolicy, MessageChunker } = require("..");
+const debugLog = make_debugLog(__filename);
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

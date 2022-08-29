@@ -1,19 +1,14 @@
-import * as async from "async";
 import { AggregateFunction } from "node-opcua-constants";
-import { ISessionContext, ContinuationPoint, UAVariable, ContinuationData } from "node-opcua-address-space";
+import { ISessionContext, UAVariable, ContinuationData } from "node-opcua-address-space";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataValue } from "node-opcua-data-value";
-import { ObjectIds } from "node-opcua-constants";
 import { NodeId } from "node-opcua-nodeid";
 import {
     HistoryData,
     HistoryReadResult,
-    ReadAtTimeDetails,
-    ReadEventDetails,
-    ReadProcessedDetails,
-    ReadRawModifiedDetails
+    ReadProcessedDetails
 } from "node-opcua-service-history";
 
 import { getMinData, getMaxData } from "./minmax";

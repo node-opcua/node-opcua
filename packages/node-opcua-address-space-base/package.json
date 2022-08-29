@@ -17,10 +17,6 @@
     },
     "dependencies": {
         "@types/lodash": "4.14.182",
-        "async": "^3.2.4",
-        "chalk": "4.1.2",
-        "dequeue": "^1.0.5",
-        "lodash": "4.17.21",
         "node-opcua-basic-types": "2.74.0",
         "node-opcua-constants": "2.74.0",
         "node-opcua-crypto": "^1.11.0",
@@ -33,15 +29,9 @@
         "node-opcua-schemas": "2.75.0",
         "node-opcua-status-code": "2.74.0",
         "node-opcua-types": "2.75.0",
-        "node-opcua-variant": "2.75.0",
-        "set-prototype-of": "^1.0.0",
-        "thenify": "^3.3.1",
-        "xml-writer": "^1.7.0"
+        "node-opcua-variant": "2.75.0"
     },
     "devDependencies": {
-        "should": "^13.2.3",
-        "sinon": "^14.0.0",
-        "source-map-support": "^0.5.21"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

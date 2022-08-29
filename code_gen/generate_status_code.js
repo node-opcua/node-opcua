@@ -3,11 +3,11 @@
  *
  */
 const util = require("util");
-const xml = require("ersatz-node-expat");
 const fs = require("fs");
 const path = require("path");
+const xml = require("ersatz-node-expat");
 const csv = require("csv");
-const sprintf = require("sprintf-js").sprintf;
+const { sprintf  }= require("sprintf-js");
 
 
 // see OPC-UA Part 6 , A2
