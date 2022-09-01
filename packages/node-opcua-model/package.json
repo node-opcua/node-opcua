@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-model",
-  "version": "2.76.0",
+  "version": "2.76.1",
   "description": "pure nodejs OPCUA SDK - module - model",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,7 +16,7 @@
     "node-opcua-pseudo-session": "2.76.0"
   },
   "devDependencies": {
-    "node-opcua-address-space": "2.76.0",
+    "node-opcua-address-space": "2.76.1",
     "node-opcua-assert": "2.76.0",
     "node-opcua-leak-detector": "2.76.0",
     "node-opcua-nodesets": "2.74.0",

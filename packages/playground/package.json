@@ -1,6 +1,6 @@
 {
     "name": "playground",
-    "version": "2.76.0",
+    "version": "2.76.1",
     "description": "",
     "main": "sample1.js",
     "private": true,
@@ -9,8 +9,8 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua": "2.76.0",
-        "node-opcua-client": "2.76.0",
+        "node-opcua": "2.76.1",
+        "node-opcua-client": "2.76.1",
         "readline": "*",
         "winston": "*"
     },

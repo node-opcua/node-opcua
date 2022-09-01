@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-discovery",
-    "version": "2.76.0",
+    "version": "2.76.1",
     "description": "pure nodejs OPCUA SDK - module -server-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -19,7 +19,7 @@
         "node-opcua-hostname": "2.76.0",
         "node-opcua-object-registry": "2.76.0",
         "node-opcua-secure-channel": "2.76.0",
-        "node-opcua-server": "2.76.0",
+        "node-opcua-server": "2.76.1",
         "node-opcua-service-discovery": "2.76.0",
         "node-opcua-service-endpoints": "2.76.0",
         "node-opcua-status-code": "2.76.0",

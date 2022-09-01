@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.76.0",
+    "version": "2.76.1",
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,7 +12,7 @@
         "clean": "npx rimraf dist *.tsbuildinfo"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.76.0",
+        "node-opcua-address-space": "2.76.1",
         "node-opcua-assert": "2.76.0",
         "node-opcua-constants": "2.74.0",
         "node-opcua-data-model": "2.76.0",
