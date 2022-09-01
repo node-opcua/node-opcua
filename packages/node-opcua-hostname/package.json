@@ -2,7 +2,7 @@
     "name": "node-opcua-hostname",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.74.0",
+    "version": "2.76.0",
     "description": "pure nodejs OPCUA SDK - module -hostname",
     "scripts": {
         "build": "tsc -b",
@@ -10,7 +10,6 @@
         "clean": "npx rimraf dist *.tsbuildinfo",
         "test": "mocha"
     },
-    "dependencies": {},
     "devDependencies": {
         "should": "^13.2.3"
     },

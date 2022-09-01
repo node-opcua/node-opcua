@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-status-code",
-    "version": "2.74.0",
+    "version": "2.76.0",
     "description": "pure nodejs OPCUA SDK - module -status-code",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,8 +12,8 @@
         "test": "mocha"
     },
     "dependencies": {
-        "node-opcua-binary-stream": "2.74.0",
-        "node-opcua-assert": "2.74.0"
+        "node-opcua-assert": "2.76.0",
+        "node-opcua-binary-stream": "2.76.0"
     },
     "devDependencies": {
         "should": "^13.2.3"

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-machinery",
-    "version": "2.75.0",
+    "version": "2.76.0",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,12 +10,12 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.75.0",
-        "node-opcua-basic-types": "2.74.0",
-        "node-opcua-data-model": "2.75.0",
-        "node-opcua-nodeid": "2.74.0",
-        "node-opcua-nodeset-di": "2.75.0",
-        "node-opcua-nodeset-ua": "2.75.0",
-        "node-opcua-variant": "2.75.0"
+        "node-opcua-address-space-base": "2.76.0",
+        "node-opcua-basic-types": "2.76.0",
+        "node-opcua-data-model": "2.76.0",
+        "node-opcua-nodeid": "2.76.0",
+        "node-opcua-nodeset-di": "2.76.0",
+        "node-opcua-nodeset-ua": "2.76.0",
+        "node-opcua-variant": "2.76.0"
     }
 }

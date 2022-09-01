@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-utils",
-    "version": "2.74.0",
+    "version": "2.76.0",
     "description": "pure nodejs OPCUA SDK - module -utils",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.74.0"
+        "node-opcua-assert": "2.76.0"
     },
     "devDependencies": {
         "should": "^13.2.3",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.74.0",
+    "version": "2.76.0",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "npx rimraf dist *.tsbuildinfo certificates",
@@ -14,20 +14,20 @@
     "dependencies": {
         "@types/mkdirp": "1.0.2",
         "mkdirp": "1.0.4",
-        "node-opcua-assert": "2.74.0",
+        "node-opcua-assert": "2.76.0",
         "node-opcua-crypto": "^1.11.0",
-        "node-opcua-debug": "2.74.0",
-        "node-opcua-object-registry": "2.74.0",
+        "node-opcua-debug": "2.76.0",
+        "node-opcua-object-registry": "2.76.0",
         "node-opcua-pki": "^2.17.0",
-        "node-opcua-status-code": "2.74.0",
+        "node-opcua-status-code": "2.76.0",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.74.0",
         "mocha": "^10.0.0",
+        "node-opcua-leak-detector": "2.76.0",
         "rimraf": "^3.0.2",
         "should": "^13.2.3"
-     },
+    },
     "eslintConfig": {
         "env": {
             "node": true
