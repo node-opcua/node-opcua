@@ -16,8 +16,13 @@
         "clean": "npx rimraf certificates"
     },
     "dependencies": {
+        "chalk": "4.1.2",
+        "env-paths": "2.2.1",
+        "node-opcua-address-space": "2.76.1",
+        "node-opcua-crypto": "^1.11.0",
+        "node-opcua-utils": "2.76.0",
         "@types/underscore": "^1.11.4",
-        "@types/yargs": "17.0.10",
+        "@types/yargs": "17.0.12",
         "easy-table": "^1.2.0",
         "exit": "^0.1.2",
         "node-opcua": "2.76.1",

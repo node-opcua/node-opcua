@@ -8,7 +8,7 @@ import * as url from "url";
 import { callbackify } from "util";
 
 import * as chalk from "chalk";
-import envPaths = require("env-paths");
+import envPaths from "env-paths";
 
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";

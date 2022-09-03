@@ -11,7 +11,7 @@ import * as yargs from "yargs";
 
 const rootFolder = path.join(__dirname, "../../..");
 
-import envPaths = require("env-paths");
+import envPaths from "env-paths";
 const config = envPaths("node-opcua-default").config;
 const pkiFolder = path.join(config, "PKI");
 
