@@ -1,17 +1,14 @@
-const async = require("async");
-const should = require("should");
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-const UserTokenPolicy = opcua.UserTokenPolicy;
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
+import "should";
+import { OPCUAClient, OPCUAServer } from "node-opcua";
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing bug #1170", function () {
     const port = 1170;
     let server;
     let endpointUrl;
     before(async () => {
-        server = new opcua.OPCUAServer({
+        server = new OPCUAServer({
             port,
             serverInfo: {
                 productUri: "Mini NodeOPCUA-Server"

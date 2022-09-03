@@ -13,25 +13,13 @@
             "path": "../node-opcua-assert"
         },
         {
-            "path": "../node-opcua-basic-types"
-        },
-        {
-            "path": "../node-opcua-buffer-utils"
-        },
-        {
-            "path": "../node-opcua-common"
-        },
-        {
-            "path": "../node-opcua-constants"
+            "path": "../node-opcua-object-registry"
         },
         {
             "path": "../node-opcua-debug"
         },
         {
             "path": "../node-opcua-status-code"
-        },
-        {
-            "path": "../node-opcua-utils"
         },
         {
             "path": "../node-opcua-leak-detector"

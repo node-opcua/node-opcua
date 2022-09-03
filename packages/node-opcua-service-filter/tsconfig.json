@@ -9,6 +9,12 @@
     "exclude": ["node_modules", "_generated_", "dist"],
     "references": [
         {
+            "path": "../node-opcua-data-value"
+        },
+        {
+            "path": "../node-opcua-extension-object"
+        },
+        {
             "path": "../node-opcua-assert"
         },
         {
@@ -18,9 +24,6 @@
             "path": "../node-opcua-address-space-base"
         },
         {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
             "path": "../node-opcua-constants"
         },
         {
@@ -28,9 +31,6 @@
         },
         {
             "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-factory"
         },
         {
             "path": "../node-opcua-nodeid"
@@ -52,12 +52,6 @@
         },
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-generator"
-        },
-        {
-            "path": "../node-opcua-service-secure-channel"
         }
     ]
 }

@@ -24,6 +24,10 @@
             "path": "../node-opcua-date-time"
         },
         {
+            "path": "../node-opcua-debug"
+        },
+      
+        {
             "path": "../node-opcua-enum"
         },
         {
@@ -33,19 +37,10 @@
             "path": "../node-opcua-factory"
         },
         {
-            "path": "../node-opcua-nodeid"
-        },
-        {
             "path": "../node-opcua-status-code"
         },
         {
-            "path": "../node-opcua-utils"
-        },
-        {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-generator"
         },
         {
             "path": "../node-opcua-numeric-range"

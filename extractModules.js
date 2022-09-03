@@ -3,6 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const ts = require("typescript");
 const chalk = require("chalk");
+const Hjson = require('hjson');
+
 
 function isNodeJSModule(m) {
     return (
@@ -20,7 +22,7 @@ function isNodeJSModule(m) {
             "stream",
             "timers",
             "url",
-            "util",
+            "util"
         ].indexOf(m) !== -1
     );
 }
@@ -150,7 +152,12 @@ async function onAllSource(folder, bucket, options) {
         }
     }
 }
+
+const monoRepoPackages = new Map();
+
 async function onModule(folder, bucketDependencies, bucketDevDependencies) {
+    monoRepoPackages.set(path.basename(folder), folder);
+
     const { sourceFolders, devFolders, ignoreFolders, unknownFolders } = await extractSourceAndDevFolders(folder);
     // console.log({ sourceFolders, devFolders, ignoreFolders, unknownFolders });
     for (const f of sourceFolders) {
@@ -189,9 +196,7 @@ function addDependencies(parent, children) {
  * @param {string} parent
  */
 function verifyCycle(parent) {
-
-
-    let cycleCount  = 0;
+    let cycleCount = 0;
     const m = new Set();
     /**
      * @type string[]
@@ -253,6 +258,13 @@ async function extractSourceAndDevFolders(folder) {
     }
     return { sourceFolders, devFolders, ignoreFolders, unknownFolders };
 }
+function caculateDifference(expected, actual) {
+    const expectedSet = new Set(expected);
+    const actualSet = new Set(actual);
+    const missing = [...expectedSet].filter((d) => !actualSet.has(d));
+    const extra = [...actualSet].filter((d) => !expectedSet.has(d));
+    return { missing, extra };
+}
 async function analyzePackageFolder(folder, packageName) {
     const packageJsonFile = path.join(folder, "package.json");
     if (!fs.existsSync(packageJsonFile)) {
@@ -290,10 +302,7 @@ async function analyzePackageFolder(folder, packageName) {
     }
 
     function extractMissingAndExtra(title, bucket, dependencies) {
-        const expectedDependencies = new Set(bucket.modules);
-        const actualDependencies = new Set(Object.keys(dependencies || {}));
-        const missing = [...expectedDependencies].filter((d) => !actualDependencies.has(d));
-        const extra = [...actualDependencies].filter((d) => !expectedDependencies.has(d));
+        const { missing, extra } = caculateDifference(bucket.modules, Object.keys(dependencies || {}));
 
         if (missing.length || extra.length) {
             const msg =
@@ -333,8 +342,41 @@ async function main() {
     for (const m of Object.keys(_graph)) {
         cycleCount += verifyCycle(m);
     }
-    console.log(cycleCount? chalk.red(`${cycleCount} cycles have been found !`) : chalk.green("OK"));
+    console.log(cycleCount ? chalk.red(`${cycleCount} cycles have been found !`) : chalk.green("OK"));
     // console.log(_graph);
+
+    // - verify tsconfig.json files
+    console.log(monoRepoPackages);
+
+    function getMonoRepoPackage(m) {
+        console.log(m, monoRepoPackages.has(m));
+        return monoRepoPackages.has(m) ? monoRepoPackages.get(m) : null;
+    }
+    for (const m of Object.keys(_graph)) {
+        const p = getMonoRepoPackage(m);
+        if (!p) continue;
+        const tsConfigFilename = path.join(p, "tsconfig.json");
+        try {
+//            var obj = Hjson.parse(hjsonText);
+            const tsConfig = Hjson.parse(fs.readFileSync(tsConfigFilename, "utf-8"));
+            const references = tsConfig.references || [];
+            const actual = references.map((r) => path.basename(r.path)).sort();
+            const expected = _graph[m].filter((m) => monoRepoPackages.has(m)).sort();
+
+            const { missing, extra } = caculateDifference(expected, actual);
+            if (missing.length || extra.length) {
+                console.log("m =", m);
+                // console.log("expected = ", expected.join(" "));
+                // console.log("actual   = ", actual.join(" "));
+                console.log("missing = ", chalk.cyan(missing.join(" ")));
+                console.log("extra   = ", chalk.yellow(extra.join(" ")));
+            }
+        } catch (err) {
+            console.log("tsConfigFilename = ", tsConfigFilename);
+            console.log(err);
+            throw err;
+        }
+    }
 }
 
 async function test2() {

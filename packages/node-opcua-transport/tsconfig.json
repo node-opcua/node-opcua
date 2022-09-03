@@ -30,9 +30,6 @@
             "path": "../node-opcua-factory"
         },
         {
-            "path": "../node-opcua-nodeid"
-        },
-        {
             "path": "../node-opcua-object-registry"
         },
         {
@@ -42,16 +39,10 @@
             "path": "../node-opcua-status-code"
         },
         {
-            "path": "../node-opcua-types"
-        },
-        {
             "path": "../node-opcua-utils"
         },
         {
             "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-generator"
         }
     ],
     "exclude": ["node_modules", "dist"]

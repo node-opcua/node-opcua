@@ -24,9 +24,6 @@
             "path": "../node-opcua-status-code"
         },
         {
-            "path": "../node-opcua-nodeid"
-        },
-        {
             "path": "../node-opcua-packet-analyzer"
         },
         {

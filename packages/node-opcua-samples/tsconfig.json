@@ -1,24 +1,23 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "bin",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": ["bin/*.ts"],
-  "references": [
-    {
-      "path": "../node-opcua"
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "bin",
+        "outDir": "dist",
+        "composite": true
     },
-    {
-      "path": "../node-opcua-assert"
-    },
-    {
-      "path": "../node-opcua-server-configuration"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": ["bin/*.ts"],
+    "references": [
+        { "path": "../node-opcua-address-space" },
+        { "path": "../node-opcua-utils" },
+        {
+            "path": "../node-opcua"
+        },
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-server-configuration"
+        }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

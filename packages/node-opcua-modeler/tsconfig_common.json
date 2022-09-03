@@ -24,6 +24,17 @@
             "path": "../node-opcua-constants"
         },
         {
+            "path": "../node-opcua-factory"
+        },
+        
+        {
+            "path": "../node-opcua-schemas"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        
+        {
             "path": "../node-opcua-data-model"
         },
         {
@@ -45,7 +56,7 @@
             "path": "../node-opcua-variant"
         },
         {
-            "path": "../node-opcua-xml2json"
+            "path": "../node-opcua-debug"
         },
         {
             "path": "../node-opcua-leak-detector"

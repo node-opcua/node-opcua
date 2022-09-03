@@ -9,6 +9,12 @@
         },
         {
             "path": "./tsconfig_nodejs.json"
+        },
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-buffer-utils"
         }
     ],
     "include": [],

@@ -18,6 +18,9 @@
             "path": "../node-opcua-binary-stream"
         },
         {
+            "path": "../node-opcua-debug"
+        },
+        {
             "path": "../node-opcua-utils"
         }
     ],

@@ -1,20 +1,19 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [
-    "source/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-debug"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true
+    },
+    "include": ["source/**/*.ts"],
+    "references": [
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-service-secure-channel"
+        },
+        { "path": "../node-opcua-types" }
+    ],
+    "exclude": ["node_modules", "dist"]
 }

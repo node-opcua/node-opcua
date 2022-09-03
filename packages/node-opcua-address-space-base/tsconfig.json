@@ -32,9 +32,6 @@
             "path": "../node-opcua-extension-object"
         },
         {
-            "path": "../node-opcua-client-dynamic-extension-object"
-        },
-        {
             "path": "../node-opcua-nodeid"
         },
         {

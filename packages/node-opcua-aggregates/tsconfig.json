@@ -30,6 +30,9 @@
             "path": "../node-opcua-nodesets"
         },
         {
+            "path": "../node-opcua-server"
+        },
+        {
             "path": "../node-opcua-service-history"
         },
         {
