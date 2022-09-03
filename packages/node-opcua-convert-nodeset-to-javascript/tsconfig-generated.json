@@ -7,7 +7,10 @@
         "incremental": true
     },
     "references": [
-     ],
+        {
+            "path": "../node-opcua-debug"
+        }
+    ],
     "exclude": ["node_modules", "dist", "test", "source/*"],
     "include": ["./tmp/node-opcua-nodeset*/index.d.ts"]
 }
