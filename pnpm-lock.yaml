@@ -33,195 +33,2583 @@ overrides:
   trim-newlines@<3.0.1: '>=3.0.1'
   trim-off-newlines@<1.0.3: '>=1.0.3'
 
-specifiers:
-  '@istanbuljs/nyc-config-typescript': ^1.0.2
-  '@ster5/global-mutex': ^1.2.0
-  '@types/async': ^3.2.15
-  '@types/bonjour': ^3.5.10
-  '@types/lodash': 4.14.184
-  '@types/long': ^4.0.2
-  '@types/mkdirp': 1.0.2
-  '@types/mocha': ^9.1.1
-  '@types/node': 18.7.14
-  '@types/once': ^1.4.0
-  '@types/prettier': ^2.7.0
-  '@types/rimraf': ^3.0.2
-  '@types/sinon': 10.0.13
-  '@types/underscore': ^1.11.4
-  '@types/wordwrap': ^1.0.1
-  '@types/yargs': 17.0.12
-  '@typescript-eslint/eslint-plugin': ^5.36.1
-  '@typescript-eslint/parser': ^5.36.1
-  app-module-path: ^2.2.0
-  async: ^3.2.4
-  backoff: ^2.5.0
-  benchmark: ^2.1.4
-  better-assert: ^1.0.2
-  bignumber.js: ^9.1.0
-  bomstrip: ^0.1.4
-  byline: ^5.0.0
-  callbackify: ^1.1.0
-  chalk: 4.1.2
-  cli-table3: ^0.6.2
-  cli-truncate: 2.1.0
-  coveralls: ^3.1.1
-  csv: ^6.2.0
-  csv-parse: 5.3.0
-  date-utils: ^1.2.21
-  deassertify: ^0.2.0
-  delayed: ^2.0.0
-  dequeue: ^1.0.5
-  easy-table: ^1.2.0
-  enum: 3.0.4
-  env-paths: 2.2.1
-  ersatz-node-expat: ^0.1.6
-  eslint: 8.23.0
-  eslint-cli: ^1.1.1
-  eslint-config-prettier: ^8.5.0
-  eslint-plugin-import: ^2.26.0
-  eslint-plugin-prettier: ^4.2.1
-  exit: ^0.1.2
-  fqdn: ^0.0.3
-  hexy: 0.3.4
-  hjson: ^3.2.2
-  humanize: 0.0.9
-  js2xmlparser: ^4.0.2
-  lerna: 5.5.0
-  literate-programming: ^1.1.0
-  litpro: ^2.1.0
-  lockfile: ^1.0.4
-  lodash: 4.17.21
-  long: ^4.0.0
-  memfs: ^3.4.7
-  mkdirp: 1.0.4
-  mocha: ^10.0.0
-  mocha-clean: ^1.0.0
-  mocha-lcov-reporter: ^1.3.0
-  node-opcua-crypto: ^1.11.0
-  node-opcua-pki: ^2.17.0
-  nyc: ^15.1.0
-  object.values: ^1.1.5
-  once: ^1.4.0
-  prettier: ^2.7.1
-  pretty-ms: ^8.0.0
-  progress: ^2.0.3
-  rimraf: ^3.0.2
-  semver: ^7.3.7
-  set-prototype-of: ^1.0.0
-  shebang-loader: ^0.0.1
-  should: ^13.2.3
-  sinon: ^14.0.0
-  source-map-support: ^0.5.21
-  sprintf-js: ^1.1.2
-  sterfive-bonjour-service: 1.1.4
-  thenify: ^3.3.1
-  treeify: ^1.1.0
-  ts-node: ^10.9.1
-  tslib: ^2.4.0
-  typescript: 4.7.4
-  underscore: ^1.13.4
-  vorpal: ^1.12.0
-  vorpal-repl: ^1.1.8
-  wordwrap: ^1.0.0
-  wrap-text: ^1.0.9
-  xml-writer: ^1.7.0
-  yargs: 15.4.1
+importers:
 
-dependencies:
-  '@ster5/global-mutex': 1.2.0
-  '@types/async': 3.2.15
-  '@types/bonjour': 3.5.10
-  '@types/lodash': 4.14.184
-  '@types/long': 4.0.2
-  '@types/mkdirp': 1.0.2
-  '@types/node': 18.7.14
-  '@types/once': 1.4.0
-  '@types/rimraf': 3.0.2
-  '@types/sinon': 10.0.13
-  '@types/underscore': 1.11.4
-  '@types/wordwrap': 1.0.1
-  '@types/yargs': 17.0.12
-  async: 3.2.4
-  backoff: 2.5.0
-  better-assert: 1.0.2
-  bomstrip: 0.1.4
-  byline: 5.0.0
-  callbackify: 1.1.0
-  chalk: 4.1.2
-  cli-table3: 0.6.2
-  cli-truncate: 2.1.0
-  csv-parse: 5.3.0
-  date-utils: 1.2.21
-  deassertify: 0.2.0
-  delayed: 2.0.0
-  dequeue: 1.0.5
-  easy-table: 1.2.0
-  env-paths: 2.2.1
-  eslint: 8.23.0
-  exit: 0.1.2
-  fqdn: 0.0.3
-  hexy: 0.3.4
-  hjson: 3.2.2
-  humanize: 0.0.9
-  js2xmlparser: 4.0.2
-  lerna: 5.5.0
-  lockfile: 1.0.4
-  lodash: 4.17.21
-  long: 4.0.0
-  memfs: 3.4.7
-  mkdirp: 1.0.4
-  mocha-clean: 1.0.0
-  node-opcua-crypto: 1.11.0
-  node-opcua-pki: 2.17.0
-  object.values: 1.1.5
-  once: 1.4.0
-  pretty-ms: 8.0.0
-  progress: 2.0.3
-  rimraf: 3.0.2
-  semver: 7.3.7
-  set-prototype-of: 1.0.0
-  shebang-loader: 0.0.1
-  should: 13.2.3
-  sinon: 14.0.0
-  source-map-support: 0.5.21
-  sprintf-js: 1.1.2
-  sterfive-bonjour-service: 1.1.4
-  thenify: 3.3.1
-  treeify: 1.1.0
-  tslib: 2.4.0
-  underscore: 1.13.4
-  vorpal: 1.12.0
-  vorpal-repl: 1.1.8
-  wordwrap: 1.0.0
-  wrap-text: 1.0.9
-  xml-writer: 1.7.0
-  yargs: 15.4.1
+  .:
+    specifiers:
+      '@istanbuljs/nyc-config-typescript': ^1.0.2
+      '@ster5/global-mutex': ^1.2.0
+      '@types/async': ^3.2.15
+      '@types/bonjour': ^3.5.10
+      '@types/lodash': 4.14.184
+      '@types/long': ^4.0.2
+      '@types/mkdirp': 1.0.2
+      '@types/mocha': ^9.1.1
+      '@types/node': 18.7.14
+      '@types/once': ^1.4.0
+      '@types/prettier': ^2.7.0
+      '@types/rimraf': ^3.0.2
+      '@types/sinon': 10.0.13
+      '@types/underscore': ^1.11.4
+      '@types/wordwrap': ^1.0.1
+      '@types/yargs': 17.0.12
+      '@typescript-eslint/eslint-plugin': ^5.36.1
+      '@typescript-eslint/parser': ^5.36.1
+      app-module-path: ^2.2.0
+      async: ^3.2.4
+      backoff: ^2.5.0
+      benchmark: ^2.1.4
+      better-assert: ^1.0.2
+      bignumber.js: ^9.1.0
+      bomstrip: ^0.1.4
+      byline: ^5.0.0
+      callbackify: ^1.1.0
+      chalk: 4.1.2
+      cli-table3: ^0.6.2
+      cli-truncate: 2.1.0
+      coveralls: ^3.1.1
+      csv: ^6.2.0
+      csv-parse: 5.3.0
+      date-utils: ^1.2.21
+      deassertify: ^0.2.0
+      delayed: ^2.0.0
+      dequeue: ^1.0.5
+      easy-table: ^1.2.0
+      enum: 3.0.4
+      env-paths: 2.2.1
+      ersatz-node-expat: ^0.1.6
+      eslint: 8.23.0
+      eslint-cli: ^1.1.1
+      eslint-config-prettier: ^8.5.0
+      eslint-plugin-import: ^2.26.0
+      eslint-plugin-prettier: ^4.2.1
+      exit: ^0.1.2
+      fqdn: ^0.0.3
+      hexy: 0.3.4
+      hjson: ^3.2.2
+      humanize: 0.0.9
+      js2xmlparser: ^4.0.2
+      lerna: 5.5.0
+      literate-programming: ^1.1.0
+      litpro: ^2.1.0
+      lockfile: ^1.0.4
+      lodash: 4.17.21
+      long: ^4.0.0
+      memfs: ^3.4.7
+      mkdirp: 1.0.4
+      mocha: ^10.0.0
+      mocha-clean: ^1.0.0
+      mocha-lcov-reporter: ^1.3.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-pki: ^2.17.0
+      nyc: ^15.1.0
+      object.values: ^1.1.5
+      once: ^1.4.0
+      prettier: ^2.7.1
+      pretty-ms: ^8.0.0
+      progress: ^2.0.3
+      rimraf: ^3.0.2
+      semver: ^7.3.7
+      set-prototype-of: ^1.0.0
+      shebang-loader: ^0.0.1
+      should: ^13.2.3
+      sinon: ^14.0.0
+      source-map-support: ^0.5.21
+      sprintf-js: ^1.1.2
+      sterfive-bonjour-service: 1.1.4
+      thenify: ^3.3.1
+      treeify: ^1.1.0
+      ts-node: ^10.9.1
+      tslib: ^2.4.0
+      typescript: 4.7.4
+      underscore: ^1.13.4
+      vorpal: ^1.12.0
+      vorpal-repl: ^1.1.8
+      wordwrap: ^1.0.0
+      wrap-text: ^1.0.9
+      xml-writer: ^1.7.0
+      yargs: 15.4.1
+    dependencies:
+      '@ster5/global-mutex': 1.2.0
+      '@types/async': 3.2.15
+      '@types/bonjour': 3.5.10
+      '@types/lodash': 4.14.184
+      '@types/long': 4.0.2
+      '@types/mkdirp': 1.0.2
+      '@types/node': 18.7.14
+      '@types/once': 1.4.0
+      '@types/rimraf': 3.0.2
+      '@types/sinon': 10.0.13
+      '@types/underscore': 1.11.4
+      '@types/wordwrap': 1.0.1
+      '@types/yargs': 17.0.12
+      async: 3.2.4
+      backoff: 2.5.0
+      better-assert: 1.0.2
+      bomstrip: 0.1.4
+      byline: 5.0.0
+      callbackify: 1.1.0
+      chalk: 4.1.2
+      cli-table3: 0.6.2
+      cli-truncate: 2.1.0
+      csv-parse: 5.3.0
+      date-utils: 1.2.21
+      deassertify: 0.2.0
+      delayed: 2.0.0
+      dequeue: 1.0.5
+      easy-table: 1.2.0
+      env-paths: 2.2.1
+      eslint: 8.23.0
+      exit: 0.1.2
+      fqdn: 0.0.3
+      hexy: 0.3.4
+      hjson: 3.2.2
+      humanize: 0.0.9
+      js2xmlparser: 4.0.2
+      lerna: 5.5.0
+      lockfile: 1.0.4
+      lodash: 4.17.21
+      long: 4.0.0
+      memfs: 3.4.7
+      mkdirp: 1.0.4
+      mocha-clean: 1.0.0
+      node-opcua-crypto: 1.11.0
+      node-opcua-pki: 2.17.0
+      object.values: 1.1.5
+      once: 1.4.0
+      pretty-ms: 8.0.0
+      progress: 2.0.3
+      rimraf: 3.0.2
+      semver: 7.3.7
+      set-prototype-of: 1.0.0
+      shebang-loader: 0.0.1
+      should: 13.2.3
+      sinon: 14.0.0
+      source-map-support: 0.5.21
+      sprintf-js: 1.1.2
+      sterfive-bonjour-service: 1.1.4
+      thenify: 3.3.1
+      treeify: 1.1.0
+      tslib: 2.4.0
+      underscore: 1.13.4
+      vorpal: 1.12.0
+      vorpal-repl: 1.1.8
+      wordwrap: 1.0.0
+      wrap-text: 1.0.9
+      xml-writer: 1.7.0
+      yargs: 15.4.1
+    devDependencies:
+      '@istanbuljs/nyc-config-typescript': 1.0.2_nyc@15.1.0
+      '@types/mocha': 9.1.1
+      '@types/prettier': 2.7.0
+      '@typescript-eslint/eslint-plugin': 5.36.1_uoznksvaqimddkvahx6c3yyzku
+      '@typescript-eslint/parser': 5.36.1_sorwav4hsh5vncerguqybud76i
+      app-module-path: 2.2.0
+      benchmark: 2.1.4
+      bignumber.js: 9.1.0
+      coveralls: 3.1.1
+      csv: 6.2.0
+      enum: 3.0.4
+      ersatz-node-expat: 0.1.6
+      eslint-cli: 1.1.1
+      eslint-config-prettier: 8.5.0
+      eslint-plugin-import: 2.26.0_wyxuyzvlfep3lsyoibc4fosfq4
+      eslint-plugin-prettier: 4.2.1_tgumt6uwl2md3n6uqnggd6wvce
+      literate-programming: 1.1.0
+      litpro: 2.1.0
+      mocha: 10.0.0
+      mocha-lcov-reporter: 1.3.0
+      nyc: 15.1.0
+      prettier: 2.7.1
+      ts-node: 10.9.1_leegklmkepybzc4ng4qys4ftou
+      typescript: 4.7.4
 
-devDependencies:
-  '@istanbuljs/nyc-config-typescript': 1.0.2_nyc@15.1.0
-  '@types/mocha': 9.1.1
-  '@types/prettier': 2.7.0
-  '@typescript-eslint/eslint-plugin': 5.36.1_uoznksvaqimddkvahx6c3yyzku
-  '@typescript-eslint/parser': 5.36.1_sorwav4hsh5vncerguqybud76i
-  app-module-path: 2.2.0
-  benchmark: 2.1.4
-  bignumber.js: 9.1.0
-  coveralls: 3.1.1
-  csv: 6.2.0
-  enum: 3.0.4
-  ersatz-node-expat: 0.1.6
-  eslint-cli: 1.1.1
-  eslint-config-prettier: 8.5.0
-  eslint-plugin-import: 2.26.0_wyxuyzvlfep3lsyoibc4fosfq4
-  eslint-plugin-prettier: 4.2.1_tgumt6uwl2md3n6uqnggd6wvce
-  literate-programming: 1.1.0
-  litpro: 2.1.0
-  mocha: 10.0.0
-  mocha-lcov-reporter: 1.3.0
-  nyc: 15.1.0
-  prettier: 2.7.1
-  ts-node: 10.9.1_leegklmkepybzc4ng4qys4ftou
-  typescript: 4.7.4
+  packages/node-opcua:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-address-space: 2.76.1
+      node-opcua-address-space-for-conformance-testing: 2.76.1
+      node-opcua-aggregates: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-certificate-manager: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-client-crawler: 2.76.1
+      node-opcua-client-proxy: 2.76.0
+      node-opcua-common: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-hostname: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-secure-channel: 2.76.0
+      node-opcua-server: 2.76.1
+      node-opcua-server-discovery: 2.76.1
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-discovery: 2.76.0
+      node-opcua-service-endpoints: 2.76.0
+      node-opcua-service-filter: 2.76.0
+      node-opcua-service-history: 2.76.0
+      node-opcua-service-node-management: 2.76.0
+      node-opcua-service-query: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-register-node: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-service-session: 2.76.0
+      node-opcua-service-subscription: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-service-write: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-transport: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      node-opcua-vendor-diagnostic: 2.76.1
+      semver: ^7.3.7
+      should: ^13.2.3
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-address-space-for-conformance-testing: link:../node-opcua-address-space-for-conformance-testing
+      node-opcua-aggregates: link:../node-opcua-aggregates
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-client-crawler: link:../node-opcua-client-crawler
+      node-opcua-client-proxy: link:../node-opcua-client-proxy
+      node-opcua-common: link:../node-opcua-common
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-hostname: link:../node-opcua-hostname
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-secure-channel: link:../node-opcua-secure-channel
+      node-opcua-server: link:../node-opcua-server
+      node-opcua-server-discovery: link:../node-opcua-server-discovery
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-discovery: link:../node-opcua-service-discovery
+      node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+      node-opcua-service-filter: link:../node-opcua-service-filter
+      node-opcua-service-history: link:../node-opcua-service-history
+      node-opcua-service-node-management: link:../node-opcua-service-node-management
+      node-opcua-service-query: link:../node-opcua-service-query
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-register-node: link:../node-opcua-service-register-node
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-service-session: link:../node-opcua-service-session
+      node-opcua-service-subscription: link:../node-opcua-service-subscription
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-service-write: link:../node-opcua-service-write
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-transport: link:../node-opcua-transport
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+      node-opcua-vendor-diagnostic: link:../node-opcua-vendor-diagnostic
+      semver: 7.3.7
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-address-space:
+    specifiers:
+      '@types/lodash': 4.14.184
+      '@types/semver': 7.3.12
+      async: ^3.2.4
+      chalk: 4.1.2
+      dequeue: ^1.0.5
+      lodash: 4.17.21
+      mocha: ^10.0.0
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-benchmarker: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-client-dynamic-extension-object: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-filter: 2.76.0
+      node-opcua-service-history: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-service-write: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-test-fixtures: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      node-opcua-xml2json: 2.76.0
+      semver: ^7.3.7
+      set-prototype-of: ^1.0.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+      source-map-support: ^0.5.21
+      thenify: ^3.3.1
+      xml-writer: ^1.7.0
+    dependencies:
+      '@types/lodash': 4.14.184
+      async: 3.2.4
+      chalk: 4.1.2
+      dequeue: 1.0.5
+      lodash: 4.17.21
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-history: link:../node-opcua-service-history
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-service-write: link:../node-opcua-service-write
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+      node-opcua-xml2json: link:../node-opcua-xml2json
+      semver: 7.3.7
+      set-prototype-of: 1.0.0
+      thenify: 3.3.1
+      xml-writer: 1.7.0
+    devDependencies:
+      '@types/semver': 7.3.12
+      mocha: 10.0.0
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-service-filter: link:../node-opcua-service-filter
+      node-opcua-test-fixtures: link:../node-opcua-test-fixtures
+      should: 13.2.3
+      sinon: 14.0.0
+      source-map-support: 0.5.21
+
+  packages/node-opcua-address-space-base:
+    specifiers:
+      '@types/lodash': 4.14.184
+      node-opcua-basic-types: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-schemas: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      '@types/lodash': 4.14.184
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-schemas: link:../node-opcua-schemas
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-address-space-for-conformance-testing:
+    specifiers:
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-aggregates:
+    specifiers:
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-server: 2.76.1
+      node-opcua-service-history: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-server: link:../node-opcua-server
+      node-opcua-service-history: link:../node-opcua-service-history
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      should: 13.2.3
+
+  packages/node-opcua-assert:
+    specifiers:
+      chalk: 4.1.2
+    dependencies:
+      chalk: 4.1.2
+
+  packages/node-opcua-basic-types:
+    specifiers:
+      '@types/node': 18.7.14
+      node-opcua-assert: 2.76.0
+      node-opcua-benchmarker: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-guid: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-status-code: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-guid: link:../node-opcua-guid
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-status-code: link:../node-opcua-status-code
+    devDependencies:
+      '@types/node': 18.7.14
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      node-opcua-debug: link:../node-opcua-debug
+      should: 13.2.3
+
+  packages/node-opcua-benchmarker:
+    specifiers:
+      node-opcua-utils: 2.76.0
+    dependencies:
+      node-opcua-utils: link:../node-opcua-utils
+
+  packages/node-opcua-binary-stream:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-benchmarker: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+    devDependencies:
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      should: 13.2.3
+
+  packages/node-opcua-buffer-utils:
+    specifiers:
+      node-opcua-benchmarker: 2.76.0
+    devDependencies:
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+
+  packages/node-opcua-certificate-manager:
+    specifiers:
+      '@types/mkdirp': 1.0.2
+      env-paths: 2.2.1
+      mkdirp: 1.0.4
+      mocha: ^10.0.0
+      node-opcua-assert: 2.76.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-debug: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-status-code: 2.76.0
+      rimraf: ^3.0.2
+      should: ^13.2.3
+      thenify: ^3.3.1
+    dependencies:
+      '@types/mkdirp': 1.0.2
+      env-paths: 2.2.1
+      mkdirp: 1.0.4
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-crypto: 1.11.0
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-pki: 2.17.0
+      node-opcua-status-code: link:../node-opcua-status-code
+      thenify: 3.3.1
+    devDependencies:
+      mocha: 10.0.0
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      rimraf: 3.0.2
+      should: 13.2.3
+
+  packages/node-opcua-chunkmanager:
+    specifiers:
+      '@types/node': 18.7.14
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-packet-assembler: 2.76.0
+      should: ^13.2.3
+      source-map-support: ^0.5.21
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-packet-assembler: link:../node-opcua-packet-assembler
+    devDependencies:
+      '@types/node': 18.7.14
+      node-opcua-debug: link:../node-opcua-debug
+      should: 13.2.3
+      source-map-support: 0.5.21
+
+  packages/node-opcua-client:
+    specifiers:
+      '@ster5/global-mutex': ^1.2.0
+      '@types/async': ^3.2.15
+      '@types/once': ^1.4.0
+      '@types/underscore': ^1.11.4
+      async: ^3.2.4
+      callbackify: ^1.1.0
+      chalk: 4.1.2
+      dequeue: ^1.0.5
+      mocha: ^10.0.0
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-certificate-manager: 2.76.0
+      node-opcua-client-dynamic-extension-object: 2.76.0
+      node-opcua-common: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-hostname: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-schemas: 2.76.0
+      node-opcua-secure-channel: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-discovery: 2.76.0
+      node-opcua-service-endpoints: 2.76.0
+      node-opcua-service-filter: 2.76.0
+      node-opcua-service-history: 2.76.0
+      node-opcua-service-query: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-register-node: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-service-session: 2.76.0
+      node-opcua-service-subscription: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-service-write: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      once: ^1.4.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+      thenify: ^3.3.1
+      underscore: ^1.13.4
+    dependencies:
+      '@ster5/global-mutex': 1.2.0
+      '@types/async': 3.2.15
+      '@types/once': 1.4.0
+      async: 3.2.4
+      callbackify: 1.1.0
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+      node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+      node-opcua-common: link:../node-opcua-common
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-hostname: link:../node-opcua-hostname
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-pki: 2.17.0
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-schemas: link:../node-opcua-schemas
+      node-opcua-secure-channel: link:../node-opcua-secure-channel
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-discovery: link:../node-opcua-service-discovery
+      node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+      node-opcua-service-filter: link:../node-opcua-service-filter
+      node-opcua-service-history: link:../node-opcua-service-history
+      node-opcua-service-query: link:../node-opcua-service-query
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-register-node: link:../node-opcua-service-register-node
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-service-session: link:../node-opcua-service-session
+      node-opcua-service-subscription: link:../node-opcua-service-subscription
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-service-write: link:../node-opcua-service-write
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+      once: 1.4.0
+      thenify: 3.3.1
+    devDependencies:
+      '@types/underscore': 1.11.4
+      dequeue: 1.0.5
+      mocha: 10.0.0
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      should: 13.2.3
+      sinon: 14.0.0
+      underscore: 1.13.4
+
+  packages/node-opcua-client-crawler:
+    specifiers:
+      '@types/underscore': ^1.11.4
+      async: ^3.2.4
+      chalk: 4.1.2
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+      thenify: ^3.3.1
+      underscore: ^1.13.4
+    dependencies:
+      '@types/underscore': 1.11.4
+      async: 3.2.4
+      chalk: 4.1.2
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-pki: 2.17.0
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      thenify: 3.3.1
+      underscore: 1.13.4
+    devDependencies:
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-client-dynamic-extension-object:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-schemas: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-schemas: link:../node-opcua-schemas
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-client-proxy:
+    specifiers:
+      async: ^3.2.4
+      node-opcua-assert: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-subscription: 2.76.0
+      node-opcua-service-write: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      thenify: ^3.3.1
+    dependencies:
+      async: 3.2.4
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-subscription: link:../node-opcua-service-subscription
+      node-opcua-service-write: link:../node-opcua-service-write
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+      thenify: 3.3.1
+
+  packages/node-opcua-common:
+    specifiers:
+      '@types/node': 18.7.14
+      node-opcua-assert: 2.76.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-crypto: 1.11.0
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      '@types/node': 18.7.14
+      should: 13.2.3
+
+  packages/node-opcua-constants:
+    specifiers: {}
+
+  packages/node-opcua-convert-nodeset-to-javascript:
+    specifiers:
+      '@types/wordwrap': ^1.0.1
+      case-anything: 1.1.5
+      chalk: 4.1.2
+      node-opcua-address-space: 2.76.1
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-assert: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+      wordwrap: ^1.0.0
+    dependencies:
+      '@types/wordwrap': 1.0.1
+      case-anything: 1.1.5
+      chalk: 4.1.2
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+      wordwrap: 1.0.0
+    devDependencies:
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      should: 13.2.3
+
+  packages/node-opcua-data-access:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      should: 13.2.3
+
+  packages/node-opcua-data-model:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-status-code: link:../node-opcua-status-code
+    devDependencies:
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      should: 13.2.3
+
+  packages/node-opcua-data-value:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      should: 13.2.3
+
+  packages/node-opcua-date-time:
+    specifiers:
+      bignumber.js: ^9.1.0
+      long: ^4.0.0
+      node-opcua-assert: 2.76.0
+      node-opcua-benchmarker: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+    dependencies:
+      long: 4.0.0
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      bignumber.js: 9.1.0
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      node-opcua-debug: link:../node-opcua-debug
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-debug:
+    specifiers:
+      chalk: 4.1.2
+      hexy: 0.3.4
+      node-opcua-assert: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      chalk: 4.1.2
+      hexy: 0.3.4
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-end2end-test:
+    specifiers:
+      '@types/underscore': ^1.11.4
+      async: ^3.2.4
+      chalk: 4.1.2
+      cli-table3: ^0.6.2
+      cli-truncate: 2.1.0
+      delayed: ^2.0.0
+      node-opcua: 2.76.1
+      node-opcua-address-space: 2.76.1
+      node-opcua-address-space-for-conformance-testing: 2.76.1
+      node-opcua-aggregates: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-client-proxy: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-hostname: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-server: 2.76.1
+      node-opcua-server-discovery: 2.76.1
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-filter: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+      thenify: ^3.3.1
+      underscore: ^1.13.4
+      yargs: 15.4.1
+    devDependencies:
+      '@types/underscore': 1.11.4
+      async: 3.2.4
+      chalk: 4.1.2
+      cli-table3: 0.6.2
+      cli-truncate: 2.1.0
+      delayed: 2.0.0
+      node-opcua: link:../node-opcua
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-address-space-for-conformance-testing: link:../node-opcua-address-space-for-conformance-testing
+      node-opcua-aggregates: link:../node-opcua-aggregates
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-client-proxy: link:../node-opcua-client-proxy
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-hostname: link:../node-opcua-hostname
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-pki: 2.17.0
+      node-opcua-server: link:../node-opcua-server
+      node-opcua-server-discovery: link:../node-opcua-server-discovery
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-filter: link:../node-opcua-service-filter
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-variant: link:../node-opcua-variant
+      should: 13.2.3
+      sinon: 14.0.0
+      thenify: 3.3.1
+      underscore: 1.13.4
+      yargs: 15.4.1
+
+  packages/node-opcua-enum:
+    specifiers:
+      enum: 3.0.4
+      node-opcua-benchmarker: 2.76.0
+      should: ^13.2.3
+    devDependencies:
+      enum: 3.0.4
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      should: 13.2.3
+
+  packages/node-opcua-extension-object:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+
+  packages/node-opcua-factory:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-debug: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-guid: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-guid: link:../node-opcua-guid
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-file-transfer:
+    specifiers:
+      memfs: ^3.4.7
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      memfs: 3.4.7
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      should: 13.2.3
+
+  packages/node-opcua-generator:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-schemas: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-utils: 2.76.0
+      prettier: ^2.7.1
+      should: ^13.2.3
+      underscore: ^1.13.4
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-schemas: link:../node-opcua-schemas
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-status-code: link:../node-opcua-status-code
+      prettier: 2.7.1
+      should: 13.2.3
+      underscore: 1.13.4
+
+  packages/node-opcua-guid:
+    specifiers:
+      should: ^13.2.3
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-hostname:
+    specifiers:
+      should: ^13.2.3
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-leak-detector:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-object-registry: 2.76.0
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-object-registry: link:../node-opcua-object-registry
+
+  packages/node-opcua-local-discovery-server:
+    specifiers:
+      env-paths: 2.2.1
+      node-opcua: 2.76.1
+      vorpal: ^1.12.0
+      vorpal-repl: ^1.1.8
+      yargs: 15.4.1
+    dependencies:
+      env-paths: 2.2.1
+      node-opcua: link:../node-opcua
+      vorpal: 1.12.0
+      vorpal-repl: 1.1.8
+      yargs: 15.4.1
+
+  packages/node-opcua-model:
+    specifiers:
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-client-dynamic-extension-object: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-pseudo-session: 2.76.0
+      should: ^13.2.3
+      yargs: 15.4.1
+    dependencies:
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      yargs: 15.4.1
+    devDependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      should: 13.2.3
+
+  packages/node-opcua-modeler:
+    specifiers:
+      cli-table3: ^0.6.2
+      csv-parse: 5.3.0
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-client-dynamic-extension-object: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-schemas: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+      yargs: 15.4.1
+    dependencies:
+      cli-table3: 0.6.2
+      csv-parse: 5.3.0
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-schemas: link:../node-opcua-schemas
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+      yargs: 15.4.1
+    devDependencies:
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-nodeid:
+    specifiers:
+      '@types/lodash': 4.14.184
+      chalk: 4.1.2
+      lodash: 4.17.21
+      node-opcua-assert: 2.76.0
+      node-opcua-benchmarker: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-debug: 2.76.0
+      node-opcua-guid: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      '@types/lodash': 4.14.184
+      chalk: 4.1.2
+      lodash: 4.17.21
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-guid: link:../node-opcua-guid
+    devDependencies:
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      node-opcua-debug: link:../node-opcua-debug
+      should: 13.2.3
+
+  packages/node-opcua-nodeset-adi:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-auto-id:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-cnc:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-commercial-kitchen-equipment:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-di:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-gds:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-glass-flat:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-machinery: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-machinery: link:../node-opcua-nodeset-machinery
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-ia:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-machine-tool:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-ia: 2.76.0
+      node-opcua-nodeset-machinery: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ia: link:../node-opcua-nodeset-ia
+      node-opcua-nodeset-machinery: link:../node-opcua-nodeset-machinery
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-machine-vision:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-machinery:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-robotics:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-ua:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-woodworking:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodeset-di: 2.76.0
+      node-opcua-nodeset-machinery: 2.76.0
+      node-opcua-nodeset-ua: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-machinery: link:../node-opcua-nodeset-machinery
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodesets:
+    specifiers: {}
+
+  packages/node-opcua-numeric-range:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-test-helpers: 2.74.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-status-code: link:../node-opcua-status-code
+    devDependencies:
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-test-helpers: link:../node-opcua-test-helpers
+      should: 13.2.3
+
+  packages/node-opcua-object-registry:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-debug: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-debug: link:../node-opcua-debug
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-packet-analyzer:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-test-helpers: 2.74.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-test-helpers: link:../node-opcua-test-helpers
+      should: 13.2.3
+
+  packages/node-opcua-packet-assembler:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-debug: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-debug: link:../node-opcua-debug
+    devDependencies:
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-pseudo-session:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-subscription: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-service-write: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+      thenify: ^3.3.1
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-subscription: link:../node-opcua-service-subscription
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-service-write: link:../node-opcua-service-write
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+      thenify: 3.3.1
+
+  packages/node-opcua-samples:
+    specifiers:
+      '@types/underscore': ^1.11.4
+      '@types/yargs': 17.0.12
+      chalk: 4.1.2
+      easy-table: ^1.2.0
+      env-paths: 2.2.1
+      exit: ^0.1.2
+      node-opcua: 2.76.1
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-server-configuration: 2.76.1
+      node-opcua-utils: 2.76.0
+      sprintf-js: ^1.1.2
+      treeify: ^1.1.0
+      underscore: ^1.13.4
+      yargs: 15.4.1
+    dependencies:
+      '@types/underscore': 1.11.4
+      '@types/yargs': 17.0.12
+      chalk: 4.1.2
+      easy-table: 1.2.0
+      env-paths: 2.2.1
+      exit: 0.1.2
+      node-opcua: link:../node-opcua
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-crypto: 1.11.0
+      node-opcua-pki: 2.17.0
+      node-opcua-server-configuration: link:../node-opcua-server-configuration
+      node-opcua-utils: link:../node-opcua-utils
+      sprintf-js: 1.1.2
+      treeify: 1.1.0
+      underscore: 1.13.4
+      yargs: 15.4.1
+
+  packages/node-opcua-schemas:
+    specifiers:
+      chalk: 4.1.2
+      mocha: ^10.0.0
+      node-opcua-assert: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      node-opcua-xml2json: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-variant: link:../node-opcua-variant
+      node-opcua-xml2json: link:../node-opcua-xml2json
+    devDependencies:
+      mocha: 10.0.0
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-utils: link:../node-opcua-utils
+      should: 13.2.3
+
+  packages/node-opcua-secure-channel:
+    specifiers:
+      async: ^3.2.4
+      backoff: ^2.5.0
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-certificate-manager: 2.76.0
+      node-opcua-chunkmanager: 2.76.0
+      node-opcua-common: 2.76.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-endpoints: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-service-session: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-test-fixtures: 2.76.0
+      node-opcua-test-helpers: 2.74.0
+      node-opcua-transport: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+    dependencies:
+      async: 3.2.4
+      backoff: 2.5.0
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+      node-opcua-chunkmanager: link:../node-opcua-chunkmanager
+      node-opcua-common: link:../node-opcua-common
+      node-opcua-crypto: 1.11.0
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-transport: link:../node-opcua-transport
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-session: link:../node-opcua-service-session
+      node-opcua-test-fixtures: link:../node-opcua-test-fixtures
+      node-opcua-test-helpers: link:../node-opcua-test-helpers
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-server:
+    specifiers:
+      '@ster5/global-mutex': ^1.2.0
+      async: ^3.2.4
+      chalk: 4.1.2
+      dequeue: ^1.0.5
+      lodash: 4.17.21
+      node-opcua-address-space: 2.76.1
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-certificate-manager: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-client-dynamic-extension-object: 2.76.0
+      node-opcua-common: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-data-access: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-hostname: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-secure-channel: 2.76.0
+      node-opcua-service-browse: 2.76.0
+      node-opcua-service-call: 2.76.0
+      node-opcua-service-discovery: 2.76.0
+      node-opcua-service-endpoints: 2.76.0
+      node-opcua-service-filter: 2.76.0
+      node-opcua-service-history: 2.76.0
+      node-opcua-service-node-management: 2.76.0
+      node-opcua-service-query: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-service-register-node: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-service-session: 2.76.0
+      node-opcua-service-subscription: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-service-write: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-test-helpers: 2.74.0
+      node-opcua-types: 2.76.0
+      node-opcua-utils: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+      thenify: ^3.3.1
+      underscore: ^1.13.4
+    dependencies:
+      '@ster5/global-mutex': 1.2.0
+      async: 3.2.4
+      chalk: 4.1.2
+      dequeue: 1.0.5
+      lodash: 4.17.21
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-client-dynamic-extension-object: link:../node-opcua-client-dynamic-extension-object
+      node-opcua-common: link:../node-opcua-common
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-hostname: link:../node-opcua-hostname
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-secure-channel: link:../node-opcua-secure-channel
+      node-opcua-service-browse: link:../node-opcua-service-browse
+      node-opcua-service-call: link:../node-opcua-service-call
+      node-opcua-service-discovery: link:../node-opcua-service-discovery
+      node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+      node-opcua-service-filter: link:../node-opcua-service-filter
+      node-opcua-service-history: link:../node-opcua-service-history
+      node-opcua-service-node-management: link:../node-opcua-service-node-management
+      node-opcua-service-query: link:../node-opcua-service-query
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-service-register-node: link:../node-opcua-service-register-node
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-service-session: link:../node-opcua-service-session
+      node-opcua-service-subscription: link:../node-opcua-service-subscription
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-service-write: link:../node-opcua-service-write
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-utils: link:../node-opcua-utils
+      node-opcua-variant: link:../node-opcua-variant
+      thenify: 3.3.1
+    devDependencies:
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-pki: 2.17.0
+      node-opcua-test-helpers: link:../node-opcua-test-helpers
+      should: 13.2.3
+      sinon: 14.0.0
+      underscore: 1.13.4
+
+  packages/node-opcua-server-configuration:
+    specifiers:
+      chalk: 4.1.2
+      memfs: ^3.4.7
+      node-opcua-address-space: 2.76.1
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-certificate-manager: 2.76.0
+      node-opcua-client: 2.76.1
+      node-opcua-common: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-crypto: ^1.11.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-file-transfer: 2.76.1
+      node-opcua-hostname: 2.76.0
+      node-opcua-leak-detector: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-pseudo-session: 2.76.0
+      node-opcua-secure-channel: 2.76.0
+      node-opcua-server: 2.76.1
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+      rimraf: ^3.0.2
+      should: ^13.2.3
+    dependencies:
+      chalk: 4.1.2
+      memfs: 3.4.7
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-common: link:../node-opcua-common
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-crypto: 1.11.0
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-file-transfer: link:../node-opcua-file-transfer
+      node-opcua-hostname: link:../node-opcua-hostname
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-pki: 2.17.0
+      node-opcua-pseudo-session: link:../node-opcua-pseudo-session
+      node-opcua-secure-channel: link:../node-opcua-secure-channel
+      node-opcua-server: link:../node-opcua-server
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+      rimraf: 3.0.2
+    devDependencies:
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-leak-detector: link:../node-opcua-leak-detector
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      should: 13.2.3
+
+  packages/node-opcua-server-discovery:
+    specifiers:
+      chalk: 4.1.2
+      env-paths: 2.2.1
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-certificate-manager: 2.76.0
+      node-opcua-common: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-hostname: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-pki: ^2.17.0
+      node-opcua-secure-channel: 2.76.0
+      node-opcua-server: 2.76.1
+      node-opcua-service-discovery: 2.76.0
+      node-opcua-service-endpoints: 2.76.0
+      node-opcua-status-code: 2.76.0
+      sterfive-bonjour-service: 1.1.4
+      thenify: ^3.3.1
+    dependencies:
+      chalk: 4.1.2
+      env-paths: 2.2.1
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-certificate-manager: link:../node-opcua-certificate-manager
+      node-opcua-common: link:../node-opcua-common
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-hostname: link:../node-opcua-hostname
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-secure-channel: link:../node-opcua-secure-channel
+      node-opcua-server: link:../node-opcua-server
+      node-opcua-service-discovery: link:../node-opcua-service-discovery
+      node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+      node-opcua-status-code: link:../node-opcua-status-code
+      sterfive-bonjour-service: 1.1.4
+      thenify: 3.3.1
+    devDependencies:
+      node-opcua-pki: 2.17.0
+
+  packages/node-opcua-service-browse:
+    specifiers:
+      node-opcua-data-model: 2.76.0
+      node-opcua-date-time: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-date-time: link:../node-opcua-date-time
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-status-code: link:../node-opcua-status-code
+      should: 13.2.3
+
+  packages/node-opcua-service-call:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-status-code: link:../node-opcua-status-code
+      should: 13.2.3
+
+  packages/node-opcua-service-discovery:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-types: 2.76.0
+      sterfive-bonjour-service: 1.1.4
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-types: link:../node-opcua-types
+      sterfive-bonjour-service: 1.1.4
+
+  packages/node-opcua-service-endpoints:
+    specifiers:
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-service-filter:
+    specifiers:
+      node-opcua-address-space-base: 2.76.0
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-service-translate-browse-path: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-service-translate-browse-path: link:../node-opcua-service-translate-browse-path
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      should: 13.2.3
+
+  packages/node-opcua-service-history:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-types: 2.76.0
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-service-read: link:../node-opcua-service-read
+
+  packages/node-opcua-service-node-management:
+    specifiers:
+      node-opcua-types: 2.76.0
+    dependencies:
+      node-opcua-types: link:../node-opcua-types
+
+  packages/node-opcua-service-query:
+    specifiers:
+      node-opcua-types: 2.76.0
+    dependencies:
+      node-opcua-types: link:../node-opcua-types
+
+  packages/node-opcua-service-read:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      should: 13.2.3
+
+  packages/node-opcua-service-register-node:
+    specifiers:
+      node-opcua-types: 2.76.0
+    dependencies:
+      node-opcua-types: link:../node-opcua-types
+
+  packages/node-opcua-service-secure-channel:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-status-code: link:../node-opcua-status-code
+      should: 13.2.3
+
+  packages/node-opcua-service-session:
+    specifiers:
+      node-opcua-factory: 2.76.0
+      node-opcua-service-endpoints: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-service-endpoints: link:../node-opcua-service-endpoints
+      should: 13.2.3
+
+  packages/node-opcua-service-subscription:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-secure-channel: 2.76.0
+      node-opcua-service-read: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-types: link:../node-opcua-types
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-secure-channel: link:../node-opcua-secure-channel
+      node-opcua-service-read: link:../node-opcua-service-read
+      node-opcua-status-code: link:../node-opcua-status-code
+      should: 13.2.3
+
+  packages/node-opcua-service-translate-browse-path:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-service-write:
+    specifiers:
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-types: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-types: link:../node-opcua-types
+    devDependencies:
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-variant: link:../node-opcua-variant
+      should: 13.2.3
+
+  packages/node-opcua-status-code:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-test-fixtures:
+    specifiers:
+      node-opcua-debug: 2.76.0
+      node-opcua-service-secure-channel: 2.76.0
+      node-opcua-types: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-service-secure-channel: link:../node-opcua-service-secure-channel
+      node-opcua-types: link:../node-opcua-types
+      should: 13.2.3
+
+  packages/node-opcua-test-helpers:
+    specifiers:
+      should: ^13.2.3
+    dependencies:
+      should: 13.2.3
+
+  packages/node-opcua-transport:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-buffer-utils: 2.76.0
+      node-opcua-chunkmanager: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-object-registry: 2.76.0
+      node-opcua-packet-assembler: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-buffer-utils: link:../node-opcua-buffer-utils
+      node-opcua-chunkmanager: link:../node-opcua-chunkmanager
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-object-registry: link:../node-opcua-object-registry
+      node-opcua-packet-assembler: link:../node-opcua-packet-assembler
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-types:
+    specifiers:
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-data-value: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-generator: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+      should: ^13.2.3
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-generator: link:../node-opcua-generator
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+    devDependencies:
+      should: 13.2.3
+
+  packages/node-opcua-utils:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua-assert: 2.76.0
+      should: ^13.2.3
+      sinon: ^14.0.0
+    dependencies:
+      chalk: 4.1.2
+      node-opcua-assert: link:../node-opcua-assert
+    devDependencies:
+      should: 13.2.3
+      sinon: 14.0.0
+
+  packages/node-opcua-variant:
+    specifiers:
+      '@types/lodash': 4.14.184
+      '@types/underscore': ^1.11.4
+      lodash: 4.17.21
+      node-opcua-assert: 2.76.0
+      node-opcua-basic-types: 2.76.0
+      node-opcua-benchmarker: 2.76.0
+      node-opcua-binary-stream: 2.76.0
+      node-opcua-data-model: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-enum: 2.76.0
+      node-opcua-extension-object: 2.76.0
+      node-opcua-factory: 2.76.0
+      node-opcua-nodeid: 2.76.0
+      node-opcua-numeric-range: 2.76.0
+      node-opcua-packet-analyzer: 2.76.0
+      node-opcua-status-code: 2.76.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+      underscore: ^1.13.4
+    dependencies:
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-binary-stream: link:../node-opcua-binary-stream
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-enum: link:../node-opcua-enum
+      node-opcua-factory: link:../node-opcua-factory
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-utils: link:../node-opcua-utils
+    devDependencies:
+      '@types/lodash': 4.14.184
+      '@types/underscore': 1.11.4
+      lodash: 4.17.21
+      node-opcua-benchmarker: link:../node-opcua-benchmarker
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-numeric-range: link:../node-opcua-numeric-range
+      node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
+      node-opcua-status-code: link:../node-opcua-status-code
+      should: 13.2.3
+      underscore: 1.13.4
+
+  packages/node-opcua-vendor-diagnostic:
+    specifiers:
+      humanize: 0.0.9
+      node-opcua-address-space: 2.76.1
+      node-opcua-assert: 2.76.0
+      node-opcua-constants: 2.74.0
+      node-opcua-server: 2.76.1
+      node-opcua-status-code: 2.76.0
+      node-opcua-variant: 2.76.0
+    dependencies:
+      humanize: 0.0.9
+      node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-constants: link:../node-opcua-constants
+      node-opcua-server: link:../node-opcua-server
+      node-opcua-status-code: link:../node-opcua-status-code
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-xml2json:
+    specifiers:
+      ltx: ^3.0.0
+      mocha: ^10.0.0
+      node-opcua-assert: 2.76.0
+      node-opcua-debug: 2.76.0
+      node-opcua-nodesets: 2.74.0
+      node-opcua-utils: 2.76.0
+      should: ^13.2.3
+      thenify: ^3.3.1
+      xml-writer: ^1.7.0
+    dependencies:
+      ltx: 3.0.0
+      node-opcua-assert: link:../node-opcua-assert
+      node-opcua-utils: link:../node-opcua-utils
+      thenify: 3.3.1
+      xml-writer: 1.7.0
+    devDependencies:
+      mocha: 10.0.0
+      node-opcua-debug: link:../node-opcua-debug
+      node-opcua-nodesets: link:../node-opcua-nodesets
+      should: 13.2.3
+
+  packages/playground:
+    specifiers:
+      chalk: 4.1.2
+      node-opcua: 2.76.1
+      node-opcua-client: 2.76.1
+      node-opcua-modeler: 2.76.1
+      readline: '*'
+      winston: '*'
+    dependencies:
+      chalk: 4.1.2
+      node-opcua: link:../node-opcua
+      node-opcua-client: link:../node-opcua-client
+      node-opcua-modeler: link:../node-opcua-modeler
+      readline: 1.3.0
+      winston: 3.8.1
+
+  packages_extra/node-opcua-example:
+    specifiers:
+      node-opcua: 2.76.1
+      should: ^13.2.3
+    dependencies:
+      node-opcua: link:../../packages/node-opcua
+    devDependencies:
+      should: 13.2.3
 
 packages:
 
@@ -416,8 +2804,6 @@ packages:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
     requiresBuild: true
-    dev: false
-    optional: true
 
   /@cspotcode/source-map-support/0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -426,13 +2812,21 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
+  /@dabh/diagnostics/2.0.3:
+    resolution: {integrity: sha512-hrlQOIi7hAfzsMqlGSFyVucrx38O+j6wiGOf//H2ecvIEqYN4ADBSS2iLMh5UFyDunCNniUIPk/q3riFv45xRA==}
+    dependencies:
+      colorspace: 1.1.4
+      enabled: 2.0.0
+      kuler: 2.0.0
+    dev: false
+
   /@eslint/eslintrc/1.3.0:
     resolution: {integrity: sha512-UWW0TMTmk2d7hLcWD1/e2g5HDM/HQ3csaLSqXCfqwh4uNDuNqlaKWXmEsL4Cs41Z0KnILNvwbHAah3C2yt06kw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
       debug: 4.3.4
-      espree: 9.3.2
+      espree: 9.4.0
       globals: 13.15.0
       ignore: 5.2.0
       import-fresh: 3.3.0
@@ -1580,13 +3974,11 @@ packages:
     resolution: {integrity: sha512-xkNcLAn/wZaX14RPlwizcKicDk9G3F8m2nU3L7Ukm5zBgTwiT0wsoFAHx9Jq56fJA1z/7uKGtCRu16sOUCLIHQ==}
     dependencies:
       type-detect: 4.0.8
-    dev: false
 
   /@sinonjs/fake-timers/9.1.2:
     resolution: {integrity: sha512-BPS4ynJW/o92PUR4wgriz2Ud5gpST5vz6GQfMixEDK0Z8ZCUv2M7SkBLykH56T++Xs+8ln9zTGbOvNGIe02/jw==}
     dependencies:
       '@sinonjs/commons': 1.8.3
-    dev: false
 
   /@sinonjs/samsam/6.1.1:
     resolution: {integrity: sha512-cZ7rKJTLiE7u7Wi/v9Hc2fs3Ucc3jrWeMgPHbbTCeVAB2S0wOBbYlkJVeNSL04i7fdhT8wIbDq1zhC/PXTD2SA==}
@@ -1594,15 +3986,12 @@ packages:
       '@sinonjs/commons': 1.8.3
       lodash.get: 4.4.2
       type-detect: 4.0.8
-    dev: false
 
   /@sinonjs/text-encoding/0.7.1:
     resolution: {integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==}
-    dev: false
 
   /@ster5/global-mutex/1.2.0:
     resolution: {integrity: sha512-UmLDijFT0oif4HNuHkXGEolwQe3Eb5x1WX+1fxEMrO92BojeDycn4gjQnZm8d6nZPizzbWrt6SLQgDU+bFALyw==}
-    dev: false
 
   /@tootallnate/once/2.0.0:
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -1657,7 +4046,6 @@ packages:
 
   /@types/lodash/4.14.184:
     resolution: {integrity: sha512-RoZphVtHbxPZizt4IcILciSWiC6dcn+eZ8oX9IWEYfDMcocdd42f7NPI6fQj+6zI8y4E0L7gu2pcZKLGTRaV9Q==}
-    dev: false
 
   /@types/long/4.0.2:
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
@@ -1714,6 +4102,10 @@ packages:
       '@types/node': 18.7.14
     dev: false
 
+  /@types/semver/7.3.12:
+    resolution: {integrity: sha512-WwA1MW0++RfXmCr12xeYOOC5baSC9mSb0ZqCquFzKhcoF4TvHu5MKOuXsncgZcpVFhB1pXd5hZmM0ryAoCp12A==}
+    dev: true
+
   /@types/sinon/10.0.13:
     resolution: {integrity: sha512-UVjDqJblVNQYvVNUsj0PuYYw0ELRmgt1Nt5Vk0pT5f16ROGfcKJY8o1HVuMOJOpD727RrGB9EGvoaTQE5tgxZQ==}
     dependencies:
@@ -1726,7 +4118,6 @@ packages:
 
   /@types/underscore/1.11.4:
     resolution: {integrity: sha512-uO4CD2ELOjw8tasUrAhvnn2W4A0ZECOvMjCivJr4gA9pGgjv+qxKWY9GLTMVEK8ej85BxQOocUyE7hImmSQYcg==}
-    dev: false
 
   /@types/wordwrap/1.0.1:
     resolution: {integrity: sha512-xe+rWyom8xn0laMWH3M7elOpWj2rDQk+3f13RAur89GKsf4FO5qmBNtXXtwepFo2XNgQI0nePdCEStoHFnNvWg==}
@@ -2000,7 +4391,6 @@ packages:
 
   /any-promise/1.3.0:
     resolution: {integrity: sha1-q8av7tzqUugJzcA3au0845Y10X8=}
-    dev: false
 
   /anymatch/3.1.2:
     resolution: {integrity: sha512-P43ePfOAIupkguHUycrc4qJ9kz8ZiuOUijaETwX7THt0Y/GNK7v0aa8rY816xWjZ7rJdA5XdMcpVFTKMq+RvWg==}
@@ -2115,11 +4505,9 @@ packages:
   /astral-regex/2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
     engines: {node: '>=8'}
-    dev: false
 
   /async/3.2.4:
     resolution: {integrity: sha512-iAB+JbDEGXhyIUavoDl9WP/Jj106Kz9DEn1DPgYw5ruDn0e3Wgi3sKFm55sASdGBNOQB8F59d9qQ7deqrHA8wQ==}
-    dev: false
 
   /asynckit/0.4.0:
     resolution: {integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=}
@@ -2206,7 +4594,6 @@ packages:
     resolution: {integrity: sha1-QIZrnhueC1W0gYlDEeaPr/rrxSI=}
     dependencies:
       callsite: 1.0.0
-    dev: false
 
   /bignumber.js/9.1.0:
     resolution: {integrity: sha512-4LwHK4nfDOraBCtst+wOWIHbu1vhvAPJK8g8nROd4iuc3PSEjWif/qwbkh8jwCJz6yDBvtU4KPynETgrfh7y3A==}
@@ -2277,11 +4664,9 @@ packages:
 
   /buffer-crc32/0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
-    dev: false
 
   /buffer-from/1.1.1:
     resolution: {integrity: sha512-MQcXEUbCKtEo7bhqEs6560Hyd4XaovZlO/k9V3hjVUF/zwW7KBVdSK4gIt/bzwS9MbR5qob+F5jusZsb0YQK2A==}
-    dev: false
 
   /buffer/5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
@@ -2303,7 +4688,6 @@ packages:
   /byline/5.0.0:
     resolution: {integrity: sha1-dBxSFkaOrcRXsDQQEYrXfejB3bE=}
     engines: {node: '>=0.10.0'}
-    dev: false
 
   /byte-size/7.0.1:
     resolution: {integrity: sha512-crQdqyCwhokxwV1UyDzLZanhkugAgft7vt0qbbdt60C6Zf3CAiGmtUCylbtYwrU6loOUw3euGrNtW1J651ot1A==}
@@ -2358,7 +4742,6 @@ packages:
 
   /callsite/1.0.0:
     resolution: {integrity: sha1-KAOY5dZkvXQDi28JBRU+borxvCA=}
-    dev: false
 
   /callsites/3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
@@ -2392,6 +4775,10 @@ packages:
   /caniuse-lite/1.0.30001196:
     resolution: {integrity: sha512-CPvObjD3ovWrNBaXlAIGWmg2gQQuJ5YhuciUOjPRox6hIQttu8O+b51dx6VIpIY9ESd2d0Vac1RKpICdG4rGUg==}
     dev: true
+
+  /case-anything/1.1.5:
+    resolution: {integrity: sha512-UsoMDAMnOaD3mkNmbRg7WoCi6tViuqCihsUCVvHojgsVYJ6kcDjhrvzNwv8nZqjqatYTeQbfoDlJ+2xJVWwp4A==}
+    dev: false
 
   /caseless/0.12.0:
     resolution: {integrity: sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=}
@@ -2541,7 +4928,6 @@ packages:
     engines: {node: '>= 0.2.0'}
     dependencies:
       colors: 1.0.3
-    dev: false
 
   /cli-table3/0.6.2:
     resolution: {integrity: sha512-QyavHCaIC80cMivimWu4aWHilIpiDpfm3hGmqAmXVL1UsnbLuBSMd21hTX6VY4ZSDSM73ESLeF8TOYId3rBTbw==}
@@ -2550,7 +4936,6 @@ packages:
       string-width: 4.2.3
     optionalDependencies:
       '@colors/colors': 1.5.0
-    dev: false
 
   /cli-truncate/2.1.0:
     resolution: {integrity: sha512-n8fOixwDD6b/ObinzTrp1ZKFzbgvKZvuz/TvejnLn1aQfC6r52XEx85FmuC+3HI+JM7coBRXUvNqEU2PHVrHpg==}
@@ -2558,7 +4943,6 @@ packages:
     dependencies:
       slice-ansi: 3.0.0
       string-width: 4.2.2
-    dev: false
 
   /cli-width/1.1.1:
     resolution: {integrity: sha1-pNKT72frt7iNSk1CwMzwDE0eNm0=}
@@ -2634,9 +5018,23 @@ packages:
   /color-name/1.1.4:
     resolution: {integrity: sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==}
 
+  /color-string/1.9.1:
+    resolution: {integrity: sha512-shrVawQFojnZv6xM40anx4CkoDP+fZsw/ZerEMsW/pyzsRbElpsL/DBVW7q3ExxwusdNXI3lXpuhEZkzs8p5Eg==}
+    dependencies:
+      color-name: 1.1.4
+      simple-swizzle: 0.2.2
+    dev: false
+
   /color-support/1.1.3:
     resolution: {integrity: sha512-qiBjkpbMLO/HL68y+lh4q0/O1MZFj2RX6X/KmMa3+gJD3z+WwI1ZzDHysvqHGS3mP6mznPckpXmw1nI9cJjyRg==}
     hasBin: true
+    dev: false
+
+  /color/3.2.1:
+    resolution: {integrity: sha512-aBl7dZI9ENN6fUGC7mWpMTPNHmWUSNan9tuWN6ahh5ZLNk9baLJOnSMlrQkHcrfFgz2/RigjUVAjdx36VcemKA==}
+    dependencies:
+      color-convert: 1.9.3
+      color-string: 1.9.1
     dev: false
 
   /colorette/1.2.2:
@@ -2646,12 +5044,18 @@ packages:
   /colors/1.0.3:
     resolution: {integrity: sha512-pFGrxThWcWQ2MsAz6RtgeWe4NK2kUE1WfsrvvlctdII745EW9I0yflqhe7++M5LEc7bV2c/9/5zc8sFcpL0Drw==}
     engines: {node: '>=0.1.90'}
-    dev: false
 
   /colors/1.4.0:
     resolution: {integrity: sha512-a+UqTh4kgZg/SlGvfbzDHpgRu7AAQOmmqRHJnxhRZICKFUT91brVhNNt58CMWU9PsBbv3PDCZUHbVxuDiH2mtA==}
     engines: {node: '>=0.1.90'}
     dev: true
+
+  /colorspace/1.1.4:
+    resolution: {integrity: sha512-BgvKJiuVu1igBUF2kEjRCZXol6wiiGbY5ipL/oVPwm0BL9sIpMIzM8IK7vwuxIIzOXMV3Ey5w+vxhm0rR/TN8w==}
+    dependencies:
+      color: 3.2.1
+      text-hex: 1.0.0
+    dev: false
 
   /columnify/1.6.0:
     resolution: {integrity: sha512-lomjuFZKfM6MSAnV9aCZC9sc0qGbmZdfygNv+nCpqVkSKdCxCklLtd16O0EILGkImHw9ZpHkAnHaB+8Zxq5W6Q==}
@@ -3063,7 +5467,6 @@ packages:
 
   /delayed/2.0.0:
     resolution: {integrity: sha512-egVMG7oyLvt0hQTCFkk15ly065RcPYr4ePCjxETESVX5UJLe+kh9MGD8TFkDWHOhga/ljNPZE1AEM2/sL0KK0w==}
-    dev: false
 
   /delegates/1.0.0:
     resolution: {integrity: sha512-bd2L678uiWATM6m5Z1VzNCErI3jiGzt6HGY8OVICs40JQq/HALfbyNJmp0UDakEY4pMMaN0Ly5om/B1VI/+xfQ==}
@@ -3080,7 +5483,6 @@ packages:
 
   /dequeue/1.0.5:
     resolution: {integrity: sha1-EPHO8H4yNLIdyzj0v6LWYDSrZ8c=}
-    dev: false
 
   /detect-indent/5.0.0:
     resolution: {integrity: sha512-rlpvsxUtM0PQvy9iZe640/IWwWYyBsTApREbA1pHOpmOUIl9MkP/U4z7vTtg4Oaojvqhxt7sdufnT0EzGaR31g==}
@@ -3242,6 +5644,10 @@ packages:
 
   /emoji-regex/8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
+
+  /enabled/2.0.0:
+    resolution: {integrity: sha512-AKrN98kuwOzMIdAizXGI86UFBoo26CL21UM763y1h/GMSJ4/OHU9k2YlsmBpyScFo/wbLzWQJBMCW4+IO3/+OQ==}
+    dev: false
 
   /encoding/0.1.13:
     resolution: {integrity: sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==}
@@ -3754,6 +6160,9 @@ packages:
     resolution: {integrity: sha512-cE1qsB/VwyQozZ+q1dGxR8LBYNZeofhEdUNGSMbQD3Gw2lAzX9Zb3uIU6Ebc/Fmyjo9AWWfnn0AUCHqtevs/8g==}
     dependencies:
       pend: 1.2.0
+
+  /fecha/4.2.3:
+    resolution: {integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==}
     dev: false
 
   /figures/1.7.0:
@@ -3825,6 +6234,10 @@ packages:
   /flatted/3.1.1:
     resolution: {integrity: sha512-zAoAQiudy+r5SvnSw3KJy5os/oRJYHzrzja/tBDqrZtNhUw8bt6y8OBzMWcjWr+8liV8Eb6yOhw8WZ7VFZ5ZzA==}
 
+  /fn.name/1.1.0:
+    resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
+    dev: false
+
   /foreground-child/2.0.0:
     resolution: {integrity: sha512-dCIq9FpEcyQyXKCkyzmlPTFNgrCzPudOe+mhvJU5zAtlBnGVy2yKxtfsxK2tQBThwq225jcvBjpw1Gr40uzZCA==}
     engines: {node: '>=8.0.0'}
@@ -3888,7 +6301,6 @@ packages:
 
   /fs-monkey/1.0.3:
     resolution: {integrity: sha512-cybjIfiiE+pTWicSCLFHSrXZ6EilF30oh91FDP9S2B051prEa7QWfrVTQm10/dDpswBDXZugPa1Ogu8Yh+HV0Q==}
-    dev: false
 
   /fs.realpath/1.0.0:
     resolution: {integrity: sha1-FQStJSMVjKpA20onh8sBQRmU6k8=}
@@ -4193,7 +6605,6 @@ packages:
   /hexy/0.3.4:
     resolution: {integrity: sha512-P2V2yx+XhEJRjXCe9IlRzbcL33plTaIjn+OSvgWu0Z9+2WkL71d+eC4jQ91rooM+F0JNERnENH6mpHlpcT+qlA==}
     engines: {node: '>=10.4'}
-    dev: false
 
   /hjson/3.2.2:
     resolution: {integrity: sha512-MkUeB0cTIlppeSsndgESkfFD21T2nXPRaBStLtf3cAYA2bVEFdXlodZB0TukwZiobPD1Ksax5DK4RTZeaXCI3Q==}
@@ -4455,6 +6866,10 @@ packages:
 
   /is-arrayish/0.2.1:
     resolution: {integrity: sha512-zz06S8t0ozoDXMG+ube26zeCTNXcKIPJZJi8hBrF4idCLms4CG9QtK7qBl1boi5ODzFpjswb5JPmHCbMpjaYzg==}
+    dev: false
+
+  /is-arrayish/0.3.2:
+    resolution: {integrity: sha512-eVRqCvVlZbuw3GrM63ovNSNAeA1K16kaR/LRY/92w0zxQ5/1YzwblUX652i4Xs9RwAGjW9d9y6X88t8OaAJfWQ==}
     dev: false
 
   /is-bigint/1.0.1:
@@ -4856,7 +7271,6 @@ packages:
 
   /jsrsasign/10.5.25:
     resolution: {integrity: sha512-N7zxHaCwYvFlXsybq4p4RxRwn4AbEq3cEiyjbCrWmwA7g8aS4LTKDJ9AJmsXxwtYesYx0imJ+ITtkyyxLCgeIg==}
-    dev: false
 
   /jstransformer/1.0.0:
     resolution: {integrity: sha1-7Yvwkh4vPx7U1cGkT2hwntJHIsM=}
@@ -4875,11 +7289,14 @@ packages:
 
   /just-extend/4.2.1:
     resolution: {integrity: sha512-g3UB796vUFIY90VIv/WX3L2c8CS2MdWUww3CNrYmqza1Fg0DURc2K/O4YrnklBdQarSJ/y8JnJYDGc+1iumQjg==}
-    dev: false
 
   /kind-of/6.0.3:
     resolution: {integrity: sha512-dcS1ul+9tmeD95T+x28/ehLgd9mENa3LsvDTtzm3vyBEO7RPptvAD+t44WVXaUjTBRcrpFeFlC8WCruUR456hw==}
     engines: {node: '>=0.10.0'}
+    dev: false
+
+  /kuler/2.0.0:
+    resolution: {integrity: sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==}
     dev: false
 
   /lcov-parse/1.0.0:
@@ -4910,7 +7327,7 @@ packages:
       import-local: 3.0.2
       npmlog: 6.0.2
       nx: 14.6.4
-      typescript: 4.8.2
+      typescript: 4.7.4
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
@@ -5087,7 +7504,6 @@ packages:
 
   /lodash.get/4.4.2:
     resolution: {integrity: sha1-LRd/ZS+jHpObRDjVNBSZ36OCXpk=}
-    dev: false
 
   /lodash.ismatch/4.4.0:
     resolution: {integrity: sha512-fPMfXjGQEV9Xsq/8MTSgUf255gawYRbjwMyDbcvDhXgV7enSZA0hynz6vMPnpAb5iONEzBHBPsT+0zes5Z301g==}
@@ -5139,6 +7555,16 @@ packages:
       cli-cursor: 1.0.2
     dev: false
 
+  /logform/2.4.2:
+    resolution: {integrity: sha512-W4c9himeAwXEdZ05dQNerhFz2XG80P9Oj0loPUMV23VC2it0orMHQhJm4hdnnor3rd1HsGf6a2lPwBM1zeXHGw==}
+    dependencies:
+      '@colors/colors': 1.5.0
+      fecha: 4.2.3
+      ms: 2.1.3
+      safe-stable-stringify: 2.3.1
+      triple-beam: 1.3.0
+    dev: false
+
   /long/4.0.0:
     resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
     dev: false
@@ -5163,6 +7589,11 @@ packages:
   /lru-cache/7.10.1:
     resolution: {integrity: sha512-BQuhQxPuRl79J5zSXRP+uNzPOyZw2oFI9JLRQ80XswSvg21KMKNtQza9eF42rfI/3Z40RvzBdXgziEkudzjo8A==}
     engines: {node: '>=12'}
+    dev: false
+
+  /ltx/3.0.0:
+    resolution: {integrity: sha512-bu3/4/ApUmMqVNuIkHaRhqVtEi6didYcBDIF56xhPRCzVpdztCipZ62CUuaxMlMBUzaVL93+4LZRqe02fuAG6A==}
+    engines: {node: '>= 12.4.0'}
     dev: false
 
   /make-dir/2.1.0:
@@ -5237,7 +7668,6 @@ packages:
     engines: {node: '>= 4.0.0'}
     dependencies:
       fs-monkey: 1.0.3
-    dev: false
 
   /meow/8.1.2:
     resolution: {integrity: sha512-r85E3NdZ+mpYk1C6RjPFEMSE+s1iZMuHtsHAqY0DT3jZczl0diWUZ8g6oU7h0M9cD2EL+PzaYghhCLzR0ZNn5Q==}
@@ -5523,7 +7953,6 @@ packages:
       '@sinonjs/text-encoding': 0.7.1
       just-extend: 4.2.1
       path-to-regexp: 1.8.0
-    dev: false
 
   /no-case/2.3.2:
     resolution: {integrity: sha512-rmTZ9kz+f3rCvK2TD1Ue/oZlns7OGoIWP4fc3llxxRXlOkHKoWPPWJOfFYpITabSow43QJbRIoHQXtt10VldyQ==}
@@ -5585,7 +8014,6 @@ packages:
       hexy: 0.3.4
       jsrsasign: 10.5.25
       sshpk: 1.17.0
-    dev: false
 
   /node-opcua-pki/2.17.0:
     resolution: {integrity: sha512-CXyy2CuIV7L8VGZ+LL6HeQ/jOph/AjJ/h6/qBvs3Wsowt5Ay7VN1stO0/SDjJX/o7LysIpLuXaxrs97g+Fq/ew==}
@@ -5604,7 +8032,6 @@ packages:
       wget-improved-2: 3.3.0
       yargs: 17.5.1
       yauzl: 2.10.0
-    dev: false
 
   /node-preload/0.2.1:
     resolution: {integrity: sha512-RM5oyBy45cLEoHqCeh+MNuFAxO0vTFBLskvQbOKnEE7YTTSN4tbN8QWDIPQ6L+WvKsB/qLEGpYe2ZZ9d4W9OIQ==}
@@ -5755,22 +8182,6 @@ packages:
       npm-normalize-package-bin: 1.0.1
       npm-package-arg: 9.0.2
       semver: 7.3.7
-    dev: false
-
-  /npm-registry-fetch/13.1.1:
-    resolution: {integrity: sha512-5p8rwe6wQPLJ8dMqeTnA57Dp9Ox6GH9H60xkyJup07FmVlu3Mk7pf/kIIpl9gaN5bM8NM+UUx3emUWvDNTt39w==}
-    engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
-    dependencies:
-      make-fetch-happen: 10.1.6
-      minipass: 3.1.6
-      minipass-fetch: 2.1.0
-      minipass-json-stream: 1.0.1
-      minizlib: 2.1.2
-      npm-package-arg: 9.0.2
-      proc-log: 2.0.1
-    transitivePeerDependencies:
-      - bluebird
-      - supports-color
     dev: false
 
   /npm-registry-fetch/13.3.1:
@@ -5937,6 +8348,12 @@ packages:
     resolution: {integrity: sha1-WDsap3WWHUsROsF9nFC6753Xa9E=}
     dependencies:
       wrappy: 1.0.2
+
+  /one-time/1.0.0:
+    resolution: {integrity: sha512-5DXOiRKwuSEcQ/l0kGCF6Q3jcADFv5tSmRaJck/OqkVFcOzutB134KRSfF0xDrL39MNnqxbHBbUUcjZIhTgb2g==}
+    dependencies:
+      fn.name: 1.1.0
+    dev: false
 
   /onetime/1.1.0:
     resolution: {integrity: sha1-ofeDj4MUxRbwXs78vEzP4EtO14k=}
@@ -6124,7 +8541,7 @@ packages:
       npm-package-arg: 9.0.2
       npm-packlist: 5.1.0
       npm-pick-manifest: 7.0.1
-      npm-registry-fetch: 13.1.1
+      npm-registry-fetch: 13.3.1
       proc-log: 2.0.1
       promise-retry: 2.0.1
       read-package-json: 5.0.1
@@ -6222,7 +8639,6 @@ packages:
     resolution: {integrity: sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==}
     dependencies:
       isarray: 0.0.1
-    dev: false
 
   /path-type/3.0.0:
     resolution: {integrity: sha512-T2ZUsdZFHgA3u4e5PfPbjd7HDDpxPnQb5jN0SrDsjNSuVXHJqtwTnWqG0B1jZrgmJ/7lj1EmVIByWt1gxGkWvg==}
@@ -6237,7 +8653,6 @@ packages:
 
   /pend/1.2.0:
     resolution: {integrity: sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==}
-    dev: false
 
   /performance-now/2.1.0:
     resolution: {integrity: sha1-Ywn04OX6kT7BxpMHrjZLSzd8nns=}
@@ -6342,7 +8757,6 @@ packages:
   /progress/2.0.3:
     resolution: {integrity: sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==}
     engines: {node: '>=0.4.0'}
-    dev: false
 
   /promise-all-reject-late/1.0.1:
     resolution: {integrity: sha512-vuf0Lf0lOxyQREH7GDIOUMLS7kz+gs8i6B+Yi8dC68a2sychGrHTJYghMBD6k7eUcH0H5P73EckCA48xijWqXw==}
@@ -6625,6 +9039,10 @@ packages:
     dependencies:
       picomatch: 2.3.0
 
+  /readline/1.3.0:
+    resolution: {integrity: sha512-k2d6ACCkiNYz222Fs/iNze30rRJ1iIicW7JuX/7/cozvih6YCkFZH+J6mAFDVgv0dRBaAyr4jDqC95R2y4IADg==}
+    dev: false
+
   /readline2/1.0.1:
     resolution: {integrity: sha1-QQWWCP/BVHV7cV2ZidGZ/783LjU=}
     dependencies:
@@ -6794,6 +9212,11 @@ packages:
   /safe-buffer/5.2.1:
     resolution: {integrity: sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ==}
 
+  /safe-stable-stringify/2.3.1:
+    resolution: {integrity: sha512-kYBSfT+troD9cDA85VDnHZ1rpHC50O0g1e6WlGHVCz/g+JS+9WKLj+XwFYyR8UbrZN8ll9HUpDAAddY58MGisg==}
+    engines: {node: '>=10'}
+    dev: false
+
   /safer-buffer/2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
 
@@ -6864,29 +9287,24 @@ packages:
     resolution: {integrity: sha512-ZP36TMrK9euEuWQYBig9W55WPC7uo37qzAEmbjHz4gfyuXrEUgF8cUvQVO+w+d3OMfPvSRQJ22lSm8MQJ43LTA==}
     dependencies:
       should-type: 1.4.0
-    dev: false
 
   /should-format/3.0.3:
     resolution: {integrity: sha1-m/yPdPo5IFxT04w01xcwPidxJPE=}
     dependencies:
       should-type: 1.4.0
       should-type-adaptors: 1.1.0
-    dev: false
 
   /should-type-adaptors/1.1.0:
     resolution: {integrity: sha512-JA4hdoLnN+kebEp2Vs8eBe9g7uy0zbRo+RMcU0EsNy+R+k049Ki+N5tT5Jagst2g7EAja+euFuoXFCa8vIklfA==}
     dependencies:
       should-type: 1.4.0
       should-util: 1.0.1
-    dev: false
 
   /should-type/1.4.0:
     resolution: {integrity: sha1-B1bYzoRt/QmEOmlHcZ36DUz/XPM=}
-    dev: false
 
   /should-util/1.0.1:
     resolution: {integrity: sha512-oXF8tfxx5cDk8r2kYqlkUJzZpDBqVY/II2WhvU0n9Y3XYvAYRmeaf1PvvIvTgPnv4KJ+ES5M0PyDq5Jp+Ygy2g==}
-    dev: false
 
   /should/13.2.3:
     resolution: {integrity: sha512-ggLesLtu2xp+ZxI+ysJTmNjh2U0TsC+rQ/pfED9bUZZ4DKefP27D+7YJVVTvKsmjLpIi9jAa7itwDGkDDmt1GQ==}
@@ -6896,7 +9314,6 @@ packages:
       should-type: 1.4.0
       should-type-adaptors: 1.1.0
       should-util: 1.0.1
-    dev: false
 
   /side-channel/1.0.4:
     resolution: {integrity: sha512-q5XPytqFEIKHkGdiMIrY10mvLRvnQh42/+GoBlFW3b2LXLE2xxJpZFdm94we0BaoV3RwJyGqg5wS7epxTv0Zvw==}
@@ -6916,6 +9333,12 @@ packages:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
     dev: false
 
+  /simple-swizzle/0.2.2:
+    resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
+    dependencies:
+      is-arrayish: 0.3.2
+    dev: false
+
   /sinon/14.0.0:
     resolution: {integrity: sha512-ugA6BFmE+WrJdh0owRZHToLd32Uw3Lxq6E6LtNRU+xTVBefx632h03Q7apXWRsRdZAJ41LB8aUfn2+O4jsDNMw==}
     dependencies:
@@ -6925,7 +9348,6 @@ packages:
       diff: 5.0.0
       nise: 5.1.1
       supports-color: 7.2.0
-    dev: false
 
   /slash/3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
@@ -6938,7 +9360,6 @@ packages:
       ansi-styles: 4.3.0
       astral-regex: 2.0.0
       is-fullwidth-code-point: 3.0.0
-    dev: false
 
   /smart-buffer/4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
@@ -6988,7 +9409,6 @@ packages:
     dependencies:
       buffer-from: 1.1.1
       source-map: 0.6.1
-    dev: false
 
   /source-map/0.5.7:
     resolution: {integrity: sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=}
@@ -7075,6 +9495,10 @@ packages:
       minipass: 3.1.6
     dev: false
 
+  /stack-trace/0.0.10:
+    resolution: {integrity: sha512-KGzahc7puUKkzyMt+IqAep+TVNbKP+k2Lmwhub39m1AsTSkaDutx56aDCo+HLDzf/D26BIHTJWNiTG1KAJiQCg==}
+    dev: false
+
   /sterfive-bonjour-service/1.1.4:
     resolution: {integrity: sha512-QqDpnBb3KLD6ytdY2KSxsynw1jJAvzfOloQt83GQNXO6CGf84ZY+37tpOEZo1FzgUkFiVsL7pYyg71olDppI/w==}
     dependencies:
@@ -7111,7 +9535,6 @@ packages:
       emoji-regex: 8.0.0
       is-fullwidth-code-point: 3.0.0
       strip-ansi: 6.0.1
-    dev: false
 
   /string-width/4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
@@ -7284,6 +9707,10 @@ packages:
     engines: {node: '>=0.10'}
     dev: false
 
+  /text-hex/1.0.0:
+    resolution: {integrity: sha512-uuVGNWzgJ4yhRaNSiubPY7OjISw4sw4E5Uv0wbjp+OzcbmVU/rsT8ujgcXJhn9ypzsgr5vlzpPqP+MBBKcGvbg==}
+    dev: false
+
   /text-table/0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
 
@@ -7291,7 +9718,6 @@ packages:
     resolution: {integrity: sha512-RVZSIV5IG10Hk3enotrhvz0T9em6cyHBLkH/YAZuKqd8hRkKhSfCGIcP2KUY0EPxndzANBmNllzWPwak+bheSw==}
     dependencies:
       any-promise: 1.3.0
-    dev: false
 
   /through/2.3.8:
     resolution: {integrity: sha1-DdTJ/6q8NXlgsbckEV1+Doai4fU=}
@@ -7375,6 +9801,10 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
+  /triple-beam/1.3.0:
+    resolution: {integrity: sha512-XrHUvV5HpdLmIj4uVMxHggLbFSZYIn7HEWsqePZcI50pco+MPqJ50wMGY794X7AOOhxOBAjbkqfAbEe/QMp2Lw==}
+    dev: false
+
   /ts-node/10.9.1_leegklmkepybzc4ng4qys4ftou:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
@@ -7441,7 +9871,6 @@ packages:
   /tunnel/0.0.6:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
-    dev: false
 
   /tweetnacl/0.14.5:
     resolution: {integrity: sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==}
@@ -7455,7 +9884,6 @@ packages:
   /type-detect/4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
     engines: {node: '>=4'}
-    dev: false
 
   /type-fest/0.11.0:
     resolution: {integrity: sha512-OdjXJxnCN1AvyLSzeKIgXTXxV+99ZuXl3Hpo9XpJAv9MBcHrrJOQ5kV7ypXOuQie+AmWG25hLbiKdwYTifzcfQ==}
@@ -7498,13 +9926,6 @@ packages:
     resolution: {integrity: sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
-
-  /typescript/4.8.2:
-    resolution: {integrity: sha512-C0I1UsrrDHo2fYI5oaCGbSejwX4ch+9Y5jTQELvovfmFkK3HHSZJB8MSJcWLmCUBzQBchCrZ9rMRV6GuNrvGtw==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
-    dev: false
 
   /uc.micro/1.0.6:
     resolution: {integrity: sha512-8Y75pvTYkLJW2hWQHXxoqRgV7qb9B+9vFEtidML+7koHUFapnVJAZ6cKs+Qjz5Aw3aZWHMC6u0wJE3At+nSGwA==}
@@ -7668,7 +10089,6 @@ packages:
     dependencies:
       minimist: 1.2.6
       tunnel: 0.0.6
-    dev: false
 
   /whatwg-url/5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
@@ -7699,6 +10119,31 @@ packages:
     resolution: {integrity: sha512-eDMORYaPNZ4sQIuuYPDHdQvf4gyCF9rEEV/yPxGfwPkRodwEgiMUUXTx/dex+Me0wxx53S+NgUHaP7y3MGlDmg==}
     dependencies:
       string-width: 4.2.3
+    dev: false
+
+  /winston-transport/4.5.0:
+    resolution: {integrity: sha512-YpZzcUzBedhlTAfJg6vJDlyEai/IFMIVcaEZZyl3UXIl4gmqRpU7AE89AHLkbzLUsv0NVmw7ts+iztqKxxPW1Q==}
+    engines: {node: '>= 6.4.0'}
+    dependencies:
+      logform: 2.4.2
+      readable-stream: 3.6.0
+      triple-beam: 1.3.0
+    dev: false
+
+  /winston/3.8.1:
+    resolution: {integrity: sha512-r+6YAiCR4uI3N8eQNOg8k3P3PqwAm20cLKlzVD9E66Ch39+LZC+VH1UKf9JemQj2B3QoUHfKD7Poewn0Pr3Y1w==}
+    engines: {node: '>= 12.0.0'}
+    dependencies:
+      '@dabh/diagnostics': 2.0.3
+      async: 3.2.4
+      is-stream: 2.0.0
+      logform: 2.4.2
+      one-time: 1.0.0
+      readable-stream: 3.6.0
+      safe-stable-stringify: 2.3.1
+      stack-trace: 0.0.10
+      triple-beam: 1.3.0
+      winston-transport: 4.5.0
     dev: false
 
   /with/7.0.2:
@@ -7867,7 +10312,6 @@ packages:
   /yargs-parser/21.0.1:
     resolution: {integrity: sha512-9BK1jFpLzJROCI5TzwZL/TU4gqjK5xiHV/RfWLOahrjAko/e4DJkRDZQXfvqAsiZzzYhgAzbgz6lg48jcm4GLg==}
     engines: {node: '>=12'}
-    dev: false
 
   /yargs-unparser/2.0.0:
     resolution: {integrity: sha512-7pRTIA9Qc1caZ0bZ6RYRGbHJthJWuakf+WmHK0rVeLkNrrGhfoabBNdue6kdINI6r4if7ocq9aD/n7xwKOdzOA==}
@@ -7918,14 +10362,12 @@ packages:
       string-width: 4.2.3
       y18n: 5.0.8
       yargs-parser: 21.0.1
-    dev: false
 
   /yauzl/2.10.0:
     resolution: {integrity: sha512-p4a9I6X6nu6IhoGmBqAcbJy1mlC4j27vEPZX9F4L4/vZT3Lyq1VkFHw/V/PUcB9Buo+DG3iHkT0x3Qya58zc3g==}
     dependencies:
       buffer-crc32: 0.2.13
       fd-slicer: 1.1.0
-    dev: false
 
   /yn/3.1.1:
     resolution: {integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==}
