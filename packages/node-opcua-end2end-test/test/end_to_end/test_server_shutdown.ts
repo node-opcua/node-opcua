@@ -12,7 +12,7 @@ import {
     AttributeIds,
     ServerState} from "node-opcua";
 import * as chalk from "chalk";
-import sinon = require("sinon");
+import sinon from "sinon";
 import { SinonSpy } from "sinon";
 import * as should from "should";
 const a = should;

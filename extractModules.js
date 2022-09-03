@@ -1,11 +1,28 @@
+/* eslint-disable complexity */
 const fs = require("fs");
-const { assert } = require("console");
 const path = require("path");
 const ts = require("typescript");
 const chalk = require("chalk");
 
 function isNodeJSModule(m) {
-    return ["util", "fs", "crypto", "path", "events", "http", "net", "os", "dns", "child_process", "url"].indexOf(m) !== -1;
+    return (
+        [
+            "assert",
+            "child_process",
+            "crypto",
+            "dns",
+            "events",
+            "fs",
+            "http",
+            "net",
+            "os",
+            "path",
+            "stream",
+            "timers",
+            "url",
+            "util",
+        ].indexOf(m) !== -1
+    );
 }
 function isRelativeModule(m) {
     return m[0] === ".";
@@ -15,19 +32,31 @@ function isExternalModule(m) {
 }
 function getModuleName(str) {
     if (str[0] === "@") {
-        return str.split("/").slice(2).join("/");
+        return str.split("/").slice(0, 2).join("/");
     }
     return str.split("/")[0];
 }
-assert(getModuleName("@types/node") === "@types/node");
-assert(getModuleName("@types/node/other") === "@types/node");
-assert(getModuleName("a/b") === "a");
+function test(input, expected) {
+    const actual = getModuleName(input);
+    if (actual !== expected) {
+        throw new Error(`expecting getModuleName("${input}") == "${expected}" but got "${actual}"`);
+    }
+}
+test("@types/node", "@types/node");
+test("@types/node/other", "@types/node");
+test("a/b", "a");
+test("@sterfive/abcdef", "@sterfive/abcdef");
 
 async function exploreSourceFile(filename) {
     const filename1 = path.basename(filename);
+    const source = fs.readFileSync(filename, "utf8"); // sourceText
+    return exploreSourceFileInner(source, filename1);
+}
+
+async function exploreSourceFileInner(source, filename1) {
     const node = ts.createSourceFile(
         filename1, // fileName
-        fs.readFileSync(filename, "utf8"), // sourceText
+        source,
         ts.ScriptTarget.Latest // langugeVersion
     );
     // console.log("filename", filename);
@@ -45,20 +74,17 @@ async function exploreSourceFile(filename) {
             if (isExternalModule(moduleName)) {
                 modules.push(moduleName);
             }
-        }
-        if (child.kind === ts.SyntaxKind.ImportDeclaration) {
+        } else if (child.kind === ts.SyntaxKind.ImportDeclaration) {
             if (!child.moduleSpecifier || !child.moduleSpecifier.text) {
                 console.log("filename1 = ", filename1);
                 console.log(child);
-                process.exit(0);
             }
             // console.log("found (ts) ", child.moduleSpecifier.text);
             const moduleName = getModuleName(child.moduleSpecifier?.text);
             if (isExternalModule(moduleName)) {
                 modules.push(moduleName);
             }
-        }
-        if (child.kind === ts.SyntaxKind.FirstStatement) {
+        } else if (child.kind === ts.SyntaxKind.FirstStatement) {
             // console.log(" ", child.declarationList.declarations);
             const s = child.declarationList.declarations[0];
             if (s.initializer?.kind === ts.SyntaxKind.PropertyAccessExpression) {
@@ -82,6 +108,23 @@ async function exploreSourceFile(filename) {
                         modules.push(moduleName);
                     }
                 }
+            }
+        } else if (child.kind === ts.SyntaxKind.ExpressionStatement) {
+            if (child.expression.kind === ts.SyntaxKind.CallExpression) {
+                if (child.expression.expression.escapedText === "require") {
+                    const m = child.expression.arguments[0].text;
+                    const moduleName = getModuleName(m);
+                    // console.log("found (js) ", s.initializer.arguments[0]?.text, moduleName);
+                    if (isExternalModule(moduleName)) {
+                        modules.push(moduleName);
+                    }
+                }
+            }
+        } else if (child.kind === ts.SyntaxKind.ImportEqualsDeclaration) {
+            // import envpath = require("env-path");
+            const moduleName = getModuleName(child.name.escapedText);
+            if (isExternalModule(moduleName)) {
+                modules.push(moduleName);
             }
         }
     });
@@ -146,6 +189,9 @@ function addDependencies(parent, children) {
  * @param {string} parent
  */
 function verifyCycle(parent) {
+
+
+    let cycleCount  = 0;
     const m = new Set();
     /**
      * @type string[]
@@ -167,6 +213,7 @@ function verifyCycle(parent) {
             const ind = c.indexOf(parent);
 
             if (ind >= 0) {
+                cycleCount++;
                 console.log("Found cycle ", path, " => ", child);
                 // console.log("child ", child,c);
                 // console.log()
@@ -179,6 +226,8 @@ function verifyCycle(parent) {
         }
     }
     visit(cur, m, parent);
+
+    return cycleCount;
 }
 async function extractSourceAndDevFolders(folder) {
     const sourceFolders = [];
@@ -192,7 +241,7 @@ async function extractSourceAndDevFolders(folder) {
             ignoreFolders.push(d.name);
             continue;
         }
-        if (d.name === "src" || d.name.match(/^source/)) {
+        if (d.name === "src" || d.name.match(/^source/) || d.name === "bin") {
             sourceFolders.push(d.name);
             continue;
         }
@@ -240,30 +289,38 @@ async function analyzePackageFolder(folder, packageName) {
         }
     }
 
-    function extractMissingAndExtra(bucket, dependencies) {
+    function extractMissingAndExtra(title, bucket, dependencies) {
         const expectedDependencies = new Set(bucket.modules);
         const actualDependencies = new Set(Object.keys(dependencies || {}));
         const missing = [...expectedDependencies].filter((d) => !actualDependencies.has(d));
         const extra = [...actualDependencies].filter((d) => !expectedDependencies.has(d));
-        console.log("missing", chalk.cyan(missing.join(" ")));
-        console.log("extra  ", chalk.yellow(extra.join(" ")));
+
+        if (missing.length || extra.length) {
+            const msg =
+                title.padEnd(15, " ") +
+                " missing :" +
+                chalk.cyan(missing.join(" ")) +
+                "\n" +
+                title.padEnd(15, " ") +
+                " extra   :" +
+                chalk.yellow(extra.join(" "));
+            console.log(msg);
+            console.log("------");
+        }
         return { missing, extra };
     }
     {
         fixArrobasTypeDefinition(bucketDependencies, packageJson.dependencies);
-        const { missing, extra } = extractMissingAndExtra(bucketDependencies, packageJson.dependencies);
-        console.log("------");
+        const { missing, extra } = extractMissingAndExtra("dependencies", bucketDependencies, packageJson.dependencies);
     }
     {
         fixArrobasTypeDefinition(bucketDevDependencies, packageJson.devDependencies);
-        const { missing, extra } = extractMissingAndExtra(bucketDevDependencies, packageJson.devDependencies);
-        console.log("------");
+        const { missing, extra } = extractMissingAndExtra("devDependencies", bucketDevDependencies, packageJson.devDependencies);
     }
-    console.log("");
-
     addDependencies(packageName, [...bucketDependencies.modules, ...bucketDevDependencies.modules]);
 }
-(async () => {
+
+async function main() {
     const folder = path.join(__dirname, "packages");
     const filesAndFolder = await fs.promises.readdir(folder, { withFileTypes: true });
     for (const d of filesAndFolder) {
@@ -272,10 +329,35 @@ async function analyzePackageFolder(folder, packageName) {
         }
     }
 
+    let cycleCount = 0;
     for (const m of Object.keys(_graph)) {
-        verifyCycle(m);
+        cycleCount += verifyCycle(m);
     }
+    console.log(cycleCount? chalk.red(`${cycleCount} cycles have been found !`) : chalk.green("OK"));
     // console.log(_graph);
-})();
+}
 
-//exploreSourceFile("toto.ts");
+async function test2() {
+    const source = `
+import sinon = require("sinon");
+import * as foo from "foo1";
+import * as path from "path";
+const a = require("foo2");
+const b = require("foo3/folder");
+const c = require("@foo4/foo4");
+export { a } from "foo5";
+export *  from "foo6";
+import { a, b } from "..";
+import { v } from "../foo7";
+
+    `;
+
+    const actual = (await exploreSourceFileInner(source, "foo")).join(" - ");
+    const expected = "@foo4/foo4 - foo1 - foo2 - foo3 - foo5 - foo6 - sinon";
+
+    if (actual !== expected) {
+        throw new Error(`expecting  "${expected}" but got "${actual}"`);
+    }
+}
+test2();
+main();

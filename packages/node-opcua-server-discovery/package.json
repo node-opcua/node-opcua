@@ -11,6 +11,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "chalk": "4.1.2",
+        "env-paths": "2.2.1",
         "node-opcua-assert": "2.76.0",
         "node-opcua-basic-types": "2.76.0",
         "node-opcua-certificate-manager": "2.76.0",
@@ -25,6 +26,9 @@
         "node-opcua-status-code": "2.76.0",
         "sterfive-bonjour-service": "1.1.4",
         "thenify": "^3.3.1"
+    },
+    "devDependencies": {
+        "node-opcua-pki": "^2.17.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -12,6 +12,7 @@
         "clean": "npx rimraf dist *.tsbuildinfo"
     },
     "dependencies": {
+        "node-opcua-server": "2.76.1",
         "node-opcua-address-space": "2.76.1",
         "node-opcua-assert": "2.76.0",
         "node-opcua-constants": "2.74.0",

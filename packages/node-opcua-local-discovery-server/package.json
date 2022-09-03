@@ -26,6 +26,13 @@
     "opc ua",
     "internet of things"
   ],
+  "dependencies": {
+    "env-paths": "2.2.1",
+    "node-opcua": "2.76.1",
+    "vorpal": "^1.12.0",
+    "vorpal-repl":"^1.1.8",
+    "yargs": "15.4.1"
+  },
   "homepage": "http://node-opcua.github.io/",
   "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

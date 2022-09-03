@@ -29,8 +29,6 @@
         "node-opcua-status-code": "2.76.0",
         "prettier": "^2.7.1",
         "should": "^13.2.3",
-        "source-map-support": "^0.5.21",
-        "typescript": "4.7.4",
         "underscore": "^1.13.4"
     },
     "author": "Etienne Rossignon",

@@ -13,6 +13,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@types/mkdirp": "1.0.2",
+        "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
         "node-opcua-assert": "2.76.0",
         "node-opcua-crypto": "^1.11.0",
