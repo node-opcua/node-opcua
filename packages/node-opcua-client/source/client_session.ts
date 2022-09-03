@@ -138,9 +138,9 @@ export interface ClientSessionBase {
     close(deleteSubscription?: boolean): Promise<void>;
 }
 
-// tslint:disable-next-line: no-empty-interface
 export interface ClientSession extends ClientSessionBase {
     /* */
+    serverEndpoints: EndpointDescription[];
 }
 // events
 export interface ClientSession extends EventEmitter {

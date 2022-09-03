@@ -16,9 +16,6 @@
             "path": "../node-opcua-address-space"
         },
         {
-            "path": "../node-opcua-aggregates"
-        },
-        {
             "path": "../node-opcua-basic-types"
         },
         {

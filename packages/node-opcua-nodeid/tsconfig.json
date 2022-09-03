@@ -16,7 +16,7 @@
       "path": "../node-opcua-constants"
     },
     {
-      "path": "../node-opcua-enum"
+      "path": "../node-opcua-debug"
     },
     {
       "path": "../node-opcua-guid"

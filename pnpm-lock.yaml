@@ -83,6 +83,7 @@ specifiers:
   exit: ^0.1.2
   fqdn: ^0.0.3
   hexy: 0.3.4
+  hjson: ^3.2.2
   humanize: 0.0.9
   js2xmlparser: ^4.0.2
   lerna: 5.5.0
@@ -160,6 +161,7 @@ dependencies:
   exit: 0.1.2
   fqdn: 0.0.3
   hexy: 0.3.4
+  hjson: 3.2.2
   humanize: 0.0.9
   js2xmlparser: 4.0.2
   lerna: 5.5.0
@@ -4191,6 +4193,11 @@ packages:
   /hexy/0.3.4:
     resolution: {integrity: sha512-P2V2yx+XhEJRjXCe9IlRzbcL33plTaIjn+OSvgWu0Z9+2WkL71d+eC4jQ91rooM+F0JNERnENH6mpHlpcT+qlA==}
     engines: {node: '>=10.4'}
+    dev: false
+
+  /hjson/3.2.2:
+    resolution: {integrity: sha512-MkUeB0cTIlppeSsndgESkfFD21T2nXPRaBStLtf3cAYA2bVEFdXlodZB0TukwZiobPD1Ksax5DK4RTZeaXCI3Q==}
+    hasBin: true
     dev: false
 
   /hosted-git-info/2.8.8:

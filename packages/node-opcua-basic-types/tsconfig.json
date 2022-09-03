@@ -12,6 +12,9 @@
             "path": "../node-opcua-assert"
         },
         {
+            "path": "../node-opcua-benchmarker"
+        },
+        {
             "path": "../node-opcua-binary-stream"
         },
         {
@@ -21,9 +24,6 @@
             "path": "../node-opcua-date-time"
         },
         {
-            "path": "../node-opcua-enum"
-        },
-        {
             "path": "../node-opcua-guid"
         },
         {
@@ -31,9 +31,6 @@
         },
         {
             "path": "../node-opcua-status-code"
-        },
-        {
-            "path": "../node-opcua-utils"
         },
         {
             "path": "../node-opcua-debug"

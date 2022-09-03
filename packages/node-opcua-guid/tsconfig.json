@@ -8,9 +8,6 @@
     },
     "include": ["source/**/*.ts"],
     "references": [
-        {
-            "path": "../node-opcua-assert"
-        }
     ],
     "exclude": ["node_modules", "dist"]
 }

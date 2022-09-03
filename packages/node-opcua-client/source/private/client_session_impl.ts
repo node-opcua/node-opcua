@@ -242,7 +242,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 
     public serverNonce?: Nonce;
     public serverSignature?: SignatureData; // todo : remove ?
-    public serverEndpoints: any[] = [];
+    public serverEndpoints: EndpointDescription[] = [];
     public _client: IClientBase | null;
     public _closed: boolean;
 

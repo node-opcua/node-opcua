@@ -9,13 +9,10 @@
     "include": ["source/**/*.ts"],
     "references": [
         {
-            "path": "../node-opcua-address-space"
+            "path": "../node-opcua-debug"
         },
         {
             "path": "../node-opcua-assert"
-        },
-        {
-            "path": "../node-opcua-client"
         },
         {
             "path": "../node-opcua-constants"

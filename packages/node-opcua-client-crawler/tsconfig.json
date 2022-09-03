@@ -12,7 +12,7 @@
             "path": "../node-opcua-assert"
         },
         {
-            "path": "../node-opcua-common"
+            "path": "../node-opcua-types"
         },
         {
             "path": "../node-opcua-constants"
@@ -27,9 +27,6 @@
             "path": "../node-opcua-debug"
         },
         {
-            "path": "../node-opcua-factory"
-        },
-        {
             "path": "../node-opcua-nodeid"
         },
         {
@@ -40,9 +37,6 @@
         },
         {
             "path": "../node-opcua-utils"
-        },
-        {
-            "path": "../node-opcua-variant"
         },
         {
             "path": "../node-opcua-address-space"

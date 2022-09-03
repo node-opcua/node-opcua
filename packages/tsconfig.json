@@ -33,7 +33,7 @@
         { "path": "node-opcua-local-discovery-server" },
         { "path": "node-opcua-samples" },
         { "path": "node-opcua-convert-nodeset-to-javascript" },
-        { "path": "node-opcua-model"},
+        { "path": "node-opcua-model" },
         { "path": "node-opcua-nodeset-adi" },
         { "path": "node-opcua-nodeset-auto-id" },
         { "path": "node-opcua-nodeset-cnc" },
@@ -47,7 +47,8 @@
         { "path": "node-opcua-nodeset-machinery" },
         { "path": "node-opcua-nodeset-robotics" },
         { "path": "node-opcua-nodeset-ua" },
-        { "path": "node-opcua-nodeset-woodworking" },
-   
+        { "path": "node-opcua-service-secure-channel" },
+        { "path": "node-opcua-types" },
+        { "path": "node-opcua-nodeset-woodworking" }
     ]
 }

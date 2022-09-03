@@ -24,6 +24,9 @@
             "path": "../node-opcua-debug"
         },
         {
+            "path": "../node-opcua-nodeid"
+        },
+        {
             "path": "../node-opcua-utils"
         },
         {

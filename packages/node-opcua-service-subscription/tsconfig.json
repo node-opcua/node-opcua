@@ -25,19 +25,13 @@
       "path": "../node-opcua-service-read"
     },
     {
-      "path": "../node-opcua-data-model"
-    },
-    {
-      "path": "../node-opcua-numeric-range"
-    },
-    {
       "path": "../node-opcua-nodeid"
     },
     {
       "path": "../node-opcua-buffer-utils"
     },
     {
-      "path": "../node-opcua-service-secure-channel"
+      "path": "../node-opcua-secure-channel"
     },
     {
       "path": "../node-opcua-packet-analyzer"

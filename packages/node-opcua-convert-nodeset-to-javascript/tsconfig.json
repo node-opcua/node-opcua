@@ -8,6 +8,24 @@
     },
     "references": [
         {
+            "path": "../node-opcua-constants"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-leak-detector"
+        },
+        {
+            "path": "../node-opcua-nodesets"
+        },
+        {
+            "path": "../node-opcua-pseudo-session"
+        },
+        {
+            "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
             "path": "../node-opcua-address-space"
         },
         {
@@ -20,9 +38,6 @@
             "path": "../node-opcua-data-model"
         },
         {
-            "path": "../node-opcua-factory"
-        },
-        {
             "path": "../node-opcua-nodeid"
         },
         {
@@ -33,7 +48,13 @@
         },
         {
             "path": "../node-opcua-variant"
-        }
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
     ],
     "exclude": ["node_modules", "dist", "test", "tmp/*"],
     "include": ["source/**/*.ts"]

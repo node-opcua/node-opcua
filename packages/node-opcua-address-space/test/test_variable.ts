@@ -4,7 +4,7 @@ import * as sinon from "sinon";
 import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { DataValue, sameDataValue } from "node-opcua-data-value";
-import { NodeId, makeNodeId } from "node-opcua-nodeid";
+import { NodeId, makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { NumericRange } from "node-opcua-numeric-range";
@@ -197,7 +197,7 @@ describe("Address Space : add Variable :  testing various variations for specify
             browseName: "SomeVariable6",
             dataType: "Double",
             organizedBy: rootFolder,
-            typeDefinition: VariableTypeIds.PropertyType
+            typeDefinition: resolveNodeId(VariableTypeIds.PropertyType)
         });
         nodeVar.typeDefinition.should.be.instanceOf(NodeId);
         nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
