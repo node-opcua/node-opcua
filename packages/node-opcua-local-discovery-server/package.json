@@ -1,6 +1,6 @@
 {
   "name": "node-opcua-local-discovery-server",
-  "version": "2.76.0",
+  "version": "2.76.2",
   "description": "pure nodejs OPCUA SDK - local-discovery-server",
   "bin": {
     "lds": "./bin/local-discovery-server.js",
@@ -28,9 +28,9 @@
   ],
   "dependencies": {
     "env-paths": "2.2.1",
-    "node-opcua": "2.76.1",
+    "node-opcua": "2.76.2",
     "vorpal": "^1.12.0",
-    "vorpal-repl":"^1.1.8",
+    "vorpal-repl": "^1.1.8",
     "yargs": "15.4.1"
   },
   "homepage": "http://node-opcua.github.io/",

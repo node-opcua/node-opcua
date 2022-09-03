@@ -2,7 +2,7 @@
     "name": "node-opcua-date-time",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.76.0",
+    "version": "2.76.2",
     "description": "pure nodejs OPCUA SDK - module -date-time",
     "scripts": {
         "build": "tsc -b",
@@ -12,13 +12,13 @@
     "dependencies": {
         "long": "^4.0.0",
         "node-opcua-assert": "2.76.0",
-        "node-opcua-binary-stream": "2.76.0",
+        "node-opcua-binary-stream": "2.76.2",
         "node-opcua-utils": "2.76.0"
     },
     "devDependencies": {
         "bignumber.js": "^9.1.0",
-        "node-opcua-benchmarker": "2.76.0",
-        "node-opcua-debug": "2.76.0",
+        "node-opcua-benchmarker": "2.76.2",
+        "node-opcua-debug": "2.76.2",
         "should": "^13.2.3",
         "sinon": "^14.0.0"
     },
