@@ -20,7 +20,6 @@ import {
     EnumerationDefinitionSchema,
     FieldCategory,
     getStandardDataTypeFactory,
-    StructuredTypeSchema,
     DataTypeFactory,
     IStructuredTypeSchema
 } from "node-opcua-factory";
@@ -242,7 +241,7 @@ import {
     BaseUAObject, buildStructuredType, check_options_correctness_against_schema,
     initialize_field, initialize_field_array, parameters,
     registerClassDefinition,
-    registerEnumeration, StructuredTypeSchema
+    registerEnumeration, IStructuredTypeSchema
 } from "node-opcua-factory";
 import {
     ExpandedNodeId, makeExpandedNodeId, NodeId, NodeIdLike
@@ -309,7 +308,7 @@ import {
         alreadyDone[structuredType.name] = structuredType;
 
         // make sure
-        if (dataTypeFactory.hasStructuredType(structuredType.baseType)) {
+        if (dataTypeFactory.hasStructureByTypeName(structuredType.baseType)) {
             processStructuredType(dataTypeFactory.getStructuredTypeSchema(structuredType.baseType));
         }
         for (const field of structuredType.fields) {
@@ -331,7 +330,7 @@ import {
     processStructuredType(dataTypeFactory.getStructuredTypeSchema("SimpleAttributeOperand"));
 
     for (const structureType of [...dataTypeFactory.structuredTypesNames()].sort()) {
-        if (!dataTypeFactory.hasStructuredType(structureType)) {
+        if (!dataTypeFactory.hasStructureByTypeName(structureType)) {
             continue;
         }
         processStructuredType(dataTypeFactory.getStructuredTypeSchema(structureType));

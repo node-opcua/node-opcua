@@ -20,7 +20,7 @@ import {
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject, hasConstructor } from "node-opcua-factory";
+import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
@@ -59,13 +59,17 @@ export interface SecurityToken {
 }
 
 const defaultObjectFactory = {
-    constructObject,
-    hasConstructor
+    constructObject(binaryEncodingNodeId: NodeId): BaseUAObject {
+        return getStandardDataTypeFactory().constructObject(binaryEncodingNodeId);
+    },
+    hasConstructor(binaryEncodingNodeId: ExpandedNodeId): boolean {
+        return getStandardDataTypeFactory().hasConstructor(binaryEncodingNodeId);
+    }
 };
 
 export interface ObjectFactory {
-    constructObject: (expandedNodeId: ExpandedNodeId) => BaseUAObject;
-    hasConstructor: (expandedNodeId: ExpandedNodeId) => boolean;
+    constructObject: (binaryEncodingNodeId: ExpandedNodeId) => BaseUAObject;
+    hasConstructor: (binaryEncodingNodeId: ExpandedNodeId) => boolean;
 }
 
 export interface MessageBuilderOptions extends MessageBuilderBaseOptions {

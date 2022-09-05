@@ -46,7 +46,7 @@ export function initialize_field(field: StructuredTypeField, value: unknown, fac
     }
     if (field.category === FieldCategory.complex) {
         if (field.fieldTypeConstructor) {
-            return new field.fieldTypeConstructor(value);
+            return new field.fieldTypeConstructor(value as Record<string,unknown>);
         } else {
             debugLog("xxxx => missing constructor for field type", field.fieldType);
         }

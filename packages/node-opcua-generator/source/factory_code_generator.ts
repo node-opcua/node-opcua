@@ -13,10 +13,10 @@ import * as fs from "fs";
 import { assert } from "node-opcua-assert";
 import {
     check_schema_correctness,
-    extract_all_fields,
+    extractAllPossibleFields,
     FieldCategory,
     FieldType,
-    getStructuredTypeSchema,
+    getStandardDataTypeFactory,
     IStructuredTypeSchema
 } from "node-opcua-factory";
 
@@ -94,7 +94,7 @@ export function get_class_JScript_filename(schemaName: string, optionalFolder?: 
 }
 
 function get_class_TScript_filename_local(schemaName: string): string {
-    let schema = getStructuredTypeSchema(schemaName);
+    let schema = getStandardDataTypeFactory().getStructuredTypeSchema(schemaName);
     if (!schema) {
         schema = generatedObjectSchema[schemaName];
         if (!schema) {
@@ -710,8 +710,8 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
 
     write(`export class ${className} extends ${baseClass} {`);
     {
-        write(`    public static get schema(): StructuredTypeSchema { return schema${className}; }`);
-        const possibleFields = extract_all_fields(schema);
+        write(`    public static get schema(): IStructuredTypeSchema { return schema${className}; }`);
+        const possibleFields = extractAllPossibleFields(schema);
         write_possible_fields(write, className, possibleFields);
         // -------------------------------------------------------------------------
         // - encodingDefaultBinary
@@ -748,7 +748,7 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
         write_enumerations(write, schema);
         write_isValid(write, schema);
 
-        write(`    public get schema(): StructuredTypeSchema { return schema${className}; }`);
+        write(`    public get schema(): IStructuredTypeSchema { return schema${className}; }`);
     }
     write("}");
 
@@ -838,7 +838,6 @@ export function produce_TScript_code(
     write(`     generate_new_id,`);
     write(`     getBuiltInType,`);
     write(`     registerClassDefinition,`);
-    write(`     getStructuredTypeSchema,`);
     write(`     BaseUAObject,`);
     write(`     getEnumeration`);
     write(` } from "node-opcua-factory";`);

@@ -51,7 +51,10 @@ export class ExtraDataTypeManager {
             throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace);
         }
         // find schema corresponding to dataTypeNodeId in typeDictionary
-        const Constructor = dataTypeFactory.findConstructorForDataType(dataTypeNodeId);
+        const Constructor = dataTypeFactory.findStructureInfoForDataType(dataTypeNodeId).constructor;
+        if (!Constructor) {
+            throw new Error("Cannot find Extension Object Constructor for Abstract dataType");
+        }
         return Constructor;
     }
 

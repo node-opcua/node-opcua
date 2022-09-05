@@ -9,7 +9,7 @@ import {
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -44,7 +44,7 @@ export interface QualifiedNameOptions {
 }
 
 export class QualifiedName extends BaseUAObject {
-    public static schema: StructuredTypeSchema = schemaQualifiedName;
+    public static schema: IStructuredTypeSchema = schemaQualifiedName;
 
     public static possibleFields: string[] = ["namespaceIndex", "name"];
     public static encodingDefaultBinary: ExpandedNodeId = makeExpandedNodeId(0, 0);

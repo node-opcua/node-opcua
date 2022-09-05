@@ -7,7 +7,7 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds, makeNodeClassMask, makeResultMask, QualifiedName } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog} from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ConstructorFuncWithSchema, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
@@ -127,8 +127,14 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
         const dataTypeDescription = dataTypeDescriptions[i++];
 
         result3.references = result3.references || [];
+
+        if (result3.references.length === 0) {
+            // may be the dataType is abstract and as no need for DescriptionOF
+            continue;
+        }
         if (result3.references.length !== 1) {
             warningLog("_enrichWithDescriptionOf : expecting 1 reference for ", dataTypeDescription.browseName.toString());
+            warningLog(result3.toString());
             continue;
         }
         for (const ref of result3.references) {
@@ -181,6 +187,7 @@ interface IDataTypeDefInfo {
     className: string;
     dataTypeNodeId: NodeId;
     dataTypeDefinition: StructureDefinition;
+    isAbstract: boolean;
 }
 type DataTypeDefinitions = IDataTypeDefInfo[];
 
@@ -211,7 +218,7 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
             }
             _visit(ddd);
         }
-       
+
         dataTypeDefinitionsSorted.push(d);
     }
     for (const d of dataTypeDefinitions) {
@@ -255,7 +262,7 @@ async function _extractDataTypeDictionaryFromDefinition(
 
             if (dataTypeDefinition && dataTypeDefinition instanceof StructureDefinition) {
                 const className = dataTypeDescription.browseName.name!;
-                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition });
+                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract: false });
             }
         } else {
             debugLog(
@@ -272,12 +279,12 @@ async function _extractDataTypeDictionaryFromDefinition(
     if (doDebug) {
         debugLog("order ", dataTypeDefinitionsSorted.map((a) => a.className + " " + a.dataTypeNodeId).join(" ->  "));
     }
-    for (const { className, dataTypeNodeId, dataTypeDefinition } of dataTypeDefinitionsSorted) {
+    for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
         }
-        if (dataTypeFactory.hasStructuredType(className)) {
+        if (dataTypeFactory.hasStructureByTypeName(className)) {
             continue; // this structure has already been seen
         }
         // now fill typeDictionary
@@ -288,6 +295,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                 className,
                 dataTypeDefinition,
                 dataTypeFactory,
+                isAbstract,
                 cache
             );
 
@@ -440,9 +448,12 @@ async function _exploreDataTypeDefinition(
             }
             // let's verify that constructor is operational
             try {
-                const constructor = dataTypeFactory.getStructureTypeConstructor(name);
+                const Constructor = dataTypeFactory.getStructureInfoByTypeName(name).constructor;
+                if (!Constructor) {
+                    throw new Error(`Cannot instantiate abstract DataType(name=${name})`);
+                }
                 // xx const constructor = getOrCreateConstructor(name, dataTypeFactory, defaultBinary);
-                const testObject = new constructor();
+                const testObject = new Constructor();
                 debugLog(testObject.toString());
             } catch (err) {
                 debugLog("         Error cannot construct Extension Object " + name);

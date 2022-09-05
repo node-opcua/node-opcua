@@ -29,7 +29,6 @@ import {
     findBuiltInType,
     initialize_field,
     registerSpecialVariantEncoder,
-    StructuredTypeSchema,
     registerType,
     DecodeDebugOptions
 } from "node-opcua-factory";
@@ -41,7 +40,7 @@ import { _enumerationDataType, DataType } from "./DataType_enum";
 import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 // tslint:disable:no-bitwise
 
-const schemaVariant: StructuredTypeSchema = buildStructuredType({
+const schemaVariant = buildStructuredType({
     baseType: "BaseUAObject",
     fields: [
         {

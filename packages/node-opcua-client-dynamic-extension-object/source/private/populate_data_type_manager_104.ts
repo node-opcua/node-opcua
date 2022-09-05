@@ -4,7 +4,7 @@ import { make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession, BrowseDescriptionLike } from "node-opcua-pseudo-session";
-import { createDynamicObjectConstructor } from "node-opcua-schemas";
+import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
 import { ReferenceDescription, BrowseResult, BrowseDescriptionOptions } from "node-opcua-types";
 
@@ -25,10 +25,22 @@ export async function readDataTypeDefinitionAndBuildType(
     cache: { [key: string]: CacheForFieldResolution }
 ) {
     try {
-        const dataTypeDefinitionDataValue = await session.read({
-            attributeId: AttributeIds.DataTypeDefinition,
-            nodeId: dataTypeNodeId
-        });
+        const [isAbstractDataValue, dataTypeDefinitionDataValue] = await session.read([
+            {
+                attributeId: AttributeIds.IsAbstract,
+                nodeId: dataTypeNodeId
+            },
+            {
+                attributeId: AttributeIds.DataTypeDefinition,
+                nodeId: dataTypeNodeId
+            }
+        ]);
+        /* istanbul ignore next */
+        if (isAbstractDataValue.statusCode !== StatusCodes.Good) {
+            throw new Error(" Cannot find dataType isAbstract ! with nodeId =" + dataTypeNodeId.toString());
+        }
+        const isAbstract = isAbstractDataValue.value.value as boolean;
+
         /* istanbul ignore next */
         if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
             throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
@@ -41,11 +53,16 @@ export async function readDataTypeDefinitionAndBuildType(
             name,
             dataTypeDefinition,
             dataTypeFactory,
+            isAbstract,
             cache
         );
-
-        createDynamicObjectConstructor(schema, dataTypeFactory);
-
+        if (isAbstract) {
+            // cannot construct an abstract structure
+            dataTypeFactory.registerAbstractStructure(dataTypeNodeId, name, schema);
+    
+        } else {
+            const Constructor = createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
+        }
     } catch (err) {
         errorLog("Error", err);
     }
@@ -165,14 +182,13 @@ export async function populateDataTypeManager104(session: IBasicSession, dataTyp
                 return;
             }
             // if not found already
-            if (dataTypeFactory.getConstructorForDataType(dataTypeNodeId)) {
+            if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
                 // already known !
                 return;
             }
             // extract it formally
             debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
             await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, cache);
-            assert(dataTypeFactory.getConstructorForDataType(dataTypeNodeId));
         } catch (err) {
             errorLog("err=", err);
         }

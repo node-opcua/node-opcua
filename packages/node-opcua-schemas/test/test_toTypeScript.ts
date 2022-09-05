@@ -5,7 +5,7 @@ import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import "node-opcua-data-model";
 import "node-opcua-variant";
-import { parseBinaryXSDAsync, toTypeScript, TypeDictionary } from "../source";
+import { parseBinaryXSDAsync, toTypeScript, InternalTypeDictionary } from "../source";
 import { MockProvider } from "./mock_id_provider";
 
 function n(i: number): NodeId {

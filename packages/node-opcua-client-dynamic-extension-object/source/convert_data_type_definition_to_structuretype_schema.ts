@@ -3,11 +3,15 @@ import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "no
 import { DataValue } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import {
+    BitField,
+    ConstructorFuncWithSchema,
     DataTypeFactory,
     EnumerationDefinitionSchema,
+    extractAllPossibleFields,
     FieldCategory,
     FieldInterfaceOptions,
     getBuiltInType,
+    IStructuredTypeSchema,
     StructuredTypeSchema,
     TypeDefinition
 } from "node-opcua-factory";
@@ -196,12 +200,14 @@ async function resolve2(
                         schema = e;
                     }
                 } else {
+                    const isAbstract = false;
                     schema = await convertDataTypeDefinitionToStructureTypeSchema(
                         session,
                         dataTypeNodeId,
                         fieldTypeName,
                         definition,
                         dataTypeFactory,
+                        isAbstract,
                         cache
                     );
                 }
@@ -298,7 +304,7 @@ async function resolveFieldType(
     let schema: TypeDefinition | undefined;
     let category: FieldCategory = FieldCategory.enumeration;
 
-    if (dataTypeFactory.hasStructuredType(fieldTypeName!)) {
+    if (dataTypeFactory.hasStructureByTypeName(fieldTypeName!)) {
         schema = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
         category = FieldCategory.complex;
     } else if (dataTypeFactory.hasBuiltInType(fieldTypeName!)) {
@@ -333,12 +339,11 @@ async function resolveFieldType(
 async function _setupEncodings(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
-    schema: StructuredTypeSchema
-): Promise<StructuredTypeSchema> {
+    schema: IStructuredTypeSchema
+): Promise<IStructuredTypeSchema> {
     // read abstract flag
     const isAbstractDV = await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.IsAbstract });
     schema.dataTypeNodeId = dataTypeNodeId;
-    schema.id = dataTypeNodeId;
 
     if (isAbstractDV.statusCode === StatusCodes.Good && isAbstractDV.value.value === false) {
         const encodings = await _findEncodings(session, dataTypeNodeId);
@@ -356,15 +361,22 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     name: string,
     definition: DataTypeDefinition,
     dataTypeFactory: DataTypeFactory,
+    isAbstract: boolean,
     cache: { [key: string]: CacheForFieldResolution }
-): Promise<StructuredTypeSchema> {
+): Promise<IStructuredTypeSchema> {
     if (definition instanceof StructureDefinition) {
         let fieldCountToIgnore = 0;
-        let base: undefined | any = dataTypeFactory.getConstructorForDataType(definition.baseDataType)?.schema;
-        while (base && !(base.dataTypeNodeId.value === DataType.ExtensionObject && base.dataTypeNodeId.namespace === 0)) {
-            fieldCountToIgnore += base._possibleFields.length;
-            base = base._baseSchema;
+        const structureInfo = dataTypeFactory.getStructureInfoForDataType(definition.baseDataType);
+        const baseSchema: IStructuredTypeSchema | undefined | null = structureInfo?.schema;
+
+        if (baseSchema) {
+            const possibleFields = extractAllPossibleFields(baseSchema);
+            fieldCountToIgnore += possibleFields.length;
         }
+        // while (base && !(base.dataTypeNodeId.value === DataType.ExtensionObject && base.dataTypeNodeId.namespace === 0)) {
+        //     fieldCountToIgnore += base..length;
+        //     base = base.getBaseSchema();
+        // }
 
         const fields: FieldInterfaceOptions[] = [];
 
@@ -386,9 +398,9 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
         let switchValue = 1;
         let switchBit = 0;
 
-        const bitFields: { name: string; length?: number }[] | undefined = isUnion ? undefined : [];
+        const bitFields: BitField[] | undefined = isUnion ? undefined : [];
 
-        const postActions: ((schema: StructuredTypeSchema) => void)[] = [];
+        const postActions: ((schema: IStructuredTypeSchema) => void)[] = [];
 
         if (definition.fields) {
             for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
@@ -405,7 +417,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                     (field.fieldType = fieldTypeName!), (field.category = FieldCategory.complex);
                     fields.push(field);
                     const capturedField = field;
-                    postActions.push((schema: StructuredTypeSchema) => {
+                    postActions.push((schema: IStructuredTypeSchema) => {
                         capturedField.schema = schema;
                     });
                     continue;
@@ -439,8 +451,8 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             baseType,
             bitFields,
             fields,
-            id: 0,
-            name
+            name,
+            dataTypeFactory
         });
         const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, os);
 
@@ -453,7 +465,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     function createField(
         fieldD: StructureField,
         switchBit: number,
-        bitFields: { name: string; length?: number | undefined }[] | undefined,
+        bitFields: BitField[] | undefined,
         isUnion: boolean,
         switchValue: number
     ): { field: FieldInterfaceOptions; switchBit: number; switchValue: number } {

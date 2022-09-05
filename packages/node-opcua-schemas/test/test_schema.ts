@@ -39,7 +39,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     });
 
     it("BSH1 - should parse some structure types", async () => {
-        dataTypeFactory.hasStructuredType("WorkOrderType").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("WorkOrderType").should.eql(true);
     });
     it("BSH2 - should parse some enumerated types", async () => {
         dataTypeFactory.hasEnumeration("Priority").should.eql(true);
@@ -244,7 +244,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
     });
 
     it("BSHB1 - should parse some structure types", async () => {
-        dataTypeFactory.hasStructuredType("SystemStateDescriptionDataType").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("SystemStateDescriptionDataType").should.eql(true);
     });
 
     it("BSHB2 - should parse some enumerated types", async () => {
@@ -320,9 +320,9 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
     });
 
     it("BSHC1 - should parse ProcessingTimesDataType structure types", async () => {
-        dataTypeFactory.hasStructuredType("ProcessingTimesDataType").should.eql(true);
-        const ProcessingTimesDataType = dataTypeFactory.getStructuredTypeSchema("ProcessingTimesDataType");
-        ProcessingTimesDataType.name.should.eql("ProcessingTimesDataType");
+        dataTypeFactory.hasStructureByTypeName("ProcessingTimesDataType").should.eql(true);
+        const ProcessingTimesDataType = dataTypeFactory.getStructureInfoByTypeName("ProcessingTimesDataType");
+        ProcessingTimesDataType.schema.name.should.eql("ProcessingTimesDataType");
     });
 
     it("BSHC2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
@@ -438,7 +438,7 @@ describe("BSHD - Binary Schemas Helper 4", () => {
     });
 
     it("BSHD1 - should parse NodeId2 structure types", async () => {
-        dataTypeFactory.hasStructuredType("NodeId2").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("NodeId2").should.eql(true);
     });
 
     it("BSHD2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
@@ -506,7 +506,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
         });
     });
     it("BSHE2 - should parse MyScanResult structure types", async () => {
-        dataTypeFactory.hasStructuredType("MyScanResult").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("MyScanResult").should.eql(true);
 
         const MyScanResult = getOrCreateConstructor("MyScanResult", dataTypeFactory);
 

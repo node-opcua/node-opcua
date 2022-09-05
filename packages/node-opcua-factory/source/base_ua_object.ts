@@ -13,9 +13,9 @@ import { NodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 
 import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
-import { DataTypeFactory, _findFieldSchema } from "./datatype_factory";
+import { DataTypeFactory } from "./datatype_factory";
 import { getStructureTypeConstructor } from "./get_standard_data_type_factory";
-import { get_base_schema } from "./structured_type_schema";
+
 import {
     EnumerationDefinition,
     FieldCategory,
@@ -26,13 +26,33 @@ import {
     Func1,
     IStructuredTypeSchema,
     IBaseUAObject,
-    DecodeDebugOptions
+    DecodeDebugOptions,
+    ConstructorFunc
 } from "./types";
 
 const errorLog = make_errorLog(__filename);
 
 function r(str: string, length = 30) {
     return (str + "                                ").substring(0, length);
+}
+
+function _findFieldSchema(typeDictionary: DataTypeFactory, field: StructuredTypeField, value: any): IStructuredTypeSchema {
+    const fieldType = field.fieldType;
+
+    if (field.allowSubType && field.category === "complex") {
+        const fieldTypeConstructor = value ? value.constructor : field.fieldTypeConstructor;
+
+        const _newFieldSchema = fieldTypeConstructor.schema;
+
+        return _newFieldSchema as IStructuredTypeSchema;
+    }
+
+    const fieldTypeConstructor = field.fieldTypeConstructor;
+    if (fieldTypeConstructor) {
+        return fieldTypeConstructor.prototype.schema;
+    }
+    const strucutreInfo = typeDictionary.getStructureInfoByTypeName(fieldType);
+    return strucutreInfo.schema;
 }
 
 function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryStream, options: DecodeDebugOptions) {
@@ -73,7 +93,7 @@ function _decode_member_(value: any, field: StructuredTypeField, stream: BinaryS
 }
 
 function _applyOnAllSchemaFields<T>(self: BaseUAObject, schema: IStructuredTypeSchema, data: T, functor: Func1<T>, args?: any) {
-    const baseSchema = get_base_schema(schema);
+    const baseSchema = schema.getBaseSchema();
     if (baseSchema) {
         _applyOnAllSchemaFields(self, baseSchema, data, functor, args);
     }
@@ -306,7 +326,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
             fieldType = field.subType;
             _dump_simple_value(self, field, data, value, fieldType);
         } else {
-            const typeDictionary = (self.schema as any).$$factory as DataTypeFactory;
+            const typeDictionary = self.schema.getDataTypeFactory();
 
             // istanbul ignore next
             if (!typeDictionary) {
@@ -606,7 +626,7 @@ function _visitSchemaChain(
     assert(typeof func === "function");
 
     // apply also construct to baseType schema first
-    const baseSchema = get_base_schema(schema);
+    const baseSchema = schema.getBaseSchema ? schema.getBaseSchema() : null;
     if (baseSchema) {
         _visitSchemaChain(self, baseSchema, pojo, func, extraData);
     }

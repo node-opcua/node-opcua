@@ -72,10 +72,12 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
         ? resolveNodeId(structureDefinition.baseDataType)
         : resolveNodeId("Structure");
 
+    const isAbstract = options.isAbstract || false;
+
     const dataType = namespace.createDataType({
         browseName: options.browseName,
         description: options.description,
-        isAbstract: options.isAbstract,
+        isAbstract,
         subtypeOf
     });
 
@@ -104,6 +106,7 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
         className,
         dataType.getStructureDefinition(),
         dataTypeFactory,
+        isAbstract,
         cache
     );
     const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
