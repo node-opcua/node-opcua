@@ -9,10 +9,11 @@ const {
 
 const { NumericRange, encodeNumericRange, decodeNumericRange } = require("..");
 
-const schemaObjWithNumericRange = {
+const schemaObjWithNumericRange /*: IStructuredTypeSchema */ = {
     name: "ObjWithNumericRange",
     baseType: "BaseUAObject",
-    fields: [{ name: "numericRange", fieldType: "NumericRange" }]
+    fields: [{ name: "numericRange", fieldType: "NumericRange" }],
+    getBaseSchema() { return null;}
 };
 class ObjWithNumericRange extends BaseUAObject {
     constructor(options) {

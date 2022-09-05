@@ -4,6 +4,7 @@
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Enum } from "node-opcua-enum";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+import { DataTypeFactory } from "./datatype_factory";
 
 export enum FieldCategory {
     enumeration = "enumeration",
@@ -72,7 +73,7 @@ export interface IBaseUAObject {
     decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void;
     clone(): IBaseUAObject;
 }
-type BaseUAObjectConstructable = new (options?: any) => IBaseUAObject;
+type BaseUAObjectConstructable = new (options?: Record<string, unknown>) => IBaseUAObject;
 export type ConstructorFunc = BaseUAObjectConstructable;
 // new (...args: any[]) => BaseUAObjectConstructable;
 
@@ -127,13 +128,14 @@ export type DefaultValueFunc = () => any;
 
 export interface StructuredTypeOptions {
     name: string;
-    id?: number | NodeId;
     fields: FieldInterfaceOptions[];
     documentation?: string;
     baseType: string;
+    category?: FieldCategory;
     _resolved?: boolean;
-    bitFields?: any[];
-    base?: StructuredTypeOptions;
+    bitFields?: { name: string, length: number }[];
+    deprecated_base?: StructuredTypeOptions;
+    dataTypeFactory: DataTypeFactory;
 }
 
 export interface TypeSchemaConstructorOptions {
@@ -174,16 +176,18 @@ export interface EnumerationDefinition extends CommonInterface {
 }
 
 export type TypeDefinition = BuiltInTypeDefinition | EnumerationDefinition | BasicTypeDefinition | CommonInterface;
-
+export interface BitField {
+    name: string;
+    length: number;
+}
 export interface IStructuredTypeSchema extends CommonInterface {
     fields: FieldType[];
-    id: NodeId;
     dataTypeNodeId: NodeId;
-
     baseType: string;
-    _possibleFields: string[];
-    _baseSchema: IStructuredTypeSchema | null;
-
+   
+    getBaseSchema(): IStructuredTypeSchema | null;
+    getDataTypeFactory(): DataTypeFactory;
+    
     documentation?: string;
 
     isValid?: (options: any) => boolean;
@@ -195,5 +199,5 @@ export interface IStructuredTypeSchema extends CommonInterface {
     encodingDefaultXml?: ExpandedNodeId;
     encodingDefaultJson?: ExpandedNodeId;
 
-    bitFields?: any[];
+    bitFields?: BitField[];
 }

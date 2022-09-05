@@ -6,7 +6,7 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import {
     BaseUAObject,
-    constructObject,
+    getStandardDataTypeFactory,
     IStructuredTypeSchema,
     is_internal_id,
     registerBuiltInType,
@@ -25,7 +25,8 @@ export class ExtensionObject extends BaseUAObject {
         baseType: "",
         documentation: "",
         fields: [],
-        name: "ExtensionObject"
+        name: "ExtensionObject",
+        dataTypeFactory: getStandardDataTypeFactory()
     });
 
     constructor(options?: null | Record<string, any>) {
@@ -34,10 +35,6 @@ export class ExtensionObject extends BaseUAObject {
 }
 
 ExtensionObject.prototype.schema = ExtensionObject.schema;
-
-function constructEmptyExtensionObject(expandedNodeId: NodeId): ExtensionObject {
-    return constructObject(expandedNodeId as ExpandedNodeId) as ExtensionObject;
-}
 
 // OPC-UA Part 6 - $5.2.2.15 ExtensionObject
 // An ExtensionObject is encoded as sequence of bytes prefixed by the  NodeId of its
@@ -172,7 +169,7 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         stream.length -= 4;
         object = new OpaqueStructure(nodeId, stream.readByteStream()!);
     } else {
-        object = constructEmptyExtensionObject(nodeId);
+        object = getStandardDataTypeFactory().constructObject(nodeId);
         /* istanbul ignore next */
         if (object === null) {
             // this object is unknown to us ..

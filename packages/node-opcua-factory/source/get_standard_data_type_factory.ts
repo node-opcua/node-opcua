@@ -18,20 +18,16 @@ export function getStandardDataTypeFactory(): DataTypeFactory {
 }
 
 export function getStructureTypeConstructor(typeName: string): ConstructorFuncWithSchema {
-    return getStandardDataTypeFactory().getStructureTypeConstructor(typeName);
+    const structureInfo =  getStandardDataTypeFactory().getStructureInfoByTypeName(typeName);
+    if (!structureInfo) {
+        throw new Error("cannot find Structure Information for "+ typeName)
+    }
+    if (!structureInfo.constructor) {
+        throw new Error("cannot  Structure is Abstract ! "+ typeName)
+    }
+    return structureInfo.constructor;
 }
 
-export function hasStructuredType(typeName: string): boolean {
-    return getStandardDataTypeFactory().hasStructuredType(typeName);
-}
-
-export function getConstructor(binaryEncodingNodeId: ExpandedNodeId): ConstructorFunc | null {
-    return getStandardDataTypeFactory().getConstructor(binaryEncodingNodeId);
-}
-
-export function hasConstructor(binaryEncodingNodeId: ExpandedNodeId): boolean {
-    return getStandardDataTypeFactory().hasConstructor(binaryEncodingNodeId);
-}
 
 
 /* istanbul ignore next */

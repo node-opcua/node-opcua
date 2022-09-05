@@ -5,15 +5,14 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
+import { make_warningLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
-
-import { getBuiltInType, hasBuiltInType, TypeSchemaBase } from "./builtin_types";
-import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
+import { TypeSchemaBase } from "./builtin_types";
 import { parameters } from "./parameters";
-import { getStructureTypeConstructor, hasStructuredType } from "./get_standard_data_type_factory";
-import { getStructuredTypeSchema } from "./get_structured_type_schema";
+import { getStandardDataTypeFactory } from "./get_standard_data_type_factory";
 import {
+    BitField,
     CommonInterface,
     FieldCategory,
     FieldInterfaceOptions,
@@ -21,32 +20,38 @@ import {
     IStructuredTypeSchema,
     StructuredTypeOptions
 } from "./types";
+import { DataTypeFactory } from "./datatype_factory";
 
-function figureOutFieldCategory(field: FieldInterfaceOptions): FieldCategory {
+
+const warningLog = make_warningLog(__filename);
+
+function figureOutFieldCategory(field: FieldInterfaceOptions, dataTypeFactory: DataTypeFactory): FieldCategory {
     const fieldType = field.fieldType;
 
     if (field.category) {
         return field.category;
     }
-
-    if (hasBuiltInEnumeration(fieldType)) {
+    if (dataTypeFactory.hasEnumeration(fieldType)) {
         return FieldCategory.enumeration;
-    } else if (hasBuiltInType(fieldType)) {
+    } else if (dataTypeFactory.hasBuiltInType(fieldType)) {
         return FieldCategory.basic;
-    } else if (hasStructuredType(fieldType)) {
+    } else if (dataTypeFactory.hasStructureByTypeName(fieldType)) {
         assert(fieldType !== "LocalizedText"); // LocalizedText should be treated as BasicType!!!
         return FieldCategory.complex;
     }
+    warningLog("Cannot figure out field category for ",field);
     return FieldCategory.basic;
 }
 
 const regExp = /((ns[0-9]+:)?)(.*)/;
 
 function figureOutSchema(
-    underConstructSchema: StructuredTypeSchema,
+    underConstructSchema: IStructuredTypeSchema,
+    dataTypeFactory: DataTypeFactory,
     field: FieldInterfaceOptions,
     category: FieldCategory
 ): CommonInterface {
+
     if (field.schema) {
         return field.schema;
     }
@@ -67,29 +72,34 @@ function figureOutSchema(
 
     switch (category) {
         case FieldCategory.complex:
-            if (hasStructuredType(field.fieldType)) {
-                returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
+            if (dataTypeFactory.hasStructureByTypeName(field.fieldType)) {
+                returnValue = dataTypeFactory.getStructuredTypeSchema(fieldTypeWithoutNS);
             } else {
                 // LocalizedText etc ...
-                returnValue = getBuiltInType(fieldTypeWithoutNS);
+                returnValue = dataTypeFactory.getBuiltInType(fieldTypeWithoutNS);
             }
             break;
         case FieldCategory.basic:
-            returnValue = getBuiltInType(fieldTypeWithoutNS);
+
+            returnValue = dataTypeFactory.getBuiltInType(fieldTypeWithoutNS);
             if (!returnValue) {
-                returnValue = getStructuredTypeSchema(fieldTypeWithoutNS);
+                if (dataTypeFactory.hasEnumeration(fieldTypeWithoutNS)) {
+                    warningLog("expecing a enumeration!")
+    
+                }
+                returnValue = dataTypeFactory.getStructuredTypeSchema(fieldTypeWithoutNS);
                 if (returnValue) {
                     console.log("Why ?");
                 }
             }
             break;
         case FieldCategory.enumeration:
-            returnValue = getBuiltInEnumeration(fieldTypeWithoutNS);
+            returnValue = dataTypeFactory.getEnumeration(fieldTypeWithoutNS);
             break;
     }
     if (null === returnValue || undefined === returnValue) {
         try {
-            returnValue = getBuiltInEnumeration(fieldTypeWithoutNS);
+            returnValue = dataTypeFactory.getEnumeration(fieldTypeWithoutNS);
         } catch (err) {
             console.log(err);
         }
@@ -108,9 +118,9 @@ function figureOutSchema(
     return returnValue;
 }
 
-function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: FieldInterfaceOptions): FieldType {
-    const category = figureOutFieldCategory(fieldLight);
-    const schema = figureOutSchema(underConstructSchema, fieldLight, category);
+function buildField(underConstructSchema: IStructuredTypeSchema, dataTypeFactory: DataTypeFactory,fieldLight: FieldInterfaceOptions, _index: number): FieldType {
+    const category = figureOutFieldCategory(fieldLight, dataTypeFactory );
+    const schema = figureOutSchema(underConstructSchema,dataTypeFactory, fieldLight, category);
 
     /* istanbul ignore next */
     if (!schema) {
@@ -120,7 +130,7 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
                 " with type " +
                 fieldLight.fieldType +
                 " category" +
-                category
+                category + " at index" + _index
         );
     }
 
@@ -142,14 +152,13 @@ function buildField(underConstructSchema: StructuredTypeSchema, fieldLight: Fiel
         schema
     };
 }
+
 export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredTypeSchema {
     public fields: FieldType[];
-    public id: NodeId;
     public dataTypeNodeId: NodeId;
 
     public baseType: string;
-    public _possibleFields: string[];
-    public _baseSchema: IStructuredTypeSchema | null;
+    private _baseSchema: IStructuredTypeSchema | null | undefined;
 
     public documentation?: string;
 
@@ -162,7 +171,9 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
     public encodingDefaultXml?: ExpandedNodeId;
     public encodingDefaultJson?: ExpandedNodeId;
 
-    public bitFields?: any[];
+    public bitFields?: BitField[];
+
+    private _dataTypeFactory: DataTypeFactory;
 
     constructor(options: StructuredTypeOptions) {
         super(options);
@@ -172,21 +183,36 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
         this.baseType = options.baseType;
         this.category = FieldCategory.complex;
 
-        if (hasBuiltInType(options.name)) {
+        this._dataTypeFactory = options.dataTypeFactory;
+        if (this._dataTypeFactory.hasBuiltInType(options.name)) {
             this.category = FieldCategory.basic;
         }
-        this.fields = options.fields.map(buildField.bind(null, this));
-        this.id = new NodeId();
         this.dataTypeNodeId = new NodeId();
-
-        this._possibleFields = this.fields.map((field) => field.name);
-        this._baseSchema = null;
+        this._baseSchema = undefined;
+        this.fields = options.fields.map(buildField.bind(null, this, this._dataTypeFactory));
     }
+
+    getDataTypeFactory(): DataTypeFactory {
+        return this._dataTypeFactory || getStandardDataTypeFactory();
+    }
+
+    getBaseSchema(): IStructuredTypeSchema | null {
+        if (this._baseSchema !== undefined) {
+            return this._baseSchema;
+        }
+        const _schemaBase = _get_base_schema(this);
+        this._baseSchema = _schemaBase;
+        return _schemaBase;
+    }
+
+    public getPossibleFieldsLocal() {
+        return this.fields.map((field) => field.name);
+    }
+
     public toString(): string {
         const str: string[] = [];
         str.push("name           = " + this.name);
         str.push("baseType       = " + this.baseType);
-        str.push("id             = " + this.id.toString());
         str.push("bitFields      = " + (this.bitFields ? this.bitFields.map((b) => b.name).join(" ") : undefined));
         str.push("dataTypeNodeId = " + (this.dataTypeNodeId ? this.dataTypeNodeId.toString() : undefined));
         str.push("documentation  = " + this.documentation);
@@ -209,18 +235,8 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
     }
 }
 
-/**
- *
- * @method get_base_schema
- * @param schema
- * @return {*}
- *
- */
-export function get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema | null {
-    let baseSchema = schema._baseSchema;
-    if (baseSchema) {
-        return baseSchema;
-    }
+function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema | null {
+    const dataTypeFactory = schema.getDataTypeFactory();
 
     if (schema.baseType === "ExtensionObject" || schema.baseType === "DataTypeDefinition") {
         return null;
@@ -230,22 +246,21 @@ export function get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeS
     }
 
     if (schema.baseType && schema.baseType !== "BaseUAObject" && schema.baseType !== "DataTypeDefinition") {
-        if (!hasStructuredType(schema.baseType)) {
+        if (!dataTypeFactory.hasStructureByTypeName(schema.baseType)) {
             return null;
         }
-        const baseType = getStructureTypeConstructor(schema.baseType);
+        const structureInfo = dataTypeFactory.getStructureInfoByTypeName(schema.baseType);
 
         // istanbul ignore next
-        if (!baseType) {
+        if (!structureInfo) {
             throw new Error(" cannot find factory for " + schema.baseType);
         }
-        if (baseType.prototype.schema) {
-            baseSchema = baseType.prototype.schema;
+        if (structureInfo.schema) {
+            return structureInfo.schema;
         }
     }
     // put in  cache for speedup
-    schema._baseSchema = baseSchema;
-    return baseSchema;
+    return null;
 }
 
 /**
@@ -253,25 +268,18 @@ export function get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeS
  * (by walking up the inheritance chain)
  *
  */
-export function extract_all_fields(schema: IStructuredTypeSchema): string[] {
+export function extractAllPossibleFields(schema: IStructuredTypeSchema): string[] {
     // returns cached result if any
     // istanbul ignore next
-    if (schema._possibleFields) {
-        return schema._possibleFields;
-    }
     // extract the possible fields from the schema.
     let possibleFields = schema.fields.map((field) => field.name);
 
-    const baseSchema = get_base_schema(schema);
-
+    const baseSchema = schema.getBaseSchema();
     // istanbul ignore next
     if (baseSchema) {
-        const fields = extract_all_fields(baseSchema);
+        const fields = extractAllPossibleFields(baseSchema);
         possibleFields = fields.concat(possibleFields);
     }
-
-    // put in cache to speed up
-    schema._possibleFields = possibleFields;
     return possibleFields;
 }
 
@@ -304,7 +312,7 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
     }
 
     // extract the possible fields from the schema.
-    const possibleFields: string[] = obj.constructor.possibleFields || schema._possibleFields;
+    const possibleFields: string[] = obj.constructor.possibleFields || extractAllPossibleFields(schema);
 
     // extracts the fields exposed by the option object
     const currentFields = Object.keys(options);
@@ -335,6 +343,9 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
     return true;
 }
 
-export function buildStructuredType(schemaLight: StructuredTypeOptions): StructuredTypeSchema {
-    return new StructuredTypeSchema(schemaLight);
+export function buildStructuredType(schemaLight: Omit<StructuredTypeOptions,"dataTypeFactory">): IStructuredTypeSchema {
+    return new StructuredTypeSchema({
+        ...schemaLight,
+        dataTypeFactory: getStandardDataTypeFactory()
+    });
 }

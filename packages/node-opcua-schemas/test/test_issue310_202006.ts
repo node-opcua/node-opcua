@@ -38,8 +38,8 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     it("should XCVB", async () => {
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
 
-        const Recipe_BMD_Rep = dataTypeFactory.getStructureTypeConstructor("Recipe_BMD_Rep");
-
+        const structureInfo = dataTypeFactory.getStructureInfoByTypeName("Recipe_BMD_Rep");
+        const Recipe_BMD_Rep = structureInfo.constructor!;
         const a = new Recipe_BMD_Rep({
             STN1: { value: 1 },
             STN2: { value: 2 },

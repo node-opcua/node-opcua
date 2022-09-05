@@ -9,7 +9,8 @@ import {
     DecodeDebugOptions,
     parameters,
     registerSpecialVariantEncoder,
-    StructuredTypeSchema
+    IStructuredTypeSchema,
+    FieldCategory
 } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
@@ -28,7 +29,7 @@ import {
 import { check_options_correctness_against_schema, initialize_field } from "node-opcua-factory";
 
 // --------------------------------------------------------------------------------------------
-export const schemaDiagnosticInfo: StructuredTypeSchema = buildStructuredType({
+export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
     name: "DiagnosticInfo",
 
     baseType: "BaseUAObject",
@@ -79,7 +80,7 @@ export const schemaDiagnosticInfo: StructuredTypeSchema = buildStructuredType({
             name: "innerDiagnosticInfo",
 
             fieldType: "DiagnosticInfo",
-
+            category: FieldCategory.basic,
             defaultValue: null,
             documentation: "The diagnostic info associated with the inner StatusCode."
         }

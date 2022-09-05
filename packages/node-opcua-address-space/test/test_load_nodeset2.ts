@@ -12,9 +12,8 @@ import { EnumDefinition } from "node-opcua-types";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { BinaryStream } from "node-opcua-binary-stream";
-import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
-import { StructuredTypeField } from "node-opcua-factory";
-import { ExtraDataTypeManager, resolveDynamicExtensionObject } from "node-opcua-client-dynamic-extension-object";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { ExtraDataTypeManager, resolveOpaqueStructureInExtentionObject } from "node-opcua-client-dynamic-extension-object";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -487,59 +486,6 @@ describe("testing NodeSet XML file loading", function (this: any) {
         object2.toString().should.eql(object.toString());
     }
 
-    async function resolveOpaqueStructureInExtentionObject(
-        session: IBasicSession,
-        dataTypeManager: ExtraDataTypeManager,
-        object: ExtensionObject
-    ) {
-        const schema = object.schema;
-        interface D {
-            dataTypeManager: ExtraDataTypeManager;
-            promises: Promise<void>[];
-        }
-        async function fixOpaqueStructureOnElement(
-            element: Record<string, unknown>,
-            field: StructuredTypeField,
-            data: D,
-            args?: any
-        ): Promise<unknown> {
-            if (!(element instanceof OpaqueStructure)) {
-                return element;
-            }
-            const variant = new Variant({ dataType: DataType.ExtensionObject, value: element });
-            await resolveDynamicExtensionObject(session, variant, dataTypeManager as any);
-            return variant.value as unknown;
-        }
-        function fixOpaqueStructure(object: any, field: StructuredTypeField, data: D, args?: any) {
-            if (!field.allowSubType) {
-                return;
-            }
-            const a = object[field.name];
-            if (!a) {
-                return;
-            }
-            if (field.isArray) {
-                for (let i = 0; i < a.length; i++) {
-                    const x = a[i];
-                    promises.push(
-                        (async () => {
-                            a[i] = await fixOpaqueStructureOnElement(x, field, data, args);
-                        })()
-                    );
-                }
-            } else {
-                promises.push(
-                    (async () => {
-                        object[field.name] = await fixOpaqueStructureOnElement(a, field, data, args);
-                    })()
-                );
-            }
-        }
-        const promises: Promise<void>[] = [];
-        object.applyOnAllFields<D>(fixOpaqueStructure, { dataTypeManager, promises });
-        await Promise.all(promises);
-    }
-
     describe("VVA", () => {
         let session: IBasicSession;
         let nsIndex: number;
@@ -599,8 +545,13 @@ describe("testing NodeSet XML file loading", function (this: any) {
                 field1: 1,
                 field2: 2,
                 field3: { dataType: DataType.Int32, value: 3 }
-            });
+            }) as any;
 
+            console.log("communicationLink =", communicationLink.toString());
+            communicationLink.field1.should.eql(1);
+            communicationLink.field2.should.eql(2);
+            communicationLink.field3.dataType.should.eql(DataType.Int32);
+            
             const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
                 id: "00000000-0000-0000-0000-000000000000",
                 communicationLinks: [communicationLink]

@@ -12,7 +12,7 @@ import {
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 import { coerceStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions, VariantOptionsT, VariantT } from "node-opcua-variant";
@@ -212,7 +212,7 @@ function isValidDataValue(self: DataValue): boolean {
 }
 
 // OPC-UA part 4 -  $7.7
-const schemaDataValue: StructuredTypeSchema = buildStructuredType({
+const schemaDataValue: IStructuredTypeSchema = buildStructuredType({
     baseType: "BaseUAObject",
     name: "DataValue",
 

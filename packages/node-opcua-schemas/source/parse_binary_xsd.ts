@@ -61,21 +61,6 @@ const predefinedType: any = {
     "ua:XmlElement": 1
 };
 
-const found: any = {};
-
-function resolveType(typeDictionary: string, typeName: string) {
-    const namespace = typeName.split(":")[0];
-    if (predefinedType[typeName]) {
-        return;
-    }
-    if (!found[typeName]) {
-        found[typeName] = typeName;
-    }
-    if (namespace === "ua") {
-        /** */
-    }
-}
-
 export interface EnumeratedType {
     name: string;
     documentation?: string;
@@ -85,36 +70,79 @@ export interface EnumeratedType {
 
 export interface StructureTypeRaw {
     name: string;
-    baseType?: string;
+    baseType: string;
     base?: StructureTypeRaw;
     fields: any[];
 }
 
 export interface ITypeDictionary {
     targetNamespace: string;
+    defaultByteOrder: string;
     imports: string[];
-    structuredTypesRaw: StructureTypeRaw[];
-    enumeratedTypesRaw: EnumeratedType[];
 }
 
-export class TypeDictionary implements ITypeDictionary {
+export class InternalTypeDictionary implements ITypeDictionary {
     public targetNamespace = "";
+    public defaultByteOrder = "";
     public imports: string[] = [];
-    public structuredTypesRaw: StructureTypeRaw[] = [];
-    public enumeratedTypesRaw: EnumeratedType[] = [];
-    private structuredTypesRawMap: any = {};
+
+    private structuredTypesRaw: Record<string, StructureTypeRaw> = {};
+    private enumeratedTypesRaw: Record<string, EnumeratedType> = {};
+
+    // tns: "http://opcfoundation.org/a/b"
+    public _namespaces: Record<string, string> = {};
+
     constructor() {
         /**  */
     }
-    public addRaw(structuredType: StructureTypeRaw): void {
-        this.structuredTypesRaw.push(structuredType);
-        this.structuredTypesRawMap[structuredType.name] = structuredType;
+    public addEnumeration(name: string, e: EnumeratedType): void {
+        this.enumeratedTypesRaw[name] = e;
+    }
+    public getEnumerations(): EnumeratedType[] {
+        return Object.values(this.enumeratedTypesRaw);
+    }
+    public getStructures(): StructureTypeRaw[] {
+        return Object.values(this.structuredTypesRaw);
+    }
+    public addStructureRaw(structuredType: StructureTypeRaw): void {
+        this.structuredTypesRaw[structuredType.name] = structuredType;
     }
     public getStructuredTypesRawByName(name: string): StructureTypeRaw {
-        return this.structuredTypesRawMap[name]! as StructureTypeRaw;
+        name = name.split(":")[1] || name;
+        return this.structuredTypesRaw[name]! as StructureTypeRaw;
     }
 }
 
+interface _IParser {
+    attrs: any;
+    text?: string;
+}
+interface ITypeDefinitionParser extends _IParser {
+    typeDictionary: InternalTypeDictionary;
+    engine: { typeDictionary: InternalTypeDictionary };
+}
+interface IEnumeratedTypeParser extends _IParser {
+    typescriptDefinition: string;
+    enumeratedType: EnumeratedType;
+    parent: { typeDictionary: InternalTypeDictionary };
+}
+interface IEnumeratedTypeDocumentParser extends _IParser {
+    parent: IEnumeratedTypeParser;
+}
+
+interface IEnumeratedTypeEnumeratedValueParser extends _IParser {
+    parent: IEnumeratedTypeParser;
+}
+interface IStructureTypeParser extends _IParser {
+    structuredType: Omit<StructuredTypeOptions, "dataTypeFactory">;
+    parent: { typeDictionary: InternalTypeDictionary };
+}
+interface IImportParser extends _IParser {
+    parent: { typeDictionary: InternalTypeDictionary };
+}
+interface IStructureTypeFieldParser extends _IParser {
+    parent: IStructureTypeParser;
+}
 /* tslint:disable:object-literal-shorthand */
 const state0: any = {
     init: () => {
@@ -122,17 +150,25 @@ const state0: any = {
     },
     parser: {
         TypeDictionary: {
-            init: function (this: any, name: string, attributes: any) {
-                this.typeDictionary = this.engine.typeDictionary as DataTypeFactory;
+            init: function (this: ITypeDefinitionParser, name: string, attributes: Record<string, string>) {
+                this.typeDictionary = this.engine.typeDictionary;
                 this.typeDictionary.defaultByteOrder = attributes.DefaultByteOrder;
                 this.typeDictionary.targetNamespace = attributes.TargetNamespace;
+
+                for (const [k, v] of Object.entries(attributes)) {
+                    if (k.match(/xmlns:/)) {
+                        const ns = k.split(":")[1];
+                        this.typeDictionary._namespaces[ns] = v;
+                        this.typeDictionary._namespaces[v] = ns;
+                    }
+                }
             },
             parser: {
                 Import: {
-                    init: function (this: any, name: string, attributes: any) {
+                    init: function (this: IImportParser, name: string, attributes: any) {
                         this.parent.typeDictionary.imports.push(attributes.Namespace);
                     },
-                    finish: function (this: any) {
+                    finish: function (this: IImportParser) {
                         // _register_namespace_uri(this.text);
                         // istanbul ignore next
                         if (doDebug) {
@@ -142,7 +178,7 @@ const state0: any = {
                 },
 
                 EnumeratedType: {
-                    init: function (this: any) {
+                    init: function (this: IEnumeratedTypeParser) {
                         this.typescriptDefinition = "";
                         // istanbul ignore next
                         if (doDebug) {
@@ -164,12 +200,12 @@ const state0: any = {
                     },
                     parser: {
                         Documentation: {
-                            finish: function (this: any) {
+                            finish: function (this: IEnumeratedTypeDocumentParser) {
                                 this.parent.enumeratedType.documentation = this.text;
                             }
                         },
                         EnumeratedValue: {
-                            finish: function (this: any) {
+                            finish: function (this: IEnumeratedTypeEnumeratedValueParser) {
                                 // istanbul ignore next
                                 if (doDebug) {
                                     debugLog(" EnumeratedValue Name=", w(this.attrs.Name, 40), " Value=", this.attrs.Value);
@@ -182,9 +218,9 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function (this: any) {
+                    finish: function (this: IEnumeratedTypeParser) {
                         this.typescriptDefinition += `\n}`;
-                        this.parent.typeDictionary.enumeratedTypesRaw[this.attrs.Name] = this.enumeratedType;
+                        this.parent.typeDictionary.addEnumeration(this.attrs.Name, this.enumeratedType);
                         // istanbul ignore next
                         if (doDebug) {
                             debugLog(" this.typescriptDefinition  = ", this.typescriptDefinition);
@@ -192,7 +228,7 @@ const state0: any = {
                     }
                 },
                 StructuredType: {
-                    init: function (this: any) {
+                    init: function (this: IStructureTypeParser) {
                         // istanbul ignore next
                         if (doDebug) {
                             debugLog(
@@ -205,21 +241,16 @@ const state0: any = {
 
                         const baseType = this.attrs.BaseType;
 
-                        const base = this.parent.typeDictionary.structuredTypesRawMap[baseType];
-
-                        const structuredType: StructuredTypeOptions = {
+                        const structuredType: Omit<StructuredTypeOptions, "dataTypeFactory"> = {
                             name: this.attrs.Name,
-                            baseType: baseType,
+                            baseType,
                             fields: []
                         };
-                        if (base) {
-                            structuredType.base = base;
-                        }
                         this.structuredType = structuredType;
                     },
                     parser: {
                         Field: {
-                            finish: function (this: any) {
+                            finish: function (this: IStructureTypeFieldParser) {
                                 if (this.attrs.SourceType) {
                                     // ignore  this field, This is a repetition of the base type field with same name
                                     return;
@@ -243,14 +274,13 @@ const state0: any = {
                                         // chalk.yellow(" lengthField="), w(this.attrs.LengthField, 40)
                                     );
                                 }
-                                resolveType(this.parent.typeDictionary, this.attrs.TypeName);
 
                                 const field: FieldInterfaceOptions = {
                                     name: this.attrs.Name,
                                     fieldType: this.attrs.TypeName
                                 };
 
-                                const structuredType: StructuredTypeOptions = this.parent.structuredType;
+                                const structuredType = this.parent.structuredType;
                                 if (field.fieldType === "opc:Bit") {
                                     // do something to collect bits but ignore them as field
                                     structuredType.bitFields = structuredType.bitFields || [];
@@ -309,9 +339,9 @@ const state0: any = {
                             }
                         }
                     },
-                    finish: function (this: any) {
+                    finish: function (this: IStructureTypeParser) {
                         assert(this.attrs.Name === this.structuredType.name);
-                        this.parent.typeDictionary.addRaw(this.structuredType);
+                        this.parent.typeDictionary.addStructureRaw(this.structuredType);
                     }
                 }
             }
@@ -329,29 +359,27 @@ export interface MapDataTypeAndEncodingIdProvider {
     // getDataTypeNodeId(key: string): NodeId;
     getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null;
 }
-
+interface WithTypeDictionary extends Xml2Json {
+    typeDictionary: InternalTypeDictionary;
+}
 export function parseBinaryXSD(
     xmlString: string,
     idProvider: MapDataTypeAndEncodingIdProvider,
     dataTypeFactory: DataTypeFactory,
     callback: (err?: Error | null) => void
 ): void {
-    const parser = new Xml2Json(state0);
-    const typeDictionary = new TypeDictionary();
-    (parser as any).typeDictionary = typeDictionary;
+    const parser = new Xml2Json(state0) as WithTypeDictionary;
+    const typeDictionary = new InternalTypeDictionary();
+    parser.typeDictionary = typeDictionary;
 
     parser.parseString(xmlString, (err?: Error | null) => {
         // resolve and prepare enumerations
-        for (const key in typeDictionary.enumeratedTypesRaw) {
-            if (!Object.prototype.hasOwnProperty.call(typeDictionary.enumeratedTypesRaw, key)) {
-                continue;
-            }
-            const enumeratedType = typeDictionary.enumeratedTypesRaw[key];
+        for (const enumeratedType of typeDictionary.getEnumerations()) {
             if (Object.keys(enumeratedType.enumeratedValues).length >= 1) {
                 const e = new EnumerationDefinitionSchema({
                     lengthInBits: enumeratedType.lengthInBits || 32,
                     enumValues: enumeratedType.enumeratedValues,
-                    name: key
+                    name: enumeratedType.name
                 });
                 dataTypeFactory.registerEnumeration(e);
             }
@@ -360,43 +388,49 @@ export function parseBinaryXSD(
         // istanbul ignore next
         if (doDebug) {
             debugLog("------------------------------- Resolving complex Type");
-            typeDictionary.structuredTypesRaw.map((x: any) => debugLog(x.name));
+            typeDictionary.getStructures().map((x: any) => debugLog(x.name));
         }
 
         // create area in navigation order
         function createExplorationOrder(): StructureTypeRaw[] {
             const array: StructureTypeRaw[] = [];
-            const map: any = {};
-
+            const _map: Record<string, string> = {};
+            function alreadyVisited(name: string) {
+                name = name.split(":")[0] || name;
+                return !!_map[name];
+            }
+            function markAsVisited(name: string) {
+                name = name.split(":")[0] || name;
+                _map[name] = "1";
+            }
             function visitStructure(structuredType: StructureTypeRaw) {
-                if (!structuredType) {
+                if (!structuredType || structuredType.name === "ua:ExtensionObject") {
                     return;
                 }
-                if (map[structuredType.name]) {
+                if (alreadyVisited(structuredType.name)) {
                     return;
                 }
                 if (structuredType.baseType) {
                     const base = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
-                    if (base) {
+                    if (base && base.baseType && base.baseType !== "ua:ExtensionObject") {
                         visitStructure(base);
                     }
                 }
                 for (const f of structuredType.fields) {
-                    const fieldType = f.fieldType.split(":")[1];
-                    const s = typeDictionary.getStructuredTypesRawByName(fieldType);
+                    const s = typeDictionary.getStructuredTypesRawByName(f.fieldType);
                     if (s !== structuredType && s) {
                         visitStructure(s);
                     } else {
-                        map[fieldType] = "1";
+                        markAsVisited(f.fieldType);
                     }
                 }
-                if (!map[structuredType.name]) {
-                    map[structuredType.name] = 1;
+                if (!alreadyVisited(structuredType.name)) {
+                    markAsVisited(structuredType.name);
                     array.push(structuredType);
                 }
             }
 
-            for (const structuredType of typeDictionary.structuredTypesRaw) {
+            for (const structuredType of typeDictionary.getStructures()) {
                 visitStructure(structuredType);
             }
             return array;
@@ -404,7 +438,7 @@ export function parseBinaryXSD(
         // resolve complex types
         const schemaInVisitingOrder = createExplorationOrder();
         for (const structuredType of schemaInVisitingOrder) {
-            debugLog("processing ", chalk.cyan(structuredType.name));
+            doDebug && debugLog("processing ", chalk.cyan(structuredType.name));
             getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
         }
         callback(err);

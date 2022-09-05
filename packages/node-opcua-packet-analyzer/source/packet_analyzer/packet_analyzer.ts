@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { decodeByte, decodeExpandedNodeId, decodeNodeId, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
-import { BaseUAObject, constructObject } from "node-opcua-factory";
+import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { buffer_ellipsis } from "node-opcua-utils";
 
 const spaces =
@@ -188,7 +188,7 @@ export function analyseExtensionObject(
     let objMessage;
     try {
         id = decodeExpandedNodeId(stream);
-        objMessage = constructObject(id);
+        objMessage = getStandardDataTypeFactory().constructObject(id);
     } catch (err) {
         console.log(id);
         console.log(err);

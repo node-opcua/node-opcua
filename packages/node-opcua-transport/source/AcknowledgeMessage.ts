@@ -9,10 +9,10 @@ import {
     check_options_correctness_against_schema,
     initialize_field,
     parameters,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 
-const schemaAcknowledgeMessage: StructuredTypeSchema = buildStructuredType({
+const schemaAcknowledgeMessage = buildStructuredType({
     name: "AcknowledgeMessage",
 
     baseType: "BaseObjectType",

@@ -10,7 +10,7 @@ import { decodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { Certificate, PrivateKeyPEM, readCertificate, readPrivateKeyPEM, split_der } from "node-opcua-crypto";
 import { makeBufferFromTrace } from "node-opcua-debug";
-import { BaseUAObject, constructObject } from "node-opcua-factory";
+import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import {
     computeSignature,
     getCryptoFactory,
@@ -50,7 +50,7 @@ async function decodeMessage(buffer: Buffer): Promise<any> {
     messageBuilder.once("full_message_body", (fullMessageBody: Buffer) => {
         const stream = new BinaryStream(fullMessageBody);
         const id = decodeExpandedNodeId(stream);
-        objMessage = constructObject(id);
+        objMessage = getStandardDataTypeFactory().constructObject(id);
         objMessage.decode(stream);
     });
     messageBuilder.feed(buffer);

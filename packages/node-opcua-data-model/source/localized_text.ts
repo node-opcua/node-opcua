@@ -10,9 +10,9 @@ import {
     check_options_correctness_against_schema,
     DecodeDebugOptions,
     initialize_field,
+    IStructuredTypeSchema,
     parameters,
     registerSpecialVariantEncoder,
-    StructuredTypeSchema
 } from "node-opcua-factory";
 
 export function coerceLocalizedText(value?: null | string | LocalizedTextOptions): LocalizedText | null {
@@ -57,11 +57,11 @@ export interface LocalizedTextOptions {
 }
 
 export class LocalizedText extends BaseUAObject {
-    static get schema(): StructuredTypeSchema {
+    static get schema(): IStructuredTypeSchema {
         return schemaLocalizedText;
     }
 
-    public get schema(): StructuredTypeSchema {
+    public get schema(): IStructuredTypeSchema {
         return schemaLocalizedText;
     }
 
