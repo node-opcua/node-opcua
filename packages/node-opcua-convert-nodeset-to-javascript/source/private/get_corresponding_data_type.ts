@@ -46,6 +46,7 @@ export async function getCorrepondingJavascriptType(
         cache.ensureImported(t);
         return t.name;
     };
+    
     switch (dataType) {
         case DataType.Null:
             return { dataType, jtype: "undefined" };

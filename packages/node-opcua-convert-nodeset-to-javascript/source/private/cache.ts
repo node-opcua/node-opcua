@@ -7,11 +7,13 @@ import { DataTypeDefinition, EnumDefinition } from "node-opcua-types";
 import { kebabCase } from "case-anything";
 import { Options } from "../options";
 import { getBrowseName, getDefinition } from "./utils";
+import { makeTypeName2 } from "..";
 
 export interface Import {
     name: string;
     module: string;
     namespace: number;
+    name2?: string;
 }
 interface CacheInterfaceNamespace {
     namespaceUri: string;
@@ -31,7 +33,13 @@ interface RequestedSymbol {
         symbols: { [key: string]: RequestedSubSymbol };
     }[];
 }
-
+export function makeName2(name: string) {
+    return "U" + name;
+    // if (name === "EUInformation") {
+    //     return "EUInformation2";
+    // }
+    // return name.replace(/^DT/, "").replace(/^3/, "Three").replace(/^2/, "Two");
+}
 export class Cache implements CacheInterface {
     namespace: CacheInterfaceNamespace[] = [];
     requestedSymbols: RequestedSymbol = { namespace: [] };
@@ -45,7 +53,7 @@ export class Cache implements CacheInterface {
                 UAVariableT: 1,
                 UAMethod: 1,
                 UADataType: 1,
-                UAProperty: 1,
+                UAProperty: 1
             },
             "node-opcua-variant": {
                 DataType: 1,
@@ -85,7 +93,13 @@ export class Cache implements CacheInterface {
             },
             "node-opcua-types": {
                 EnumValueType: 1
+            },
+            "node-opcua-extension-object": {
+                ExtensionObject: 1
             }
+            // "node-opcua-schemas": {
+            //     ExtensionObject: 1
+            // }
         };
     }
     resetRequire(): void {
@@ -133,11 +147,10 @@ export class Cache implements CacheInterface {
     }
 }
 
-
 function getSourceFolderForNamespace(browseName: QualifiedName, options: Options, cache: Cache2) {
     const ns = browseName.namespaceIndex;
     const n = cache.namespaceArray[ns].split("/").filter((s: string) => s.length !== 0);
-    const nn =  (n[n.length - 1] !== "UA" && n[n.length - 2] !== "UA" ? n[n.length - 2] : "") + n[n.length - 1];
+    const nn = (n[n.length - 1] !== "UA" && n[n.length - 2] !== "UA" ? n[n.length - 2] : "") + n[n.length - 1];
     const module = options.prefix + kebabCase(nn);
     const namespaceFolder = path.join(options.baseFolder, module);
     const sourceFolder = path.join(namespaceFolder);
@@ -157,7 +170,6 @@ export async function referenceEnumeration(session: IBasicSession, enumerationDa
     const dataTypeNameImport = makeTypeNameNew(NodeClass.DataType, definition, browseName);
     return dataTypeNameImport;
 }
-
 
 export class Cache2 extends Cache {
     public namespaceArray: string[] = [];
@@ -195,7 +207,12 @@ export async function constructCache(session: IBasicSession, options: Options): 
 function makeBasicTypeImport(name: string): Import {
     return { name, module: "BasicType", namespace: -1 };
 }
-export function makeTypeNameNew(nodeClass: NodeClass, definition: DataTypeDefinition | null, browseName: QualifiedName, suffix?: string): Import {
+export function makeTypeNameNew(
+    nodeClass: NodeClass,
+    definition: DataTypeDefinition | null,
+    browseName: QualifiedName,
+    suffix?: string
+): Import {
     assert(browseName && !!browseName.name, "expecting a class name here");
 
     const typeName = browseName.name!.toString();

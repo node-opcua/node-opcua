@@ -14,7 +14,7 @@ import {
     makeTypeNameNew,
     getSubtypeNodeId
 } from "./private-stuff";
-import { Cache } from "./private/cache";
+import { Cache, makeName2 } from "./private/cache";
 import { getCorrepondingJavascriptType } from "./private/get_corresponding_data_type";
 import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
 
@@ -25,6 +25,14 @@ export async function _exportDataTypeToTypescript(
     cache: Cache,
     f?: LineFile
 ): Promise<{ type: Type; content: string; typeName: string }> {
+    const importCollect: any = undefined;
+    const referenceBasicType = (name: string): string => {
+        const t = { name, namespace: -1, module: "BasicType" };
+        importCollect && importCollect(t);
+        cache.ensureImported(t);
+        return t.name;
+    };
+
     f = f || new LineFile();
 
     const importCollector = (i: Import) => {
@@ -107,6 +115,27 @@ export async function _exportDataTypeToTypescript(
                     await outputStructureField(f, field);
                 }
                 f.write(`}`);
+                //
+
+                referenceBasicType("ExtensionObject");
+                // ache.ensureImported({ module: "BasicType", name: "ExtensionObject", namespace: 0 });
+                // interface TighteningResultOptions extends Partial<DTTighteningResult> {}
+                // interface TighteningResult extends ExtensionObject, DTTighteningResult {}
+                const full = makeName2(interfaceName);
+
+                // filter issue with UDTOpticalVerifierScanResult that has a decode:Uint32 conflicting with the ExtensionObject decode method
+                
+                const toAvoid = ["decode", "encode"];
+                const collidingNames = definition
+                    .fields!.map((a) => toJavascritPropertyName(a.name! ,{ ignoreConflictingName: false }))
+                    .filter((d) => toAvoid.indexOf(d.toLowerCase()) !== -1);
+
+                const adpatedIntefaceName =
+                    collidingNames.length === 0
+                        ? interfaceName
+                        : `Omit<${interfaceName},${collidingNames.map((a) => `"${a}"`).join(",")}>`;
+
+                f.write(`export interface ${full} extends ExtensionObject, ${adpatedIntefaceName} {};`);
             }
         }
     } else {
@@ -121,10 +150,15 @@ export async function _exportDataTypeToTypescript(
         const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
         // special case ! fieldName=
         if (field.description.text) {
-            f.write(`/** ${field.description.text}*/`);
+            f.write(`  /** ${field.description.text}*/`);
         }
-        const ar = field.valueRank >= 1 ? "[]" : "";
+        const opt = field.isOptional ? "?" : "";
+        const arrayMarker = field.valueRank >= 1 ? "[]" : "";
         const { dataType, jtype } = await getCorrepondingJavascriptType(session, field.dataType, cache, importCollector);
-        f.write(`  ${quotifyIfNecessary(fieldName)}: ${jtype}${ar}; // ${DataType[dataType]} ${field.dataType.toString()}`);
+        f.write(
+            `  ${quotifyIfNecessary(fieldName)}${opt}: ${jtype}${arrayMarker}; // ${
+                DataType[dataType]
+            } ${field.dataType.toString()}`
+        );
     }
 }

@@ -18,7 +18,6 @@ export const officialNamespaces = {
     },
     "commercialKitchenEquipment": {
         location: "node-opcua-nodeset-commercial-kitchen-equipment"
-        
     },
     "gds": {
         location: "node-opcua-types-gds"
