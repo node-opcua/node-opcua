@@ -17,7 +17,8 @@ import {
     GetFunc,
     SetFunc,
     VariableDataValueGetterSync,
-    VariableDataValueSetterWithCallback} from "node-opcua-address-space-base";
+    VariableDataValueSetterWithCallback
+} from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import {
     isValidDataEncoding,
@@ -1325,7 +1326,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 // let's coerce this scalar into an 1-element array if it is a valid extension object
                 if (checkExtensionObjectIsCorrectScalar.call(this, extObj)) {
                     warningLog(
-                        `checkExtensionObjectIsCorrect : expecting a array but got a scalar (value rank of ${this.browseName.toString()} is 1)`
+                        `warning: checkExtensionObjectIsCorrect : expecting a array but got a scalar (value rank of '${this.browseName.toString()}' is 1)\nautomatic conversion from scalar to array with 1 element is taking place.`
                     );
                     extObj = [extObj];
                 } else {
