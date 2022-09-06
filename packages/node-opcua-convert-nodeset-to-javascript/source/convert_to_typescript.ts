@@ -1,6 +1,5 @@
 /* eslint-disable max-depth */
 import * as chalk from "chalk";
-import * as wrap from "wordwrap";
 import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
@@ -45,11 +44,11 @@ import {
 } from "./private/cache";
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
+import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
+import { _exportDataTypeToTypescript } from "./_dataType";
+import { getCorrepondingJavascriptType2 } from "./private/get_corresponding_data_type";
 const warningLog = make_warningLog("typescript");
 const doDebug = false;
-const wrapText = wrap(0, 50);
-const f2 = (str: string) => str.padEnd(50, "-");
-const f1 = (str: string) => str.padEnd(50, " ");
 const baseExtension = "_Base";
 
 const m0 = !doDebug ? "" : `/* 0 */`;
@@ -78,137 +77,6 @@ export async function convertDataTypeToTypescript(session: IBasicSession, dataTy
             /** */
         }
         f.write(`}`);
-    }
-}
-
-// to avoid clashes
-function toJavascritPropertyName(childName: string, { ignoreConflictingName }: { ignoreConflictingName: boolean }): string {
-    childName = lowerFirstLetter(childName);
-
-    if (ignoreConflictingName) {
-        if (childName === "namespaceUri") {
-            childName = "$namespaceUri";
-        }
-        if (childName === "rolePermissions") {
-            childName = "$rolePermissions";
-        }
-        if (childName === "displayName") {
-            childName = "$displayName";
-        }
-        if (childName === "eventNotifier") {
-            childName = "$eventNotifier";
-        }
-        if (childName === "description") {
-            childName = "$description";
-        }
-    }
-    return childName.replace(/</g, "$").replace(/>/g, "$").replace(/ |\./g, "_").replace(/#/g, "_");
-}
-
-function quotifyIfNecessary(s: string): string {
-    if (s.match(/(^[^a-zA-Z])|([^a-zA-Z_0-9])/)) {
-        return `"${s}"`;
-    }
-    if (s === "nodeClass") {
-        return `["$nodeClass"]`;
-    }
-    return s;
-}
-
-async function getCorrepondingJavascriptType2(
-    session: IBasicSession,
-    nodeId: NodeId,
-    dataTypeNodeId: NodeId,
-    cache: Cache,
-    importCollect?: (t: Import) => void
-): Promise<{ dataType: DataType; jtype: string }> {
-    const q = await getCorrepondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
-    const valueRank = await getValueRank(session, nodeId);
-    return { dataType: q.dataType, jtype: q.jtype + (valueRank >= 1 ? "[]" : "") };
-}
-
-// eslint-disable-next-line complexity
-async function getCorrepondingJavascriptType(
-    session: IBasicSession,
-    dataTypeNodeId: NodeId,
-    cache: Cache,
-    importCollect?: (t: Import) => void
-): Promise<{ enumerationType?: string; dataType: DataType; jtype: string }> {
-    const { dataType, enumerationType } = await _convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
-
-    if (enumerationType) {
-        // we have a enmeration name here
-        const jtypeImport = await referenceEnumeration(session, dataTypeNodeId);
-        const jtype = jtypeImport.name;
-        importCollect && importCollect(jtypeImport);
-        return { dataType, jtype };
-    }
-
-    if (dataType === DataType.ExtensionObject) {
-        const jtypeImport = await referenceExtensionObject(session, dataTypeNodeId);
-        const jtype = jtypeImport.name;
-        importCollect && importCollect(jtypeImport);
-        return { dataType, jtype };
-    }
-    const referenceBasicType = (name: string): string => {
-        const t = { name, namespace: -1, module: "BasicType" };
-        importCollect && importCollect(t);
-        cache.ensureImported(t);
-        return t.name;
-    };
-    switch (dataType) {
-        case DataType.Null:
-            return { dataType, jtype: "undefined" };
-        case DataType.Boolean:
-            return { dataType, jtype: "boolean" };
-        case DataType.Byte:
-            return { dataType, jtype: referenceBasicType("Byte") };
-        case DataType.ByteString:
-            return { dataType, jtype: "Buffer" };
-        case DataType.DataValue:
-            return { dataType, jtype: referenceBasicType("DataValue") };
-        case DataType.DateTime:
-            return { dataType, jtype: "Date" };
-        case DataType.DiagnosticInfo:
-            return { dataType, jtype: referenceBasicType("DiagnosticInfo") };
-        case DataType.Double:
-            return { dataType, jtype: "number" };
-        case DataType.Float:
-            return { dataType, jtype: "number" };
-        case DataType.Guid:
-            return { dataType, jtype: referenceBasicType("Guid") };
-        case DataType.Int16:
-            return { dataType, jtype: referenceBasicType("Int16") };
-        case DataType.Int32:
-            return { dataType, jtype: referenceBasicType("Int32") };
-        case DataType.UInt16:
-            return { dataType, jtype: referenceBasicType("UInt16") };
-        case DataType.UInt32:
-            return { dataType, jtype: referenceBasicType("UInt32") };
-        case DataType.UInt64:
-            return { dataType, jtype: referenceBasicType("UInt64") };
-        case DataType.Int64:
-            return { dataType, jtype: referenceBasicType("Int64") };
-        case DataType.LocalizedText:
-            return { dataType, jtype: referenceBasicType("LocalizedText") };
-        case DataType.NodeId:
-            return { dataType, jtype: referenceBasicType("NodeId") };
-        case DataType.ExpandedNodeId:
-            return { dataType, jtype: referenceBasicType("ExpandedNodeId") };
-        case DataType.QualifiedName:
-            return { dataType, jtype: referenceBasicType("QualifiedName") };
-        case DataType.SByte:
-            return { dataType, jtype: referenceBasicType("SByte") };
-        case DataType.StatusCode:
-            return { dataType, jtype: referenceBasicType("StatusCode") };
-        case DataType.String:
-            return { dataType, jtype: referenceBasicType("UAString") };
-        case DataType.Variant:
-            return { dataType, jtype: referenceBasicType("Variant") };
-        case DataType.XmlElement:
-            return { dataType, jtype: referenceBasicType("String") };
-        default:
-            throw new Error("Unsupported " + dataType + " " + DataType[dataType]);
     }
 }
 
@@ -881,124 +749,8 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
     return f.toString();
 }
 
-function toComment(prefix: string, description: string) {
-    const d = wrapText(description);
-    return d
-        .split("\n")
-        .map((x) => prefix + x)
-        .join("\n");
-}
+
 export type Type = "enum" | "basic" | "structure" | "ua";
-// eslint-disable-next-line max-statements, complexity
-export async function _exportDataTypeToTypescript(
-    session: IBasicSession,
-    nodeId: NodeId,
-    cache: Cache,
-    f?: LineFile
-): Promise<{ type: Type; content: string; typeName: string }> {
-    f = f || new LineFile();
-
-    const importCollector = (i: Import) => {
-        cache.ensureImported(i);
-    };
-    const nodeClass = NodeClass.DataType;
-    const description = await getDescription(session, nodeId);
-    const definition = await getDefinition(session, nodeId);
-    const browseName = await getBrowseName(session, nodeId);
-    const isAbstract = await getIsAbstract(session, nodeId);
-
-    const interfaceImport: Import = makeTypeNameNew(nodeClass, definition, browseName);
-    const interfaceName = interfaceImport.name;
-
-    const superType = await getSubtypeNodeId(session, nodeId);
-    const baseInterfaceImport: Import = makeTypeNameNew(nodeClass, definition, superType.browseName);
-
-    cache.ensureImported(baseInterfaceImport);
-
-    const baseInterfaceName = baseInterfaceImport.name;
-    //  f.write(superType.toString());
-    f.write(`/**`);
-    if (description.text) {
-        f.write(toComment(" * ", description.text || ""));
-        f.write(` *`);
-    }
-    f.write(` * |           |${f1(" ")}|`);
-    f.write(` * |-----------|${f2("-")}|`);
-    f.write(` * | namespace |${f1(cache.namespace[nodeId.namespace].namespaceUri)}|`);
-    f.write(` * | nodeClass |${f1(NodeClass[nodeClass])}|`);
-    f.write(` * | name      |${f1(browseName.toString())}|`);
-    f.write(` * | isAbstract|${f1(isAbstract.toString())}|`);
-    f.write(` */`);
-
-    let type: "basic" | "structure" | "enum" | "ua" = "basic";
-    if (definition instanceof EnumDefinition) {
-        type = "enum";
-        f.write(`export enum ${interfaceName}  {`);
-        for (const field of definition.fields!) {
-            if (field.description.text) {
-                f.write(`  /**`);
-                f.write(toComment("   * ", field.description.text || ""));
-                f.write(`   */`);
-            }
-            f.write(`  ${quotifyIfNecessary(field.name!)} = ${field.value[1]},`);
-        }
-        f.write(`}`);
-    } else if (definition instanceof StructureDefinition) {
-        if (baseInterfaceName === "DTUnion") {
-            type = "structure";
-            for (let i = 0; i < definition.fields!.length; i++) {
-                f.write(`export interface ${interfaceName}_${i} extends ${baseInterfaceName} {`);
-                for (let j = 0; j < definition.fields!.length; j++) {
-                    const field = definition.fields![j];
-                    const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
-                    if (j === i) {
-                        await outputStructureField(f, field);
-                    } else {
-                        f.write(`  ${quotifyIfNecessary(fieldName)}?: never`);
-                    }
-                }
-                f.write(`}`);
-            }
-            f.write(`export type ${interfaceName} = `);
-            for (let i = 0; i < definition.fields!.length; i++) {
-                f.write(`  | ${interfaceName}_${i}`);
-            }
-            f.write(`  ;`);
-        } else {
-            type = "structure";
-            if (!definition.fields!.length && interfaceName !== "DTStructure") {
-                f.write(`export type ${interfaceName} = ${baseInterfaceName};`);
-            } else {
-                if (interfaceName === "DTStructure") {
-                    f.write(`export interface ${interfaceName} {`);
-                } else {
-                    f.write(`export interface ${interfaceName} extends ${baseInterfaceName} {`);
-                }
-                for (const field of definition.fields!) {
-                    await outputStructureField(f, field);
-                }
-                f.write(`}`);
-            }
-        }
-    } else {
-        type = "basic";
-        f.write(`// NO DEFINITION`);
-        f.write(`export type ${interfaceName} = ${baseInterfaceName};`);
-        // throw new Error("Invalid " + definition?.constructor.name);
-    }
-    return { type, content: f.toString(), typeName: interfaceName };
-
-    async function outputStructureField(f: LineFile, field: StructureField) {
-        const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
-        // special case ! fieldName=
-        if (field.description.text) {
-            f.write(`/** ${field.description.text}*/`);
-        }
-        const ar = field.valueRank >= 1 ? "[]" : "";
-        const { dataType, jtype } = await getCorrepondingJavascriptType(session, field.dataType, cache, importCollector);
-        f.write(`  ${quotifyIfNecessary(fieldName)}: ${jtype}${ar}; // ${DataType[dataType]} ${field.dataType.toString()}`);
-    }
-}
 
 function calculateChevrons(classDef: ClassDefinition, classDefDerived?: { dataType: DataType }) {
     const { nodeClass, dataType, dataTypeName } = classDef;
