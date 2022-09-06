@@ -18,7 +18,7 @@ build_and_test:
      KUBERNETES_MEMORY_LIMIT: 4Gi
   stage: build
   before_script:
-    - npm install -g pnpm@6
+    - npm install -g pnpm@7
     - pnpm config set store-dir `pwd`/.pnpm-store
     - pnpm recursive install --frozen-lockfile=false
   script:
