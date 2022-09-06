@@ -49,6 +49,7 @@
         { "path": "node-opcua-nodeset-ua" },
         { "path": "node-opcua-service-secure-channel" },
         { "path": "node-opcua-types" },
-        { "path": "node-opcua-nodeset-woodworking" }
+        { "path": "node-opcua-nodeset-woodworking" },
+        { "path": "node-opcua-nodeset-ijt" }
     ]
 }

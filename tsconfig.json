@@ -81,7 +81,17 @@
         ,
         {
             "path": "packages/node-opcua-nodeset-robotics"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-glass-flat"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-ijt"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-woodworking"
         }
+
     ],    
     "compileOnSave": false,
 }
