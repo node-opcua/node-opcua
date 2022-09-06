@@ -20,7 +20,8 @@ async function main() {
         nodesets.machineTool,
         nodesets.cnc,
         nodesets.woodWorking,
-        nodesets.glass
+        nodesets.glass,
+        nodesets.tightening
     ]);
 
     const nsUA = 0;
@@ -37,6 +38,7 @@ async function main() {
     const nsCommercialKitchenEquipment = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");
     const nsWW = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Woodworking/");
     const nsGlass = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Glass/Flat/");
+    const nsThightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/");
 
     const session = new PseudoSession(addressSpace);
     const options = {
@@ -58,7 +60,8 @@ async function main() {
         convertNamespaceTypeToTypescript(session, ncCNC, options),
         convertNamespaceTypeToTypescript(session, nsCommercialKitchenEquipment, options),
         convertNamespaceTypeToTypescript(session, nsWW, options),
-        convertNamespaceTypeToTypescript(session, nsGlass, options)
+        convertNamespaceTypeToTypescript(session, nsGlass, options),
+        convertNamespaceTypeToTypescript(session, nsThightening, options)
     ];
     await Promise.all(promises);
 }
