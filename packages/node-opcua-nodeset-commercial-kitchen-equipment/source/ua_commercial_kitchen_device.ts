@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { Int32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"

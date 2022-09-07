@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { VariantOptions } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, UAString } from "node-opcua-basic-types"
@@ -19,7 +20,7 @@ export interface DTPublishedVariable extends DTStructure {
   deadbandType: UInt32; // UInt32 ns=0;i=7
   deadbandValue: number; // Double ns=0;i=11
   indexRange: UAString; // String ns=0;i=291
-  substituteValue: undefined; // Null ns=0;i=0
+  substituteValue: VariantOptions; // Variant ns=0;i=0
   metaDataProperties: QualifiedName[]; // QualifiedName ns=0;i=20
 }
 export interface UDTPublishedVariable extends ExtensionObject, DTPublishedVariable {};

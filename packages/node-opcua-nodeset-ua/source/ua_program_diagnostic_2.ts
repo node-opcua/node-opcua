@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
 import { UAString } from "node-opcua-basic-types"

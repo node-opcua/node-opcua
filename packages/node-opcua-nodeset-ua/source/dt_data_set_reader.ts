@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { VariantOptions } from "node-opcua-variant"
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
@@ -20,7 +21,7 @@ import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
 export interface DTDataSetReader extends DTStructure {
   name: UAString; // String ns=0;i=12
   enabled: boolean; // Boolean ns=0;i=1
-  publisherId: undefined; // Null ns=0;i=0
+  publisherId: VariantOptions; // Variant ns=0;i=0
   writerGroupId: UInt16; // UInt16 ns=0;i=5
   dataSetWriterId: UInt16; // UInt16 ns=0;i=5
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523

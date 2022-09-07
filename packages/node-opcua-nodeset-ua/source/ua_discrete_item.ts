@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { UADataItem, UADataItem_Base } from "./ua_data_item"
 /**
  * |                |                                                  |
@@ -8,7 +8,7 @@ import { UADataItem, UADataItem_Base } from "./ua_data_item"
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |DiscreteItemType ns=0;i=2372                      |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |true                                              |
  */
 export type UADiscreteItem_Base<T, DT extends DataType> = UADataItem_Base<T, DT>;

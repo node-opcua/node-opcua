@@ -912,6 +912,7 @@ importers:
       node-opcua-constants: 2.74.0
       node-opcua-data-model: 2.76.2
       node-opcua-debug: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-leak-detector: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodesets: 2.74.0
@@ -934,6 +935,7 @@ importers:
       node-opcua-constants: link:../node-opcua-constants
       node-opcua-data-model: link:../node-opcua-data-model
       node-opcua-debug: link:../node-opcua-debug
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodesets: link:../node-opcua-nodesets
       node-opcua-pseudo-session: link:../node-opcua-pseudo-session
@@ -1081,6 +1083,7 @@ importers:
       node-opcua-hostname: 2.76.2
       node-opcua-leak-detector: 2.76.2
       node-opcua-nodeid: 2.76.2
+      node-opcua-nodeset-ijt: 2.76.2
       node-opcua-packet-analyzer: 2.76.2
       node-opcua-pki: ^2.17.0
       node-opcua-server: 2.76.2
@@ -1120,6 +1123,7 @@ importers:
       node-opcua-hostname: link:../node-opcua-hostname
       node-opcua-leak-detector: link:../node-opcua-leak-detector
       node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-ijt: link:../node-opcua-nodeset-ijt
       node-opcua-packet-analyzer: link:../node-opcua-packet-analyzer
       node-opcua-pki: 2.17.0
       node-opcua-server: link:../node-opcua-server

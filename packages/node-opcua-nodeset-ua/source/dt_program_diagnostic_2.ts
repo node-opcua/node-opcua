@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { VariantOptions } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
 import { UAString } from "node-opcua-basic-types"
@@ -22,8 +23,8 @@ export interface DTProgramDiagnostic2 extends DTStructure {
   lastMethodSessionId: NodeId; // NodeId ns=0;i=17
   lastMethodInputArguments: DTArgument[]; // ExtensionObject ns=0;i=296
   lastMethodOutputArguments: DTArgument[]; // ExtensionObject ns=0;i=296
-  lastMethodInputValues: undefined[]; // Null ns=0;i=0
-  lastMethodOutputValues: undefined[]; // Null ns=0;i=0
+  lastMethodInputValues: VariantOptions[]; // Variant ns=0;i=0
+  lastMethodOutputValues: VariantOptions[]; // Variant ns=0;i=0
   lastMethodCallTime: Date; // DateTime ns=0;i=294
   lastMethodReturnStatus: StatusCode; // StatusCode ns=0;i=19
 }

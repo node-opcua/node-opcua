@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_data_item"
 /**
  * Expose key results of an analyser and the
@@ -11,7 +11,7 @@ import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_dat
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |2:EngineeringValueType ns=2;i=9380                |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |false                                             |
  */
 export type UAEngineeringValue_Base<T, DT extends DataType> = UADataItem_Base<T, DT>;

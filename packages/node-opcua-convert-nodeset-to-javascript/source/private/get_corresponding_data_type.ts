@@ -46,10 +46,10 @@ export async function getCorrepondingJavascriptType(
         cache.ensureImported(t);
         return t.name;
     };
-    
+
     switch (dataType) {
         case DataType.Null:
-            return { dataType, jtype: "undefined" };
+            return { dataType: DataType.Variant, jtype: referenceBasicType("VariantOptions") };
         case DataType.Boolean:
             return { dataType, jtype: "boolean" };
         case DataType.Byte:

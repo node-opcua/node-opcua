@@ -14,7 +14,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |14:JoiningDataVariableType ns=14;i=2011           |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |false                                             |
  */
 export interface UAJoiningDataVariable_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {

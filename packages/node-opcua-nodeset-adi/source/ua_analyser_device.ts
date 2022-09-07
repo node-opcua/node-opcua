@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType, Variant, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt64, UInt32, Int32, UInt16, UAString } from "node-opcua-basic-types"

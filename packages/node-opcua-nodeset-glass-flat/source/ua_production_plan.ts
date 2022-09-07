@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType, Variant, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt64, UInt16, UAString } from "node-opcua-basic-types"
