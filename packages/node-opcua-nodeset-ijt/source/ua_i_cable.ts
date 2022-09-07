@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType, Variant, VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { Byte, UAString } from "node-opcua-basic-types"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"

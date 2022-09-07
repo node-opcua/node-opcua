@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType, Variant, VariantOptions } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UAString } from "node-opcua-basic-types"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"

@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 import { DTConfiguration } from "./dt_configuration"
 /**

@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { Int32 } from "node-opcua-basic-types"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 import { DTResult } from "./dt_result"

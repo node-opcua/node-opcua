@@ -31,6 +31,12 @@ export function toJavascritPropertyName(childName: string, { ignoreConflictingNa
         if (childName === "description") {
             childName = "$description";
         }
+        if (childName === "decode") {
+            childName = "$decode";
+        }
+        if (childName === "encode") {
+            childName = "$encode";
+        }
     }
     return childName.replace(/</g, "$").replace(/>/g, "$").replace(/ |\./g, "_").replace(/#/g, "_");
 }

@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
 import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"

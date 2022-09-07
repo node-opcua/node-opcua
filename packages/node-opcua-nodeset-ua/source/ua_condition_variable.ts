@@ -9,7 +9,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |ConditionVariableType ns=0;i=9002                 |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |false                                             |
  */
 export interface UAConditionVariable_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {

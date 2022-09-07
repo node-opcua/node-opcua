@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { VariantOptions } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
 import { DTScanDataEpc } from "./dt_scan_data_epc"
@@ -32,7 +33,7 @@ export interface DTScanData_3 extends DTUnion {
   byteString?: never
   string?: never
   epc?: never
-  custom: undefined; // Null ns=0;i=0
+  custom: VariantOptions; // Variant ns=0;i=0
 }
 export type DTScanData = 
   | DTScanData_0

@@ -7,7 +7,6 @@ import { DataTypeDefinition, EnumDefinition } from "node-opcua-types";
 import { kebabCase } from "case-anything";
 import { Options } from "../options";
 import { getBrowseName, getDefinition } from "./utils";
-import { makeTypeName2 } from "..";
 
 export interface Import {
     name: string;
@@ -57,7 +56,8 @@ export class Cache implements CacheInterface {
             },
             "node-opcua-variant": {
                 DataType: 1,
-                Variant: 1
+                Variant: 1,
+                VariantOptions: 1,
             },
             "node-opcua-data-model": {
                 LocalizedText: 1,

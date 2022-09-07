@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { VariantOptions } from "node-opcua-variant"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTFilterOperand } from "./dt_filter_operand"
 /**
@@ -10,6 +11,6 @@ import { DTFilterOperand } from "./dt_filter_operand"
  * | isAbstract|false                                             |
  */
 export interface DTLiteralOperand extends DTFilterOperand {
-  value: undefined; // Null ns=0;i=0
+  value: VariantOptions; // Variant ns=0;i=0
 }
 export interface UDTLiteralOperand extends ExtensionObject, DTLiteralOperand {};

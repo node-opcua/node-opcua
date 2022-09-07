@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UInt16, Byte, UAString } from "node-opcua-basic-types"
 import { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/source/ua_functional_group"

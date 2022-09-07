@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { Int32, Byte, Guid } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
@@ -48,6 +49,6 @@ export interface DTResult extends DTStructure {
   /** The optional GeneratorAssetId is the identifier of the asset which has generated the result.*/
   generatorAssetId?: Guid; // Guid ns=0;i=14
   /** The optional ResultContent is an abstract data type to hold result data created by the selected program.*/
-  resultContent?: undefined; // Null ns=0;i=0
+  resultContent?: VariantOptions; // Variant ns=0;i=0
 }
 export interface UDTResult extends ExtensionObject, DTResult {};

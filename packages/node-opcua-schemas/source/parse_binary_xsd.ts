@@ -396,11 +396,11 @@ export function parseBinaryXSD(
             const array: StructureTypeRaw[] = [];
             const _map: Record<string, string> = {};
             function alreadyVisited(name: string) {
-                name = name.split(":")[0] || name;
+                name = name.split(":")[1] || name;
                 return !!_map[name];
             }
             function markAsVisited(name: string) {
-                name = name.split(":")[0] || name;
+                name = name.split(":")[1] || name;
                 _map[name] = "1";
             }
             function visitStructure(structuredType: StructureTypeRaw) {
@@ -410,9 +410,11 @@ export function parseBinaryXSD(
                 if (alreadyVisited(structuredType.name)) {
                     return;
                 }
-                if (structuredType.baseType) {
+                markAsVisited(structuredType.name);
+                if (structuredType.baseType && structuredType.baseType !== "ua:ExtensionObject") {
                     const base = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
-                    if (base && base.baseType && base.baseType !== "ua:ExtensionObject") {
+                    if (base && base.baseType) {
+                        doDebug && debugLog("  investigating  base", chalk.cyan(base.name));
                         visitStructure(base);
                     }
                 }
@@ -424,10 +426,8 @@ export function parseBinaryXSD(
                         markAsVisited(f.fieldType);
                     }
                 }
-                if (!alreadyVisited(structuredType.name)) {
-                    markAsVisited(structuredType.name);
-                    array.push(structuredType);
-                }
+                doDebug && debugLog("processing ", chalk.cyan(structuredType.name));
+                array.push(structuredType);
             }
 
             for (const structuredType of typeDictionary.getStructures()) {
@@ -438,7 +438,6 @@ export function parseBinaryXSD(
         // resolve complex types
         const schemaInVisitingOrder = createExplorationOrder();
         for (const structuredType of schemaInVisitingOrder) {
-            doDebug && debugLog("processing ", chalk.cyan(structuredType.name));
             getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
         }
         callback(err);

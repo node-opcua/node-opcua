@@ -8,7 +8,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |ServerVendorCapabilityType ns=0;i=2137            |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |true                                              |
  */
 export type UAServerVendorCapability_Base<T, DT extends DataType> = UABaseDataVariable_Base<T, DT>;

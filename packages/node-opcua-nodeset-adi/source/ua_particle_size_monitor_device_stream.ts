@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType, Variant, VariantOptions } from "node-opcua-variant"
 import { UInt32, UAString } from "node-opcua-basic-types"
 import { UAYArrayItem } from "node-opcua-nodeset-ua/source/ua_y_array_item"
 import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
