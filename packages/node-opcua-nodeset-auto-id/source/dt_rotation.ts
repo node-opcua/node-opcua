@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -13,3 +14,4 @@ export interface DTRotation extends DTStructure {
   pitch: number; // Double ns=0;i=11
   roll: number; // Double ns=0;i=11
 }
+export interface UDTRotation extends ExtensionObject, DTRotation {};

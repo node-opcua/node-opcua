@@ -2,6 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { EnumApplication } from "node-opcua-nodeset-ua/source/enum_application"
 /**
@@ -21,3 +22,4 @@ export interface DTApplicationRecord extends DTStructure {
   discoveryUrls: UAString[]; // String ns=0;i=12
   serverCapabilities: UAString[]; // String ns=0;i=12
 }
+export interface UDTApplicationRecord extends ExtensionObject, DTApplicationRecord {};

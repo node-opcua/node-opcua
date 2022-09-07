@@ -2,6 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, Int32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value"
 /**
@@ -21,6 +22,7 @@ export interface DTWwMessageArgument extends DTArgument {
   valueRank: Int32; // Int32 ns=0;i=6
   arrayDimensions: UInt32[]; // UInt32 ns=0;i=7
   description: LocalizedText; // LocalizedText ns=0;i=21
-/** The variable contains the value of the argument*/
+  /** The variable contains the value of the argument*/
   value: DTWwMessageArgumentValue; // ExtensionObject ns=12;i=3002
 }
+export interface UDTWwMessageArgument extends ExtensionObject, DTWwMessageArgument {};

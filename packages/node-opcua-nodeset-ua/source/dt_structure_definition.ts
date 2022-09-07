@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId } from "node-opcua-nodeid"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataTypeDefinition } from "./dt_data_type_definition"
 import { EnumStructure } from "./enum_structure"
 import { DTStructureField } from "./dt_structure_field"
@@ -17,3 +18,4 @@ export interface DTStructureDefinition extends DTDataTypeDefinition {
   structureType: EnumStructure; // Int32 ns=0;i=98
   fields: DTStructureField[]; // ExtensionObject ns=0;i=101
 }
+export interface UDTStructureDefinition extends ExtensionObject, DTStructureDefinition {};

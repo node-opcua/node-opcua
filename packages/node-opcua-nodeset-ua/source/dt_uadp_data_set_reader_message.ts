@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, UInt16, Guid } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
 /**
  * |           |                                                  |
@@ -20,3 +21,4 @@ export interface DTUadpDataSetReaderMessage extends DTDataSetReaderMessage {
   receiveOffset: number; // Double ns=0;i=290
   processingOffset: number; // Double ns=0;i=290
 }
+export interface UDTUadpDataSetReaderMessage extends ExtensionObject, DTUadpDataSetReaderMessage {};

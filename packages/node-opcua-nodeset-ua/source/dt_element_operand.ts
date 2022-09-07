@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTFilterOperand } from "./dt_filter_operand"
 /**
  * |           |                                                  |
@@ -12,3 +13,4 @@ import { DTFilterOperand } from "./dt_filter_operand"
 export interface DTElementOperand extends DTFilterOperand {
   index: UInt32; // UInt32 ns=0;i=7
 }
+export interface UDTElementOperand extends ExtensionObject, DTElementOperand {};

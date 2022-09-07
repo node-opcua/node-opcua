@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTFilterOperand } from "./dt_filter_operand"
 /**
  * |           |                                                  |
@@ -11,3 +12,4 @@ import { DTFilterOperand } from "./dt_filter_operand"
 export interface DTLiteralOperand extends DTFilterOperand {
   value: undefined; // Null ns=0;i=0
 }
+export interface UDTLiteralOperand extends ExtensionObject, DTLiteralOperand {};

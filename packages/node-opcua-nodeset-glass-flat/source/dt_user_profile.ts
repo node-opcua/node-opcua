@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -17,3 +18,4 @@ export interface DTUserProfile extends DTStructure {
   accessLevel: UAString; // String ns=0;i=12
   opcUaUser: boolean; // Boolean ns=0;i=1
 }
+export interface UDTUserProfile extends ExtensionObject, DTUserProfile {};

@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 /**
@@ -16,3 +17,4 @@ export interface DTEndpoint extends DTStructure {
   securityPolicyUri: UAString; // String ns=0;i=12
   transportProfileUri: UAString; // String ns=0;i=12
 }
+export interface UDTEndpoint extends ExtensionObject, DTEndpoint {};

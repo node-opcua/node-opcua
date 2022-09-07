@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Guid } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * It is a base type to encapsulate common data for
@@ -13,8 +14,9 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | isAbstract|false                                             |
  */
 export interface DTTrace extends DTStructure {
-/** The mandatory TraceId is the system-wide unique identifier of the Trace.*/
+  /** The mandatory TraceId is the system-wide unique identifier of the Trace.*/
   traceId: Guid; // Guid ns=0;i=14
-/** The mandatory ResultId is the system-wide unique identifier of the associated result. This is useful to link Result and Trace instances when the Result and Trace are sent separately.*/
+  /** The mandatory ResultId is the system-wide unique identifier of the associated result. This is useful to link Result and Trace instances when the Result and Trace are sent separately.*/
   resultId: Guid; // Guid ns=0;i=14
 }
+export interface UDTTrace extends ExtensionObject, DTTrace {};

@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -service-write",
     "scripts": {
         "test": "mocha",
-        "clean": "npx rimraf dist *.tsbuildinfo _generated_",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo _generated_",
         "__generate": "node ./generate",
         "build": "tsc -b"
     },

@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTRolePermission } from "./dt_role_permission"
 import { DTKeyValuePair } from "./dt_key_value_pair"
@@ -22,3 +23,4 @@ export interface DTSecurityGroup extends DTStructure {
   rolePermissions: DTRolePermission[]; // ExtensionObject ns=0;i=96
   groupProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
 }
+export interface UDTSecurityGroup extends ExtensionObject, DTSecurityGroup {};

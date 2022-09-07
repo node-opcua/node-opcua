@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, Byte, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDatagramWriterGroupTransport } from "./dt_datagram_writer_group_transport"
 import { DTNetworkAddress } from "./dt_network_address"
 import { DTTransmitQos } from "./dt_transmit_qos"
@@ -20,3 +21,4 @@ export interface DTDatagramWriterGroupTransport2 extends DTDatagramWriterGroupTr
   discoveryAnnounceRate: UInt32; // UInt32 ns=0;i=7
   topic: UAString; // String ns=0;i=12
 }
+export interface UDTDatagramWriterGroupTransport2 extends ExtensionObject, DTDatagramWriterGroupTransport2 {};

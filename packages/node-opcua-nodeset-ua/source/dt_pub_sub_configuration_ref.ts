@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, UInt16 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -15,3 +16,4 @@ export interface DTPubSubConfigurationRef extends DTStructure {
   connectionIndex: UInt16; // UInt16 ns=0;i=5
   groupIndex: UInt16; // UInt16 ns=0;i=5
 }
+export interface UDTPubSubConfigurationRef extends ExtensionObject, DTPubSubConfigurationRef {};

@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString, Guid } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataTypeSchemaHeader } from "./dt_data_type_schema_header"
 import { DTStructureDescription } from "./dt_structure_description"
 import { DTEnumDescription } from "./dt_enum_description"
@@ -26,3 +27,4 @@ export interface DTDataSetMeta extends DTDataTypeSchemaHeader {
   dataSetClassId: Guid; // Guid ns=0;i=14
   configurationVersion: DTConfigurationVersion; // ExtensionObject ns=0;i=14593
 }
+export interface UDTDataSetMeta extends ExtensionObject, DTDataSetMeta {};

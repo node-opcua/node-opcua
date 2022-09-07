@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataSetWriterTransport } from "./dt_data_set_writer_transport"
 import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service"
 /**
@@ -18,3 +19,4 @@ export interface DTBrokerDataSetWriterTransport extends DTDataSetWriterTransport
   metaDataQueueName: UAString; // String ns=0;i=12
   metaDataUpdateTime: number; // Double ns=0;i=290
 }
+export interface UDTBrokerDataSetWriterTransport extends ExtensionObject, DTBrokerDataSetWriterTransport {};

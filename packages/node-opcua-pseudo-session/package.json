@@ -3,7 +3,7 @@
     "version": "2.76.2",
     "description": "pure nodejs OPCUA SDK - module -client-proxy",
     "scripts": {
-        "clean": "npx rimraf dist *.tsbuildinfo",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
         "test": "echo mocha test"

@@ -2,6 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, Int32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -20,3 +21,4 @@ export interface DTStructureField extends DTStructure {
   maxStringLength: UInt32; // UInt32 ns=0;i=7
   isOptional: boolean; // Boolean ns=0;i=1
 }
+export interface UDTStructureField extends ExtensionObject, DTStructureField {};

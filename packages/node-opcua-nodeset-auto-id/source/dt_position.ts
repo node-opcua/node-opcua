@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -16,3 +17,4 @@ export interface DTPosition extends DTStructure {
   sizeY: Int32; // Int32 ns=0;i=6
   rotation: Int32; // Int32 ns=0;i=6
 }
+export interface UDTPosition extends ExtensionObject, DTPosition {};

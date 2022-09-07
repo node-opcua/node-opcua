@@ -2,6 +2,7 @@
 import { QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { Byte } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataTypeDescription } from "./dt_data_type_description"
 import { DTEnumDefinition } from "./dt_enum_definition"
 /**
@@ -18,3 +19,4 @@ export interface DTEnumDescription extends DTDataTypeDescription {
   enumDefinition: DTEnumDefinition; // ExtensionObject ns=0;i=100
   builtInType: Byte; // Byte ns=0;i=3
 }
+export interface UDTEnumDescription extends ExtensionObject, DTEnumDescription {};

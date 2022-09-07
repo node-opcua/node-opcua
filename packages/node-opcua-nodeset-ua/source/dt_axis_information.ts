@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTRange } from "./dt_range"
 import { EnumAxisScale } from "./enum_axis_scale"
@@ -19,3 +20,4 @@ export interface DTAxisInformation extends DTStructure {
   axisScaleType: EnumAxisScale; // Int32 ns=0;i=12077
   axisSteps: number[]; // Double ns=0;i=11
 }
+export interface UDTAxisInformation extends ExtensionObject, DTAxisInformation {};

@@ -5,7 +5,7 @@
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
-        "clean": "npx rimraf dist *.tsbuildinfo"
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

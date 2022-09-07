@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataTypeSchemaHeader } from "./dt_data_type_schema_header"
 import { DTStructureDescription } from "./dt_structure_description"
 import { DTEnumDescription } from "./dt_enum_description"
@@ -22,3 +23,4 @@ export interface DTUABinaryFile extends DTDataTypeSchemaHeader {
   fileHeader: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
   body: undefined; // Null ns=0;i=0
 }
+export interface UDTUABinaryFile extends ExtensionObject, DTUABinaryFile {};

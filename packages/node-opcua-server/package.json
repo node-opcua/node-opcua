@@ -6,7 +6,7 @@
         "build": "tsc -b",
         "lint": "eslint source test",
         "format": "prettier --write source test",
-        "clean": "npx rimraf dist *.tsbuildinfo certificates",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo certificates",
         "test": "mocha"
     },
     "main": "./dist/index.js",

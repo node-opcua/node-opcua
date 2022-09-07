@@ -1427,6 +1427,7 @@ importers:
       node-opcua-basic-types: 2.76.2
       node-opcua-data-access: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-di: 2.76.2
       node-opcua-nodeset-ua: 2.76.2
@@ -1436,6 +1437,7 @@ importers:
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-access: link:../node-opcua-data-access
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-di: link:../node-opcua-nodeset-di
       node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
@@ -1447,6 +1449,7 @@ importers:
       node-opcua-basic-types: 2.76.2
       node-opcua-data-access: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-ua: 2.76.2
       node-opcua-status-code: 2.76.2
@@ -1456,6 +1459,7 @@ importers:
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-access: link:../node-opcua-data-access
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
       node-opcua-status-code: link:../node-opcua-status-code
@@ -1484,6 +1488,7 @@ importers:
       node-opcua-address-space-base: 2.76.2
       node-opcua-basic-types: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-ua: 2.76.2
       node-opcua-status-code: 2.76.2
@@ -1492,6 +1497,7 @@ importers:
       node-opcua-address-space-base: link:../node-opcua-address-space-base
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
       node-opcua-status-code: link:../node-opcua-status-code
@@ -1502,6 +1508,7 @@ importers:
       node-opcua-address-space-base: 2.76.2
       node-opcua-basic-types: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-ua: 2.76.2
       node-opcua-status-code: 2.76.2
@@ -1510,6 +1517,7 @@ importers:
       node-opcua-address-space-base: link:../node-opcua-address-space-base
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
       node-opcua-status-code: link:../node-opcua-status-code
@@ -1521,6 +1529,7 @@ importers:
       node-opcua-basic-types: 2.76.2
       node-opcua-data-access: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-di: 2.76.2
       node-opcua-nodeset-machinery: 2.76.2
@@ -1531,6 +1540,7 @@ importers:
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-access: link:../node-opcua-data-access
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-di: link:../node-opcua-nodeset-di
       node-opcua-nodeset-machinery: link:../node-opcua-nodeset-machinery
@@ -1552,6 +1562,28 @@ importers:
       node-opcua-data-access: link:../node-opcua-data-access
       node-opcua-data-model: link:../node-opcua-data-model
       node-opcua-nodeset-di: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
+      node-opcua-variant: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-ijt:
+    specifiers:
+      node-opcua-address-space-base: 2.76.2
+      node-opcua-basic-types: 2.76.2
+      node-opcua-data-access: 2.76.2
+      node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
+      node-opcua-nodeid: 2.76.2
+      node-opcua-nodeset-machinery: 2.76.2
+      node-opcua-nodeset-ua: 2.76.2
+      node-opcua-variant: 2.76.2
+    dependencies:
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
+      node-opcua-basic-types: link:../node-opcua-basic-types
+      node-opcua-data-access: link:../node-opcua-data-access
+      node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
+      node-opcua-nodeid: link:../node-opcua-nodeid
+      node-opcua-nodeset-machinery: link:../node-opcua-nodeset-machinery
       node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
       node-opcua-variant: link:../node-opcua-variant
 
@@ -1584,6 +1616,7 @@ importers:
       node-opcua-address-space-base: 2.76.2
       node-opcua-basic-types: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-ua: 2.76.2
       node-opcua-status-code: 2.76.2
@@ -1592,6 +1625,7 @@ importers:
       node-opcua-address-space-base: link:../node-opcua-address-space-base
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-ua: link:../node-opcua-nodeset-ua
       node-opcua-status-code: link:../node-opcua-status-code
@@ -1642,6 +1676,7 @@ importers:
       node-opcua-data-access: 2.76.2
       node-opcua-data-model: 2.76.2
       node-opcua-data-value: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-status-code: 2.76.2
       node-opcua-variant: 2.76.2
@@ -1651,6 +1686,7 @@ importers:
       node-opcua-data-access: link:../node-opcua-data-access
       node-opcua-data-model: link:../node-opcua-data-model
       node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-status-code: link:../node-opcua-status-code
       node-opcua-variant: link:../node-opcua-variant
@@ -1661,6 +1697,7 @@ importers:
       node-opcua-basic-types: 2.76.2
       node-opcua-data-access: 2.76.2
       node-opcua-data-model: 2.76.2
+      node-opcua-extension-object: 2.76.2
       node-opcua-nodeid: 2.76.2
       node-opcua-nodeset-di: 2.76.2
       node-opcua-nodeset-machinery: 2.76.2
@@ -1671,6 +1708,7 @@ importers:
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-data-access: link:../node-opcua-data-access
       node-opcua-data-model: link:../node-opcua-data-model
+      node-opcua-extension-object: link:../node-opcua-extension-object
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-nodeset-di: link:../node-opcua-nodeset-di
       node-opcua-nodeset-machinery: link:../node-opcua-nodeset-machinery

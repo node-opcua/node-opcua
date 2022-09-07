@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt16 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -15,3 +16,4 @@ export interface DTScanDataEpc extends DTStructure {
   XPC_W1: UInt16; // UInt16 ns=0;i=5
   XPC_W2: UInt16; // UInt16 ns=0;i=5
 }
+export interface UDTScanDataEpc extends ExtensionObject, DTScanDataEpc {};

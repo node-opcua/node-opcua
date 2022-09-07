@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * This structure contains aggregated information to
@@ -15,8 +16,9 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | isAbstract|false                                             |
  */
 export interface DTTag extends DTStructure {
-/** The mandatory Name is the type of the identifier. It can be empty if a system could not determine the identifier. If it is empty, it is the application responsibility to handle the received Tag.*/
+  /** The mandatory Name is the type of the identifier. It can be empty if a system could not determine the identifier. If it is empty, it is the application responsibility to handle the received Tag.*/
   name: UAString; // String ns=0;i=12
-/** The mandatory Value is the identifier of the tag corresponding to the Name attribute.*/
+  /** The mandatory Value is the identifier of the tag corresponding to the Name attribute.*/
   value: UAString; // String ns=0;i=12
 }
+export interface UDTTag extends ExtensionObject, DTTag {};

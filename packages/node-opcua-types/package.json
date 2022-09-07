@@ -9,7 +9,7 @@
         "build": "pnpm run generate",
         "test": "mocha",
         "format": "prettier --write source test",
-        "clean": "npx rimraf dist *.tsbuildinfo"
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
         "node-opcua-assert": "2.76.0",

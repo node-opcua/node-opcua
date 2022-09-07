@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTDataSetMeta } from "./dt_data_set_meta"
 import { EnumMessageSecurityMode } from "./enum_message_security_mode"
@@ -35,3 +36,4 @@ export interface DTDataSetReader extends DTStructure {
   messageSettings: DTDataSetReaderMessage; // ExtensionObject ns=0;i=15629
   subscribedDataSet: DTSubscribedDataSet; // ExtensionObject ns=0;i=15630
 }
+export interface UDTDataSetReader extends ExtensionObject, DTDataSetReader {};

@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId, ExpandedNodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumNodeClass } from "./enum_node_class"
 /**
@@ -19,3 +20,4 @@ export interface DTAddReferencesItem extends DTStructure {
   targetNodeId: ExpandedNodeId; // ExpandedNodeId ns=0;i=18
   targetNodeClass: EnumNodeClass; // Int32 ns=0;i=257
 }
+export interface UDTAddReferencesItem extends ExtensionObject, DTAddReferencesItem {};

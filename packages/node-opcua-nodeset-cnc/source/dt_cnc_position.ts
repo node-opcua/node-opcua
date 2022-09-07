@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * Structure of position elements.
@@ -11,10 +12,11 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | isAbstract|false                                             |
  */
 export interface DTCncPosition extends DTStructure {
-/** Position current value.*/
+  /** Position current value.*/
   actPos: number; // Double ns=0;i=11
-/** Position setpoint value.*/
+  /** Position setpoint value.*/
   cmdPos: number; // Double ns=0;i=11
-/** Remaining distance.*/
+  /** Remaining distance.*/
   remDist: number; // Double ns=0;i=11
 }
+export interface UDTCncPosition extends ExtensionObject, DTCncPosition {};

@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId, ExpandedNodeId } from "node-opcua-nodeid"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -16,3 +17,4 @@ export interface DTDeleteReferencesItem extends DTStructure {
   targetNodeId: ExpandedNodeId; // ExpandedNodeId ns=0;i=18
   deleteBidirectional: boolean; // Boolean ns=0;i=1
 }
+export interface UDTDeleteReferencesItem extends ExtensionObject, DTDeleteReferencesItem {};

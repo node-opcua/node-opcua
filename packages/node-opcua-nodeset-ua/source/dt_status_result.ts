@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { DiagnosticInfo } from "node-opcua-data-model"
 import { StatusCode } from "node-opcua-status-code"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -14,3 +15,4 @@ export interface DTStatusResult extends DTStructure {
   statusCode: StatusCode; // StatusCode ns=0;i=19
   diagnosticInfo: DiagnosticInfo; // DiagnosticInfo ns=0;i=25
 }
+export interface UDTStatusResult extends ExtensionObject, DTStatusResult {};

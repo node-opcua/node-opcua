@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -13,3 +14,4 @@ export interface DTUnsignedRationalNumber extends DTStructure {
   numerator: UInt32; // UInt32 ns=0;i=7
   denominator: UInt32; // UInt32 ns=0;i=7
 }
+export interface UDTUnsignedRationalNumber extends ExtensionObject, DTUnsignedRationalNumber {};
