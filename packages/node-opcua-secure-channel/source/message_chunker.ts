@@ -205,7 +205,14 @@ export class MessageChunker {
                     );
                 }
 
-                if (totalSize > this.maxMessageSize) {
+                if (this.maxMessageSize !== 0 && totalSize > this.maxMessageSize) {
+                    // https://reference.opcfoundation.org/v105/Core/docs/Part6/7.1.2/#7.1.2.4
+                    // MaxMessageSize	UInt32	   The maximum size for any request Message.    
+                    //                             If a request Message exceeds this value the Client shall report a Bad_ResponseTooLarge *
+                    //                             error to the application. If MessageChunks have already been sent the Client shall also abort 
+                    //                             The Message size is calculated using the unencrypted Message body.
+                    //                             A value of zero indicates that the Server has no limit.
+
                     errorLog(
                         `[NODE-OPCUA-E07] message size ${totalSize} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${nbChunks}`
                     );
