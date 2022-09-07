@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 import { DTDataSetWriterTransport } from "./dt_data_set_writer_transport"
@@ -23,3 +24,4 @@ export interface DTDataSetWriter extends DTStructure {
   transportSettings: DTDataSetWriterTransport; // ExtensionObject ns=0;i=15598
   messageSettings: DTDataSetWriterMessage; // ExtensionObject ns=0;i=15605
 }
+export interface UDTDataSetWriter extends ExtensionObject, DTDataSetWriter {};

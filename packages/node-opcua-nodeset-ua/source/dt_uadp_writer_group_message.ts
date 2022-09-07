@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTWriterGroupMessage } from "./dt_writer_group_message"
 import { EnumDataSetOrdering } from "./enum_data_set_ordering"
 /**
@@ -17,3 +18,4 @@ export interface DTUadpWriterGroupMessage extends DTWriterGroupMessage {
   samplingOffset: number; // Double ns=0;i=290
   publishingOffset: number[]; // Double ns=0;i=290
 }
+export interface UDTUadpWriterGroupMessage extends ExtensionObject, DTUadpWriterGroupMessage {};

@@ -2,6 +2,7 @@
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTArgument } from "./dt_argument"
 /**
@@ -26,3 +27,4 @@ export interface DTProgramDiagnostic2 extends DTStructure {
   lastMethodCallTime: Date; // DateTime ns=0;i=294
   lastMethodReturnStatus: StatusCode; // StatusCode ns=0;i=19
 }
+export interface UDTProgramDiagnostic2 extends ExtensionObject, DTProgramDiagnostic2 {};

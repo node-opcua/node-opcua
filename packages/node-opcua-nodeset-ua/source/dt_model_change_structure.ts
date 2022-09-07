@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId } from "node-opcua-nodeid"
 import { Byte } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -15,3 +16,4 @@ export interface DTModelChangeStructure extends DTStructure {
   affectedType: NodeId; // NodeId ns=0;i=17
   verb: Byte; // Byte ns=0;i=3
 }
+export interface UDTModelChangeStructure extends ExtensionObject, DTModelChangeStructure {};

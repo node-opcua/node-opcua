@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -13,10 +14,11 @@ export interface DTLocalCoordinate extends DTStructure {
   x: number; // Double ns=0;i=11
   y: number; // Double ns=0;i=11
   z: number; // Double ns=0;i=11
-/** Optional*/
+  /** Optional*/
   timestamp: Date; // DateTime ns=0;i=294
-/** Optional*/
+  /** Optional*/
   dilutionOfPrecision: number; // Double ns=0;i=11
-/** Optional*/
+  /** Optional*/
   usefulPrecision: Int32; // Int32 ns=0;i=6
 }
+export interface UDTLocalCoordinate extends ExtensionObject, DTLocalCoordinate {};

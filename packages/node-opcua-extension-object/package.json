@@ -8,7 +8,7 @@
     "build": "tsc -b",
     "lint": "eslint source",
     "format": "prettier --write source",
-    "clean": "npx rimraf dist *.tsbuildinfo",
+    "clean": "npx rimraf node_modules dist *.tsbuildinfo",
     "test": "echo no test"
   },
   "dependencies": {

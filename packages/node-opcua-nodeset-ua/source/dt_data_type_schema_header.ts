@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTStructureDescription } from "./dt_structure_description"
 import { DTEnumDescription } from "./dt_enum_description"
@@ -18,3 +19,4 @@ export interface DTDataTypeSchemaHeader extends DTStructure {
   enumDataTypes: DTEnumDescription[]; // ExtensionObject ns=0;i=15488
   simpleDataTypes: DTSimpleTypeDescription[]; // ExtensionObject ns=0;i=15005
 }
+export interface UDTDataTypeSchemaHeader extends ExtensionObject, DTDataTypeSchemaHeader {};

@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
 import { DTFieldTarget } from "./dt_field_target"
 /**
@@ -12,3 +13,4 @@ import { DTFieldTarget } from "./dt_field_target"
 export interface DTTargetVariables extends DTSubscribedDataSet {
   targetVariables: DTFieldTarget[]; // ExtensionObject ns=0;i=14744
 }
+export interface UDTTargetVariables extends ExtensionObject, DTTargetVariables {};

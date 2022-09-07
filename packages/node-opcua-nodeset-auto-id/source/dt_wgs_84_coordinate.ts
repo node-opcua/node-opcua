@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -20,3 +21,4 @@ export interface DTWGS84Coordinate extends DTStructure {
   usefulPrecisionLatLon: Int32; // Int32 ns=0;i=6
   usefulPrecisionAlt: Int32; // Int32 ns=0;i=6
 }
+export interface UDTWGS84Coordinate extends ExtensionObject, DTWGS84Coordinate {};

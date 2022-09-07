@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int16 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -13,3 +14,4 @@ export interface DTTimeZone extends DTStructure {
   offset: Int16; // Int16 ns=0;i=4
   daylightSavingInOffset: boolean; // Boolean ns=0;i=1
 }
+export interface UDTTimeZone extends ExtensionObject, DTTimeZone {};

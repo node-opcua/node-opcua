@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -10,12 +11,13 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | isAbstract|false                                             |
  */
 export interface DTRfidSighting extends DTStructure {
-/** Returns the number of the antenna which detects the RFID tag first.*/
+  /** Returns the number of the antenna which detects the RFID tag first.*/
   antenna: Int32; // Int32 ns=0;i=6
-/** Returns the signal strength (RSSI) of the transponder. Higher values indicate a better strength.*/
+  /** Returns the signal strength (RSSI) of the transponder. Higher values indicate a better strength.*/
   strength: Int32; // Int32 ns=0;i=6
-/** Timestamp in UtcTime*/
+  /** Timestamp in UtcTime*/
   timestamp: Date; // DateTime ns=0;i=294
-/** Returns the current power level (unit according to parameter settings).*/
+  /** Returns the current power level (unit according to parameter settings).*/
   currentPowerLevel: Int32; // Int32 ns=0;i=6
 }
+export interface UDTRfidSighting extends ExtensionObject, DTRfidSighting {};

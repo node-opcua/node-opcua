@@ -4,7 +4,7 @@
     "description": "pure nodejs OPCUA SDK - module -end2end-test",
     "private": true,
     "scripts": {
-        "clean": "npx rimraf dist *.tsbuildinfo",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "mocha"
     },
     "devDependencies": {

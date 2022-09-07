@@ -13,6 +13,7 @@
         "node-opcua-address-space-base": "2.76.2",
         "node-opcua-basic-types": "2.76.2",
         "node-opcua-data-model": "2.76.2",
+        "node-opcua-extension-object": "2.76.2",
         "node-opcua-nodeid": "2.76.2",
         "node-opcua-nodeset-ua": "2.76.2",
         "node-opcua-status-code": "2.76.2",

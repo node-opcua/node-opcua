@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -16,3 +17,4 @@ export interface DTTrustList extends DTStructure {
   issuerCertificates: Buffer[]; // ByteString ns=0;i=15
   issuerCrls: Buffer[]; // ByteString ns=0;i=15
 }
+export interface UDTTrustList extends ExtensionObject, DTTrustList {};

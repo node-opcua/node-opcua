@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTArgument } from "./dt_argument"
 import { DTStatusResult } from "./dt_status_result"
@@ -24,3 +25,4 @@ export interface DTProgramDiagnostic extends DTStructure {
   lastMethodCallTime: Date; // DateTime ns=0;i=294
   lastMethodReturnStatus: DTStatusResult; // ExtensionObject ns=0;i=299
 }
+export interface UDTProgramDiagnostic extends ExtensionObject, DTProgramDiagnostic {};

@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Byte, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumServerState } from "./enum_server_state"
 /**
@@ -15,3 +16,4 @@ export interface DTRedundantServer extends DTStructure {
   serviceLevel: Byte; // Byte ns=0;i=3
   serverState: EnumServerState; // Int32 ns=0;i=852
 }
+export interface UDTRedundantServer extends ExtensionObject, DTRedundantServer {};

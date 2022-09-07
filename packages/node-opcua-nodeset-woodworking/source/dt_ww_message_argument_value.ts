@@ -14,7 +14,7 @@ import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
  * | isAbstract|false                                             |
  */
 export interface DTWwMessageArgumentValue_0 extends DTUnion {
-/** The content of the value as an array of the own type*/
+  /** The content of the value as an array of the own type*/
   array: DTWwMessageArgumentValue[]; // ExtensionObject ns=12;i=3002
   boolean?: never
   int16?: never
@@ -35,7 +35,7 @@ export interface DTWwMessageArgumentValue_0 extends DTUnion {
 }
 export interface DTWwMessageArgumentValue_1 extends DTUnion {
   array?: never
-/** The content of the value as a boolean*/
+  /** The content of the value as a boolean*/
   boolean: boolean; // Boolean ns=0;i=1
   int16?: never
   int32?: never
@@ -56,7 +56,7 @@ export interface DTWwMessageArgumentValue_1 extends DTUnion {
 export interface DTWwMessageArgumentValue_2 extends DTUnion {
   array?: never
   boolean?: never
-/** The content of the value as a 16 bit integer*/
+  /** The content of the value as a 16 bit integer*/
   int16: Int16; // Int16 ns=0;i=4
   int32?: never
   int64?: never
@@ -77,7 +77,7 @@ export interface DTWwMessageArgumentValue_3 extends DTUnion {
   array?: never
   boolean?: never
   int16?: never
-/** The content of the value as a 32 bit integer*/
+  /** The content of the value as a 32 bit integer*/
   int32: Int32; // Int32 ns=0;i=6
   int64?: never
   sByte?: never
@@ -98,7 +98,7 @@ export interface DTWwMessageArgumentValue_4 extends DTUnion {
   boolean?: never
   int16?: never
   int32?: never
-/** The content of the value as a 64 bit integer*/
+  /** The content of the value as a 64 bit integer*/
   int64: Int64; // Int64 ns=0;i=8
   sByte?: never
   uInt16?: never
@@ -119,7 +119,7 @@ export interface DTWwMessageArgumentValue_5 extends DTUnion {
   int16?: never
   int32?: never
   int64?: never
-/** The content of the value as a 8 bit integer*/
+  /** The content of the value as a 8 bit integer*/
   sByte: SByte; // SByte ns=0;i=2
   uInt16?: never
   uInt32?: never
@@ -140,7 +140,7 @@ export interface DTWwMessageArgumentValue_6 extends DTUnion {
   int32?: never
   int64?: never
   sByte?: never
-/** The content of the value as a 16 bit unsigned integer*/
+  /** The content of the value as a 16 bit unsigned integer*/
   uInt16: UInt16; // UInt16 ns=0;i=5
   uInt32?: never
   uInt64?: never
@@ -161,7 +161,7 @@ export interface DTWwMessageArgumentValue_7 extends DTUnion {
   int64?: never
   sByte?: never
   uInt16?: never
-/** The content of the value as a 32 bit unsigned integer*/
+  /** The content of the value as a 32 bit unsigned integer*/
   uInt32: UInt32; // UInt32 ns=0;i=7
   uInt64?: never
   byte?: never
@@ -182,7 +182,7 @@ export interface DTWwMessageArgumentValue_8 extends DTUnion {
   sByte?: never
   uInt16?: never
   uInt32?: never
-/** The content of the value as a 64 bit unsigned integer*/
+  /** The content of the value as a 64 bit unsigned integer*/
   uInt64: UInt64; // UInt64 ns=0;i=9
   byte?: never
   dateTime?: never
@@ -203,7 +203,7 @@ export interface DTWwMessageArgumentValue_9 extends DTUnion {
   uInt16?: never
   uInt32?: never
   uInt64?: never
-/** The content of the value as a 8 bit unsigned integer*/
+  /** The content of the value as a 8 bit unsigned integer*/
   byte: Byte; // Byte ns=0;i=3
   dateTime?: never
   guid?: never
@@ -224,7 +224,7 @@ export interface DTWwMessageArgumentValue_10 extends DTUnion {
   uInt32?: never
   uInt64?: never
   byte?: never
-/** The content of the value as a datetime*/
+  /** The content of the value as a datetime*/
   dateTime: Date; // DateTime ns=0;i=13
   guid?: never
   localizedText?: never
@@ -245,7 +245,7 @@ export interface DTWwMessageArgumentValue_11 extends DTUnion {
   uInt64?: never
   byte?: never
   dateTime?: never
-/** The content of the value as a GUID*/
+  /** The content of the value as a GUID*/
   guid: Guid; // Guid ns=0;i=14
   localizedText?: never
   double?: never
@@ -266,7 +266,7 @@ export interface DTWwMessageArgumentValue_12 extends DTUnion {
   byte?: never
   dateTime?: never
   guid?: never
-/** The content of the value as a localized text*/
+  /** The content of the value as a localized text*/
   localizedText: LocalizedText; // LocalizedText ns=0;i=21
   double?: never
   float?: never
@@ -287,7 +287,7 @@ export interface DTWwMessageArgumentValue_13 extends DTUnion {
   dateTime?: never
   guid?: never
   localizedText?: never
-/** The content of the value as a double*/
+  /** The content of the value as a double*/
   double: number; // Double ns=0;i=11
   float?: never
   string?: never
@@ -308,7 +308,7 @@ export interface DTWwMessageArgumentValue_14 extends DTUnion {
   guid?: never
   localizedText?: never
   double?: never
-/** The content of the value as a float*/
+  /** The content of the value as a float*/
   float: number; // Float ns=0;i=10
   string?: never
   other?: never
@@ -329,7 +329,7 @@ export interface DTWwMessageArgumentValue_15 extends DTUnion {
   localizedText?: never
   double?: never
   float?: never
-/** The content of the value as a string*/
+  /** The content of the value as a string*/
   string: UAString; // String ns=0;i=12
   other?: never
 }
@@ -350,7 +350,7 @@ export interface DTWwMessageArgumentValue_16 extends DTUnion {
   double?: never
   float?: never
   string?: never
-/** The content of the value has no standard format and is instantiated as a string*/
+  /** The content of the value has no standard format and is instantiated as a string*/
   other: UAString; // String ns=0;i=12
 }
 export type DTWwMessageArgumentValue = 

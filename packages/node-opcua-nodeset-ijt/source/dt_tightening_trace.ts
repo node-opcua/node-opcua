@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Guid } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTTrace } from "./dt_trace"
 import { DTStepTrace } from "./dt_step_trace"
 /**
@@ -16,10 +17,11 @@ import { DTStepTrace } from "./dt_step_trace"
  * | isAbstract|false                                             |
  */
 export interface DTTighteningTrace extends DTTrace {
-/** The mandatory TraceId is the system-wide unique identifier of the Trace.*/
+  /** The mandatory TraceId is the system-wide unique identifier of the Trace.*/
   traceId: Guid; // Guid ns=0;i=14
-/** The mandatory ResultId is the system-wide unique identifier of the associated result. This is useful to link Result and Trace instances when the Result and Trace are sent separately.*/
+  /** The mandatory ResultId is the system-wide unique identifier of the associated result. This is useful to link Result and Trace instances when the Result and Trace are sent separately.*/
   resultId: Guid; // Guid ns=0;i=14
-/** The mandatory StepTraces is an array of StepTraceType which provides trace content for each step in the given program.*/
+  /** The mandatory StepTraces is an array of StepTraceType which provides trace content for each step in the given program.*/
   stepTraces: DTStepTrace[]; // ExtensionObject ns=14;i=3013
 }
+export interface UDTTighteningTrace extends ExtensionObject, DTTighteningTrace {};

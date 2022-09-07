@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTPubSubConfiguration } from "./dt_pub_sub_configuration"
 import { DTPublishedDataSet } from "./dt_published_data_set"
 import { DTPubSubConnection } from "./dt_pub_sub_connection"
@@ -29,3 +30,4 @@ export interface DTPubSubConfiguration2 extends DTPubSubConfiguration {
   configurationVersion: UInt32; // UInt32 ns=0;i=20998
   configurationProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
 }
+export interface UDTPubSubConfiguration2 extends ExtensionObject, DTPubSubConfiguration2 {};

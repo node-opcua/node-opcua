@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTApplicationDescription } from "./dt_application_description"
 import { DTServiceCounter } from "./dt_service_counter"
@@ -57,3 +58,4 @@ export interface DTSessionDiagnostics extends DTStructure {
   registerNodesCount: DTServiceCounter; // ExtensionObject ns=0;i=871
   unregisterNodesCount: DTServiceCounter; // ExtensionObject ns=0;i=871
 }
+export interface UDTSessionDiagnostics extends ExtensionObject, DTSessionDiagnostics {};

@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTOrientation } from "./dt_orientation"
 /**
  * |           |                                                  |
@@ -13,3 +14,4 @@ export interface DT3DOrientation extends DTOrientation {
   b: number; // Double ns=0;i=11
   c: number; // Double ns=0;i=11
 }
+export interface UDT3DOrientation extends ExtensionObject, DT3DOrientation {};

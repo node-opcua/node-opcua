@@ -9,7 +9,7 @@
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "test": "mocha",
-        "clean": "npx rimraf dist *.tsbuildinfo"
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
         "chalk": "4.1.2",

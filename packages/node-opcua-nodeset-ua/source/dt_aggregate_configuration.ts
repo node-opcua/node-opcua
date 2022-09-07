@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Byte } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -16,3 +17,4 @@ export interface DTAggregateConfiguration extends DTStructure {
   percentDataGood: Byte; // Byte ns=0;i=3
   useSlopedExtrapolation: boolean; // Boolean ns=0;i=1
 }
+export interface UDTAggregateConfiguration extends ExtensionObject, DTAggregateConfiguration {};

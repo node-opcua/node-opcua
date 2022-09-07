@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTEndpointUrlList } from "./dt_endpoint_url_list"
 /**
@@ -14,3 +15,4 @@ export interface DTNetworkGroup extends DTStructure {
   serverUri: UAString; // String ns=0;i=12
   networkPaths: DTEndpointUrlList[]; // ExtensionObject ns=0;i=11943
 }
+export interface UDTNetworkGroup extends ExtensionObject, DTNetworkGroup {};

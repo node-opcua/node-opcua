@@ -2,6 +2,7 @@
 import { QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -21,3 +22,4 @@ export interface DTPublishedVariable extends DTStructure {
   substituteValue: undefined; // Null ns=0;i=0
   metaDataProperties: QualifiedName[]; // QualifiedName ns=0;i=20
 }
+export interface UDTPublishedVariable extends ExtensionObject, DTPublishedVariable {};

@@ -12,7 +12,7 @@
         "test": "mocha",
         "lint": "eslint source test src source_nodejs test_helpers",
         "format": "prettier --write source test src source_nodejs test_helpers",
-        "clean": "npx rimraf dist *.tsbuildinfo",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "c": "mocha --version"
     },
     "dependencies": {

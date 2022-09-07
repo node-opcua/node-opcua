@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumApplication } from "./enum_application"
 /**
@@ -20,3 +21,4 @@ export interface DTApplicationDescription extends DTStructure {
   discoveryProfileUri: UAString; // String ns=0;i=12
   discoveryUrls: UAString[]; // String ns=0;i=12
 }
+export interface UDTApplicationDescription extends ExtensionObject, DTApplicationDescription {};

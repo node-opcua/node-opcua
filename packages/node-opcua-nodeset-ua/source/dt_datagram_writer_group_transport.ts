@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Byte } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTWriterGroupTransport } from "./dt_writer_group_transport"
 /**
  * |           |                                                  |
@@ -13,3 +14,4 @@ export interface DTDatagramWriterGroupTransport extends DTWriterGroupTransport {
   messageRepeatCount: Byte; // Byte ns=0;i=3
   messageRepeatDelay: number; // Double ns=0;i=290
 }
+export interface UDTDatagramWriterGroupTransport extends ExtensionObject, DTDatagramWriterGroupTransport {};

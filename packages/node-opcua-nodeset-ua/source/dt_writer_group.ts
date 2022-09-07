@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32, UInt16, Byte, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTPubSubGroup } from "./dt_pub_sub_group"
 import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { DTEndpointDescription } from "./dt_endpoint_description"
@@ -33,3 +34,4 @@ export interface DTWriterGroup extends DTPubSubGroup {
   messageSettings: DTWriterGroupMessage; // ExtensionObject ns=0;i=15616
   dataSetWriters: DTDataSetWriter[]; // ExtensionObject ns=0;i=15597
 }
+export interface UDTWriterGroup extends ExtensionObject, DTWriterGroup {};
