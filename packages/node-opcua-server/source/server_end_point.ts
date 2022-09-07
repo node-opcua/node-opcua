@@ -857,6 +857,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     private _end_listen(err?: Error) {
+        if (!this._listen_callback) return;
         assert(typeof this._listen_callback === "function");
         this._listen_callback!(err);
         this._listen_callback = undefined;
