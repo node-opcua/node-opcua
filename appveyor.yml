@@ -7,9 +7,10 @@ environment:
     # - nodejs_version: "9"  (not supported any more)
     # - nodejs_version: "10" (not supported any mopre -> end of life 2021-04-30)
     # - nodejs_version: "11" (not supported any more)
-    - nodejs_version: "12" 
+    # - nodejs_version: "12"  (deprecated in April 30th 2022)
     # - nodejs_version: "14"
     - nodejs_version: "16"
+    - nodejs_version: "18" 
 
 platform:
   - x64
@@ -49,5 +50,5 @@ test_script:
 build: false
 
 cache:
-  - node_modules                        # local npm modules
+  # - node_modules                        # local npm modules
   - '%APPDATA%\npm-cache'               # npm cache
