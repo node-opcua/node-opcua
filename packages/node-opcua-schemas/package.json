@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-schemas",
-    "version": "2.76.2",
+    "version": "2.77.0",
     "description": "pure nodejs OPCUA SDK - module -schemas",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
@@ -13,20 +13,20 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.76.0",
-        "node-opcua-binary-stream": "2.76.2",
-        "node-opcua-debug": "2.76.2",
-        "node-opcua-extension-object": "2.76.2",
-        "node-opcua-factory": "2.76.2",
-        "node-opcua-nodeid": "2.76.2",
-        "node-opcua-variant": "2.76.2",
-        "node-opcua-xml2json": "2.76.2"
+        "node-opcua-assert": "2.77.0",
+        "node-opcua-binary-stream": "2.77.0",
+        "node-opcua-debug": "2.77.0",
+        "node-opcua-extension-object": "2.77.0",
+        "node-opcua-factory": "2.77.0",
+        "node-opcua-nodeid": "2.77.0",
+        "node-opcua-variant": "2.77.0",
+        "node-opcua-xml2json": "2.77.0"
     },
     "devDependencies": {
         "mocha": "^10.0.0",
-        "node-opcua-data-model": "2.76.2",
-        "node-opcua-packet-analyzer": "2.76.2",
-        "node-opcua-utils": "2.76.0",
+        "node-opcua-data-model": "2.77.0",
+        "node-opcua-packet-analyzer": "2.77.0",
+        "node-opcua-utils": "2.77.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

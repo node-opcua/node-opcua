@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-write",
-    "version": "2.76.2",
+    "version": "2.77.0",
     "description": "pure nodejs OPCUA SDK - module -service-write",
     "scripts": {
         "test": "mocha",
@@ -11,14 +11,14 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-types": "2.76.2"
+        "node-opcua-types": "2.77.0"
     },
     "devDependencies": {
-        "node-opcua-data-model": "2.76.2",
-        "node-opcua-data-value": "2.76.2",
-        "node-opcua-numeric-range": "2.76.2",
-        "node-opcua-packet-analyzer": "2.76.2",
-        "node-opcua-variant": "2.76.2",
+        "node-opcua-data-model": "2.77.0",
+        "node-opcua-data-value": "2.77.0",
+        "node-opcua-numeric-range": "2.77.0",
+        "node-opcua-packet-analyzer": "2.77.0",
+        "node-opcua-variant": "2.77.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

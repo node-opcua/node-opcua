@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-benchmarker",
-    "version": "2.76.2",
+    "version": "2.77.0",
     "description": "pure nodejs OPCUA SDK - module -benchmarker",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,7 +10,7 @@
         "lint": "eslint source/**/*.ts"
     },
     "dependencies": {
-        "node-opcua-utils": "2.76.0"
+        "node-opcua-utils": "2.77.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

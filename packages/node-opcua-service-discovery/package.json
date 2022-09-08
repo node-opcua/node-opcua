@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-discovery",
-    "version": "2.76.2",
+    "version": "2.77.0",
     "description": "pure nodejs OPCUA SDK - module -service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -12,10 +12,10 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.76.0",
-        "node-opcua-debug": "2.76.2",
-        "node-opcua-object-registry": "2.76.2",
-        "node-opcua-types": "2.76.2",
+        "node-opcua-assert": "2.77.0",
+        "node-opcua-debug": "2.77.0",
+        "node-opcua-object-registry": "2.77.0",
+        "node-opcua-types": "2.77.0",
         "sterfive-bonjour-service": "1.1.4"
     },
     "author": "Etienne Rossignon",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-endpoints",
-    "version": "2.76.2",
+    "version": "2.77.0",
     "description": "pure nodejs OPCUA SDK - module -service-endpoints",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,7 +10,7 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "node-opcua-types": "2.76.2"
+        "node-opcua-types": "2.77.0"
     },
     "devDependencies": {
         "should": "^13.2.3"
