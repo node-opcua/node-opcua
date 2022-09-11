@@ -1,29 +1,22 @@
 import {
-    Namespace,
+    Namespace as INamespace,
     PseudoSession,
     UADataType,
     UAObject,
-    UAVariable,
-    UAVariableT,
-    UAVariableType,
-    dumpToBSD,
-    DTDataTypeDefinition,
-    UAProperty
-} from "node-opcua-address-space";
+    UAVariableType} from "node-opcua-address-space";
 import assert from "node-opcua-assert";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { coerceQualifiedName, LocalizedTextLike, NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import { coerceQualifiedName, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import { ConstructorFuncWithSchema } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { createDynamicObjectConstructor } from "node-opcua-schemas";
 import { StructureDefinition, StructureDefinitionOptions } from "node-opcua-types";
-import { DataType, Variant } from "node-opcua-variant";
 
 /**
  * create the deprecated DataTypeDictionary node that was
  * used up to version 1.03
  */
-export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
+export function getOrCreateDataTypeSystem(namespace: INamespace): UAObject {
     const addressSpace = namespace.addressSpace;
 
     const opcBinaryTypeSystem = addressSpace.findNode("OPCBinarySchema_TypeSystem") as UAObject;
@@ -49,7 +42,7 @@ export interface ExtensionObjectDefinition {
     subtypeOf?: UADataType;
 }
 
-export async function addExtensionObjectDataType(namespace: Namespace, options: ExtensionObjectDefinition): Promise<UADataType> {
+export async function addExtensionObjectDataType(namespace: INamespace, options: ExtensionObjectDefinition): Promise<UADataType> {
     const addressSpace = namespace.addressSpace;
 
     // encodings
@@ -114,7 +107,7 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
     return dataType;
 }
 
-export function addVariableTypeForDataType(namespace: Namespace, dataType: UADataType): UAVariableType {
+export function addVariableTypeForDataType(namespace: INamespace, dataType: UADataType): UAVariableType {
     const addressSpace = namespace.addressSpace;
 
     // get Definition
