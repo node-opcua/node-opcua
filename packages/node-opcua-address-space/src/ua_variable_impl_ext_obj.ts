@@ -279,7 +279,7 @@ export function _installExtensionObjectBindingOnProperties(
         }
 
         const camelCaseName = lowerFirstLetter(field.name!);
-        assert(Object.prototype.hasOwnProperty.call(variableNode.$extensionObject, camelCaseName));
+        // assert(Object.prototype.hasOwnProperty.call(variableNode.$extensionObject, camelCaseName));
 
         if (variableNode.$extensionObject[camelCaseName] !== undefined && basicDataType === DataType.ExtensionObject) {
             propertyNode.bindExtensionObject(variableNode.$extensionObject[camelCaseName], { ...options, force: true });
