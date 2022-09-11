@@ -5,7 +5,7 @@ import { EventEmitter } from "events";
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { BinaryStream} from "node-opcua-binary-stream";
+import { BinaryStream } from "node-opcua-binary-stream";
 import {
     addElement,
     AddressSpace,
@@ -400,7 +400,7 @@ export class ServerEngine extends EventEmitter {
                 counter += session.currentSubscriptionCount;
             });
             // we also need to add the orphan subscriptions
-            counter += this._orphanPublishEngine ? this._orphanPublishEngine .subscriptions.length : 0;
+            counter += this._orphanPublishEngine ? this._orphanPublishEngine.subscriptions.length : 0;
             return counter;
         });
 
@@ -1851,7 +1851,7 @@ export class ServerEngine extends EventEmitter {
         if (subscription.$session) {
             subscription.$session._unexposeSubscriptionDiagnostics(subscription);
         }
-        
+
         await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
         subscription.$session = session;
 
@@ -1987,14 +1987,18 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
-        debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
-        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
-        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert((subscriptionDiagnostics as any).$subscription === subscription);
-        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+        try {
+            debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
+            const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
+            const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+            assert((subscriptionDiagnostics as any).$subscription === subscription);
+            assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
 
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+            if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+                addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+            }
+        } catch (err) {
+            console.log("err", err);
         }
     }
 
