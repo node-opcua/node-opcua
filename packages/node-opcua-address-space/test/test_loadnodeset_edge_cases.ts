@@ -31,22 +31,22 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
     });
 
     it("LNSEC-2 should load a nodeset containing special encoded characters such as ö ë ñ ü", async () => {
-        const nodeset_with_special_characters = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_utf8_special_characters.xml");
+        const nodeset_with_special_characters = path.join(
+            __dirname,
+            "../test_helpers/test_fixtures/nodeset_with_utf8_special_characters.xml"
+        );
 
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            nodeset_with_special_characters   
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset_with_special_characters]);
 
         const o1 = addressSpace.findNode("ns=1;i=1001")!;
         o1.browseName.name!.should.eql("Noël");
 
         const o2 = addressSpace.findNode("ns=1;i=1002")!;
         o2.browseName.name!.should.eql("Strauß");
-        
+
         const o3 = addressSpace.findNode("ns=1;i=1003")!;
         o3.browseName.name!.should.eql("Bjørn Ødger Åse");
-        
+
         const o4 = addressSpace.findNode("ns=1;i=1004")!;
         o4.browseName.name!.should.eql("Günter Альберт");
 
@@ -55,8 +55,16 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
 
         const o6 = addressSpace.findNode("ns=1;i=1006")!;
         o6.browseName.name!.should.eql("صلح در زمین");
-        
     });
 
+    it("LNSEC-3 -  should load a nodeset2.xml that has no Aliases section", async () => {
+        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_no_aliases.xml");
 
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
+    });
+    it("LNSEC-4 -  should load a nodeset2.xml that has no Aliases section", async () => {
+        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_no_aliases_with_aliases.xml");
+
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
+    });
 });

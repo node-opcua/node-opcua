@@ -29,7 +29,7 @@ import {
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
-import { Int64, minOPCUADate, StatusCode } from "node-opcua-basic-types";
+import { AttributeIds, Int64, minOPCUADate, StatusCode, StatusCodes } from "node-opcua-basic-types";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
 
 import { XmlWriter } from "../../source/xml_writer";
@@ -44,6 +44,7 @@ import { NamespaceImpl } from "../namespace_impl";
 import { UAMethodImpl } from "../ua_method_impl";
 import { UADataTypeImpl } from "../ua_data_type_impl";
 import { UAVariableTypeImpl } from "../ua_variable_type_impl";
+import { SessionContext } from "../index_current";
 
 import { DefinitionMap2, TypeInfo } from "../../source/loader/make_xml_extension_object_parser";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
@@ -586,12 +587,10 @@ function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAV
     }
 }
 
-function visitUANode(node: BaseNode, options: any, forward: boolean) {
+function visitUANode(node: BaseNode, data: DumpData, forward: boolean) {
     assert(typeof forward === "boolean");
 
     const addressSpace = node.addressSpace;
-    options.elements = options.elements || [];
-    options.index_el = options.index_el || {};
 
     // visit references
     function process_reference(reference: UAReference) {
@@ -604,18 +603,18 @@ function visitUANode(node: BaseNode, options: any, forward: boolean) {
             return; // skip OPCUA namespace
         }
         const k = _hash(reference);
-        if (!options.index_el[k]) {
-            options.index_el[k] = 1;
+        if (!data.index_el[k]) {
+            data.index_el[k] = 1;
 
             const o = addressSpace.findNode(k)! as BaseNode;
             if (o) {
-                visitUANode(o, options, forward);
+                visitUANode(o, data, forward);
             }
         }
     }
 
     (node as BaseNodeImpl).ownReferences().forEach(process_reference);
-    options.elements.push(node);
+    data.elements.push(node as BaseNodeImpl);
     return node;
 }
 
@@ -798,16 +797,24 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
         xw.endElement();
         return;
     }
+
     if (uaDataType.isStructure()) {
-        const definition = uaDataType.getStructureDefinition();
-        const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
-        xw.startElement("Definition");
-        xw.writeAttribute("Name", b(xw, uaDataType.browseName));
-        if (definition.structureType === StructureType.Union) {
-            xw.writeAttribute("IsUnion", "true");
+        // in case the namespace is conforming to 1.03 specification the DataTypeDefinition attribute
+        // will be not be readable....
+
+        const dataValue = uaDataType.readAttribute(SessionContext.defaultContext, AttributeIds.DataTypeDefinition);
+
+        if (dataValue.statusCode === StatusCodes.Good) {
+            const definition = uaDataType.getStructureDefinition();
+            const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
+            xw.startElement("Definition");
+            xw.writeAttribute("Name", b(xw, uaDataType.browseName));
+            if (definition.structureType === StructureType.Union) {
+                xw.writeAttribute("IsUnion", "true");
+            }
+            _dumpStructureDefinition(xw, definition, baseDefinition);
+            xw.endElement();
         }
-        _dumpStructureDefinition(xw, definition, baseDefinition);
-        xw.endElement();
         return;
     }
 }
@@ -1043,18 +1050,17 @@ function resolveDataTypeName(addressSpace: IAddressSpace, dataType: string | Nod
     return dataTypeNode.browseName;
 }
 
-function buildUpAliases(node: BaseNode, xw: XmlWriter, options: any) {
+function buildUpAliases(node: BaseNode, xw: XmlWriter, data: BuildAliasesData) {
     const addressSpace = node.addressSpace;
 
-    options.aliases = options.aliases || {};
-    options.aliases_visited = options.aliases_visited || {};
+    if (!data.aliases_visited) data.aliases_visited = {};
 
     const k = _hash(node);
     // istanbul ignore next
-    if (options.aliases_visited[k]) {
+    if (data.aliases_visited[k]) {
         return;
     }
-    options.aliases_visited[k] = 1;
+    data.aliases_visited[k] = 1;
 
     // put datatype into aliases list
     if (node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.VariableType) {
@@ -1064,8 +1070,8 @@ function buildUpAliases(node: BaseNode, xw: XmlWriter, options: any) {
             // name
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, nodeV.dataType));
             if (dataTypeName) {
-                if (!options.aliases[dataTypeName]) {
-                    options.aliases[dataTypeName] = n(xw, nodeV.dataType);
+                if (!data.aliases[dataTypeName]) {
+                    data.aliases[dataTypeName] = n(xw, nodeV.dataType);
                 }
             }
         }
@@ -1074,8 +1080,8 @@ function buildUpAliases(node: BaseNode, xw: XmlWriter, options: any) {
             // name
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, nodeV.dataType));
             if (dataTypeName) {
-                if (!options.aliases[dataTypeName]) {
-                    options.aliases[dataTypeName] = n(xw, nodeV.dataType);
+                if (!data.aliases[dataTypeName]) {
+                    data.aliases[dataTypeName] = n(xw, nodeV.dataType);
                 }
             }
         }
@@ -1084,11 +1090,11 @@ function buildUpAliases(node: BaseNode, xw: XmlWriter, options: any) {
     function collectReferenceNameInAlias(reference: UAReference) {
         // reference.referenceType
         const key = b(xw, getReferenceType(reference).browseName);
-        if (!options.aliases.key) {
+        if (!data.aliases.key) {
             if (reference.referenceType.namespace === 0) {
-                options.aliases[key] = reference.referenceType.toString().replace("ns=0;", "");
+                data.aliases[key] = reference.referenceType.toString().replace("ns=0;", "");
             } else {
-                options.aliases[key] = n(xw, reference.referenceType);
+                data.aliases[key] = n(xw, reference.referenceType);
             }
         }
     }
@@ -1096,7 +1102,7 @@ function buildUpAliases(node: BaseNode, xw: XmlWriter, options: any) {
     node.allReferences().forEach(collectReferenceNameInAlias);
 }
 
-function writeAliases(xw: XmlWriter, aliases: any) {
+function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
     xw.startElement("Aliases");
 
     if (aliases) {
@@ -1154,11 +1160,29 @@ function sortByNodeId(a: { nodeId: NodeId }, b: { nodeId: NodeId }) {
     return a.nodeId.toString() < b.nodeId.toString() ? -1 : 1;
 }
 
-export function dumpXml(node: BaseNode, options: any): void {
+interface Dumpable {
+    dumpXML(xw: typeof XMLWriter): void;
+}
+type NodeIdString = string;
+
+export interface BuildAliasesData {
+    aliases: Record<string, NodeIdString>;
+    aliases_visited?: Record<string, unknown>;
+}
+interface DumpData extends BuildAliasesData {
+    elements: Dumpable[];
+    index_el: Record<string, number>;
+}
+
+export interface DumpXMLOptions {
+    /** */
+}
+
+export function dumpXml(node: BaseNode, options: DumpXMLOptions): void {
     const namespace = node.namespace as NamespacePrivate;
 
     // make a first visit so that we determine which node to output and in which order
-    const nodesToVisit: any = {};
+    const data: DumpData = { aliases: {}, aliases_visited: {}, index_el: {}, elements: [] };
 
     const dependency = constructNamespaceDependency(namespace);
     const translationTable = constructNamespaceTranslationTable(dependency);
@@ -1166,7 +1190,7 @@ export function dumpXml(node: BaseNode, options: any): void {
     const xw = new XMLWriter(true);
     xw.translationTable = translationTable;
 
-    visitUANode(node, nodesToVisit, false);
+    visitUANode(node, data, false);
 
     xw.startDocument({ encoding: "utf-8" });
     xw.startElement("UANodeSet");
@@ -1176,10 +1200,10 @@ export function dumpXml(node: BaseNode, options: any): void {
     xw.writeAttribute("LastModified", new Date().toISOString());
     xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd");
 
-    buildUpAliases(node, xw, nodesToVisit);
-    writeAliases(xw, nodesToVisit.aliases);
+    buildUpAliases(node, xw, data);
+    writeAliases(xw, data.aliases);
 
-    for (const el of nodesToVisit.elements) {
+    for (const el of data.elements!) {
         el.dumpXML(xw);
     }
 
@@ -1264,11 +1288,11 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     }
     xw.endElement();
 
-    const s: any = {};
+    const data: BuildAliasesData = { aliases: {} };
     for (const node of this.nodeIterator()) {
-        buildUpAliases(node, xw, s);
+        buildUpAliases(node, xw, data);
     }
-    writeAliases(xw, s.aliases);
+    writeAliases(xw, data.aliases);
 
     xw.visitedNode = {};
 

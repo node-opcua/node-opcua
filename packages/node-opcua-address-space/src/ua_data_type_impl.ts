@@ -16,12 +16,11 @@ import {
     EnumDefinition,
     EnumFieldOptions,
     StructureDefinition,
-    StructureField,
     StructureFieldOptions,
     StructureType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode, CreateDataTypeOptions } from "node-opcua-address-space-base";
+import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
 import { IStructuredTypeSchema } from "node-opcua-factory";
 
@@ -124,11 +123,15 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 break;
             case AttributeIds.DataTypeDefinition:
                 {
-                    const _definition = this._getDefinition()?.clone();
-                    if (_definition !== null) {
-                        options.value = { dataType: DataType.ExtensionObject, value: _definition };
-                    } else {
+                    if (this.namespace.$emulateVersion103) {
                         options.statusCode = StatusCodes.BadAttributeIdInvalid;
+                    } else {
+                        const _definition = this._getDefinition()?.clone();
+                        if (_definition !== null) {
+                            options.value = { dataType: DataType.ExtensionObject, value: _definition };
+                        } else {
+                            options.statusCode = StatusCodes.BadAttributeIdInvalid;
+                        }
                     }
                 }
                 break;

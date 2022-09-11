@@ -110,7 +110,7 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
         }
         const dv = builtInType.defaultValue;
         const value = typeof dv === "function" ? dv() : dv;
- 
+
         let arrayType: VariantArrayType;
         /*
          *  * n > 1                     : the Value is an array with the specified number of dimensions.
@@ -171,6 +171,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
     let namespaceCounter = 0;
     let found_namespace_in_uri: { [key: string]: NamespacePrivate } = {};
     let models: Model[] = [];
+    let performedCalled = false;
 
     function _reset_namespace_translation() {
         debugLog("_reset_namespace_translation");
@@ -179,6 +180,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         namespaceCounter = 0;
         alias_map = {};
         models = [];
+        performedCalled = false;
     }
 
     function _translateNamespaceIndex(innerIndex: number) {
@@ -186,9 +188,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
         // istanbul ignore next
         if (namespaceIndex === undefined) {
-            // tslint:disable-next-line: no-console
             debugLog("Warning: namespace_uri_translation = ", namespace_uri_translation);
-            throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
+            errorLog("namespace_uri_translation", namespace_uri_translation);
+            throw new Error("_translateNamespaceIndex() ! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
     }
@@ -213,9 +215,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         return namespace.internalCreateNode(params) as BaseNode;
     }
 
-    function _register_namespace_uri_in_translation_table(namespaceUri: string): NamespacePrivate {
+    function _register_namespace_uri_in_translation_table(namespaceUri: string): void {
         if (found_namespace_in_uri[namespaceUri]) {
-            return found_namespace_in_uri[namespaceUri];
+            return;
         }
         const namespace = addressSpace1.getNamespace(namespaceUri);
         if (!namespace) {
@@ -240,7 +242,6 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 " index in addressSpace",
                 namespace.index
             );
-        return namespace;
     }
 
     function _add_namespace(model: Model) {
@@ -384,6 +385,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAObject = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.Object;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -422,6 +425,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAObjectType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.ObjectType;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -451,6 +456,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAReferenceType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.ReferenceType;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -486,6 +493,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UADataType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.DataType;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract) || false;
@@ -1331,6 +1340,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
     }
     const state_UAVariable = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
 
             this.obj.nodeClass = NodeClass.Variable;
@@ -1421,6 +1432,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAVariableType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
 
@@ -1473,6 +1486,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAMethod = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.Method;
             // MethodDeclarationId
@@ -1557,7 +1572,17 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         }
     });
 
+    function _updateTranslationTable() {
+        _register_namespace_uri_in_translation_table("http://opcfoundation.org/UA/");
+        for (const namespaceUri of _namespaceUris) {
+            _register_namespace_uri_in_translation_table(namespaceUri);
+        }
+    }
+
     function _perform() {
+        if (performedCalled) return;
+        performedCalled = true;
+
         /**special case for old nodeset file version 1.02 where no models exists */
         if (models.length === 0) {
             for (const namespaceuri of _namespaceUris) {
@@ -1573,13 +1598,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 });
             }
         }
-
-        doDebug && debugLog("xxx models =", JSON.stringify(models, null, " "));
-        doDebug && debugLog("xxx _namespaceUris =", _namespaceUris);
-        _register_namespace_uri_in_translation_table("http://opcfoundation.org/UA/");
-        for (const namespaceUri of _namespaceUris) {
-            _register_namespace_uri_in_translation_table(namespaceUri);
-        }
+        _updateTranslationTable();
     }
     // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
     let _namespaceUris: string[] = [];
@@ -1726,9 +1745,15 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         terminate
     };
 }
+
+export interface NodeSetLoaderOptions {
+    loadDraftNodes?: boolean;
+    loadDeprecatedNodes?: boolean;
+}
+
 export class NodeSetLoader {
-    _s: any;
-    constructor(addressSpace: IAddressSpace) {
+    _s: NodeSet2ParserEngine;
+    constructor(addressSpace: IAddressSpace, private options?: NodeSetLoaderOptions) {
         this._s = makeNodeSetParserEngine(addressSpace);
     }
 

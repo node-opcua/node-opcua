@@ -538,6 +538,12 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
 
     const addressSpace = typeDefinitionNode.addressSpace;
+
+    const hasInterfaceReference = addressSpace.findReferenceType("HasInterface");
+    if (!hasInterfaceReference) {
+        // this version of the standard UA namespace doesn't support Interface yet 
+        return [];
+    }
     // example:
     // FolderType
     //   FunctionalGroupType

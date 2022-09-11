@@ -219,6 +219,8 @@ export class NamespaceImpl implements NamespacePrivate {
     public addressSpace: AddressSpacePrivate;
     public readonly index: number;
 
+    public emulateVersion103 = false;
+
     public version = "0.0.0";
     public publicationDate: Date = new Date(Date.UTC(1900, 0, 1));
 
@@ -289,27 +291,35 @@ export class NamespaceImpl implements NamespacePrivate {
     public _objectTypeIterator(): IterableIterator<UAObjectType> {
         return this._objectTypeMap.values();
     }
+
     public _objectTypeCount(): number {
         return this._objectTypeMap.size;
     }
+
     public _variableTypeIterator(): IterableIterator<UAVariableType> {
         return this._variableTypeMap.values();
     }
+    
     public _variableTypeCount(): number {
         return this._variableTypeMap.size;
     }
+    
     public _dataTypeIterator(): IterableIterator<UADataType> {
         return this._dataTypeMap.values();
     }
+    
     public _dataTypeCount(): number {
         return this._dataTypeMap.size;
     }
+    
     public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
         return this._referenceTypeMap.values();
     }
+    
     public _referenceTypeCount(): number {
         return this._referenceTypeMap.size;
     }
+    
     public _aliasCount(): number {
         return this._aliases.size;
     }

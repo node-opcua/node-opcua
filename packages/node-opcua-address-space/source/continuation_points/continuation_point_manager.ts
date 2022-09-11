@@ -11,6 +11,19 @@ import {
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
 
+
+let counter = 0;
+
+function make_key() {
+    // return crypto.randomBytes(32);
+    counter += 1;
+    return Buffer.from(counter.toString(), "utf-8");
+}
+
+interface Data {
+    maxElements: number;
+    values: ReferenceDescription[] | DataValue[];
+}
 /**
  * from https://reference.opcfoundation.org/v104/Core/docs/Part4/7.6/
  *
@@ -70,18 +83,6 @@ import { DataValue } from "node-opcua-data-value";
  * release all ContinuationPoints passed in the request. If the ContinuationPoint for an operation is missing or
  * invalid then the StatusCode for the operation shall be Bad_ContinuationPointInvalid.
  */
-let counter = 0;
-
-function make_key() {
-    // return crypto.randomBytes(32);
-    counter += 1;
-    return Buffer.from(counter.toString(), "utf-8");
-}
-
-interface Data {
-    maxElements: number;
-    values: ReferenceDescription[] | DataValue[];
-}
 export class ContinuationPointManager implements IContinuationPointManager {
     private _map: Map<string, Data>;
 
