@@ -47,6 +47,13 @@ export class DataTypeFactory {
         this.baseDataFactories = baseDataFactories;
     }
 
+    public getStructureIterator(): IterableIterator<StructureInfo> {
+        return this._structureInfoByDataTypeMap.values();
+    }
+    public getEnumIterator(): IterableIterator<EnumerationDefinitionSchema> {
+        return this._enumerations.values();
+    }
+
     public repairBaseDataFactories(baseDataFactories: DataTypeFactory[]): void {
         this.baseDataFactories = baseDataFactories;
     }
@@ -325,7 +332,7 @@ function dumpSchema(schema: IStructuredTypeSchema, write: any) {
         write("          ", f.name.padEnd(30, " "), f.isArray ? true : false, f.fieldType);
     }
 }
-function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
+function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ...any[]])=>void) {
     for (const structureTypeName of dataFactory.structuredTypesNames()) {
         const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
 
@@ -338,10 +345,11 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: any) {
             write(" (Schema has no encoding defaultBinary )");
         } else {
             if (dataFactory.hasConstructor(schema.encodingDefaultBinary)) {
-                console.log("schema", schema.name);
-                console.log("schema", schema.dataTypeNodeId.toString());
-                console.log("schema", schema.encodingDefaultBinary ? schema.encodingDefaultBinary.toString() : " ");
-                console.log("schema", schema.encodingDefaultXml ? schema.encodingDefaultXml.toString() : " ");
+                write("ERROR: cannot find constructor for encodingDefaultBinary");
+                write("schema             name:", schema.name, "(abstract=", schema.isAbstract,")");
+                write("        dataType NodeId:", schema.dataTypeNodeId.toString());
+                write("encoding Default Binary:", schema.encodingDefaultBinary ? schema.encodingDefaultBinary.toString() : " ");
+                write("encoding Default Xml   :", schema.encodingDefaultXml ? schema.encodingDefaultXml.toString() : " ");
                 // return;
                 // throw new Error("Not  in Binary Encoding Map!!!!!  " + schema.encodingDefaultBinary);
             }

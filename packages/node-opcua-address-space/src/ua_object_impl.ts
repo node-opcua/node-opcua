@@ -79,7 +79,6 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     }
 
     public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAObject {
-        options = options || {};
         options = {
             ...options,
             eventNotifier: this.eventNotifier,

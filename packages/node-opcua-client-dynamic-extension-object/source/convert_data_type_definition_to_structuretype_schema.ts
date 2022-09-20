@@ -191,7 +191,7 @@ async function resolve2(
                 };
                 if (category === FieldCategory.enumeration) {
                     if (definition instanceof EnumDefinition) {
-                        const e = new EnumerationDefinitionSchema({
+                        const e = new EnumerationDefinitionSchema(dataTypeNodeId, {
                             enumValues: convert(definition.fields),
                             name: fieldTypeName
                         });

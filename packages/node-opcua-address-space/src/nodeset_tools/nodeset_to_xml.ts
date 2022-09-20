@@ -407,6 +407,7 @@ function _dumpVariantExtensionObjectValue(
     // const encodingDefaultXml = (getStructureTypeConstructor(schema.name) as any).encodingDefaultXml;
     const encodingDefaultXml = value.schema.encodingDefaultXml;
     if (!encodingDefaultXml) {
+        warningLog("dataType Name ", name, "with ", dataTypeNodeId.toString(), " does not have xml encoding");
         // throw new Error("Extension Object doesn't provide a XML ");
         return;
     }
@@ -513,7 +514,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
     }
     assert(value instanceof Variant);
 
-    const dataTypeNode = addressSpace.findNode(node.dataType);
+    const dataTypeNode = addressSpace.findDataType(node.dataType);
     if (!dataTypeNode) {
         console.log("Cannot find dataType:", node.dataType);
         return;
@@ -535,10 +536,6 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
     xw.startElement("Value");
 
     if (isExtensionObject) {
-        const dataTypeNode = addressSpace.findDataType(node.dataType);
-        if (!dataTypeNode) {
-            throw new Error("Cannot find data type " + node.dataType.toString());
-        }
 
         const encodeXml = _dumpVariantExtensionObjectValue2.bind(null, xw, dataTypeNode);
 
