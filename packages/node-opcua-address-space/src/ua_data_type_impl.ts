@@ -417,6 +417,7 @@ function makeEnumDefinition(definitionFields: EnumFieldOptions[]) {
         }))
     });
 }
+
 function makeStructureDefinition(
     name: string,
     baseDataType: NodeId,

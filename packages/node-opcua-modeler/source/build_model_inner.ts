@@ -25,7 +25,7 @@ export async function buildModelInner(data: BuildModelOptions): Promise<{ markdo
             nodeIdManager.setSymbols(data.presetSymbols);
         }
 
-        await generateAddressSpaceRaw(addressSpace, data.xmlFiles, data.xmlLoader);
+        await generateAddressSpaceRaw(addressSpace, data.xmlFiles, data.xmlLoader, {});
 
         await data.createModel(addressSpace);
 

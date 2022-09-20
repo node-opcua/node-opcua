@@ -256,7 +256,9 @@ export declare interface INamespace {
     namespaceUri: string;
     addressSpace: IAddressSpace;
     index: number;
- 
+
+    $emulateVersion103?: boolean;
+
     constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
     // -------------------------------------------------------------------------
@@ -297,6 +299,8 @@ export declare interface INamespace {
     addFolder(parentFolder: NodeIdLike | UAObject, options: any): UAObject;
 
     createNode(options: CreateNodeOptions): BaseNode;
+
+    /** @private */
     internalCreateNode(options: CreateNodeOptions): BaseNode;
 
     // -------------------------------------------------------------------------

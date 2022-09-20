@@ -4,7 +4,9 @@
 import { assert } from "node-opcua-assert";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { Enum, EnumItem, _TypescriptEnum , adaptTypescriptEnum} from "node-opcua-enum";
+import { DataTypeIds } from "node-opcua-constants";
+import { Enum, EnumItem, _TypescriptEnum, adaptTypescriptEnum } from "node-opcua-enum";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { TypeSchemaBase } from "./builtin_types";
 import { EnumerationDefinition, TypeSchemaConstructorOptions } from "./types";
 
@@ -24,7 +26,6 @@ function _decode_enumeration(typedEnum: Enum, stream: BinaryStream): number {
     return value;
 }
 
-
 export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptions {
     enumValues: _TypescriptEnum | string[];
     typedEnum?: Enum;
@@ -36,16 +37,17 @@ export interface EnumerationDefinitionOptions extends TypeSchemaConstructorOptio
     decode?: (stream: BinaryStream) => EnumItem;
 }
 
-
 export class EnumerationDefinitionSchema extends TypeSchemaBase implements EnumerationDefinition {
     public enumValues: _TypescriptEnum;
     public typedEnum: Enum;
     public lengthInBits: number;
+    public dataTypeNodeId: NodeId;
     // xx encode: (value: EnumItem, stream: OutputBinaryStream) => void;
     // xx decode: (stream: BinaryStream) => EnumItem;
 
-    constructor(options: EnumerationDefinitionOptions) {
+    constructor(dataTypeNodeId: NodeId, options: EnumerationDefinitionOptions) {
         super(options);
+        this.dataTypeNodeId = dataTypeNodeId;
         // create a new Enum
         this.enumValues = adaptTypescriptEnum(options.enumValues);
         const typedEnum = new Enum(options.enumValues);
@@ -76,6 +78,8 @@ const _enumerations: Map<string, EnumerationDefinitionSchema> = new Map<string, 
  * @return {Enum}
  */
 export function registerEnumeration(options: EnumerationDefinitionOptions): Enum {
+    const dataTypeNodeId = resolveNodeId(DataTypeIds[options.name as any]);
+
     assert(Object.prototype.hasOwnProperty.call(options, "name"));
     assert(Object.prototype.hasOwnProperty.call(options, "enumValues"));
     const name = options.name;
@@ -83,7 +87,7 @@ export function registerEnumeration(options: EnumerationDefinitionOptions): Enum
     if (Object.prototype.hasOwnProperty.call(_enumerations, name)) {
         throw new Error("factories.registerEnumeration : Enumeration " + options.name + " has been already inserted");
     }
-    const enumerationDefinition = new EnumerationDefinitionSchema(options);
+    const enumerationDefinition = new EnumerationDefinitionSchema(dataTypeNodeId, options);
     _enumerations.set(name, enumerationDefinition);
 
     return enumerationDefinition.typedEnum;
@@ -99,4 +103,3 @@ export function getBuiltInEnumeration(enumerationName: string): EnumerationDefin
     }
     return _enumerations.get(enumerationName) as EnumerationDefinitionSchema;
 }
-

@@ -145,11 +145,15 @@ export interface NodeSet2ParserEngine {
     terminate: (callback: SimpleCallback) => void;
 }
 
-export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2ParserEngine {
+function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLoaderOptions): NodeSet2ParserEngine {
     const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
+    options.loadDeprecatedNodes = options.loadDeprecatedNodes === undefined ? true:  options.loadDeprecatedNodes;
+    options.loadDraftNodes = options.loadDraftNodes || false;
+    
     const postTasks: Task[] = [];
+    const postTasks0_InitializeVariable: Task[] = [];
     const postTasks0_DecodePojoString: Task[] = [];
     const postTasks1_InitializeVariable: Task[] = [];
     const postTasks2_AssignedExtensionObjectToDataValue: Task[] = [];
@@ -396,12 +400,10 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.obj.symbolicName = attrs.SymbolicName || null;
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
-            this.obj.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                // ignore Draft or Deprecated element
-                debugLog("Ignoring Draft/Deprecated UAObject =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);
@@ -510,9 +512,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.definitionFields = [];
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                // ignore Draft or Deprecated element
-                debugLog("Ignoring Draft/Deprecated dataType =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             /*
@@ -1338,6 +1338,18 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         };
         postTasks2_AssignedExtensionObjectToDataValue.push(task);
     }
+
+    const canIngore = ({ isDraft, isDeprecated }: { isDraft: boolean; isDeprecated: boolean }, node: BaseNode) => {
+        if (isDraft && !options.loadDraftNodes) {
+            debugLog("Ignoring Draft            =", NodeClass[node.nodeClass], node.browseName.toString());
+            return true;
+        }
+        if (isDeprecated && !options.loadDeprecatedNodes) {
+            debugLog("Ignoring Deprecate        =", NodeClass[node.nodeClass], node.browseName.toString());
+            return true;
+        }
+        return false;
+    };
     const state_UAVariable = {
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
@@ -1365,10 +1377,10 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                debugLog("Ignoring Draft/Deprecated UAVariable =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
+
             /*
             // set default value based on obj data Type
             if (this.obj.value === undefined) {
@@ -1389,7 +1401,14 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     capturedValue = undefined;
                     (capturedVariable as any) = undefined;
                 };
-                postTasks1_InitializeVariable.push(task);
+                if (capturedValue.dataType !== DataType.ExtensionObject) {
+                    postTasks0_InitializeVariable.push(task);
+                } else {
+                    // do them later
+                    postTasks1_InitializeVariable.push(task);
+                }
+
+               
             } else {
                 const task = async (addressSpace2: IAddressSpace) => {
                     const dataTypeNode = capturedVariable.dataType;
@@ -1407,7 +1426,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     }
                     (capturedVariable as any) = undefined;
                 };
-                postTasks1_InitializeVariable.push(task);
+                postTasks0_InitializeVariable.push(task);
             }
             this.obj.value = undefined;
             capturedVariable = _internal_createNode(this.obj) as UAVariable;
@@ -1454,8 +1473,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                debugLog("Ignoring Draft/Deprecated UAVariableType =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             try {
@@ -1501,8 +1519,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                debugLog("Ignoring Draft/Deprecated UAMethod =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);
@@ -1700,6 +1717,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
             await performPostLoadingTasks(postTasks);
 
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
+            await performPostLoadingTasks(postTasks0_InitializeVariable);
+
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
             assert(!addressSpace1.suspendBackReference);
             await ensureDatatypeExtracted(addressSpace);
@@ -1719,7 +1739,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Decoding Pojo String (parsing XML objects) -"));
             await performPostLoadingTasks(postTasks0_DecodePojoString);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Variables ---------------------"));
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
             await performPostLoadingTasks(postTasks1_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks: (assigning Extension Object to Variables) -"));
@@ -1754,7 +1774,7 @@ export interface NodeSetLoaderOptions {
 export class NodeSetLoader {
     _s: NodeSet2ParserEngine;
     constructor(addressSpace: IAddressSpace, private options?: NodeSetLoaderOptions) {
-        this._s = makeNodeSetParserEngine(addressSpace);
+        this._s = makeNodeSetParserEngine(addressSpace, options || {});
     }
 
     addNodeSet(xmlData: string, callback: ErrorCallback): void {

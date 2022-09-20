@@ -371,12 +371,14 @@ export function parseBinaryXSD(
     const parser = new Xml2Json(state0) as WithTypeDictionary;
     const typeDictionary = new InternalTypeDictionary();
     parser.typeDictionary = typeDictionary;
-
+    if (!xmlString || xmlString.length === 0) {
+        return callback();
+    }
     parser.parseString(xmlString, (err?: Error | null) => {
         // resolve and prepare enumerations
         for (const enumeratedType of typeDictionary.getEnumerations()) {
             if (Object.keys(enumeratedType.enumeratedValues).length >= 1) {
-                const e = new EnumerationDefinitionSchema({
+                const e = new EnumerationDefinitionSchema(NodeId.nullNodeId, {
                     lengthInBits: enumeratedType.lengthInBits || 32,
                     enumValues: enumeratedType.enumeratedValues,
                     name: enumeratedType.name

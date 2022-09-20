@@ -97,7 +97,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         value.value.F2.should.eql([100, 200, 300]);
     });
 
-    const x = (a: string) => a.replace(/^ +/gm, "");
+    const x = (a: string) => a.replace(/^ +/gm, "").split("\n");
 
     it("LNEX4 - export back a nodeset2.xml file with dataType & enum as values", async () => {
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file1]);

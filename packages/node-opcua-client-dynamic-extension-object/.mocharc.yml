@@ -1,0 +1,9 @@
+require:
+- ../../node_modules/source-map-support/register
+- ../../node_modules/ts-node/register
+- ../../node_modules/should
+extension: 
+- ts
+- js
+recursive: true
+timeout: 20000
