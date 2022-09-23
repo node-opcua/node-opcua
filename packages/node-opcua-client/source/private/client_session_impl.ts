@@ -83,6 +83,7 @@ import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-writ
 import { StatusCode, StatusCodes, Callback, CallbackT } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 import {
+    AggregateConfigurationOptions,
     BrowseNextRequest,
     BrowseNextResponse,
     HistoryReadValueIdOptions,
@@ -763,6 +764,40 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         aggregateFn: AggregateFunction,
         processingInterval: number
     ): Promise<HistoryReadResult>;
+    public readAggregateValue(
+        nodesToRead: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction[],
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions,
+        callback: Callback<HistoryReadResult[]>
+    ): void;
+    public async readAggregateValue(
+        nodesToRead: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction[],
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions
+    ): Promise<HistoryReadResult[]>;
+    public readAggregateValue(
+        nodeToRead: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions,
+        callback: Callback<HistoryReadResult>
+    ): void;
+    public async readAggregateValue(
+        nodeToRead: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions
+    ): Promise<HistoryReadResult>;
 
     public readAggregateValue(
         arg0: HistoryReadValueIdOptions[] | HistoryReadValueIdOptions,
@@ -772,8 +807,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         processingInterval: number,
         ...args: any[]
     ): any {
-        const callback = args[0];
+        const callback = typeof args[0] === "function" ? args[0] : args[1];
         assert(typeof callback === "function");
+        const defaultAggregateFunction = {
+            percentDataBad: 100,
+            percentDataGood: 100,
+            treatUncertainAsBad: true,
+            useServerCapabilitiesDefaults: true,
+            useSlopedExtrapolation: false
+        };
+        const aggregateConfiguration = typeof args[0] === "function" ? defaultAggregateFunction : args[0];
 
         const isArray = Array.isArray(arg0);
 
@@ -791,7 +834,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             aggregateType: aggregateFns,
             endTime,
             processingInterval,
-            startTime
+            startTime,
+            aggregateConfiguration
         });
 
         const request = new HistoryReadRequest({

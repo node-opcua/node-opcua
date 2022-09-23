@@ -59,7 +59,12 @@ import { Callback } from "node-opcua-status-code";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 import { AggregateFunction } from "node-opcua-constants";
-import { HistoryReadRequest, HistoryReadResponse, HistoryReadValueIdOptions } from "node-opcua-types";
+import {
+    AggregateConfigurationOptions,
+    HistoryReadRequest,
+    HistoryReadResponse,
+    HistoryReadValueIdOptions
+} from "node-opcua-types";
 
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 export { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -505,6 +510,43 @@ export interface ClientSessionReadHistoryService {
      * @param aggregateFn
      * @param processingInterval in milliseconds
      * @param callback
+     *
+     *
+     * aggregateConfiguration contains additional parameters
+     *
+     * - The TreatUncertainAsBad Variable indicates how the Server treats data returned with a
+     *   StatusCode severity Uncertain with respect to Aggregate calculations. A value of True
+     *   indicates the Server considers the severity equivalent to Bad, a value of False indicates
+     *   the Server considers the severity equivalent to Good, unless the Aggregate definition says
+     *   otherwise. The default value is True. Note that the value is still treated as Uncertain when
+     *   the StatusCode for the result is calculated.
+     *
+     * - The PercentDataBad Variable indicates the minimum percentage of Bad data in a given interval
+     *   required for the StatusCode for the given interval for processed data request to be set to Bad.
+     *   (Uncertain is treated as defined above.) Refer to 5.4.3 for details on using this Variable when
+     *   assigning StatusCodes. For details on which Aggregates use the PercentDataBad Variable, see the
+     *   definition of each Aggregate. The default value is 100.
+     *
+     * - The PercentDataGood Variable indicates the minimum percentage of Good data in a given interval
+     *   required for the StatusCode for the given interval for the processed data requests to be set to
+     *   Good. Refer to 5.4.3 for details on using this Variable when assigning StatusCodes. For details
+     *   on which Aggregates use the PercentDataGood Variable, see the definition of each Aggregate.
+     *   The default value is 100.
+     *
+     * - The PercentDataGood and PercentDataBad shall follow the following relationship
+     *         PercentDataGood ≥ (100 – PercentDataBad).
+     *   If they are equal the result of the PercentDataGood calculation is used. If the values
+     *   entered for PercentDataGood and PercentDataBad do not result in a valid calculation
+     *   (e.g. Bad = 80; Good = 0) the result will have a StatusCode of Bad_AggregateInvalidInputs
+     *   The StatusCode Bad_AggregateInvalidInputs will be returned if the value of PercentDataGood
+     *   or PercentDataBad exceed 100.
+     *
+     * - The UseSlopedExtrapolation Variable indicates how the Server interpolates data when no boundary
+     *   value exists (i.e. extrapolating into the future from the last known value). A value of False
+     *   indicates that the Server will use a SteppedExtrapolation format, and hold the last known value
+     *   constant. A value of True indicates the Server will project the value using UseSlopedExtrapolation
+     *   mode. The default value is False. For SimpleBounds this value is ignored.
+     *
      */
     readAggregateValue(
         nodesToRead: HistoryReadValueIdOptions[],
@@ -535,6 +577,40 @@ export interface ClientSessionReadHistoryService {
         endTime: DateTime,
         aggregateFn: AggregateFunction,
         processingInterval: number
+    ): Promise<HistoryReadResult>;
+    readAggregateValue(
+        nodesToRead: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction[],
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions,
+        callback: Callback<HistoryReadResult[]>
+    ): void;
+    readAggregateValue(
+        nodesToRead: HistoryReadValueIdOptions[],
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction[],
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions
+    ): Promise<HistoryReadResult[]>;
+    readAggregateValue(
+        nodeToRead: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions,
+        callback: Callback<HistoryReadResult>
+    ): void;
+    readAggregateValue(
+        nodeToRead: HistoryReadValueIdOptions,
+        startTime: DateTime,
+        endTime: DateTime,
+        aggregateFn: AggregateFunction,
+        processingInterval: number,
+        aggregateConfiguration: AggregateConfigurationOptions
     ): Promise<HistoryReadResult>;
 
     historyRead(request: HistoryReadRequest, callback: Callback<HistoryReadResponse>): void;
@@ -701,17 +777,17 @@ export interface ClientSessionPublishService {
 
 export interface ClientSession
     extends ClientSessionTranslateBrowsePathService,
-    ClientSessionQueryService,
-    ClientSessionBrowseService,
-    // ClientSessionRawSubscriptionService,
-    ClientSessionSubscriptionService,
-    ClientSessionCallService,
-    ClientSessionRegisterService,
-    ClientSessionReadService,
-    // ClientSessionWriteService,
-    ClientSessionReadHistoryService,
-    ClientSessionConditionService,
-    ClientSessionExtensionObjectService,
-    ClientSessionNamespaceService,
-    ClientSessionDataTypeService,
-    IBasicSession { }
+        ClientSessionQueryService,
+        ClientSessionBrowseService,
+        // ClientSessionRawSubscriptionService,
+        ClientSessionSubscriptionService,
+        ClientSessionCallService,
+        ClientSessionRegisterService,
+        ClientSessionReadService,
+        // ClientSessionWriteService,
+        ClientSessionReadHistoryService,
+        ClientSessionConditionService,
+        ClientSessionExtensionObjectService,
+        ClientSessionNamespaceService,
+        ClientSessionDataTypeService,
+        IBasicSession {}
