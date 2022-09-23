@@ -1,13 +1,13 @@
 /* eslint-disable max-statements */
 import * as should from "should";
 
-import { AddressSpace, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, BaseNode, UAObject, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { nodesets } from "node-opcua-nodesets";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataType } from "node-opcua-variant";
 
-import { getInterpolatedData } from "..";
+import { AggregateFunction, getInterpolatedData, installAggregateConfigurationOptions } from "..";
 import { addAggregateSupport, getAggregateConfiguration } from "..";
 import { getMaxData, getMinData } from "..";
 import { getAverageData } from "../source/average";
@@ -30,13 +30,80 @@ describe("Aggregates ", () => {
         addressSpace = AddressSpace.create();
         const namespaces: string[] = [nodesets.standard];
         await generateAddressSpace(addressSpace, namespaces);
+        addressSpace.registerNamespace("MyNamespace");
     });
-    after(async () => {
+    afterEach(async () => {
         addressSpace.dispose();
     });
 
     it("should augment the addressSpace with aggregate function support", async () => {
         addAggregateSupport(addressSpace);
+    });
+
+    function extractAggregateFunction(uaVariable: UAVariable) {
+        const haConfiguration = uaVariable.getChildByName("HA Configuration") as UAObject;
+        if (!haConfiguration) {
+            throw new Error("Cannot find HA Configuration");
+        }
+        haConfiguration.getComponentByName("AggregateConfiguration");
+        const aggregateFunctionsFolder = haConfiguration.getComponentByName("AggregateFunctions") as UAObject;
+        const functions = aggregateFunctionsFolder.findReferencesAsObject("Organizes");
+        return functions;
+    }
+    it("should add aggregate support to a variable - form 1", async () => {
+        addAggregateSupport(addressSpace);
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "Temperature",
+            dataType: DataType.Double,
+            organizedBy: addressSpace.rootFolder.objects.server
+        });
+
+        addressSpace.installHistoricalDataNode(uaVariable);
+        installAggregateConfigurationOptions(uaVariable, {});
+
+        const functions = extractAggregateFunction(uaVariable);
+
+        const f = functions.map((a: BaseNode) => a.browseName.name).sort();
+        f.should.eql(["Average", "Interpolative", "Maximum", "Minimum"]);
+    });
+
+    it("should add aggregate support to a variable - form 2", async () => {
+        addAggregateSupport(addressSpace);
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "Temperature",
+            dataType: DataType.Double,
+            organizedBy: addressSpace.rootFolder.objects.server
+        });
+
+        addressSpace.installHistoricalDataNode(uaVariable);
+        installAggregateConfigurationOptions(uaVariable, {}, []);
+
+        const functions = extractAggregateFunction(uaVariable);
+
+        const f = functions.map((a: BaseNode) => a.browseName.name).sort();
+        f.should.eql([]);
+    });
+
+    it("should add aggregate support to a variable - form 3", async () => {
+        addAggregateSupport(addressSpace);
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "Temperature",
+            dataType: DataType.Double,
+            organizedBy: addressSpace.rootFolder.objects.server
+        });
+
+        addressSpace.installHistoricalDataNode(uaVariable);
+        installAggregateConfigurationOptions(uaVariable, {}, [
+            AggregateFunction.Average,
+            AggregateFunction.DurationGood,
+            AggregateFunction.PercentGood,
+            AggregateFunction.Count
+        ]);
+
+        const functions = extractAggregateFunction(uaVariable);
+
+        const f = functions.map((a: BaseNode) => a.browseName.name).sort();
+        f.should.eql(["Average", "Count", "DurationGood", "PercentGood"]);
     });
 });
 
