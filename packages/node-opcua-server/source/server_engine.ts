@@ -81,7 +81,8 @@ import {
     ReadValueId,
     TimeZoneDataType,
     ProgramDiagnosticDataType,
-    CallMethodResultOptions
+    CallMethodResultOptions,
+    AggregateConfiguration
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -264,6 +265,44 @@ let next_subscriptionId = Math.ceil(Math.random() * 1000000);
 function _get_next_subscriptionId() {
     debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
+}
+
+function checkReadProcessedDetails(historyReadDetails: ReadProcessedDetails): StatusCode {
+    if (!historyReadDetails.aggregateConfiguration) {
+        historyReadDetails.aggregateConfiguration = new AggregateConfiguration({
+            useServerCapabilitiesDefaults: true
+        });
+    }
+    if (historyReadDetails.aggregateConfiguration.useServerCapabilitiesDefaults) {
+        return StatusCodes.Good;
+    }
+
+    // The PercentDataGood and PercentDataBad shall follow the following relationship
+    //          PercentDataGood ≥ (100 – PercentDataBad).
+    // If they are equal the result of the PercentDataGood calculation is used.
+    // If the values entered for PercentDataGood and PercentDataBad do not result in a valid calculation
+    //  (e.g. Bad = 80; Good = 0) the result will have a StatusCode of Bad_AggregateInvalidInputs.
+    if (
+        historyReadDetails.aggregateConfiguration.percentDataGood <
+        100 - historyReadDetails.aggregateConfiguration.percentDataBad
+    ) {
+        return StatusCodes.BadAggregateInvalidInputs;
+    }
+    // The StatusCode Bad_AggregateInvalidInputs will be returned if the value of PercentDataGood
+    // or PercentDataBad exceed 100.
+    if (
+        historyReadDetails.aggregateConfiguration.percentDataGood > 100 ||
+        historyReadDetails.aggregateConfiguration.percentDataGood < 0
+    ) {
+        return StatusCodes.BadAggregateInvalidInputs;
+    }
+    if (
+        historyReadDetails.aggregateConfiguration.percentDataBad > 100 ||
+        historyReadDetails.aggregateConfiguration.percentDataBad < 0
+    ) {
+        return StatusCodes.BadAggregateInvalidInputs;
+    }
+    return StatusCodes.Good;
 }
 
 export type StringGetter = () => string;
@@ -1555,6 +1594,12 @@ export class ServerEngine extends EventEmitter {
             //
             if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== nodesToRead.length) {
                 return callback(null, [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })]);
+            }
+
+            // chkec parameters
+            const parameterStatus = checkReadProcessedDetails(historyReadDetails);
+            if (parameterStatus !== StatusCodes.Good) {
+                return callback(null, [new HistoryReadResult({ statusCode: parameterStatus })]);
             }
             const promises: Promise<HistoryReadResult>[] = [];
             let index = 0;
