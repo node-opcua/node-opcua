@@ -1,17 +1,25 @@
+/* eslint-disable max-statements */
 import * as should from "should";
 
 import { AddressSpace, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
 import { nodesets } from "node-opcua-nodesets";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { DataType } from "node-opcua-variant";
 
 import { getInterpolatedData } from "..";
 import { addAggregateSupport, getAggregateConfiguration } from "..";
 import { getMaxData, getMinData } from "..";
 import { getAverageData } from "../source/average";
+import { getCountData } from "../source/count";
+import { getPercentGoodData } from "../source/percent_good";
+import { getPercentBadData } from "../source/percent_bad";
+import { getDurationBadData } from "../source/duration_bad";
+import { getDurationGoodData } from "../source/duration_good";
 
 import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables";
 import { makeDate } from "./helpers/helpers";
+
 const _should = should;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -81,6 +89,15 @@ describe("Aggregates - Function ", () => {
         const retVal = s + " " + v + dataValue.statusCode.toString().split(" ")[0];
         // console.log(retVal);
         return retVal;
+    }
+    function getValue(dataValue: DataValue, dataType: DataType): number | DataType.Null {
+        if (dataValue.value.dataType !== dataType) {
+            throw new Error("Wrong value dataType");
+        }
+        if (dataValue.value.dataType === DataType.Null) {
+            return DataType.Null;
+        }
+        return dataValue.value.value;
     }
 
     it("Aggregate Interpolate with History1 use case", (done) => {
@@ -577,6 +594,395 @@ describe("Aggregates - Function ", () => {
             getInfo(dataValues[18]).should.eql("12:01:30.000Z 90 Good#HistorianCalculated");
             // 12:01:35.000 BadNoData
             getInfo(dataValues[19]).should.eql("12:01:35.000Z BadNoData");
+            done();
+        });
+    });
+
+    it("Aggregate Count with History1 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getCountData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 1 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 2 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z Bad");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 2 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 0 UncertainDataSubNormal#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 2 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate Count with History2 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getCountData(h2, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 1 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 2 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 1 UncertainDataSubNormal#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 2 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 1 UncertainDataSubNormal#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 3 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate Count with History3 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getCountData(h3, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 1 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 2 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z Bad");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 2 Good#HistorianCalculated");
+            // Not OK with this one !getInfo(dataValues[4]).should.eql("12:01:04.000Z 1 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 3 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate PercentGood with History1 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentGoodData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 37.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z Bad");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 87.5 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 100 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate PercentGood with History2 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentGoodData(h2, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 87.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 62.5 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 81.25 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 70.003 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate PercentGood with History3 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentGoodData(h3, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 87.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 62.5 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 81.25 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 70.003 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate PercentGood with History4 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentGoodData(h4, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 87.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 62.5 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 100 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 81.25 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 70.003 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate PercentBad with History1 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentBadData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 62.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 50 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 12.5 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 0 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate PercentBad with History2 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentBadData(h2, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 12.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 37.5 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 18.75 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 29.997 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate PercentBad with History3 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentBadData(h3, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 12.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 37.5 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 18.75 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 29.997 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate PercentBad with History4 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getPercentBadData(h4, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 12.5 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 37.5 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 18.75 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 29.997 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate DurationBad with History1 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationBadData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 10000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 8000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 2000 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 0 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate DurationBad with History2 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationBadData(h2, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 2000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 6000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 3000 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 3000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate DurationBad with History3 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationBadData(h3, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 2000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 6000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 3000 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 3000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate DurationBad with History4 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationBadData(h4, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 2000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 6000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 3000 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 3000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    //
+    it("Aggregate DurationGood with History1 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationGoodData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 6000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 14000 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 0 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 10001 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+
+    it("Aggregate DurationGood with History2 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationGoodData(h2, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 14000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 10000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 13000 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 7001 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate DurationGood with History3 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationGoodData(h3, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 14000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 10000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 13000 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 7001 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
+            done();
+        });
+    });
+    it("Aggregate DurationGood with History4 use case", (done) => {
+        const startDate = makeDate("12:00:00");
+        const endDate = makeDate("12:01:40");
+
+        getDurationGoodData(h4, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            if (err) {
+                return done(err);
+            }
+            dataValues = dataValues!;
+            getInfo(dataValues[0]).should.eql("12:00:00.000Z 14000 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[1]).should.eql("12:00:16.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[2]).should.eql("12:00:32.000Z 10000 Good#HistorianCalculated");
+            getInfo(dataValues[3]).should.eql("12:00:48.000Z 16000 Good#HistorianCalculated");
+            getInfo(dataValues[4]).should.eql("12:01:04.000Z 13000 Good#HistorianCalculated");
+            getInfo(dataValues[5]).should.eql("12:01:20.000Z 7001 Good#HistorianCalculated|HistorianPartial");
+            getInfo(dataValues[6]).should.eql("12:01:36.000Z BadNoData");
+
             done();
         });
     });
