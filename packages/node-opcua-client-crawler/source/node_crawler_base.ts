@@ -55,7 +55,7 @@ const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | Disp
 function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): string {
     return nodeId.toString() + "_" + AttributeIds[attributeId];
 }
-function convertToStandardArray(a: number[] | Uint32Array | undefined): number[] | undefined {
+function convertToStandardArray(a: number[] | Uint32Array | undefined| null): number[] | undefined {
     if (a === undefined || a === null) {
         return undefined;
     }
@@ -1129,7 +1129,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     this._defer_readNode(
                         cacheNode.nodeId,
                         AttributeIds.ArrayDimensions,
-                        (err: Error | null, value?: number[] | Uint32Array) => {
+                        (err: Error | null, value?: number[] | Uint32Array | null) => {
                             if (!err) {
                                 const standardArray = convertToStandardArray(value);
                                 cache.arrayDimensions = standardArray;
