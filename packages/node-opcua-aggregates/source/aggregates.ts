@@ -1,13 +1,14 @@
 /**
  * @module node-opcua-aggregates
  */
-import { AggregateFunction, ObjectTypeIds } from "node-opcua-constants";
-import { coerceNodeId, makeNodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
+import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import {
     AddressSpace,
     BaseNode,
+    IAddressSpace,
     UAHistoricalDataConfiguration,
     UAHistoryServerCapabilities,
     UAObject,
@@ -15,10 +16,11 @@ import {
     UAVariable
 } from "node-opcua-address-space";
 import { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
+import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
+import { assert } from "node-opcua-assert";
 
 import { AggregateConfigurationOptionsEx } from "./interval";
 import { readProcessedDetails } from "./read_processed_details";
-import { NodeClass } from "node-opcua-data-model";
 
 // import { HistoryServerCapabilities } from "node-opcua-server";
 
@@ -123,44 +125,6 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
     // xx setBoolean("InsertAnnotationsCapability");
 }
 
-export type AggregateFunctionName =
-    | "AnnotationCount"
-    | "Average"
-    | "Count"
-    | "Delta"
-    | "DeltaBounds"
-    | "DurationBad"
-    | "DurationGood"
-    | "DurationInStateNonZero"
-    | "DurationInStateZero"
-    | "EndBound"
-    | "Interpolative"
-    | "Maximum"
-    | "Maximum2"
-    | "MaximumActualTime"
-    | "MaximumActualTime2"
-    | "Minimum"
-    | "Minimum2"
-    | "MinimumActualTime"
-    | "MinimumActualTime2"
-    | "NumberOfTransitions"
-    | "PercentBad"
-    | "PercentGood"
-    | "Range"
-    | "Range2"
-    | "StandardDeviationPopulation"
-    | "StandardDeviationSample"
-    | "Start"
-    | "StartBound"
-    | "TimeAverage"
-    | "TimeAverage2"
-    | "Total"
-    | "Total2"
-    | "VariancePopulation"
-    | "VarianceSample"
-    | "WorstQuality"
-    | "WorstQuality2";
-
 interface UAHistoryServerCapabilitiesWithH extends UAServerCapabilities {
     historyServerCapabilities: UAHistoryServerCapabilities;
 }
@@ -263,8 +227,48 @@ export function addAggregateSupport(addressSpace: AddressSpace, aggregatedFuncti
 interface BaseNodeWithHistoricalDataConfiguration extends UAVariable {
     $historicalDataConfiguration: UAHistoricalDataConfiguration;
 }
-export function installAggregateConfigurationOptions(node: UAVariable, options: AggregateConfigurationOptionsEx): void {
+
+export function getAggregateFunctions(addressSpace: IAddressSpace): NodeId[] {
+    const aggregateFunctionTypeNodeId = resolveNodeId(ObjectTypeIds.AggregateFunctionType);
+    const aggregateFunctions = addressSpace.findNode(ObjectIds.Server_ServerCapabilities_AggregateFunctions) as UAObject;
+    if (!aggregateFunctions) {
+        return [];
+    }
+    const referenceDescripitions = aggregateFunctions.browseNode({
+        referenceTypeId: ReferenceTypeIds.HierarchicalReferences,
+        resultMask: 63,
+        nodeClassMask: NodeClassMask.Object,
+        browseDirection: BrowseDirection.Forward,
+        includeSubtypes: true
+    });
+    const aggregateFunctionsNodeIds = referenceDescripitions
+        .filter((a) => sameNodeId(a.typeDefinition, aggregateFunctionTypeNodeId))
+        .map((a) => a.nodeId);
+    return aggregateFunctionsNodeIds;
+}
+
+/**
+ * Install aggregateConfiguration on an historizing variable
+ * 
+ * @param node the variable on which to add the aggregateConfiguration.
+ * @param options the default AggregateConfigurationOptions.
+ * @param aggregateFunctions the aggregatedFunctions, if not specified the aggregatedFunction of ServerCapabilities.AggregatedFunction will be used.
+
+ */
+export function installAggregateConfigurationOptions(
+    node: UAVariable,
+    options: AggregateConfigurationOptionsEx,
+    aggregateFunctions?: NodeIdLike[]
+): void {
     const nodePriv = node as BaseNodeWithHistoricalDataConfiguration;
+
+    // istanbul ignore next
+    if (!nodePriv.historizing) {
+        throw new Error(
+            "variable.historizing is not set\n make sure addressSpace.installHistoricalDataNode(variable) has been called"
+        );
+    }
+
     const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
 
     const f = (a: number | boolean | undefined, defaultValue: number | boolean): number | boolean =>
@@ -285,6 +289,32 @@ export function installAggregateConfigurationOptions(node: UAVariable, options: 
         dataType: "Boolean",
         value: f(options.stepped, false)
     });
+    // https://reference.opcfoundation.org/v104/Core/docs/Part13/4.4/
+    // Exposing Supported Functions and Capabilities
+    if (!aggregateFunctions) {
+        aggregateFunctions = getAggregateFunctions(node.addressSpace);
+    }
+
+    let uaAggregateFunctions = nodePriv.$historicalDataConfiguration.aggregateFunctions;
+    if (!uaAggregateFunctions) {
+        const namespace = nodePriv.namespace;
+        uaAggregateFunctions = namespace.addObject({
+            browseName: coerceQualifiedName({ name: "AggregateFunctions", namespaceIndex: 0 }),
+            componentOf: nodePriv.$historicalDataConfiguration
+        });
+        uaAggregateFunctions = nodePriv.$historicalDataConfiguration.aggregateFunctions;
+    }
+    // verify that all aggregateFunctions are of type AggregateFunctionType
+    // ... to do
+
+    const referenceType = resolveNodeId(ReferenceTypeIds.Organizes);
+    for (const nodeId of aggregateFunctions) {
+        uaAggregateFunctions!.addReference({
+            nodeId,
+            referenceType,
+            isForward: true
+        });
+    }
 }
 
 export function getAggregateConfiguration(node: BaseNode): AggregateConfigurationOptionsEx {
