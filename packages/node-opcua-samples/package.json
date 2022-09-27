@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@types/underscore": "^1.11.4",
-        "@types/yargs": "17.0.12",
+        "@types/yargs": "17.0.13",
         "chalk": "4.1.2",
         "easy-table": "^1.2.0",
         "env-paths": "2.2.1",
@@ -31,7 +31,7 @@
         "node-opcua-utils": "2.77.0",
         "sprintf-js": "^1.1.2",
         "treeify": "^1.1.0",
-        "underscore": "^1.13.4",
+        "underscore": "^1.13.6",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",

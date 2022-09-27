@@ -29,7 +29,7 @@
         "node-opcua-types": "2.78.0",
         "node-opcua-utils": "2.77.0",
         "thenify": "^3.3.1",
-        "underscore": "^1.13.4"
+        "underscore": "^1.13.6"
     },
     "devDependencies": {
         "should": "^13.2.3",

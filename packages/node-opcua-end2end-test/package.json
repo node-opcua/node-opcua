@@ -11,7 +11,7 @@
         "@types/underscore": "^1.11.4",
         "async": "^3.2.4",
         "chalk": "4.1.2",
-        "cli-table3": "^0.6.2",
+        "cli-table3": "^0.6.3",
         "cli-truncate": "2.1.0",
         "delayed": "^2.0.0",
         "node-opcua": "2.78.0",
@@ -45,7 +45,7 @@
         "should": "^13.2.3",
         "sinon": "^14.0.0",
         "thenify": "^3.3.1",
-        "underscore": "^1.13.4",
+        "underscore": "^1.13.6",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",
