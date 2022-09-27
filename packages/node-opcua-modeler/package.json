@@ -12,7 +12,7 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "cli-table3": "^0.6.2",
+        "cli-table3": "^0.6.3",
         "csv-parse": "5.3.0",
         "node-opcua-address-space": "2.78.0",
         "node-opcua-assert": "2.77.0",
