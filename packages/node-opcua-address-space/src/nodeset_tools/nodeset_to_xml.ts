@@ -4,6 +4,7 @@
  */
 // produce nodeset xml files
 import { assert } from "node-opcua-assert";
+import { ObjectIds } from "node-opcua-constants";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
@@ -50,9 +51,6 @@ import { SessionContext } from "../index_current";
 import { DefinitionMap2, TypeInfo } from "../../source/loader/make_xml_extension_object_parser";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
 import { constructNamespaceDependency } from "./construct_namespace_dependency";
-import { ObjectIds } from "node-opcua-constants";
-import { string } from "yargs";
-import { mapObject } from "underscore";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
