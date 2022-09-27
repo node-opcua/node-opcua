@@ -301,9 +301,8 @@ export class DataTypeFactory {
     ): void {
         /* istanbul ignore next */
         if (this._structureInfoByName.has(typeName)) {
-            warningLog(this.getStructureInfoByTypeName(typeName));
             warningLog("target namespace = `" + this.targetNamespace + "`");
-            warningLog(" registerFactory  : " + typeName + " already registered. dataTypeNodeId=", dataTypeNodeId.toString());
+            warningLog("registerFactory  : " + typeName + " already registered. dataTypeNodeId=", dataTypeNodeId.toString());
             return;
         }
         debugLog("registering typeName ", typeName, dataTypeNodeId.toString(), "isAbstract ", schema.isAbstract);

@@ -224,6 +224,8 @@ export class NamespaceImpl implements NamespacePrivate {
     public version = "0.0.0";
     public publicationDate: Date = new Date(Date.UTC(1900, 0, 1));
 
+    public registerSymbolicNames = false;
+
     private _objectTypeMap: Map<string, UAObjectType>;
     private _variableTypeMap: Map<string, UAVariableType>;
     private _referenceTypeMap: Map<string, UAReferenceType>;
@@ -299,27 +301,27 @@ export class NamespaceImpl implements NamespacePrivate {
     public _variableTypeIterator(): IterableIterator<UAVariableType> {
         return this._variableTypeMap.values();
     }
-    
+
     public _variableTypeCount(): number {
         return this._variableTypeMap.size;
     }
-    
+
     public _dataTypeIterator(): IterableIterator<UADataType> {
         return this._dataTypeMap.values();
     }
-    
+
     public _dataTypeCount(): number {
         return this._dataTypeMap.size;
     }
-    
+
     public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
         return this._referenceTypeMap.values();
     }
-    
+
     public _referenceTypeCount(): number {
         return this._referenceTypeMap.size;
     }
-    
+
     public _aliasCount(): number {
         return this._aliases.size;
     }
@@ -1637,7 +1639,10 @@ export class NamespaceImpl implements NamespacePrivate {
 
     // --- internal stuff
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
-        return this._nodeIdManager.constructNodeId(options);
+        return this._nodeIdManager.constructNodeId({
+            registerSymbolicNames: this.registerSymbolicNames,
+            ...options
+        });
     }
 
     public _register(node: BaseNode): void {
@@ -1953,6 +1958,14 @@ export class NamespaceImpl implements NamespacePrivate {
         }
         // ------------------------------------------ TypeDefinition
         let typeDefinition = options.typeDefinition || baseDataVariableTypeId;
+        if (typeDefinition instanceof BaseNodeImpl) {
+            // istanbul ignore next
+            if (typeDefinition.nodeClass !== NodeClass.VariableType) {
+                const message = `invalid typeDefinition expecting a VariableType got ${NodeClass[typeDefinition.nodeClass]}`;
+                errorLog(message);
+                throw new Error(message);
+            }
+        }
         typeDefinition = addressSpace._coerce_VariableTypeIds(typeDefinition);
         assert(typeDefinition instanceof NodeId);
 

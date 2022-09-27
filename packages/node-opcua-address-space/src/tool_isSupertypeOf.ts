@@ -10,6 +10,7 @@ import { BaseNode, UADataType, UAObjectType, UAReference, UAReferenceType, UAVar
 import { BaseNode_getCache } from "./base_node_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl } from "./base_node_impl";
+import { NodeClass } from "node-opcua-data-model";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
@@ -96,8 +97,19 @@ export type UAType = UAReferenceType | UADataType | UAObjectType | UAVariableTyp
 
 export function construct_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSupertypeOfFunc<T> {
     return wrap_memoize(function (this: T, baseType: T | NodeIdLike): boolean {
-        assert(baseType instanceof Class);
-        assert(this instanceof Class);
+        if (!(baseType instanceof Class)) {
+            throw new Error(
+                "expecting baseType to be " +
+                    Class.name +
+                    " but got " +
+                    baseType.constructor.name +
+                    " " +
+                    NodeClass[(baseType as BaseNode).nodeClass]
+            );
+        }
+        if (!(this instanceof Class)) {
+            throw new Error("expecting this to be " + Class.name + " but got " + baseType.constructor.name);
+        }
         return _slow_isSupertypeOf.call(this, Class, baseType as T);
     }, hashBaseNode);
 }

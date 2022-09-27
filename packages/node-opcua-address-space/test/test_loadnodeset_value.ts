@@ -147,14 +147,14 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Field Name="Blue" Value="300"/>
         </Definition>
     </UADataType>
-    <UAVariable NodeId="ns=1;i=6001" BrowseName="EnumValues" ValueRank="1" ArrayDimensions="3" DataType="EnumValueType">
+    <UAVariable NodeId="ns=1;i=6001" BrowseName="EnumValues" ParentNodeId="ns=1;i=3002" ValueRank="1" ArrayDimensions="3" DataType="EnumValueType">
         <DisplayName>EnumValues</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
         </References>
         <Value>
-            <ListOfExtensionObject>
+            <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <ExtensionObject>
                     <TypeId>
                         <Identifier>i=7616</Identifier>
@@ -219,6 +219,15 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Field Name="F2" ArrayDimensions="0" ValueRank="1" DataType="ns=1;i=3002"/>
         </Definition>
     </UADataType>
+    <UAVariable NodeId="ns=1;i=6006" BrowseName="1:MyStructType" DataType="String">
+        <DisplayName>MyStructType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+        </References>
+        <Value>
+            <uax:String>MyStructDataType</uax:String>
+        </Value>
+    </UAVariable>
     <UAObject NodeId="ns=1;i=5001" BrowseName="Default Binary" SymbolicName="DefaultBinary">
         <DisplayName>Default Binary</DisplayName>
         <References>
@@ -276,7 +285,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Field Name="Reverse" Value="1"/>
         </Definition>
     </UADataType>
-    <UAVariable NodeId="ns=1;i=1250" BrowseName="EnumStrings" ValueRank="1" ArrayDimensions="2" DataType="LocalizedText">
+    <UAVariable NodeId="ns=1;i=1250" BrowseName="EnumStrings" ParentNodeId="ns=1;i=49" ValueRank="1" ArrayDimensions="2" DataType="LocalizedText">
         <DisplayName>EnumStrings</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -311,7 +320,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=39</Reference>
         </References>
     </UAObjectType>
-    <UAVariable NodeId="ns=1;i=1522" BrowseName="1:FlowDirection" DataType="1:FlowDirection">
+    <UAVariable NodeId="ns=1;i=1522" BrowseName="1:FlowDirection" ParentNodeId="ns=1;i=40" DataType="1:FlowDirection">
         <DisplayName>FlowDirection</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -329,7 +338,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasComponent">ns=1;i=1194</Reference>
         </References>
         <Value>
-            <ExtensionObject>
+            <ExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <TypeId>
                     <Identifier>ns=1;i=182</Identifier>
                 </TypeId>
@@ -345,14 +354,14 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             </ExtensionObject>
         </Value>
     </UAVariableType>
-    <UAVariable NodeId="ns=1;i=11333" BrowseName="1:Url" DataType="String">
+    <UAVariable NodeId="ns=1;i=11333" BrowseName="1:Url" ParentNodeId="ns=1;i=42" DataType="String">
         <DisplayName>Url</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
         </References>
     </UAVariable>
-    <UAVariable NodeId="ns=1;i=1194" BrowseName="1:Certificates" AccessLevel="3" ValueRank="1" DataType="ByteString">
+    <UAVariable NodeId="ns=1;i=1194" BrowseName="1:Certificates" ParentNodeId="ns=1;i=42" AccessLevel="3" ValueRank="1" DataType="ByteString">
         <DisplayName>Certificates</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -366,16 +375,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
         </References>
         <Value>
-            <String>ConnectionDetails</String>
-        </Value>
-    </UAVariable>
-    <UAVariable NodeId="ns=1;i=6006" BrowseName="1:MyStructType" DataType="String">
-        <DisplayName>MyStructType</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
-        </References>
-        <Value>
-            <String>MyStructDataType</String>
+            <uax:String>ConnectionDetails</uax:String>
         </Value>
     </UAVariable>
     <UAVariable NodeId="ns=1;i=6009" BrowseName="1:TestVar" AccessLevel="3" DataType="1:MyStructDataType">
@@ -385,7 +385,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
         </References>
         <Value>
-            <ExtensionObject>
+            <ExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <TypeId>
                     <Identifier>ns=1;i=5002</Identifier>
                 </TypeId>
@@ -477,7 +477,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
         </References>
         <Value>
-            <ExtensionObject>
+            <ExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <TypeId>
                     <Identifier>ns=2;i=5012</Identifier>
                 </TypeId>
@@ -543,7 +543,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     });
 
     it("LNEX7- should load nodeset with extension objects and Int64/UInt64 elements", async () => {
-        const doDebug = false;
+        const doDebug = true;
 
         const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_int64_values.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);

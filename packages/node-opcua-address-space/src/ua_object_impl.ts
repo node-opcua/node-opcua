@@ -30,10 +30,13 @@ import {
     defaultCloneExtraInfo,
     EventNotifierFlags
 } from "node-opcua-address-space-base";
+import { make_errorLog } from "node-opcua-debug";
 
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
+
+const errorLog = make_errorLog(__filename);
 
 export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     private _eventNotifier: EventNotifierFlags;
@@ -44,6 +47,14 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     public readonly symbolicName: string | null;
 
     get typeDefinitionObj(): UAObjectType {
+        // istanbul ignore next
+        if (super.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
+            const msg = `Invalid type definition node class , expecting a ObjectType got ${
+                NodeClass[super.typeDefinitionObj.nodeClass]
+            }\n${this.browseName.toString()} ${this.nodeId.toString()}`;
+            errorLog(msg);
+            throw new Error(msg);
+        }
         return super.typeDefinitionObj as UAObjectType;
     }
 
@@ -155,7 +166,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         // coerce EventType
         eventTypeNode = addressSpace.findEventType(eventType as UAEventType) as UAEventType;
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
-   
+
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = data.sourceNode || { dataType: DataType.NodeId, value: this.nodeId };
 

@@ -33,6 +33,8 @@ export interface NamespacePrivate extends INamespace {
     internalCreateNode(options: CreateNodeOptions): BaseNode;
 
     _dataTypeIterator(): IterableIterator<UADataType>;
+
+    registerSymbolicNames: boolean;
 }
 
 export declare const NamespacePrivate: new (options: any) => NamespacePrivate;

@@ -336,7 +336,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             </Field>
         </Definition>
     </UADataType>
-    <UAVariable NodeId="ns=1;i=6450" BrowseName="EnumStrings" ValueRank="1" DataType="LocalizedText">
+    <UAVariable NodeId="ns=1;i=6450" BrowseName="EnumStrings" ParentNodeId="ns=1;i=6244" ValueRank="1" DataType="LocalizedText">
         <DisplayName>EnumStrings</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
