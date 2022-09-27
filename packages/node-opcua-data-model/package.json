@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-data-model",
-    "version": "2.77.0",
+    "version": "2.78.0",
     "description": "pure nodejs OPCUA SDK - module -data-model",
     "scripts": {
         "build": "tsc -b",
@@ -17,12 +17,12 @@
         "node-opcua-basic-types": "2.77.0",
         "node-opcua-binary-stream": "2.77.0",
         "node-opcua-enum": "2.77.0",
-        "node-opcua-factory": "2.77.0",
+        "node-opcua-factory": "2.78.0",
         "node-opcua-nodeid": "2.77.0",
         "node-opcua-status-code": "2.77.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.77.0",
+        "node-opcua-packet-analyzer": "2.78.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

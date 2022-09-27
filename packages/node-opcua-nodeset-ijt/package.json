@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ijt",
-    "version": "2.77.0",
+    "version": "2.78.0",
     "description": "",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,14 +10,14 @@
     "author": "etienne.rossignon@sterfive.com",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.77.0",
+        "node-opcua-address-space-base": "2.78.0",
         "node-opcua-basic-types": "2.77.0",
-        "node-opcua-data-access": "2.77.0",
-        "node-opcua-data-model": "2.77.0",
-        "node-opcua-extension-object": "2.77.0",
+        "node-opcua-data-access": "2.78.0",
+        "node-opcua-data-model": "2.78.0",
+        "node-opcua-extension-object": "2.78.0",
         "node-opcua-nodeid": "2.77.0",
-        "node-opcua-nodeset-machinery": "2.77.0",
-        "node-opcua-nodeset-ua": "2.77.0",
-        "node-opcua-variant": "2.77.0"
+        "node-opcua-nodeset-machinery": "2.78.0",
+        "node-opcua-nodeset-ua": "2.78.0",
+        "node-opcua-variant": "2.78.0"
     }
 }
