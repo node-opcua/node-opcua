@@ -69,3 +69,4 @@ export * from "./set_namespace_meta_data";
 
 export * from "node-opcua-address-space-base";
 export * from "node-opcua-nodeset-ua";
+export * from "../src/nodeset_tools/construct_namespace_dependency";

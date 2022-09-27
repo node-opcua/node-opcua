@@ -426,6 +426,35 @@
         </References>
         <InverseName>MayBeEffectedBy</InverseName>
     </UAReferenceType>
+
+    <UADataType NodeId="i=95" BrowseName="AccessRestrictionType">
+        <DisplayName>AccessRestrictionType</DisplayName>
+        <References>
+          <Reference ReferenceType="HasProperty">i=15035</Reference>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=5</Reference>
+        </References>
+        <Definition Name="AccessRestrictionType" IsOptionSet="true">
+          <Field Name="SigningRequired" Value="0" />
+          <Field Name="EncryptionRequired" Value="1" />
+          <Field Name="SessionRequired" Value="2" />
+          <Field Name="ApplyRestrictionsToBrowse" Value="3" />
+        </Definition>
+      </UADataType>
+
+      
+    <UADataType NodeId="i=96" BrowseName="RolePermissionType">
+        <DisplayName>RolePermissionType</DisplayName>
+        <Documentation>https://reference.opcfoundation.org/v104/Core/docs/Part3/5.2.9</Documentation>
+        <References>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="RolePermissionType">
+          <Field Name="RoleId" DataType="i=17" />
+          <Field Name="Permissions" DataType="i=94" />
+        </Definition>
+      </UADataType>
+
+      
     <UAReferenceType NodeId="i=117" BrowseName="HasSubStateMachine">
         <DisplayName>HasSubStateMachine</DisplayName>
         <Description>The type for a reference to a substate for a state.</Description>

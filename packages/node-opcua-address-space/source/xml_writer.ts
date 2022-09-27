@@ -2,6 +2,7 @@ export interface XmlWriter {
     translationTable: any;
     visitedNode: any;
 
+    startDocument(options: { encoding: string; version: string }): void;
     startElement(elementName: string): this;
 
     endElement(): this;
@@ -11,4 +12,6 @@ export interface XmlWriter {
     writeComment(comment: string): this;
 
     text(str: string): this;
+
+    endDocument(): void;
 }

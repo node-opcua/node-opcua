@@ -33,7 +33,7 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: s
         throw new Error("Cannot find Node for" + nodeId?.toString());
     }
     const typeName = node.browseName.name!;
-    const prefix = node.nodeId.namespace === 0 ? (node.nodeId.value <= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
+    const prefix = node.nodeId.namespace === 0 ? (node.nodeId.value<= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
     return prefix + ":" + (typeName === "Structure" && prefix === "ua" ? "ExtensionObject" : typeName);
 }
 
@@ -43,7 +43,7 @@ function dumpDataTypeStructure(
     addressSpace: IAddressSpace,
     map: { [key: number]: string },
     structureDefinition: StructureDefinition,
-    structureDefinitionBase: StructureDefinition | undefined| null,
+    structureDefinitionBase: StructureDefinition | undefined | null,
     name: string,
     doc?: string
 ): void {
@@ -59,11 +59,11 @@ function dumpDataTypeStructure(
 
     const fields = structureDefinition.fields || [];
     // get base class
-    const nbFieldsInBase = structureDefinitionBase? structureDefinitionBase.fields?.length || 0 : 0;
+    const nbFieldsInBase = structureDefinitionBase ? structureDefinitionBase.fields?.length || 0 : 0;
 
     let optionalsCount = 0;
-    for (let index = nbFieldsInBase; index < fields.length; index ++) {
-        const f=  fields [index];
+    for (let index = nbFieldsInBase; index < fields.length; index++) {
+        const f = fields[index];
         if (f.isOptional) {
             xw.startElement("opc:Field");
             xw.writeAttribute("Name", f.name + "Specified");
@@ -96,9 +96,9 @@ function dumpDataTypeStructure(
             xw.endElement();
         }
     }
-    for (let index = nbFieldsInBase; index < fields.length; index ++) {
-        const f=  fields [index];
-   
+    for (let index = nbFieldsInBase; index < fields.length; index++) {
+        const f = fields[index];
+
         const isArray = f.valueRank > 0 && f.arrayDimensions?.length;
 
         if (isArray) {
@@ -145,27 +145,29 @@ function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: num
 function shortcut(namespace: INamespace) {
     return "n" + namespace.index;
 }
-export function dumpToBSD(namespace: NamespacePrivate): void {
+export function dumpToBSD(namespace: NamespacePrivate): string {
     const dependency: INamespace[] = constructNamespaceDependency(namespace);
 
     const addressSpace = namespace.addressSpace;
 
-    const xw = new XMLWriter(true);
+    const xw: XmlWriter = new XMLWriter(true);
 
-    xw.startDocument({ encoding: "utf-8", version: "1.0" });
+    //xx xw.startDocument():// { encoding: "utf-8", version: "1.0" });
 
     xw.startElement("opc:TypeDictionary");
 
     xw.writeAttribute("xmlns:opc", "http://opcfoundation.org/BinarySchema/");
     xw.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
     xw.writeAttribute("xmlns:ua", "http://opcfoundation.org/UA/");
+    xw.writeAttribute("xmlns:tns", namespace.namespaceUri);
 
     const map: { [key: number]: string } = {};
+    
+    map[namespace.index] = "tns";
 
     for (const dependantNamespace of dependency) {
         const namespaceIndex = dependantNamespace.index;
-        if (namespaceIndex === 0) {
-            //|| namespaceIndex === namespace.index) {
+        if (namespaceIndex === 0 || namespaceIndex === namespace.index) {
             continue;
         }
         const ns = shortcut(dependantNamespace);
@@ -176,11 +178,19 @@ export function dumpToBSD(namespace: NamespacePrivate): void {
     xw.writeAttribute("DefaultByteOrder", "LittleEndian");
     xw.writeAttribute("TargetNamespace", namespace.namespaceUri);
 
+    // <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+    for (const dependantNamespace of dependency) {
+        if (dependantNamespace.index === namespace.index) {
+            continue;
+        }
+        xw.startElement("opc:Import").writeAttribute("Namespace", dependantNamespace.namespaceUri).endElement();
+    }
+    //
     for (const dataType of namespace._dataTypeIterator()) {
         dumpDataTypeToBSD(xw, dataType, map);
     }
     xw.endElement();
-    xw.endDocument();
+//    xw.endDocument();
 
     return xw.toString();
 }

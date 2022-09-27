@@ -13,6 +13,8 @@ export * from "../source/helpers/ensure_secure_access";
 export * from "../source/helpers/resolve_opaque_on_address_space";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 
+export * from "../src/nodeset_tools/construct_namespace_dependency";
+
 
 export * from "../source/set_namespace_meta_data";
 export * from "../source/namespace";
@@ -34,7 +36,7 @@ export * from "./event_data";
 
 export { NamespaceOptions } from "./nodeid_manager";
 export { dumpXml } from "./nodeset_tools/nodeset_to_xml";
-export { dumpToBSD } from "./nodeset_tools/typedictionary_to_xml";
+export { dumpToBSD } from "./nodeset_tools/dump_to_bsd";
 export { adjustNamespaceArray } from "./nodeset_tools/adjust_namespace_array";
 export { makeAttributeEventName } from "./base_node_impl";
 export { resolveReferenceNode, resolveReferenceType } from "./reference_impl";

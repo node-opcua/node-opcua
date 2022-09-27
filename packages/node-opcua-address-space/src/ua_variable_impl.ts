@@ -310,6 +310,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     public __waiting_callbacks?: any[];
 
     get typeDefinitionObj(): UAVariableType {
+        // istanbul ignore next
+        if (super.typeDefinitionObj && super.typeDefinitionObj.nodeClass !== NodeClass.VariableType) {
+            throw new Error(
+                "Invalid type definition node class , expecting a VariableType got " + NodeClass[super.typeDefinitionObj.nodeClass]
+            );
+        }
         return super.typeDefinitionObj as UAVariableType;
     }
     get typeDefinition(): NodeId {

@@ -157,8 +157,8 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
-        str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">/);
-        str.should.match(/<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" MethodDeclarationId="ns=1;i=1001"/);
+        str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger" ParentNodeId="ns=1;i=1000">/);
+        str.should.match(/<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" ParentNodeId="ns=1;i=[0-9]+" MethodDeclarationId="ns=1;i=1001"/);
     });
 
     it("KLKL8 should output an instance of variable type to xml", () => {
@@ -234,6 +234,11 @@ describe("testing nodeset to xml", () => {
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="Organizes">i=35</Alias>
     </Aliases>
+    <Extensions>
+        <Extension>
+            <ModelInfo/>
+        </Extension>
+    </Extensions>
 <!--Object - 1:Object {{{{ -->
     <UAObject NodeId="ns=1;i=1000" BrowseName="1:Object">
         <DisplayName>Object</DisplayName>
@@ -243,7 +248,7 @@ describe("testing nodeset to xml", () => {
             <Reference ReferenceType="HasComponent">ns=1;i=1001</Reference>
         </References>
     </UAObject>
-    <UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">
+    <UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger" ParentNodeId="ns=1;i=1000">
         <DisplayName>Trigger</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
@@ -251,7 +256,7 @@ describe("testing nodeset to xml", () => {
             <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
         </References>
     </UAMethod>
-    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
+    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ParentNodeId="ns=1;i=1001" ValueRank="1" ArrayDimensions="1" DataType="Argument">
         <DisplayName>InputArguments</DisplayName>
         <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
         <References>
@@ -281,7 +286,7 @@ describe("testing nodeset to xml", () => {
             </ListOfExtensionObject>
         </Value>
     </UAVariable>
-    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
+    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ParentNodeId="ns=1;i=1001" ValueRank="1" ArrayDimensions="1" DataType="Argument">
         <DisplayName>OutputArguments</DisplayName>
         <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
         <References>

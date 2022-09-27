@@ -48,7 +48,8 @@ describe("NodeIdManager", () => {
         const options: ConstructNodeIdOptions = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
-            nodeId: "s=Hello"
+            nodeId: "s=Hello",
+            registerSymbolicNames: true
         };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;s=Hello");
@@ -58,7 +59,8 @@ describe("NodeIdManager", () => {
         const options: ConstructNodeIdOptions = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
-            nodeId: "ns=1;s=MyBoiler"
+            nodeId: "ns=1;s=MyBoiler",
+            registerSymbolicNames: true
         };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;s=MyBoiler");
@@ -68,7 +70,8 @@ describe("NodeIdManager", () => {
         const options: ConstructNodeIdOptions = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
-            nodeId: "i=123"
+            nodeId: "i=123",
+            registerSymbolicNames: true
         };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=123");
@@ -78,7 +81,8 @@ describe("NodeIdManager", () => {
         const options = {
             nodeId: "CloseSecureChannelRequest_Encoding_DefaultXml",
             nodeClass: NodeClass.Object,
-            browseName: coerceQualifiedName("a")
+            browseName: coerceQualifiedName("a"),
+            registerSymbolicNames: true
         };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=1000");
@@ -94,7 +98,8 @@ describe("NodeIdManager", () => {
         const options = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
-            nodeId: "SomeName"
+            nodeId: "SomeName",
+            registerSymbolicNames: true
         };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=10001");
@@ -105,7 +110,8 @@ describe("NodeIdManager", () => {
         const options = {
             browseName: coerceQualifiedName("AAA"),
             nodeClass: NodeClass.Variable,
-            nodeId: "SomeName_SomeProp"
+            nodeId: "SomeName_SomeProp",
+            registerSymbolicNames: true
         };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=1000");
@@ -123,7 +129,11 @@ describe("NodeIdManager", () => {
             return [resolveNodeId(1000), ""];
         };
 
-        const options = { browseName: coerceQualifiedName("Property1"), nodeClass: NodeClass.Variable };
+        const options = {
+            browseName: coerceQualifiedName("Property1"),
+            nodeClass: NodeClass.Variable,
+            registerSymbolicNames: true
+        };
         const nodeId1 = nodeIdManager.constructNodeId(options);
         nodeId1.toString().should.eql("ns=1;i=1001");
         nodeIdManager.getSymbolCSV().should.eql(`SomeName;1000;Object\nSomeName_Property1;1001;Variable`);
@@ -131,7 +141,8 @@ describe("NodeIdManager", () => {
         const options2 = {
             browseName: coerceQualifiedName("Property1"),
             nodeClass: NodeClass.Variable,
-            nodeId: "SomeName_Property1"
+            nodeId: "SomeName_Property1",
+            registerSymbolicNames: true
         };
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");
@@ -143,7 +154,8 @@ describe("NodeIdManager", () => {
         const options1 = {
             browseName: coerceQualifiedName("MyNewDataType"),
             nodeClass: NodeClass.ObjectType,
-            references: []
+            references: [],
+            registerSymbolicNames: true
         };
 
         const nodeId1 = nodeIdManager.constructNodeId(options1);
@@ -154,7 +166,8 @@ describe("NodeIdManager", () => {
 
         const options2 = {
             browseName: coerceQualifiedName("Property1"),
-            nodeClass: NodeClass.Variable
+            nodeClass: NodeClass.Variable,
+            registerSymbolicNames: true
         };
         const nodeId2 = nodeIdManager.constructNodeId(options2);
         nodeId2.toString().should.eql("ns=1;i=1001");

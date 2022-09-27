@@ -1,3 +1,5 @@
+/* eslint-disable max-depth */
+/* eslint-disable max-statements */
 import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -50,6 +52,7 @@ export interface ConstructNodeIdOptions {
     browseName: QualifiedName;
     nodeClass: NodeClass;
     references?: UAReference[];
+    registerSymbolicNames?: boolean;
 }
 export type NodeEntry = [string, number, NodeClass];
 export type NodeEntry1 = [string, number, string /*"Object" | "Variable" etc...*/];
@@ -116,7 +119,6 @@ export class NodeIdManager {
 
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
         function prepareName(browseName: QualifiedName): string {
-            assert(browseName instanceof QualifiedName);
             const m = browseName.name!.toString().replace(/[ ]/g, "").replace(/(<|>)/g, "");
             return m;
         }
@@ -124,10 +126,7 @@ export class NodeIdManager {
         const nodeClass = options.nodeClass;
 
         if (!nodeId) {
-            //    console.log("xx constructNodeId", options.browseName.toString());
-
             const parentInfo = this.findParentNodeId(options);
-
             if (parentInfo) {
                 const [parentNodeId, linkName] = parentInfo;
                 const name = prepareName(options.browseName);
@@ -147,6 +146,16 @@ export class NodeIdManager {
                             return new NodeId(NodeIdType.NUMERIC, nodeIdValueInCache, this.namespaceIndex);
                         } else {
                             return this._getOrCreateFromName(newName, nodeClass);
+                        }
+                    } else {
+                        if (options.registerSymbolicNames) {
+                            const newName = name;
+                            const nodeIdValueInCache = this._cache[newName];
+                            if (nodeIdValueInCache) {
+                                return new NodeId(NodeIdType.NUMERIC, nodeIdValueInCache, this.namespaceIndex);
+                            } else {
+                                return this._getOrCreateFromName(newName, nodeClass);
+                            }
                         }
                     }
                 }
