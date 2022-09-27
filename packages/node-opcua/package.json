@@ -13,6 +13,7 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
+        "@types/semver": "^7.3.12",
         "node-opcua-address-space": "2.78.0",
         "node-opcua-address-space-for-conformance-testing": "2.78.0",
         "node-opcua-aggregates": "2.78.0",

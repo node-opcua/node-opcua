@@ -226,6 +226,7 @@ importers:
 
   packages/node-opcua:
     specifiers:
+      '@types/semver': ^7.3.12
       chalk: 4.1.2
       node-opcua-address-space: 2.78.0
       node-opcua-address-space-for-conformance-testing: 2.78.0
@@ -278,6 +279,7 @@ importers:
       semver: ^7.3.7
       should: ^13.2.3
     dependencies:
+      '@types/semver': 7.3.12
       chalk: 4.1.2
       node-opcua-address-space: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing: link:../node-opcua-address-space-for-conformance-testing
@@ -385,6 +387,7 @@ importers:
       xml-writer: ^1.7.0
     dependencies:
       '@types/lodash': 4.14.185
+      '@types/semver': 7.3.12
       async: 3.2.4
       chalk: 4.1.2
       dequeue: 1.0.5
@@ -424,7 +427,6 @@ importers:
       thenify: 3.3.1
       xml-writer: 1.7.0
     devDependencies:
-      '@types/semver': 7.3.12
       mocha: 10.0.0
       node-opcua-benchmarker: link:../node-opcua-benchmarker
       node-opcua-leak-detector: link:../node-opcua-leak-detector
@@ -4433,7 +4435,7 @@ packages:
 
   /@types/semver/7.3.12:
     resolution: {integrity: sha512-WwA1MW0++RfXmCr12xeYOOC5baSC9mSb0ZqCquFzKhcoF4TvHu5MKOuXsncgZcpVFhB1pXd5hZmM0ryAoCp12A==}
-    dev: true
+    dev: false
 
   /@types/sinon/10.0.13:
     resolution: {integrity: sha512-UVjDqJblVNQYvVNUsj0PuYYw0ELRmgt1Nt5Vk0pT5f16ROGfcKJY8o1HVuMOJOpD727RrGB9EGvoaTQE5tgxZQ==}
