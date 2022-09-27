@@ -870,6 +870,14 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                         assert(self.extensionObject instanceof ExtensionObject);
                         break;
                     default: {
+                        // istanbul ignore next
+                        if (! this._cloneFragment) {
+                            // the XML file is probably not exposing standard UA extension object correctly.
+                            // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding
+                            // nodeid 
+                            errorLog("[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId", self.typeDefinitionId.toString());
+                            break;
+                        }
                         this.bodyXML = this._cloneFragment!.value;
                         this._cloneFragment!.value = null;
 
