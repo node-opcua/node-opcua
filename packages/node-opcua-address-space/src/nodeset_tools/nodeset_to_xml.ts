@@ -4,7 +4,7 @@
  */
 // produce nodeset xml files
 import { assert } from "node-opcua-assert";
-import { ObjectIds } from "node-opcua-constants";
+import { ObjectIds, VariableIds } from "node-opcua-constants";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import {
@@ -16,7 +16,7 @@ import {
     makeAccessLevelFlag,
     QualifiedName
 } from "node-opcua-data-model";
-import { NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { ExpandedNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { Variant, VariantArrayType, DataType } from "node-opcua-variant";
 import {
@@ -99,10 +99,8 @@ function b(xw: XmlWriter, browseName: QualifiedName): string {
 }
 
 function _dumpReverseReferences(xw: XmlWriter, node: BaseNode) {
-    
     const addressSpace = node.addressSpace;
     const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype")!;
-
 }
 function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     xw.startElement("References");
@@ -217,15 +215,29 @@ function _dumpXmlElement(xw: XmlWriter, v: string) {
 </uax:ExtensionObject>
 */
 type XmlNamespaceUri = string;
+type NamespaceUri = string;
 type XmlNs = string;
 interface XmlWriterEx extends XmlWriter {
     map: Record<XmlNamespaceUri, XmlNs>;
     stackMap: Record<XmlNamespaceUri, XmlNs>[];
+    namespaceArray: NamespaceUri[];
 }
-function initXmlWriterEx(xw: XmlWriter, map: Record<XmlNamespaceUri, XmlNs>): void {
+function initXmlWriterEx(xw: XmlWriter, map: Record<XmlNamespaceUri, XmlNs>, namespaceArray: NamespaceUri[]): void {
     const xwe = xw as XmlWriterEx;
     xwe.map = map;
     xwe.stackMap = [];
+    xwe.namespaceArray = namespaceArray;
+}
+function findXsdNamespaceUri(xw: XmlWriter, nodeId: NodeId): string {
+    const xwe = xw as XmlWriterEx;
+    if (!xwe.namespaceArray) {
+        return "";
+    }
+    const namespace = xwe.namespaceArray[nodeId.namespace];
+    if (namespace === "http://opcfoundation.org/UA/") {
+        return "http://opcfoundation.org/UA/2008/02/Types.xsd";
+    }
+    return namespace.replace(/\/$/, "") + "/Types.xsd";
 }
 
 function getPrefix(xw: XmlWriter, namespace: XmlNamespaceUri): XmlNs {
@@ -290,6 +302,9 @@ function _dumpVariantInnerExtensionObject(
     definition: StructureDefinition,
     value: ExtensionObject
 ) {
+    const namespaceUri = findXsdNamespaceUri(xw, definition.defaultEncodingId);
+    const ns = getPrefix(xw, namespaceUri);
+
     for (const field of definition.fields || []) {
         const dataTypeNodeId = field.dataType;
 
@@ -305,8 +320,11 @@ function _dumpVariantInnerExtensionObject(
                 // to do ?? shall we do a extension Object here ?
                 continue; // ns=0;i=0 is reserved
             }
+
             const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
-            xw.startElement(fieldName);
+
+            startElementEx(xw, ns, fieldName, namespaceUri);
+            //  xw.startElement(fieldName);
 
             let fun: (value: any) => void = (value: any) => {
                 /** */
@@ -339,6 +357,7 @@ function _dumpVariantInnerExtensionObject(
                 console.log(field);
                 // throw err;
             }
+            restoreDefaultNamespace(xw);
             xw.endElement();
         }
     }
@@ -443,10 +462,13 @@ function _dumpVariantExtensionObjectValue_Body(
     value: any
 ) {
     if (value) {
-        xw.startElement(name);
+        const namespaceUri = findXsdNamespaceUri(xw, definition.defaultEncodingId);
+        const ns = getPrefix(xw, namespaceUri);
+        startElementEx(xw, ns, `${name}`, namespaceUri);
         if (value) {
             _dumpVariantInnerExtensionObject(xw, definitionMap, definition, value);
         }
+        restoreDefaultNamespace(xw);
         xw.endElement();
     }
 }
@@ -877,7 +899,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
 
         const dataValue = uaDataType.readAttribute(SessionContext.defaultContext, AttributeIds.DataTypeDefinition);
 
-        if (dataValue.statusCode === StatusCodes.Good) {
+        if (true || dataValue.statusCode === StatusCodes.Good) {
             const definition = uaDataType.getStructureDefinition();
             const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
             xw.startElement("Definition");
@@ -1332,10 +1354,19 @@ UADataTypeImpl.prototype.dumpXML = function (xw: XmlWriter) {
     dumpUADataType(xw, this);
 };
 
+function makeTypeXsd(namespaceUri: string): string {
+    return namespaceUri.replace(/\/$/, "") + "/Type.xsd";
+}
+
 // eslint-disable-next-line max-statements
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const dependency = constructNamespaceDependency(this);
     const translationTable = constructNamespaceTranslationTable(dependency);
+
+    const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
+    const namespaceArray: string[] = namespaceArrayNode
+        ? namespaceArrayNode.readAttribute(null, AttributeIds.Value).value.value
+        : [];
 
     const xw = new XMLWriter(true);
     xw.translationTable = translationTable;
@@ -1346,17 +1377,30 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.writeAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
     xw.writeAttribute("xmlns:uax", "http://opcfoundation.org/UA/2008/02/Types.xsd");
     xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd");
+
+    const namespacesMap: Record<string, string> = {
+        "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd": "",
+        "http://opcfoundation.org/UA/2008/02/Types.xsd": "uax",
+        "http://www.w3.org/2001/XMLSchema-instance": "xsi"
+    };
+
+    for (const namespace of dependency) {
+        if (namespace.index === 0) {
+            continue;
+        }
+        const translatedIndex = translationTable[namespace.index];
+
+        const smallName = `ns${translatedIndex}`;
+        xw.writeAttribute(`xmlns:${smallName}`, makeTypeXsd(namespace.namespaceUri));
+        namespacesMap[namespace.namespaceUri] = smallName;
+    }
     // xx xw.writeAttribute("Version", "1.02");
     // xx xw.writeAttribute("LastModified", (new Date()).toISOString());
 
     // ------------- INamespace Uris
     xw.startElement("NamespaceUris");
 
-    initXmlWriterEx(xw, {
-        "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd": "",
-        "http://opcfoundation.org/UA/2008/02/Types.xsd": "uax",
-        "http://www.w3.org/2001/XMLSchema-instance": "xsi"
-    });
+    initXmlWriterEx(xw, namespacesMap, namespaceArray);
 
     // xx const namespaceArray = namespace.addressSpace.getNamespaceArray();
     for (const depend of dependency) {

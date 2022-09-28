@@ -22,7 +22,7 @@ describe("AddressSpace : Conditions 1", function (this: any) {
 
     let addressSpace: AddressSpace;
 
-    this.timeout(Math.max(this.timeout(), 10000));
+    this.timeout(Math.max(this.timeout(), 50000));
 
     let source;
     before(async () => {
