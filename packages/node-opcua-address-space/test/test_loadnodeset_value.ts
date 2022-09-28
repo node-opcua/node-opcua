@@ -107,7 +107,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
         // prettier-ignore
         x(xml).should.eql(x(`<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://sterfive.com/Small_model/Type.xsd">
     <NamespaceUris>
         <Uri>http://sterfive.com/Small_model/</Uri>
     </NamespaceUris>
@@ -343,7 +343,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                     <Identifier>ns=1;i=182</Identifier>
                 </TypeId>
                 <Body>
-                    <ConnectionDetails>
+                    <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
                         <Certificates>
                             <ByteString>SGVsbG8=</ByteString>
                             <ByteString>V29ybGQ=</ByteString>
@@ -390,7 +390,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                     <Identifier>ns=1;i=5002</Identifier>
                 </TypeId>
                 <Body>
-                    <MyStructDataType>
+                    <MyStructDataType xmlns="http://sterfive.com/Small_model/Types.xsd">
                         <F1>Orange_200</F1>
                         <F2>
                             <MyEnum>Green_100</MyEnum>
@@ -450,7 +450,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
         // prettier-ignore
         x(xml).should.eql(x(`<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="MyNamespace/Type.xsd" xmlns:ns2="http://opcfoundation.org/UA/AutoID/Type.xsd" xmlns:ns3="http://opcfoundation.org/UA/DI/Type.xsd">
     <NamespaceUris>
         <Uri>MyNamespace</Uri>
         <Uri>http://opcfoundation.org/UA/AutoID/</Uri>
@@ -482,7 +482,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                     <Identifier>ns=2;i=5012</Identifier>
                 </TypeId>
                 <Body>
-                    <RfidScanResult>
+                    <RfidScanResult xmlns="http://opcfoundation.org/UA/AutoID/Types.xsd">
                         <CodeType>Hello</CodeType>
                         <ScanData>
                             <Epc>

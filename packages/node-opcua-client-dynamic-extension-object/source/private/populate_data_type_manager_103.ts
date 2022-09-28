@@ -497,7 +497,7 @@ async function _exploreDataTypeDefinition(
     }
 }
 
-const regexTargetNamespaceAttribute = /TargetNamespace="([^"]+)"|TargetNamespace='([^"]+)'/;
+const regexTargetNamespaceAttribute = /TargetNamespace="([^"]+)"|TargetNamespace='([^']+)'/;
 function extractTargetNamespaceAttribute(xmlElement: string): string {
     // warning TargetNamespace could have ' or " , Wago PLC for instance uses simple quotes
     const c2 = xmlElement.match(regexTargetNamespaceAttribute);
@@ -511,7 +511,7 @@ function extraNamespaceRef(attribute: string): { xmlns: string; namespace: strin
     const c = attribute.match(regexNamespaceRef);
     if (c) {
         const xmlns = c[1] as string;
-        const namespace: string = c[3] || c[4];
+        const namespace: string = c[4] || c[5];
         return { xmlns, namespace };
     }
     return null;
