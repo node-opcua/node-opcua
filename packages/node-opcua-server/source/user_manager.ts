@@ -1,7 +1,10 @@
 import { IUserManager, UARoleSet } from "node-opcua-address-space";
 import { NodeId } from "node-opcua-nodeid";
 import { IdentityMappingRuleType } from "node-opcua-types";
+import { make_errorLog } from "node-opcua-debug";
 import { ServerSession } from "./server_session";
+
+const errorLog = make_errorLog(__filename);
 
 export type ValidUserFunc = (this: ServerSession, username: string, password: string) => boolean;
 export type ValidUserAsyncFunc = (
@@ -45,7 +48,14 @@ export class UAUserManager1 extends UAUserManagerBase {
         super();
     }
     getUserRoles(user: string): NodeId[] {
-        return this.options.getUserRoles != null ? this.options.getUserRoles(user) : [];
+        if (!this.options.getUserRoles) return [];
+        try {
+            return this.options.getUserRoles(user);
+        } catch (err) {
+            errorLog("[NODE-OPCUA-E27] userManager provided getUserRoles method has thrown an exception, please fix your code! ");
+            errorLog(err);
+            return [];
+        }
     }
 
     async isValidUser(session: ServerSession, username: string, password: string): Promise<boolean> {
@@ -56,9 +66,15 @@ export class UAUserManager1 extends UAUserManagerBase {
                     resolve(isAuthorized!);
                 });
             });
-        } else if(typeof this.options.isValidUser === "function") {
-            const authorized = this.options.isValidUser!.call(session, username, password);
-            return authorized;
+        } else if (typeof this.options.isValidUser === "function") {
+            try {
+                const authorized = this.options.isValidUser!.call(session, username, password);
+                return authorized;
+            } catch (err) {
+                errorLog("[NODE-OPCUA-E26] userManager provided isValidUser method has thrown an exception, please fix your code!");
+                errorLog(err);
+                return false;
+            }
         } else {
             return false;
         }
