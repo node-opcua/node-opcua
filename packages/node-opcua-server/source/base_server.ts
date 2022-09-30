@@ -41,17 +41,6 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = errorLog;
 
-function constructFilename(p: string): string {
-    let filename = path.join(__dirname, "..", p);
-    if (!fs.existsSync(filename)) {
-        // try one level up
-        filename = path.join(__dirname, p);
-        if (!fs.existsSync(filename)) {
-            throw new Error("Cannot find filename " + filename + " ( __dirname = " + __dirname);
-        }
-    }
-    return filename;
-}
 
 const default_server_info = {
     // The globally unique identifier for the application instance. This URI is used as
