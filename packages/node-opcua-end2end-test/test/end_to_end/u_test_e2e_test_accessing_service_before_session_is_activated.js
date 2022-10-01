@@ -6,7 +6,8 @@ const {
     OPCUAClient,
     ReadRequest,
     TimestampsToReturn,
-    StatusCodes
+    StatusCodes,
+    UserTokenType
 } = require("node-opcua");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -65,7 +66,8 @@ module.exports = function(test) {
                 },
                 // verify the session can no longer be used
                 function(callback) {
-                    client._activateSession(session1,(err) => {
+                    const userIdentityInfo = { type: UserTokenType.Anonymous};
+                    client._activateSession(session1,userIdentityInfo, (err) => {
                         activate_error = err;
                         // BadSessionIdInvalid, BadSessionClosed
                         callback();

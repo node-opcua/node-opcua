@@ -20,6 +20,7 @@ export * from "./tools/findservers";
 export * from "./tools/read_history_server_capabilities";
 export * from "./client_utils";
 export * from "./verify";
+export * from "./user_identity_info";
 
 export { assert } from "node-opcua-assert";
 export * from "node-opcua-utils";

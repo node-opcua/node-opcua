@@ -237,28 +237,32 @@ function repair_client_session_by_recreating_a_new_session(
                 }
                 debugLog(chalk.bgWhite.red("    => activating a new session ...."));
 
-                client._activateSession(newSession, (err: Error | null, session1?: ClientSessionImpl) => {
-                    debugLog(chalk.bgWhite.cyan("    =>  activating a new session .... Done err=", err ? err.message : "null"));
-                    if (err) {
-                        debugLog(
-                            chalk.bgWhite.cyan(
-                                "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
-                            )
-                        );
-                        // but just on the server side, not on the client side
-                        const closeSessionRequest = new CloseSessionRequest({
-                            deleteSubscriptions: true
-                        });
-                        session.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
-                            if (err2) {
-                                warningLog("closing session", err2.message);
-                            }
-                            innerCallback(err);
-                        });
-                    } else {
-                        innerCallback(err ? err : undefined);
+                client._activateSession(
+                    newSession,
+                    newSession.userIdentityInfo!,
+                    (err: Error | null, session1?: ClientSessionImpl) => {
+                        debugLog(chalk.bgWhite.cyan("    =>  activating a new session .... Done err=", err ? err.message : "null"));
+                        if (err) {
+                            debugLog(
+                                chalk.bgWhite.cyan(
+                                    "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
+                                )
+                            );
+                            // but just on the server side, not on the client side
+                            const closeSessionRequest = new CloseSessionRequest({
+                                deleteSubscriptions: true
+                            });
+                            session.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
+                                if (err2) {
+                                    warningLog("closing session", err2.message);
+                                }
+                                innerCallback(err);
+                            });
+                        } else {
+                            innerCallback(err ? err : undefined);
+                        }
                     }
-                });
+                );
             },
 
             function attempt_subscription_transfer(innerCallback: ErrorCallback) {
@@ -415,7 +419,7 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
         debugLog(chalk.yellow("  TRYING TO REACTIVATE EXISTING SESSION"), session.sessionId.toString());
         debugLog("   SubscriptionIds :", session.getPublishEngine().getSubscriptionIds());
     }
-    client._activateSession(session, (err: Error | null, session2?: ClientSessionImpl) => {
+    client._activateSession(session, session.userIdentityInfo!, (err: Error | null, session2?: ClientSessionImpl) => {
         //
         // Note: current limitation :
         //  - The reconnection doesn't work yet, if connection break is caused by a server that crashes and restarts.
@@ -454,7 +458,12 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     _repair_client_session(client, session, (err) => {
         privateSession._reconnecting.reconnecting = false;
         if (err) {
-            errorLog(chalk.red("session restoration has failed! err ="), err.message, session.sessionId.toString(), " => Let's retry");
+            errorLog(
+                chalk.red("session restoration has failed! err ="),
+                err.message,
+                session.sessionId.toString(),
+                " => Let's retry"
+            );
             setTimeout(() => {
                 _repair_client_session(client, session, callback);
             }, 2000);

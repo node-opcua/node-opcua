@@ -56,6 +56,7 @@ import { WriteValue, WriteValueOptions } from "node-opcua-service-write";
 import { StatusCode } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { Callback } from "node-opcua-status-code";
+import { IBasicSessionChangeUser } from "node-opcua-pseudo-session";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 import { AggregateFunction } from "node-opcua-constants";
@@ -421,6 +422,10 @@ export interface ClientSessionSubscriptionService {
         createSubscriptionRequest: CreateSubscriptionRequestLike,
         callback: ResponseCallback<ClientSubscription>
     ): void;
+}
+
+export interface ClientSessionChangeUser extends IBasicSessionChangeUser {
+    /* */
 }
 
 export interface HistoryReadValueIdOptions2 extends HistoryReadValueIdOptions {
@@ -790,4 +795,5 @@ export interface ClientSession
         ClientSessionExtensionObjectService,
         ClientSessionNamespaceService,
         ClientSessionDataTypeService,
+        ClientSessionChangeUser,
         IBasicSession {}

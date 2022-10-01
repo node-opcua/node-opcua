@@ -64,6 +64,7 @@ import {
     OPCUAClientBaseOptions,
     TransportSettings
 } from "../client_base";
+import { UserIdentityInfo } from "../user_identity_info";
 import { performCertificateSanityCheck } from "../verify";
 import { ClientSessionImpl } from "./client_session_impl";
 import { IClientBase } from "./i_private_client";
@@ -1646,7 +1647,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     ): void {
         throw new Error("Please override");
     }
-    public _activateSession(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void {
+    public _activateSession(
+        session: ClientSessionImpl,
+        userIdentity: UserIdentityInfo,
+        callback: (err: Error | null, session?: ClientSessionImpl) => void
+    ): void {
         throw new Error("Please override");
     }
 }
