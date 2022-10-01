@@ -31,7 +31,7 @@ import {
     defaultCloneFilter,
     defaultCloneExtraInfo
 } from "node-opcua-address-space-base";
-import { SessionContext } from "../source";
+import { SessionContext } from "../source/session_context";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
 import { BaseNodeImpl } from "./base_node_impl";
