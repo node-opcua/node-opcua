@@ -35,6 +35,11 @@ async function startServer() {
         port,
         userManager: makeUserManager({
             isValidUser: (username: string, password: string) => {
+
+                if (username === "make_me_crash") {
+                    throw new Error("isValidUser has thrown an exception");
+                }
+
                 const uIndex = users.findIndex(function (u) {
                     return u.username === username;
                 });
@@ -107,7 +112,6 @@ async function doTest(session: IBasicSession): Promise<DataValue> {
     return dataValue;
 }
 
-
 async function test_with_anonymous_user() {
     const client = OPCUAClient.create({ endpointMustExist: false });
 
@@ -144,7 +148,7 @@ async function test_with_admin_user() {
 async function test_with_wrong_user_should_throw() {
     const client = OPCUAClient.create({ endpointMustExist: false });
 
-    let _err : Error | undefined = undefined;
+    let _err: Error | undefined = undefined;
     try {
         const dataValue = await client.withSessionAsync(
             {
@@ -164,7 +168,7 @@ async function test_with_wrong_user_should_throw() {
         _err = err as Error;
         console.log((err as Error).message);
     }
-    should.exist(_err,"expecting")
+    should.exist(_err, "expecting");
 }
 
 async function test_with_admin_user_changing_to_anonymous() {
@@ -230,6 +234,28 @@ async function test_with_admin_user_changing_to_wrong_user() {
     );
 }
 
+async function test_with_admin_chaging_to_make_is_valid_user_crash() {
+    // make_me_crash
+    const client = OPCUAClient.create({ endpointMustExist: false });
+
+    return await client.withSessionAsync(
+        {
+            endpointUrl,
+            userIdentity: {
+                type: UserTokenType.Anonymous
+            }
+        },
+        async (session: ClientSession) => {
+            const statusCode1 = await session.changeUser({
+                type: UserTokenType.UserName,
+                userName: "make_me_crash",
+                password: "who cares ?"
+            });
+            // console.log("statusCode1 = ", statusCode1.toString());
+            return await doTest(session);
+        }
+    );
+}
 async function test_with_anonymous_user_changing_to_wrong_user() {
     const client = OPCUAClient.create({ endpointMustExist: false });
 
@@ -303,6 +329,11 @@ describe("Testing user change security", () => {
                 "Admin  => Wrong => Read => Expecting BadUserAccessDenied".padEnd(50) + " Got=",
                 dataValue.statusCode.toString()
             );
+        dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+    });
+
+    it("server should be robust when isValidUser  method provided by the developer crashes", async () => {
+        const dataValue = await test_with_admin_chaging_to_make_is_valid_user_crash();
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
     });
 });
