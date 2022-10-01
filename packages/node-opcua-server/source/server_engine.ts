@@ -29,6 +29,7 @@ import {
     DTServerStatus,
     resolveOpaqueOnAddressSpace,
     ContinuationData,
+    IServerBase,
     UARole
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -95,6 +96,7 @@ import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 import { OPCUAServerOptions } from "./opcua_server";
+import { IUserManager } from "node-opcua-address-space/source";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -323,6 +325,7 @@ export interface ServerEngineOptions {
 export interface CreateSessionOption {
     clientDescription?: ApplicationDescription;
     sessionTimeout?: number;
+    server: IServerBase;
 }
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
@@ -1677,7 +1680,7 @@ export class ServerEngine extends EventEmitter {
      */
     public createSession(options: CreateSessionOption): ServerSession {
         options = options || {};
-
+        options.server = options.server || {};
         debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
         this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
         this.serverDiagnosticsSummary.currentSessionCount += 1;
@@ -1687,7 +1690,7 @@ export class ServerEngine extends EventEmitter {
         const sessionTimeout = options.sessionTimeout || 1000;
         assert(typeof sessionTimeout === "number");
 
-        const session = new ServerSession(this, sessionTimeout);
+        const session = new ServerSession(this, options.server.userManager!, sessionTimeout);
 
         debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 

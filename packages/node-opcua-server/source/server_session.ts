@@ -6,6 +6,7 @@
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 
+import { assert } from "node-opcua-assert";
 import {
     addElement,
     AddressSpace,
@@ -19,10 +20,11 @@ import {
     UASessionDiagnosticsVariable,
     UASessionSecurityDiagnostics,
     DTSessionDiagnostics,
-    DTSessionSecurityDiagnostics
+    DTSessionSecurityDiagnostics,
+    SessionContext,
+    IUserManager
 } from "node-opcua-address-space";
-
-import { assert } from "node-opcua-assert";
+import { ISessionContext } from "node-opcua-address-space-base";
 import { minOPCUADate, randomGuid } from "node-opcua-basic-types";
 import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { QualifiedName, NodeClass } from "node-opcua-data-model";
@@ -119,6 +121,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public clientDescription?: ApplicationDescription;
     public channelId?: number | null;
     public continuationPointManager: ContinuationPointManager;
+    public sessionContext: ISessionContext;
 
     // ISubscriber
     public _watchDog?: WatchDog;
@@ -134,12 +137,17 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     private channel_abort_event_handler: any;
 
-    constructor(parent: ServerEngine, sessionTimeout: number) {
+    constructor(parent: ServerEngine, userManager: IUserManager, sessionTimeout: number) {
         super();
 
         this.parent = parent; // SessionEngine
 
         ServerSession.registry.register(this);
+
+        this.sessionContext = new SessionContext({
+            session: this,
+            server: { userManager }
+        });
 
         assert(isFinite(sessionTimeout));
         assert(sessionTimeout >= 0, " sessionTimeout");
@@ -844,6 +852,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         createSessionDiagnosticSummaryUAObject.call(this);
         createSubscriptionDiagnosticsArray.call(this);
         return this.sessionObject;
+    }
+
+    public async resendMonitoredItemInitialValues(): Promise<void> {
+        for (const subscription of this.publishEngine.subscriptions) {
+            await subscription.resendInitialValues();
+        }
     }
 
     /**

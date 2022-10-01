@@ -15,7 +15,9 @@ import {
     makeUserManager,
     DataType,
     makePermissionFlag,
-    NodeId
+    NodeId,
+    TimestampsToReturn,
+    Variant
 } from "node-opcua";
 import should = require("should");
 
@@ -29,13 +31,13 @@ const users = [
 
 const port = 2237;
 const endpointUrl = `opc.tcp://localhost:${port}`;
+const nodeId = "ns=1;s=SecretValue";
 
 async function startServer() {
     const server = new OPCUAServer({
         port,
         userManager: makeUserManager({
             isValidUser: (username: string, password: string) => {
-
                 if (username === "make_me_crash") {
                     throw new Error("isValidUser has thrown an exception");
                 }
@@ -75,7 +77,14 @@ async function startServer() {
         browseName: "SecretValue",
         nodeId: "s=SecretValue",
         dataType: DataType.String,
-        componentOf: addressSpace.rootFolder.objects.server
+        componentOf: addressSpace.rootFolder.objects.server,
+        minimumSamplingInterval: 50
+    });
+    secretVariable.setValueFromSource({
+        value: new Variant({
+            dataType: DataType.String,
+            value: "OK"
+        })
     });
 
     secretVariable.setRolePermissions([
@@ -95,7 +104,7 @@ async function startServer() {
             dataType: DataType.String,
             value: "confidential data - " + counter++
         });
-    }, 1000);
+    }, 100);
     addressSpace.registerShutdownTask(() => clearInterval(timerId));
 
     await server.start();
@@ -105,7 +114,7 @@ async function startServer() {
 
 async function doTest(session: IBasicSession): Promise<DataValue> {
     const dataValue = await session.read({
-        nodeId: "ns=1;s=SecretValue",
+        nodeId,
         attributeId: AttributeIds.Value
     });
     // console.log(dataValue.toString());
@@ -316,6 +325,7 @@ describe("Testing user change security", () => {
             );
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
     });
+
     it("should  be possible to read the secret value when the session is admin then failing to changed to wrong user", async () => {
         const dataValue = await test_with_admin_user_changing_to_wrong_user();
         doDebug && console.log("Admin  => Wrong => Read => Expecting Good".padEnd(50) + " Got=", dataValue.statusCode.toString());
@@ -335,5 +345,203 @@ describe("Testing user change security", () => {
     it("server should be robust when isValidUser  method provided by the developer crashes", async () => {
         const dataValue = await test_with_admin_chaging_to_make_is_valid_user_crash();
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+    });
+});
+
+describe("Testing subscription and  security", function (this: any) {
+    this.timeout(1000000);
+
+    let server: OPCUAServer;
+    before(async () => {
+        server = await startServer();
+    });
+    after(async () => {
+        await server.shutdown();
+    });
+
+    it("should not be possible to monitor a restricted variable", async () => {
+        const client = OPCUAClient.create({ endpointMustExist: false });
+
+        const dataValues: DataValue[] = [];
+        await client.withSubscriptionAsync(
+            {
+                endpointUrl,
+                userIdentity: { type: UserTokenType.Anonymous }
+            },
+            {
+                publishingEnabled: true,
+                requestedPublishingInterval: 500
+            },
+            async (session, subscription) => {
+                const dataValue = await session.read({
+                    nodeId
+                });
+                dataValues.push(dataValue);
+
+                const monitorItem = await subscription.monitor(
+                    {
+                        attributeId: AttributeIds.Value,
+                        nodeId
+                    },
+                    {
+                        queueSize: 100,
+                        samplingInterval: 60
+                    },
+                    TimestampsToReturn.Both
+                );
+                monitorItem.on("err", (err) => {
+                    console.log("on error");
+                });
+                monitorItem.on("changed", (dataValue) => {
+                    dataValues.push(dataValue);
+                });
+                await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
+                console.log("s=", monitorItem.statusCode.toString());
+            }
+        );
+        // return dataValue;
+        dataValues[0].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+        if (dataValues.length >= 1) {
+            dataValues.forEach((d) => console.log(d.toString()));
+        }
+        if (dataValues.length > 1) {
+            dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+        }
+        // dataValues.length.should.eql(1);
+    });
+
+    it("should stop monitoring a restricted variable when user change with lesser access right", async () => {
+        const client = OPCUAClient.create({ endpointMustExist: false });
+
+        let dataValues: DataValue[] = [];
+        await client.withSubscriptionAsync(
+            {
+                endpointUrl,
+                userIdentity: {
+                    type: UserTokenType.UserName,
+                    userName: "user1",
+                    password: "password1"
+                }
+            },
+            {
+                publishingEnabled: true,
+                requestedPublishingInterval: 250
+            },
+            async (session, subscription) => {
+                const dataValue = await session.read({
+                    nodeId
+                });
+                dataValues.push(dataValue);
+
+                const monitorItem = await subscription.monitor(
+                    {
+                        attributeId: AttributeIds.Value,
+                        nodeId
+                    },
+                    {
+                        queueSize: 1,
+                        samplingInterval: 100
+                    },
+                    TimestampsToReturn.Both
+                );
+                monitorItem.on("err", (err) => {
+                    console.log("on error");
+                });
+                monitorItem.on("changed", (dataValue) => {
+                    console.log("tick");
+                    dataValues.push(dataValue);
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
+
+                dataValues.length.should.be.greaterThan(2);
+                // now rest dataValue
+                dataValues = [];
+
+                console.log("s=", monitorItem.statusCode.toString());
+                // ------------------------------------
+                await session.changeUser({
+                    type: UserTokenType.Anonymous
+                });
+                await new Promise((resolve) => setTimeout(resolve, 5 * 1000));
+                console.log("s=", monitorItem.statusCode.toString());
+            }
+        );
+        // return dataValue;
+        if (dataValues.length >= 1) {
+            dataValues.forEach((d) => console.log(d.toString()));
+        }
+        if (dataValues.length > 1) {
+            dataValues[1].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+        } else {
+            dataValues[0].statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+        }
+    });
+    it("should start monitoring a restricted variable when user change with great access right", async () => {
+        const client = OPCUAClient.create({ endpointMustExist: false });
+
+        let dataValues: DataValue[] = [];
+        await client.withSubscriptionAsync(
+            {
+                endpointUrl,
+                userIdentity: {
+                    type: UserTokenType.Anonymous
+                }
+            },
+            {
+                publishingEnabled: true,
+                requestedPublishingInterval: 250
+            },
+            async (session, subscription) => {
+                const dataValue = await session.read({
+                    nodeId
+                });
+                dataValues.push(dataValue);
+
+                const monitorItem = await subscription.monitor(
+                    {
+                        attributeId: AttributeIds.Value,
+                        nodeId
+                    },
+                    {
+                        queueSize: 1,
+                        samplingInterval: 100
+                    },
+                    TimestampsToReturn.Both
+                );
+                monitorItem.on("err", (err) => {
+                    console.log("on error");
+                });
+                monitorItem.on("changed", (dataValue) => {
+                    console.log("tick");
+                    dataValues.push(dataValue);
+                });
+
+                await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
+
+                // now rest dataValue
+                dataValues = [];
+
+                console.log("s=", monitorItem.statusCode.toString());
+                // ------------------------------------
+                await session.changeUser({
+                    type: UserTokenType.UserName,
+                    userName: "user1",
+                    password: "password1"
+                });
+                await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
+                dataValues.length.should.be.greaterThan(2);
+                console.log("s=", monitorItem.statusCode.toString());
+            }
+        );
+        // return dataValue;
+        if (dataValues.length >= 1) {
+            dataValues.forEach((d) => console.log(d.toString()));
+        }
+        if (dataValues.length > 1) {
+            dataValues[1].statusCode.should.eql(StatusCodes.Good);
+        } else {
+            dataValues[0].statusCode.should.eql(StatusCodes.Good);
+        }
     });
 });

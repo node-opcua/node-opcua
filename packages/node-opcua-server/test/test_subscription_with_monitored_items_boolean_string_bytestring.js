@@ -45,7 +45,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -53,6 +53,14 @@ function install_spying_samplingFunc() {
         callback(null, dataValue);
     });
     return spy_samplingEventCall;
+}
+
+function makeSubscription(options) {
+    const subscription1 = new Subscription(options);
+    subscription1.$session = {
+        sessionContext: SessionContext.defaultContext
+    };
+    return subscription1;
 }
 
 // eslint-disable-next-line import/order
@@ -118,13 +126,12 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
     it("should return Good if DeadBandFilter is NOT specified on boolean value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -162,13 +169,12 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
     });
     it("should return Good if DeadBandFilter is NOT specified on String value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -204,13 +210,12 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
     });
     it("should return Good if DeadBandFilter is NOT specified on ByteString value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -247,13 +252,12 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
     it("should return Good if DeadBandFilter is NOT specified on LocalizedText value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -290,13 +294,12 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
     it("should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -333,13 +336,12 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
     });
     it("should return BadFilterNotAllowed if DeadBandFilter is specified on String value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -376,13 +378,12 @@ describe("Subscriptions and MonitoredItems", function () {
         subscription.dispose();
     });
     it("should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -420,13 +421,12 @@ describe("Subscriptions and MonitoredItems", function () {
     });
 
     it("should return BadFilterNotAllowed if DeadBandFilter is specified on LocalizedText value monitored item", function () {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
-            globalCounter: {totalMonitoredItemCount: 0},
+            globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-
         });
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
