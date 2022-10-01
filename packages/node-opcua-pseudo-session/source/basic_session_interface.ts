@@ -2,21 +2,19 @@
  * @module node-opcua-pseudo-session
  */
 import { assert } from "node-opcua-assert";
+import { ByteString} from "node-opcua-basic-types";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import {
-    BrowseDescription,
-    BrowseDescriptionOptions,
-    BrowseResult
-} from "node-opcua-service-browse";
+import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
 import { Argument, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { WriteValueOptions } from "node-opcua-service-write";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { DataType, VariantArrayType } from "node-opcua-variant";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { VariableIds } from "node-opcua-constants";
+import { UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type CallMethodRequestLike = CallMethodRequestOptions;
@@ -110,6 +108,29 @@ export interface IBasicSession {
     write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
 
     write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+}
+
+export type PrivateKeyPEM = string;
+export interface UserIdentityInfoUserName {
+    type: UserTokenType.UserName;
+    userName: string;
+    password: string;
+}
+
+export interface UserIdentityInfoX509 extends X509IdentityTokenOptions {
+    type: UserTokenType.Certificate;
+    certificateData: ByteString;
+    privateKey: PrivateKeyPEM;
+}
+export interface AnonymousIdentity {
+    type: UserTokenType.Anonymous;
+}
+
+export type UserIdentityInfo = AnonymousIdentity | UserIdentityInfoX509 | UserIdentityInfoUserName;
+
+export interface IBasicSessionChangeUser {
+    changeUser(userIdentityInfo: UserIdentityInfo): Promise<StatusCode>;
+    changeUser(userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
 }
 
 function isValid(result: DataValue): boolean {

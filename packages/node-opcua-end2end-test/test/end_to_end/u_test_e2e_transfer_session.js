@@ -17,7 +17,8 @@ const {
     SecurityPolicy,
     UserNameIdentityToken,
     ServiceFault,
-    ReadResponse
+    ReadResponse,
+    UserTokenType
 } = require("node-opcua");
 const { readCertificate, readCertificateRevocationList } = require("node-opcua-crypto");
 
@@ -265,7 +266,8 @@ module.exports = function (test) {
                     },
                     // activate the session as expected on same channel used to create it
                     function (callback) {
-                        client1._activateSession(session1, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous};
+                        client1._activateSession(session1, userIdentityInfo,  function (err) {
                             callback(err);
                         });
                     },
@@ -408,7 +410,8 @@ module.exports = function (test) {
                     // activate the session as expected on same channel used to create it
                     // so we can close it properly
                     function (callback) {
-                        client1._activateSession(session1, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous};
+                        client1._activateSession(session1,userIdentityInfo, function (err) {
                             should.not.exist(err);
                             session1.close(callback);
                         });
@@ -490,7 +493,8 @@ module.exports = function (test) {
                     // activate the session as expected on same channel used to create it
                     function (callback) {
                         //xx console.log(" activate session");
-                        client1._activateSession(session1, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous};
+                        client1._activateSession(session1,userIdentityInfo, function (err) {
                             callback(err);
                         });
                     },
@@ -589,9 +593,6 @@ module.exports = function (test) {
                     function (callback) {
                         // reactivate session on second channel
                         // alter session1.userIdentityInfo
-                        session1.userIdentityInfo = user2;
-                        session1.userIdentityInfo.userName.should.eql("user1");
-
                         client2.reactivateSession(session1, function (err) {
                             err.message.should.match(/BadIdentityChangeNotSupported/);
                             _.contains(client1._sessions, session1).should.eql(true); // should have failed
@@ -647,7 +648,8 @@ module.exports = function (test) {
                     },
                     // activate the session as expected on same channel used to create it
                     function (callback) {
-                        client1._activateSession(session1, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous};
+                        client1._activateSession(session1,userIdentityInfo, function (err) {
                             callback(err);
                         });
                     },

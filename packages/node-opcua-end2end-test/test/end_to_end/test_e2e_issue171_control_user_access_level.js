@@ -151,7 +151,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             console.log("    impersonate user user1 on existing session (ConfigAdmin)");
             const userIdentity = { userName: "user1", password: "1" };
            
-            await client.changeSessionIdentity(session, userIdentity);
+            const statusCodeChangeUser = await session.changeUser(userIdentity);
+            statusCodeChangeUser.should.eql(StatusCodes.Good);
 
             statusCode = await read(session);
             statusCode.should.eql(StatusCodes.Good);

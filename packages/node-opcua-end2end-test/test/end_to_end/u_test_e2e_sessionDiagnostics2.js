@@ -128,7 +128,9 @@ module.exports = function (test) {
 
                             const original = session2.authenticationToken;
                             session2.authenticationToken = randomNodeId();
-                            client2._activateSession(session2, (err) => {
+
+                            const userIdentityInfo = session2.userIdentityInfo;
+                            client2._activateSession(session2,userIdentityInfo,(err) => {
                                 if (err) {
                                     debugLog("--> rejected - as expected A");
 

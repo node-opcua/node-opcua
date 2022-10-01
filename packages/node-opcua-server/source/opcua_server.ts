@@ -1574,7 +1574,6 @@ export class OPCUAServer extends OPCUABaseServer {
                             comment: { dataType: DataType.String, value: certificateStatus.toString() }
                         });
                         break;
-                    
                 }
             }
             if (
@@ -1651,7 +1650,7 @@ export class OPCUAServer extends OPCUABaseServer {
             }
 
             const length = buff.readUInt32LE(0) - serverNonce.length;
-            password = buff.slice(4, 4 + length).toString("utf-8");
+            password = buff.subarray(4, 4 + length).toString("utf-8");
         }
 
         this.userManager
@@ -2101,8 +2100,6 @@ export class OPCUAServer extends OPCUABaseServer {
                     return rejectConnection(this, StatusCodes.BadIdentityChangeNotSupported); // not sure about this code !
                 }
             }
-
-            moveSessionToChannel(session, channel);
         } else if (session.status === "screwed") {
             // session has been used before being activated => this should be detected and session should be dismissed.
             return rejectConnection(this, StatusCodes.BadSessionClosed);
@@ -2134,7 +2131,6 @@ export class OPCUAServer extends OPCUABaseServer {
                     }
                     return rejectConnection(this, statusCode);
                 }
-                session.userIdentityToken = request.userIdentityToken as UserIdentityToken;
 
                 // check if user access is granted
                 this.isUserAuthorized(
@@ -2150,6 +2146,11 @@ export class OPCUAServer extends OPCUABaseServer {
                         if (!authorized) {
                             return rejectConnection(this, StatusCodes.BadUserAccessDenied);
                         } else {
+                            if (session.status === "active") {
+                                moveSessionToChannel(session, channel);
+                            }
+                            session.userIdentityToken = request.userIdentityToken as UserIdentityToken;
+
                             // extract : OPC UA part 4 - 5.6.3
                             // Once used, a serverNonce cannot be used again. For that reason, the Server returns a new
                             // serverNonce each time the ActivateSession Service is called.
@@ -2160,13 +2161,6 @@ export class OPCUAServer extends OPCUABaseServer {
                             response = new ActivateSessionResponse({ serverNonce: session.nonce });
                             channel.send_response("MSG", response, message);
 
-                            const userIdentityTokenPasswordRemoved = (userIdentityToken: any) => {
-                                const a = userIdentityToken.clone();
-                                // remove password
-                                a.password = "*************";
-                                return a;
-                            };
-
                             // send OPCUA Event Notification
                             // see part 5 : 6.4.3 AuditEventType
                             //              6.4.7 AuditSessionEventType
@@ -2175,49 +2169,9 @@ export class OPCUAServer extends OPCUABaseServer {
                             // xx assert(session.channel.clientCertificate instanceof Buffer);
                             assert(session.sessionTimeout > 0);
 
-                            if (this.isAuditing) {
-                                this.raiseEvent("AuditActivateSessionEventType", {
-                                    /* part 5 -  6.4.3 AuditEventType */
-                                    actionTimeStamp: { dataType: "DateTime", value: new Date() },
-                                    status: { dataType: "Boolean", value: true },
+                            raiseAuditActivateSessionEventType.call(this, session);
 
-                                    serverId: { dataType: "String", value: "" },
-
-                                    // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
-                                    clientAuditEntryId: { dataType: "String", value: "" },
-
-                                    // The ClientUserId identifies the user of the client requesting an action.
-                                    // The ClientUserId can be obtained from the UserIdentityToken passed in the
-                                    // ActivateSession call.
-                                    clientUserId: { dataType: "String", value: "cc" },
-
-                                    sourceName: { dataType: "String", value: "Session/ActivateSession" },
-
-                                    /* part 5 - 6.4.7 AuditSessionEventType */
-                                    sessionId: { dataType: "NodeId", value: session.nodeId },
-
-                                    /* part 5 - 6.4.10 AuditActivateSessionEventType */
-                                    clientSoftwareCertificates: {
-                                        arrayType: VariantArrayType.Array,
-                                        dataType: "ExtensionObject" /* SignedSoftwareCertificate */,
-                                        value: []
-                                    },
-                                    // UserIdentityToken reflects the userIdentityToken parameter of the ActivateSession
-                                    // Service call.
-                                    // For Username/Password tokens the password should NOT be included.
-                                    userIdentityToken: {
-                                        dataType: "ExtensionObject" /*  UserIdentityToken */,
-                                        value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
-                                    },
-
-                                    // SecureChannelId shall uniquely identify the SecureChannel. The application shall
-                                    // use the same identifier in all AuditEvents related to the Session Service Set
-                                    // (AuditCreateSessionEventType, AuditActivateSessionEventType and their subtypes) and
-                                    // the SecureChannel Service Set (AuditChannelEventType and its subtypes).
-                                    secureChannelId: { dataType: "String", value: session.channel!.channelId!.toString() }
-                                });
-                            }
-                            this.emit("session_activated", session, userIdentityTokenPasswordRemoved);
+                            this.emit("session_activated", session, userIdentityTokenPasswordRemoved(session.userIdentityToken));
                         }
                     }
                 );
@@ -3620,6 +3574,58 @@ export class OPCUAServer extends OPCUABaseServer {
     public async initializeCM(): Promise<void> {
         await super.initializeCM();
         await this.userCertificateManager.initialize();
+    }
+}
+
+const userIdentityTokenPasswordRemoved = (userIdentityToken: any) => {
+    const a = userIdentityToken.clone();
+    // remove password
+    a.password = "*************";
+    return a;
+};
+
+function raiseAuditActivateSessionEventType(this: OPCUAServer, session: ServerSession) {
+    if (this.isAuditing) {
+        this.raiseEvent("AuditActivateSessionEventType", {
+            /* part 5 -  6.4.3 AuditEventType */
+            actionTimeStamp: { dataType: "DateTime", value: new Date() },
+            status: { dataType: "Boolean", value: true },
+
+            serverId: { dataType: "String", value: "" },
+
+            // ClientAuditEntryId contains the human-readable AuditEntryId defined in Part 3.
+            clientAuditEntryId: { dataType: "String", value: "" },
+
+            // The ClientUserId identifies the user of the client requesting an action.
+            // The ClientUserId can be obtained from the UserIdentityToken passed in the
+            // ActivateSession call.
+            clientUserId: { dataType: "String", value: "cc" },
+
+            sourceName: { dataType: "String", value: "Session/ActivateSession" },
+
+            /* part 5 - 6.4.7 AuditSessionEventType */
+            sessionId: { dataType: "NodeId", value: session.nodeId },
+
+            /* part 5 - 6.4.10 AuditActivateSessionEventType */
+            clientSoftwareCertificates: {
+                arrayType: VariantArrayType.Array,
+                dataType: "ExtensionObject" /* SignedSoftwareCertificate */,
+                value: []
+            },
+            // UserIdentityToken reflects the userIdentityToken parameter of the ActivateSession
+            // Service call.
+            // For Username/Password tokens the password should NOT be included.
+            userIdentityToken: {
+                dataType: "ExtensionObject" /*  UserIdentityToken */,
+                value: userIdentityTokenPasswordRemoved(session.userIdentityToken)
+            },
+
+            // SecureChannelId shall uniquely identify the SecureChannel. The application shall
+            // use the same identifier in all AuditEvents related to the Session Service Set
+            // (AuditCreateSessionEventType, AuditActivateSessionEventType and their subtypes) and
+            // the SecureChannel Service Set (AuditChannelEventType and its subtypes).
+            secureChannelId: { dataType: "String", value: session.channel!.channelId!.toString() }
+        });
     }
 }
 

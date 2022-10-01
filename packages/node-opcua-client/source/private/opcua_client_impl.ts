@@ -38,7 +38,7 @@ import {
     UserNameIdentityToken,
     X509IdentityToken
 } from "node-opcua-service-session";
-import { StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback, Callback } from "node-opcua-status-code";
 
 import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
@@ -48,16 +48,14 @@ import { ClientSession } from "../client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "../client_subscription";
 import { Response } from "../common";
 import {
-    AnonymousIdentity,
     OPCUAClient,
     OPCUAClientOptions,
-    UserIdentityInfo,
-    UserIdentityInfoUserName,
-    UserIdentityInfoX509,
     WithSessionFuncP,
     WithSubscriptionFuncP,
     EndpointWithUserIdentity
 } from "../opcua_client";
+import { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIdentityInfoX509 } from "../user_identity_info";
+
 import { repair_client_sessions } from "../reconnection";
 import { ClientBaseImpl } from "./client_base_impl";
 import { ClientSessionImpl } from "./client_session_impl";
@@ -332,7 +330,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     private endpointMustExist: boolean;
     private requestedSessionTimeout: number;
     private ___sessionName_counter: number;
-    private userIdentityInfo: UserIdentityInfo;
     private serverUri?: string;
     private clientNonce?: Nonce;
 
@@ -358,7 +355,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.requestedSessionTimeout = options.requestedSessionTimeout || 60000; // 1 minute
 
         this.___sessionName_counter = 0;
-        this.userIdentityInfo = { type: UserTokenType.Anonymous };
         this.endpoint = undefined;
     }
 
@@ -396,8 +392,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         const userIdentityInfo = args[0] || { type: UserTokenType.Anonymous };
         const callback = args[1];
 
-        this.userIdentityInfo = userIdentityInfo;
-
         assert(typeof callback === "function");
 
         this._createSession((err: Error | null, session?: ClientSession) => {
@@ -411,9 +405,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 this._addSession(session as ClientSessionImpl);
 
-                this._activateSession(session as ClientSessionImpl, (err1: Error | null, session2?: ClientSessionImpl) => {
-                    callback(err1, session2);
-                });
+                this._activateSession(
+                    session as ClientSessionImpl,
+                    userIdentityInfo,
+                    (err1: Error | null, session2?: ClientSessionImpl) => {
+                        callback(err1, session2);
+                    }
+                );
             }
         });
     }
@@ -460,26 +458,19 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @param userIdentityInfo
      * @param callback
      * @async
+     * @deprecated : use session.changeUser instead
      */
-    public async changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo): Promise<void>;
-    public changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: (err?: Error) => void): void;
-    /**
-     * @internal
-     * @param args
-     */
+    public async changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo): Promise<StatusCode>;
+    public changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
     public changeSessionIdentity(...args: any[]): any {
+        warningLog(
+            "[NODE-OPCUA-W27] OPCUAClient.changeSessionIdentity(session,...) is deprecated use ClientSession.changeUser instead"
+        );
         const session = args[0] as ClientSessionImpl;
         const userIdentityInfo = args[1] as UserIdentityInfo;
         const callback = args[2];
-
         assert(typeof callback === "function");
-
-        const old_userIdentity = this.userIdentityInfo;
-        this.userIdentityInfo = userIdentityInfo;
-
-        this._activateSession(session as ClientSessionImpl, (err1: Error | null, session1?: ClientSessionImpl) => {
-            callback(err1 ? err1 : undefined);
-        });
+        session.changeUser(userIdentityInfo, callback);
     }
 
     /**
@@ -706,19 +697,29 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             typeof connectionPoint === "string" ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
 
         await this.connect(endpointUrl);
-        const session = await this.createSession2(userIdentity);
 
-        let result;
+        this.on("backoff", (count, delay) => {
+            warningLog("cannot connect to ", endpointUrl, "attempt #" + count, " retrying in ", delay);
+        });
+
         try {
-            result = await func(session);
+            const session = await this.createSession2(userIdentity);
+            let result;
+            try {
+                result = await func(session);
+                return result;
+            } catch (err) {
+                errorLog(err);
+                throw err;
+            } finally {
+                await session.close();
+            }
         } catch (err) {
-            errorLog(err);
+            errorLog((err as Error).message);
             throw err;
         } finally {
-            await session.close();
             await this.disconnect();
         }
-        return result;
     }
 
     public async withSubscriptionAsync(
@@ -771,29 +772,33 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         debugLog("OPCUAClientImpl#reactivateSession");
 
-        this._activateSession(internalSession, (err: Error | null /*, newSession?: ClientSessionImpl*/) => {
-            if (!err) {
-                if (old_client !== this) {
-                    // remove session from old client:
-                    if (old_client) {
-                        old_client._removeSession(internalSession);
-                        assert(old_client._sessions.indexOf(internalSession) === -1);
-                    }
+        this._activateSession(
+            internalSession,
+            internalSession.userIdentityInfo!,
+            (err: Error | null /*, newSession?: ClientSessionImpl*/) => {
+                if (!err) {
+                    if (old_client !== this) {
+                        // remove session from old client:
+                        if (old_client) {
+                            old_client._removeSession(internalSession);
+                            assert(old_client._sessions.indexOf(internalSession) === -1);
+                        }
 
-                    this._addSession(internalSession);
-                    assert(internalSession._client === this);
-                    assert(!internalSession._closed, "session should not vbe closed");
-                    assert(this._sessions.indexOf(internalSession) !== -1);
+                        this._addSession(internalSession);
+                        assert(internalSession._client === this);
+                        assert(!internalSession._closed, "session should not vbe closed");
+                        assert(this._sessions.indexOf(internalSession) !== -1);
+                    }
+                    callback!();
+                } else {
+                    // istanbul ignore next
+                    if (doDebug) {
+                        debugLog(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
+                    }
+                    callback!(err);
                 }
-                callback!();
-            } else {
-                // istanbul ignore next
-                if (doDebug) {
-                    debugLog(chalk.red.bgWhite("reactivateSession has failed !"), err.message);
-                }
-                callback!(err);
             }
-        });
+        );
     }
 
     /**
@@ -939,7 +944,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @internal
      * @private
      */
-    public _activateSession(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void {
+    public _activateSession(
+        session: ClientSessionImpl,
+        userIdentityInfo: UserIdentityInfo,
+        callback: (err: Error | null, session?: ClientSessionImpl) => void
+    ): void {
         // see OPCUA Part 4 - $7.35
         assert(typeof callback === "function");
 
@@ -968,7 +977,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             serverNonce: serverNonce! // please check this !
         };
 
-        this.createUserIdentityToken(context, this.userIdentityInfo, (err: Error | null, data?: TokenAndSignature | null) => {
+        this.createUserIdentityToken(context, userIdentityInfo, (err: Error | null, data?: TokenAndSignature | null) => {
             if (err) {
                 session._client = _old_client;
                 return callback(err);
@@ -1044,6 +1053,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     if (this.keepSessionAlive) {
                         session.startKeepAliveManager();
                     }
+                    session.userIdentityInfo = userIdentityInfo;
                     return callback(null, session);
                 } else {
                     // restore client

@@ -5,8 +5,8 @@ import { OPCUAClient, OPCUAServer } from "node-opcua";
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing bug #1170", function () {
     const port = 1170;
-    let server;
-    let endpointUrl;
+    let server: OPCUAServer;
+    let endpointUrl: string;
     before(async () => {
         server = new OPCUAServer({
             port,
@@ -28,6 +28,6 @@ describe("Testing bug #1170", function () {
         const serverEndpoints = await client.withSessionAsync(endpointUrl, async (session) => {
             return session.serverEndpoints;
         });
-        serverEndpoints[0].server.productUri.should.eql("Mini NodeOPCUA-Server");
+        serverEndpoints[0].server.productUri!.should.eql("Mini NodeOPCUA-Server");
     });
 });
