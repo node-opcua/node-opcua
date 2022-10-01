@@ -10,7 +10,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantOptions } from "node-opcua-variant";
-import { UAShelvedStateMachineEx } from "../../source";
+import { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
 import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
 import { UALimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
 import { NamespacePrivate } from "../namespace_private";
