@@ -193,8 +193,11 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         try {
             this.emit("changed", value);
         } catch (err) {
-            debugLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            debugLog("Please verify the application using this node-opcua client");
+            warningLog(
+                "[NODE-OPCUA-W28] Exception raised inside the event handler called by ClientMonitoredItem.on('change')",
+                err
+            );
+            warningLog("                 Please verify the application using this node-opcua client");
         }
     }
 
@@ -217,8 +220,11 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         try {
             this.emit("changed", eventFields);
         } catch (err) {
-            warningLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            warningLog("Please verify the application using this node-opcua client");
+            warningLog(
+                "[NODE-OPCUA-W29] Exception raised inside the event handler called by ClientMonitoredItem.on('change')",
+                err
+            );
+            warningLog("                 Please verify the application using this node-opcua client");
         }
     }
 
