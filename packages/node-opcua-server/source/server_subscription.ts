@@ -783,7 +783,7 @@ export class Subscription extends EventEmitter {
         }
         assert(this.monitoredItemCount === 0);
 
-        if (this.$session) {
+        if (this.$session && this.$session._unexposeSubscriptionDiagnostics) {
             this.$session._unexposeSubscriptionDiagnostics(this);
         }
         this.state = SubscriptionState.CLOSED;

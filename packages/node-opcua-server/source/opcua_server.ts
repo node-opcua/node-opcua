@@ -173,6 +173,7 @@ import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
 import { UAUserManagerBase, makeUserManager, UserManagerOptions } from "./user_manager";
 import { bindRoleSet } from "./user_manager_ua";
+import { SamplingFunc } from "./sampling_func";
 
 function isSubscriptionIdInvalid(subscriptionId: number): boolean {
     return subscriptionId < 0 || subscriptionId >= 0xffffffff;
@@ -403,7 +404,7 @@ function thumbprint(certificate?: Certificate): string {
  */
 function monitoredItem_read_and_record_value(
     self: MonitoredItem,
-    context: ISessionContext | null,
+    context: ISessionContext,
     oldValue: DataValue,
     node: UAVariable,
     itemToMonitor: any,
@@ -447,13 +448,7 @@ function monitoredItem_read_and_record_value_async(
     });
 }
 
-function build_scanning_node_function(
-    context: ISessionContext,
-    addressSpace: AddressSpace,
-    monitoredItem: MonitoredItem,
-    itemToMonitor: any
-): (dataValue: DataValue, callback: (err: Error | null, dataValue?: DataValue) => void) => void {
-    assert(context instanceof SessionContext);
+function build_scanning_node_function(addressSpace: AddressSpace, itemToMonitor: any): SamplingFunc {
     assert(itemToMonitor instanceof ReadValueId);
 
     const node = addressSpace.findNode(itemToMonitor.nodeId) as UAVariable;
@@ -462,7 +457,11 @@ function build_scanning_node_function(
     if (!node) {
         errorLog(" INVALID NODE ID  , ", itemToMonitor.nodeId.toString());
         dump(itemToMonitor);
-        return (oldData: DataValue, callback: (err: Error | null, dataValue?: DataValue) => void) => {
+        return (
+            _sessionContext: ISessionContext,
+            _oldData: DataValue,
+            callback: (err: Error | null, dataValue?: DataValue) => void
+        ) => {
             callback(
                 null,
                 new DataValue({
@@ -483,13 +482,14 @@ function build_scanning_node_function(
 
         return function func(
             this: MonitoredItem,
+            sessionContext: ISessionContext,
             oldDataValue: DataValue,
             callback: (err: Error | null, dataValue?: DataValue) => void
         ) {
             assert(this instanceof MonitoredItem);
             assert(oldDataValue instanceof DataValue);
             assert(typeof callback === "function");
-            monitoredItem_read_and_record_value_func(this, context, oldDataValue, node, itemToMonitor, callback);
+            monitoredItem_read_and_record_value_func(this, sessionContext, oldDataValue, node, itemToMonitor, callback);
         };
     } else {
         // Attributes, other than the  Value  Attribute, are only monitored for a change in value.
@@ -499,13 +499,14 @@ function build_scanning_node_function(
         // only record value when it has changed
         return function func(
             this: MonitoredItem,
+            sessionContext: ISessionContext,
             oldDataValue: DataValue,
             callback: (err: Error | null, dataValue?: DataValue) => void
         ) {
             assert(this instanceof MonitoredItem);
             assert(oldDataValue instanceof DataValue);
             assert(typeof callback === "function");
-            const newDataValue = node.readAttribute(null, itemToMonitor.attributeId);
+            const newDataValue = node.readAttribute(sessionContext, itemToMonitor.attributeId);
             callback(null, newDataValue);
         };
     }
@@ -513,7 +514,7 @@ function build_scanning_node_function(
 
 function prepareMonitoredItem(context: ISessionContext, addressSpace: AddressSpace, monitoredItem: MonitoredItem) {
     const itemToMonitor = monitoredItem.itemToMonitor;
-    const readNodeFunc = build_scanning_node_function(context, addressSpace, monitoredItem, itemToMonitor);
+    const readNodeFunc = build_scanning_node_function(addressSpace, itemToMonitor);
     monitoredItem.samplingFunc = readNodeFunc;
 }
 
@@ -1832,7 +1833,8 @@ export class OPCUAServer extends OPCUABaseServer {
         // see Release 1.02  27  OPC Unified Architecture, Part 4
         const session = this.createSession({
             clientDescription: request.clientDescription,
-            sessionTimeout: revisedSessionTimeout
+            sessionTimeout: revisedSessionTimeout,
+            server: this
         });
         session.endpoint = endpoint;
 
@@ -2172,6 +2174,8 @@ export class OPCUAServer extends OPCUABaseServer {
                             raiseAuditActivateSessionEventType.call(this, session);
 
                             this.emit("session_activated", session, userIdentityTokenPasswordRemoved(session.userIdentityToken));
+
+                            session.resendMonitoredItemInitialValues();
                         }
                     }
                 );
@@ -2528,7 +2532,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 const requestedMaxReferencesPerNode = Math.min(9876, request.requestedMaxReferencesPerNode);
                 assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
 
-                const context = new SessionContext({ session, server: this });
+                const context = session.sessionContext;
 
                 const f = callbackify(this.engine.browseWithAutomaticExpansion).bind(this.engine);
                 (f as any)(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
@@ -2630,7 +2634,7 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                const context = new SessionContext({ session, server: this });
+                const context = session.sessionContext;
 
                 let response;
 
@@ -2732,7 +2736,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     }
                 }
 
-                const context = new SessionContext({ session, server: this });
+                const context = session.sessionContext;
 
                 // ask for a refresh of asynchronous variables
                 this.engine.refreshValues(request.nodesToRead, 0, (err?: Error | null) => {
@@ -2803,7 +2807,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     nodeToWrite.nodeId = session.resolveRegisteredNode(nodeToWrite.nodeId);
                 }
 
-                const context = new SessionContext({ session, server: this });
+                const context = session.sessionContext;
 
                 assert(request.nodesToWrite[0].schema.name === "WriteValue");
                 this.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
@@ -2836,7 +2840,7 @@ export class OPCUAServer extends OPCUABaseServer {
             message,
             channel,
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
-                const context = new SessionContext({ session, server: this });
+                const context = session.sessionContext;
 
                 if (session.currentSubscriptionCount >= this.engine.serverCapabilities.maxSubscriptionsPerSession) {
                     return sendError(StatusCodes.BadTooManySubscriptions);
@@ -3371,7 +3375,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 /* jshint validthis: true */
                 const addressSpace = this.engine.addressSpace!;
 
-                const context = new SessionContext({ session, server: this });
+                const context = session.sessionContext;
 
                 async.map(
                     request.methodsToCall,

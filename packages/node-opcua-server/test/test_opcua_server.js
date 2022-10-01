@@ -20,46 +20,37 @@ const port = 2022;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServer", () => {
     let server;
-    beforeEach((done) => {
-        const options = {
+    beforeEach(async () => {
+        server = new OPCUAServer({
             port,
             nodeset_filename: [mini_nodeset_filename]
-        };
-
-        server = new OPCUAServer(options);
-        server.start((err) => {
-            done(err);
         });
+        await server.start();
     });
-    afterEach((done) => {
+    afterEach(async () => {
         if (server) {
-            server.shutdown(() => {
-                server = null;
-                done();
-            });
-        } else {
+            await server.shutdown();
             server = null;
-            done();
         }
     });
 
-    it("should dismiss all existing sessions upon termination", (done) => {
+    it("should dismiss all existing sessions upon termination", async () => {
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists
         // (session and subscriptions )
-        let session = server.createSession();
+        let session = server.createSession({
+            
+        });
 
         server.engine.currentSessionCount.should.equal(1);
         server.engine.cumulatedSessionCount.should.equal(1);
 
-        server.shutdown(function () {
-            server.engine.currentSessionCount.should.equal(0);
-            server.engine.cumulatedSessionCount.should.equal(1);
-            server = null;
-            session = null;
-            done();
-        });
+        await server.shutdown();
+        server.engine.currentSessionCount.should.equal(0);
+        server.engine.cumulatedSessionCount.should.equal(1);
+        server = null;
+        session = null;
     });
 
     it("server address space have a node matching session.nodeId", (done) => {
@@ -102,11 +93,11 @@ describe("OPCUAServer-2", () => {
         server.start(done);
     });
 
-    after((done) => {
-        server.shutdown(() => {
+    after(async () => {
+        if (server) {
+            await server.shutdown();
             server = null;
-            done();
-        });
+        }
     });
 
     it("#rejectedSessionCount", () => {
@@ -157,20 +148,24 @@ describe("OPCUAServer-4", () => {
 
     before(async () => {
         client = OPCUAClient.create({
-            endpointMustExist: false,
+            endpointMustExist: false
         });
         const options = {
-            port,
+            port
         };
         server = new OPCUAServer(options);
         await server.start();
     });
 
     after(async () => {
-        await client.disconnect();
-        client = null;
-        await server.shutdown();
-        server = null;
+        if (client) {
+            await client.disconnect();
+            client = null;
+        }
+        if (server) {
+            await server.shutdown();
+            server = null;
+        }
     });
 
     it("an invalid certificate should not crash the server", async () => {
@@ -180,7 +175,7 @@ describe("OPCUAServer-4", () => {
             await client.createSession({
                 type: UserTokenType.Certificate,
                 certificateData: Buffer.from("AZEAZE"),
-                privateKey,
+                privateKey
             });
             should(true).eql(false); // should never be reached
         } catch (e) {

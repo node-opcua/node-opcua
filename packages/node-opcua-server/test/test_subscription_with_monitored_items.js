@@ -55,7 +55,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -70,6 +70,14 @@ function _simulate_client_adding_publish_request(test, publishEngine, callback) 
     const publishRequest = new PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
     test.clock.tick(0);
+}
+
+function makeSubscription(options) {
+    const subscription1 = new Subscription(options);
+    subscription1.$session = {
+        sessionContext: SessionContext.defaultContext
+    };
+    return subscription1;
 }
 
 // eslint-disable-next-line import/order
@@ -202,7 +210,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
     });
 
     it("a subscription should accept monitored item", (done) => {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
@@ -244,7 +252,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
     });
 
     it("a subscription should fire the event removeMonitoredItem", (done) => {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
@@ -280,8 +288,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         removeMonitoredItemSpy.callCount.should.eql(1);
     });
 
+    function makeSubscription(options) {
+        const subscription1 = new Subscription(options);
+        subscription1.$session = {
+            sessionContext: SessionContext.defaultContext
+        };
+        return subscription1;
+    }
     it("a subscription should collect monitored item notification with _harvestMonitoredItems", (done) => {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
@@ -344,7 +359,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
         const publishEngine = new ServerSidePublishEngine();
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 500,
             maxKeepAliveCount: 20,
             publishEngine: publishEngine,
@@ -443,7 +458,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
     });
 
     it("should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", (done) => {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
@@ -481,7 +496,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
     function on_subscription(actionFunc, done) {
         // see Err-03.js
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 42,
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -623,7 +638,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
         let _clientHandle = 1;
 
-        function my_samplingFunc(oldData, callback) {
+        function my_samplingFunc(sessionContext, oldData, callback) {
             //xx console.log(self.toString());
             const dataValue = addressSpace.findNode(this.node.nodeId).readAttribute(null, 13);
             callback(null, dataValue);
@@ -686,7 +701,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         // +---o-------------------o-------------------o-------------------o-------------------o--------------o
         //
         // we use a subscription with a small publishingInterval interval here
-        const subscription1 = new Subscription({
+        const subscription1 = makeSubscription({
             publishingInterval: 250,
             maxKeepAliveCount: 10,
             id: 10000,
@@ -710,7 +725,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         subscription1.state.should.eql(SubscriptionState.NORMAL);
 
         //---------------------------------------------------- Subscription 2 - 1000 ms
-        const subscription2 = new Subscription({
+        const subscription2 = makeSubscription({
             id: 20000,
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -730,7 +745,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         subscription1.state.should.eql(SubscriptionState.NORMAL);
 
         //---------------------------------------------------- Subscription 3 - 5000 ms
-        const subscription3 = new Subscription({
+        const subscription3 = makeSubscription({
             id: 30000,
             publishingInterval: 5000,
             maxKeepAliveCount: 20,
@@ -761,7 +776,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
     });
 
     it("should return BadFilterNotAllowed if DeadBandFilter is specified on non-Numeric value monitored item", () => {
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
             publishEngine: fake_publish_engine,
@@ -808,7 +823,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         let subscription = null;
 
         beforeEach(() => {
-            subscription = new Subscription({
+            subscription = makeSubscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
                 publishEngine: fake_publish_engine,
@@ -823,7 +838,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             subscription.on("notification", spy_notification_event);
 
             subscription.on("monitoredItem", function (monitoredItem) {
-                monitoredItem.samplingFunc = sinon.spy(function (oldValue, callback) {
+                monitoredItem.samplingFunc = sinon.spy((sessionContext, oldValue, callback) => {
                     const dataValue = monitoredItem.node.readAttribute(null, monitoredItem.itemToMonitor.attributeId);
                     //xx console.log("dataValue ",dataValue.toString());
                     callback(null, dataValue);
@@ -990,7 +1005,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
         let subscription = null;
 
         before(() => {
-            subscription = new Subscription({
+            subscription = makeSubscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
                 publishEngine: fake_publish_engine,
@@ -1245,7 +1260,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
                 addressSpace.rootFolder.someVariable.minimumSamplingInterval = 1000;
                 addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(1000);
 
-                subscription = new Subscription({
+                subscription = makeSubscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
                     publishEngine: fake_publish_engine,
@@ -1318,7 +1333,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             let subscription;
 
             try {
-                subscription = new Subscription({
+                subscription = makeSubscription({
                     publishingInterval: 1000,
                     maxKeepAliveCount: 20,
                     publishEngine: fake_publish_engine,
@@ -1432,9 +1447,11 @@ describe("SM2 - MonitoredItem advanced", function () {
         });
     });
     after(async () => {
-        await engine.shutdown();
-        engine.dispose();
-        engine = null;
+        if (engine) {
+            await engine.shutdown();
+            engine.dispose();
+            engine = null;
+        }
     });
 
     beforeEach(() => {
@@ -1459,7 +1476,7 @@ describe("SM2 - MonitoredItem advanced", function () {
 
     describe("SM2A - #maxNotificationsPerPublish", function () {
         it("should have a proper maxNotificationsPerPublish default value", (done) => {
-            const subscription = new Subscription({
+            const subscription = makeSubscription({
                 publishEngine: publishEngine,
                 globalCounter: { totalMonitoredItemCount: 0 },
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
@@ -1512,7 +1529,7 @@ describe("SM2 - MonitoredItem advanced", function () {
         it("QA should not publish more notifications than expected", function (done) {
             const spy_callback = sinon.spy();
 
-            const subscription = new Subscription({
+            const subscription = makeSubscription({
                 publishingInterval: 1000,
                 maxKeepAliveCount: 20,
                 publishEngine: publishEngine,
@@ -1634,14 +1651,14 @@ describe("SM2 - MonitoredItem advanced", function () {
                 lifeTimeCount: 67,
                 publishingEnabled: true, //  PUBLISHING IS ENABLED !!!
                 publishEngine: fake_publish_engine,
-                sessionId: coerceNodeId("i=5;s=tmp"),
                 globalCounter: { totalMonitoredItemCount: 0 },
-                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 },
-
-                session: {
-                    sessionId: coerceNodeId("i=100")
-                }
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
+            subscription.$session = {
+                nodeId: coerceNodeId("i=5;s=tmp"),
+                sessionContext: SessionContext.defaultContext
+            };
+            // console.log(subscription.subscriptionDiagnostics.toString());
 
             subscription.on("monitoredItem", function (monitoredItem) {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -1757,7 +1774,7 @@ describe("SM2 - MonitoredItem advanced", function () {
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(0);
 
             let evtNotificationCounter = 0;
-            subscription.on("notification", function (/*notificationMessage*/) {
+            subscription.on("notification", (/*notificationMessage*/) => {
                 evtNotificationCounter += 1;
             });
 

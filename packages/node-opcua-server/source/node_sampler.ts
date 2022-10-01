@@ -13,10 +13,13 @@ import { MonitoredItem } from "./monitored_item";
 const timers: any = {};
 const NS_PER_SEC = 1e9;
 
+interface MonitoredItemPriv {
+    _on_sampling_timer(): void;
+}
 function sampleMonitoredItem(monitoredItem: MonitoredItem) {
-    const _monitoredItem = monitoredItem;
+    const _monitoredItem = monitoredItem as unknown as MonitoredItemPriv;
     setImmediate(() => {
-        (_monitoredItem as any)._on_sampling_timer();
+        _monitoredItem._on_sampling_timer();
     });
 }
 

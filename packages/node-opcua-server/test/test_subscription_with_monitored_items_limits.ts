@@ -2,7 +2,7 @@ import "should";
 import * as sinon from "sinon";
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
-import { AddressSpace, Namespace } from "node-opcua-address-space";
+import { AddressSpace, Namespace, SessionContext } from "node-opcua-address-space";
 import { DataChangeFilter, DataChangeTrigger, MonitoredItemCreateRequest, MonitoringMode } from "node-opcua-types";
 import { AttributeIds } from "node-opcua-basic-types";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
@@ -27,7 +27,6 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
     let engine: ServerEngine;
 
     before((done: () => void) => {
-   
         engine = new ServerEngine({
             applicationUri: "",
             serverCapabilities: {
@@ -65,7 +64,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
             //xx            addVar("Duration"     , 0);
             addVar("Float", 0);
             addVar("Double", 0);
-            
+
             done();
         });
     });
@@ -89,7 +88,7 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
     function install_spying_samplingFunc() {
         unfreeze_data_source();
         let sample_value = 0;
-        const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
             if (!dataSourceFrozen) {
                 sample_value++;
             }
@@ -111,6 +110,11 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
             globalCounter,
             serverCapabilities: engine.serverCapabilities
         });
+
+        (subscription as any).$session = {
+            nodeId: coerceNodeId("i=5;s=tmp"),
+            sessionContext: SessionContext.defaultContext
+        };
         subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
@@ -150,19 +154,17 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
         globalCounter.totalMonitoredItemCount.should.eql(6);
         test_with_nodeId(subscription, nodeId).should.eql(StatusCodes.BadTooManyMonitoredItems);
         globalCounter.totalMonitoredItemCount.should.eql(6);
-     
+
         subscription.terminate();
         subscription.dispose();
 
         subscription.monitoredItemCount.should.eql(0);
         globalCounter.totalMonitoredItemCount.should.eql(0);
-     
     });
     it("SM3-B - it should refuse monitored Items if maxMonitoredItems is reached ", () => {
         const subscription1 = makeSubscription();
         const subscription2 = makeSubscription();
 
-        
         test_with_nodeId(subscription1, nodeId).should.eql(StatusCodes.Good);
         test_with_nodeId(subscription1, nodeId).should.eql(StatusCodes.Good);
         test_with_nodeId(subscription1, nodeId).should.eql(StatusCodes.Good);
@@ -180,12 +182,12 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
         test_with_nodeId(subscription2, nodeId).should.eql(StatusCodes.BadTooManyMonitoredItems);
         test_with_nodeId(subscription2, nodeId).should.eql(StatusCodes.BadTooManyMonitoredItems);
         globalCounter.totalMonitoredItemCount.should.eql(10);
-  
+
         subscription1.terminate();
         subscription1.dispose();
         subscription1.monitoredItemCount.should.eql(0);
         globalCounter.totalMonitoredItemCount.should.eql(4);
-  
+
         subscription2.terminate();
         subscription2.dispose();
         subscription2.monitoredItemCount.should.eql(0);

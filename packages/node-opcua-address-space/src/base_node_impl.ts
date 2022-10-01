@@ -1312,6 +1312,14 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     private _readUserRolePermissions(context: ISessionContext | null): DataValue {
+
+        // to do check that current user can read permission
+        if (context && !context?.checkPermission(this as any, PermissionType.ReadRolePermissions)) {
+            return new DataValue({
+                statusCode: StatusCodes.BadSecurityModeInsufficient
+            });
+        }
+
         if (this.rolePermissions === undefined) {
             // to do : If not specified, the value of DefaultUserRolePermissions Property from
             // the Namespace Metadata Object associated with the Node is used instead.

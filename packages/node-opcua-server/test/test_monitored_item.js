@@ -24,6 +24,7 @@ const { DataValue } = require("node-opcua-data-value");
 const { Range } = require("node-opcua-types");
 
 const { MonitoredItem } = require("..");
+const { SessionContext } = require("node-opcua-address-space");
 
 function q(monitoredItem) {
     return monitoredItem.queue.map(function (a) {
@@ -38,8 +39,9 @@ function f(monitoredItem) {
         return !!(a.value.statusCode.value != StatusCodes.Good.value);
     });
 }
-class FakeNode {
+class FakeNode extends EventEmitter {
     constructor() {
+        super();
         this.nodeId = makeNodeId(32);
         this.browseName = { name: "toto" };
         this._euRange = {
@@ -63,8 +65,14 @@ class FakeNode {
         return this._euRange;
     }
 }
-util.inherits(FakeNode, EventEmitter);
+// util.inherits(FakeNode, EventEmitter);
 const fakeNode = new FakeNode();
+
+const fakeSubscription = {
+    $session: {
+        sessionContext: SessionContext.defaultContext
+    }
+};
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -87,6 +95,7 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
 
         monitoredItem.setNode(fakeNode);
 
@@ -110,17 +119,17 @@ describe("Server Side MonitoredItem", () => {
             discardOldest: true,
             queueSize: 100,
             samplingInterval: 100,
-
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
 
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.isSampling.should.eql(false);
 
         // set up a spying samplingFunc
-        const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
             callback(null, new DataValue({ value: {} }));
         });
         monitoredItem.samplingFunc = spy_samplingEventCall;
@@ -150,6 +159,7 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
 
         monitoredItem.setNode(fakeNode);
 
@@ -174,6 +184,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queue.length.should.eql(0);
@@ -210,6 +222,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queue.length.should.eql(0);
@@ -249,6 +263,8 @@ describe("Server Side MonitoredItem", () => {
             monitoredItemId: 50,
             timestampsToReturn: TimestampsToReturn.Both
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         const now = new Date();
@@ -281,6 +297,8 @@ describe("Server Side MonitoredItem", () => {
             monitoredItemId: 50,
             timestampsToReturn: TimestampsToReturn.Both
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         this.clock.tick(100);
@@ -312,7 +330,7 @@ describe("Server Side MonitoredItem", () => {
 
     function install_spying_samplingFunc() {
         let sample_value = 0;
-        const spy_samplingEventCall = sinon.spy(function (oldValue, callback) {
+        const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
             sample_value++;
             const dataValue = new DataValue({ value: { dataType: DataType.UInt32, value: sample_value } });
             callback(null, dataValue);
@@ -329,6 +347,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         // set up spying samplingFunc
@@ -358,6 +378,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.samplingFunc = install_spying_samplingFunc();
@@ -387,6 +409,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         let result; // MonitoredItemModifyResult
@@ -417,6 +441,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         let result; // MonitoredItemModifyResult
@@ -459,6 +485,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queueSize.should.eql(2);
@@ -533,6 +561,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queueSize.should.eql(2);
@@ -607,6 +637,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queueSize.should.eql(4);
@@ -693,10 +725,13 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
-        monitoredItem.samplingFunc = function (oldvalue, callback) {
+        monitoredItem.samplingFunc = function (sessionContext, oldvalue, callback) {
             /** */
+            //callback();
         };
 
         monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
@@ -730,6 +765,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItemT.$subscription = fakeSubscription;
+
         monitoredItemT.setNode(fakeNode);
 
         monitoredItemT._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1 } }));
@@ -764,6 +801,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItemF.$subscription = fakeSubscription;
+
         monitoredItemF.setNode(fakeNode);
 
         monitoredItemF._enqueue_value(new DataValue({ value: { dataType: DataType.UInt32, value: 1 } }));
@@ -801,6 +840,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queueSize.should.eql(1);
@@ -851,6 +892,8 @@ describe("Server Side MonitoredItem", () => {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queueSize.should.eql(1);
@@ -933,6 +976,8 @@ describe("MonitoredItem with DataChangeFilter", function () {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queue.length.should.eql(0);
@@ -969,6 +1014,8 @@ describe("MonitoredItem with DataChangeFilter", function () {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         monitoredItem.queue.length.should.eql(0);
@@ -1013,6 +1060,8 @@ describe("MonitoredItem with DataChangeFilter", function () {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
         monitoredItem.queue.length.should.eql(0);
 
@@ -1077,6 +1126,8 @@ describe("MonitoredItem with DataChangeFilter", function () {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         // node must provide a EURange property that expose a Range for DeadbandType.Percent to work
@@ -1147,6 +1198,8 @@ describe("MonitoredItem with DataChangeFilter", function () {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         const dataChangeFilter2 = new DataChangeFilter({
@@ -1337,6 +1390,8 @@ describe("MonitoredItem with DataChangeFilter", function () {
             // added by the server:
             monitoredItemId: 50
         });
+        monitoredItem.$subscription = fakeSubscription;
+
         monitoredItem.setNode(fakeNode);
 
         // node must provide a EURange property that expose a Range for DeadbandType.Percent to work

@@ -52,8 +52,12 @@ export class UAUserManager1 extends UAUserManagerBase {
         try {
             return this.options.getUserRoles(user);
         } catch (err) {
-            errorLog("[NODE-OPCUA-E27] userManager provided getUserRoles method has thrown an exception, please fix your code! ");
-            errorLog(err);
+            if (err instanceof Error) {
+                errorLog(
+                    "[NODE-OPCUA-E27] userManager provided getUserRoles method has thrown an exception, please fix your code! "
+                );
+                errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0,2).join("\n"));
+            }
             return [];
         }
     }
@@ -71,8 +75,12 @@ export class UAUserManager1 extends UAUserManagerBase {
                 const authorized = this.options.isValidUser!.call(session, username, password);
                 return authorized;
             } catch (err) {
-                errorLog("[NODE-OPCUA-E26] userManager provided isValidUser method has thrown an exception, please fix your code!");
-                errorLog(err);
+                if (err instanceof Error) {
+                    errorLog(
+                        "[NODE-OPCUA-E26] userManager provided isValidUser method has thrown an exception, please fix your code!"
+                    );
+                    errorLog(err.message, "\n", (err as Error).stack?.split("\n").slice(0,2).join("\n"));
+                }
                 return false;
             }
         } else {

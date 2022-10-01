@@ -39,10 +39,19 @@ import { property } from "underscore";
 
 import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
-import { ServerSidePublishEngine, Subscription, SubscriptionState } from "..";
+import { ServerSidePublishEngine, Subscription, SubscriptionOptions, SubscriptionState } from "..";
+import { SessionContext } from "node-opcua-address-space";
 
 // tslint:disable-next-line: no-var-requires
 const { add_mock_monitored_item } = require("./helper");
+
+function makeSubscription(options: SubscriptionOptions) {
+    const subscription1 = new Subscription(options);
+    (subscription1 as any).$session = {
+        sessionContext: SessionContext.defaultContext
+    };
+    return subscription1;
+}
 
 // tslint:disable-next-line: no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -69,7 +78,7 @@ describe("Testing the server publish engine", function (this: any) {
 
         const publish_server = new ServerSidePublishEngine({});
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -123,7 +132,7 @@ describe("Testing the server publish engine", function (this: any) {
         const serverSidePublishEngine = new ServerSidePublishEngine({});
         const send_response_for_request_spy = sinon.spy(serverSidePublishEngine, "_send_response_for_request");
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -213,7 +222,7 @@ describe("Testing the server publish engine", function (this: any) {
         const publish_server = new ServerSidePublishEngine({});
         publish_server.subscriptionCount.should.equal(0);
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000, // 1 second
             lifeTimeCount: 100,
@@ -239,7 +248,7 @@ describe("Testing the server publish engine", function (this: any) {
         const publish_server = new ServerSidePublishEngine({});
         publish_server.subscriptionCount.should.equal(0);
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -268,7 +277,7 @@ describe("Testing the server publish engine", function (this: any) {
         });
         const send_response_for_request_spy = sinon.spy(publish_server, "_send_response_for_request");
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1,
             publishingInterval: 10000,
             maxKeepAliveCount: 500,
@@ -341,7 +350,7 @@ describe("Testing the server publish engine", function (this: any) {
         const publish_server = new ServerSidePublishEngine();
         const send_response_for_request_spy = sinon.spy(publish_server, "_send_response_for_request");
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -452,7 +461,7 @@ describe("Testing the server publish engine", function (this: any) {
         const publishServer = new ServerSidePublishEngine();
         const send_response_for_request_spy = sinon.spy(publishServer, "_send_response_for_request");
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 1000,
@@ -504,7 +513,7 @@ describe("Testing the server publish engine", function (this: any) {
         const send_keep_alive_response_spy = sinon.spy(publish_server, "send_keep_alive_response");
         const send_response_for_request_spy = sinon.spy(publish_server, "_send_response_for_request");
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 4,
@@ -561,7 +570,7 @@ describe("Testing the server publish engine", function (this: any) {
         const send_keep_alive_response_spy = sinon.spy(publish_server, "send_keep_alive_response");
         const send_notification_message_spy = sinon.spy(publish_server, "_send_response");
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 4,
@@ -609,7 +618,7 @@ describe("Testing the server publish engine", function (this: any) {
 
         publish_server.maxPublishRequestInQueue.should.be.greaterThan(5);
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 60,
@@ -641,7 +650,7 @@ describe("Testing the server publish engine", function (this: any) {
 
     it("ZDZ-E a subscription should provide its time to expiration so that publish engine could sort late subscriptions by order of priority", () => {
         const publish_server = new ServerSidePublishEngine();
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 60,
@@ -677,7 +686,7 @@ describe("Testing the server publish engine", function (this: any) {
         const publish_server = new ServerSidePublishEngine();
         publish_server.pendingPublishRequestCount.should.eql(0, " No PublishRequest in queue");
 
-        const subscription1 = new Subscription({
+        const subscription1 = makeSubscription({
             id: 1,
             publishingInterval: 1000,
             lifeTimeCount: 60,
@@ -706,7 +715,7 @@ describe("Testing the server publish engine", function (this: any) {
         publish_server._on_PublishRequest(new PublishRequest());
         publish_server._on_PublishRequest(new PublishRequest());
 
-        const subscription2 = new Subscription({
+        const subscription2 = makeSubscription({
             id: 2,
             publishingInterval: 100,
             lifeTimeCount: 120,
@@ -721,7 +730,7 @@ describe("Testing the server publish engine", function (this: any) {
         subscription2.maxKeepAliveCount.should.eql(20);
         publish_server.add_subscription(subscription2);
 
-        const subscription3 = new Subscription({
+        const subscription3 = makeSubscription({
             id: 3,
             publishingInterval: 100,
             lifeTimeCount: 1000,
@@ -799,7 +808,7 @@ describe("Testing the server publish engine", function (this: any) {
     it("ZDZ-G a LATE subscription that receives a notification shall send a PublishResponse immediately, without waiting for next publish interval", () => {
         const publish_server = new ServerSidePublishEngine();
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 60,
@@ -843,7 +852,7 @@ describe("Testing the server publish engine", function (this: any) {
         const publish_server = new ServerSidePublishEngine();
 
         // given a subscription
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 0,
@@ -895,7 +904,7 @@ describe("Testing the server publish engine", function (this: any) {
     it("ZDZ-I LifeTimeCount, the publish engine shall send a StatusChangeNotification to inform that a subscription has been closed because of lifetime timeout ", () => {
         const publish_server = new ServerSidePublishEngine();
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 60,
@@ -944,7 +953,7 @@ describe("Testing the server publish engine", function (this: any) {
     it("ZDZ-J PublishRequest timeout, the publish engine shall return a publish response with serviceResult = BadTimeout when Publish requests have timed out", () => {
         const publish_server = new ServerSidePublishEngine();
 
-        const subscription = new Subscription({
+        const subscription = makeSubscription({
             id: 1234,
             publishingInterval: 1000,
             lifeTimeCount: 4,

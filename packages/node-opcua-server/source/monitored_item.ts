@@ -4,8 +4,8 @@
 import { EventEmitter } from "events";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
+import { ISessionContext } from "node-opcua-address-space-base";
 import { BaseNode, IEventData, makeAttributeEventName, SessionContext, UAVariable, AddressSpace } from "node-opcua-address-space";
-
 import { extractEventFields } from "node-opcua-service-filter";
 import { DateTime, UInt32 } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
@@ -55,6 +55,8 @@ import { sameVariant, Variant } from "node-opcua-variant";
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 import { checkWhereClauseOnAdressSpace } from "./filter/check_where_clause_on_address_space";
+import { SamplingFunc } from "./sampling_func";
+import { registerNodePromoter } from "node-opcua-address-space/source/loader/register_node_promoter";
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
 
@@ -323,8 +325,12 @@ export interface BaseNode2 extends EventEmitter {
 
 type TimerKey = NodeJS.Timer;
 
+export interface IServerSession2 {
+    sessionContext: ISessionContext;
+}
+
 export interface ISubscription {
-    $session?: any;
+    $session?: IServerSession2;
     subscriptionDiagnostics: SubscriptionDiagnosticsDataType;
     getMonitoredItem(monitoredItemId: number): MonitoredItem | null;
 }
@@ -378,9 +384,7 @@ export class MonitoredItem extends EventEmitter {
     public clientHandle: UInt32;
     public $subscription?: ISubscription;
     public _samplingId?: TimerKey | string;
-    public samplingFunc:
-        | ((this: MonitoredItem, value: DataValue, callback: (err: Error | null, dataValue?: DataValue) => void) => void)
-        | null = null;
+    public samplingFunc: SamplingFunc | null = null;
 
     private _node: BaseNode | null;
     private queue: QueueItem[];
@@ -789,6 +793,14 @@ export class MonitoredItem extends EventEmitter {
         return this._start_sampling(true);
     }
 
+    private getSessionContext(): ISessionContext | null {
+        const session = this._getSession();
+        if (!session) {
+            return null;
+        }
+        const sessionContext: ISessionContext = session!.sessionContext;
+        return sessionContext;
+    }
     /**
      * @method _on_sampling_timer
      * @private
@@ -796,6 +808,10 @@ export class MonitoredItem extends EventEmitter {
      *
      */
     private _on_sampling_timer() {
+        const sessionContext = this.getSessionContext();
+        if (!sessionContext) {
+            return;
+        }
         // istanbul ignore next
         if (doDebug) {
             debugLog(
@@ -813,23 +829,29 @@ export class MonitoredItem extends EventEmitter {
                 // previous sampling call is not yet completed..
                 // there is nothing we can do about it except waiting until next tick.
                 // note : see also issue #156 on github
+
+                // Note: some server returns GoodOverload here
+                const statusCode = StatusCodes.GoodOverload;
+
                 return;
             }
             // xx console.log("xxxx ON SAMPLING");
             assert(!this._is_sampling, "sampling func shall not be re-entrant !! fix it");
 
+            // istanbul ignore next
             if (!this.samplingFunc) {
                 throw new Error("internal error : missing samplingFunc");
             }
 
             this._is_sampling = true;
 
-            this.samplingFunc.call(this, this.oldDataValue!, (err: Error | null, newDataValue?: DataValue) => {
+            this.samplingFunc.call(this, sessionContext, this.oldDataValue!, (err: Error | null, newDataValue?: DataValue) => {
                 if (!this._samplingId) {
                     // item has been disposed. The monitored item has been disposed while the async sampling func
                     // was taking place ... just ignore this
                     return;
                 }
+                // istanbull ignore next
                 if (err) {
                     console.log(" SAMPLING ERROR =>", err);
                 } else {
@@ -939,7 +961,7 @@ export class MonitoredItem extends EventEmitter {
         this._enqueue_event(eventFields);
     }
 
-    private _getSession(): any {
+    private _getSession(): null | IServerSession2 {
         if (!this.$subscription) {
             return null;
         }
@@ -962,14 +984,15 @@ export class MonitoredItem extends EventEmitter {
             return; // we just want to ignore here ...
         }
 
+        const sessionContext = this.getSessionContext();
+        // istanbul ignore next
+        if (!sessionContext) {
+            return;
+        }
         // make sure oldDataValue is scrapped so first data recording can happen
         this.oldDataValue = new DataValue({ statusCode: StatusCodes.BadDataUnavailable }); // unset initially
 
         this._stop_sampling();
-
-        const context = new SessionContext({
-            session: this._getSession()
-        });
 
         if (this.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
             // istanbul ignore next
@@ -994,7 +1017,7 @@ export class MonitoredItem extends EventEmitter {
 
             if (recordInitialValue) {
                 // read initial value
-                const dataValue = this.node.readAttribute(context, this.itemToMonitor.attributeId);
+                const dataValue = this.node.readAttribute(sessionContext, this.itemToMonitor.attributeId);
                 this.recordValue(dataValue, true);
             }
             return;
@@ -1012,7 +1035,7 @@ export class MonitoredItem extends EventEmitter {
             // initiate first read
             if (recordInitialValue) {
                 /* await */ new Promise<void>((resolve: () => void) => {
-                    (this.node as UAVariable).readValueAsync(context, (err: Error | null, dataValue?: DataValue) => {
+                    (this.node as UAVariable).readValueAsync(sessionContext, (err: Error | null, dataValue?: DataValue) => {
                         if (!err && dataValue) {
                             this.recordValue(dataValue, true);
                         }
