@@ -17,11 +17,13 @@ const { createServerCertificateManager } = require("../test_helpers/createServer
 
 const { ServerSideUnimplementedRequest } = require("../test_helpers/unimplementedRequest");
 
-const port = 1990;
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Server resilience to unsupported request", function () {
+
+    const port = 2990;
+
     let server, client;
     let endpointUrl, g_session;
 
@@ -67,6 +69,8 @@ function abrupty_disconnect_client(client, callback) {
 describe("testing Server resilience with bad internet connection", function () {
     let server, client;
     let endpointUrl;
+
+    const port = 2991;
 
     this.timeout(Math.max(20000, this.timeout()));
 
