@@ -172,7 +172,7 @@ export class VariableHistorian implements IVariableHistorian {
         reverseDataValue: boolean,
         callback: CallbackT<DataValue[]>
     ): void {
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
 
         let dataValues = filter_dequeue(this._timeline, historyReadRawModifiedDetails, maxNumberToExtract, isReversed);
 
@@ -322,7 +322,7 @@ function _historyReadRawAsync(
     reverseDataValue: boolean,
     callback: CallbackT<DataValue[]>
 ) {
-    assert(typeof callback === 'function');
+    assert(typeof callback === "function");
     this.varHistorian!.extractDataValues(historyReadRawModifiedDetails, maxNumberToExtract, isReversed, reverseDataValue, callback);
 }
 
@@ -418,9 +418,17 @@ function _historyReadRaw(
     // the Bad_TimestampNotSupported StatusCode.
 
     const session = context.session;
+
+    // istanbul ignore next
     if (!session) {
         throw new Error("Internal Error: context.session not defined");
     }
+
+    // istanbul ignore next
+    if (!session.continuationPointManager) {
+        throw new Error("Internal Error: context.session.continuationPointManager not defined");
+    }
+
     if (continuationData.continuationPoint) {
         const cnt = session.continuationPointManager.getNextHistoryReadRaw(
             historyReadRawModifiedDetails.numValuesPerNode,
@@ -546,7 +554,14 @@ function _historyRead(
     continuationData: ContinuationData,
     callback: CallbackT<HistoryReadResult>
 ) {
-    assert(typeof callback === 'function');
+    if (!this.canUserReadHistory(context)) {
+        const result = new HistoryReadResult({
+            statusCode: StatusCodes.BadUserAccessDenied
+        });
+        callback(null, result);
+    }
+
+    assert(typeof callback === "function");
     if (historyReadDetails instanceof ReadRawModifiedDetails) {
         // note: only ReadRawModifiedDetails supported at this time
         return this._historyReadRawModify(context, historyReadDetails, indexRange, dataEncoding, continuationData, callback);

@@ -4555,4 +4555,182 @@
           <Field Name="Opaque" Value="3" />
         </Definition>
       </UADataType>
+
+      <UAObjectType NodeId="i=11187" BrowseName="AggregateConfigurationType">
+        <DisplayName>AggregateConfigurationType</DisplayName>
+        <References>
+          <Reference ReferenceType="HasProperty">i=11188</Reference>
+          <Reference ReferenceType="HasProperty">i=11189</Reference>
+          <Reference ReferenceType="HasProperty">i=11190</Reference>
+          <Reference ReferenceType="HasProperty">i=11191</Reference>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+      </UAObjectType>
+      <UAVariable NodeId="i=11188" BrowseName="TreatUncertainAsBad" ParentNodeId="i=11187" DataType="Boolean">
+        <DisplayName>TreatUncertainAsBad</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=11187</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11189" BrowseName="PercentDataBad" ParentNodeId="i=11187" DataType="Byte">
+        <DisplayName>PercentDataBad</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=11187</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11190" BrowseName="PercentDataGood" ParentNodeId="i=11187" DataType="Byte">
+        <DisplayName>PercentDataGood</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=11187</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11191" BrowseName="UseSlopedExtrapolation" ParentNodeId="i=11187" DataType="Boolean">
+        <DisplayName>UseSlopedExtrapolation</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=11187</Reference>
+        </References>
+      </UAVariable>
+    
+      <UAObjectType NodeId="i=2318" BrowseName="HistoricalDataConfigurationType">
+        <DisplayName>HistoricalDataConfigurationType</DisplayName>
+        <References>
+          <Reference ReferenceType="HasComponent">i=3059</Reference>
+          <Reference ReferenceType="HasComponent">i=11876</Reference>
+          <Reference ReferenceType="HasProperty">i=2323</Reference>
+          <Reference ReferenceType="HasProperty">i=2324</Reference>
+          <Reference ReferenceType="HasProperty">i=2325</Reference>
+          <Reference ReferenceType="HasProperty">i=2326</Reference>
+          <Reference ReferenceType="HasProperty">i=2327</Reference>
+          <Reference ReferenceType="HasProperty">i=2328</Reference>
+          <Reference ReferenceType="HasProperty">i=11499</Reference>
+          <Reference ReferenceType="HasProperty">i=11500</Reference>
+          <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+      </UAObjectType>
+      <UAVariable NodeId="i=2323" BrowseName="Stepped" ParentNodeId="i=2318" DataType="Boolean">
+        <DisplayName>Stepped</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=2324" BrowseName="Definition" ParentNodeId="i=2318" DataType="String">
+        <DisplayName>Definition</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=2325" BrowseName="MaxTimeInterval" ParentNodeId="i=2318" DataType="i=290">
+        <DisplayName>MaxTimeInterval</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=2326" BrowseName="MinTimeInterval" ParentNodeId="i=2318" DataType="i=290">
+        <DisplayName>MinTimeInterval</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=2327" BrowseName="ExceptionDeviation" ParentNodeId="i=2318" DataType="Double">
+        <DisplayName>ExceptionDeviation</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=2328" BrowseName="ExceptionDeviationFormat" ParentNodeId="i=2318" DataType="i=890">
+        <DisplayName>ExceptionDeviationFormat</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11499" BrowseName="StartOfArchive" ParentNodeId="i=2318" DataType="i=294">
+        <DisplayName>StartOfArchive</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11500" BrowseName="StartOfOnlineArchive" ParentNodeId="i=2318" DataType="i=294">
+        <DisplayName>StartOfOnlineArchive</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=2318</Reference>
+        </References>
+      </UAVariable>
+    
+      <UAObject NodeId="i=3059" BrowseName="AggregateConfiguration" ParentNodeId="i=2318">
+        <DisplayName>AggregateConfiguration</DisplayName>
+        <References>
+          <Reference ReferenceType="HasProperty">i=11168</Reference>
+          <Reference ReferenceType="HasProperty">i=11169</Reference>
+          <Reference ReferenceType="HasProperty">i=11170</Reference>
+          <Reference ReferenceType="HasProperty">i=11171</Reference>
+          <Reference ReferenceType="HasTypeDefinition">i=11187</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasComponent" IsForward="false">i=2318</Reference>
+        </References>
+      </UAObject>
+      <UAVariable NodeId="i=11168" BrowseName="TreatUncertainAsBad" ParentNodeId="i=3059" DataType="Boolean">
+        <DisplayName>TreatUncertainAsBad</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=3059</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="i=11169" BrowseName="PercentDataBad" ParentNodeId="i=3059" DataType="Byte">
+        <DisplayName>PercentDataBad</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=3059</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11170" BrowseName="PercentDataGood" ParentNodeId="i=3059" DataType="Byte">
+        <DisplayName>PercentDataGood</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=3059</Reference>
+        </References>
+      </UAVariable>
+      <UAVariable NodeId="i=11171" BrowseName="UseSlopedExtrapolation" ParentNodeId="i=3059" DataType="Boolean">
+        <DisplayName>UseSlopedExtrapolation</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+          <Reference ReferenceType="HasModellingRule">i=78</Reference>
+          <Reference ReferenceType="HasProperty" IsForward="false">i=3059</Reference>
+        </References>
+      </UAVariable>
+      <UAObject NodeId="i=11876" BrowseName="AggregateFunctions" ParentNodeId="i=2318">
+        <DisplayName>AggregateFunctions</DisplayName>
+        <References>
+          <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+          <Reference ReferenceType="HasModellingRule">i=80</Reference>
+          <Reference ReferenceType="HasComponent" IsForward="false">i=2318</Reference>
+        </References>
+      </UAObject>
+
 </UANodeSet>
