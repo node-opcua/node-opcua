@@ -1312,12 +1312,15 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     private _readUserRolePermissions(context: ISessionContext | null): DataValue {
-
-        // to do check that current user can read permission
-        if (context && !context.checkPermission(this, PermissionType.ReadRolePermissions)) {
-            return new DataValue({
-                statusCode: StatusCodes.BadSecurityModeInsufficient
-            });
+        
+        const allUserCanSeeTheirOwnRolePermissions = true;
+        if (!allUserCanSeeTheirOwnRolePermissions) {
+            // to do check that current user can read permission
+            if (context && !context.checkPermission(this, PermissionType.ReadRolePermissions)) {
+                return new DataValue({
+                    statusCode: StatusCodes.BadSecurityModeInsufficient
+                });
+            }
         }
 
         if (this.rolePermissions === undefined) {
@@ -1328,8 +1331,8 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             });
         }
         const context1: ISessionContext = context === null ? SessionContext.defaultContext : context;
-        // for the time being ...
-        // get user Permission
+      
+        // for the time being  get user Permission
         const rolePermissions = this.rolePermissions
             .map(({ roleId, permissions }) => {
                 return new RolePermissionType({
@@ -1338,7 +1341,8 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
                 });
             })
             .filter(({ roleId }) => context1.currentUserHasRole(roleId));
-        return new DataValue({
+      
+            return new DataValue({
             statusCode: StatusCodes.Good,
             value: {
                 dataType: DataType.ExtensionObject,
