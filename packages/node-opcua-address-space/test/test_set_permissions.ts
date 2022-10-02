@@ -1,7 +1,14 @@
 import * as should from "should";
-import { AccessRestrictionsFlag, AttributeIds, makeAccessLevelFlag, makePermissionFlag } from "node-opcua-data-model";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { CallMethodResultOptions, PermissionType, RolePermissionTypeOptions } from "node-opcua-types";
+import {
+    AccessLevelExFlag,
+    AccessLevelFlag,
+    AccessRestrictionsFlag,
+    AttributeIds,
+    makeAccessLevelFlag,
+    makePermissionFlag
+} from "node-opcua-data-model";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { CallMethodResultOptions, PermissionType, ReadRawModifiedDetails, RolePermissionTypeOptions } from "node-opcua-types";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import {
@@ -13,13 +20,15 @@ import {
     makeRoles,
     setNamespaceMetaData,
     UAMethod,
-    ISessionContext
+    ISessionContext,
+    ContinuationPoint,
+    ContinuationPointManager
 } from "..";
 
 // let's make sure should don't get removed by typescript optimizer
 const keep_should = should;
 
-import { getMiniAddressSpace } from "../testHelpers";
+import { date_add, getMiniAddressSpace } from "../testHelpers";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -208,6 +217,185 @@ describe("Method#setPermissions & checkPermission", () => {
         context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
         someMethod.readAttribute(context, AttributeIds.Executable).value.value.should.eql(true);
         someMethod.readAttribute(context, AttributeIds.UserExecutable).value.value.should.eql(false);
+    });
+
+    it("checkPermission-WriteHistorizing", async () => {
+        const namespace1 = addressSpace.getOwnNamespace();
+        const context = new SessionContext();
+
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "VariableForTestHistorizing",
+            dataType: "Double",
+            historizing: true
+        });
+        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.WriteHistorizing }]);
+        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+            componentOf: uaVariable,
+            browseName: "HA Configuration"
+        });
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        (
+            await uaVariable.writeAttribute(context, {
+                attributeId: AttributeIds.Historizing,
+                value: { value: { dataType: DataType.Boolean, value: true } }
+            })
+        ).should.eql(StatusCodes.Good);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        (
+            await uaVariable.writeAttribute(context, {
+                attributeId: AttributeIds.Historizing,
+                value: { value: { dataType: DataType.Boolean, value: true } }
+            })
+        ).should.eql(StatusCodes.BadUserAccessDenied);
+    });
+
+    it("checkPermission-ReadHistory", async () => {
+        const namespace1 = addressSpace.getOwnNamespace();
+        const context = new SessionContext({
+            session: {
+                getSessionId() {
+                    return NodeId.nullNodeId;
+                },
+                continuationPointManager: new ContinuationPointManager()
+            }
+        });
+
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "VariableForTestReadHistory",
+            dataType: "Double",
+            historizing: true,
+            accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
+        });
+        addressSpace.installHistoricalDataNode(uaVariable, {
+            maxOnlineValues: 3 // Only very few values !!!!
+        });
+        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.ReadHistory }]);
+        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+            componentOf: uaVariable,
+            browseName: "HA Configuration"
+        });
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        (uaVariable as any).canUserReadHistory(context).should.eql(true);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        (uaVariable as any).canUserReadHistory(context).should.eql(false);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+
+        const today = new Date();
+
+        const historyReadDetails = new ReadRawModifiedDetails({
+            endTime: date_add(today, { seconds: 10 }),
+            isReadModified: false,
+            numValuesPerNode: 1000,
+            returnBounds: true,
+            startTime: date_add(today, { seconds: -10 })
+        });
+        const indexRange = null;
+        const dataEncoding = null;
+        const continuationPoint: ContinuationPoint | null = null;
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        {
+            const r = await uaVariable.historyRead(context, historyReadDetails, indexRange, dataEncoding, { continuationPoint });
+            r.statusCode.should.eql(StatusCodes.GoodNoData);
+        }
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        {
+            const r = await uaVariable.historyRead(context, historyReadDetails, indexRange, dataEncoding, { continuationPoint });
+            r.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
+        }
+    });
+
+    it("checkPermission-InsertHistory", async () => {
+        const namespace1 = addressSpace.getOwnNamespace();
+        const context = new SessionContext();
+
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "VariableForTestInsertHistory",
+            dataType: "Double",
+            historizing: true,
+            accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
+        });
+        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.InsertHistory }]);
+        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+            componentOf: uaVariable,
+            browseName: "HA Configuration"
+        });
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(true);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+    });
+
+    it("checkPermission-ModifyHistory", async () => {
+        const namespace1 = addressSpace.getOwnNamespace();
+        const context = new SessionContext();
+
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "VariableForTestModifyHistory",
+            dataType: "Double",
+            historizing: true,
+            accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
+        });
+        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.ModifyHistory }]);
+        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+            componentOf: uaVariable,
+            browseName: "HA Configuration"
+        });
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        (uaVariable as any).canUserReadHistory(context).should.eql(false);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(true);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        (uaVariable as any).canUserReadHistory(context).should.eql(false);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
+    });
+    it("checkPermission-DeleteHistory", async () => {
+        const namespace1 = addressSpace.getOwnNamespace();
+        const context = new SessionContext();
+
+        const uaVariable = addressSpace.getOwnNamespace().addVariable({
+            browseName: "VariableForTestDeleteHistory",
+            dataType: "Double",
+            historizing: true,
+            accessLevel: AccessLevelFlag.HistoryRead | AccessLevelFlag.HistoryWrite
+        });
+        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.DeleteHistory }]);
+        const haConfiguration = addressSpace.getOwnNamespace().addObject({
+            componentOf: uaVariable,
+            browseName: "HA Configuration"
+        });
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        (uaVariable as any).canUserReadHistory(context).should.eql(false);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(true);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        (uaVariable as any).canUserReadHistory(context).should.eql(false);
+        (uaVariable as any).canUserInsertHistory(context).should.eql(false);
+        (uaVariable as any).canUserModifyHistory(context).should.eql(false);
+        (uaVariable as any).canUserDeleteHistory(context).should.eql(false);
     });
 });
 
