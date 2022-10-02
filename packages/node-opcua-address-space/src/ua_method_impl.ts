@@ -85,7 +85,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         }
         return true;
     }
-
+    public getUserExecutableFlag(context: ISessionContext | null): boolean {
+        if (context && !context.checkPermission(this, PermissionType.Call)) {
+            return false;
+        }
+        if (!this.getExecutableFlag(context)) return false;
+        return true;
+    }
     /**
      *
      * @returns  true if the method is bound
@@ -107,7 +113,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                 options.statusCode = StatusCodes.Good;
                 break;
             case AttributeIds.UserExecutable:
-                options.value = { dataType: DataType.Boolean, value: this.getExecutableFlag(context) };
+                options.value = { dataType: DataType.Boolean, value: this.getUserExecutableFlag(context) };
                 options.statusCode = StatusCodes.Good;
                 break;
             default:

@@ -108,7 +108,11 @@ describe("Variable#setPermissions & checkPermission", () => {
     });
 });
 
-async function defaultMethod(this: UAMethod, inputArguments: Variant[], context: ISessionContext): Promise<CallMethodResultOptions> {
+async function defaultMethod(
+    this: UAMethod,
+    inputArguments: Variant[],
+    context: ISessionContext
+): Promise<CallMethodResultOptions> {
     /** empty */
     return { statusCode: StatusCodes.Good };
 }
@@ -184,6 +188,26 @@ describe("Method#setPermissions & checkPermission", () => {
         // });
 
         context.checkPermission(someMethod3, PermissionType.Call).should.eql(false);
+    });
+    it("checkPermission-m3 UserExecutable flag should be false if user has no Call permission #1197", () => {
+        const namespace1 = addressSpace.getOwnNamespace();
+        const context = new SessionContext();
+
+        const someMethod = addressSpace.getOwnNamespace().addMethod(someObject, {
+            browseName: "MethodForTest3",
+            executable: true,
+            userExecutable: true
+        });
+        someMethod.bindMethod(defaultMethod);
+        someMethod.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: makePermissionFlag("Call") }]);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Engineer]);
+        someMethod.readAttribute(context, AttributeIds.Executable).value.value.should.eql(true);
+        someMethod.readAttribute(context, AttributeIds.UserExecutable).value.value.should.eql(true);
+
+        context.getCurrentUserRoles = () => makeRoles([WellKnownRoles.Anonymous]);
+        someMethod.readAttribute(context, AttributeIds.Executable).value.value.should.eql(true);
+        someMethod.readAttribute(context, AttributeIds.UserExecutable).value.value.should.eql(false);
     });
 });
 

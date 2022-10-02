@@ -1281,7 +1281,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         // https://reference.opcfoundation.org/v104/Core/docs/Part3/4.8.3/
 
         // to do check that current user can read permission
-        if (context && !context?.checkPermission(this as any, PermissionType.ReadRolePermissions)) {
+        if (context && !context.checkPermission(this, PermissionType.ReadRolePermissions)) {
             return new DataValue({
                 statusCode: StatusCodes.BadSecurityModeInsufficient
             });
@@ -1314,7 +1314,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     private _readUserRolePermissions(context: ISessionContext | null): DataValue {
 
         // to do check that current user can read permission
-        if (context && !context?.checkPermission(this as any, PermissionType.ReadRolePermissions)) {
+        if (context && !context.checkPermission(this, PermissionType.ReadRolePermissions)) {
             return new DataValue({
                 statusCode: StatusCodes.BadSecurityModeInsufficient
             });
