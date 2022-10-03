@@ -129,7 +129,7 @@ export class VariableHistorian implements IVariableHistorian {
     }
 
     /* public */
-    public push(newDataValue: DataValue): any {
+    public async push(newDataValue: DataValue): Promise<void> {
         this._timeline.push(newDataValue);
 
         const sourceTime = newDataValue.sourceTimestamp || new Date();
