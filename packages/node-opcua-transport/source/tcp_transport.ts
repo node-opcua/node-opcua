@@ -355,7 +355,6 @@ export class TCP_transport extends EventEmitter {
             _s.emit("error", err);
             this._socket = null;
             this.dispose();
-            _s.removeAllListeners();
         }
         // this.gracefullShutdown(err);
     }
