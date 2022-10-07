@@ -18,7 +18,7 @@ import {
 } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { NodeId, sameNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
@@ -87,9 +87,11 @@ export interface FileOptions {
     /**
      * an optional mimeType
      */
-    mineType?: string;
+    mimeType?: string;
 
     fileSystem?: AbstractFs;
+
+    nodeId?: NodeIdLike;
 }
 
 export interface UAFileType extends UAObjectType, UAFile_Base {}
@@ -112,7 +114,7 @@ export class FileTypeData {
 
         this.filename = options.filename;
         this.maxSize = options.maxSize!;
-        this.mimeType = options.mineType || "";
+        this.mimeType = options.mimeType || "";
         // openCount indicates the number of currently valid file handles on the file.
         this._openCount = 0;
         file.openCount.bindVariable(
@@ -121,7 +123,7 @@ export class FileTypeData {
             },
             true
         );
-        file.openCount.minimumSamplingInterval = 0; // changed immediatly
+        file.openCount.minimumSamplingInterval = 0; // changes immediately
 
         file.size.bindVariable(
             {
@@ -130,7 +132,7 @@ export class FileTypeData {
             true
         );
 
-        file.size.minimumSamplingInterval = 0; // changed immediatly
+        file.size.minimumSamplingInterval = 0; // changes immediately
 
         this.refresh();
     }
@@ -182,8 +184,12 @@ export class FileTypeData {
     }
 }
 
+interface UAFileEx extends UAFile {
+    $fileData: FileTypeData;
+}
+
 export function getFileData(opcuaFile2: UAFile): FileTypeData {
-    return (opcuaFile2 as any).$fileData as FileTypeData;
+    return (opcuaFile2 as UAFileEx).$fileData;
 }
 
 interface FileAccessData {
@@ -343,7 +349,7 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
-    const fileData = (context.object as any).$fileData as FileTypeData;
+    const fileData = (context.object as UAFileEx).$fileData;
 
     const filename = fileData.filename;
 
@@ -389,8 +395,8 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
     return callMethodResult;
 }
 
-function _getFileSystem(context: ISessionContext) {
-    const fs: AbstractFs = (context.object as any).$fs;
+function _getFileSystem(context: ISessionContext): AbstractFs {
+    const fs: AbstractFs = (context.object as UAFileEx).$fileData._fs;
     return fs;
 }
 
@@ -414,7 +420,7 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: IS
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
-    const data = (context.object as any).$fileData as FileTypeData;
+    const data = (context.object as UAFileEx).$fileData as FileTypeData;
 
     debugLog("Closing file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
 
@@ -531,7 +537,7 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         _fileInfo.position[1] += ret.bytesWritten;
         _fileInfo.size = Math.max(_fileInfo.size, _fileInfo.position[1]);
 
-        const fileTypeData = (context.object as any).$fileData as FileTypeData;
+        const fileTypeData = (context.object as UAFileEx).$fileData as FileTypeData;
         debugLog(fileTypeData.fileSize);
         fileTypeData.fileSize = Math.max(fileTypeData.fileSize, _fileInfo.position[1]);
         debugLog(fileTypeData.fileSize);
@@ -595,7 +601,7 @@ async function _getPositionFile(
 export const defaultMaxSize = 100000000;
 
 function install_method_handle_on_type(addressSpace: IAddressSpace): void {
-    const fileType = addressSpace.findObjectType("FileType") as any;
+    const fileType = addressSpace.findObjectType("FileType") as unknown as UAFile;
     if (fileType.open.isBound()) {
         return;
     }
@@ -612,12 +618,12 @@ function install_method_handle_on_type(addressSpace: IAddressSpace): void {
  * @param file the OPCUA Node that has a typeDefinition of FileType
  * @param options the options
  */
-export function installFileType(file: UAFile, options: FileOptions): void {
-    if ((file as any).$fileData) {
+export function installFileType(_file: UAFile, options: FileOptions): void {
+    const file = _file as UAFileEx;
+    if (file.$fileData) {
         errorLog("File already installed ", file.nodeId.toString(), file.browseName.toString());
         return;
     }
-    (file as any).$fs = options.fileSystem || fsOrig;
 
     // make sure that FileType methods are also bound.
     install_method_handle_on_type(file.addressSpace);
@@ -628,13 +634,13 @@ export function installFileType(file: UAFile, options: FileOptions): void {
     options.maxSize = options.maxSize === undefined ? defaultMaxSize : options.maxSize;
 
     const $fileData = new FileTypeData(options, file);
-    (file as any).$fileData = $fileData;
+    file.$fileData = $fileData;
 
     // ----- install mime type
-    if (options.mineType) {
+    if (options.mimeType) {
         if (file.mimeType) {
             file.mimeType.bindVariable({
-                get: () => (file as any).$fileOptions.mineType
+                get: () => new Variant({ dataType: DataType.String, value: file.$fileData.mimeType })
             });
         }
     }
