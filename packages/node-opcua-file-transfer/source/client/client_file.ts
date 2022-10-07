@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-file-transfer
  */
-import { Byte, Int32, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
+import { Byte, coerceInt32, Int32, Int64, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
@@ -25,10 +25,9 @@ export { OpenFileMode } from "../open_mode";
  *
  */
 export class ClientFile {
-
     public static useGlobalMethod = false;
 
-    public    fileHandle = 0;
+    public fileHandle = 0;
     protected session: IBasicSession;
     protected readonly fileNodeId: NodeId;
 
@@ -47,7 +46,6 @@ export class ClientFile {
     }
 
     public async open(mode: OpenFileMode): Promise<number> {
-
         if (mode === null || mode === undefined) {
             throw new Error("expecting a validMode " + OpenFileMode[mode]);
         }
@@ -57,9 +55,7 @@ export class ClientFile {
         await this.ensureInitialized();
 
         const result = await this.session.call({
-            inputArguments: [
-                { dataType: DataType.Byte, value: mode as Byte }
-            ],
+            inputArguments: [{ dataType: DataType.Byte, value: mode as Byte }],
             methodId: this.openMethodNodeId,
             objectId: this.fileNodeId
         });
@@ -80,9 +76,7 @@ export class ClientFile {
         await this.ensureInitialized();
 
         const result = await this.session.call({
-            inputArguments: [
-                { dataType: DataType.UInt32, value: this.fileHandle }
-            ],
+            inputArguments: [{ dataType: DataType.UInt32, value: this.fileHandle }],
             methodId: this.closeMethodNodeId,
             objectId: this.fileNodeId
         });
@@ -101,9 +95,7 @@ export class ClientFile {
         }
 
         const result = await this.session.call({
-            inputArguments: [
-                { dataType: DataType.UInt32, value: this.fileHandle }
-            ],
+            inputArguments: [{ dataType: DataType.UInt32, value: this.fileHandle }],
             methodId: this.getPositionNodeId,
             objectId: this.fileNodeId
         });
@@ -139,7 +131,7 @@ export class ClientFile {
         return;
     }
 
-    public async read(bytesToRead: Int32): Promise<Buffer> {
+    public async read(bytesToRead: UInt32 | Int32 | Int64 | UInt64): Promise<Buffer> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has not been opened yet");
@@ -150,7 +142,7 @@ export class ClientFile {
                 {
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.Int32,
-                    value: bytesToRead
+                    value: coerceInt32(bytesToRead)
                 }
             ],
             methodId: this.readNodeId,
@@ -208,7 +200,6 @@ export class ClientFile {
 
     // eslint-disable-next-line max-statements
     protected async extractMethodsIds(): Promise<void> {
-
         if (ClientFile.useGlobalMethod) {
             debugLog("Using GlobalMethodId");
             this.openMethodNodeId = resolveNodeId(MethodIds.FileType_Open);
@@ -287,6 +278,17 @@ export class ClientFile {
         if (!this.openMethodNodeId) {
             await this.extractMethodsIds();
         }
+    }
+}
+
+export async function readFile(clientFile: ClientFile): Promise<Buffer> {
+    await clientFile.open(OpenFileMode.Read);
+    try {
+        const fileSize = await clientFile.size();
+        const data = await clientFile.read(fileSize);
+        return data;
+    } finally {
+        await clientFile.close();
     }
 }
 
