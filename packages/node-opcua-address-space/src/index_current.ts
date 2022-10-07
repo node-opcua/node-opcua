@@ -23,7 +23,9 @@ export * from "../source/namespace_machine_state"
 export * from "../source/namespace_alarm_and_condition";
 
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "../source/loader/ensure_datatype_extracted";
+
 export * from "../source/loader/generateAddressSpaceRaw";
+export * from "../source/loader/register_node_promoter";
 
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 

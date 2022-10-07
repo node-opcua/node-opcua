@@ -330,7 +330,7 @@ export interface CreateSessionOption {
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
 
-export type ShutdownTask = (this: ServerEngine) => void | Promise<void>;
+export type ServerEngineShutdownTask = (this: ServerEngine) => void | Promise<void>;
 /**
  *
  */
@@ -352,7 +352,7 @@ export class ServerEngine extends EventEmitter {
     private _sessions: { [key: string]: ServerSession };
     private _closedSessions: { [key: string]: ServerSession };
     private _orphanPublishEngine?: ServerSidePublishEngineForOrphanSubscription;
-    private _shutdownTasks: ShutdownTask[];
+    private _shutdownTasks: ServerEngineShutdownTask[];
     private _applicationUri: string;
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
@@ -511,7 +511,7 @@ export class ServerEngine extends EventEmitter {
      * register a function that will be called when the server will perform its shut down.
      * @method registerShutdownTask
      */
-    public registerShutdownTask(task: (this: ServerEngine) => void): void {
+    public registerShutdownTask(task: ServerEngineShutdownTask): void {
         assert(typeof task === "function");
         this._shutdownTasks.push(task);
     }

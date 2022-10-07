@@ -7,7 +7,6 @@ import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
@@ -22,9 +21,9 @@ import {
 import { DataType } from "node-opcua-variant";
 import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
-import { IStructuredTypeSchema } from "node-opcua-factory";
 
 import { SessionContext } from "../source/session_context";
+import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
 import * as tools from "./tool_isSupertypeOf";
@@ -32,13 +31,6 @@ import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { BaseNode_getCache } from "./base_node_private";
 
-export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
-export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {
-    schema: IStructuredTypeSchema;
-    possibleFields: string[];
-    encodingDefaultBinary: ExpandedNodeId;
-    encodingDefaultXml: ExpandedNodeId;
-}
 
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
@@ -123,15 +115,11 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 break;
             case AttributeIds.DataTypeDefinition:
                 {
-                    if (this.namespace.$emulateVersion103) {
-                        options.statusCode = StatusCodes.BadAttributeIdInvalid;
+                    const _definition = this._getDefinition()?.clone();
+                    if (_definition) {
+                        options.value = { dataType: DataType.ExtensionObject, value: _definition };
                     } else {
-                        const _definition = this._getDefinition()?.clone();
-                        if (_definition !== null) {
-                            options.value = { dataType: DataType.ExtensionObject, value: _definition };
-                        } else {
-                            options.statusCode = StatusCodes.BadAttributeIdInvalid;
-                        }
+                        options.statusCode = StatusCodes.BadAttributeIdInvalid;
                     }
                 }
                 break;

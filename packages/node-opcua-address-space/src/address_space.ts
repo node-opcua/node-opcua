@@ -42,13 +42,15 @@ import {
     UAReferenceType,
     UAObject,
     UAView,
+    IAddressSpace,
+    ShutdownTask,
     RaiseEventData
 } from "node-opcua-address-space-base";
 import { make_errorLog } from "node-opcua-debug";
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import { UARootFolder } from "../source/ua_root_folder";
-import { Namespace } from "../source/namespace";
+import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionImpl, UAConditionImpl } from "./alarms_and_conditions";
@@ -57,7 +59,7 @@ import { AddressSpace_installHistoricalDataNode } from "./historical_access/addr
 import { NamespaceImpl } from "./namespace_impl";
 import { isNonEmptyQualifiedName } from "./namespace_impl";
 import { NamespacePrivate } from "./namespace_private";
-import { ExtensionObjectConstructorFuncWithSchema, UADataTypeImpl } from "./ua_data_type_impl";
+import { UADataTypeImpl } from "./ua_data_type_impl";
 import { UAObjectTypeImpl } from "./ua_object_type_impl";
 import { UAObjectImpl } from "./ua_object_impl";
 import { ReferenceImpl } from "./reference_impl";
@@ -121,7 +123,6 @@ function isNodeIdString(str: unknown): boolean {
     return str.substring(0, 2) === "i=" || str.substring(0, 3) === "ns=";
 }
 
-type ShutdownTask = ((this: AddressSpace) => void) | ((this: AddressSpace) => Promise<void>);
 
 /**
  * `AddressSpace` is a collection of UA nodes.
@@ -159,7 +160,7 @@ export class AddressSpace implements AddressSpacePrivate {
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
     private readonly _namespaceArray: NamespacePrivate[];
-    private _shutdownTask: ShutdownTask[] = [];
+    private _shutdownTask?: ShutdownTask[];
     private _modelChangeTransactionCounter = 0;
     private _modelChanges: ModelChangeStructureDataType[] = [];
 
@@ -743,15 +744,15 @@ export class AddressSpace implements AddressSpacePrivate {
         const hasProperty = (data: any, propertyName: string): boolean => Object.prototype.hasOwnProperty.call(data, propertyName);
 
         const visitedProperties: { [key: string]: number } = {};
-        const alreadyVisited=(key: string) => Object.prototype.hasOwnProperty.call(visitedProperties, key);
-        const markAsVisited=(key: string) => visitedProperties[key] = 1;
+        const alreadyVisited = (key: string) => Object.prototype.hasOwnProperty.call(visitedProperties, key);
+        const markAsVisited = (key: string) => (visitedProperties[key] = 1);
 
         function _process_var(self: BaseNode, prefixLower: string, prefixStandard: string, node: BaseNode) {
             const lowerName = prefixLower + lowerFirstLetter(node.browseName!.name!);
             const fullBrowsePath = prefixStandard + node.browseName.toString();
-            if(alreadyVisited(lowerName)) {
+            if (alreadyVisited(lowerName)) {
                 return;
-            } 
+            }
             markAsVisited(lowerName);
 
             if (hasProperty(data, lowerName)) {
@@ -1074,14 +1075,16 @@ export class AddressSpace implements AddressSpacePrivate {
     }
 
     public async shutdown(): Promise<void> {
-        if (!this._shutdownTask) {
-            return;
-        }
-        const tasks = this._shutdownTask;
-        this._shutdownTask = [];
-        // perform registerShutdownTask
-        for (const task of tasks) {
-            await task.call(this);
+        const performTasks = async (tasks: ShutdownTask[]) => {
+            // perform registerShutdownTask
+            for (const task of tasks) {
+                await task.call(this);
+            }
+        };
+        if (this._shutdownTask) {
+            const tasks = this._shutdownTask;
+            this._shutdownTask = [];
+            await performTasks(tasks);
         }
     }
 

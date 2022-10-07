@@ -19,6 +19,8 @@ import { IHistoricalDataNodeOptions, UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
 
+export type ShutdownTask = ((this: IAddressSpace) => void) | ((this: IAddressSpace) => Promise<void>);
+
 interface UARootFolder_Objects extends UAObject {
     server: UAObject;
 }
@@ -185,8 +187,15 @@ export interface IAddressSpace {
     installHistoricalDataNode(variableNode: UAVariable, options?: IHistoricalDataNodeOptions): void;
 
     // -------------- Shutdown helpers
-    registerShutdownTask(task: (this: IAddressSpace) => void): void;
+    /**
+     *  register a task that will be executed just before the address space is disposed.
+     */
+    registerShutdownTask(task: ShutdownTask): void;
 
+    /**
+     * shutdown the address space by executingthe registered shutdown tasks.
+     * @see registerShutdownTask, dispose
+     */
     shutdown(): Promise<void>;
 
     dispose(): void;

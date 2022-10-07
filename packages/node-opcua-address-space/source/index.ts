@@ -17,6 +17,7 @@ export * from "./interfaces/data_access/ua_multistate_discrete_ex";
 export * from "./interfaces/data_access/ua_multistate_value_discrete_ex";
 export * from "./interfaces/data_access/ua_two_state_discrete_ex";
 export * from "./interfaces/data_access/ua_y_array_item_ex";
+export * from "./interfaces/extension_object_constructor";
 
 
 export * from "./interfaces/alarms_and_conditions/condition_info_i";
@@ -58,6 +59,8 @@ export { ContinuationPointManager } from "./continuation_points/continuation_poi
 export { ensureDatatypeExtracted, ensureDatatypeExtractedWithCallback } from "./loader/ensure_datatype_extracted";
 
 export * from "./loader/generateAddressSpaceRaw";
+export * from "./loader/register_node_promoter";
+
 export * from "./namespace";
 export * from "./namespace_data_access";
 
