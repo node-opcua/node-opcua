@@ -56,6 +56,7 @@ import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
 import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
 import { makeSemverCompatible } from "./make_semver_compatible";
+import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -1774,10 +1775,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     };
 }
 
-export interface NodeSetLoaderOptions {
-    loadDraftNodes?: boolean;
-    loadDeprecatedNodes?: boolean;
-}
+
 
 export class NodeSetLoader {
     _s: NodeSet2ParserEngine;

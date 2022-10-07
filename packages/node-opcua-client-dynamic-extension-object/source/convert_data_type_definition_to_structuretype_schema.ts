@@ -168,7 +168,6 @@ async function resolve2(
             }
             break;
         default:
-        case FieldCategory.enumeration:
         case FieldCategory.complex:
             {
                 const dataTypeDefinitionDataValue = await session.read({

@@ -3,7 +3,8 @@ import { CallbackT } from "node-opcua-status-code";
 import { IAddressSpace } from "node-opcua-address-space-base";
 
 import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_array";
-import { NodeSetLoader, NodeSetLoaderOptions } from "./load_nodeset2";
+import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
+import { NodeSetLoader } from "./load_nodeset2";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);

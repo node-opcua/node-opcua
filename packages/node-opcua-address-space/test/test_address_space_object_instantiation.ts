@@ -57,10 +57,10 @@ describe("testing add new ObjectType ", () => {
             myObjectType2.subObj.getPropertyByName("Property2")!.browseName.toString().should.eql("1:Property2");
             myObjectType2.subObj.getPropertyByName("Property3")!.browseName.toString().should.eql("1:Property3");
 
-            myObjectType2.subObj.modellingRule.should.eql("Optional");
-            myObjectType2.subObj.property1.modellingRule.should.eql("Mandatory");
-            myObjectType2.subObj.property2.modellingRule.should.eql("Optional");
-            myObjectType2.subObj.property3.modellingRule.should.eql("Optional");
+            myObjectType2.subObj.modellingRule!.should.eql("Optional");
+            myObjectType2.subObj.property1.modellingRule!.should.eql("Mandatory");
+            myObjectType2.subObj.property2.modellingRule!.should.eql("Optional");
+            myObjectType2.subObj.property3.modellingRule!.should.eql("Optional");
         }
         constructObjectType();
     });
@@ -70,7 +70,7 @@ describe("testing add new ObjectType ", () => {
 
     it("should instantiate a objectType that uses custom HasChild Property", () => {
         addressSpace.isFrugal.should.eql(false);
-        const aggregatesReference = addressSpace.findReferenceType("Aggregates");
+        const aggregatesReference = addressSpace.findReferenceType("Aggregates")!;
 
         const namespace = addressSpace.getOwnNamespace();
         // ------------ Add a new aggregate
@@ -81,9 +81,9 @@ describe("testing add new ObjectType ", () => {
             subtypeOf: aggregatesReference
         });
 
-        hasWeezbeReferenceType.subtypeOfObj.browseName.toString().should.eql("Aggregates");
-        sameNodeId(hasWeezbeReferenceType.subtypeOf, aggregatesReference.nodeId).should.eql(true);
-        hasWeezbeReferenceType.subtypeOfObj.should.eql(aggregatesReference);
+        hasWeezbeReferenceType.subtypeOfObj!.browseName.toString().should.eql("Aggregates");
+        sameNodeId(hasWeezbeReferenceType.subtypeOf!, aggregatesReference.nodeId).should.eql(true);
+        hasWeezbeReferenceType.subtypeOfObj!.should.eql(aggregatesReference);
 
         //xx console.log(hasWeezbeReferenceType.isSupertypeOf(aggregatesReference));
         //xx console.log(aggregatesReference.isSupertypeOf(hasWeezbeReferenceType));
@@ -92,7 +92,7 @@ describe("testing add new ObjectType ", () => {
         const a: UAReferenceType[] = aggregatesReference.getAllSubtypes();
         //xx console.log(a.map(a => a.browseName.toString()));
 
-        const hasChildReference = aggregatesReference.subtypeOfObj;
+        const hasChildReference = aggregatesReference.subtypeOfObj!;
         const b: UAReferenceType[] = hasChildReference.getAllSubtypes();
         //xx console.log(b.map(b => b.browseName.toString()));
 
