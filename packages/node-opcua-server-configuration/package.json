@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-server-configuration",
-    "version": "2.80.0",
+    "version": "2.80.1",
     "description": "pure nodejs OPCUA SDK - module -server",
     "scripts": {
         "build": "tsc -b",
@@ -25,7 +25,7 @@
         "node-opcua-crypto": "^1.11.0",
         "node-opcua-data-model": "2.79.0",
         "node-opcua-debug": "2.77.0",
-        "node-opcua-file-transfer": "2.80.0",
+        "node-opcua-file-transfer": "2.80.1",
         "node-opcua-hostname": "2.77.0",
         "node-opcua-nodeid": "2.79.0",
         "node-opcua-pki": "^2.17.0",

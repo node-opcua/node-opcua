@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-file-transfer",
-    "version": "2.80.0",
+    "version": "2.80.1",
     "description": "pure nodejs OPCUA SDK - module -server",
     "scripts": {
         "build": "tsc -b",
