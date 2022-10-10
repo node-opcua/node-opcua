@@ -3,7 +3,7 @@
     "packages/*",
     "packages_extra/*"
   ],
-  "version": "2.79.1",
+  "version": "2.80.0",
   "npmClient": "pnpm",
   "useWorkspaces": true,
   "exact": true
