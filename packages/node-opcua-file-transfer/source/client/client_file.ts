@@ -292,6 +292,11 @@ export async function readFile(clientFile: ClientFile): Promise<Buffer> {
     }
 }
 
+export async function readOPCUAFile(clientFile: ClientFile): Promise<Buffer> {
+    return await readFile(clientFile);
+}
+
+
 /**
  * 5.2.10 UserRolePermissions
  *

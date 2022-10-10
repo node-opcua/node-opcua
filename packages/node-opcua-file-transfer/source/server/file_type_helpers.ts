@@ -92,6 +92,8 @@ export interface FileOptions {
     fileSystem?: AbstractFs;
 
     nodeId?: NodeIdLike;
+
+    refreshFileContentFunc?: () => Promise<void>;
 }
 
 export interface UAFileType extends UAObjectType, UAFile_Base {}
@@ -108,9 +110,12 @@ export class FileTypeData {
     private _openCount = 0;
     private _fileSize = 0;
 
+    public refreshFileContentFunc?: () => Promise<void>;
+
     constructor(options: FileOptions, file: UAFile) {
         this.file = file;
         this._fs = options.fileSystem || fsOrig;
+        this.refreshFileContentFunc = options.refreshFileContentFunc;
 
         this.filename = options.filename;
         this.maxSize = options.maxSize!;
@@ -182,6 +187,37 @@ export class FileTypeData {
             }
         })(this);
     }
+
+    public async refreshFileContent() {
+        if (this.refreshFileContentFunc) {
+            await this.refreshFileContentFunc();
+            await this.refresh();
+        }
+    }
+}
+
+export async function writeFile(fileSystem: AbstractFs, filename: string, content: Buffer): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+        fileSystem.open(filename, "w", (err, fd) => {
+            // istanbul ignore next
+            if (err) {
+                return reject(err);
+            }
+            fileSystem.write(fd, content, 0, content.length, 0, (err) => {
+                // istanbul ignore next
+                if (err) {
+                    return reject(err);
+                }
+                fileSystem.close(fd, (err) => {
+                    // istanbul ignore next
+                    if (err) {
+                        return reject(err);
+                    }
+                    resolve();
+                });
+            });
+        });
+    });
 }
 
 interface UAFileEx extends UAFile {
@@ -352,6 +388,11 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
     const fileData = (context.object as UAFileEx).$fileData;
 
     const filename = fileData.filename;
+
+    // make sure file is up to date ... by delegating
+    if (mode === OpenFileMode.Read) {
+        await fileData.refreshFileContent();
+    }
 
     const abstractFs = _getFileSystem(context);
 
