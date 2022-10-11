@@ -16,8 +16,13 @@ export function isValidGuid(guid: string): boolean {
     return regexGUID.test(guid);
 }
 
-//                             1         2         3
-//                   012345678901234567890123456789012345
+
+//                                  1         2         3
+//                        012345678901234567890123456789012345
 export const emptyGuid = "00000000-0000-0000-0000-000000000000";
+
+export function normalizeGuid(guid: Guid |null | undefined): Guid {
+    return guid ? guid.toUpperCase() : emptyGuid;
+}
 
 export type Guid = string;

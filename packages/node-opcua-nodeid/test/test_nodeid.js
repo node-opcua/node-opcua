@@ -150,7 +150,18 @@ describe("testing coerceNodeId", function() {
         const nodeId1 = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         const nodeId2 = makeNodeId('1E14849E-3744-470d-8C7B-5F9110C2FA32');
         nodeId1.should.eql(nodeId2);
-    })
+    });
+    
+    it("make default nodeId guid: new NodeID(GUID)", ()=>{
+        const nodeId = new NodeId(NodeIdType.GUID);
+        nodeId.toString().should.eql("ns=0;g=00000000-0000-0000-0000-000000000000");
+    });
+
+    it("make default nodeId: new NodeID()", ()=>{
+        const nodeId = new NodeId();
+        nodeId.toString().should.eql("ns=0;i=0");
+    });
+
     it("makeNodeId(buffer)", () => {
         const nodeId2 = makeNodeId(Buffer.from([1, 2, 3]));
         nodeId2.toString().should.eql("ns=0;b=AQID");
@@ -183,16 +194,21 @@ describe("testing coerceNodeId", function() {
     it("should coerce a GUID node id (without namespace)", function() {
         const nodeId = coerceNodeId("g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
-        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
-        nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470D-8C7B-5F9110C2FA32");
+        nodeId.value.should.eql("1E14849E-3744-470D-8C7B-5F9110C2FA32");
     });
     it("should coerce a GUID node id (with namespace)", function() {
         const nodeId = coerceNodeId("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
         nodeId.identifierType.should.eql(NodeIdType.GUID);
-        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470d-8C7B-5F9110C2FA32");
-        nodeId.value.should.eql("1E14849E-3744-470d-8C7B-5F9110C2FA32");
+        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470D-8C7B-5F9110C2FA32");
+        nodeId.value.should.eql("1E14849E-3744-470D-8C7B-5F9110C2FA32");
     });
-
+    it("should coerce a GUID node id (with lower case)", function() {
+        const nodeId = coerceNodeId("ns=0;g=1e14849e-3744-470d-8c7b-5f9110c2fa32");
+        nodeId.identifierType.should.eql(NodeIdType.GUID);
+        nodeId.toString().should.eql("ns=0;g=1E14849E-3744-470D-8C7B-5F9110C2FA32");
+        nodeId.value.should.eql("1E14849E-3744-470D-8C7B-5F9110C2FA32");
+    });
     it("should not coerce a malformed string to a nodeid", function() {
         let nodeId;
 
