@@ -365,6 +365,28 @@ describe("testing ClientTCP_transport", function () {
         });
     });
 
+    it("Should send socket_closed on internal timeout", function (done) {
+        transport.timeout = 100;
+
+        const spyOnServerWrite = sinon.spy(function (socket, data) {
+            assert(data);
+            // received Fake HEL Message
+            // send Fake ACK response
+            const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);
+            socket.write(messageChunk);
+        });
+
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        transport.on("socket_closed", function () {
+            done();
+        });
+
+        transport.connect(endpointUrl, function () {
+            /* */
+        });
+    });
+
     it("should returns an error if url has invalid port", function (done) {
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {
