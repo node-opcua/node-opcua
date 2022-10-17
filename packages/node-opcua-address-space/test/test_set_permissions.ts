@@ -228,7 +228,7 @@ describe("Method#setPermissions & checkPermission", () => {
             dataType: "Double",
             historizing: true
         });
-        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.WriteHistorizing }]);
+        uaVariable.setRolePermissions([{ roleId: WellKnownRoles.Engineer, permissions: PermissionType.ReadHistory | PermissionType.WriteHistorizing }]);
         const haConfiguration = addressSpace.getOwnNamespace().addObject({
             componentOf: uaVariable,
             browseName: "HA Configuration"

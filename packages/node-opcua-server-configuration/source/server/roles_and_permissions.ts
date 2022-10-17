@@ -2,7 +2,7 @@ import { PermissionType, RolePermissionTypeOptions, WellKnownRoles } from "node-
 import { makePermissionFlag, allPermissions } from "node-opcua-data-model";
 
 export const rolePermissionRestricted: RolePermissionTypeOptions[] = [
-/*
+
     {
         roleId: WellKnownRoles.Anonymous,
         permissions: PermissionType.Browse,
@@ -11,7 +11,6 @@ export const rolePermissionRestricted: RolePermissionTypeOptions[] = [
         roleId: WellKnownRoles.AuthenticatedUser,
         permissions: PermissionType.Browse,
     },
-*/
     {
         roleId: WellKnownRoles.ConfigureAdmin,
         permissions: makePermissionFlag("Browse | ReadRolePermissions | Read | ReadHistory | ReceiveEvents")

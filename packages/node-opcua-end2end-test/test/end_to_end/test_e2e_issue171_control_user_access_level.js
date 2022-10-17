@@ -9,7 +9,9 @@ const {
     OPCUAClient,
     StatusCodes,
     WellKnownRoles,
-    makeRoles
+    makeRoles,
+    makeAccessLevelFlag,
+    AccessLevelFlag
 } = require("node-opcua");
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
@@ -94,7 +96,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             dataType: "Double",
             value: { dataType: "Double", value: 3.14 },
 
-            rolePermissions: rolePermission1
+            rolePermissions: rolePermission1,
+            accessLevel: AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite
         });
     });
 

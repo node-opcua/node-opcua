@@ -919,7 +919,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
 
             //xx monitoredItem.queue.length.should.eql(1);
 
-            simulate_publish_request_expected_statusCode(monitoredItem, StatusCodes.BadUserAccessDenied);
+            simulate_publish_request_expected_statusCode(monitoredItem, StatusCodes.BadNotReadable);
         });
 
         it("FGFG1 should return BadNodeIdUnknown when trying to monitor an invalid node", () => {
