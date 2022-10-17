@@ -348,23 +348,39 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         this.semantic_version = 0;
     }
-
-    private checkPermissionAndAccessLevelPrivate(
-        context: ISessionContext,
-        permission: PermissionType,
-        accessLevel: AccessLevelFlag
-    ) {
-        assert(context instanceof SessionContext);
-        if (context.checkPermission) {
-            assert(context.checkPermission instanceof Function);
-            if (!context.checkPermission(this, permission)) {
-                return false;
-            }
-        }
+    private checkAccessLevelPrivate(
+        _context: ISessionContext,
+        accessLevel: AccessLevelFlag): boolean {
         if (this.userAccessLevel === undefined) {
             return true;
         }
         return (this.userAccessLevel & accessLevel) === accessLevel;
+    }
+    private checkPermissionPrivate(
+        context: ISessionContext,
+        permission: PermissionType,
+    ): boolean {
+        if (!context) return true;
+        assert(context instanceof SessionContext);
+        if (context.checkPermission) {
+            if (!(context.checkPermission instanceof Function)) {
+                errorLog("context checkPermission is not a function");
+                return false;
+            }
+            if (!context.checkPermission(this, permission)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    private checkPermissionAndAccessLevelPrivate(
+        context: ISessionContext,
+        permission: PermissionType,
+        accessLevel: AccessLevelFlag): boolean {
+        if (!this.checkPermissionPrivate(context, permission)) {
+            return false;
+        }
+        return this.checkAccessLevelPrivate(context, accessLevel);
     }
 
     public isReadable(context: ISessionContext): boolean {
@@ -375,7 +391,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (!this.isReadable(context)) {
             return false;
         }
-        return this.checkPermissionAndAccessLevelPrivate(context, PermissionType.Read, AccessLevelFlag.CurrentRead);
+        if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
+            return false;
+        }
+        return this.checkAccessLevelPrivate(context, AccessLevelFlag.CurrentRead);
     }
 
     public isWritable(context: ISessionContext): boolean {
@@ -451,8 +470,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (!this.isReadable(context)) {
             return new DataValue({ statusCode: StatusCodes.BadNotReadable });
         }
-        if (!this.isUserReadable(context)) {
+        if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
             return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+        }
+        if (!this.isUserReadable(context)) {
+            return new DataValue({ statusCode: StatusCodes.BadNotReadable });
         }
         if (!isValidDataEncoding(dataEncoding)) {
             return new DataValue({ statusCode: StatusCodes.BadDataEncodingInvalid });
@@ -484,10 +506,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         ) {
             debugLog(
                 chalk.red(" Warning:  UAVariable#readValue ") +
-                    chalk.cyan(this.browseName.toString()) +
-                    " (" +
-                    chalk.yellow(this.nodeId.toString()) +
-                    ") exists but dataValue has not been defined"
+                chalk.cyan(this.browseName.toString()) +
+                " (" +
+                chalk.yellow(this.nodeId.toString()) +
+                ") exists but dataValue has not been defined"
             );
         }
         return dataValue;
@@ -689,9 +711,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 if (variant.dataType === null || variant.dataType === undefined) {
                     throw new Error(
                         "Variant must provide a valid dataType : variant = " +
-                            variant.toString() +
-                            " this.dataType= " +
-                            this.dataType.toString()
+                        variant.toString() +
+                        " this.dataType= " +
+                        this.dataType.toString()
                     );
                 }
                 if (
@@ -700,9 +722,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 ) {
                     throw new Error(
                         "Variant must provide a valid Boolean : variant = " +
-                            variant.toString() +
-                            " this.dataType= " +
-                            this.dataType.toString()
+                        variant.toString() +
+                        " this.dataType= " +
+                        this.dataType.toString()
                     );
                 }
                 if (
@@ -713,9 +735,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 ) {
                     throw new Error(
                         "Variant must provide a valid LocalizedText : variant = " +
-                            variant.toString() +
-                            " this.dataType= " +
-                            this.dataType.toString()
+                        variant.toString() +
+                        " this.dataType= " +
+                        this.dataType.toString()
                     );
                 }
             }
@@ -870,8 +892,13 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (!this.isWritable(context)) {
             return callback!(null, StatusCodes.BadNotWritable);
         }
+        if (!this.checkPermissionPrivate(context, PermissionType.Write)) {
+            return new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+        }
+
+
         if (!this.isUserWritable(context)) {
-            return callback!(null, StatusCodes.BadUserAccessDenied);
+            return callback!(null, StatusCodes.BadWriteNotSupported);
         }
 
         // adjust special case
@@ -997,9 +1024,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 if (writeValue.value!.value.dataType !== DataType.Boolean) {
                     return callback(null, StatusCodes.BadTypeMismatch);
                 }
-                if (!this.canUserWriteHistorizingAttribute(context)) {
+                if (!this.checkPermissionPrivate(context, PermissionType.WriteHistorizing)) {
                     return callback(null, StatusCodes.BadUserAccessDenied);
                 }
+
+                if (!this.canUserWriteHistorizingAttribute(context)) {
+                    return callback(null, StatusCodes.BadHistoryOperationUnsupported);
+                }
+
                 // if the variable has no historizing in place reject
                 if (!this.getChildByName("HA Configuration")) {
                     return callback(null, StatusCodes.BadNotSupported);
@@ -1227,9 +1259,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 const dataValue = new DataValue({ statusCode: StatusCodes.BadNotReadable });
                 innerCallback(null, dataValue);
             };
-        } else if (!this.isUserReadable(context)) {
+        } else if (!this.checkPermissionPrivate(context, PermissionType.Read)) {
             func = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
                 const dataValue = new DataValue({ statusCode: StatusCodes.BadUserAccessDenied });
+                innerCallback(null, dataValue);
+            };
+        } else if (!this.isUserReadable(context)) {
+            func = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
+                const dataValue = new DataValue({ statusCode: StatusCodes.BadNotReadable });
                 innerCallback(null, dataValue);
             };
         } else {
@@ -1560,9 +1597,16 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         continuationData: ContinuationData,
         callback: CallbackT<HistoryReadResult>
     ): void {
-        if (!this.canUserReadHistory(context)) {
+
+        if (!this.checkPermissionPrivate(context, PermissionType.ReadHistory)) {
             const result = new HistoryReadResult({
                 statusCode: StatusCodes.BadUserAccessDenied
+            });
+            callback(null, result);
+        }
+        if (!this.canUserReadHistory(context)) {
+            const result = new HistoryReadResult({
+                statusCode: StatusCodes.BadHistoryOperationUnsupported
             });
             callback(null, result);
         }
@@ -1634,8 +1678,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             const nbElements = dataValue.value.dimensions.reduce((acc, x) => acc * x, 1);
             if (dataValue.value.value.length !== 0 && dataValue.value.value.length !== nbElements) {
                 throw new Error(
-                    `Internal Error: matrix dimension doesn't match the number of element in the array : ${dataValue.toString()} "\n expecting ${nbElements} elements but got ${
-                        dataValue.value.value.length
+                    `Internal Error: matrix dimension doesn't match the number of element in the array : ${dataValue.toString()} "\n expecting ${nbElements} elements but got ${dataValue.value.value.length
                     }`
                 );
             }
@@ -1984,7 +2027,7 @@ function _Variable_bind_with_timestamped_get(
             errorLog(
                 chalk.red(" Bind variable error: "),
                 " the timestamped_get function must return a DataValue or a Promise<DataValue>" +
-                    "\n value_check.constructor.name ",
+                "\n value_check.constructor.name ",
                 dataValue_verify ? dataValue_verify.constructor.name : "null"
             );
 
@@ -2179,7 +2222,7 @@ export interface UAVariableImplT<T, DT extends DataType> extends UAVariableImpl,
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, callback: StatusCodeCallback): void;
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }
-export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {}
+export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl { }
 // x TO DO
 // require("./data_access/ua_variable_data_access");
 // require("./historical_access/ua_variable_history");
