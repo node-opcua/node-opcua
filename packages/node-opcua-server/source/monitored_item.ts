@@ -56,7 +56,6 @@ import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 import { checkWhereClauseOnAdressSpace } from "./filter/check_where_clause_on_address_space";
 import { SamplingFunc } from "./sampling_func";
-import { registerNodePromoter } from "node-opcua-address-space/source/loader/register_node_promoter";
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
 
@@ -804,10 +803,13 @@ export class MonitoredItem extends EventEmitter {
     /**
      * @method _on_sampling_timer
      * @private
-     * request
-     *
      */
     private _on_sampling_timer() {
+        
+        if (this.monitoringMode === MonitoringMode.Disabled) {
+            return;
+        }
+
         const sessionContext = this.getSessionContext();
         if (!sessionContext) {
             return;

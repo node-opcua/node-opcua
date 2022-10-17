@@ -389,11 +389,11 @@ export function apply_timestamps(
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            // xx if (!cloneDataValue.serverTimestamp) {
-            now = now || getCurrentClock();
-            cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-            cloneDataValue.serverPicoseconds = now.picoseconds;
-            // xx }
+            if (!dataValue.serverTimestamp) {
+                now = now || getCurrentClock();
+                cloneDataValue.serverTimestamp = now.timestamp as DateTime;
+                cloneDataValue.serverPicoseconds = now.picoseconds;
+            }
             cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
             cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
             break;

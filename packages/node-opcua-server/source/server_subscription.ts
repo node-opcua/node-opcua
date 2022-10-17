@@ -6,7 +6,7 @@
 import { EventEmitter } from "events";
 import * as chalk from "chalk";
 
-import { SessionContext,AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
+import { SessionContext, AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { Byte, UInt32 } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
@@ -1362,7 +1362,7 @@ export class Subscription extends EventEmitter {
         const availableSequenceNumbers = this.getAvailableSequenceNumbers();
         assert(
             !response.notificationMessage ||
-                availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
+            availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
         );
         response.availableSequenceNumbers = availableSequenceNumbers;
 
@@ -1439,7 +1439,7 @@ export class Subscription extends EventEmitter {
             } else {
                 debugLog(
                     "     -> subscription.state === LATE , " +
-                        "because keepAlive Response cannot be send due to lack of PublishRequest"
+                    "because keepAlive Response cannot be send due to lack of PublishRequest"
                 );
                 if (this.messageSent || this.keepAliveCounterHasExpired) {
                     this.state = SubscriptionState.LATE;
