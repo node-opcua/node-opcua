@@ -383,7 +383,7 @@ export async function promoteCertificateGroup(certificateGroup: UACertificateGro
     certificateGroup.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
     setNotifierOfChain(certificateGroup);
 }
-
+interface UAServerConfigurationPriv extends UAServerConfiguration { $pushCertificateManager: PushCertificateManagerServerImpl};
 export async function installPushCertificateManagement(
     addressSpace: AddressSpace,
     options: PushCertificateManagerServerOptions
@@ -394,7 +394,7 @@ export async function installPushCertificateManagement(
         "ServerConfiguration"
     )! as UAServerConfiguration;
 
-    const serverConfigurationPriv = serverConfiguration as any;
+    const serverConfigurationPriv = serverConfiguration as UAServerConfigurationPriv;
     if (serverConfigurationPriv.$pushCertificateManager) {
         warningLog("PushCertificateManagement has already been installed");
         return;
