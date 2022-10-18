@@ -151,7 +151,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             console.log("    impersonate user user1 on existing session");
             let userIdentity = { type: UserTokenType.UserName, userName: "user1", password: "1" };
 
-            await client.changeSessionIdentity(session, userIdentity);
+            await session.changeUser(userIdentity);
 
             statusCode = await read(session);
             statusCode.should.eql(StatusCodes.Good);
@@ -164,7 +164,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user2 on existing session (user2 is admin)");
             userIdentity = { type: UserTokenType.UserName, userName: "user2", password: "2" };
-            await client.changeSessionIdentity(session, userIdentity);
+            await session.changeUser(userIdentity);
 
             statusCode = await read(session);
             statusCode.should.eql(StatusCodes.Good);
@@ -178,6 +178,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             console.log("    impersonate anonymous user again");
             userIdentity = { type: UserTokenType.Anonymous };
 
+            // note: we intentionally call deprecated changeSessionIdentity for test coverage !
             await client.changeSessionIdentity(session, userIdentity);
             statusCode = await read(session);
             statusCode.should.eql(StatusCodes.BadUserAccessDenied);
