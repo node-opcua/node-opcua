@@ -2634,7 +2634,7 @@ module.exports = function (test) {
                             function (callback) {
                                 // Changing mode from Disabled to Reporting shall cause the monitored Item to resend a data notification
                                 setTimeout(function () {
-                                    change_count.should.eql(2);
+                                    change_count.should.eql(1);
                                     callback();
                                 }, 1000);
                             }

@@ -15,16 +15,16 @@ const {
     DataChangeTrigger,
     DeadbandType
 } = require("node-opcua-service-subscription");
-const { NodeClass } = require("node-opcua-data-model");
-const { makeNodeId } = require("node-opcua-nodeid");
+const { NodeClass, AttributeIds } = require("node-opcua-data-model");
+const { makeNodeId, coerceNodeId } = require("node-opcua-nodeid");
 const { TimestampsToReturn } = require("node-opcua-service-read");
-
 const { DataType, Variant } = require("node-opcua-variant");
 const { DataValue } = require("node-opcua-data-value");
 const { Range } = require("node-opcua-types");
+const { SessionContext } = require("node-opcua-address-space");
 
 const { MonitoredItem } = require("..");
-const { SessionContext } = require("node-opcua-address-space");
+const { getMiniAddressSpace } = require("node-opcua-address-space/distHelpers");
 
 function q(monitoredItem) {
     return monitoredItem.queue.map(function (a) {
@@ -40,10 +40,13 @@ function f(monitoredItem) {
     });
 }
 class FakeNode extends EventEmitter {
-    constructor() {
+    constructor(addressSpace) {
         super();
+        this.addressSpace = addressSpace;
         this.nodeId = makeNodeId(32);
         this.browseName = { name: "toto" };
+        this.nodeClass = NodeClass.Variable;
+        this.dataType = coerceNodeId(DataType.Double);
         this._euRange = {
             nodeClass: NodeClass.Variable,
             readValue() {
@@ -57,6 +60,12 @@ class FakeNode extends EventEmitter {
             }
         };
     }
+    readValueAsync(sessionContext, callback) {
+        setImmediate(() => {
+            callback(null, this.readAttribute(sessionContext, AttributeIds.Value));
+        });
+    }
+
     readAttribute(context, attributeId) {
         return new DataValue({ statusCode: StatusCodes.BadInvalidArgument });
     }
@@ -358,10 +367,10 @@ describe("Server Side MonitoredItem", () => {
 
         // wait 2 x samplingInterval
 
-        this.clock.tick(180);
+        this.clock.tick(monitoredItem.samplingInterval * 2 + 10);
         monitoredItem.samplingFunc.callCount.should.eql(2);
 
-        this.clock.tick(200);
+        this.clock.tick(monitoredItem.samplingInterval * 2);
         monitoredItem.samplingFunc.callCount.should.eql(4);
 
         monitoredItem.terminate();

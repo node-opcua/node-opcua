@@ -1154,7 +1154,6 @@ export class OPCUAServer extends OPCUABaseServer {
                 securityModes: options.securityModes,
                 securityPolicies: options.securityPolicies
             });
-
             // todo  should self.serverInfo.productUri  match self.engine.buildInfo.productUri ?
             for (const endpointOptions of endpointDefinitions) {
                 const endPoint = this.createEndpointDescriptions(options!, endpointOptions);
