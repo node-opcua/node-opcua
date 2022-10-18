@@ -7,28 +7,46 @@ import { BaseNode, UAVariable } from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataChangeFilter, EventFilter } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ReadValueIdOptions } from "node-opcua-types";
+import { DataType } from "node-opcua-basic-types";
+
+function isNumberDataType(node: UAVariable): boolean {
+    if (node.dataType.namespace === 0 && node.dataType.identifierType === NodeIdType.NUMERIC && node.dataType.value < 22) {
+        switch (node.dataType.identifierType === NodeIdType.NUMERIC && node.dataType.value) {
+            case DataType.Float:
+            case DataType.Double:
+            case DataType.Byte:
+            case DataType.SByte:
+            case DataType.Int16:
+            case DataType.Int32:
+            case DataType.Int64:
+            case DataType.UInt16:
+            case DataType.UInt32:
+            case DataType.UInt64:
+                return true;
+            default:
+                return false;
+        }
+    }
+    const dataType = node.addressSpace.findDataType(node.dataType)!;
+    const dataTypeNumber = node.addressSpace.findDataType("Number")!;
+    return dataType.isSupertypeOf(dataTypeNumber);
+}
 
 function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: ReadValueIdOptions, node: UAVariable): StatusCode {
     assert(itemToMonitor.attributeId === AttributeIds.Value);
-
     if (node.nodeClass !== NodeClass.Variable) {
         return StatusCodes.BadNodeIdInvalid;
     }
 
-    assert(node.nodeClass === NodeClass.Variable);
-
-    // if node is not Numerical=> DataChangeFilter
-    assert(node.dataType instanceof NodeId);
-    const dataType = node.addressSpace.findDataType(node.dataType)!;
-
-    const dataTypeNumber = node.addressSpace.findDataType("Number")!;
     if (filter.deadbandType !== DeadbandType.None) {
-        if (!dataType.isSupertypeOf(dataTypeNumber)) {
+        // if node is not Numerical=> DataChangeFilter
+        assert(node.dataType instanceof NodeId);
+        if (!isNumberDataType(node)) {
             return StatusCodes.BadFilterNotAllowed;
         }
     }

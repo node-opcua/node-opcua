@@ -500,10 +500,11 @@ describe("Subscriptions", function () {
 
         it(" - case 3 - publish Request arrives late (after first publishInterval is over)", function () {
             const monitoredItem = add_mock_monitored_item2(subscription, someVariableNode);
+            subscription.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
-            subscription.state.should.eql(SubscriptionState.CREATING);
+            subscription.state.should.eql(SubscriptionState.LATE);
 
             // now simulate some data change
             monitoredItem.recordValue(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
@@ -525,10 +526,11 @@ describe("Subscriptions", function () {
 
         it(" - case 4 - publish Request arrives late (after first publishInterval is over)", function () {
             const monitoredItem = add_mock_monitored_item2(subscription, someVariableNode);
+            subscription.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
-            subscription.state.should.eql(SubscriptionState.CREATING);
+            subscription.state.should.eql(SubscriptionState.LATE);
 
             // now simulate some data change
             monitoredItem.recordValue(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));
@@ -550,10 +552,11 @@ describe("Subscriptions", function () {
 
         it(" - case 4 (with monitoredItem - 3x value writes) - publish Request arrives late (after first publishInterval is over)", function () {
             const monitoredItem = add_mock_monitored_item2(subscription, someVariableNode);
+            subscription.state.should.eql(SubscriptionState.CREATING);
 
             test.clock.tick(subscription.publishingInterval);
             keepalive_event_spy.callCount.should.eql(0);
-            subscription.state.should.eql(SubscriptionState.CREATING);
+            subscription.state.should.eql(SubscriptionState.LATE);
 
             // now simulate some data change
             monitoredItem.recordValue(new DataValue({ value: { dataType: DataType.UInt32, value: 1000 } }));

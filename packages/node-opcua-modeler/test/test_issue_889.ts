@@ -75,7 +75,8 @@ describe("loading very large DataType Definitions ", function (this: any) {
         await populateDataTypeManager(session, dataTypeManager as any, false);
 
         // since 1.04 (september 2021) 1.04 datatype is in force
-        browseSpy.callCount.should.eql(1); // was 26
+        browseSpy.callCount.should.be.greaterThanOrEqual(1); // was 26
+        browseSpy.callCount.should.be.lessThanOrEqual(4); // was 26
         browseNextSpy.callCount.should.eql(0); // was 36
     });
 });
