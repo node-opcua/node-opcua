@@ -20,7 +20,7 @@ import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
 import { ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
@@ -179,14 +179,26 @@ export class OPCUABaseServer extends OPCUASecureObject {
         if (fs.existsSync(this.certificateFile)) {
             return;
         }
+        
+        // collect all hostnames
+        const hostnames = [];
+        for (const e of this.endpoints) {
+            for( const ee of e.endpointDescriptions()) {
+                /* to do */
+            }
+        } 
+
         const lockfile = path.join(this.certificateFile + ".lock");
         await withLock({ lockfile }, async () => {
             if (!fs.existsSync(this.certificateFile)) {
                 const applicationUri = this.serverInfo.applicationUri!;
+                const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
+                const dns = [... new Set([fqdn, hostname])];
+              
                 await this.serverCertificateManager.createSelfSignedCertificate({
                     applicationUri,
-                    dns: [hostname],
+                    dns,
                     // ip: await getIpAddresses(),
                     outputFile: this.certificateFile,
 
@@ -198,7 +210,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
             }
         });
     }
-    
+
     public async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
         await this.createDefaultCertificate();
