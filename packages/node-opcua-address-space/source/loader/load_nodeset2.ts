@@ -52,11 +52,11 @@ import * as semver from "semver";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
+import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
 import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
 import { makeSemverCompatible } from "./make_semver_compatible";
-import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
