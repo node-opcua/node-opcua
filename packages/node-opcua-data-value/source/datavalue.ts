@@ -346,7 +346,7 @@ registerSpecialVariantEncoder(DataValue);
 export type DataValueLike = DataValueOptions | DataValue;
 
 function w(n: number): string {
-    return n.toString().padStart(3,"0");
+    return n.toString().padStart(3, "0");
 }
 
 function _partial_clone(dataValue: DataValue): DataValue {
@@ -372,11 +372,11 @@ export function apply_timestamps(
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            // xx if (!cloneDataValue.serverTimestamp) {
-            now = now || getCurrentClock();
-            cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-            cloneDataValue.serverPicoseconds = now.picoseconds;
-            // xx }
+            if (!cloneDataValue.serverTimestamp) {
+                now = now || getCurrentClock();
+                cloneDataValue.serverTimestamp = now.timestamp as DateTime;
+                cloneDataValue.serverPicoseconds = now.picoseconds;
+            }
             break;
         case TimestampsToReturn.Source:
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
@@ -648,4 +648,4 @@ export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOpti
 export declare interface DataValueT<T, DT extends DataType> extends DataValue {
     value: VariantT<T, DT>;
 }
-export class DataValueT<T, DT extends DataType> extends DataValue {}
+export class DataValueT<T, DT extends DataType> extends DataValue { }

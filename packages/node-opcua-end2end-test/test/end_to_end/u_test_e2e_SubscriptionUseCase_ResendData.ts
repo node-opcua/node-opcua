@@ -208,9 +208,9 @@ export function t(test: any) {
                     attributeId: AttributeIds.Value
                 }, {
                     samplingInterval: publishingInterval * 10,
-                    queueSize: 100,
+                    queueSize: 0,
 
-                }, TimestampsToReturn.Both, MonitoringMode.Reporting);
+                }, TimestampsToReturn.Server, MonitoringMode.Reporting);
 
                 await sleep(publishingInterval + 10);
 
@@ -250,13 +250,13 @@ export function t(test: any) {
                     n0.monitoredItems!.length.should.eql(1);
                     n0.monitoredItems![0].clientHandle.should.eql(1);
                     n0.monitoredItems![0].value.toString().should.eql(ref.toString());
- 
+
                     messages[1].notificationData!.length.should.eql(1);
                     const n1 = messages[1].notificationData![0] as DataChangeNotification;
                     n1.monitoredItems!.length.should.eql(1);
                     n1.monitoredItems![0].clientHandle.should.eql(1);
                     n1.monitoredItems![0].value.toString().should.eql(ref.toString());
- 
+
                 }
                 messages = [];
             });
