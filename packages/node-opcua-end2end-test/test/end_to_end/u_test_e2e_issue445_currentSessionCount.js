@@ -11,6 +11,7 @@ const {
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const { perform_operation_on_subscription_async } = require("../../test_helpers/perform_operation_on_client_session");
 const { pause } = require("../discovery/_helper");
+const { assert } = require("console");
 
 function f(func) {
     return function (callback) {
@@ -26,7 +27,7 @@ const doDebug = checkDebugFlag("TEST");
 let sessionCounter = 0;
 async function connectAndCreateSession(endpointUrl) {
 
-    await pause(1000);
+    await pause(100);
 
     const client = OPCUAClient.create({
         name: "client" + sessionCounter++,
@@ -37,7 +38,7 @@ async function connectAndCreateSession(endpointUrl) {
 }
 
 async function closeSessionAndDisconnect({ client, session }) {
-    await pause(1000);
+    await pause(100);
     await session.close();
     await client.disconnect();
 }
@@ -61,6 +62,8 @@ async function installMonitoredItem(subscription, nodeId) {
     );
     const recordedValue = [];
 
+    console.log(nodeId.toString(), "sampling interval =", monitoredItem.result.revisedSamplingInterval);
+
     monitoredItem.on("changed", function (dataValue) {
         recordedValue.push(dataValue.value.value);
         debugLog("change =", recordedValue);
@@ -69,7 +72,7 @@ async function installMonitoredItem(subscription, nodeId) {
         const timer = setTimeout(() => {
             console.log(monitoredItem);
             reject(new Error("Never received changedx for id" + nodeId.toString()));
-        }, 15000);
+        }, 5000);
 
         monitoredItem.once("changed", function (dataValue) {
             clearTimeout(timer);
@@ -86,15 +89,19 @@ async function installCumulatedSessionCounter(subscription) {
     return await installMonitoredItem(subscription, cumulatedSessionCountNodeId);
 }
 
-async function waitSessionCountChange(currentSessionCountMonitoredItem) {
+async function waitSessionCountChange(_monitoredItem) {
+    console.log("waitSessionCountChange");
+
+    const monitoredItem = _monitoredItem;
+    assert(monitoredItem);
 
     return await new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
-            console.log(currentSessionCountMonitoredItem);
-            reject(new Error("Never received ", currentSessionCountMonitoredItem.toString()));
-        }, 10000);
+            console.log(" waitSessionCountChange has timed out");
+            reject(new Error("Never received ", monitoredItem.toString()));
+        }, 20000);
 
-        currentSessionCountMonitoredItem.once("changed", function (dataValue) {
+        monitoredItem.once("changed", function (dataValue) {
             clearTimeout(timer);
             const new_currentSessionCount = dataValue.value.value;
             debugLog("new currentSessionCount=", dataValue.toString());
@@ -104,43 +111,42 @@ async function waitSessionCountChange(currentSessionCountMonitoredItem) {
     });
 }
 
+const readCurrentSessionCount = async (session) => {
+    const dataValue = await session.read({ nodeId: currentSessionCountNodeId, attributeId: AttributeIds.Value })
+    return dataValue.value.value;
+}
+async function connectAndWaitCurrentSessionCountChange(endpointUrl, currentSessionCountMonitoredItem) {
+    const promises = [waitSessionCountChange(currentSessionCountMonitoredItem), connectAndCreateSession(endpointUrl)];
+    return await Promise.all(promises);
+}
+
+async function disconnectAndWaitCurrentSessionCountChange({ client, session }, currentSessionCountMonitoredItem) {
+    const promises = [waitSessionCountChange(currentSessionCountMonitoredItem), closeSessionAndDisconnect({ client, session })];
+    return await Promise.all(promises);
+}
+
 module.exports = function (test) {
     describe("Testing bug #445 - server.serverDiagnosticsSummary.currentSessionCount", function () {
         it("test that current SessionCount increments and decrements appropriately", async () => {
             const endpointUrl = test.endpointUrl;
-
             const client = OPCUAClient.create({});
 
             await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
-                const [recordedCurrentSessionCountValues, currentSessionCountMonitoredItem] = await installCurrentSessionCounter(
-                    subscription
-                );
+
+                const [
+                    recordedCurrentSessionCountValues,
+                    currentSessionCountMonitoredItem
+                ] = await installCurrentSessionCounter(subscription);
 
                 const [recordedCumulatedSessionCountValues] = await installCumulatedSessionCounter(subscription);
 
-                let currentSessionCount = (
-                    await session.read({ nodeId: currentSessionCountNodeId, attributeId: AttributeIds.Value })
-                ).value.value;
+                let currentSessionCount = await readCurrentSessionCount(session);
 
+                const [newSessionCount1, data1] = await connectAndWaitCurrentSessionCountChange(endpointUrl, currentSessionCountMonitoredItem);
+                const [newSessionCount2, data2] = await connectAndWaitCurrentSessionCountChange(endpointUrl, currentSessionCountMonitoredItem);
 
-
-                async function connectAndWaitCurrentSessionCountChange() {
-                    debugLog("connecting", session.name);
-                    const promises = [waitSessionCountChange(currentSessionCountMonitoredItem), connectAndCreateSession(endpointUrl)];
-                    return await Promise.all(promises);
-                }
-
-                async function disconnectAndWaitCurrentSessionCountChange({ client, session }) {
-                    debugLog("disconnecting", session.name);
-
-                    const promises = [waitSessionCountChange(currentSessionCountMonitoredItem), closeSessionAndDisconnect({ client, session })];
-                    return await Promise.all(promises);
-                }
-                const [newSessionCount1, data1] = await connectAndWaitCurrentSessionCountChange();
-
-                const [newSessionCount2, data2] = await connectAndWaitCurrentSessionCountChange();
-                const [newSessionCount3] = await disconnectAndWaitCurrentSessionCountChange(data1);
-                const [newSessionCount4] = await disconnectAndWaitCurrentSessionCountChange(data2);
+                const [newSessionCount3] = await disconnectAndWaitCurrentSessionCountChange(data1, currentSessionCountMonitoredItem);
+                const [newSessionCount4] = await disconnectAndWaitCurrentSessionCountChange(data2, currentSessionCountMonitoredItem);
 
                 newSessionCount1.should.eql(currentSessionCount + 1);
                 newSessionCount2.should.eql(currentSessionCount + 2);
