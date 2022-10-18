@@ -8,11 +8,7 @@ import { resolveDynamicExtensionObject } from "./resolve_dynamic_extension_objec
 
 export interface PseudoDataValue { value: Variant };
 
-export async function promoteOpaqueStructure(
-    session: IBasicSession,
-    dataValues: PseudoDataValue[]
-) {
-
+export function extractDataValueToPromote(dataValues: PseudoDataValue[]): PseudoDataValue[] {
     // count number of Opaque Structures
     const dataValuesToFix = dataValues.filter((dataValue: PseudoDataValue) =>
         dataValue.value && dataValue.value.dataType === DataType.ExtensionObject &&
@@ -25,7 +21,13 @@ export async function promoteOpaqueStructure(
                 && dataValue.value.value[0] instanceof OpaqueStructure)
         )
     );
-
+    return dataValuesToFix;
+}
+export async function promoteOpaqueStructure(
+    session: IBasicSession,
+    dataValues: PseudoDataValue[]
+) {
+    const dataValuesToFix = extractDataValueToPromote(dataValues);
     if (dataValuesToFix.length === 0) {
         return;
     }
