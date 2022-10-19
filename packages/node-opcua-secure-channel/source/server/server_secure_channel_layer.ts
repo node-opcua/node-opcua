@@ -75,6 +75,7 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
+const allowNullRequestId = true;
 let gLastChannelId = 0;
 
 function getNextChannelId() {
@@ -579,7 +580,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public send_response(msgType: string, response: Response, message: Message, callback?: ErrorCallback): void {
         const request = message.request;
         const requestId = message.requestId;
-        assert(requestId !== 0);
+        assert(allowNullRequestId || requestId !== 0);
 
         if (this.aborted) {
             debugLog("channel has been terminated , cannot send responses");
@@ -589,7 +590,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             assert(request.schema);
-            assert(requestId > 0);
+            assert(allowNullRequestId || requestId > 0);
             // verify that response for a given requestId is only sent once.
             if (!this.__verifId) {
                 this.__verifId = {};
@@ -862,7 +863,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         };
 
         requestId = this.messageBuilder.sequenceHeader.requestId;
-        if (requestId <= 0) {
+        if (requestId < 0) {
             return this._on_OpenSecureChannelRequestError(
                 StatusCodes.BadCommunicationError,
                 "Invalid requestId",
@@ -1220,7 +1221,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             warningLog("Cannot find SecurityHeader !!!!!!!! ");
             return this._sendFatalErrorAndAbort(StatusCodes2.BadSecurityChecksFailed, "invalid request", message, callback);
         }
-        
+
         this.clientNonce = request.clientNonce;
 
         if (nonceAlreadyBeenUsed(this.clientNonce)) {
@@ -1446,8 +1447,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 debugLog(
                     "receiverCertificateThumbprint do not match server certificate",
                     myCertificateThumbPrint.toString("hex") +
-                        " <> " +
-                        clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
+                    " <> " +
+                    clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
                 );
             }
             return thisIsMyCertificate;
