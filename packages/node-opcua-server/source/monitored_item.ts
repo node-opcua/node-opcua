@@ -1063,7 +1063,6 @@ export class MonitoredItem extends EventEmitter {
             // initiate first read
             if (recordInitialValue) {
                 this.__acquireInitialValue(sessionContext, (err: Error | null, dataValue?: DataValue) => {
-                    console.log("xxxxxxxxxxxxxxxxx =>", err?.message, dataValue?.toString())
                     if (!err && dataValue) {
                         this.recordValue(dataValue, true);
                     }
