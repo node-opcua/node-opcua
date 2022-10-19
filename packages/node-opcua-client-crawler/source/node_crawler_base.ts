@@ -14,6 +14,7 @@ import {
     AttributeIds,
     BrowseDirection,
     coerceLocalizedText,
+    coerceQualifiedName,
     LocalizedText,
     makeResultMask,
     NodeClass,
@@ -55,7 +56,7 @@ const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | Disp
 function make_node_attribute_key(nodeId: NodeId, attributeId: AttributeIds): string {
     return nodeId.toString() + "_" + AttributeIds[attributeId];
 }
-function convertToStandardArray(a: number[] | Uint32Array | undefined| null): number[] | undefined {
+function convertToStandardArray(a: number[] | Uint32Array | undefined | null): number[] | undefined {
     if (a === undefined || a === null) {
         return undefined;
     }
@@ -375,8 +376,12 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                             if (err) {
                                 return callback(err);
                             }
-                            assert(value instanceof QualifiedName);
-                            cacheNode.browseName = value!;
+                            if (!(value instanceof QualifiedName)) {
+                                warningLog(" node ", cacheNode.nodeId.toString(), " has a invalid browseName", value);
+                                cacheNode.browseName = coerceQualifiedName("<INVALID BROWSE NAME>");
+                            } else {
+                                cacheNode.browseName = value;
+                            }
                             setImmediate(callback);
                         }
                     );
@@ -403,8 +408,12 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                             if (err) {
                                 return callback(err);
                             }
-                            assert(value instanceof LocalizedText);
-                            cacheNode.displayName = value!;
+                            if (!(value instanceof LocalizedText)) {
+                                warningLog(" node ", cacheNode.nodeId.toString(), " has a invalid displayName", value);
+                                cacheNode.displayName = coerceLocalizedText("<INVALID LOCALIZED NAME>")!;
+                            } else {
+                                cacheNode.displayName = value;
+                            }
                             setImmediate(callback);
                         }
                     );
@@ -881,11 +890,11 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         callback(
                             new Error(
                                 "Error " +
-                                    dataValue.statusCode.toString() +
-                                    " while reading " +
-                                    nodeId.toString() +
-                                    " attributeIds " +
-                                    AttributeIds[attributeId]
+                                dataValue.statusCode.toString() +
+                                " while reading " +
+                                nodeId.toString() +
+                                " attributeIds " +
+                                AttributeIds[attributeId]
                             )
                         );
                     }
