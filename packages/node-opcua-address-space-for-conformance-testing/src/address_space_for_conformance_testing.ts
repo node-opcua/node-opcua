@@ -22,6 +22,7 @@ import * as ec from "node-opcua-basic-types";
 import { QualifiedName, LocalizedText } from "node-opcua-data-model";
 import { standardUnits } from "node-opcua-data-access";
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
+import { UInt64, Int64 } from "node-opcua-basic-types";
 
 interface RangeOptions {
     low: number;
@@ -1218,7 +1219,7 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
         nodeId: "s=Simulation_DA_MultiStateValueDiscreteType"
     });
 
-    function _add_multi_state_variable(parentFolder: UAObject, dataType: string) {
+    function _add_multi_state_variable(parentFolder: UAObject, dataType: string, value: number | UInt64 | Int64, enumValues: Record<string, number>) {
         const name = dataType + "MultiStateValueDiscrete";
         const nodeId = "s=" + name;
 
@@ -1227,23 +1228,25 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
             browseName: name,
             nodeId,
             dataType,
-            enumValues: { Red: 0xff0000, Orange: 0xff9933, Green: 0x00ff00, Blue: 0x0000ff },
-            value: 0xff0000 // Red
+            enumValues,
+            value: 0x0000 // Zero
         });
     }
+    const enumValueUnsigned = { Zero: 0x00, One: 0x01, Two: 0x02, Three: 0x03, Four: 0x04, Five: 0x05, Six: 0x06, Seven: 0x07 }
+    const enumValueSigned = { MinusOne: -1, MinusTwo: -2, MinusThree: -3, ...enumValueUnsigned }
 
     const data = [
-        { dataType: "Int16", value: -10 },
-        { dataType: "UInt16", value: 10 },
-        { dataType: "Int32", value: -100 },
-        { dataType: "UInt32", value: 100 },
-        { dataType: "Int64", value: [0, 0] },
-        { dataType: "UInt64", value: [0, 0] },
-        { dataType: "Byte", value: 120 },
-        { dataType: "SByte", value: -123 }
+        { dataType: "Int16", value: -1, enumValue: enumValueSigned },
+        { dataType: "UInt16", value: 10, enumValue: enumValueUnsigned },
+        { dataType: "Int32", value: -1, enumValue: enumValueSigned },
+        { dataType: "UInt32", value: 100, enumValue: enumValueUnsigned },
+        { dataType: "Int64", value: [0, 0], enumValue: enumValueUnsigned },
+        { dataType: "UInt64", value: [0, 0], enumValue: enumValueSigned },
+        { dataType: "Byte", value: 1, enumValue: enumValueUnsigned },
+        { dataType: "SByte", value: -1, enumValue: enumValueSigned }
     ];
     data.forEach((e) => {
-        _add_multi_state_variable(multistateValueDiscreteTypeFolder, e.dataType);
+        _add_multi_state_variable(multistateValueDiscreteTypeFolder, e.dataType, e.value, e.enumValue);
     });
 }
 
