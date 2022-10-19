@@ -1450,7 +1450,7 @@ export class ServerEngine extends EventEmitter {
                 (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
             ) {
                 dataValue.serverTimestamp = context.currentTime.timestamp;
-                dataValue.sourcePicoseconds = 0; // context.currentTime.picosecond // do we really need picosecond here ? this would inflate binary data
+                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds; 
             }
             dataValues.push(dataValue);
         }
