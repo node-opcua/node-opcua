@@ -46,6 +46,7 @@ import {
     CreateNodeOptions,
     EnumerationItem,
     INamespace,
+    RequiredModel,
     UADataType,
     UAEventType,
     UAMethod,
@@ -218,7 +219,6 @@ export class NamespaceImpl implements NamespacePrivate {
     public readonly namespaceUri: string;
     public addressSpace: AddressSpacePrivate;
     public readonly index: number;
-
     public emulateVersion103 = false;
 
     public version = "0.0.0";
@@ -226,6 +226,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     public registerSymbolicNames = false;
 
+    private _requiredModels?: RequiredModel[];
     private _objectTypeMap: Map<string, UAObjectType>;
     private _variableTypeMap: Map<string, UAVariableType>;
     private _referenceTypeMap: Map<string, UAReferenceType>;
@@ -257,7 +258,7 @@ export class NamespaceImpl implements NamespacePrivate {
         this.index = options.index;
         this._nodeid_index = new Map();
         this._aliases = new Map();
-        this._objectTypeMap = new Map();
+        this._objectTypeMap = new Map(); 
         this._variableTypeMap = new Map();
         this._referenceTypeMap = new Map();
         this._referenceTypeMapInv = new Map();
@@ -1416,7 +1417,14 @@ export class NamespaceImpl implements NamespacePrivate {
     // State and Transition
     // -------------------------------------------------------------------------
     public toNodeset2XML(): string {
-        return "";
+        return "<toNodeset2XML>has not be installed</toNodeset2XML>!";
+    }
+    public setRequiredModels(requiredModels: RequiredModel[]): void
+    { 
+        this._requiredModels = requiredModels;
+    }
+    public getRequiredModels(): RequiredModel[] | undefined {
+        return this._requiredModels;
     }
 
     // -------------------------------------------------------------------------
@@ -1661,19 +1669,19 @@ export class NamespaceImpl implements NamespacePrivate {
         if (this._nodeid_index.has(hashKey)) {
             throw new Error(
                 "node " +
-                    node.browseName.toString() +
-                    "nodeId = " +
-                    node.nodeId.displayText() +
-                    " already registered " +
-                    node.nodeId.toString() +
-                    "\n" +
-                    " in namespace " +
-                    this.namespaceUri +
-                    " index = " +
-                    this.index +
-                    "\n" +
-                    " browseName = " +
-                    node.browseName.toString()
+                node.browseName.toString() +
+                "nodeId = " +
+                node.nodeId.displayText() +
+                " already registered " +
+                node.nodeId.toString() +
+                "\n" +
+                " in namespace " +
+                this.namespaceUri +
+                " index = " +
+                this.index +
+                "\n" +
+                " browseName = " +
+                node.browseName.toString()
             );
         }
 
@@ -1736,15 +1744,15 @@ export class NamespaceImpl implements NamespacePrivate {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                                indexVerif +
-                                " do not match the index of the current namespace (" +
-                                this.index +
-                                ")"
+                            indexVerif +
+                            " do not match the index of the current namespace (" +
+                            this.index +
+                            ")"
                         )
                     );
                     errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
-                            " please refer to the NodeOPCUA documentation"
+                        " please refer to the NodeOPCUA documentation"
                     );
                 }
             }

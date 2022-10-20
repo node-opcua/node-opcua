@@ -8,19 +8,23 @@ function _constructNamespaceDependency(
     namespace: INamespace,
     dependency: INamespace[],
     depMap: Set<number>,
-    _visitedDataType: Set<string>
+    _visitedDataType: Set<string>,
+    priorityTable: number[]
 ): void {
     const addressSpace = namespace.addressSpace;
     const namespace_ = namespace as NamespacePrivate;
     // navigate all namespace recursively to
 
     function consider(namespaceIndex: number) {
+        if (hasHigherPriorityThan(namespaceIndex,namespace.index, priorityTable)) {
+            return;
+        }
         if (!depMap.has(namespaceIndex)) {
             depMap.add(namespaceIndex);
             const namespace = addressSpace.getNamespace(namespaceIndex);
             dependency.push(namespace);
             if (namespaceIndex > 0) {
-                _constructNamespaceDependency(namespace, dependency, depMap, _visitedDataType);
+                _constructNamespaceDependency(namespace, dependency, depMap, _visitedDataType, priorityTable);
             }
         }
     }
@@ -57,7 +61,7 @@ function _constructNamespaceDependency(
                 exploreDataTypes(dataTypeNode);
             } else {
                 // istanbul ignore next
-                if (dataTypeNodeId.value!=0) {
+                if (dataTypeNodeId.value != 0) {
                     console.log("Internal error: Cannot find dataType", dataTypeNodeId.toString());
                 }
             }
@@ -74,8 +78,41 @@ function _constructNamespaceDependency(
     }
 }
 
-export function constructNamespaceDependency(namespace: INamespace): INamespace[] {
+
+export function hasHigherPriorityThan(namespaceIndex1: number, namespaceIndex2: number, priorityTable: number[]) {
+    const order1 = priorityTable[namespaceIndex1];
+    const order2 = priorityTable[namespaceIndex2];
+    return order1 > order2;
+}
+
+export function constructNamespacePriorityTable(namespace: INamespace): number[] {
+
+    // Namespace 0 will always be 0 
+    // Namespaces with no requiredModel will be considered as instance namespaces and will added at the end
+    // in the same order as they appear,
+    // Namespace with requiredModels are considered to be companion specification, so already loaded in the correct order
+ 
     const addressSpace = namespace.addressSpace;
+    const namespaces = addressSpace.getNamespaceArray();
+
+    const namespaceWithReq = namespaces.filter((n)=> (n.getRequiredModels() !== undefined)  && n.index !==0);
+    const namespaceWithoutReq = namespaces.filter((n)=>(n.getRequiredModels() === undefined) && n.index !==0);
+    
+    const priorityList: number[] = [0];
+    let counter = 1;
+    for (let i = 0; i < namespaceWithReq.length; i++) {
+        priorityList[namespaceWithReq[i].index] = counter++;
+    }
+    for (let i = 0; i < namespaceWithoutReq.length; i++) {
+        priorityList[namespaceWithoutReq[i].index] = counter++;
+    }
+    return priorityList;
+}
+
+export function constructNamespaceDependency(namespace: INamespace, priorityTable?: number[]): INamespace[] {
+    const addressSpace = namespace.addressSpace;
+   
+    priorityTable = priorityTable || constructNamespacePriorityTable(namespace);
 
     const dependency: INamespace[] = [];
     const depMap = new Set<number>();
@@ -89,7 +126,7 @@ export function constructNamespaceDependency(namespace: INamespace): INamespace[
     }
     const _visitedDataType = new Set<string>();
 
-    _constructNamespaceDependency(namespace, dependency, depMap, _visitedDataType);
+    _constructNamespaceDependency(namespace, dependency, depMap, _visitedDataType, priorityTable);
 
     return dependency;
 }
