@@ -93,7 +93,7 @@ function write_UInt8(stream: OutputBinaryStream, guid: string, starts: number[])
 
 export function encodeGuid(guid: Guid, stream: OutputBinaryStream): void {
     if (!isValidGuid(guid)) {
-        throw new Error(" Invalid GUID : '" + JSON.stringify(guid) + "'");
+        throw new Error(" Invalid GUID : '" + JSON.stringify(guid) + ": the format should be 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'");
     }
     write_UInt32(stream, guid, [0]);
     write_UInt16(stream, guid, [9, 14]);
