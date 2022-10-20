@@ -34,7 +34,7 @@ import {
 import { AttributeIds, Int64, minOPCUADate, StatusCode, StatusCodes } from "node-opcua-basic-types";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
 
-import { XmlWriter } from "../../source/xml_writer";
+import { ITranslationTable, XmlWriter } from "../../source/xml_writer";
 import { NamespacePrivate } from "../namespace_private";
 import { ReferenceImpl } from "../reference_impl";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
@@ -50,7 +50,7 @@ import { SessionContext } from "../index_current";
 
 import { DefinitionMap2, TypeInfo } from "../../source/loader/make_xml_extension_object_parser";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
-import { constructNamespaceDependency } from "./construct_namespace_dependency";
+import { constructNamespaceDependency, constructNamespacePriorityTable, hasHigherPriorityThan } from "./construct_namespace_dependency";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
@@ -98,17 +98,19 @@ function b(xw: XmlWriter, browseName: QualifiedName): string {
     return translateBrowseName(xw, browseName).toString().replace("ns=0;", "");
 }
 
-function _dumpReverseReferences(xw: XmlWriter, node: BaseNode) {
-    const addressSpace = node.addressSpace;
-    const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype")!;
+function _hasHigherPriorityThan(xw: XmlWriter, namespaceIndex1: number, namespaceIndex2: number) {
+    assert(namespaceIndex1 < xw.priorityTable.length);
+    assert(namespaceIndex2 < xw.priorityTable.length);
+    return hasHigherPriorityThan(namespaceIndex1, namespaceIndex2, xw.priorityTable);
 }
+
 function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     xw.startElement("References");
 
     const addressSpace = node.addressSpace;
 
     const aggregateReferenceType = addressSpace.findReferenceType("Aggregates")!;
-    const hasChildReferenceType = addressSpace.findReferenceType("HasChild")!;
+    // const hasChildReferenceType = addressSpace.findReferenceType("HasChild")!;
     const hasSubtypeReferenceType = addressSpace.findReferenceType("HasSubtype")!;
     const hasTypeDefinitionReferenceType = addressSpace.findReferenceType("HasTypeDefinition")!;
     const nonHierarchicalReferencesType = addressSpace.findReferenceType("NonHierarchicalReferences")!;
@@ -119,6 +121,13 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     function referenceToKeep(reference: UAReference): boolean {
         const referenceType = (reference as ReferenceImpl)._referenceType!;
 
+        const targetedNamespaceIndex = reference.nodeId.namespace;
+        if (_hasHigherPriorityThan(xw, targetedNamespaceIndex, node.nodeId.namespace)) {
+            // this reference has nothing to do here ! drop it
+            // because the target namespace is higher in the hierarchy
+            return false;
+        }
+
         // get the direct backward reference to a external namespace
         if (referenceType.isSupertypeOf(aggregateReferenceType) && !reference.isForward) {
             if (reference.nodeId.namespace !== node.nodeId.namespace) {
@@ -128,7 +137,9 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
                 return true;
             }
         }
-
+        if (referenceType.isSupertypeOf(hasSubtypeReferenceType) && reference.isForward) {
+            // return false;
+        }
         // only keep
         if (referenceType.isSupertypeOf(aggregateReferenceType) && reference.isForward) {
             return true;
@@ -154,8 +165,6 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
         if (getReferenceType(reference).browseName.toString() === "HasSubtype" && reference.isForward) {
             continue;
         }
-
-        // only output inverse Reference
         xw.startElement("Reference");
 
         xw.writeAttribute("ReferenceType", b(xw, getReferenceType(reference).browseName));
@@ -665,7 +674,6 @@ function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAV
 }
 
 function visitUANode(node: BaseNode, data: DumpData, forward: boolean) {
-    assert(typeof forward === "boolean");
 
     const addressSpace = node.addressSpace;
 
@@ -772,7 +780,9 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
 
     const parentNode = getParent(node);
     if (parentNode) {
-        xw.writeAttribute("ParentNodeId", n(xw, parentNode.nodeId));
+        if (parentNode.nodeId.namespace <= node.nodeId.namespace) {
+            xw.writeAttribute("ParentNodeId", n(xw, parentNode.nodeId));
+        }
     }
     if (Object.prototype.hasOwnProperty.call(node, "symbolicName")) {
         xw.writeAttribute("SymbolicName", (node as any).symbolicName);
@@ -788,6 +798,11 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
             xw.writeAttribute("AccessLevel", (node as UAVariable).accessLevel.toString());
         }
     }
+    if (Object.prototype.hasOwnProperty.call(node, "minimumSamplingInterval")) {
+        if ((node as UAVariable).minimumSamplingInterval !== 0) {
+            xw.writeAttribute("MinimumSamplingInterval", (node as UAVariable).minimumSamplingInterval);
+        }
+    }
 }
 
 function dumpCommonElements(xw: XmlWriter, node: BaseNode) {
@@ -800,11 +815,11 @@ function coerceInt64ToInt32(int64: Int64): number {
     if (typeof int64 === "number") {
         return int64 as number;
     }
-    if (int64[0] === 4294967295 && int64[1] === 4294967295) {
+    if (int64[0] === 0xffffffff && int64[1] === 0xffffffff) {
         return 0xffffffff;
     }
     if (int64[0] !== 0) {
-        debugLog("coerceInt64ToInt32 , loosing high word in conversion");
+        warningLog("coerceInt64ToInt32 , loosing high word in conversion");
     }
     return int64[1];
 }
@@ -831,8 +846,8 @@ function _dumpStructureDefinition(
      * note: baseDataType and defaultEncodingId are implicit and not stored in the XML file ??
      *
      */
-    const baseDataType = structureDefinition.baseDataType;
-    const defaultEncodingId = structureDefinition.defaultEncodingId;
+    // const baseDataType = structureDefinition.baseDataType;
+    // const defaultEncodingId = structureDefinition.defaultEncodingId;
 
     // do not repeat elements that are already defined in base structure in the xml ouput!
     const fields = structureDefinition.fields || [];
@@ -927,9 +942,7 @@ function dumpUADataType(xw: XmlWriter, node: UADataType) {
         xw.writeAttribute("IsAbstract", node.isAbstract ? "true" : "false");
     }
 
-    _dumpDisplayName(xw, node);
-
-    _dumpReferences(xw, node);
+    dumpCommonElements(xw, node);
 
     _dumpUADataTypeDefinition(xw, node);
 
@@ -1015,11 +1028,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             console.log(
                 " cannot find datatype " +
-                    node.dataType +
-                    " for node " +
-                    node.browseName.toString() +
-                    " id =" +
-                    node.nodeId.toString()
+                node.dataType +
+                " for node " +
+                node.browseName.toString() +
+                " id =" +
+                node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
@@ -1088,11 +1101,18 @@ function dumpAggregates(xw: XmlWriter, node: BaseNode) {
     // Xx xw.writeComment("Aggregates {{ ");
     const aggregates = node
         .getAggregates()
-        .sort((x: BaseNode, y: BaseNode) => (x.browseName.name!.toString() > y.browseName.name!.toString() ? 1 : -1));
+        .sort(sortByBrowseName);
+    // const aggregates = node.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
+
     for (const aggregate of aggregates.sort(sortByNodeId)) {
         // do not export node that do not belong to our namespace
         if (node.nodeId.namespace !== aggregate.nodeId.namespace) {
-            return;
+            continue;
+        }
+        // even further! we should export here the children
+        // that have been added later by a namespace with higher index
+        if (_hasHigherPriorityThan(xw, aggregate.nodeId.namespace, node.nodeId.namespace)) {
+            continue;
         }
         if (!xw.visitedNode[_hash(aggregate)]) {
             (<BaseNodeImpl>aggregate).dumpXML(xw);
@@ -1219,18 +1239,15 @@ function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
     }
     xw.endElement();
 }
-interface ITranslationTable {
-    [key: number]: number;
-}
 
-function constructNamespaceTranslationTable(dependency: INamespace[]): ITranslationTable {
+
+export function constructNamespaceTranslationTable(dependency: INamespace[]): ITranslationTable {
     const translationTable: ITranslationTable = {};
     for (let i = 0; i < dependency.length; i++) {
         translationTable[dependency[i].index] = i;
     }
     return translationTable;
 }
-
 function dumpReferenceType(xw: XmlWriter, referenceType: UAReferenceType) {
     _markAsVisited(xw, referenceType);
 
@@ -1249,7 +1266,7 @@ function dumpReferenceType(xw: XmlWriter, referenceType: UAReferenceType) {
     xw.endElement();
 }
 
-function sortByBrowseName(x: BaseNode, y: BaseNode): number {
+export function sortByBrowseName(x: BaseNode, y: BaseNode): number {
     const x_str = x.browseName.toString();
     const y_str = y.browseName.toString();
     if (x_str > y_str) {
@@ -1281,56 +1298,6 @@ export interface DumpXMLOptions {
     /** */
 }
 
-export function dumpXml(node: BaseNode, options: DumpXMLOptions): void {
-    const namespace = node.namespace as NamespacePrivate;
-
-    // make a first visit so that we determine which node to output and in which order
-    const data: DumpData = { aliases: {}, aliases_visited: {}, index_el: {}, elements: [] };
-
-    const dependency = constructNamespaceDependency(namespace);
-    const translationTable = constructNamespaceTranslationTable(dependency);
-
-    const xw = new XMLWriter(true);
-    xw.translationTable = translationTable;
-
-    visitUANode(node, data, false);
-
-    xw.startDocument({ encoding: "utf-8" });
-    xw.startElement("UANodeSet");
-    xw.writeAttribute("xmlns:xs", "http://www.w3.org/2001/XMLSchema-instance");
-    xw.writeAttribute("xmlns:xsd", "http://www.w3.org/2001/XMLSchema");
-    xw.writeAttribute("Version", "1.02");
-    xw.writeAttribute("LastModified", new Date().toISOString());
-    xw.writeAttribute("xmlns", "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd");
-
-    buildUpAliases(node, xw, data);
-    writeAliases(xw, data.aliases);
-
-    const xmlNamspace = {
-        default: { namespace: "http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" }
-    };
-
-    xw.startElement("Extensions");
-    {
-        xw.startElement("Extension");
-        {
-            xw.startElement("ModelInfo");
-            xw.writeAttribute("NodeOPCUA");
-            xw.endElement();
-        }
-        xw.endElement();
-    }
-    xw.endElement();
-
-    for (const el of data.elements!) {
-        el.dumpXML(xw);
-    }
-
-    xw.endElement();
-    xw.endDocument();
-    return xw.toString();
-}
-
 UAMethodImpl.prototype.dumpXML = function (xw) {
     dumpUAMethod(xw, this);
 };
@@ -1360,16 +1327,20 @@ function makeTypeXsd(namespaceUri: string): string {
 
 // eslint-disable-next-line max-statements
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
-    const dependency = constructNamespaceDependency(this);
-    const translationTable = constructNamespaceTranslationTable(dependency);
+
 
     const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
     const namespaceArray: string[] = namespaceArrayNode
         ? namespaceArrayNode.readAttribute(null, AttributeIds.Value).value.value
         : [];
 
-    const xw = new XMLWriter(true);
+    const xw: XmlWriter = new XMLWriter(true);
+
+    xw.priorityTable = constructNamespacePriorityTable(this);
+    const dependency = constructNamespaceDependency(this, xw.priorityTable);
+    const translationTable = constructNamespaceTranslationTable(dependency);
     xw.translationTable = translationTable;
+
 
     xw.startDocument({ encoding: "utf-8", version: "1.0" });
     xw.startElement("UANodeSet");

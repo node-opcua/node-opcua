@@ -37,7 +37,7 @@ export * from "./extension_object_array_node";
 export * from "./event_data";
 
 export { NamespaceOptions } from "./nodeid_manager";
-export { dumpXml } from "./nodeset_tools/nodeset_to_xml";
+export * from "./nodeset_tools/nodeset_to_xml";
 export { dumpToBSD } from "./nodeset_tools/dump_to_bsd";
 export { adjustNamespaceArray } from "./nodeset_tools/adjust_namespace_array";
 export { makeAttributeEventName } from "./base_node_impl";

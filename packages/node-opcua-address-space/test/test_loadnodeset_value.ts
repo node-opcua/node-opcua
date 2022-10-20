@@ -8,6 +8,9 @@ import { DataSetMetaDataType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { AddressSpace, SessionContext, UAObject, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { create_minimalist_address_space_nodeset } from "../distHelpers";
+
+const doDebug = false;
 
 describe("Testing loading nodeset with extension objects values in types", () => {
     let addressSpace: AddressSpace;
@@ -560,4 +563,98 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         const int64 = dataValue1.value.value as UInt64;
         int64.should.eql([0xffffffff, 0xffffffff - 1234567890 + 1]);
     });
+
+
+    it("LNEX8 - namespace when adding object to already existing objects", async () => {
+        const addressSpace = AddressSpace.create();
+        create_minimalist_address_space_nodeset(addressSpace);
+
+        const namespace1 = addressSpace.registerNamespace("A");
+        const o = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
+
+        const namespace2 = addressSpace.registerNamespace("B");
+        const b1 = namespace2.addObject({ browseName: "B1", componentOf: o });
+
+        const b2 = namespace2.addObject({ browseName: "B2" });
+        o.addReference({ referenceType: "HasComponent", nodeId: b2 });
+
+        const xml1 = namespace1.toNodeset2XML();
+        doDebug && console.log(xml1);
+
+        const xml2 = namespace2.toNodeset2XML();
+        doDebug && console.log(xml2);
+
+        addressSpace.dispose();
+
+        x(xml1).should.eql(x(`<?xml version="1.0"?>
+        <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="A/Type.xsd">
+            <NamespaceUris>
+                <Uri>A</Uri>
+            </NamespaceUris>
+            <Models>
+                <Model ModelUri="A" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+                    <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z"/>
+                </Model>
+            </Models>
+            <Aliases>
+                <Alias Alias="HasComponent">i=47</Alias>
+                <Alias Alias="HasTypeDefinition">i=40</Alias>
+                <Alias Alias="Organizes">i=35</Alias>
+            </Aliases>
+        <!--ReferenceTypes-->
+        <!--ObjectTypes-->
+        <!--VariableTypes-->
+        <!--Other Nodes-->
+        <!--Object - 1:A {{{{ -->
+            <UAObject NodeId="ns=1;i=1000" BrowseName="1:A">
+                <DisplayName>A</DisplayName>
+                <References>
+                    <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+                    <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+                </References>
+            </UAObject>
+        <!--Object - 1:A }}}} -->
+        </UANodeSet>`));
+
+        x(xml2).should.eql(x(`<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="B/Type.xsd" xmlns:ns2="A/Type.xsd">
+    <NamespaceUris>
+        <Uri>B</Uri>
+        <Uri>A</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="B" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z"/>
+            <RequiredModel ModelUri="A" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+    </Aliases>
+<!--ReferenceTypes-->
+<!--ObjectTypes-->
+<!--VariableTypes-->
+<!--Other Nodes-->
+<!--Object - 1:B1 {{{{ -->
+    <UAObject NodeId="ns=1;i=1000" BrowseName="1:B1" ParentNodeId="ns=2;i=1000">
+        <DisplayName>B1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=2;i=1000</Reference>
+        </References>
+    </UAObject>
+<!--Object - 1:B1 }}}} -->
+<!--Object - 1:B2 {{{{ -->
+    <UAObject NodeId="ns=1;i=1001" BrowseName="1:B2">
+        <DisplayName>B2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=2;i=1000</Reference>
+        </References>
+    </UAObject>
+<!--Object - 1:B2 }}}} -->
+</UANodeSet>`));
+    })
 });
+

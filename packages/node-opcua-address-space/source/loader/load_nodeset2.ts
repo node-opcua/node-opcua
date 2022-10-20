@@ -12,6 +12,7 @@ import {
     CreateNodeOptions,
     IAddressSpace,
     INamespace,
+    RequiredModel,
     UADataType,
     UAVariable,
     UAVariableType
@@ -150,9 +151,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
-    options.loadDeprecatedNodes = options.loadDeprecatedNodes === undefined ? true:  options.loadDeprecatedNodes;
+    options.loadDeprecatedNodes = options.loadDeprecatedNodes === undefined ? true : options.loadDeprecatedNodes;
     options.loadDraftNodes = options.loadDraftNodes || false;
-    
+
     const postTasks: Task[] = [];
     const postTasks0_InitializeVariable: Task[] = [];
     const postTasks0_DecodePojoString: Task[] = [];
@@ -225,6 +226,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             return;
         }
         const namespace = addressSpace1.getNamespace(namespaceUri);
+
+        // istanbul ignore next
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
@@ -254,6 +257,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             // check that required models exist already in the address space
             for (const requiredModel of model.requiredModels) {
                 const existingNamespace = addressSpace1.getNamespace(requiredModel.modelUri);
+                
+                // istanbul ignore next
                 if (!existingNamespace) {
                     errorLog(
                         "Please ensure that the required namespace ",
@@ -274,6 +279,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     const requiredSemver = makeSemverCompatible(requiredVersion);
                     return semver.lt(existingSemver, requiredSemver);
                 };
+                
                 if (isLowerVersion(existingNamespace.version, requiredModel.version)) {
                     errorLog(
                         "Expecting ",
@@ -302,6 +308,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         const existingNamespace = addressSpace1.getNamespace(model.modelUri);
         if (existingNamespace) {
             // special treatment for namespace 0
+            // istanbul ignore else
             if (model.modelUri === "http://opcfoundation.org/UA/") {
                 namespace = existingNamespace;
             } else {
@@ -309,6 +316,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             }
         } else {
             namespace = addressSpace1.registerNamespace(model.modelUri);
+            namespace.setRequiredModels(model.requiredModels)
         }
 
         namespace.version = model.version;
@@ -872,11 +880,14 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                         break;
                     default: {
                         // istanbul ignore next
-                        if (! this._cloneFragment) {
+                        if (!this._cloneFragment) {
                             // the XML file is probably not exposing standard UA extension object correctly.
                             // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding
-                            // nodeid 
-                            errorLog("[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId", self.typeDefinitionId.toString());
+                            // nodeid
+                            errorLog(
+                                "[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId",
+                                self.typeDefinitionId.toString()
+                            );
                             break;
                         }
                         this.bodyXML = this._cloneFragment!.value;
@@ -1416,8 +1427,6 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     // do them later
                     postTasks1_InitializeVariable.push(task);
                 }
-
-               
             } else {
                 const task = async (addressSpace2: IAddressSpace) => {
                     const dataTypeNode = capturedVariable.dataType;
@@ -1543,11 +1552,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         }
     };
 
-    interface RequiredModel {
-        modelUri: string;
-        version: string;
-        publicationDate: Date;
-    }
+
     interface Model {
         modelUri: string;
         version: string;
@@ -1726,7 +1731,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
             await performPostLoadingTasks(postTasks);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
+            doDebug &&
+                debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
             await performPostLoadingTasks(postTasks0_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
@@ -1748,7 +1754,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Decoding Pojo String (parsing XML objects) -"));
             await performPostLoadingTasks(postTasks0_DecodePojoString);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
+            doDebug &&
+                debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
             await performPostLoadingTasks(postTasks1_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks: (assigning Extension Object to Variables) -"));
@@ -1774,8 +1781,6 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         terminate
     };
 }
-
-
 
 export class NodeSetLoader {
     _s: NodeSet2ParserEngine;
