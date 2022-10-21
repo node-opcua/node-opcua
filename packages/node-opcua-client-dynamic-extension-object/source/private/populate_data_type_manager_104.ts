@@ -6,7 +6,7 @@ import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession, BrowseDescriptionLike } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
-import { ReferenceDescription, BrowseResult, BrowseDescriptionOptions } from "node-opcua-types";
+import { ReferenceDescription, BrowseResult, BrowseDescriptionOptions, StructureDefinition, DataTypeDefinition } from "node-opcua-types";
 
 //
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
@@ -41,12 +41,16 @@ export async function readDataTypeDefinitionAndBuildType(
         }
         const isAbstract = isAbstractDataValue.value.value as boolean;
 
+        let dataTypeDefinition: DataTypeDefinition = dataTypeDefinitionDataValue.value.value as DataTypeDefinition;
         /* istanbul ignore next */
         if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
-            throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
+            if (!isAbstract) {
+                throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
+            }
+            // it is OK to not have dataTypeDefinition for Abstract type!
+            dataTypeDefinition = new StructureDefinition();
         }
-        const dataTypeDefinition = dataTypeDefinitionDataValue.value.value;
-
+  
         const schema = await convertDataTypeDefinitionToStructureTypeSchema(
             session,
             dataTypeNodeId,
