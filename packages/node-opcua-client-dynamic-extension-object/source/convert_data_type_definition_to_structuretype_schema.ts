@@ -483,11 +483,13 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             switchValue += 1;
         }
 
-        assert(fieldD.valueRank === -1 || fieldD.valueRank === 1 || fieldD.valueRank === 0);
-        if (fieldD.valueRank === 1) {
+        // (fieldD.valueRank === -1 || fieldD.valueRank === 1 || fieldD.valueRank === 0);
+
+        if (fieldD.valueRank >= 1) {
+            field.valueRank = fieldD.valueRank;
             field.isArray = true;
         } else {
-            field.isArray = false;
+            field.isArray = false; 
         }
         return { field, switchBit, switchValue };
     }
