@@ -1115,12 +1115,14 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         if (!this.endpoint) {
             if (this.endpointMustExist) {
-                debugLog(
+                warningLog(
                     "OPCUAClientImpl#endpointMustExist = true and endpoint with url ",
                     this._secureChannel!.endpointUrl,
                     " cannot be found"
                 );
-
+                const infos = this._serverEndpoints.map((endpoint: EndpointDescription) => `${endpoint.endpointUrl} ${MessageSecurityMode[ endpoint.securityMode]}, ${endpoint.securityPolicyUri } `);
+                warningLog("Valid endpoints are ");
+                warningLog("   "+ infos.join("\n   "));
                 return false;
             } else {
                 // fallback :
