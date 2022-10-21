@@ -16,7 +16,7 @@ export function dedup_reference(references: ReferenceDescription[]): ReferenceDe
 
         /* istanbul ignore next */
         if (dedup[key]) {
-            debugLog(" Warning => Duplicated reference found  !!!! please contact the server vendor");
+            debugLog(`Warning => Duplicated reference found for nodeId ${reference.nodeId.toString()} ref ${reference.referenceTypeId.toString()} (${references.length})  !!!! please contact the server vendor`);
             debugLog(reference.toString());
             continue;
         }
