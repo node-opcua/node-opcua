@@ -266,6 +266,14 @@ function fetch_from_github(version, file) {
 }
 const version = "latest";
 
+fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");
+fetch_from_github(version, "Schema/Opc.Ua.Types.bsd");
+fetch_from_github(version, "Schema/OPCBinarySchema.xsd");
+fetch_from_github(version, "Schema/AttributeIds.csv");
+fetch_from_github(version, "Schema/NodeIds.csv");
+fetch_from_github(version, "Schema/SecuredApplication.xsd");
+fetch_from_github(version, "Schema/StatusCode.csv");
+fetch_from_github(version, "Schema/UANodeSet.xsd");
 
 fetch_from_github(version, "ADI/Opc.Ua.Adi.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.xsd");
@@ -283,16 +291,6 @@ fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
 fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
 fetch_from_github(version, "PackML/Opc.Ua.PackML.NodeSet2.xml");
 fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
-fetch_from_github(version, "Schema/AttributeIds.csv");
-fetch_from_github(version, "Schema/NodeIds.csv");
-fetch_from_github(version, "Schema/NodeIds.csv");
-fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Types.bsd");
-fetch_from_github(version, "Schema/OPCBinarySchema.xsd");
-fetch_from_github(version, "Schema/SecuredApplication.xsd");
-fetch_from_github(version, "Schema/StatusCode.csv");
-fetch_from_github(version, "Schema/StatusCode.csv");
-fetch_from_github(version, "Schema/UANodeSet.xsd");
 fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml");
 fetch_from_github(version, "Woodworking/Opc.Ua.Woodworking.NodeSet2.xml");
 /*
@@ -318,9 +316,6 @@ fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part5.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part8.xml");
 fetch_from_github(version, "Schema/Opc.Ua.NodeSet2.Part9.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Types.bsd.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Types.bsd.xml");
-fetch_from_github(version, "Schema/Opc.Ua.Types.xsd");
 fetch_from_github(version, "Schema/SecuredApplication.xsd");
 fetch_from_github(version, "Schema/Types.xsd");
 fetch_from_github(version, "Schema/UAVariant.xsd");
