@@ -26,7 +26,7 @@
         "node-opcua-client-proxy": "2.81.0",
         "node-opcua-common": "2.81.0",
         "node-opcua-constants": "2.77.0",
-        "node-opcua-crypto": "^1.11.0",
+        "node-opcua-crypto": "^1.12.0",
         "node-opcua-data-access": "2.81.0",
         "node-opcua-data-model": "2.81.0",
         "node-opcua-data-value": "2.81.0",
@@ -62,7 +62,7 @@
         "node-opcua-utils": "2.77.0",
         "node-opcua-variant": "2.81.0",
         "node-opcua-vendor-diagnostic": "2.81.0",
-        "semver": "^7.3.7"
+        "semver": "^7.3.8"
     },
     "devDependencies": {
         "should": "^13.2.3"

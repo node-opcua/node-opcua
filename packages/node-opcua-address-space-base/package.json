@@ -16,10 +16,10 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.14.185",
+        "@types/lodash": "4.14.186",
         "node-opcua-basic-types": "2.81.0",
         "node-opcua-constants": "2.77.0",
-        "node-opcua-crypto": "^1.11.0",
+        "node-opcua-crypto": "^1.12.0",
         "node-opcua-data-model": "2.81.0",
         "node-opcua-data-value": "2.81.0",
         "node-opcua-date-time": "2.77.0",

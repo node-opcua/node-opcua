@@ -23,7 +23,7 @@
         "node-opcua-data-value": "2.81.0",
         "node-opcua-debug": "2.77.0",
         "node-opcua-nodeid": "2.81.0",
-        "node-opcua-pki": "^2.17.0",
+        "node-opcua-pki": "^2.18.0",
         "node-opcua-service-browse": "2.81.0",
         "node-opcua-status-code": "2.77.0",
         "node-opcua-types": "2.81.0",
@@ -33,7 +33,7 @@
     },
     "devDependencies": {
         "should": "^13.2.3",
-        "sinon": "^14.0.0"
+        "sinon": "^14.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
