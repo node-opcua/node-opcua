@@ -2,6 +2,8 @@ import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { sameNodeId } from "node-opcua-nodeid";
+//import { DataTypeIds } from "node-opcua-constant";
 import {
     BitField,
     ConstructorFuncWithSchema,
@@ -443,8 +445,14 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                 fields.push(field);
             }
         }
+        /// some server may provide definition.baseDataType to be i=22 (ExtensionObject)
+        /// instead of 12756 Union;
+        if (isUnion && sameNodeId(definition.baseDataType, coerceNodeId("i=22"))) {
+            definition.baseDataType = resolveNodeId("i=1276"); // aka DataTypeIds.Union
+        }
+
         const a = await resolveFieldType(session, definition.baseDataType, dataTypeFactory, cache);
-        const baseType = a ? a.fieldTypeName : "ExtensionObject";
+        const baseType = a ? a.fieldTypeName : isUnion ? "Union" : "ExtensionObject";
 
         const os = new StructuredTypeSchema({
             baseType,
@@ -489,7 +497,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             field.valueRank = fieldD.valueRank;
             field.isArray = true;
         } else {
-            field.isArray = false; 
+            field.isArray = false;
         }
         return { field, switchBit, switchValue };
     }
