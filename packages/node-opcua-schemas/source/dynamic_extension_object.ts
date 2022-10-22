@@ -27,6 +27,21 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
+function associateEncoding(
+    dataTypeFactory: DataTypeFactory,
+    constructor: AnyConstructorFunc,
+    { encodingDefaultBinary, encodingDefaultXml }: { encodingDefaultBinary?: ExpandedNodeId; encodingDefaultXml?: ExpandedNodeId }
+) {
+    const schema = constructor.schema;
+    const dataTypeName = schema.name;
+    if (encodingDefaultBinary && encodingDefaultBinary.value !== 0) {
+        schema.encodingDefaultBinary = encodingDefaultBinary;
+        schema.encodingDefaultXml = encodingDefaultXml;
+        (constructor as any).encodingDefaultBinary = encodingDefaultBinary;
+        (constructor as any).encodingDefaultXml = encodingDefaultXml;
+        dataTypeFactory.associateWithBinaryEncoding(dataTypeName, encodingDefaultBinary);
+    }
+}
 export function getOrCreateConstructor(
     dataTypeName: string,
     dataTypeFactory: DataTypeFactory,
@@ -53,16 +68,11 @@ export function getOrCreateConstructor(
     if (!dataTypeFactory.hasStructureByTypeName(dataTypeName)) {
         dataTypeFactory.registerClassDefinition(schema.dataTypeNodeId, dataTypeName, constructor as ConstructorFuncWithSchema);
         return constructor;
-        // hrow new Error("constructor should now be registered - " + fieldType);
+        // how new Error("constructor should now be registered - " + fieldType);
     }
 
-    if (encodingDefaultBinary && encodingDefaultBinary.value !== 0) {
-        schema.encodingDefaultBinary = encodingDefaultBinary;
-        schema.encodingDefaultXml = encodingDefaultXml;
-        (constructor as any).encodingDefaultBinary = encodingDefaultBinary;
-        (constructor as any).encodingDefaultXml = encodingDefaultXml;
-        dataTypeFactory.associateWithBinaryEncoding(dataTypeName, encodingDefaultBinary);
-    }
+    associateEncoding(dataTypeFactory, constructor, { encodingDefaultBinary });
+
     return constructor;
 }
 
@@ -759,7 +769,10 @@ function _createDynamicUnionConstructor(
 
     // to do : may be remove DataType suffix here ?
     Object.defineProperty(UNION, "name", { value: schema.name });
-
+    const schemaPriv = schema as IStructuredTypeSchemaEx;
+    assert(!schemaPriv.$Constructor);
+    schemaPriv.$Constructor = UNION;
+    UNION.encodingDefaultBinary = schema.encodingDefaultBinary!;
     return UNION;
 }
 interface IStructuredTypeSchemaEx extends IStructuredTypeSchema {
@@ -778,7 +791,6 @@ export function createDynamicObjectConstructor(
 
     if (schema.baseType === "Union") {
         const UNIONConstructor = _createDynamicUnionConstructor(schema, dataTypeFactory);
-        schemaPriv.$Constructor = UNIONConstructor;
         dataTypeFactory.registerClassDefinition(dataTypeNodeId, schema.name, UNIONConstructor as any);
         return UNIONConstructor;
     }

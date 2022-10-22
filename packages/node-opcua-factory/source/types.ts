@@ -52,6 +52,7 @@ export interface FieldInterfaceOptions {
     allowSubType?: boolean;
     dataType?: NodeId;
     basicDataType?: number;
+    valueRank?: number;
 }
 
 export type Func1<T> = (value: any, field: StructuredTypeField, data: T, args?: any) => void;

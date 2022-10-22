@@ -44,7 +44,7 @@ async function getOrExtractConstructor(
     const dataTypeNodeId = r.nodeId;
 
     if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
-        throw new Error("Internal Error: we are not expecting this dataType to be processed already");
+        throw new Error("Internal Error: we are not expecting this dataType to be processed already " + dataTypeNodeId.toString());
     }
     await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, {});
 
