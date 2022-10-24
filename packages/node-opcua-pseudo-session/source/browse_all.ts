@@ -2,6 +2,7 @@
  * @module node-opcua-pseudo-session
  */
 import { BrowseResult } from "node-opcua-service-browse";
+import { StatusCodes } from "node-opcua-status-code";
 import { IBasicSession, BrowseDescriptionLike } from "./basic_session_interface";
 
 export async function browseAll(session: IBasicSession, nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
@@ -19,11 +20,16 @@ export async function browseAll(
     const results = await session.browse(nodesToBrowse);
 
     for (const result of results) {
+        if(result.statusCode === StatusCodes.BadNoContinuationPoints) {
+            // there was not enough continuation points
+        }
+
         let continuationPoint = result.continuationPoint;
         while (continuationPoint) {
-            const result2 = await session.browseNext(result.continuationPoint, false);
-            result.references!.push.apply(result.references, result2.references || []);
-            continuationPoint = result2.continuationPoint;
+            const broweResults = await session.browseNext([result.continuationPoint], false);
+            const broweResult = broweResults[0];
+            result.references!.push.apply(result.references, broweResult.references || []);
+            continuationPoint = broweResult.continuationPoint;
         }
     }
     return results;
