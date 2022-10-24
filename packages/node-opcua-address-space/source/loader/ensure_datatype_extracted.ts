@@ -57,7 +57,7 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
         }
         // inject simple types
 
-        // now extract structure and enumeration from old form if
+        // now extract structure and enumeration from old form
         const session = new PseudoSession(addressSpace);
         await populateDataTypeManager(session, dataTypeManager, true);
 

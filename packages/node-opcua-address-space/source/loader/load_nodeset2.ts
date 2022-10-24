@@ -524,25 +524,6 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
-            /*
-            export interface StructureFieldOptions {
-                name?: UAString ; // **
-                description?: (LocalizedTextLike | null); // **
-                dataType?: (NodeIdLike | null);
-                valueRank?: Int32 ;
-                arrayDimensions?: UInt32 [] | null;
-                maxStringLength?: UInt32 ;
-                isOptional?: UABoolean ;
-            }
-            export interface EnumValueTypeOptions {
-                value?: Int64 ;
-                displayName?: (LocalizedTextLike | null);
-                description?: (LocalizedTextLike | null); // **
-            }
-            export interface EnumFieldOptions extends EnumValueTypeOptions {
-                name?: UAString ; // **
-            }
-            */
 
             const definitionFields = this.definitionFields as StructureFieldOptions[] | EnumFieldOptions[];
 
