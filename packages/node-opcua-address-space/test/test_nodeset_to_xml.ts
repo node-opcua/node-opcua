@@ -18,11 +18,10 @@ const XMLWriter = require("xml-writer");
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
 const { createCameraType } = require("./fixture_camera_type");
 
-
 function dumpXml(node: BaseNode): string {
-
     const xw = new XMLWriter(true);
     xw.translationTable = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+    xw.priorityTable = [0, 1, 2, 3, 4, 5, 6];
     xw.startDocument({ encoding: "utf-8" });
     (node as any).dumpXML(xw);
     xw.endDocument();
@@ -154,7 +153,6 @@ describe("testing nodeset to xml", () => {
     });
 
     it("KLKL7 should output a instance of object with method  to xml", () => {
-
         const cameraType = createCameraType(addressSpace);
 
         const camera1 = cameraType.instantiate({
@@ -171,7 +169,9 @@ describe("testing nodeset to xml", () => {
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
         str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger" ParentNodeId="ns=1;i=1000">/);
-        str.should.match(/<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" ParentNodeId="ns=1;i=[0-9]+" MethodDeclarationId="ns=1;i=1001"/);
+        str.should.match(
+            /<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" ParentNodeId="ns=1;i=[0-9]+" MethodDeclarationId="ns=1;i=1001"/
+        );
     });
 
     it("KLKL8 should output an instance of variable type to xml", () => {
@@ -234,12 +234,11 @@ describe("testing nodeset to xml", () => {
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
 
-
         str = str.replace(/LastModified=".*" /g, 'LastModified="DATE" ');
         if (doDebug) {
             console.log(str);
         }
-       
+
         str.should.eql(`<?xml version="1.0"?>
 <!--Object - 1:Object {{{{ -->
 <UAObject NodeId="ns=1;i=1000" BrowseName="1:Object">

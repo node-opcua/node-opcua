@@ -46,6 +46,7 @@ export interface EnumerationInfo {
 }
 export interface UADataTypeOptions extends InternalBaseNodeOptions {
     partialDefinition: StructureFieldOptions[] | EnumFieldOptions[];
+    isUnion?: boolean;
     isAbstract?: boolean;
     symbolicName?: string;
 }
@@ -78,6 +79,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     public readonly isAbstract: boolean;
 
+    private $isUnion?: boolean;
     private enumStrings?: any;
     private enumValues?: any;
     private $partialDefinition?: StructureFieldOptions[] | EnumFieldOptions[];
@@ -87,6 +89,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         super(options);
         if (options.partialDefinition) {
             this.$partialDefinition = options.partialDefinition;
+            this.$isUnion = options.isUnion;
         }
         this.isAbstract = options.isAbstract === undefined || options.isAbstract === null ? false : options.isAbstract;
         this.symbolicName = options.symbolicName || this.browseName.name!;

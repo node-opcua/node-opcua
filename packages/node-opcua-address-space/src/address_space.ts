@@ -1451,8 +1451,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!baseType) {
             return topMostBaseTypeNode;
         }
-
-        assert(typeof baseType === "string" || baseType instanceof BaseNodeImpl);
+        assert(typeof baseType === "string" || baseType instanceof BaseNodeImpl || baseType instanceof NodeId);
         let baseTypeNode: T;
         if (baseType instanceof BaseNodeImpl) {
             baseTypeNode = baseType as BaseNode as T;
