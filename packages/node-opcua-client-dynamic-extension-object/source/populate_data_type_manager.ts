@@ -6,11 +6,11 @@ import { DataTypeIds } from "node-opcua-constants";
 
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
+import { ReferenceDescription } from "node-opcua-types";
 //
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { populateDataTypeManager103 } from "./private/populate_data_type_manager_103";
 import { populateDataTypeManager104 } from "./private/populate_data_type_manager_104";
-import { ReferenceDescription } from "node-opcua-types";
 
 async function serverImplementsDataTypeDefinition(session: IBasicSession): Promise<boolean> {
     // check if server provides DataTypeDefinition => in this case this is the prefered route,
@@ -78,7 +78,7 @@ export async function populateDataTypeManager(
 ): Promise<void> {
     const force104 = await serverImplementsDataTypeDefinition(session);
     if (force104) {
-        console.log("xxxxxxx! using 1.04");
+        // console.log("xxxxxxx! using 1.04");
         await populateDataTypeManager104(session, dataTypeManager);
         return;
     }
