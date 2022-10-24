@@ -99,6 +99,7 @@ function b(xw: XmlWriter, browseName: QualifiedName): string {
 }
 
 function _hasHigherPriorityThan(xw: XmlWriter, namespaceIndex1: number, namespaceIndex2: number) {
+    assert(xw.priorityTable, "expecting a priorityTable");
     assert(namespaceIndex1 < xw.priorityTable.length);
     assert(namespaceIndex2 < xw.priorityTable.length);
     return hasHigherPriorityThan(namespaceIndex1, namespaceIndex2, xw.priorityTable);
@@ -799,8 +800,9 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
         }
     }
     if (Object.prototype.hasOwnProperty.call(node, "minimumSamplingInterval")) {
-        if ((node as UAVariable).minimumSamplingInterval !== 0) {
-            xw.writeAttribute("MinimumSamplingInterval", (node as UAVariable).minimumSamplingInterval);
+        const minimumSamplingInterval =(node as UAVariable).minimumSamplingInterval;
+        if (minimumSamplingInterval > 0) {
+            xw.writeAttribute("MinimumSamplingInterval", minimumSamplingInterval);
         }
     }
 }

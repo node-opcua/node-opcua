@@ -14,6 +14,7 @@ import {
     CacheForFieldResolution,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
+
 const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
 
@@ -181,10 +182,14 @@ export async function populateDataTypeManager104(session: IBasicSession, dataTyp
         const dataTypeNodeId = r.nodeId;
         try {
             const dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
+            if(!dataTypeFactory) {
+                throw new Error("cannot find dataType Manager for namespace of " + dataTypeNodeId.toString());
+            }
             if (dataTypeNodeId.namespace === 0) {
                 // already known I guess
                 return;
             }
+
             // if not found already
             if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
                 // already known !

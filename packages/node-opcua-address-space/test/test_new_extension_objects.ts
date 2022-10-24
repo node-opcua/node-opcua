@@ -4,6 +4,8 @@ import { spy } from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extension-object";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { DataType, Variant } from "node-opcua-variant";
 //
 import { AddressSpace, adjustNamespaceArray } from "..";
 import { PseudoSession } from "..";
@@ -61,6 +63,35 @@ describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition av
         const o = new F({});
         console.log(o.toJSON());
         console.log("browseSpy =  ", browseSpy.callCount, "browseNextSpy =  ", browseNextSpy.callCount);
+    });
+
+    it("WY4 - Extension Object with Matrix", () => {
+        const nsA = addressSpace.getNamespaceIndex("http://A");
+        const dataTypeNodeId = addressSpace.findDataType("MyStructureWithMatrix", nsA);
+        should.exist(dataTypeNodeId);
+        const o = addressSpace.constructExtensionObject(dataTypeNodeId!, {
+            matrix: [
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ]
+            ]
+        });
+        console.log(o.toString());
+
+        const va = new Variant({ dataType: DataType.ExtensionObject, value: o });
+        const stream = new BinaryStream(va.binaryStoreSize());
+        o.encode(stream);
+
+        const vb = new Variant();
+        stream.rewind();
+        vb.decode(stream);
     });
 });
 
