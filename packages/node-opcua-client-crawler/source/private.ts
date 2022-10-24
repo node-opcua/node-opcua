@@ -1,33 +1,43 @@
 import { assert } from "node-opcua-assert";
 import { QualifiedName, ReferenceDescription, BrowseResult, NodeId } from "node-opcua-client";
-import { debugLog } from "node-opcua-pki";
+import { make_warningLog } from "node-opcua-debug";
 import { CacheNode } from "./cache_node";
 import { Pojo, UserData } from "./node_crawler_base";
+
+const warningLog = make_warningLog("CRAWLER");
 
 export type EmptyCallback = () => void;
 
 export const pendingBrowseName = new QualifiedName({ name: "pending" });
 
-export function dedup_reference(references: ReferenceDescription[]): ReferenceDescription[] {
+export function dedup_reference(parentNode: CacheNode, references: ReferenceDescription[]): ReferenceDescription[] {
     const results: ReferenceDescription[] = [];
     const dedup: any = {};
+    const duplicatedReferences: ReferenceDescription[] =[];
+
     for (const reference of references) {
         const key = reference.referenceTypeId.toString() + reference.nodeId.toString();
 
         /* istanbul ignore next */
         if (dedup[key]) {
-            debugLog(`Warning => Duplicated reference found for nodeId ${reference.nodeId.toString()} ref ${reference.referenceTypeId.toString()} (${references.length})  !!!! please contact the server vendor`);
-            debugLog(reference.toString());
+            duplicatedReferences.push(reference);
             continue;
         }
         dedup[key] = reference;
         results.push(reference);
+    }
+    if (duplicatedReferences.length > 0) {
+        warningLog(`Warning => Duplicated references found while browsing ${parentNode.browseName.toString()}  nodeId= ${parentNode.nodeId.toString()}`);
+        for (const reference of duplicatedReferences) {
+            warningLog("   " ,reference.toString());
+        }
     }
     return results;
 }
 
 export interface TaskBase {
     name?: string;
+    func: (task: any, callback: EmptyCallback) => void;
 }
 
 export interface TaskBrowseNode {

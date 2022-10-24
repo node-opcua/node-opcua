@@ -27,6 +27,8 @@ export class CacheNode {
     public displayName: LocalizedText;
     public description: LocalizedText = coerceLocalizedText("")!;
 
+    public _browse? : "planned"|"done";
+
     constructor(nodeId: NodeId) {
         /**
          */
