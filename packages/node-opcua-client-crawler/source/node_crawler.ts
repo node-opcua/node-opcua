@@ -9,7 +9,7 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { NodeClass } from "node-opcua-data-model";
 import { lowerFirstLetter } from "node-opcua-utils";
 
-import { NodeCrawlerBase, ObjectMap, Pojo, UserData } from "./node_crawler_base";
+import { NodeCrawlerBase, NodeCrawlerClientSession, ObjectMap, Pojo, UserData } from "./node_crawler_base";
 import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
 import { TaskReconstruction, EmptyCallback, removeCycle } from "./private";
 
@@ -20,6 +20,21 @@ const doDebug = checkDebugFlag(__filename);
 type Queue = async.QueueObject<TaskReconstruction>;
 
 export class NodeCrawler extends NodeCrawlerBase {
+
+    protected readonly _objMap: ObjectMap;
+
+    constructor(session: NodeCrawlerClientSession) {
+        super(session);
+        this._objMap = {};
+    }
+    public override  dispose(): void {
+        Object.values(this._objMap).map((obj: any) => {
+            Object.keys(obj as any).map((k) => ((obj as any)[k] = undefined));
+        });
+        (this as any)._objMap = null;
+        super.dispose();
+    }
+
     /**
      *
      */
