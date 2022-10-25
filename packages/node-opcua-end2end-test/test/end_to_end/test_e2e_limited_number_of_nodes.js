@@ -7,13 +7,14 @@ const {
     makeNodeId,
     VariableIds,
     AttributeIds,
-    NodeCrawler,
     assert,
     OPCUAServer,
     OPCUAClient,
     BrowseDirection,
     makeBrowsePath
 } = require("node-opcua");
+
+const { NodeCrawler } = require("node-opcua-client-crawler");
 
 assert(typeof makeBrowsePath === "function");
 

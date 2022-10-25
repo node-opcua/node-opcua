@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable complexity */
 /* eslint-disable no-case-declarations */
 /* eslint no-process-exit: 0 */
 "use strict";
@@ -11,19 +12,27 @@ const treeify = require("treeify");
 const { sprintf } = require("sprintf-js");
 const _ = require("underscore");
 
-const opcua = require("node-opcua");
-const UAProxyManager = opcua.UAProxyManager;
-const DataType = opcua.DataType;
-
-const utils = opcua.utils;
-
+const {
+    DataType,
+    OPCUAClient,
+    version,
+    makeNodeId,
+    coerceNodeId,
+    ObjectIds,
+    analyze_object_binary_encoding,
+    StatusCodes,
+    parseEndpointUrl
+} = require("node-opcua");
+const { NodeCrawler } = require("node-opcua-client-crawler");
+const { UAProxyManager } = require("node-opcua-client-proxy");
+const utils = require("node-opcua-utils");
 const { assert } = require("node-opcua-assert");
 
-console.log(" Version ", opcua.version);
+console.log(" Version ", version);
 
 const sessionTimeout = 2 * 60 * 1000; // 2 minutes
 
-const client = opcua.OPCUAClient.create({
+const client = OPCUAClient.create({
     requestedSessionTimeout: sessionTimeout,
     keepSessionAlive: true
 });
@@ -189,7 +198,7 @@ let rootFolder = null;
 
 let nodePath = [];
 let nodePathName = [];
-const lowerFirstLetter = opcua.utils.lowerFirstLetter;
+const lowerFirstLetter = utils.lowerFirstLetter;
 
 function setCurrentNode(node) {
     curNode = node;
@@ -224,10 +233,11 @@ function moveToChild(browseName) {
     }
     setCurrentNode(child);
 }
+
 function get_root_folder(callback) {
     if (!rootFolder) {
         rl.pause();
-        proxyManager.getObject(opcua.makeNodeId(opcua.ObjectIds.RootFolder), function (err, data) {
+        proxyManager.getObject(makeNodeId(ObjectIds.RootFolder), function (err, data) {
             if (!err) {
                 rootFolder = data;
                 assert(rootFolder, "expecting rootFolder");
@@ -257,7 +267,7 @@ client.on("receive_chunk", function (message_chunk) {
 client.on("send_request", function (message) {
     if (dumpPacket) {
         log(chalk.red(" sending request"));
-        opcua.analyze_object_binary_encoding(message);
+        analyze_object_binary_encoding(message);
     }
 });
 
@@ -265,7 +275,7 @@ client.on("receive_response", function (message) {
     if (dumpPacket) {
         assert(message);
         log(chalk.cyan.bold(" receive response"));
-        opcua.analyze_object_binary_encoding(message);
+        analyze_object_binary_encoding(message);
     }
 });
 
@@ -345,7 +355,7 @@ function dump_historyDataValues(nodeToRead, startDate, endDate, historyReadResul
     log("           Node : ", chalk.cyan.bold(nodeToRead.nodeId.toString()), nodeToRead.attributeId.toString());
     log("      startDate : ", startDate);
     log("        endDate : ", endDate);
-    if (historyReadResult.statusCode !== opcua.StatusCodes.Good) {
+    if (historyReadResult.statusCode !== StatusCodes.Good) {
         log("                          error ", historyReadResult.statusCode.toString());
         return;
     }
@@ -434,7 +444,6 @@ function set_debug(flag) {
         log(" Debug is OFF");
     }
 }
-
 function process_line(line) {
     let nodes;
     const args = line.trim().split(/ +/);
@@ -454,7 +463,7 @@ function process_line(line) {
             if (!endpointUrl.match(/^opc.tcp:\/\//)) {
                 endpointUrl = "opc.tcp://" + endpointUrl;
             }
-            const p = opcua.parseEndpointUrl(endpointUrl);
+            const p = parseEndpointUrl(endpointUrl);
             const hostname = p.hostname;
             const port = p.port;
             log(" open    url : ", endpointUrl);
@@ -572,7 +581,7 @@ function process_line(line) {
                     endTime = startTime;
                     startTime = tmp;
                 }
-                nodes = nodes.map(opcua.coerceNodeId);
+                nodes = nodes.map(coerceNodeId);
 
                 the_session.readHistoryValue(nodes, startTime, endTime, function (err, historyReadResults) {
                     if (err) {
@@ -599,7 +608,7 @@ function process_line(line) {
         case "read":
             apply_on_valid_session(cmd, function (the_session, callback) {
                 nodes = [args[1]];
-                nodes = nodes.map(opcua.coerceNodeId);
+                nodes = nodes.map(coerceNodeId);
 
                 the_session.readVariableValue(nodes, function (err, dataValues) {
                     if (err) {
@@ -655,7 +664,7 @@ function process_line(line) {
             {
                 apply_on_valid_session(cmd, function (the_session, callback) {
                     if (!crawler) {
-                        crawler = new opcua.NodeCrawler(the_session);
+                        crawler = new NodeCrawler(the_session);
                         crawler.on("browsed", function (element) {
                             // log("->",element.browseName.name,element.nodeId.toString());
                         });

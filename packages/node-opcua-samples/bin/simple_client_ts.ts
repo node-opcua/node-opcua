@@ -29,7 +29,6 @@ import {
     makeNodeId,
     MessageSecurityMode,
     NodeClassMask,
-    NodeCrawler,
     NodeId,
     ObjectTypeIds,
     ofType,
@@ -45,6 +44,8 @@ import {
     Variant
 } from "node-opcua";
 import { Certificate, toPem } from "node-opcua-crypto";
+
+import {  NodeCrawler } from "node-opcua-client-crawler";
 
 // tslint:disable:no-var-requires
 const Table = require("easy-table");
