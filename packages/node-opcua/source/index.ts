@@ -108,8 +108,6 @@ export { hexDump } from "node-opcua-debug";
 // client services
 // ----------------------------------------------------------------------------------------------------------
 export * from "node-opcua-client";
-export * from "node-opcua-client-proxy";
-export * from "node-opcua-client-crawler";
 export { parseEndpointUrl, is_valid_endpointUrl } from "node-opcua-transport";
 
 // ----------------------------------------------------------------------------------------------------------

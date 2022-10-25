@@ -1,20 +1,23 @@
 import {
     OPCUAClient,
     ClientSession,
+    BrowseDirection,
+    NodeClass,
+    DataType
+} from "../packages/node-opcua";
+import {
     NodeCrawler,
     CacheNode,
     UserData,
-    BrowseDirection,
-    NodeClass,
     CacheNodeVariable,
-    DataType
-} from "../packages/node-opcua";
+} from "../packages/node-opcua-client-crawler";
+
 const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
 const js2xml = require("js2xmlparser");
 
-//const nodeId = "ns=0;i=85"; // ObjectFolder
 const nodeId = "ns=1;i=1000"; // MyDevices
 (async () => {
+
     function onBrowse(crawler: NodeCrawler, cacheNode: CacheNode, userData: UserData) {
         if (cacheNode.nodeClass === NodeClass.ReferenceType) {
             return;

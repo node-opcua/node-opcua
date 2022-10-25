@@ -1,4 +1,4 @@
-const list =`node-opcua
+const list = `node-opcua
 node-opcua-address-space
 node-opcua-address-space-for-conformance-testing
 node-opcua-assert
@@ -66,7 +66,7 @@ node-opcua-variant
 node-opcua-vendor-diagnostic
 node-opcua-xml2json`;
 
-    let l = list.split("\n");
+let l = list.split("\n");
 l = l.map(p => `echo ${p}\nnpm dist-tag add ${p}@0.5.6 latest`).join("\n");
 console.log(l);
 
