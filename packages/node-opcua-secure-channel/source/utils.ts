@@ -312,6 +312,18 @@ export function traceClientRequestMessage(request: Request, channelId: number, i
     );
 }
 
+function addtionnalInfo(response: Response) : string{
+    if (response instanceof BrowseNextResponse || response instanceof BrowseResponse) {
+        const results = response.results;
+        if (!results) return "";
+        const someBad = results.find((r)=> r.statusCode!== StatusCodes.Good);
+        if (!someBad) {
+            return "";
+        }
+        return "!!" + someBad.toString();
+    }
+    return "";
+}
 export function traceClientResponseMessage(response: Response, channelId: number, instance: number): void {
     const extra = _get_extraInfo(response);
     const size = evaluateBinarySize(response);
@@ -324,6 +336,7 @@ export function traceClientResponseMessage(response: Response, channelId: number
         response.schema.name.padEnd(nameLength),
         extra,
         size,
-        statusCodeToString(response.responseHeader.serviceResult)
+        statusCodeToString(response.responseHeader.serviceResult),
+        addtionnalInfo(response)
     );
 }
