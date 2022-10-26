@@ -124,6 +124,7 @@ import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { UAViewImpl } from "./ua_view_impl";
 import { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl";
+import { notDeepEqual } from "assert";
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -258,7 +259,7 @@ export class NamespaceImpl implements NamespacePrivate {
         this.index = options.index;
         this._nodeid_index = new Map();
         this._aliases = new Map();
-        this._objectTypeMap = new Map(); 
+        this._objectTypeMap = new Map();
         this._variableTypeMap = new Map();
         this._referenceTypeMap = new Map();
         this._referenceTypeMapInv = new Map();
@@ -1419,8 +1420,7 @@ export class NamespaceImpl implements NamespacePrivate {
     public toNodeset2XML(): string {
         return "<toNodeset2XML>has not be installed</toNodeset2XML>!";
     }
-    public setRequiredModels(requiredModels: RequiredModel[]): void
-    { 
+    public setRequiredModels(requiredModels: RequiredModel[]): void {
         this._requiredModels = requiredModels;
     }
     public getRequiredModels(): RequiredModel[] | undefined {
@@ -1669,19 +1669,19 @@ export class NamespaceImpl implements NamespacePrivate {
         if (this._nodeid_index.has(hashKey)) {
             throw new Error(
                 "node " +
-                node.browseName.toString() +
-                "nodeId = " +
-                node.nodeId.displayText() +
-                " already registered " +
-                node.nodeId.toString() +
-                "\n" +
-                " in namespace " +
-                this.namespaceUri +
-                " index = " +
-                this.index +
-                "\n" +
-                " browseName = " +
-                node.browseName.toString()
+                    node.browseName.toString() +
+                    "nodeId = " +
+                    node.nodeId.displayText() +
+                    " already registered " +
+                    node.nodeId.toString() +
+                    "\n" +
+                    " in namespace " +
+                    this.namespaceUri +
+                    " index = " +
+                    this.index +
+                    "\n" +
+                    " browseName = " +
+                    node.browseName.toString()
             );
         }
 
@@ -1744,15 +1744,15 @@ export class NamespaceImpl implements NamespacePrivate {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                            indexVerif +
-                            " do not match the index of the current namespace (" +
-                            this.index +
-                            ")"
+                                indexVerif +
+                                " do not match the index of the current namespace (" +
+                                this.index +
+                                ")"
                         )
                     );
                     errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
-                        " please refer to the NodeOPCUA documentation"
+                            " please refer to the NodeOPCUA documentation"
                     );
                 }
             }
@@ -1904,7 +1904,9 @@ export class NamespaceImpl implements NamespacePrivate {
     private _registerObjectType(node: UAObjectType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
-        assert(!this._objectTypeMap.has(key), " UAObjectType already declared");
+        if (this._objectTypeMap.has(key)) {
+            throw new Error(" UAObjectType already declared " + node.browseName.toString() + "  " + node.nodeId.toString());
+        }
         this._objectTypeMap.set(key, node);
     }
 
