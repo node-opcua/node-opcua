@@ -754,7 +754,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             this.lifetimeCount = response.revisedLifetimeCount;
             this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
 
-            this.timeoutHint = (this.maxKeepAliveCount + 10) * this.publishingInterval;
+            this.timeoutHint = Math.min(((this.maxKeepAliveCount + 10) * this.publishingInterval) * 2, 0x7FFFF);
 
             displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
             ClientSubscription.ignoreNextWarning = false;
