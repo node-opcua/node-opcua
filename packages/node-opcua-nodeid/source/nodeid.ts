@@ -1,9 +1,6 @@
 /**
  * @module node-opcua-nodeid
  */
-// tslint:disable:no-conditional-assignment
-import * as chalk from "chalk";
-import { isEqual } from "lodash";
 import { assert } from "node-opcua-assert";
 import {
     DataTypeIds,
@@ -152,7 +149,7 @@ export class NodeId {
             if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
                 // find standard browse name
                 const name = reverse_map((this.value||0).toString()) || "<undefined>";
-                str += " " + chalk.green.bold(name);
+                str += " " + name;
             } else if (addressSpace.findNode) {
                 // let use the provided address space to figure out the browseNode of this node.
                 // to make the message a little bit more useful.
@@ -395,9 +392,12 @@ export function sameNodeId(n1: NodeId, n2: NodeId): boolean {
     switch (n1.identifierType) {
         case NodeIdType.NUMERIC:
         case NodeIdType.STRING:
+        case NodeIdType.GUID:
             return n1.value === n2.value;
+        case NodeIdType.BYTESTRING:
+            return (n1.value as Buffer).toString("hex") === (n2.value as Buffer).toString("hex");
         default:
-            return isEqual(n1.value, n2.value);
+            throw new Error("Invalid identifier type");
     }
 }
 NodeId.sameNodeId = sameNodeId;

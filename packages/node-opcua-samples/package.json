@@ -27,7 +27,7 @@
         "node-opcua-assert": "2.77.0",
         "node-opcua-client-crawler": "2.82.0",
         "node-opcua-crypto": "^1.12.0",
-        "node-opcua-pki": "^2.18.0",
+        "node-opcua-pki": "^2.18.3",
         "node-opcua-server-configuration": "2.82.0",
         "node-opcua-utils": "2.82.0",
         "sprintf-js": "^1.1.2",

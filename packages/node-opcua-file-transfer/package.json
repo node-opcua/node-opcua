@@ -26,7 +26,7 @@
         "node-opcua-variant": "2.82.0"
     },
     "devDependencies": {
-        "memfs": "^3.4.7",
+        "memfs": "^3.4.10",
         "node-opcua-client": "2.82.0",
         "node-opcua-leak-detector": "2.82.0",
         "node-opcua-nodesets": "2.77.0",

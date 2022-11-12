@@ -28,7 +28,7 @@
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "node-opcua-pki": "^2.18.0"
+        "node-opcua-pki": "^2.18.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

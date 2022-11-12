@@ -35,7 +35,7 @@
         "node-opcua-hostname": "2.77.0",
         "node-opcua-nodeid": "2.82.0",
         "node-opcua-object-registry": "2.82.0",
-        "node-opcua-pki": "^2.18.0",
+        "node-opcua-pki": "^2.18.3",
         "node-opcua-pseudo-session": "2.82.0",
         "node-opcua-schemas": "2.82.0",
         "node-opcua-secure-channel": "2.82.0",
@@ -70,7 +70,7 @@
         "node-opcua-leak-detector": "2.82.0",
         "node-opcua-nodesets": "2.77.0",
         "should": "^13.2.3",
-        "sinon": "^14.0.1",
+        "sinon": "^14.0.2",
         "underscore": "^1.13.6"
     },
     "eslintConfig": {

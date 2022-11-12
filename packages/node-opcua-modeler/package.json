@@ -13,7 +13,7 @@
     "license": "MIT",
     "dependencies": {
         "cli-table3": "^0.6.3",
-        "csv-parse": "5.3.1",
+        "csv-parse": "5.3.2",
         "node-opcua-address-space": "2.82.0",
         "node-opcua-assert": "2.77.0",
         "node-opcua-basic-types": "2.82.0",
@@ -35,7 +35,7 @@
     "devDependencies": {
         "node-opcua-leak-detector": "2.82.0",
         "should": "^13.2.3",
-        "sinon": "^14.0.1"
+        "sinon": "^14.0.2"
     },
     "repository": {
         "type": "git",

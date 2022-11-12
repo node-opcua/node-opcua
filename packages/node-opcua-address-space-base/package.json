@@ -16,7 +16,6 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.14.186",
         "node-opcua-basic-types": "2.82.0",
         "node-opcua-constants": "2.77.0",
         "node-opcua-crypto": "^1.12.0",
