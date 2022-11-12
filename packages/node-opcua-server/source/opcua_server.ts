@@ -1752,7 +1752,7 @@ export class OPCUAServer extends OPCUABaseServer {
         function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
             server.engine.incrementSecurityRejectedSessionCount();
 
-            const response1 = new CreateSessionResponse({
+            const response1 = new ServiceFault({
                 responseHeader: { serviceResult: statusCode }
             });
             channel.send_response("MSG", response1, message);
