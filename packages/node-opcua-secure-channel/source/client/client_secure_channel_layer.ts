@@ -727,7 +727,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
      *
      */
     public performMessageTransaction(request: Request, callback: PerformTransactionCallback): void {
-        assert(typeof callback === "function");
         this._performMessageTransaction("MSG", request, callback);
     }
 
@@ -1412,8 +1411,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
      */
 
     private _performMessageTransaction(msgType: string, request: Request, callback: PerformTransactionCallback) {
-        assert(typeof callback === "function");
-
         if (!this.isValid()) {
             return callback(
                 new Error("ClientSecureChannelLayer => Socket is closed ! while processing " + request.constructor.name)

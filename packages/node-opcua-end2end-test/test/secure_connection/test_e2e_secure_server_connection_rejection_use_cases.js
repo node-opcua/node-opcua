@@ -204,6 +204,11 @@ describe("testing the server ability to deny client session request (server with
                     clientNonce: Buffer.alloc(31)
                 });
                 client.performMessageTransaction(createSessionRequest, function(err, response) {
+                    if(err) {
+                        console.log(err);
+                        err.message.should.match(/BadNonceInvalid/);
+                        return callback();
+                    }
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
                     callback(err);
                 });
