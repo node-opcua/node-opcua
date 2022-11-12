@@ -220,10 +220,16 @@ export async function writeFile(fileSystem: AbstractFs, filename: string, conten
     });
 }
 
-interface UAFileEx extends UAFile {
+/**
+ * @private
+ */
+export interface UAFileEx extends UAFile {
     $fileData: FileTypeData;
 }
 
+/**
+ * @orivate 
+ */
 export function getFileData(opcuaFile2: UAFile): FileTypeData {
     return (opcuaFile2 as UAFileEx).$fileData;
 }
