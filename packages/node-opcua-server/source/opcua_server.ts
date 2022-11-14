@@ -1141,7 +1141,7 @@ export class OPCUAServer extends OPCUABaseServer {
             });
             this.objectFactory = new Factory(this.engine);
 
-            const endpointDefinitions = options.alternateEndpoints || [];
+            const endpointDefinitions: OPCUAServerEndpointOptions[] = options.alternateEndpoints || [];
             const hostname = getFullyQualifiedDomainName();
 
             endpointDefinitions.push({
@@ -3506,7 +3506,7 @@ export class OPCUAServer extends OPCUABaseServer {
         return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadServiceUnsupported);
     }
 
-    private createEndpoint(port1: number, serverOptions: OPCUAServerOptions): OPCUAServerEndPoint {
+    private createEndpoint(port1: number, serverOptions: {defaultSecureTokenLifetime?: number, timeout? : number}): OPCUAServerEndPoint {
         // add the tcp/ip endpoint with no security
         const endPoint = new OPCUAServerEndPoint({
             port: port1,

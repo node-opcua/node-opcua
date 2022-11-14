@@ -27,6 +27,7 @@ import {
 import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
+import { UserTokenPolicyOptions } from "node-opcua-types";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
 
@@ -155,26 +156,27 @@ export interface OPCUAServerEndPointOptions {
 }
 
 export interface EndpointDescriptionParams {
-    allowAnonymous?: boolean;
     restricted?: boolean;
     allowUnsecurePassword?: boolean;
     resourcePath?: string;
     alternateHostname?: string[];
     hostname: string;
     securityPolicies: SecurityPolicy[];
+    userTokenTypes: UserTokenType[];
 }
 
 export interface AddStandardEndpointDescriptionsParam {
-    securityModes?: MessageSecurityMode[];
-    securityPolicies?: SecurityPolicy[];
-    disableDiscovery?: boolean;
-
     allowAnonymous?: boolean;
+    disableDiscovery?: boolean;
+    securityModes?: MessageSecurityMode[];
+ 
     restricted?: boolean;
-    hostname?: string;
-    alternateHostname?: string[];
     allowUnsecurePassword?: boolean;
     resourcePath?: string;
+    alternateHostname?: string[];
+    hostname?: string;
+    securityPolicies?: SecurityPolicy[];
+    userTokenTypes?: UserTokenType[];
 }
 
 function getUniqueName(name: string, collection: { [key: string]: number }) {
@@ -367,17 +369,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public addEndpointDescription(
         securityMode: MessageSecurityMode,
         securityPolicy: SecurityPolicy,
-        options?: EndpointDescriptionParams
+        options: EndpointDescriptionParams
     ): void {
-        if (!options) {
-            options = {
-                hostname: getFullyQualifiedDomainName(),
-                securityPolicies: [SecurityPolicy.Basic256Sha256]
-            };
-        }
-
-        options.allowAnonymous = options.allowAnonymous === undefined ? true : options.allowAnonymous;
-
         // istanbul ignore next
         if (securityMode === MessageSecurityMode.None && securityPolicy !== SecurityPolicy.None) {
             throw new Error(" invalid security ");
@@ -405,6 +398,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             throw new Error(" endpoint already exist");
         }
 
+        const userTokenTypes = options.userTokenTypes;
+
         // now build endpointUrl
         this._endpoints.push(
             _makeEndpointDescription({
@@ -419,12 +414,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 securityMode,
                 securityPolicy,
 
-                allowAnonymous: options.allowAnonymous,
                 allowUnsecurePassword: options.allowUnsecurePassword,
                 resourcePath: options.resourcePath,
 
                 restricted: !!options.restricted,
-                securityPolicies: options?.securityPolicies || []
+                securityPolicies: options.securityPolicies || [],
+
+                userTokenTypes
             })
         );
     }
@@ -440,6 +436,14 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         options.securityModes = options.securityModes || defaultSecurityModes;
         options.securityPolicies = options.securityPolicies || defaultSecurityPolicies;
+        options.userTokenTypes = options.userTokenTypes || defaultUserTokenTypes;
+
+        options.allowAnonymous = options.allowAnonymous === undefined ? true : options.allowAnonymous;
+        // make sure we do not have anonymous 
+        if (!options.allowAnonymous) {
+            options.userTokenTypes = options.userTokenTypes.filter((r) => r !== UserTokenType.Anonymous);
+        }
+
 
         const defaultHostname = options.hostname || getFullyQualifiedDomainName();
 
@@ -450,11 +454,17 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             options.alternateHostname = [options.alternateHostname];
         }
         // remove duplicates if any (uniq)
-        hostnames = [...new Set(hostnames.concat(options.alternateHostname as string[]))];
+        hostnames = [...new Set(hostnames.concat(options.alternateHostname))];
 
         for (const alternateHostname of hostnames) {
-            const optionsE = options as EndpointDescriptionParams;
-            optionsE.hostname = alternateHostname;
+            const optionsE: EndpointDescriptionParams = {
+                hostname: alternateHostname,
+                securityPolicies: options.securityPolicies,
+                userTokenTypes: options.userTokenTypes,
+                allowUnsecurePassword: options.allowUnsecurePassword,
+                alternateHostname: options.alternateHostname,
+                resourcePath: options.resourcePath
+            };
 
             if (options.securityModes.indexOf(MessageSecurityMode.None) >= 0) {
                 this.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, optionsE);
@@ -966,7 +976,6 @@ interface MakeEndpointDescriptionOptions {
         };
      */
     resourcePath?: string;
-    allowAnonymous?: boolean; // default true
 
     // allow un-encrypted password in userNameIdentity
     allowUnsecurePassword?: boolean; // default false
@@ -981,6 +990,15 @@ interface MakeEndpointDescriptionOptions {
     collection: { [key: string]: number };
 
     securityPolicies: SecurityPolicy[];
+
+    userTokenTypes: UserTokenType[];
+    /**
+     *
+     * default value: false;
+     *
+     * note: setting noUserIdentityTokens=true is useful for pure local discovery servers
+     */
+    noUserIdentityTokens?: boolean;
 }
 
 interface EndpointDescriptionEx extends EndpointDescription {
@@ -1040,13 +1058,77 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
 
     const securityPolicyUri = toURI(options.securityPolicy);
 
-    const userIdentityTokens = [];
+    const userIdentityTokens: UserTokenPolicyOptions[] = [];
 
-    if (options.securityPolicy === SecurityPolicy.None) {
-        if (options.allowUnsecurePassword) {
-            userIdentityTokens.push({
-                policyId: u("username_unsecure"),
+    const registerIdentity2 = (tokenType: UserTokenType, securityPolicy: SecurityPolicy, name: string) => {
+        return registerIdentity({
+            policyId: u(name),
+            tokenType,
+            issuedTokenType: null,
+            issuerEndpointUrl: null,
+            securityPolicyUri: securityPolicy
+        });
+    };
+    const registerIdentity = (r: UserTokenPolicyOptions) => {
+        const tokenType = r.tokenType === undefined ? UserTokenType.Invalid : r.tokenType;
+        const securityPolicy = (r.securityPolicyUri || "") as SecurityPolicy;
+        if (!securityPolicy && options.userTokenTypes.indexOf(tokenType) >= 0) {
+            userIdentityTokens.push(r);
+            return;
+        }
+        if (options.securityPolicies.indexOf(securityPolicy) >= 0 && options.userTokenTypes.indexOf(tokenType) >= 0) {
+            userIdentityTokens.push(r);
+        }
+    };
+
+    if (!options.noUserIdentityTokens) {
+        if (options.securityPolicy === SecurityPolicy.None) {
+            if (options.allowUnsecurePassword) {
+                registerIdentity({
+                    policyId: u("username_unsecure"),
+                    tokenType: UserTokenType.UserName,
+
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: null
+                });
+            }
+
+            const onlyCertificateLessConnection =
+                options.onlyCertificateLessConnection === undefined ? false : options.onlyCertificateLessConnection;
+
+            if (!onlyCertificateLessConnection) {
+                registerIdentity2(UserTokenType.UserName, SecurityPolicy.Basic256, "username_basic256");
+                registerIdentity2(UserTokenType.UserName, SecurityPolicy.Basic128Rsa15, "username_basic128Rsa15");
+                registerIdentity2(UserTokenType.UserName, SecurityPolicy.Basic256Sha256, "username_basic256Sha256");
+                registerIdentity2(UserTokenType.UserName, SecurityPolicy.Aes128_Sha256_RsaOaep, "username_aes128Sha256RsaOaep");
+
+                // X509
+                registerIdentity2(UserTokenType.Certificate, SecurityPolicy.Basic256, "certificate_basic256");
+                registerIdentity2(UserTokenType.Certificate, SecurityPolicy.Basic128Rsa15, "certificate_basic128Rsa15");
+                registerIdentity2(UserTokenType.Certificate, SecurityPolicy.Basic256Sha256, "certificate_basic256Sha256");
+                registerIdentity2(
+                    UserTokenType.Certificate,
+                    SecurityPolicy.Aes128_Sha256_RsaOaep,
+                    "certificate_aes128Sha256RsaOaep"
+                );
+            }
+        } else {
+            // note:
+            //  when channel session security is not "None",
+            //  userIdentityTokens can be left to null.
+            //  in this case this mean that secure policy will be the same as connection security policy
+            registerIdentity({
+                policyId: u("usernamePassword"),
                 tokenType: UserTokenType.UserName,
+                issuedTokenType: null,
+                issuerEndpointUrl: null,
+                securityPolicyUri: null
+            });
+
+            registerIdentity({
+                policyId: u("certificateX509"),
+                tokenType: UserTokenType.Certificate,
 
                 issuedTokenType: null,
                 issuerEndpointUrl: null,
@@ -1054,58 +1136,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
             });
         }
 
-        const a = (tokenType: UserTokenType, securityPolicy: SecurityPolicy, name: string) => {
-            if (options.securityPolicies.indexOf(securityPolicy) >= 0) {
-                userIdentityTokens.push({
-                    policyId: u(name),
-                    tokenType,
-                    issuedTokenType: null,
-                    issuerEndpointUrl: null,
-                    securityPolicyUri: securityPolicy
-                });
-            }
-        };
-        const onlyCertificateLessConnection =
-            options.onlyCertificateLessConnection === undefined ? false : options.onlyCertificateLessConnection;
-
-        if (!onlyCertificateLessConnection) {
-            a(UserTokenType.UserName, SecurityPolicy.Basic256, "username_basic256");
-            a(UserTokenType.UserName, SecurityPolicy.Basic128Rsa15, "username_basic128Rsa15");
-            a(UserTokenType.UserName, SecurityPolicy.Basic256Sha256, "username_basic256Sha256");
-            a(UserTokenType.UserName, SecurityPolicy.Aes128_Sha256_RsaOaep, "username_aes128Sha256RsaOaep");
-
-            // X509
-            a(UserTokenType.Certificate, SecurityPolicy.Basic256, "certificate_basic256");
-            a(UserTokenType.Certificate, SecurityPolicy.Basic128Rsa15, "certificate_basic128Rsa15");
-            a(UserTokenType.Certificate, SecurityPolicy.Basic256Sha256, "certificate_basic256Sha256");
-            a(UserTokenType.Certificate, SecurityPolicy.Aes128_Sha256_RsaOaep, "certificate_aes128Sha256RsaOaep");
-        }
-    } else {
-        // note:
-        //  when channel session security is not "None",
-        //  userIdentityTokens can be left to null.
-        //  in this case this mean that secure policy will be the same as connection security policy
-        userIdentityTokens.push({
-            policyId: u("usernamePassword"),
-            tokenType: UserTokenType.UserName,
-
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: null
-        });
-
-        userIdentityTokens.push({
-            policyId: u("certificateX509"),
-            tokenType: UserTokenType.Certificate,
-
-            issuedTokenType: null,
-            issuerEndpointUrl: null,
-            securityPolicyUri: null
-        });
-    }
-
-    if (options.allowAnonymous) {
-        userIdentityTokens.push({
+        registerIdentity({
             policyId: u("anonymous"),
             tokenType: UserTokenType.Anonymous,
 
@@ -1114,7 +1145,6 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
             securityPolicyUri: null
         });
     }
-
     // return the endpoint object
     const endpoint = new EndpointDescription({
         endpointUrl: options.endpointUrl,
@@ -1171,4 +1201,11 @@ const defaultSecurityPolicies = [
     SecurityPolicy.Basic256Sha256,
     SecurityPolicy.Aes128_Sha256_RsaOaep
     // NO USED YET SecurityPolicy.Aes256_Sha256_RsaPss
+];
+
+const defaultUserTokenTypes = [
+    UserTokenType.Anonymous,
+    UserTokenType.UserName,
+    UserTokenType.Certificate
+    // NOT USED YET : UserTokenType.IssuedToken
 ];

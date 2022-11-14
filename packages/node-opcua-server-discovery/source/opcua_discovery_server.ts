@@ -14,9 +14,8 @@ import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
 import { makeApplicationUrn } from "node-opcua-common";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
-import { Message, Response, ServerSecureChannelLayer, ServiceFault } from "node-opcua-secure-channel";
-import { OPCUABaseServer, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
+import { Message, MessageSecurityMode, Response, SecurityPolicy, ServerSecureChannelLayer, ServiceFault } from "node-opcua-secure-channel";
+import { AddStandardEndpointDescriptionsParam, OPCUABaseServer, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
 
 import {
     Announcement,
@@ -57,6 +56,11 @@ function hasCapabilities(serverCapabilities: UAString[] | null, serverCapability
 export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
     certificateFile?: string;
     port?: number;
+    alternateHostname: string[];
+    securityPolicies: SecurityPolicy[];
+    securityModes: MessageSecurityMode[];
+    hostname: string;
+
 }
 
 interface RegisteredServerExtended extends RegisteredServer {
@@ -134,7 +138,18 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 privateKey: this.getPrivateKey(),
                 serverInfo: this.serverInfo
             });
-            endPoint.addStandardEndpointDescriptions();
+
+            const options1: AddStandardEndpointDescriptionsParam = {
+                allowAnonymous: true,
+                securityModes: options.securityModes,
+                securityPolicies: options.securityPolicies,
+                userTokenTypes: [], // << intentionaly empty (discovery server without session)
+                hostname: options.hostname,
+                alternateHostname: options.alternateHostname,
+                disableDiscovery: true,
+            };
+
+            endPoint.addStandardEndpointDescriptions(options1);
 
             this.endpoints.push(endPoint);
 
