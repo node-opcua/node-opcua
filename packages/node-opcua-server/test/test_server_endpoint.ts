@@ -4,7 +4,7 @@ import * as should from "should";
 
 import { SecurityPolicy } from "node-opcua-secure-channel";
 import { MessageSecurityMode } from "node-opcua-secure-channel";
-import { ApplicationDescription, ApplicationType, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
+import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUAServerEndPoint } from "..";
@@ -15,6 +15,14 @@ const port = 2042;
 
 const certificateChain = Buffer.alloc(0);
 
+function getOptions() {
+    const options = {
+        hostname: getFullyQualifiedDomainName(),
+        securityPolicies: [SecurityPolicy.Basic256Sha256],
+        userTokenTypes: [UserTokenType.UserName]
+    };
+    return options;
+}
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription", function () {
@@ -40,18 +48,15 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
 
     const param = {};
 
-    const options = {
-        hostname: getFullyQualifiedDomainName(),
-        securityPolicies: [SecurityPolicy.Basic256Sha256],
-        userTokenTypes: [UserTokenType.UserName]
-    };
     it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None", function () {
+        const options = getOptions();
         should(function () {
             server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
         }).not.throwError();
     });
 
     it("should  accept  to add endpoint endMessageSecurityMode.None and SecurityPolicy.None twice", function () {
+        const options = getOptions();
         server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
         should(function () {
             server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.None, options);
@@ -59,11 +64,13 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
     });
 
     it("should not accept to add endpoint with MessageSecurityMode.None and SecurityPolicy.Basic128", function () {
+        const options = getOptions();
         should(function () {
             server_endpoint.addEndpointDescription(MessageSecurityMode.None, SecurityPolicy.Basic128, options);
         }).throwError();
     });
     it("should not accept  to add endpoint  MessageSecurityMode.Sign and SecurityPolicy.None", function () {
+        const options = getOptions();
         should(function () {
             server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.None, options);
         }).throwError();
@@ -215,18 +222,17 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
         });
     });
 
-    const options = {
-        hostname: getFullyQualifiedDomainName(),
-        securityPolicies: [SecurityPolicy.Basic256Sha256],
-        userTokenTypes: [UserTokenType.UserName]
-    };
+
 
     it_with_crypto("should not find a endpoint matching MessageSecurityMode.SIGN and SecurityPolicy.Basic128", function () {
+
+        const options = getOptions();
+
         let endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128, null);
         should(endpoint_desc).be.eql(null);
 
-        server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128,options);
-        server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256,options);
+        server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128, options);
+        server_endpoint.addEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic256, options);
 
         endpoint_desc = server_endpoint.getEndpointDescription(MessageSecurityMode.Sign, SecurityPolicy.Basic128, null);
         should(endpoint_desc).be.instanceof(EndpointDescription);
