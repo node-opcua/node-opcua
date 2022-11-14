@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-base",
-    "version": "2.82.0",
+    "version": "2.83.0",
     "description": "pure nodejs OPCUA SDK - module -address-space",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,19 +16,19 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "node-opcua-basic-types": "2.82.0",
+        "node-opcua-basic-types": "2.83.0",
         "node-opcua-constants": "2.77.0",
         "node-opcua-crypto": "^1.12.0",
-        "node-opcua-data-model": "2.82.0",
-        "node-opcua-data-value": "2.82.0",
-        "node-opcua-date-time": "2.82.0",
-        "node-opcua-extension-object": "2.82.0",
-        "node-opcua-nodeid": "2.82.0",
-        "node-opcua-numeric-range": "2.82.0",
-        "node-opcua-schemas": "2.82.0",
-        "node-opcua-status-code": "2.82.0",
-        "node-opcua-types": "2.82.0",
-        "node-opcua-variant": "2.82.0"
+        "node-opcua-data-model": "2.83.0",
+        "node-opcua-data-value": "2.83.0",
+        "node-opcua-date-time": "2.83.0",
+        "node-opcua-extension-object": "2.83.0",
+        "node-opcua-nodeid": "2.83.0",
+        "node-opcua-numeric-range": "2.83.0",
+        "node-opcua-schemas": "2.83.0",
+        "node-opcua-status-code": "2.83.0",
+        "node-opcua-types": "2.83.0",
+        "node-opcua-variant": "2.83.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
