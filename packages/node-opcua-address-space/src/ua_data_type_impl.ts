@@ -31,7 +31,6 @@ import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { BaseNode_getCache } from "./base_node_private";
 
-
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
 }
@@ -149,8 +148,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     public getEncodingNode(encoding_name: string): UAObject | null {
         const _cache = BaseNode_getCache(this);
+        _cache._encoding = _cache._encoding || {};
         const key = encoding_name + "Node";
-        if (_cache[key] === undefined) {
+        if (_cache._encoding[key] === undefined) {
             assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
             // could be binary or xml
             const refs = this.findReferences("HasEncoding", true);
@@ -160,24 +160,18 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 .filter((obj: any) => obj !== null)
                 .filter((obj: any) => obj.browseName.toString() === encoding_name);
             const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
-            _cache[key] = node;
+            _cache._encoding[key] = node;
         }
-        return _cache[key];
+        return _cache._encoding[key];
     }
 
     public getEncodingNodeId(encoding_name: string): ExpandedNodeId | null {
-        const _cache = BaseNode_getCache(this);
-        const key = encoding_name + "NodeId";
-        if (_cache[key] === undefined) {
-            const encoding = this.getEncodingNode(encoding_name);
-            if (encoding) {
-                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
-                _cache[key] = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
-            } else {
-                _cache[key] = null;
-            }
+        const encoding = this.getEncodingNode(encoding_name);
+        if (!encoding) {
+            return null;
         }
-        return _cache[key];
+        const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
+        return ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
     }
     /**
      * returns the encoding of this node's
