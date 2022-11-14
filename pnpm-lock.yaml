@@ -1795,6 +1795,7 @@ importers:
       node-opcua-constants: 2.77.0
       node-opcua-data-model: 2.82.0
       node-opcua-data-value: 2.82.0
+      node-opcua-debug: 2.82.0
       node-opcua-nodeid: 2.82.0
       node-opcua-service-browse: 2.82.0
       node-opcua-service-call: 2.82.0
@@ -1812,6 +1813,7 @@ importers:
       node-opcua-constants: link:../node-opcua-constants
       node-opcua-data-model: link:../node-opcua-data-model
       node-opcua-data-value: link:../node-opcua-data-value
+      node-opcua-debug: link:../node-opcua-debug
       node-opcua-nodeid: link:../node-opcua-nodeid
       node-opcua-service-browse: link:../node-opcua-service-browse
       node-opcua-service-call: link:../node-opcua-service-call
