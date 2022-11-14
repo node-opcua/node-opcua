@@ -249,7 +249,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return this.__hash;
     }
 
-    public static registry = new ObjectRegistry({});
+    public static registry = new ObjectRegistry();
     public _on_response: ((msgType: string, response: Response, message: Message) => void) | null;
     public sessionTokens: { [key: string]: IServerSessionBase };
     public channelId: number | null;

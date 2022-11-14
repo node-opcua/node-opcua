@@ -78,7 +78,7 @@ export interface OPCUACertificateManagerOptions {
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
     public static defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 
-    public static registry = new ObjectRegistry({});
+    public static registry = new ObjectRegistry();
     public referenceCounter: number;
     public automaticallyAcceptUnknownCertificate: boolean;
     /* */
