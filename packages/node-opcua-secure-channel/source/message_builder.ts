@@ -375,6 +375,16 @@ export class MessageBuilder extends MessageBuilderBase {
             } else {
                 warningLog("cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name);
                 this.emit("invalid_message", objMessage);
+                debugLog(
+                    this.id,
+                    "message size =",
+                    ("" + this.totalMessageSize).padEnd(8),
+                    " body size   =",
+                    ("" + this.totalBodySize).padEnd(8),
+                    objMessage.constructor.name
+                );
+                console.log(objMessage.toString());
+
                 // we don't report an error here, we just ignore the message
                 return false; // this._report_error(message);
             }

@@ -169,12 +169,16 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         stream.length -= 4;
         object = new OpaqueStructure(nodeId, stream.readByteStream()!);
     } else {
-        object = getStandardDataTypeFactory().constructObject(nodeId);
+        try {
+            object = getStandardDataTypeFactory().constructObject(nodeId);
+        } catch (err) {
+            warningLog("cannot construct object with dataType nodeId", nodeId.toString());
+        }
         /* istanbul ignore next */
         if (object === null) {
             // this object is unknown to us ..
-            stream.length += length;
-            object = {} as ExtensionObject;
+            stream.length -= 4;
+            object = new OpaqueStructure(nodeId, stream.readByteStream()!);
         } else {
             try {
                 object.decode(stream);
@@ -192,7 +196,7 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
 
         warningLog(
             "WARNING => decodeExtensionObject: Extension object decoding error on ",
-            object.constructor.name,
+            object?.constructor.name,
             " expected size was",
             length,
             "but only this amount of bytes have been read :",
