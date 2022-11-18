@@ -2,9 +2,10 @@
 "use strict";
 const path = require("path");
 const os = require("os");
-const { hostname} = require("os");
 const chalk = require("chalk");
-const opcua = require("node-opcua");
+const { OPCUAServer, Variant, DataType, makeApplicationUrn, nodesets, RegisterServerMethod } = require("node-opcua");
+const { makeBoiler, createBoilerType } = require("node-opcua-address-space/testHelpers");
+
 Error.stackTraceLimit = Infinity;
 
 function constructFilename(filename) {
@@ -31,21 +32,12 @@ const argv = require("yargs")
     .string("discoveryServerEndpointUrl")
     .describe("discoveryServerEndpointUrl", " end point of the discovery server to regiser to")
     .default("discoveryServerEndpointUrl", "opc.tcp://localhost:4840")
-    .alias("d", "discoveryServerEndpointUrl")
-    .argv;
-
-const OPCUAServer = opcua.OPCUAServer;
-const Variant = opcua.Variant;
-const DataType = opcua.DataType;
-
-const makeApplicationUrn = opcua.makeApplicationUrn;
-const nodesets = opcua.nodesets;
+    .alias("d", "discoveryServerEndpointUrl").argv;
 
 const port = parseInt(argv.port) || 26543;
 
 const userManager = {
-    isValidUser: function(userName, password) {
-
+    isValidUser: function (userName, password) {
         if (userName === "user1" && password === "password1") {
             return true;
         }
@@ -56,15 +48,11 @@ const userManager = {
     }
 };
 
-
 const keySize = argv.keySize;
 const server_certificate_file = constructFilename("certificates/server_selfsigned_cert_" + keySize + ".pem");
 const server_certificate_privatekey_file = constructFilename("certificates/server_key_" + keySize + ".pem");
 
-
-
 const server = new OPCUAServer({
-
     alternateHostname: argv.alternateHostname,
 
     certificateFile: server_certificate_file,
@@ -73,11 +61,7 @@ const server = new OPCUAServer({
     port,
     resourcePath: "/UA/Server",
 
-    nodeset_filename: [
-        nodesets.standard,
-        nodesets.di,
-        nodesets.adi
-    ],
+    nodeset_filename: [nodesets.standard, nodesets.di, nodesets.adi],
 
     serverInfo: {
         applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SimpleADIDemoServer"),
@@ -98,22 +82,17 @@ const server = new OPCUAServer({
         }
     },
     maxConnectionsPerEndpoint: 1500,
-    
+
     userManager: userManager,
-    registerServerMethod: opcua.RegisterServerMethod.LDS,
+    registerServerMethod: RegisterServerMethod.LDS,
     discoveryServerEndpointUrl: argv.discoveryServerEndpointUrl || "opc.tcp://" + hostname() + ":4840"
 });
 
 process.title = "Node OPCUA Server on port : " + port;
 
-
 const hostname = os.hostname();
 
-
-
-server.on("post_initialize", function() {
-
-
+server.on("post_initialize", function () {
     const addressSpace = server.engine.addressSpace;
 
     const namespace = addressSpace.getOwnNamespace();
@@ -169,7 +148,6 @@ server.on("post_initialize", function() {
             typeDefinition: "DataItemType",
             dataType: DataType.Double,
             value: new Variant({ dataType: DataType.Double, value: 10.0 })
-
         });
 
         return channel;
@@ -194,32 +172,24 @@ server.on("post_initialize", function() {
         browseName: "MyView"
     });
 
-    const createBoilerType = opcua.createBoilerType;
-    const makeBoiler = opcua.makeBoiler;
-
     createBoilerType(namespace);
     makeBoiler(addressSpace, {
         browseName: "Boiler#1"
     });
-
-
 });
-
-
 
 function dumpNode(node) {
     function w(str, width) {
         return str.padEnd(width).substring(0, width);
     }
-    return Object.entries(node).map((key,value) =>
-         "      " + w(key, 30) + "  : " + ((value === null) ? null : value.toString())
-    ).join("\n");
+    return Object.entries(node)
+        .map((key, value) => "      " + w(key, 30) + "  : " + (value === null ? null : value.toString()))
+        .join("\n");
 }
-
 
 console.log(chalk.yellow("  server PID          :"), process.pid);
 
-server.start(function(err) {
+server.start(function (err) {
     if (err) {
         console.log(" Server failed to start ... exiting");
         process.exit(-3);
@@ -239,11 +209,9 @@ server.start(function(err) {
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
     console.log(server.buildInfo.toString());
-
 });
 
-server.on("create_session", function(session) {
-
+server.on("create_session", function (session) {
     console.log(" SESSION CREATED");
     console.log(chalk.cyan("    client application URI: "), session.clientDescription.applicationUri);
     console.log(chalk.cyan("        client product URI: "), session.clientDescription.productUri);
@@ -254,21 +222,26 @@ server.on("create_session", function(session) {
     console.log(chalk.cyan("                session id: "), session.sessionId);
 });
 
-server.on("session_closed", function(session, reason) {
+server.on("session_closed", function (session, reason) {
     console.log(" SESSION CLOSED :", reason);
     console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
 });
 
 function w(s, w) {
-    return s.toString().padStart(w,"0");
+    return s.toString().padStart(w, "0");
 }
 function t(d) {
     return w(d.getHours(), 2) + ":" + w(d.getMinutes(), 2) + ":" + w(d.getSeconds(), 2) + ":" + w(d.getMilliseconds(), 3);
 }
 
-server.on("response", function(response) {
-    console.log(t(response.responseHeader.timestamp), response.responseHeader.requestHandle,
-        response.schema.name, " status = ", response.responseHeader.serviceResult.toString());
+server.on("response", function (response) {
+    console.log(
+        t(response.responseHeader.timestamp),
+        response.responseHeader.requestHandle,
+        response.schema.name,
+        " status = ",
+        response.responseHeader.serviceResult.toString()
+    );
     switch (response.schema.name) {
         case "ModifySubscriptionResponse":
         case "CreateMonitoredItemsResponse":
@@ -277,16 +250,25 @@ server.on("response", function(response) {
             //xx console.log(response.toString());
             break;
     }
-
 });
 
 function indent(str, nb) {
     const spacer = "                                             ".slice(0, nb);
-    return str.split("\n").map(function(s) { return spacer + s; }).join("\n");
+    return str
+        .split("\n")
+        .map(function (s) {
+            return spacer + s;
+        })
+        .join("\n");
 }
-server.on("request", function(request, channel) {
-    console.log(t(request.requestHeader.timestamp), request.requestHeader.requestHandle,
-        request.schema.name, " ID =", channel.channelId.toString());
+server.on("request", function (request, channel) {
+    console.log(
+        t(request.requestHeader.timestamp),
+        request.requestHeader.requestHandle,
+        request.schema.name,
+        " ID =",
+        channel.channelId.toString()
+    );
     switch (request.schema.name) {
         case "ModifySubscriptionRequest":
         case "CreateMonitoredItemsRequest":
@@ -302,16 +284,14 @@ server.on("request", function(request, channel) {
     }
 });
 
-process.on("SIGINT", function() {
+process.on("SIGINT", function () {
     // only work on linux apparently
     console.log(chalk.red.bold(" Received server interruption from user "));
     console.log(chalk.red.bold(" shutting down ..."));
-    server.shutdown(1000, function() {
+    server.shutdown(1000, function () {
         console.log(chalk.red.bold(" shutting down completed "));
         console.log(chalk.red.bold(" done "));
         console.log("");
         process.exit(-1);
     });
 });
-
-
