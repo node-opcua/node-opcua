@@ -237,7 +237,13 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             _cache.typeDefinitionObj = nodeId ? (this.addressSpace.findNode(nodeId) as UAObjectType | UAVariableType) : null;
         }
         if (!_cache.typeDefinitionObj) {
-            warningLog("cannot find typeDefinitionObj ", this.browseName.toString(), this.nodeId.toString());
+            warningLog(
+                this.nodeClass,
+                "cannot find typeDefinitionObj ",
+                this.browseName.toString(),
+                this.nodeId.toString(),
+                NodeClass[this.nodeClass]
+            );
         }
         return _cache.typeDefinitionObj as UAObjectType | UAVariableType;
     }
@@ -390,7 +396,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return results;
     }
 
-
     public findReferences_no_cache(referenceTypeNode: UAReferenceType, isForward = true): UAReference[] {
         const _private = BaseNode_getPrivate(this);
         const result: UAReference[] = [];
@@ -500,7 +505,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         //     _cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
         // }
         // return _cache._notifiers;
-        return  this.findReferencesAsObject("HasNotifier", true);
+        return this.findReferencesAsObject("HasNotifier", true);
     }
 
     /**

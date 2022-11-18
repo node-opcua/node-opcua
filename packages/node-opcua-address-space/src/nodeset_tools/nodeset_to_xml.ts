@@ -50,7 +50,11 @@ import { SessionContext } from "../index_current";
 
 import { DefinitionMap2, TypeInfo } from "../../source/loader/make_xml_extension_object_parser";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
-import { constructNamespaceDependency, constructNamespacePriorityTable, hasHigherPriorityThan } from "./construct_namespace_dependency";
+import {
+    constructNamespaceDependency,
+    constructNamespacePriorityTable,
+    hasHigherPriorityThan
+} from "./construct_namespace_dependency";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
@@ -628,37 +632,37 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
     if (isExtensionObject) {
         const encodeXml = _dumpVariantExtensionObjectValue2.bind(null, xw, dataTypeNode);
 
-        if (value.arrayType === VariantArrayType.Array) {
-            startElementEx(xw, uax, `ListOf${baseDataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-            value.value.forEach(encodeXml);
-            restoreDefaultNamespace(xw);
-            xw.endElement();
-        } else if (value.arrayType === VariantArrayType.Scalar) {
-            encodeXml(value.value);
-        } else {
-            errorLog(node.toString());
-            errorLog("_dumpValue : unsupported case , Matrix of ExtensionObjects");
-            // throw new Error("Unsupported case");
+        switch (value.arrayType) {
+            case VariantArrayType.Matrix:
+            case VariantArrayType.Array:
+                startElementEx(xw, uax, `ListOf${baseDataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
+                value.value.forEach(encodeXml);
+                restoreDefaultNamespace(xw);
+                xw.endElement();
+                break;
+            case VariantArrayType.Scalar:
+                encodeXml(value.value);
+                break;
+            default:
+                errorLog(node.toString());
+                errorLog("_dumpValue : unsupported arrayType: ", value.arrayType);
         }
     } else {
         const encodeXml = _dumpVariantValue.bind(null, xw, value.dataType, node);
-        if (value.arrayType === VariantArrayType.Matrix) {
-            // console.log("Warning _dumpValue : Matrix not supported yet");
-            startElementEx(xw, uax, `ListOf${dataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-            value.value.forEach(encodeXml);
-            restoreDefaultNamespace(xw);
-            xw.endElement();
-        } else if (value.arrayType === VariantArrayType.Array) {
-            startElementEx(xw, uax, `ListOf${dataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-            value.value.forEach(encodeXml);
-            restoreDefaultNamespace(xw);
-            xw.endElement();
-        } else if (value.arrayType === VariantArrayType.Scalar) {
-            encodeXml(value.value);
-        } else {
-            errorLog(node.toString());
-            errorLog("_dumpValue : unsupported case , Matrix");
-            // xx throw new Error("Unsupported case");
+        switch (value.arrayType) {
+            case VariantArrayType.Matrix:
+            case VariantArrayType.Array:
+                startElementEx(xw, uax, `ListOf${dataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
+                value.value.forEach(encodeXml);
+                restoreDefaultNamespace(xw);
+                xw.endElement();
+                break;
+            case VariantArrayType.Scalar:
+                encodeXml(value.value);
+                break;
+            default:
+                errorLog(node.toString());
+                errorLog("_dumpValue : unsupported arrayType: ", value.arrayType);
         }
     }
 
@@ -675,7 +679,6 @@ function _dumpArrayDimensionsAttribute(xw: XmlWriter, node: UAVariableType | UAV
 }
 
 function visitUANode(node: BaseNode, data: DumpData, forward: boolean) {
-
     const addressSpace = node.addressSpace;
 
     // visit references
@@ -800,7 +803,7 @@ function dumpCommonAttributes(xw: XmlWriter, node: BaseNode) {
         }
     }
     if (Object.prototype.hasOwnProperty.call(node, "minimumSamplingInterval")) {
-        const minimumSamplingInterval =(node as UAVariable).minimumSamplingInterval;
+        const minimumSamplingInterval = (node as UAVariable).minimumSamplingInterval;
         if (minimumSamplingInterval > 0) {
             xw.writeAttribute("MinimumSamplingInterval", minimumSamplingInterval);
         }
@@ -1030,11 +1033,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             console.log(
                 " cannot find datatype " +
-                node.dataType +
-                " for node " +
-                node.browseName.toString() +
-                " id =" +
-                node.nodeId.toString()
+                    node.dataType +
+                    " for node " +
+                    node.browseName.toString() +
+                    " id =" +
+                    node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
@@ -1063,6 +1066,7 @@ function dumpUAObject(xw: XmlWriter, node: UAObject) {
     _dumpUAObject(xw, node);
     xw.writeComment("Object - " + b(xw, node.browseName) + " }}}} ");
 }
+
 function _dumpUAObject(xw: XmlWriter, node: UAObject) {
     assert(node.nodeClass === NodeClass.Object);
     xw.visitedNode = xw.visitedNode || {};
@@ -1101,9 +1105,7 @@ function dumpElementInFolder(xw: XmlWriter, node: BaseNodeImpl) {
 
 function dumpAggregates(xw: XmlWriter, node: BaseNode) {
     // Xx xw.writeComment("Aggregates {{ ");
-    const aggregates = node
-        .getAggregates()
-        .sort(sortByBrowseName);
+    const aggregates = node.getAggregates().sort(sortByBrowseName);
     // const aggregates = node.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
 
     for (const aggregate of aggregates.sort(sortByNodeId)) {
@@ -1242,7 +1244,6 @@ function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
     xw.endElement();
 }
 
-
 export function constructNamespaceTranslationTable(dependency: INamespace[]): ITranslationTable {
     const translationTable: ITranslationTable = {};
     for (let i = 0; i < dependency.length; i++) {
@@ -1329,8 +1330,6 @@ function makeTypeXsd(namespaceUri: string): string {
 
 // eslint-disable-next-line max-statements
 NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
-
-
     const namespaceArrayNode = this.addressSpace.findNode(VariableIds.Server_NamespaceArray);
     const namespaceArray: string[] = namespaceArrayNode
         ? namespaceArrayNode.readAttribute(null, AttributeIds.Value).value.value
@@ -1342,7 +1341,6 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const dependency = constructNamespaceDependency(this, xw.priorityTable);
     const translationTable = constructNamespaceTranslationTable(dependency);
     xw.translationTable = translationTable;
-
 
     xw.startDocument({ encoding: "utf-8", version: "1.0" });
     xw.startElement("UANodeSet");

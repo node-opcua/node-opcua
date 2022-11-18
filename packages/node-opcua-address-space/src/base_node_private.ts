@@ -813,25 +813,25 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
         const browseNameMap = new Set<string>();
         _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
 
-        //
-        let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
-        while (typeDefinitionNode) {
-            doTrace &&
-                traceLog(
-                    extraInfo?.pad(),
-                    chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+        if (this.nodeClass === NodeClass.Object || this.nodeClass === NodeClass.Variable) {
+            let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
+            while (typeDefinitionNode) {
+                doTrace &&
+                    traceLog(
+                        extraInfo?.pad(),
+                        chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+                    );
+                _clone_children_references(
+                    typeDefinitionNode,
+                    cloneObj,
+                    options.copyAlsoModellingRules,
+                    newFilter,
+                    extraInfo,
+                    browseNameMap
                 );
-            _clone_children_references(
-                typeDefinitionNode,
-                cloneObj,
-                options.copyAlsoModellingRules,
-                newFilter,
-                extraInfo,
-                browseNameMap
-            );
-            typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+                typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+            }
         }
-
         _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
     }
     cloneObj.propagate_back_references();

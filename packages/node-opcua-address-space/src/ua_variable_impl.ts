@@ -1388,7 +1388,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 return false;
             }
             return checkExtensionObjectIsCorrectScalar.call(this, extObj);
-        } else if (this.valueRank === 1) {
+        } else if (this.valueRank >= 1) {
             /** array */
             if (!(extObj instanceof Array)) {
                 // let's coerce this scalar into an 1-element array if it is a valid extension object

@@ -8,7 +8,8 @@ import { Variant } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
 import { checkDebugFlag } from "node-opcua-debug";
-
+import { DataTypeIds } from "node-opcua-constants";
+import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { AddressSpace, Namespace, UAVariable, UARootFolder, BaseNode } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
 
@@ -812,5 +813,67 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
         //  console.log(xml);
+    });
+
+    it("NSXML8 - matrix of standard type ", async () => {
+        const v = namespace.addVariable({
+            browseName: "TestVariable",
+            dataType: DataType.Int32,
+            organizedBy: addressSpace.rootFolder.objects,
+            valueRank: 2,
+            arrayDimensions: [3, 2]
+        });
+
+        v.setValueFromSource({
+            dataType: DataType.Int32,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [3, 2],
+            value: [10, 20, 30, 11, 21, 31]
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        xml2.should.match(/<ListOfInt32/gm);
+        xml2.should.match(/<\/ListOfInt32>/gm);
+
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+    });
+    it("NSXML9 - matrix of extension objects", async () => {
+        const v = namespace.addVariable({
+            browseName: "TestVariable",
+            dataType: DataTypeIds.ThreeDCartesianCoordinates,
+            organizedBy: addressSpace.rootFolder.objects,
+            valueRank: 2,
+            arrayDimensions: [3, 2]
+        });
+
+        v.setValueFromSource({
+            dataType: DataType.ExtensionObject,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [3, 2],
+            value: [
+                new ThreeDCartesianCoordinates({ x: 0, y: 0, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 1, y: 0, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 2, y: 0, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 0, y: 1, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 1, y: 1, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 2, y: 1, z: 0 })
+            ]
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        xml2.should.match(/<ListOfExtensionObject/gm);
+        xml2.should.match(/<\/ListOfExtensionObject/gm);
     });
 });
