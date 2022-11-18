@@ -91,7 +91,7 @@ export interface MessageBuilderBase {
  */
 export class MessageBuilderBase extends EventEmitter {
     public static defaultMaxChunkCount = 1000;
-    public static defaultMaxMessageSize = 1024 * 64;
+    public static defaultMaxMessageSize = 1024 * 64 * 1024; // 64Mo
     public static defaultMaxChunkSize = 1024 * 8;
 
     public readonly signatureLength: number;
@@ -258,7 +258,7 @@ export class MessageBuilderBase extends EventEmitter {
         this.totalMessageSize += chunk.length;
 
         if (this.totalMessageSize > this.maxMessageSize) {
-            return this._report_error(StatusCodes2.BadTcpMessageTooLarge, `max message size exceeded: ${this.maxMessageSize}`);
+            return this._report_error(StatusCodes2.BadTcpMessageTooLarge, `max message size exceeded: ${this.maxMessageSize} : total message size ${this.totalMessageSize}`);
         }
 
         const binaryStream = new BinaryStream(chunk);
@@ -329,10 +329,10 @@ export class MessageBuilderBase extends EventEmitter {
                 }
                 this.emit("full_message_body", fullMessageBody);
 
-                this._decodeMessageBody(fullMessageBody);
+                const messageOk = this._decodeMessageBody(fullMessageBody);
                 // be ready for next block
                 this._init_new();
-                return true;
+                return messageOk;
             }
         } else if (messageHeader.isFinal === "A") {
             try {

@@ -18,7 +18,6 @@ import { ErrorCallback } from "node-opcua-status-code";
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
 import { TCP_transport } from "./tcp_transport";
-import { TCPErrorMessage } from "./TCPErrorMessage";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
 
