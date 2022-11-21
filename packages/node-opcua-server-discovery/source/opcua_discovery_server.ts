@@ -56,11 +56,10 @@ function hasCapabilities(serverCapabilities: UAString[] | null, serverCapability
 export interface OPCUADiscoveryServerOptions extends OPCUABaseServerOptions {
     certificateFile?: string;
     port?: number;
-    alternateHostname: string[];
-    securityPolicies: SecurityPolicy[];
-    securityModes: MessageSecurityMode[];
-    hostname: string;
-
+    alternateHostname?: string[];
+    securityPolicies?: SecurityPolicy[];
+    securityModes?: MessageSecurityMode[];
+    hostname?: string;
 }
 
 interface RegisteredServerExtended extends RegisteredServer {
