@@ -681,6 +681,10 @@ function _cloneInterface(
 
     extraInfo = extraInfo || defaultExtraInfo;
     const addressSpace = node.addressSpace;
+
+    if (node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Variable) {
+        return;
+    }
     const typeDefinitionNode = node.typeDefinitionObj;
     if (!typeDefinitionNode) {
         return;
