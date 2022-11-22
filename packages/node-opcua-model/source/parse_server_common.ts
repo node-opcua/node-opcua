@@ -3,5 +3,5 @@ import { IBasicSession } from "node-opcua-pseudo-session";
 
 export async function parse_opcua_common(session: IBasicSession) {
     const dataTypeManager= await getExtraDataTypeManager(session);
-    await populateDataTypeManager(session, dataTypeManager, true);
+    await populateDataTypeManager(session, dataTypeManager);
 }

@@ -1,13 +1,18 @@
 import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
-import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession, BrowseDescriptionLike } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
-import { ReferenceDescription, BrowseResult, BrowseDescriptionOptions, StructureDefinition, DataTypeDefinition } from "node-opcua-types";
-
+import {
+    ReferenceDescription,
+    BrowseResult,
+    BrowseDescriptionOptions,
+    StructureDefinition,
+    DataTypeDefinition
+} from "node-opcua-types";
 //
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
 import {
@@ -17,6 +22,7 @@ import {
 
 const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSession,
@@ -24,8 +30,11 @@ export async function readDataTypeDefinitionAndBuildType(
     name: string,
     dataTypeFactory: DataTypeFactory,
     cache: { [key: string]: CacheForFieldResolution }
-) {
+): Promise<void> {
     try {
+        if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
+            return;
+        }
         const [isAbstractDataValue, dataTypeDefinitionDataValue] = await session.read([
             {
                 attributeId: AttributeIds.IsAbstract,
@@ -45,13 +54,15 @@ export async function readDataTypeDefinitionAndBuildType(
         let dataTypeDefinition: DataTypeDefinition = dataTypeDefinitionDataValue.value.value as DataTypeDefinition;
         /* istanbul ignore next */
         if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
+            // may be we are reading a 1.03 server
             if (!isAbstract) {
-                throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
+                warningLog(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
+                return;
             }
             // it is OK to not have dataTypeDefinition for Abstract type!
             dataTypeDefinition = new StructureDefinition();
         }
-  
+
         const schema = await convertDataTypeDefinitionToStructureTypeSchema(
             session,
             dataTypeNodeId,
@@ -64,7 +75,6 @@ export async function readDataTypeDefinitionAndBuildType(
         if (isAbstract) {
             // cannot construct an abstract structure
             dataTypeFactory.registerAbstractStructure(dataTypeNodeId, name, schema);
-    
         } else {
             const Constructor = createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
         }
@@ -156,8 +166,19 @@ async function applyOnReferenceRecursively(
             const nodesToBrowse = pendingNodesToBrowse;
             pendingNodesToBrowse = [];
             taskMan.registerTask(async () => {
-                const browseResults = await session.browse(nodesToBrowse);
-                processBrowseResult(browseResults);
+                try {
+                    const maxNodesToBrowse = 10;
+
+                    let nodesToBrowse1 = nodesToBrowse.splice(0, maxNodesToBrowse);
+                    while (nodesToBrowse1.length) {
+                        const browseResults = await session.browse(nodesToBrowse1);
+                        processBrowseResult(browseResults);
+                        nodesToBrowse1 = nodesToBrowse.splice(0, maxNodesToBrowse);
+                    }
+                } catch (err) {
+                    console.log("err", (err as Error).message);
+                    console.log(nodesToBrowse.toString());
+                }
             });
         }
     }
@@ -182,7 +203,7 @@ export async function populateDataTypeManager104(session: IBasicSession, dataTyp
         const dataTypeNodeId = r.nodeId;
         try {
             const dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
-            if(!dataTypeFactory) {
+            if (!dataTypeFactory) {
                 throw new Error("cannot find dataType Manager for namespace of " + dataTypeNodeId.toString());
             }
             if (dataTypeNodeId.namespace === 0) {

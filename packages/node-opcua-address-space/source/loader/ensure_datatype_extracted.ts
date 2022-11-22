@@ -59,7 +59,7 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
 
         // now extract structure and enumeration from old form
         const session = new PseudoSession(addressSpace);
-        await populateDataTypeManager(session, dataTypeManager, true);
+        await populateDataTypeManager(session, dataTypeManager);
 
         // turn old <=103 structure to have valid DataTypeDefinition
         fixDefinition103(addressSpace, namespaceArray, dataTypeManager);

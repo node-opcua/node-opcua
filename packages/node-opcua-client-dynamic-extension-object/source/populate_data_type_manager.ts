@@ -74,7 +74,6 @@ async function serverImplementsDataTypeDefinition(session: IBasicSession): Promi
 export async function populateDataTypeManager(
     session: IBasicSession,
     dataTypeManager: ExtraDataTypeManager,
-    force: boolean
 ): Promise<void> {
     const force104 = await serverImplementsDataTypeDefinition(session);
     if (force104) {
@@ -84,8 +83,5 @@ export async function populateDataTypeManager(
     }
     // old way for 1.03 and early 1.04 prototype
     await populateDataTypeManager103(session, dataTypeManager);
-    // new way for 1.04 and later
-    if (force) {
-        await populateDataTypeManager104(session, dataTypeManager);
-    }
+    await populateDataTypeManager104(session, dataTypeManager);
 }

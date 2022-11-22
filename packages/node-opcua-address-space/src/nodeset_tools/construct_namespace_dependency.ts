@@ -1,8 +1,11 @@
 import { INamespace, UADataType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
 import { StructureField } from "node-opcua-types";
+import { make_warningLog } from "node-opcua-debug";
 import { NamespacePrivate } from "../namespace_private";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
+
+const warningLog = make_warningLog(__filename);
 
 function _constructNamespaceDependency(
     namespace: INamespace,
@@ -43,6 +46,12 @@ function _constructNamespaceDependency(
         if (_visitedDataType.has(dataType.toString())) {
             return;
         }
+        // istanbul ignore next
+        if (dataTypeNode.nodeClass !== NodeClass.DataType) {
+            warningLog("exploreDataTypes! ignoring ",dataTypeNode.toString());
+            return;
+        }
+
         const namespaceIndex = dataType.namespace;
         consider(namespaceIndex);
         if (dataTypeNode.isStructure()) {

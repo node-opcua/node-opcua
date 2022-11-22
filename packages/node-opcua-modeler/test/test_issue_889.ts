@@ -72,11 +72,11 @@ describe("loading very large DataType Definitions ", function (this: any) {
         session.requestedMaxReferencesPerNode = 2;
 
         const dataTypeManager = new ExtraDataTypeManager();
-        await populateDataTypeManager(session, dataTypeManager as any, false);
+        await populateDataTypeManager(session, dataTypeManager);
 
         // since 1.04 (september 2021) 1.04 datatype is in force
         browseSpy.callCount.should.be.greaterThanOrEqual(1); // was 26
-        browseSpy.callCount.should.be.lessThanOrEqual(4); // was 26
-        browseNextSpy.callCount.should.eql(49); // was 36
+        browseSpy.callCount.should.be.lessThanOrEqual(6); // was 26
+        browseNextSpy.callCount.should.eql(51); // was 36
     });
 });

@@ -35,7 +35,6 @@ import { AttributeIds, Int64, minOPCUADate, StatusCode, StatusCodes } from "node
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
 
 import { ITranslationTable, XmlWriter } from "../../source/xml_writer";
-import { NamespacePrivate } from "../namespace_private";
 import { ReferenceImpl } from "../reference_impl";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
 import { UAReferenceTypeImpl } from "../ua_reference_type_impl";
@@ -250,6 +249,10 @@ function findXsdNamespaceUri(xw: XmlWriter, nodeId: NodeId): string {
     const namespace = xwe.namespaceArray[nodeId.namespace];
     if (namespace === "http://opcfoundation.org/UA/") {
         return "http://opcfoundation.org/UA/2008/02/Types.xsd";
+    }
+    // istanbul ignore next
+    if (!namespace) {
+        return "";
     }
     return namespace.replace(/\/$/, "") + "/Types.xsd";
 }

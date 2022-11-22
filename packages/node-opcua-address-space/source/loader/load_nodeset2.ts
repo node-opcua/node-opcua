@@ -95,7 +95,7 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
-    if (nodeDataType) {
+    if (nodeDataType && nodeDataType.basicDataType) {
         const basicDataType = nodeDataType.basicDataType;
         if (basicDataType === DataType.Variant) {
             /// we don't now what is the variant
