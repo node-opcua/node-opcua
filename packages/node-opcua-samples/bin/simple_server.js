@@ -20,13 +20,19 @@ const {
     standardUnits,
     makeApplicationUrn,
     nodesets,
-    install_optional_cpu_and_memory_usage_node,
-    build_address_space_for_conformance_testing,
     RegisterServerMethod,
     extractFullyQualifiedDomainName,
     makeRoles,
     WellKnownRoles
 } = require("node-opcua");
+
+const {
+    install_optional_cpu_and_memory_usage_node,
+} = require("node-opcua-vendor-diagnostic");
+
+const {
+    build_address_space_for_conformance_testing,
+}= require("node-opcua-address-space-for-conformance-testing");
 
 Error.stackTraceLimit = Infinity;
 

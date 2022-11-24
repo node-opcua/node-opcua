@@ -105,8 +105,6 @@ describe("SM1 - Subscriptions and MonitoredItems", function () {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
-            // build_address_space_for_conformance_testing(engine, {mass_variables: false});
-
             const node = namespace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
