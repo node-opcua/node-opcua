@@ -2,8 +2,8 @@ import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
-import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession, BrowseDescriptionLike } from "node-opcua-pseudo-session";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { IBasicSession, BrowseDescriptionLike, browseAll } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -11,7 +11,8 @@ import {
     BrowseResult,
     BrowseDescriptionOptions,
     StructureDefinition,
-    DataTypeDefinition
+    DataTypeDefinition,
+    BrowseDescription
 } from "node-opcua-types";
 //
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
@@ -132,52 +133,44 @@ async function applyOnReferenceRecursively(
     browseDescriptionTemplate: BrowseDescriptionOptions,
     action: (ref: ReferenceDescription) => Promise<void>
 ): Promise<void> {
-    const taskMan = new TaskMan();
+    const taskMananager = new TaskMan();
 
-    let pendingNodesToBrowse: BrowseDescriptionLike[] = [];
-    let pendingContinuationPoints: Buffer[] = [];
+    let pendingNodesToBrowse: BrowseDescriptionOptions[] = [];
 
-    function processBrowseResult(browseResults: BrowseResult[]) {
-        for (const result of browseResults) {
-            if (result.statusCode === StatusCodes.Good) {
-                if (result.continuationPoint) {
-                    pendingContinuationPoints.push(result.continuationPoint);
-                    taskMan.registerTask(flushBrowse);
-                }
+    function processBrowseResults(nodesToBrowse: BrowseDescriptionOptions[], browseResults: BrowseResult[]) {
+        for (let i = 0; i < browseResults.length; i++) {
+            const result = browseResults[i];
+            const nodeToBrowse = nodesToBrowse[i];
+            if (
+                result.statusCode === StatusCodes.BadNoContinuationPoints ||
+                result.statusCode === StatusCodes.BadContinuationPointInvalid
+            ) {
+                // not enough continuation points .. we need to rebrowse
+                pendingNodesToBrowse.push(nodeToBrowse);
+                //                taskMananager.registerTask(flushBrowse);
+            } else if (result.statusCode === StatusCodes.Good) {
                 for (const r of result.references || []) {
-                    taskMan.registerTask(async () => {
-                        await action(r);
-                    });
                     // also explore sub types
                     browseSubDataTypeRecursively(r.nodeId);
+                    taskMananager.registerTask(async () => await action(r));
                 }
+            } else {
+                errorLog("Unexpected status code", i, new BrowseDescription(nodesToBrowse[i]||{})?.toString(), result.statusCode.toString());
             }
         }
     }
     async function flushBrowse() {
-        if (pendingContinuationPoints.length) {
-            const continuationPoints = pendingContinuationPoints;
-            pendingContinuationPoints = [];
-            taskMan.registerTask(async () => {
-                const browseResults = await session.browseNext(continuationPoints, false);
-                processBrowseResult(browseResults);
-            });
-        } else if (pendingNodesToBrowse.length) {
+        if (pendingNodesToBrowse.length) {
             const nodesToBrowse = pendingNodesToBrowse;
             pendingNodesToBrowse = [];
-            taskMan.registerTask(async () => {
+            taskMananager.registerTask(async () => {
                 try {
-                    const maxNodesToBrowse = 10;
-
-                    let nodesToBrowse1 = nodesToBrowse.splice(0, maxNodesToBrowse);
-                    while (nodesToBrowse1.length) {
-                        const browseResults = await session.browse(nodesToBrowse1);
-                        processBrowseResult(browseResults);
-                        nodesToBrowse1 = nodesToBrowse.splice(0, maxNodesToBrowse);
-                    }
+                    // YY console.log(" reading ", nodesToBrowse.length);
+                    const browseResults = await browseAll(session, nodesToBrowse);
+                    processBrowseResults(nodesToBrowse, browseResults);
                 } catch (err) {
-                    console.log("err", (err as Error).message);
-                    console.log(nodesToBrowse.toString());
+                    errorLog("err", (err as Error).message);
+                    errorLog(nodesToBrowse.toString());
                 }
             });
         }
@@ -189,12 +182,10 @@ async function applyOnReferenceRecursively(
             nodeId
         };
         pendingNodesToBrowse.push(nodeToBrowse);
-        taskMan.registerTask(async () => {
-            flushBrowse();
-        });
+        taskMananager.registerTask(async () => flushBrowse());
     }
     browseSubDataTypeRecursively(nodeId);
-    await taskMan.waitForCompletion();
+    await taskMananager.waitForCompletion();
 }
 export async function populateDataTypeManager104(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
     const cache: { [key: string]: CacheForFieldResolution } = {};
@@ -202,15 +193,16 @@ export async function populateDataTypeManager104(session: IBasicSession, dataTyp
     async function withDataType(r: ReferenceDescription): Promise<void> {
         const dataTypeNodeId = r.nodeId;
         try {
-            const dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
-            if (!dataTypeFactory) {
-                throw new Error("cannot find dataType Manager for namespace of " + dataTypeNodeId.toString());
-            }
             if (dataTypeNodeId.namespace === 0) {
                 // already known I guess
                 return;
             }
-
+            let dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
+            if (!dataTypeFactory) {
+                dataTypeFactory = new DataTypeFactory([]);
+                dataTypeManager.registerDataTypeFactory(dataTypeNodeId.namespace, dataTypeFactory);
+                //   throw new Error("cannot find dataType Manager for namespace of " + dataTypeNodeId.toString());
+            }
             // if not found already
             if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
                 // already known !

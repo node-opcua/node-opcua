@@ -1,9 +1,4 @@
-import {
-    Namespace as INamespace,
-    PseudoSession,
-    UADataType,
-    UAObject,
-    UAVariableType} from "node-opcua-address-space";
+import { Namespace as INamespace, PseudoSession, UADataType, UAObject, UAVariableType } from "node-opcua-address-space";
 import assert from "node-opcua-assert";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { coerceQualifiedName, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
@@ -59,11 +54,11 @@ export async function addExtensionObjectDataType(namespace: INamespace, options:
 
     const baseSuperType = "Structure";
     const subtypeOf = addressSpace.findDataType(options.subtypeOf ? options.subtypeOf : baseSuperType)!;
-
+    if (!subtypeOf) {
+        throw new Error("Cannot find  base DataType ");
+    }
     const structureDefinition = options.structureDefinition;
-    structureDefinition.baseDataType = structureDefinition.baseDataType
-        ? resolveNodeId(structureDefinition.baseDataType)
-        : resolveNodeId("Structure");
+    structureDefinition.baseDataType = resolveNodeId(structureDefinition.baseDataType || "Structure");
 
     const isAbstract = options.isAbstract || false;
 

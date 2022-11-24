@@ -60,6 +60,11 @@ function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeIm
 
 export type MemberFuncValue<T, P, R> = (this: T, param: P) => R;
 
+export function wipeMemorizedStuff(node: any) {
+    if (!node.__cache) {
+        node.__cache = undefined;
+    }
+}
 //  http://jsperf.com/underscore-js-memoize-refactor-test
 //  http://addyosmani.com/blog/faster-javascript-memoization/
 function wrap_memoize<T, P, R>(

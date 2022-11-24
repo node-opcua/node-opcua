@@ -1,31 +1,16 @@
-import * as should from "should";
 import * as sinon from "sinon";
 
-import { AddressSpace, BaseNode, IAddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, BaseNode, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
 import { ObjectIds, DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { makeNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import {
-    ArgumentDefinition,
-    assert,
-    BrowsePath,
-    BrowsePathResult,
-    BrowseResult,
-    CallMethodRequestOptions,
-    CallMethodResult,
     DataType,
-    DataValue,
-    IBasicSession,
-    ReadValueIdOptions,
-    ReferenceDescription,
-    StatusCode,
-    WriteValueOptions
-} from "node-opcua-client";
+    ReferenceDescription} from "node-opcua-client";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { BrowseDescriptionLike, ResponseCallback } from "node-opcua-pseudo-session";
 
-import { CacheNode, NodeCrawlerBase, UserData, NodeCrawlerClientSession } from "..";
+import { CacheNode, NodeCrawlerBase, UserData } from "..";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -356,6 +341,7 @@ describe("NodeCrawlerBase", function (this: any) {
 
         const session = new PseudoSession($.addressSpace);
 
+        session.maxBrowseContinuationPoints = 10;
         session.requestedMaxReferencesPerNode = 2;
 
         const browse = sinon.spy(session, "browse");
@@ -384,9 +370,9 @@ describe("NodeCrawlerBase", function (this: any) {
         debugLog("read                    ", read.callCount);
 
         onBrowseCallCount.should.eql(1 + 10000 + 1);
-        browse.callCount.should.eql(102); // 2 + 100*100
+        browse.callCount.should.eql(1002); // 2 + 100*100
         //xxxxxx browseNext.callCount.should.eql(10); // 10000*7
-        read.callCount.should.eql(84); // 84*1000 => 8 read per node in average ?
+        read.callCount.should.eql(186); // 84*1000 => 8 read per node in average ?
 
         browse.restore();
         browseNext.restore();

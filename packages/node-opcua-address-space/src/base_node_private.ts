@@ -40,6 +40,7 @@ import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
+import { wipeMemorizedStuff } from "./tool_isSupertypeOf";
 
 // eslint-disable-next-line prefer-const
 let doTrace = checkDebugFlag("INSTANTIATE");
@@ -126,6 +127,7 @@ export function BaseNode_clearCache(node: BaseNode): void {
     if (_private && _private._cache) {
         _private._cache = {};
     }
+    wipeMemorizedStuff(node);
 }
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
 

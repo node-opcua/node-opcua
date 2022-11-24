@@ -10,7 +10,9 @@ import {
     ContinuationData
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
+import { make_warningLog } from "node-opcua-debug";
 
+const warningLog = make_warningLog(__filename);
 
 let counter = 0;
 
@@ -156,7 +158,10 @@ export class ContinuationPointManager implements IContinuationPointManager {
             };
         }
         if (!continuationData.continuationPoint && !continuationData.index) {
-            this.clearContinuationPoints();
+            if (this._map.size > 0 ) {
+                warningLog("flushing pending continuationPoints" , this._map.size );
+                this.clearContinuationPoints();
+            }
         }
 
         if (maxValues >= 1) {
@@ -196,7 +201,6 @@ export class ContinuationPointManager implements IContinuationPointManager {
             values: values as DataValue[] | ReferenceDescription[]
         };
         this._map.set(keyHash, data);
-
         return result;
     }
 

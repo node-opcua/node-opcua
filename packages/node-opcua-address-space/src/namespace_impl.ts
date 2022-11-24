@@ -10,7 +10,7 @@ import { AxisScaleEnumeration } from "node-opcua-data-access";
 import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
-import { LocalizedText, NodeClass } from "node-opcua-data-model";
+import { NodeClass } from "node-opcua-data-model";
 import { dumpIf, make_errorLog } from "node-opcua-debug";
 import { NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
@@ -124,7 +124,7 @@ import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { UAViewImpl } from "./ua_view_impl";
 import { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl";
-import { notDeepEqual } from "assert";
+
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -615,7 +615,7 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(!Object.prototype.hasOwnProperty.call(options, "nodeClass"));
         assert(Object.prototype.hasOwnProperty.call(options, "browseName"), "must provide a browseName");
 
-        const options1 = options as any;
+        const options1 = options as unknown as { nodeClass: NodeClass; references: AddReferenceOpts[]; subtypeOf: UADataType };
         options1.nodeClass = NodeClass.DataType;
         options1.references = options.references || [];
 
@@ -638,6 +638,9 @@ export class NamespaceImpl implements NamespacePrivate {
             });
         }
         const node = this.internalCreateNode(options) as UADataType;
+
+        node.propagate_back_references();
+        
         return node;
     }
 

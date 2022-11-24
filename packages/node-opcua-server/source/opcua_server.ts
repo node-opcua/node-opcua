@@ -40,7 +40,9 @@ import {
     UAView,
     EventTypeLike,
     UAObjectType,
-    PseudoVariantStringPredefined
+    PseudoVariantStringPredefined,
+    innerBrowse,
+    innerBrowseNext
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
@@ -132,7 +134,7 @@ import {
     TranslateBrowsePathsToNodeIdsResponse
 } from "node-opcua-service-translate-browse-path";
 import { WriteRequest, WriteResponse } from "node-opcua-service-write";
-import { ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, ErrorCallback, StatusCode, StatusCodes } from "node-opcua-status-code";
 import {
     ApplicationDescriptionOptions,
     BrowseResult,
@@ -149,7 +151,8 @@ import {
     IssuedIdentityToken,
     BrowseResultOptions,
     ServiceFault,
-    ServerDiagnosticsSummaryDataType
+    ServerDiagnosticsSummaryDataType,
+    BrowseDescriptionOptions
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
@@ -2532,50 +2535,34 @@ export class OPCUAServer extends OPCUABaseServer {
                 assert(request.nodesToBrowse[0].schema.name === "BrowseDescription");
 
                 const context = session.sessionContext;
+                const browseAll = (nodesToBrowse: BrowseDescriptionOptions[], callack: CallbackT<BrowseResult[]>) => {
+                    const f = callbackify(this.engine.browseWithAutomaticExpansion).bind(this.engine);
+                    (f as any)(request.nodesToBrowse, context, callack);
+                };
+                // handle continuation point and requestedMaxReferencesPerNode
+                const maxBrowseContinuationPoints = this.engine.serverCapabilities.maxBrowseContinuationPoints;
 
-                const f = callbackify(this.engine.browseWithAutomaticExpansion).bind(this.engine);
-                (f as any)(request.nodesToBrowse, context, (err?: Error | null, results?: BrowseResult[]) => {
-                    // istanbul ignore next
-                    if (!results) {
-                        throw new Error("internal error : " + err?.message);
-                    }
-
-                    assert(results[0].schema.name === "BrowseResult");
-
-                    // handle continuation point and requestedMaxReferencesPerNode
-                    const maxBrowseContinuationPoints = this.engine.serverCapabilities.maxBrowseContinuationPoints;
-                    results = results.map((result: BrowseResult) => {
-                        assert(!result.continuationPoint);
-
-                        // istanbul ignore next
-                        if (!session.continuationPointManager) {
-                            return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+                innerBrowse(
+                    {
+                        browseAll,
+                        context,
+                        continuationPointManager: session.continuationPointManager,
+                        requestedMaxReferencesPerNode,
+                        maxBrowseContinuationPoints
+                    },
+                    request.nodesToBrowse,
+                    (err, results) => {
+                        if (!results) {
+                            return sendError(StatusCodes.BadInternalError);
                         }
-
-                        if (session.continuationPointManager.hasReachedMaximum(maxBrowseContinuationPoints)) {
-                            return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
-                        }
-                        const truncatedResult = session.continuationPointManager.registerReferences(
-                            requestedMaxReferencesPerNode,
-                            result.references || [],
-                            { continuationPoint: null }
-                        );
-                        let { statusCode } = truncatedResult;
-                        const { continuationPoint, values } = truncatedResult;
-                        statusCode = result.statusCode;
-                        return new BrowseResult({
-                            statusCode,
-                            continuationPoint,
-                            references: values
+                        assert(results[0].schema.name === "BrowseResult");
+                        response = new BrowseResponse({
+                            diagnosticInfos: undefined,
+                            results
                         });
-                    });
-
-                    response = new BrowseResponse({
-                        diagnosticInfos: undefined,
-                        results
-                    });
-                    sendResponse(response);
-                });
+                        sendResponse(response);
+                    }
+                );
             }
         );
     }
@@ -2597,28 +2584,23 @@ export class OPCUAServer extends OPCUABaseServer {
                 if (!request.continuationPoints || request.continuationPoints.length === 0) {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
-                const results = request.continuationPoints
-                    .map((continuationPoint: ContinuationPoint, index: number) =>
-                        session.continuationPointManager.getNextReferences(0, {
-                            continuationPoint,
-                            index,
-                            releaseContinuationPoints: request.releaseContinuationPoints
-                        })
-                    )
-                    .map(
-                        (r) =>
-                            <BrowseResultOptions>{
-                                continuationPoint: r.continuationPoint,
-                                references: r.values,
-                                statusCode: r.statusCode
-                            }
-                    );
-
-                const response = new BrowseNextResponse({
-                    diagnosticInfos: undefined,
-                    results
-                });
-                sendResponse(response);
+                innerBrowseNext(
+                    {
+                        continuationPointManager: session.continuationPointManager
+                    },
+                    request.continuationPoints,
+                    request.releaseContinuationPoints,
+                    (err, results) => {
+                        if (err) {
+                            return sendError(StatusCodes.BadInternalError);
+                        }
+                        const response = new BrowseNextResponse({
+                            diagnosticInfos: undefined,
+                            results
+                        });
+                        sendResponse(response);
+                    }
+                );
             }
         );
     }
@@ -3506,7 +3488,10 @@ export class OPCUAServer extends OPCUABaseServer {
         return g_sendError(channel, message, HistoryUpdateResponse, StatusCodes.BadServiceUnsupported);
     }
 
-    private createEndpoint(port1: number, serverOptions: {defaultSecureTokenLifetime?: number, timeout? : number}): OPCUAServerEndPoint {
+    private createEndpoint(
+        port1: number,
+        serverOptions: { defaultSecureTokenLifetime?: number; timeout?: number }
+    ): OPCUAServerEndPoint {
         // add the tcp/ip endpoint with no security
         const endPoint = new OPCUAServerEndPoint({
             port: port1,

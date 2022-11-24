@@ -123,7 +123,6 @@ function isNodeIdString(str: unknown): boolean {
     return str.substring(0, 2) === "i=" || str.substring(0, 3) === "ns=";
 }
 
-
 /**
  * `AddressSpace` is a collection of UA nodes.
  *
@@ -423,7 +422,9 @@ export class AddressSpace implements AddressSpacePrivate {
         // +-> Structure
         //       +-> Node
         //            +-> ObjectNode
-        if (dataType instanceof NodeId) {
+        if (dataType instanceof UADataTypeImpl) {
+            return this.findDataType(dataType.nodeId);
+        } else if (dataType instanceof NodeId) {
             return _find_by_node_id<UADataType>(this, dataType!, namespaceIndex);
         }
         if (typeof dataType === "number") {
