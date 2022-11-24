@@ -35,7 +35,7 @@
         "node-opcua-nodeid": "2.83.0",
         "node-opcua-nodeset-ijt": "2.84.0",
         "node-opcua-packet-analyzer": "2.83.0",
-        "node-opcua-pki": "^2.18.3",
+        "node-opcua-pki": "^2.18.4",
         "node-opcua-server": "2.84.0",
         "node-opcua-server-discovery": "2.84.0",
         "node-opcua-service-browse": "2.84.0",

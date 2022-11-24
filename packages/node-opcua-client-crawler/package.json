@@ -22,7 +22,7 @@
         "node-opcua-data-value": "2.84.0",
         "node-opcua-debug": "2.83.0",
         "node-opcua-nodeid": "2.83.0",
-        "node-opcua-pki": "^2.18.3",
+        "node-opcua-pki": "^2.18.4",
         "node-opcua-service-browse": "2.84.0",
         "node-opcua-status-code": "2.83.0",
         "node-opcua-types": "2.84.0",
