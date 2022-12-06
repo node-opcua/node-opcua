@@ -543,7 +543,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
     //   Data Contains the returned data of the file. If the ByteString is empty it indicates that the end
     //     of the file is reached.
     return {
-        outputArguments: [{ dataType: DataType.ByteString, value: data.slice(0, ret.bytesRead) }],
+        outputArguments: [{ dataType: DataType.ByteString, value: data.subarray(0, ret.bytesRead) }],
         statusCode: StatusCodes.Good
     };
 }

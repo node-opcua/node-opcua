@@ -83,11 +83,11 @@ const privateKey = inlineText(function () {
 describe("testing message decryption", function () {
     xit("should decrypt an OPN packet and verify that the signature is correct", function () {
         // extract the client certificate from the unencrypted part
-        const senderCertificate = buffer.slice(0x4c, 0x475 + 0x4c);
+        const senderCertificate = buffer.subarray(0x4c, 0x475 + 0x4c);
 
         // where the encrypted  part starts
         const start = buffer.length - 128 * 3;
-        const encrypted_part = buffer.slice(start);
+        const encrypted_part = buffer.subarray(start);
 
         // decrypt the encrypted part
         const decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);

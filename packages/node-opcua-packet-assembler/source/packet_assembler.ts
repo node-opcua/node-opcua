@@ -130,10 +130,10 @@ export class PacketAssembler extends EventEmitter {
             // the chunk need to be split
             const size1 = this.expectedLength - this.currentLength;
             if (size1 > 0) {
-                const chunk1 = data.slice(0, size1);
+                const chunk1 = data.subarray(0, size1);
                 this.feed(chunk1);
             }
-            const chunk2 = data.slice(size1);
+            const chunk2 = data.subarray(size1);
             if (chunk2.length > 0) {
                 this.feed(chunk2);
             }

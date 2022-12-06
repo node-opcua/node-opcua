@@ -74,7 +74,7 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
     }
 
     function display_encodeable(value: any, buffer1: Buffer, start: number, end: number) {
-        const bufferExtract = buffer1.slice(start, end);
+        const bufferExtract = buffer1.subarray(start, end);
         const stream = new BinaryStream(bufferExtract);
         const nodeId = decodeNodeId(stream);
         const encodingMask = decodeByte(stream); // 1 bin 2: xml
@@ -83,7 +83,7 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
         display(chalk.green("     ExpandedNodId =") + " " + nodeId);
         display(chalk.green("     encoding mask =") + " " + encodingMask);
         display(chalk.green("            length =") + " " + length);
-        analyzePacket(bufferExtract.slice(stream.length), value.encodingDefaultBinary, padding + 2, start + stream.length);
+        analyzePacket(bufferExtract.subarray(stream.length), value.encodingDefaultBinary, padding + 2, start + stream.length);
     }
 
     return {
@@ -92,13 +92,13 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
 
             encoding_byte: (encodingMask: any, valueEnum: any, start: number, end: number) => {
                 assert(valueEnum);
-                const b = buffer.slice(start, end);
+                const b = buffer.subarray(start, end);
                 display("  012345678", hex_block(start, end, b));
                 display_encoding_mask(pad(), encodingMask, valueEnum);
             },
 
             trace: (operation: any, name: any, value: any, start: number, end: number, fieldType: string) => {
-                const b = buffer.slice(start, end);
+                const b = buffer.subarray(start, end);
                 let _hexDump = "";
 
                 switch (operation) {

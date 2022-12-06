@@ -21,7 +21,7 @@ export class Xml2JsonFs extends Xml2Json {
                     return callback(err);
                 }
                 if (data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
-                    data = data.slice(3);
+                    data = data.subarray(3);
                 }
                 const dataAsString = data.toString();
                 const parser = this._prepareParser(callback);

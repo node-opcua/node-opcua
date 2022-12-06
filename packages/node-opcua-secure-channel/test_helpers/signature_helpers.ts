@@ -105,16 +105,16 @@ export function performMessageChunkManagerTest(options: SecureMessageChunkManage
 
     // checking final flags ...
     chunks.forEach((chunk: Buffer) => {
-        chunk.slice(0, 3).toString().should.eql("HEL");
+        chunk.subarray(0, 3).toString().should.eql("HEL");
     });
 
-    // check length
-    chunks[0].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[1].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[2].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[3].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    // check lengths
+    chunks[0].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[1].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[2].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[3].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
 
-    chunks[chunks.length - 1].slice(4, 8).readUInt32LE(0).should.eql(12 + options.signatureLength + headerSize + 8);
+    chunks[chunks.length - 1].subarray(4, 8).readUInt32LE(0).should.eql(12 + options.signatureLength + headerSize + 8);
 
     // check final car
     chunks[0].readUInt8(3).should.equal("C".charCodeAt(0));

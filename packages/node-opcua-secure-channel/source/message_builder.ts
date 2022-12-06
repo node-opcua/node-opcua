@@ -474,7 +474,7 @@ export class MessageBuilder extends MessageBuilderBase {
 
         // The message has been signed  with sender private key and has been encrypted with receiver public key.
         // We shall decrypt it with the receiver private key.
-        const buf = binaryStream.buffer.slice(binaryStream.length);
+        const buf = binaryStream.buffer.subarray(binaryStream.length);
 
         if (asymmetricAlgorithmSecurityHeader.receiverCertificateThumbprint) {
             // this mean that the message has been encrypted ....
@@ -487,7 +487,7 @@ export class MessageBuilder extends MessageBuilderBase {
             decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
 
             // adjust length
-            binaryStream.buffer = binaryStream.buffer.slice(0, binaryStream.length + decryptedBuffer.length);
+            binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
 
             /* istanbul ignore next */
             if (doDebug) {
@@ -618,7 +618,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
 
         // We shall decrypt it with the receiver private key.
-        const buf = binaryStream.buffer.slice(binaryStream.length);
+        const buf = binaryStream.buffer.subarray(binaryStream.length);
 
         const derivedKeys = securityTokenData.derivedKeys;
 
@@ -634,7 +634,7 @@ export class MessageBuilder extends MessageBuilderBase {
             decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
 
             // adjust length
-            binaryStream.buffer = binaryStream.buffer.slice(0, binaryStream.length + decryptedBuffer.length);
+            binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
 
             /* istanbul ignore next */
             if (doDebug) {

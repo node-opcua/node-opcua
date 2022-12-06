@@ -1253,7 +1253,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 // - or adapt serverNonce length to clientNonce Length ?
                 // xx self.serverNonce = crypto.randomBytes(self.clientNonce.length);
                 // - or adapt clientNonce length to serverNonce Length ?
-                // xx self.clientNonce = self.clientNonce.slice(0,self.serverNonce.length);
+                // xx self.clientNonce = self.clientNonce.subarray(0,self.serverNonce.length);
                 //
                 // - or abort connection ? << LET BE SAFE AND CHOOSE THIS ONE !
                 serviceResult = StatusCodes.BadSecurityModeRejected; // ToDo check code

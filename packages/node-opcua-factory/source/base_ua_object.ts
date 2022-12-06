@@ -276,8 +276,8 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
                 const _hexDump = value.length <= 32 ? "Ox" + value.toString("hex") : "\n" + hexDump(value);
                 data.lines.push("Buffer: " + _hexDump);
             } else {
-                const _hexDump1 = value.slice(0, 16).toString("hex");
-                const _hexDump2 = value.slice(-16).toString("hex");
+                const _hexDump1 = value.subarray(0, 16).toString("hex");
+                const _hexDump2 = value.subarray(-16).toString("hex");
                 data.lines.push("Buffer: ", _hexDump1 + "..." + _hexDump2);
             }
         } else {

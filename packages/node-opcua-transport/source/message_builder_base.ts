@@ -292,7 +292,7 @@ export class MessageBuilderBase extends EventEmitter {
         // add message body to a queue
         // note : Buffer.slice create a shared memory !
         //        use Buffer.clone
-        const sharedBuffer = chunk.slice(this.offsetBodyStart, offsetBodyEnd);
+        const sharedBuffer = chunk.subarray(this.offsetBodyStart, offsetBodyEnd);
         const clonedBuffer = createFastUninitializedBuffer(sharedBuffer.length);
 
         sharedBuffer.copy(clonedBuffer, 0, 0);

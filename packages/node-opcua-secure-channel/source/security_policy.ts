@@ -202,8 +202,8 @@ export function asymmetricVerifyChunk(self: CryptoFactory, chunk: Buffer, certif
     const cert = exploreCertificateInfo(certificate);
     const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
 
-    const blockToVerify = chunk.slice(0, chunk.length - signatureLength);
-    const signature = chunk.slice(chunk.length - signatureLength);
+    const blockToVerify = chunk.subarray(0, chunk.length - signatureLength);
+    const signature = chunk.subarray(chunk.length - signatureLength);
     return self.asymmetricVerify(blockToVerify, signature, certificate);
 }
 

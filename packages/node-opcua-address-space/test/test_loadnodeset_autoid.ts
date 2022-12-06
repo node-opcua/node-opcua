@@ -353,14 +353,14 @@ describe("resolving Opaque Structure", function () {
         const dataValue = v.readValue();
         const binaryStream = new BinaryStream(1000);
         dataValue.encode(binaryStream);
-        const s1 = binaryStream.buffer.slice(0, binaryStream.length).toString("hex");
+        const s1 = binaryStream.buffer.subarray(0, binaryStream.length).toString("hex");
 
         binaryStream.rewind();
         const reloaded = new DataValue();
         reloaded.decode(binaryStream);
         binaryStream.rewind();
         dataValue.encode(binaryStream);
-        const s2 = binaryStream.buffer.slice(0, binaryStream.length).toString("hex");
+        const s2 = binaryStream.buffer.subarray(0, binaryStream.length).toString("hex");
 
         s2.should.eql(s1);
     });
@@ -388,8 +388,8 @@ describe("resolving Opaque Structure", function () {
         // console.log(dataValue.value.toString());
         const binaryStream = new BinaryStream(1000);
         dataValue.value.encode(binaryStream);
-        const s1 = binaryStream.buffer.slice(0, binaryStream.length).toString("hex");
-        console.log(hexDump(binaryStream.buffer.slice(0, binaryStream.length)));
+        const s1 = binaryStream.buffer.subarray(0, binaryStream.length).toString("hex");
+        console.log(hexDump(binaryStream.buffer.subarray(0, binaryStream.length)));
 
         s1.should.eql(
             "16010493130150000000" +
