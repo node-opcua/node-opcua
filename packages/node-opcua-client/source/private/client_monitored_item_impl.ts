@@ -366,7 +366,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     }
 
     public _terminate_and_emit(err?: Error): void {
-        if (this.statusCode.value === StatusCodes.Bad.value) {
+        if ((this as any)._terminated) {
             return; // already terminated
         }
         if (err) {
@@ -380,8 +380,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
          */
         this.emit("terminated", err);
         this.removeAllListeners();
-        this.statusCode = StatusCodes.Bad;
-
+    
         // also remove from subscription
         const clientHandle = this.monitoringParameters.clientHandle;
         delete this.subscription.monitoredItems[clientHandle];
