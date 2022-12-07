@@ -402,7 +402,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         debugLog(" this.transport.maxMessageSize", this.transport.maxMessageSize);
 
         this.messageBuilder.on("error", (err, statusCode) => {
-            warningLog("ServerSecureChannel:MessageBuilder: ", err.message);
+            warningLog("ServerSecureChannel:MessageBuilder: ", err.message, statusCode.toString());
 
             // istanbul ignore next
             if (doDebug) {
