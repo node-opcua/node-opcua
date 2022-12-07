@@ -145,7 +145,6 @@ function valueHasChanged(
             //      DataChange if (absolute value of (last cached value - current value) >
             //                                          (deadbandValue/100.0) * ((high-low) of EURange)))
             //
-            // Specifying a deadbandValue outside of this range will be rejected and reported with the
             // StatusCode BadDeadbandFilterInvalid (see Table 27).
             // If the Value of the MonitoredItem is an array, then the deadband calculation logic shall be applied to
             // each element of the array. If an element that requires a DataChange is found, then no further

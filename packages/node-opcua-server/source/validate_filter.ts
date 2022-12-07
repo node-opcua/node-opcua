@@ -57,7 +57,7 @@ function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: Rea
         }
 
         // node must also have a valid euRange
-        if (!(node as any).euRange) {
+        if (!node.getChildByName("EURange", 0)) {
             // tslint:disable:no-console
             console.log(" node has no euRange ! Dead band Percent cannot be used on node " + node.nodeId.toString());
             return StatusCodes.BadMonitoredItemFilterUnsupported;

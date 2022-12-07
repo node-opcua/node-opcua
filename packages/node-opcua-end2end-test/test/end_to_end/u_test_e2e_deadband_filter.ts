@@ -1,5 +1,6 @@
 // tslint:disable: no-shadowed-variable
 // tslint:disable: no-console
+import "should";
 import {
     AddressSpace,
     assert,
