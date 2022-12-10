@@ -407,11 +407,13 @@ describe("testing ClientTCP_transport", function () {
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00
                 const regexp_4 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received NaN./; // node > 10.20
+                const regexp_5 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received type number (NaN)./; // node > 19.0
                 const test1 = !!err.message.match(regexp_1);
                 const test2 = !!err.message.match(regexp_2);
                 const test3 = !!err.message.match(regexp_3);
                 const test4 = !!err.message.match(regexp_4);
-                (test1 || test2 || test3 || test4).should.eql(true, "expecting one of those error message. got: " + err.message);
+                const test5 = !!err.message.match(regexp_5);
+                (test1 || test2 || test3 || test4 || test5).should.eql(true, "expecting one of those error message. got: " + err.message);
                 done();
             } else {
                 done(new Error("Should have raised a connection error"));
