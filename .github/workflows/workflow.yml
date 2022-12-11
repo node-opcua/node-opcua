@@ -33,6 +33,7 @@ jobs:
     - run: pnpm recursive install --no-frozen-lockfile
     - run: pnpm run build
     - run: pnpm run pretest
+    - run: hostname 
     - run: pnpm test
   build:
     runs-on: ubuntu-latest
