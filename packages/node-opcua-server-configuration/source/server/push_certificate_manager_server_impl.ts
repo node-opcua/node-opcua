@@ -4,7 +4,7 @@
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as path from "path";
-import { promisify} from "util";
+import { promisify } from "util";
 import * as rimraf from "rimraf";
 import { SubjectOptions } from "node-opcua-pki";
 import { assert } from "node-opcua-assert";
@@ -22,7 +22,7 @@ import {
     PrivateKeyPEM,
     publicEncrypt_long,
     explorePrivateKey,
-    readCertificate,
+    readCertificate
 } from "node-opcua-crypto";
 import { DirectoryName } from "node-opcua-crypto/dist/source/asn1";
 
@@ -40,7 +40,6 @@ import {
 
 // node 14 onward : import {  readFile, writeFile, readdir } from "fs/promises";
 const { readFile, writeFile, readdir } = fs.promises;
-
 
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
@@ -233,7 +232,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         regeneratePrivateKey?: boolean,
         nonce?: Buffer
     ): Promise<CreateSigningRequestResult> {
-
         let certificateManager = this.getCertificateManager(certificateGroupId);
 
         if (!certificateManager) {
@@ -250,7 +248,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 errorLog("Cannot find existing certificate to extract subjectName", currentCertificateFilename);
                 return {
                     statusCode: StatusCodes.BadInvalidState
-                }
+                };
             }
             const certificate = readCertificate(currentCertificateFilename);
             const e = exploreCertificate(certificate);
@@ -265,11 +263,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             // Previously created Private Keys may be discarded if UpdateCertificate was not
             // called before calling this method again.
 
-
             // Additional entropy which the caller shall provide if regeneratePrivateKey is TRUE.
             // It shall be at least 32 bytes long
             if (!nonce || nonce.length < 32) {
-                make_warningLog(" nonce should be provided when regeneratePrivateKey is set, and length shall be greater than 32 bytes");
+                make_warningLog(
+                    " nonce should be provided when regeneratePrivateKey is set, and length shall be greater than 32 bytes"
+                );
                 return {
                     statusCode: StatusCodes.BadInvalidArgument
                 };
@@ -287,7 +286,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const keySize = (certificateManager as any).keySize; // because keySize is private !
             certificateManager = new CertificateManager({
                 keySize,
-                location,
+                location
             });
             debugLog("generating a new private key ...");
             await certificateManager.initialize();
@@ -295,12 +294,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             this._tmpCertificateManager = certificateManager;
 
             this.addPendingTask(async () => {
-                await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey)
+                await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey);
             });
             this.addPendingTask(async () => {
-                 await promisify(rimraf)(path.join(location));
+                await promisify(rimraf)(path.join(location));
             });
-
         } else {
             // The Server uses its existing Private Key
         }
@@ -457,12 +455,22 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         const now = new Date();
         if (certInfo.tbsCertificate.validity.notBefore.getTime() > now.getTime()) {
             // certificate is not yet valid
-            debugLog("Certificate is not yet valid");
+            warningLog(
+                "Certificate is not yet valid : not before ",
+                certInfo.tbsCertificate.validity.notBefore.toISOString(),
+                "now = ",
+                now.toISOString()
+            );
             return { statusCode: StatusCodes.BadSecurityChecksFailed };
         }
         if (certInfo.tbsCertificate.validity.notAfter.getTime() < now.getTime()) {
             // certificate is already out of date
-            debugLog("Certificate is already out of date");
+            warningLog(
+                "Certificate is already out of date : not after ",
+                certInfo.tbsCertificate.validity.notAfter.toISOString(),
+                "now = ",
+                now.toISOString()
+            );
             return { statusCode: StatusCodes.BadSecurityChecksFailed };
         }
 
@@ -472,18 +480,19 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         debugLog(" updateCertificate ", makeSHA1Thumbprint(certificate).toString("hex"));
 
         if (!privateKeyFormat || !privateKey) {
-            // first of all we need to find the future private key; 
+            // first of all we need to find the future private key;
             // this one may have been created during the creation of the certficate signing request
             // but is not active yet
             const privateKeyDER = readPrivateKey(
-                this._tmpCertificateManager ? this._tmpCertificateManager.privateKey : certificateManager.privateKey);
+                this._tmpCertificateManager ? this._tmpCertificateManager.privateKey : certificateManager.privateKey
+            );
 
             // The Server shall report an error if the public key does not match the existing Certificate and
             // the privateKey was not provided.
             // privateKey is not provided, so check that the public key matches the existing certificate
             if (!certificateMatchesPrivateKey(certificate, privateKeyDER)) {
                 // certificate doesn't match privateKey
-                debugLog("certificate doesn't match privateKey");
+                warningLog("certificate doesn't match privateKey");
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
             }
             // a new certificate is provided for us,
@@ -497,22 +506,22 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         } else if (privateKey) {
             // a private key has been provided by the caller !
             if (!privateKeyFormat) {
-                debugLog("the privateKeyFormat must be specified " + privateKeyFormat);
+                warningLog("the privateKeyFormat must be specified " + privateKeyFormat);
                 return { statusCode: StatusCodes.BadNotSupported };
             }
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
-                debugLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
+                warningLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
                 return { statusCode: StatusCodes.BadNotSupported };
             }
             if (privateKeyFormat !== "PEM") {
-                debugLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
+                warningLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
                 return { statusCode: StatusCodes.BadNotSupported };
             }
 
             // privateKey is  provided, so check that the public key matches provided private key
             if (!certificateMatchesPrivateKey(certificate, privateKey)) {
                 // certificate doesn't match privateKey
-                debugLog("certificate doesn't match privateKey");
+                warningLog("certificate doesn't match privateKey");
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
             }
 
