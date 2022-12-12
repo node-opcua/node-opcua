@@ -383,6 +383,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         certificate: Buffer,
         issuerCertificates: ByteString[]
     ): Promise<UpdateCertificateResult>;
+    // eslint-disable-next-line max-statements
     public async updateCertificate(
         certificateGroupId: NodeId | string,
         certificateTypeId: NodeId | string,
@@ -493,6 +494,17 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             if (!certificateMatchesPrivateKey(certificate, privateKeyDER)) {
                 // certificate doesn't match privateKey
                 warningLog("certificate doesn't match privateKey");
+                /* debug code */
+                const certificatePEM = toPem(certificate, "CERTIFICATE");
+                const privateKeyPEM = toPem(privateKeyDER, "RSA PRIVATE KEY");
+                const initialBuffer = Buffer.from("Lorem Ipsum");
+                const encryptedBuffer = publicEncrypt_long(initialBuffer, certificatePEM, 256, 11);
+                const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKeyPEM, 256);
+                console.log(certificatePEM);
+                console.log(privateKeyPEM);
+                console.log(decryptedBuffer.toString("utf-8"));
+                
+
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
             }
             // a new certificate is provided for us,

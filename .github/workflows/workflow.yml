@@ -55,6 +55,7 @@ jobs:
     - run: pnpm recursive install --no-frozen-lockfile
     - run: pnpm run build
     - run: hostname 
+    - run: openssl version
     - run: pnpm run pretest
     - run: pnpm test
   coverage:
@@ -78,6 +79,7 @@ jobs:
       - run: pnpm recursive install --no-frozen-lockfile
       - run: pnpm run build 
       - run: hostname 
+      - run: openssl version
       - run: pnpm run pretest
       - run: make test-cov     
         
