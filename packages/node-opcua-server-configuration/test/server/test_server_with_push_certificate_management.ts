@@ -195,7 +195,7 @@ describe("Testing server configured with push certificate management", () => {
             const response = await pm.createSigningRequest("DefaultApplicationGroup", NodeId.nullNodeId, "CN=MyApplication");
 
             debugLog(" cert request status", response.statusCode.toString());
-            if (response.statusCode !== StatusCodes.Good) {
+            if (response.statusCode.isNotGood()) {
                 throw new Error("Cannot get signing request from server : " + response.statusCode.toString());
             }
             debugLog(" cert signing request       ", response.certificateSigningRequest!.toString("base64"));
@@ -216,7 +216,7 @@ describe("Testing server configured with push certificate management", () => {
                 issuerCertificates
             );
             debugLog(" updateCertificate  status", response2.statusCode.toString());
-            if (response2.statusCode !== StatusCodes.Good) {
+            if (response2.statusCode.isNotGood()) {
                 throw new Error("Cannot updateCertificate " + response2.statusCode.toString());
             }
 
@@ -295,10 +295,10 @@ describe("Testing server configured with push certificate management", () => {
             );
             debugLog(" updateCertificate  status", response2.statusCode.toString());
 
-            if (response2.statusCode === StatusCodes.Good) {
+            if (response2.statusCode.isGood()) {
                 await pm.applyChanges();
             }
-            if (response2.statusCode !== StatusCodes.Good) {
+            if (response2.statusCode.isNotGood()) {
                 throw new Error("Cannot updateCertificate " + response2.statusCode.toString());
             }
         });
@@ -318,7 +318,7 @@ describe("Testing server configured with push certificate management", () => {
             );
 
             debugLog(" cert request status", response.statusCode.toString());
-            if (response.statusCode !== StatusCodes.Good) {
+            if (response.statusCode.isNotGood()) {
                 throw new Error("Cannot get signing request from server : " + response.statusCode.toString());
             }
             debugLog(" cert signing request       ", response.certificateSigningRequest!.toString("base64"));
@@ -339,7 +339,7 @@ describe("Testing server configured with push certificate management", () => {
                 issuerCertificates
             );
             debugLog(" updateCertificate  status", response2.statusCode.toString());
-            if (response2.statusCode !== StatusCodes.Good) {
+            if (response2.statusCode.isNotGood()) {
                 throw new Error("Cannot updateCertificate " + response2.statusCode.toString());
             }
 

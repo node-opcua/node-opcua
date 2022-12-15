@@ -37,7 +37,7 @@ async function getOrExtractConstructor(
         nodeClassMask: NodeClassMask.DataType,
         resultMask: ResultMask.BrowseName
     });
-    if (browseResult.statusCode !== StatusCodes.Good || browseResult.references!.length !== 1) {
+    if (browseResult.statusCode.isNotGood() || browseResult.references!.length !== 1) {
         throw new Error("browse failed");
     }
     const r = browseResult.references![0];

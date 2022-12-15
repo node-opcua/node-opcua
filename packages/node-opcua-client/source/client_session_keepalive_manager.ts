@@ -158,7 +158,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                     return;
                 }
 
-                if (dataValue.statusCode === StatusCodes.Good) {
+                if (dataValue.statusCode.isGood()) {
                     const newState = dataValue.value.value as ServerState;
                     // istanbul ignore next
                     if (newState !== this.lastKnownState && this.lastKnownState) {

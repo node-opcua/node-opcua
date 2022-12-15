@@ -18,7 +18,7 @@ export async function findStructureDataType(
       resultMask: 0xFF,
       nodeId: coerceNodeId(DataTypeIds.Structure)
     });
-    if (results.statusCode !== StatusCodes.Good || !results.references) {
+    if (results.statusCode.isNotGood() || !results.references) {
       return null;
     }
     const ref = results.references.find(
@@ -29,7 +29,7 @@ export async function findStructureDataType(
     }
     while (results.continuationPoint) {
       results = await session.browseNext(results.continuationPoint, false);
-      if (results.statusCode !== StatusCodes.Good || !results.references) {
+      if (results.statusCode.isNotGood() || !results.references) {
         return null;
       }
       const ref = results.references.find(

@@ -66,7 +66,7 @@ async function main() {
     try {
         let browseResult = await session.browse(nodeToBrowse);
         console.log("BrowseResult = ", browseResult.toString());
-        if (browseResult.statusCode === StatusCodes.Good) {
+        if (browseResult.statusCode.isGood()) {
             // console.log(browseResult.toString());
             console.log("reading initial ", browseResult.references!.length, "elements");
             let continuationPoint = browseResult.continuationPoint;

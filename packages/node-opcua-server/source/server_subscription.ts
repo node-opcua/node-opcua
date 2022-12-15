@@ -961,7 +961,7 @@ export class Subscription extends EventEmitter {
             );
 
             // TODO if attributeId === AttributeIds.Value : sampling interval required here
-            if (dataValueSamplingInterval.statusCode === StatusCodes.Good) {
+            if (dataValueSamplingInterval.statusCode.isGood()) {
                 // node provides a Minimum sampling interval ...
                 samplingInterval = dataValueSamplingInterval.value.value;
                 assert(samplingInterval >= 0 && samplingInterval <= MonitoredItem.maximumSamplingInterval);
@@ -1056,7 +1056,7 @@ export class Subscription extends EventEmitter {
 
         const createResult = this._createMonitoredItemStep2(timestampsToReturn, monitoredItemCreateRequest, node);
 
-        assert(createResult.statusCode === StatusCodes.Good);
+        assert(createResult.statusCode.isGood());
 
         const monitoredItem = this.getMonitoredItem(createResult.monitoredItemId);
         // istanbul ignore next

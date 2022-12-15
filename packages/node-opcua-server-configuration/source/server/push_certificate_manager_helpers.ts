@@ -128,7 +128,7 @@ async function _createSigningRequest(
         nonce
     );
 
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         return { statusCode: result.statusCode };
     }
 
@@ -186,7 +186,7 @@ async function _updateCertificate(
 
     // todo   raise a CertificateUpdatedAuditEventType
 
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         return { statusCode: result.statusCode };
     }
     const callMethodResult = {
@@ -220,7 +220,7 @@ async function _getRejectedList(
 
     const result = await pushCertificateManager.getRejectedList();
 
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         return { statusCode: result.statusCode };
     }
 

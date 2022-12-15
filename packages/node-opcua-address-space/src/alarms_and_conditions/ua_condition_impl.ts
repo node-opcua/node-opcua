@@ -1047,7 +1047,7 @@ function _condition_refresh_method(
     const subscriptionId = inputArguments[0].value;
 
     let statusCode = _check_subscription_id_is_valid(subscriptionId, context);
-    if (statusCode !== StatusCodes.Good) {
+    if (statusCode.isNotGood()) {
         return statusCode;
     }
 

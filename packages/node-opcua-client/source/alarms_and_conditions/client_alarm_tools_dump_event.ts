@@ -2,7 +2,6 @@ import * as chalk from "chalk";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 /**
@@ -17,7 +16,7 @@ export async function dumpEvent(session: IBasicSession, fields: string[], eventF
             attributeId: AttributeIds.BrowseName,
             nodeId
         });
-        if (dataValue.statusCode === StatusCodes.Good) {
+        if (dataValue.statusCode.isGood()) {
             const browseName = dataValue.value.value.name!;
             return browseName;
         } else {

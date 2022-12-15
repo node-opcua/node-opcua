@@ -1,10 +1,10 @@
 import { UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";
-import { Variant, DataType } from "node-opcua-variant";
+import { DataType } from "node-opcua-variant";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isGood } from "./interval";
+import { Interval, AggregateConfigurationOptions } from "./interval";
 
 function calculateIntervalAverageValue(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     const indexStart = interval.index;
@@ -19,12 +19,12 @@ function calculateIntervalAverageValue(interval: Interval, options: AggregateCon
     for (let i = indexStart; i < indexStart + interval.count; i++) {
         const dataValue = interval.dataValues[i];
 
-        if (dataValue.statusCode === StatusCodes.BadNoData) {
+        if (dataValue.statusCode.equals(StatusCodes.BadNoData)) {
             isPartial = true;
             continue;
         }
 
-        if (!isGood(dataValue.statusCode)) {
+        if (dataValue.statusCode.isNotGood()) {
             hasBad = true;
             continue;
         }

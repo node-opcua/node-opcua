@@ -4,7 +4,7 @@ import { Variant, DataType } from "node-opcua-variant";
 import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isGood, isGoodish, isUncertain, isBad } from "./interval";
+import { Interval, AggregateConfigurationOptions } from "./interval";
 import { calculateBadAndGood } from "./calculate_bad_good";
 
 function calculatePercentGood(interval: Interval, options: AggregateConfigurationOptions): DataValue {
@@ -30,7 +30,7 @@ function calculatePercentGood(interval: Interval, options: AggregateConfiguratio
         });
     }
     const value = percentGood;
-    if (isGoodish(statusCode)) {
+    if (statusCode.isGoodish()) {
         return new DataValue({
             sourceTimestamp: interval.startTime,
             statusCode,

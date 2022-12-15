@@ -54,7 +54,7 @@ async function findSuperType(session: IBasicSession, dataTypeNodeId: NodeId): Pr
     const result3 = await browseAll(session, nodeToBrowse3);
 
     /* istanbul ignore next */
-    if (result3.statusCode !== StatusCodes.Good) {
+    if (result3.statusCode.isNotGood()) {
         throw new Error("Cannot find superType for " + dataTypeNodeId.toString());
     }
     result3.references = result3.references || [];
@@ -141,7 +141,7 @@ export interface CacheForFieldResolution {
 
 async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<string> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.BrowseName });
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         const message =
             "cannot extract BrowseName of nodeId = " + nodeId.toString() + " statusCode = " + dataValue.statusCode.toString();
         debugLog(message);
@@ -178,7 +178,7 @@ async function resolve2(
                 });
 
                 /* istanbul ignore next */
-                if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
+                if (dataTypeDefinitionDataValue.statusCode.isNotGood()) {
                     throw new Error(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
                 }
                 const definition = dataTypeDefinitionDataValue.value.value;
@@ -346,7 +346,7 @@ async function _setupEncodings(
     const isAbstractDV = await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.IsAbstract });
     schema.dataTypeNodeId = dataTypeNodeId;
 
-    if (isAbstractDV.statusCode === StatusCodes.Good && isAbstractDV.value.value === false) {
+    if (isAbstractDV.statusCode.isGood() && isAbstractDV.value.value === false) {
         const encodings = await _findEncodings(session, dataTypeNodeId);
         schema.encodingDefaultBinary = makeExpandedNodeId(encodings.binaryEncodingNodeId);
         schema.encodingDefaultXml = makeExpandedNodeId(encodings.xmlEncodingNodeId);

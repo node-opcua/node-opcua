@@ -1,20 +1,12 @@
 import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-code";
 
-import { Interval, AggregateConfigurationOptions, isUncertain, isBad, isGoodish2, isGoodish } from "./interval";
+import { Interval, AggregateConfigurationOptions, isUncertain } from "./interval";
 
-// function isBadWithUncertain(statusCode: StatusCode, treatUncertainAsBad?: boolean): boolean {
-//     if (isGoodish(statusCode)) return false;
-
-//     if (isUncertain(statusCode)) {
-//         return treatUncertainAsBad || false;
-//     }
-//     return true;
-// }
 
 const a = (s: StatusCode | undefined, options: AggregateConfigurationOptions) =>
     !s || s === StatusCodes.BadNoData
         ? StatusCodes.BadNoData
-        : isBad(s) || (options.treatUncertainAsBad && isUncertain(s))
+        : s.isBad() || (options.treatUncertainAsBad && isUncertain(s))
         ? StatusCodes.Bad
         : StatusCodes.Good;
 
@@ -77,13 +69,13 @@ export function calculateBadAndGood(
     indexStart += 0;
     for (let i = indexStart; i < interval.index + interval.count; i++) {
         const dataValue = interval.dataValues[i];
-        if (isGoodish(dataValue.statusCode)) {
+        if (dataValue.statusCode.isGoodish()) {
             nbGood++;
         }
         if (isUncertain(dataValue.statusCode)) {
             nbUncertain++;
         }
-        if (isBad(dataValue.statusCode)) {
+        if (dataValue.statusCode.isBad()) {
             nbBad++;
         }
         const currentStatus = a(dataValue.statusCode, options);

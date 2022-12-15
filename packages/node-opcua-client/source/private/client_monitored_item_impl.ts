@@ -310,7 +310,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         this.statusCode = monitoredItemResult.statusCode;
 
         /* istanbul ignore else */
-        if (monitoredItemResult.statusCode === StatusCodes.Good) {
+        if (monitoredItemResult.statusCode.isGood()) {
             this.result = monitoredItemResult;
             this.monitoredItemId = monitoredItemResult.monitoredItemId;
             this.monitoringParameters.samplingInterval = monitoredItemResult.revisedSamplingInterval;
@@ -348,7 +348,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public _after_create(monitoredItemResult: MonitoredItemCreateResult): void {
         this._applyResult(monitoredItemResult);
 
-        if (this.statusCode === StatusCodes.Good) {
+        if (this.statusCode.isGood()) {
             /**
              * Notify the observers that the monitored item is now fully initialized.
              * @event initialized

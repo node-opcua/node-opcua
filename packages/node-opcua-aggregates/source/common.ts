@@ -9,7 +9,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { coerceNodeId } from "node-opcua-nodeid";
 
 import { getAggregateConfiguration } from "./aggregates";
-import { getInterval, Interval, AggregateConfigurationOptionsEx, isBad, isGood, isUncertain } from "./interval";
+import { getInterval, Interval, AggregateConfigurationOptionsEx } from "./interval";
 
 /**
  * @internal

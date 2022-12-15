@@ -428,7 +428,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (!statusCode) {
                 return callback(new Error("Internal Error"));
             }
-            if (statusCode !== StatusCodes.Good) {
+            if (statusCode.isNotGood()) {
                 return callback(null, statusCode);
             }
             callback(null, StatusCodes.Good);

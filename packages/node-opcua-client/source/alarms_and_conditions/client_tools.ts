@@ -76,7 +76,7 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
                     result = result!;
 
                     // istanbul ignore next
-                    if (result.statusCode !== StatusCodes.Good) {
+                    if (result.statusCode.isNotGood()) {
                         warningLog(new CallMethodRequest(methodToCall).toString());
                         return innerCallback(new Error("Error " + result.statusCode.toString()));
                     }

@@ -355,7 +355,7 @@ function dump_historyDataValues(nodeToRead, startDate, endDate, historyReadResul
     log("           Node : ", chalk.cyan.bold(nodeToRead.nodeId.toString()), nodeToRead.attributeId.toString());
     log("      startDate : ", startDate);
     log("        endDate : ", endDate);
-    if (historyReadResult.statusCode !== StatusCodes.Good) {
+    if (historyReadResult.statusCode.isNotGood()) {
         log("                          error ", historyReadResult.statusCode.toString());
         return;
     }

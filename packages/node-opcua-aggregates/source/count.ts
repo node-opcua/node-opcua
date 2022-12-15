@@ -4,7 +4,7 @@ import { extraStatusCodeBits, StatusCode, StatusCodes } from "node-opcua-status-
 import { DataType } from "node-opcua-variant";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isBad, isUncertain, isGoodish } from "./interval";
+import { Interval, AggregateConfigurationOptions, isUncertain } from "./interval";
 
 /**
  * The Count Aggregate retrieves a count of all the raw values within an interval.
@@ -25,18 +25,18 @@ function calculateCountValue(interval: Interval, options: AggregateConfiguration
     let goodDuration = 0;
     for (let i = indexStart; i < indexStart + interval.count; i++) {
         const dataValue = interval.dataValues[i];
-        if (dataValue.statusCode === StatusCodes.BadNoData) {
+        if (dataValue.statusCode.equals(StatusCodes.BadNoData)) {
             isPartial = true;
             continue;
         }
         const regionDuration = interval.regionDuration(i);
-        if (isBad(dataValue.statusCode)) {
+        if (dataValue.statusCode.isBad()) {
             nbBad++;
             badDuration += regionDuration;
         } else if (isUncertain(dataValue.statusCode)) {
             nbUncertain++;
             uncertainDuration += regionDuration;
-        } else if (isGoodish(dataValue.statusCode)) {
+        } else if (dataValue.statusCode.isGoodish()) {
             nbGood++;
             goodDuration += regionDuration;
         }

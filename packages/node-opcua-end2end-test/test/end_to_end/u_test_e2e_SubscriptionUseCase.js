@@ -2199,7 +2199,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-D #CreateMonitoredItemsRequest : A server should return statusCode === BadSubscriptionIdInvalid when appropriate  ", function (done) {
+        it("AZA3-D #CreateMonitoredItemsRequest : A server should return statusCode:BadSubscriptionIdInvalid when appropriate  ", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,

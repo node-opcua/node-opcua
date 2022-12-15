@@ -115,7 +115,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
             objectId: this.nodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode !== StatusCodes.Good) {
+        if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
         this.fileHandle = callMethodResult.outputArguments![0].value as number;
@@ -140,7 +140,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
             objectId: this.nodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode !== StatusCodes.Good) {
+        if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
         return callMethodResult.outputArguments![0].value as boolean;
@@ -215,19 +215,19 @@ export class CertificateGroup {
     constructor(public session: IBasicSession, public nodeId: NodeId) {}
     async getCertificateTypes(): Promise<NodeId[]> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertificateTypes"));
-        if (browsePathResult.statusCode !== StatusCodes.Good) {
+        if (browsePathResult.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
         const certificateTypesNodeId = browsePathResult.targets![0].targetId;
         const dataValue = await this.session.read({ nodeId: certificateTypesNodeId, attributeId: AttributeIds.Value });
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
         return dataValue.value.value as NodeId[];
     }
     async getTrustList(): Promise<TrustListClient> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/TrustList"));
-        if (browsePathResult.statusCode !== StatusCodes.Good) {
+        if (browsePathResult.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
         const trustListNodeId = browsePathResult.targets![0].targetId;
@@ -304,7 +304,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         };
         const callMethodResult = await this.session.call(methodToCall);
 
-        if (callMethodResult.statusCode === StatusCodes.Good) {
+        if (callMethodResult.statusCode.isGood()) {
             // xx console.log(callMethodResult.toString());
             return {
                 certificateSigningRequest: callMethodResult.outputArguments![0].value,
@@ -334,7 +334,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
             objectId: serverConfigurationNodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode === StatusCodes.Good) {
+        if (callMethodResult.statusCode.isGood()) {
             if (callMethodResult.outputArguments![0].dataType !== DataType.ByteString) {
                 return { statusCode: StatusCodes.BadInvalidArgument };
             }
@@ -427,7 +427,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
             objectId: serverConfigurationNodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode === StatusCodes.Good) {
+        if (callMethodResult.statusCode.isGood()) {
             if (!callMethodResult.outputArguments || callMethodResult.outputArguments!.length !== 1) {
                 return {
                     statusCode: StatusCodes.BadInternalError

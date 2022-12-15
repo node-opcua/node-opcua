@@ -58,7 +58,7 @@ function dumpStatistics(endpointUrl, done) {
                     function (callback) {
                         session.translateBrowsePath(browsePath, function (err, result) {
                             if (!err) {
-                                if (result[0].statusCode === StatusCodes.Good) {
+                                if (result[0].statusCode.isGood()) {
                                     //xx console.log(result[0].toString());
                                     sessionDiagnosticsSummaryNodeId = result[0].targets[0].targetId;
                                 } else {

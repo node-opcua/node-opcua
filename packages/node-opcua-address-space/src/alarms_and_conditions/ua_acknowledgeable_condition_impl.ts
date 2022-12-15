@@ -174,7 +174,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         assert(typeof message === "string");
 
         const statusCode = _setAckedState(branch as ConditionSnapshotImpl, true, conditionEventId, comment);
-        if (statusCode !== StatusCodes.Good) {
+        if (statusCode.isNotGood()) {
             return statusCode;
         }
 

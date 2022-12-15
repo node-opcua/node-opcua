@@ -59,7 +59,7 @@ export class ClientFile {
             methodId: this.openMethodNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             debugLog("Cannot open file : ");
             throw new Error("cannot open file statusCode = " + result.statusCode.toString() + " mode = " + OpenFileMode[mode]);
         }
@@ -80,7 +80,7 @@ export class ClientFile {
             methodId: this.closeMethodNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             debugLog("Cannot close file : ");
             throw new Error("cannot close file statusCode = " + result.statusCode.toString());
         }
@@ -99,7 +99,7 @@ export class ClientFile {
             methodId: this.getPositionNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         return result.outputArguments![0].value as UInt64;
@@ -125,7 +125,7 @@ export class ClientFile {
             methodId: this.setPositionNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         return;
@@ -148,7 +148,7 @@ export class ClientFile {
             methodId: this.readNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         if (!result.outputArguments || result.outputArguments[0].dataType !== DataType.ByteString) {
@@ -174,7 +174,7 @@ export class ClientFile {
             methodId: this.writeNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         return;
@@ -213,10 +213,10 @@ export class ClientFile {
                 makeBrowsePath(this.fileNodeId, "/Size")
             ];
             const results = await this.session.translateBrowsePath(browsePaths);
-            if (results[0].statusCode !== StatusCodes.Good) {
+            if (results[0].statusCode.isNotGood()) {
                 throw new Error("fileType object does not expose mandatory OpenCount Property");
             }
-            if (results[1].statusCode !== StatusCodes.Good) {
+            if (results[1].statusCode.isNotGood()) {
                 throw new Error("fileType object does not expose mandatory Size Property");
             }
             this.openCountNodeId = results[0].targets![0].targetId;
@@ -236,28 +236,28 @@ export class ClientFile {
 
         const results = await this.session.translateBrowsePath(browsePaths);
 
-        if (results[0].statusCode !== StatusCodes.Good) {
+        if (results[0].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Open Method");
         }
-        if (results[1].statusCode !== StatusCodes.Good) {
+        if (results[1].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Close Method");
         }
-        if (results[2].statusCode !== StatusCodes.Good) {
+        if (results[2].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory SetPosition Method");
         }
-        if (results[3].statusCode !== StatusCodes.Good) {
+        if (results[3].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory GetPosition Method");
         }
-        if (results[4].statusCode !== StatusCodes.Good) {
+        if (results[4].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Write Method");
         }
-        if (results[5].statusCode !== StatusCodes.Good) {
+        if (results[5].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Read Method");
         }
-        if (results[6].statusCode !== StatusCodes.Good) {
+        if (results[6].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory OpenCount Variable");
         }
-        if (results[7].statusCode !== StatusCodes.Good) {
+        if (results[7].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Size Variable");
         }
 

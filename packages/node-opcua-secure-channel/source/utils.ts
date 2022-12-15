@@ -50,7 +50,6 @@ export const doTraceRequest = serverFlag.match(/REQUEST/);
 export const doTraceResponse = serverFlag.match(/RESPONSE/);
 export const doPerfMonitoring = serverFlag.match(/PERF/);
 
-
 // eslint-disable-next-line prefer-const
 export let doTraceClientMessage = clientFlag.match(/TRACE/);
 // eslint-disable-next-line prefer-const
@@ -235,14 +234,10 @@ function evaluateBinarySize(r: Request | Response): string {
     return "s=" + ("" + size).padStart(6) + " ";
 }
 
-export function isGoodish(statusCode: StatusCode): boolean {
-    return statusCode.value < 0x40000000;
-}
-
 function statusCodeToString(s: StatusCode): string {
     if (s === StatusCodes.Good) {
         return chalk.green(s.toString());
-    } else if (isGoodish(s)) {
+    } else if (s.isGoodish()) {
         return chalk.yellow(s.toString());
     } else {
         return chalk.red(s.toString());
@@ -312,11 +307,11 @@ export function traceClientRequestMessage(request: Request, channelId: number, i
     );
 }
 
-function addtionnalInfo(response: Response) : string{
+function addtionnalInfo(response: Response): string {
     if (response instanceof BrowseNextResponse || response instanceof BrowseResponse) {
         const results = response.results;
         if (!results) return "";
-        const someBad = results.find((r)=> r.statusCode!== StatusCodes.Good);
+        const someBad = results.find((r) => r.statusCode.isNotGood());
         if (!someBad) {
             return "";
         }

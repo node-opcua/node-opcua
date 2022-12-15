@@ -94,7 +94,7 @@ describe("testing AnalogItem on client side", function () {
                 return callback(err);
             }
 
-            if (result.statusCode !== StatusCodes.Good) {
+            if (result.statusCode.isNotGood()) {
                 return callback(null, null);
             }
 

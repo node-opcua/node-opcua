@@ -231,7 +231,7 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
                     makeBrowsePath("i=85", "/Server/ServerConfiguration/CertificateGroups/DefaultUserTokenGroup/CertificateExpired")
                 );
 
-                if (a.statusCode !== StatusCodes.Good) {
+                if (a.statusCode.isNotGood()) {
                     console.log("cannot file the CertificateExpired node in the server");
                     return;
                 }
@@ -239,7 +239,7 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
                 const certificateExpired = a.targets![0].targetId;
 
                 const b = await session.translateBrowsePath(makeBrowsePath(certificateExpired, "/ExpirationLimit"));
-                if (b.statusCode !== StatusCodes.Good) {
+                if (b.statusCode.isNotGood()) {
                     console.log("cannot file the ExpirationLimit node in the server");
                     return;
                 }

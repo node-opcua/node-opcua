@@ -3,13 +3,13 @@ import { DataValue } from "node-opcua-data-value";
 import { DataType } from "node-opcua-variant";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isGoodish } from "./interval";
+import { Interval, AggregateConfigurationOptions } from "./interval";
 import { calculateBadAndGood } from "./calculate_bad_good";
 
 function calculatePercentBad(interval: Interval, options: AggregateConfigurationOptions): DataValue {
     const { percentBad, statusCode } = calculateBadAndGood(interval, options);
     const value = percentBad;
-    if (isGoodish(statusCode)) {
+    if (statusCode.isGoodish()) {
         return new DataValue({
             sourceTimestamp: interval.startTime,
             statusCode,

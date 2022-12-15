@@ -9,28 +9,18 @@ export { AggregateConfigurationOptions } from "node-opcua-types";
 export interface AggregateConfigurationOptionsEx extends AggregateConfigurationOptions {
     stepped?: boolean;
 }
-export function isGoodish(statusCode: StatusCode): boolean {
-    return statusCode.value < 0x40000000;
-}
+
 
 export function isGoodish2(statusCode: StatusCode, { treatUncertainAsBad }: { treatUncertainAsBad?: boolean }): boolean {
-    if (isGoodish(statusCode)) return true;
+    if (statusCode.isGoodish()) return true;
     if (isUncertain(statusCode)) return !treatUncertainAsBad;
     return false;
 }
 
-export function isBad(statusCode: StatusCode): boolean {
-    return statusCode.value >= 0x80000000;
-}
 
 export function isUncertain(statusCode: StatusCode): boolean {
     return (statusCode.value & 0x40000000) === 0x40000000 && statusCode.value !== StatusCodes.BadNoData.value;
 }
-
-export function isGood(statusCode: StatusCode): boolean {
-    return statusCode.value === 0x0;
-}
-
 export interface IntervalOptions {
     startTime: Date;
     dataValues: DataValue[];
@@ -53,10 +43,10 @@ export function _findGoodDataValueBefore(
     index--;
     while (index >= 0) {
         const dataValue1 = dataValues[index];
-        if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
+        if (!bTreatUncertainAsBad && !dataValue1.statusCode.isBad()) {
             return { index, dataValue: dataValue1 };
         }
-        if (bTreatUncertainAsBad && isGood(dataValue1.statusCode)) {
+        if (bTreatUncertainAsBad && dataValue1.statusCode.isGood()) {
             return { index, dataValue: dataValue1 };
         }
         index -= 1;
@@ -71,13 +61,13 @@ export function _findGoodDataValueBefore(
 export function _findGoodDataValueAfter(dataValues: DataValue[], index: number, bTreatUncertainAsBad: boolean): DataValueWithIndex {
     while (index < dataValues.length) {
         const dataValue1 = dataValues[index];
-        if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
+        if (!bTreatUncertainAsBad && !dataValue1.statusCode.isBad()) {
             return {
                 dataValue: dataValue1,
                 index
             };
         }
-        if (bTreatUncertainAsBad && isGood(dataValue1.statusCode)) {
+        if (bTreatUncertainAsBad && dataValue1.statusCode.isGood()) {
             return {
                 dataValue: dataValue1,
                 index
@@ -174,7 +164,7 @@ export class Interval {
             return e;
         }
         let i = this.dataValues.length - 1;
-        while (i >= 0 && this.dataValues[i].statusCode === StatusCodes.BadNoData) {
+        while (i >= 0 && this.dataValues[i].statusCode.equals(StatusCodes.BadNoData)) {
             i--;
         }
         if (i < 0) {

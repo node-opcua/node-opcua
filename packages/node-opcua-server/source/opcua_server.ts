@@ -1580,16 +1580,17 @@ export class OPCUAServer extends OPCUABaseServer {
                 }
             }
             if (
-                StatusCodes.BadCertificateUntrusted === certificateStatus ||
-                StatusCodes.BadCertificateTimeInvalid === certificateStatus ||
-                StatusCodes.BadCertificateIssuerTimeInvalid === certificateStatus ||
-                StatusCodes.BadCertificateIssuerUseNotAllowed === certificateStatus ||
-                StatusCodes.BadCertificateIssuerRevocationUnknown === certificateStatus ||
-                StatusCodes.BadCertificateRevocationUnknown === certificateStatus ||
-                StatusCodes.BadCertificateRevoked === certificateStatus ||
-                StatusCodes.BadCertificateUseNotAllowed === certificateStatus ||
-                StatusCodes.BadSecurityChecksFailed === certificateStatus ||
-                StatusCodes.Good !== certificateStatus
+                certificateStatus &&
+                (StatusCodes.BadCertificateUntrusted.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateTimeInvalid.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateIssuerTimeInvalid.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateIssuerUseNotAllowed.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateIssuerRevocationUnknown.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateRevocationUnknown.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateRevoked.equals(certificateStatus) ||
+                    StatusCodes.BadCertificateUseNotAllowed.equals(certificateStatus) ||
+                    StatusCodes.BadSecurityChecksFailed.equals(certificateStatus) ||
+                    !StatusCodes.Good.equals(certificateStatus))
             ) {
                 debugLog("isValidX509IdentityToken => certificateStatus = ", certificateStatus?.toString());
 
@@ -2032,7 +2033,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const session = this.getSession(authenticationToken);
 
         function rejectConnection(server: OPCUAServer, statusCode: StatusCode): void {
-            if (statusCode === StatusCodes.BadSessionIdInvalid) {
+            if (statusCode.equals(StatusCodes.BadSessionIdInvalid)) {
                 server.engine.incrementRejectedSessionCount();
             } else {
                 server.engine.incrementRejectedSessionCount();
@@ -2128,7 +2129,7 @@ export class OPCUAServer extends OPCUABaseServer {
             request.userTokenSignature,
             session.endpoint!,
             (err: Error | null, statusCode?: StatusCode) => {
-                if (statusCode !== StatusCodes.Good) {
+                if (!statusCode || statusCode.isNotGood()) {
                     /* istanbul ignore next */
                     if (!(statusCode && statusCode instanceof StatusCode)) {
                         return rejectConnection(this, StatusCodes.BadCertificateInvalid);
@@ -2286,7 +2287,7 @@ export class OPCUAServer extends OPCUABaseServer {
             return sendResponse(response);
         }
 
-        assert(message.session_statusCode === StatusCodes.Good);
+        assert(message.session_statusCode.isGood());
 
         // OPC UA Specification 1.02 part 4 page 26
         // When a  Session  is terminated, all outstanding requests on the  Session  are aborted and
@@ -3173,7 +3174,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     linksToAdd,
                     linksToRemove
                 );
-                if (statusCode !== StatusCodes.Good) {
+                if (statusCode.isNotGood()) {
                     const response = new ServiceFault({ responseHeader: { serviceResult: statusCode } });
                     sendResponse(response);
                 } else {

@@ -76,7 +76,7 @@ function _getEffectiveDisplayName<T, DT extends DataType>(
     node: UATwoStateVariableImpl
 ): DataValueT<LocalizedText, DataType.LocalizedText> {
     const humanReadableString = _getHumanReadableString(node);
-    if (humanReadableString.statusCode !== StatusCodes.Good) {
+    if (humanReadableString.statusCode.isNotGood()) {
         return humanReadableString;
     }
     const boolValue = node.getValue();
@@ -97,7 +97,7 @@ function _getEffectiveDisplayName<T, DT extends DataType>(
 function _getHumanReadableString(node: UATwoStateVariableImpl): DataValueT<LocalizedText, DataType.LocalizedText> {
     const dataValue = node.id.readValue();
 
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         const _c = dataValue.clone() as DataValueT<LocalizedText, DataType.LocalizedText>;
         _c.value = new Variant({
             dataType: DataType.LocalizedText,
@@ -313,7 +313,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         assert(typeof boolValue === "boolean");
         const dataValue = this.id!.readValue();
         const oldValue = dataValue.value.value;
-        if (dataValue.statusCode === StatusCodes.Good && boolValue === oldValue) {
+        if (dataValue.statusCode.isGood() && boolValue === oldValue) {
             return; // nothing to do
         }
         //
@@ -328,7 +328,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      */
     public getValue(): boolean {
         const dataValue = this.id!.readValue();
-        assert(dataValue.statusCode === StatusCodes.Good);
+        assert(dataValue.statusCode.isGood());
         assert(dataValue.value.dataType === DataType.Boolean);
         return dataValue.value.value;
     }
@@ -339,7 +339,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      */
     public getValueAsString(): string {
         const dataValue = this.readValue();
-        assert(dataValue.statusCode === StatusCodes.Good);
+        assert(dataValue.statusCode.isGood());
         assert(dataValue.value.dataType === DataType.LocalizedText);
         return dataValue.value.value.text?.toString() || "";
     }

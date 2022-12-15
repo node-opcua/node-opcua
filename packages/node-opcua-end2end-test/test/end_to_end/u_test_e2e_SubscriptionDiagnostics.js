@@ -73,7 +73,7 @@ async function stopSubscriptionByTransfer(endpointUrl, subscription) {
         const response = await session.transferSubscriptions({
             subscriptionIds: [subscriptionId]
         });
-        if (response.results[0].statusCode !== StatusCodes.Good) {
+        if (response.results[0].statusCode.isNotGood()) {
             console.log(response.toString());
         }
         response.results[0].statusCode.should.eql(StatusCodes.Good);

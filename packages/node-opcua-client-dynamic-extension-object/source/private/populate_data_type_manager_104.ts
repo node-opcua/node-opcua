@@ -3,7 +3,7 @@ import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession, BrowseDescriptionLike, browseAll } from "node-opcua-pseudo-session";
+import { IBasicSession, browseAll } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -47,14 +47,14 @@ export async function readDataTypeDefinitionAndBuildType(
             }
         ]);
         /* istanbul ignore next */
-        if (isAbstractDataValue.statusCode !== StatusCodes.Good) {
+        if (isAbstractDataValue.statusCode.isNotGood()) {
             throw new Error(" Cannot find dataType isAbstract ! with nodeId =" + dataTypeNodeId.toString());
         }
         const isAbstract = isAbstractDataValue.value.value as boolean;
 
         let dataTypeDefinition: DataTypeDefinition = dataTypeDefinitionDataValue.value.value as DataTypeDefinition;
         /* istanbul ignore next */
-        if (dataTypeDefinitionDataValue.statusCode !== StatusCodes.Good) {
+        if (dataTypeDefinitionDataValue.statusCode.isNotGood()) {
             // may be we are reading a 1.03 server
             if (!isAbstract) {
                 warningLog(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
@@ -142,20 +142,25 @@ async function applyOnReferenceRecursively(
             const result = browseResults[i];
             const nodeToBrowse = nodesToBrowse[i];
             if (
-                result.statusCode === StatusCodes.BadNoContinuationPoints ||
-                result.statusCode === StatusCodes.BadContinuationPointInvalid
+                result.statusCode.equals(StatusCodes.BadNoContinuationPoints) ||
+                result.statusCode.equals(StatusCodes.BadContinuationPointInvalid)
             ) {
                 // not enough continuation points .. we need to rebrowse
                 pendingNodesToBrowse.push(nodeToBrowse);
                 //                taskMananager.registerTask(flushBrowse);
-            } else if (result.statusCode === StatusCodes.Good) {
+            } else if (result.statusCode.isGood()) {
                 for (const r of result.references || []) {
                     // also explore sub types
                     browseSubDataTypeRecursively(r.nodeId);
                     taskMananager.registerTask(async () => await action(r));
                 }
             } else {
-                errorLog("Unexpected status code", i, new BrowseDescription(nodesToBrowse[i]||{})?.toString(), result.statusCode.toString());
+                errorLog(
+                    "Unexpected status code",
+                    i,
+                    new BrowseDescription(nodesToBrowse[i] || {})?.toString(),
+                    result.statusCode.toString()
+                );
             }
         }
     }

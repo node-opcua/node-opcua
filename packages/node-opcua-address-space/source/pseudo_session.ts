@@ -83,7 +83,7 @@ export function innerBrowse(
             );
             let { statusCode } = truncatedResult;
             const { continuationPoint, values } = truncatedResult;
-            assert(statusCode === StatusCodes.Good || statusCode === StatusCodes.GoodNoData);
+            assert(statusCode.isGood() || statusCode.equals(StatusCodes.GoodNoData));
             statusCode = result.statusCode;
             return new BrowseResult({
                 statusCode,
