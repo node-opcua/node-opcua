@@ -41,7 +41,7 @@ export function readHistoryServerCapabilities(
         if (!result) {
             return callback(new Error("Internal Error"));
         }
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             return callback(new Error("StatusCode = " + result.statusCode.toString()));
         }
 
@@ -89,7 +89,7 @@ export function readHistoryServerCapabilities(
             }
 
             const nodeIds = results.map((innerResult: BrowsePathResult) =>
-                innerResult.statusCode === StatusCodes.Good && innerResult.targets
+                innerResult.statusCode.isGood() && innerResult.targets
                     ? innerResult.targets[0].targetId
                     : new NodeId()
             );

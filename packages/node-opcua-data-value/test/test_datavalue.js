@@ -130,7 +130,7 @@ describe("DataValue", () => {
         dataValue1.value.arrayType.should.eql(VariantArrayType.Scalar);
     });
 
-    it("DataValue - extractRange on a String with StatusCode != Good - issue #635", () => {
+    it("DataValue - extractRange on a String with StatusCode is not Good - issue #635", () => {
         const dataValue = new DataValue({
             statusCode: StatusCodes.BadAlreadyExists,
             value: new Variant({

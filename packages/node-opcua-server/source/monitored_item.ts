@@ -108,7 +108,7 @@ function _validate_parameters(monitoringParameters: any) {
 function statusCodeHasChanged(newDataValue: DataValue, oldDataValue: DataValue): boolean {
     assert(newDataValue instanceof DataValue);
     assert(oldDataValue instanceof DataValue);
-    return newDataValue.statusCode !== oldDataValue.statusCode;
+    return newDataValue.statusCode.value !== oldDataValue.statusCode.value;
 }
 
 function valueHasChanged(
@@ -177,10 +177,6 @@ function timestampHasChanged(t1: DateTime, t2: DateTime): boolean {
         return false;
     }
     return (t1 as Date).getTime() !== (t2 as Date).getTime();
-}
-
-function isGoodish(statusCode: StatusCode): boolean {
-    return statusCode.value < 0x10000000;
 }
 
 function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, oldDataValue: DataValue): boolean {
@@ -992,7 +988,7 @@ export class MonitoredItem extends EventEmitter {
             return callback(new Error("Invalid "));
         }
         const variable = (this.node as UAVariable);
-        if (!this.oldDataValue || this.oldDataValue.statusCode == StatusCodes.BadDataUnavailable) {
+        if (!this.oldDataValue || this.oldDataValue.statusCode.value == StatusCodes.BadDataUnavailable.value) {
             variable.readValueAsync(sessionContext, (err: Error | null, dataValue?: DataValue) => {
                 callback(err, dataValue);
             });
@@ -1197,7 +1193,7 @@ export class MonitoredItem extends EventEmitter {
 
         assert(dataValue instanceof DataValue);
         // lets verify that, if status code is good then we have a valid Variant in the dataValue
-        assert(!isGoodish(dataValue.statusCode) || dataValue.value instanceof Variant);
+        assert(!dataValue.statusCode.isGoodish() || dataValue.value instanceof Variant);
         // xx assert(isGoodish(dataValue.statusCode) || util.isNullOrUndefined(dataValue.value) );
         // let's check that data Value is really a different object
         // we may end up with corrupted queue if dataValue are recycled and stored as is in notifications

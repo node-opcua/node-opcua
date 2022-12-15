@@ -819,17 +819,17 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         return;
                     }
                     if (attributeId === AttributeIds.ArrayDimensions) {
-                        value = dataValue.statusCode !== StatusCodes.Good ? null : value;
+                        value = dataValue.statusCode.isNotGood() ? null : value;
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
                         callback(null, value);
                         return;
                     }
-                    if (dataValue.statusCode !== StatusCodes.Good) {
+                    if (dataValue.statusCode.isNotGood()) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, dataValue);
                         callback(null, null);
                         return;
                     }
-                    if (dataValue.statusCode === StatusCodes.Good) {
+                    if (dataValue.statusCode.isGood()) {
                         this.set_cache_NodeAttribute(nodeId, attributeId, value);
                         callback(null, value);
                     } else {

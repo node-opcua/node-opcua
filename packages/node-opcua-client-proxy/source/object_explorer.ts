@@ -78,7 +78,7 @@ function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId
 
         let dataType: DataType;
         // istanbul ignore next
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             dataType = DataType.Null;
             setImmediate(() => {
                 callback(null, dataType);
@@ -190,7 +190,7 @@ function makeFunction(obj: any, methodName: string) {
 
             callResult = callResult!;
 
-            if (callResult.statusCode !== StatusCodes.Good) {
+            if (callResult.statusCode.isNotGood()) {
                 return callback(new Error("Error " + callResult.statusCode.toString()));
             }
 

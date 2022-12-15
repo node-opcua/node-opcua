@@ -7,7 +7,7 @@ import { VariableIds } from "node-opcua-constants";
 import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { IBasicSession, BrowseDescriptionLike } from "./basic_session_interface";
 
 const warningLog = make_warningLog(__filename);
@@ -65,8 +65,8 @@ export async function browseAll2(session: IBasicSession, nodesToBrowse: BrowseDe
     for (let i = 0; i < browseResults.length; i++) {
         const result = browseResults[i];
         if (
-            result.statusCode === StatusCodes.BadNoContinuationPoints ||
-            result.statusCode === StatusCodes.BadContinuationPointInvalid
+            result.statusCode.equals(StatusCodes.BadNoContinuationPoints) ||
+            result.statusCode.equals(StatusCodes.BadContinuationPointInvalid)
         ) {
             // there was not enough continuation points
             warningLog("There is not enough browse continuation points");
@@ -99,7 +99,7 @@ export async function browseAll2(session: IBasicSession, nodesToBrowse: BrowseDe
             const continuationPoint = browseResult.continuationPoint;
             if (continuationPoint) {
                 browseToContinue.push({ references, continuationPoint });
-            } 
+            }
         }
     }
 
@@ -110,7 +110,7 @@ export async function browseAll2(session: IBasicSession, nodesToBrowse: BrowseDe
         for (let i = 0; i < browseResults.length; i++) {
             browseResults[browseToRedo[i].index] = results2[i];
         }
-        browseToRedo.splice(0)
+        browseToRedo.splice(0);
     }
     browseResults.forEach((b) => ((b as any).continuationPoint = undefined));
     return browseResults;

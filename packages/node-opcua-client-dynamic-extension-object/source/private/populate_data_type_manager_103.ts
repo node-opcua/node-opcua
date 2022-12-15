@@ -289,7 +289,7 @@ async function _extractDataTypeDictionaryFromDefinition(
         const dataTypeDescription = dataTypeDescriptions[index];
 
         /* istanbul ignore else */
-        if (dataValue.statusCode === StatusCodes.Good) {
+        if (dataValue.statusCode.isGood()) {
             const dataTypeDefinition = dataValue.value.value;
 
             if (dataTypeDefinition && dataTypeDefinition instanceof StructureDefinition) {
@@ -546,7 +546,7 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
         debugLog("namespaceArray ", namespaceArray.map((a, index) => " " + index.toString().padEnd(3) + ":" + a).join(" "));
     }
 
-    if (dataValueNamespaceArray.statusCode === StatusCodes.Good && namespaceArray && namespaceArray.length > 0) {
+    if (dataValueNamespaceArray.statusCode.isGood() && namespaceArray && namespaceArray.length > 0) {
         dataTypeManager.setNamespaceArray(namespaceArray);
 
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {

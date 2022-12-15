@@ -83,7 +83,7 @@ export function readUAAnalogItem(session: ClientSession, nodeId: NodeIdLike, ...
         const nodesToRead: ReadValueIdOptions[] = [];
 
         function processProperty(browsePathResult: BrowsePathResult, propertyName: string) {
-            if (browsePathResult.statusCode === StatusCodes.Good) {
+            if (browsePathResult.statusCode.isGood()) {
                 browsePathResult.targets = browsePathResult.targets || [];
                 nodesToRead.push({
                     attributeId: AttributeIds.Value,

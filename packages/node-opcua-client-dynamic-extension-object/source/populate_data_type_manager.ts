@@ -61,7 +61,7 @@ async function serverImplementsDataTypeDefinition(session: IBasicSession): Promi
     //     console.log(i, " | ", nodesToRead[i].nodeId.toString().padEnd(40), references[i].browseName.toString().padEnd(50), dataValues[i].statusCode.toString());
     // }
 
-    const countOK = dataValues.reduce((prev, a) => prev + (a.statusCode === StatusCodes.Good ? 1 : 0), 0);
+    const countOK = dataValues.reduce((prev, a) => prev + (a.statusCode.isGood() ? 1 : 0), 0);
     if (countOK === dataValues.length) {
         return true;
         // await populateDataTypeManager104(session, dataTypeManager);

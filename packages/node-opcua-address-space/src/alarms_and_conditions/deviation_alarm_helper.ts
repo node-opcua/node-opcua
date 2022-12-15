@@ -3,7 +3,6 @@
  */
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
-import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 import { UAVariableT } from "node-opcua-address-space-base";
 import { NodeId } from "node-opcua-nodeid";
@@ -33,7 +32,7 @@ export function DeviationAlarmHelper_getSetpointValue(this: DeviationStuff): num
         return null;
     }
     const setpointDataValue = this.setpointNodeNode.readValue();
-    if (setpointDataValue.statusCode !== StatusCodes.Good) {
+    if (setpointDataValue.statusCode.isNotGood()) {
         return null;
     }
     const node = this.getSetpointNodeNode();

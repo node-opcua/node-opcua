@@ -520,7 +520,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * ```javascript
      *     session.readVariableValue("ns=2;s=Furnace_1.Temperature",function(err,dataValue) {
      *        if(err) { return callback(err); }
-     *        if (dataValue.statusCode === opcua.StatusCodes.Good) {
+     *        if (dataValue.isGood()) {
      *        }
      *        console.log(dataValue.toString());
      *        callback();
@@ -1091,7 +1091,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      *
      *  ``` javascript
      *  session.readAllAttributes("ns=2;s=Furnace_1.Temperature",function(err,data) {
-     *    if(data.statusCode === StatusCodes.Good) {
+     *    if(data.statusCode.isGood()) {
      *      console.log(" nodeId      = ",data.nodeId.toString());
      *      console.log(" browseName  = ",data.browseName.toString());
      *      console.log(" description = ",data.description.toString());
@@ -2099,7 +2099,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 }
 
                 /* istanbul ignore next */
-                if (dataValue.statusCode !== StatusCodes.Good) {
+                if (dataValue.statusCode.isNotGood()) {
                     return callback(new Error("readNamespaceArray : " + dataValue.statusCode.toString()));
                 }
                 assert(dataValue.value.value instanceof Array);

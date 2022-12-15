@@ -8,7 +8,7 @@ import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "node-opcua-service-subscription";
-import { CallbackT, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 import { CloseSessionRequest } from "node-opcua-types";
 
@@ -320,7 +320,7 @@ function repair_client_session_by_recreating_a_new_session(
                         // those one need to be recreated and repaired ....
                         for (let i = 0; i < results.length; i++) {
                             const statusCode = results[i].statusCode;
-                            if (statusCode === StatusCodes.BadSubscriptionIdInvalid) {
+                            if (statusCode.equals(StatusCodes.BadSubscriptionIdInvalid)) {
                                 // repair subscription
                                 debugLog(
                                     chalk.red("         WARNING SUBSCRIPTION  "),

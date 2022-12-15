@@ -104,7 +104,7 @@ export class FilterContextOnAddressSpace implements FilterContext {
             const browseResult = this.eventData._browse(browsePath);
             if (
                 browseResult &&
-                browseResult.statusCode === StatusCodes.Good &&
+                browseResult.statusCode.isGood() &&
                 browseResult.targets &&
                 browseResult.targets.length === 1
             ) {
@@ -115,7 +115,7 @@ export class FilterContextOnAddressSpace implements FilterContext {
         // fallback to addressSpace otherwise
         const addressSpace = this.getAddressSpace();
         const browseResult = addressSpace.browsePath(browsePath);
-        if (browseResult.statusCode !== StatusCodes.Good || !browseResult.targets || browseResult.targets.length !== 1) {
+        if (browseResult.statusCode.isNotGood() || !browseResult.targets || browseResult.targets.length !== 1) {
             return null;
         }
         return browseResult.targets[0].targetId;
@@ -127,7 +127,7 @@ export class FilterContextOnAddressSpace implements FilterContext {
 }
 
 function prepare(dataValue: DataValue): Variant {
-    if (dataValue.statusCode === StatusCodes.Good) {
+    if (dataValue.statusCode.isGood()) {
         return dataValue.value;
     }
     return new Variant({ dataType: DataType.StatusCode, value: dataValue.statusCode });

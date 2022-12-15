@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { CallMethodRequest } from "node-opcua-service-call";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { ISessionContext, IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
@@ -61,7 +61,7 @@ export function callMethodHelper(
 
     const response1 = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
 
-    if (response1.statusCode !== StatusCodes.Good) {
+    if (response1.statusCode.isNotGood()) {
         return callback(null, { statusCode: response1.statusCode });
     }
     const methodDeclaration = response1.methodDeclaration!;
@@ -70,7 +70,7 @@ export function callMethodHelper(
     const methodInputArguments = methodDeclaration.getInputArguments();
 
     const response = verifyArguments_ArgumentList(addressSpace, methodInputArguments, inputArguments);
-    if (response.statusCode !== StatusCodes.Good) {
+    if (response.statusCode.isNotGood()) {
         return callback(null, response);
     }
 
@@ -93,7 +93,7 @@ export function callMethodHelper(
                         callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
                     assert(callMethodResponse.statusCode);
 
-                    if (callMethodResponse.statusCode === StatusCodes.Good) {
+                    if (callMethodResponse.statusCode?.isGood()) {
                         assert(Array.isArray(callMethodResponse.outputArguments));
                     }
 

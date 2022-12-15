@@ -134,7 +134,7 @@ export interface IBasicSessionChangeUser {
 }
 
 function isValid(result: DataValue): boolean {
-    assert(result.statusCode === StatusCodes.Good);
+    assert(result.statusCode.isGood());
     if (result.value.dataType !== DataType.Null) {
         assert(result.value.dataType === DataType.ExtensionObject);
         assert(result.value.arrayType === VariantArrayType.Array);
@@ -201,7 +201,7 @@ export function getArgumentDefinitionHelper(
                 nodeId: outputArgumentRef.nodeId
             });
             actions.push((result: DataValue) => {
-                assert(result.statusCode === StatusCodes.Good);
+                assert(result.statusCode.isGood());
                 if (isValid(result)) {
                     outputArguments = result.value.value as Argument[];
                 }
@@ -237,7 +237,7 @@ export async function readNamespaceArray(session: IBasicSession): Promise<string
         nodeId,
         attributeId: AttributeIds.Value
     });
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         // errorLog("namespaceArray is not populated ! Your server must expose a list of namespaces in node ", nodeId.toString());
         return [];
     }

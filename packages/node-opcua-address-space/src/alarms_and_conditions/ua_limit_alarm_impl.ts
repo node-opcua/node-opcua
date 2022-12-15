@@ -8,7 +8,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantOptions } from "node-opcua-variant";
 import { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
 import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
@@ -246,13 +246,13 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         assert(dataValue instanceof DataValue);
 
         if (
-            dataValue.statusCode === StatusCodes.BadWaitingForInitialData &&
-            dataValue.statusCode === StatusCodes.UncertainInitialValue
+            dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData) &&
+            dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
         ) {
             // we are not ready yet to use the input node value
             return;
         }
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             // what shall we do ?
             this._signalNewCondition(null);
             return;

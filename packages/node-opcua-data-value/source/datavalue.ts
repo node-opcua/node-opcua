@@ -206,7 +206,7 @@ function isValidDataValue(self: DataValue): boolean {
     } else {
         assert(!self.value);
         // in this case StatusCode shall not be Good
-        assert(self.statusCode !== StatusCodes.Good);
+        assert(self.statusCode.isNotGood());
     }
     return true;
 }
@@ -490,7 +490,7 @@ function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsT
  * @static
  */
 function _clone_with_array_replacement(dataValue: DataValue, result: any): DataValue {
-    const statusCode = result.statusCode === StatusCodes.Good ? dataValue.statusCode : result.statusCode;
+    const statusCode = result.statusCode.isGood() ? dataValue.statusCode : result.statusCode;
 
     const clonedDataValue = new DataValue({
         statusCode,

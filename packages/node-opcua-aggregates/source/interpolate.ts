@@ -48,8 +48,6 @@ import {
     adjustProcessingOptions,
     AggregateConfigurationOptionsEx,
     Interval,
-    isBad,
-    isGood
 } from "./interval";
 
 /*
@@ -129,14 +127,14 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
     const dataValue1 = interval.dataValues[interval.index];
 
     // if a non-Bad Raw value exists at the timestamp then it is the bounding value;
-    if (!isBad(dataValue1.statusCode) && interval.hasRawDataAsStart()) {
+    if (!dataValue1.statusCode.isBad() && interval.hasRawDataAsStart()) {
         return dataValue1;
     }
     // find the first non-Bad Raw value before the timestamp;
 
     // find previous good value
     const before = interval.beforeStartDataValue(bTreatUncertainAsBad);
-    if (isBad(before.dataValue.statusCode)) {
+    if (before.dataValue.statusCode.isBad()) {
         return new DataValue({
             sourceTimestamp: interval.startTime,
             statusCode: StatusCodes.BadNoData
@@ -164,7 +162,7 @@ export function interpolatedValue(interval: Interval, options: AggregateConfigur
     //   x is a value at ‘x’ and Tx is the timestamp associated with Vx.
     const interpolatedDataValue = interpolateValue(before.dataValue, next.dataValue, interval.startTime);
 
-    if (before.index + 1 < next.index || !isGood(next.dataValue.statusCode) || !isGood(before.dataValue.statusCode)) {
+    if (before.index + 1 < next.index || !next.dataValue.statusCode.isGood() || !before.dataValue.statusCode.isGood()) {
         // tslint:disable:no-bitwise
         // some bad data exist in between = change status code
         const mask = 0x0000ffffff;

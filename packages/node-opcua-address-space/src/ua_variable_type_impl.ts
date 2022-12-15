@@ -242,7 +242,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         // BadAttributeIdInvalid
         const defaultDataValue = this.readAttribute(null, AttributeIds.Value);
         const defaultValue =
-            (defaultDataType.namespace === 0 && defaultDataType.value == 0) || defaultDataValue.statusCode !== StatusCodes.Good
+            (defaultDataType.namespace === 0 && defaultDataType.value == 0) || defaultDataValue.statusCode.isNotGood()
                 ? undefined
                 : defaultDataValue.value;
 

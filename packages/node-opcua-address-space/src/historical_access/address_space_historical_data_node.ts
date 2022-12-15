@@ -224,7 +224,7 @@ function _update_startOfOnlineArchive(this: UAVariableImpl, newDate: Date): void
     const startOfArchiveDataValue = _get_startOfOfflineArchive(this);
     if (
         startOfArchiveDataValue &&
-        (startOfArchiveDataValue.statusCode !== StatusCodes.Good ||
+        (startOfArchiveDataValue.statusCode.isNotGood() ||
             !startOfArchiveDataValue.value ||
             !startOfArchiveDataValue.value.value ||
             startOfArchiveDataValue.value.value.getTime() >= newDate.getTime())
@@ -806,8 +806,8 @@ export function AddressSpace_installHistoricalDataNode(
 
     const dataValue = node.readValue();
     if (
-        dataValue.statusCode !== StatusCodes.BadWaitingForInitialData &&
-        dataValue.statusCode !== StatusCodes.UncertainInitialValue
+        dataValue.statusCode.isNot(StatusCodes.BadWaitingForInitialData) &&
+        dataValue.statusCode.isNot(StatusCodes.UncertainInitialValue)
     ) {
         on_value_change.call(node, dataValue);
     }

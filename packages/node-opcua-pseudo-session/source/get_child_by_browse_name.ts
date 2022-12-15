@@ -16,7 +16,7 @@ export async function getChildByBrowseName(session: IBasicSession, nodeId: NodeI
         nodeClassMask: 0,
         resultMask: 0x3f
     });
-    if (!browseResult.references || browseResult.statusCode !== StatusCodes.Good) {
+    if (!browseResult.references || browseResult.statusCode.isNotGood()) {
         throw new Error("Cannot browse node " + name + " " + browseResult.statusCode.toString() + " nodeId = " + nodeId.toString());
     }
     const selectedReference = browseResult.references.find(

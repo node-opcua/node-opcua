@@ -190,7 +190,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     }
 
     protected _onInputDataValueChange(dataValue: DataValue): void {
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             // what shall we do ?
             return;
         }
@@ -204,7 +204,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     }
 
     protected _onNormalStateDataValueChange(dataValue: DataValue): void {
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             // what shall we do ?
             return;
         }

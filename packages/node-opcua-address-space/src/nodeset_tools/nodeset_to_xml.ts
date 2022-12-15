@@ -922,7 +922,7 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
 
         const dataValue = uaDataType.readAttribute(SessionContext.defaultContext, AttributeIds.DataTypeDefinition);
 
-        if (true || dataValue.statusCode === StatusCodes.Good) {
+        if (true || dataValue.statusCode.isGood()) {
             const definition = uaDataType.getStructureDefinition();
             const baseDefinition = uaDataTypeBase ? uaDataTypeBase.getStructureDefinition() : null;
             xw.startElement("Definition");

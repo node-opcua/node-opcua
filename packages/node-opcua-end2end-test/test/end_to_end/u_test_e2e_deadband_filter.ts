@@ -107,13 +107,13 @@ async function writeValue(session: ClientSession, nodeId: NodeIdLike, value: num
 async function readVariableRange(session: ClientSession, nodeId: NodeIdLike): Promise<Range> {
     const browsePath = makeBrowsePath(nodeId, ".EURange");
     const result = await session.translateBrowsePath(browsePath);
-    if (!result.targets || result.statusCode !== StatusCodes.Good) {
+    if (!result.targets || result.statusCode.isNotGood()) {
         return defaultRange;
     }
     const euRangeNodeId = result.targets[0].targetId;
 
     const dataValue = await session.read({ nodeId: euRangeNodeId, attributeId: AttributeIds.Value });
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         return defaultRange;
     }
     return dataValue.value.value as Range;

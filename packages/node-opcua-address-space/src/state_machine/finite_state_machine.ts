@@ -403,7 +403,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
 
         const d = this.currentState.readValue();
 
-        if (d.statusCode !== StatusCodes.Good) {
+        if (d.statusCode.isNotGood()) {
             this.setState(null);
         } else {
             const txt =

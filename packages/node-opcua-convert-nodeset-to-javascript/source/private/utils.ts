@@ -179,7 +179,7 @@ async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<Q
     const dataValue = await session.read(nodeToRead);
 
     // istanbul ignore next
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         //  throw new Error("Error " + dataValue.statusCode.toString() + " " + nodeId.toString());
         //  console.log("Error " + dataValue.statusCode.toString() + " " + nodeId.toString());
         return new QualifiedName({ name: "", namespaceIndex: 0 });

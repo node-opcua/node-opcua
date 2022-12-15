@@ -4,7 +4,7 @@ import { DataType } from "node-opcua-variant";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { getAggregateData } from "./common";
-import { Interval, AggregateConfigurationOptions, isGoodish } from "./interval";
+import { Interval, AggregateConfigurationOptions } from "./interval";
 import { calculateBadAndGood } from "./calculate_bad_good";
 
 function calculateDurationGood(interval: Interval, options: AggregateConfigurationOptions): DataValue {
@@ -16,7 +16,7 @@ function calculateDurationGood(interval: Interval, options: AggregateConfigurati
         });
     }
     const value = durationGood;
-    if (isGoodish(statusCode)) {
+    if (statusCode.isGoodish()) {
         return new DataValue({
             sourceTimestamp: interval.startTime,
             statusCode,

@@ -943,17 +943,17 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 return this._on_OpenSecureChannelRequestError(StatusCodes.BadInternalError, description, message, callback);
             }
 
-            if (statusCode !== StatusCodes.Good) {
+            if (statusCode.isNotGood()) {
                 const description = "Sender Certificate Error";
                 debugLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode!.toString()));
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
                 if (
-                    statusCode !== StatusCodes.BadCertificateIssuerRevocationUnknown &&
-                    statusCode !== StatusCodes.BadCertificateRevocationUnknown &&
-                    statusCode !== StatusCodes.BadCertificateTimeInvalid &&
-                    statusCode !== StatusCodes.BadCertificateUseNotAllowed
+                    statusCode.isNot(StatusCodes.BadCertificateIssuerRevocationUnknown) &&
+                    statusCode.isNot(StatusCodes.BadCertificateRevocationUnknown) &&
+                    statusCode.isNot(StatusCodes.BadCertificateTimeInvalid) &&
+                    statusCode.isNot(StatusCodes.BadCertificateUseNotAllowed)
                 ) {
                     statusCode = StatusCodes.BadSecurityChecksFailed;
                 }
@@ -1198,7 +1198,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return StatusCodes.BadInternalError;
         }
         const statusCode = await this.certificateManager.checkCertificate(certificate);
-        if (statusCode === StatusCodes.Good) {
+        if (statusCode.isGood()) {
             const certInfo = exploreCertificate(certificate!);
             if (!certInfo.tbsCertificate.extensions?.keyUsage?.dataEncipherment) {
                 return StatusCodes.BadCertificateUseNotAllowed;
