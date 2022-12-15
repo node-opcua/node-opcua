@@ -407,7 +407,7 @@ describe("testing ClientTCP_transport", function () {
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00
                 const regexp_4 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received NaN./; // node > 10.20
-                const regexp_5 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received type number (NaN)./; // node > 19.0
+                const regexp_5 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received type number/; // node > 19.0
                 const test1 = !!err.message.match(regexp_1);
                 const test2 = !!err.message.match(regexp_2);
                 const test3 = !!err.message.match(regexp_3);
