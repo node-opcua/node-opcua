@@ -6,6 +6,7 @@
 // tslint:disable:no-empty
 
 import * as crypto from "crypto";
+import { createPublicKey } from "crypto";
 import { callbackify } from "util";
 import * as async from "async";
 import * as chalk from "chalk";
@@ -17,13 +18,14 @@ import {
     exploreCertificate,
     extractPublicKeyFromCertificateSync,
     Nonce,
+    PrivateKey,
     PrivateKeyPEM,
     toPem
 } from "node-opcua-crypto";
 
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import { extractFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ClientSecureChannelLayer, computeSignature, fromURI, getCryptoFactory, SecurityPolicy } from "node-opcua-secure-channel";
 import { ApplicationDescriptionOptions, ApplicationType, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { MessageSecurityMode, UserTokenPolicy } from "node-opcua-service-secure-channel";
@@ -31,8 +33,6 @@ import {
     ActivateSessionRequest,
     ActivateSessionResponse,
     AnonymousIdentityToken,
-    CloseSessionRequest,
-    CloseSessionResponse,
     CreateSessionRequest,
     CreateSessionResponse,
     UserNameIdentityToken,
@@ -41,7 +41,7 @@ import {
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback, Callback } from "node-opcua-status-code";
 
-import { SignatureData, SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
+import { SignatureDataOptions, UserIdentityToken } from "node-opcua-types";
 import { isNullOrUndefined, matchUri } from "node-opcua-utils";
 
 import { ClientSession } from "../client_session";
@@ -132,7 +132,7 @@ interface X509TokenAndSignature {
 function createX509IdentityToken(
     context: IdentityTokenContext,
     certificate: Certificate,
-    privateKey: PrivateKeyPEM
+    privateKey: PrivateKey
 ): X509TokenAndSignature {
     const endpoint = context.endpoint;
     assert(endpoint instanceof EndpointDescription);
@@ -250,7 +250,7 @@ function createUserNameIdentityToken(
 
     assert(serverCertificate instanceof Buffer);
     serverCertificate = toPem(serverCertificate, "CERTIFICATE");
-    const publicKey = extractPublicKeyFromCertificateSync(serverCertificate);
+    const publicKey = createPublicKey(extractPublicKeyFromCertificateSync(serverCertificate));
 
     const serverNonce: Nonce = session.serverNonce || Buffer.alloc(0);
     assert(serverNonce instanceof Buffer);
@@ -1236,7 +1236,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 case UserTokenType.Certificate: {
                     const certificate = userIdentityInfo.certificateData;
-                    const privateKey = userIdentityInfo.privateKey;
+                    const privateKey = crypto.createPrivateKey(userIdentityInfo.privateKey);
                     ({ userIdentityToken, userTokenSignature } = createX509IdentityToken(context, certificate, privateKey));
                     break;
                 }

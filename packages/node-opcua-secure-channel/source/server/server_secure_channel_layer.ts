@@ -16,9 +16,11 @@ import {
     makeSHA1Thumbprint,
     PrivateKeyPEM,
     PublicKeyLength,
-    rsa_length,
+    rsaLengthPublicKey,
     exploreCertificate,
-    hexDump
+    hexDump,
+    PublicKey,
+    PrivateKey
 } from "node-opcua-crypto";
 
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
@@ -43,7 +45,7 @@ import { doTraceIncomingChunk } from "node-opcua-transport";
 import { SecureMessageChunkManagerOptions, SecurityHeader } from "../secure_message_chunk_manager";
 
 import { getThumbprint, ICertificateKeyPairProvider, Request, Response } from "../common";
-import { MessageBuilder, ObjectFactory } from "../message_builder";
+import { invalidPrivateKey, MessageBuilder, ObjectFactory } from "../message_builder";
 import { ChunkMessageOptions, MessageChunker } from "../message_chunker";
 import {
     computeDerivedKeys,
@@ -90,7 +92,7 @@ export interface ServerSecureChannelParent extends ICertificateKeyPairProvider {
 
     getCertificateChain(): Certificate;
 
-    getPrivateKey(): PrivateKeyPEM;
+    getPrivateKey(): PrivateKey;
 
     getEndpointDescription(
         securityMode: MessageSecurityMode,
@@ -278,7 +280,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private readonly defaultSecureTokenLifetime: number;
     private securityToken: ChannelSecurityToken;
     private serverNonce: Buffer | null;
-    private receiverPublicKey: string | null;
+    private receiverPublicKey: PublicKey | null;
     private receiverPublicKeyLength: number;
     private readonly messageChunker: MessageChunker;
 
@@ -514,9 +516,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @method getPrivateKey
      * @return the privateKey
      */
-    public getPrivateKey(): PrivateKeyPEM {
+    public getPrivateKey(): PrivateKey {
         if (!this.parent) {
-            return "<invalid>";
+            return invalidPrivateKey;
             // throw new Error("getPrivateKey : cannot get PrivateKey");
         }
         return this.parent.getPrivateKey();
@@ -1099,11 +1101,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
             if (this.receiverCertificate) {
                 // extract public key
-                extractPublicKeyFromCertificate(this.receiverCertificate, (err, key) => {
+                extractPublicKeyFromCertificate(this.receiverCertificate, (err, keyPem) => {
                     if (!err) {
-                        if (key) {
-                            this.receiverPublicKey = key;
-                            this.receiverPublicKeyLength = rsa_length(key);
+                        if (keyPem) {
+                            this.receiverPublicKey = crypto.createPublicKey(keyPem);
+                            this.receiverPublicKeyLength = rsaLengthPublicKey(keyPem);
                         }
                         callback(null, statusCode);
                     } else {
@@ -1117,7 +1119,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    private _prepare_security_header(request: OpenSecureChannelRequest, message: Message): AsymmetricAlgorithmSecurityHeader | null {
+    private _prepare_security_header(
+        request: OpenSecureChannelRequest,
+        message: Message
+    ): AsymmetricAlgorithmSecurityHeader | null {
         let securityHeader: AsymmetricAlgorithmSecurityHeader;
         // senderCertificate:
         //    The X509v3 certificate assigned to the sending application instance.
@@ -1447,8 +1452,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 debugLog(
                     "receiverCertificateThumbprint do not match server certificate",
                     myCertificateThumbPrint.toString("hex") +
-                    " <> " +
-                    clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
+                        " <> " +
+                        clientSecurityHeader.receiverCertificateThumbprint.toString("hex")
                 );
             }
             return thisIsMyCertificate;

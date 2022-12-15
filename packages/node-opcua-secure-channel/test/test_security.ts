@@ -10,11 +10,11 @@ import { ErrorCallback } from "node-opcua-status-code";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
-    PrivateKeyPEM,
     readCertificate,
-    readKeyPem,
     split_der,
-    readCertificateRevocationList
+    readCertificateRevocationList,
+    PrivateKey,
+    readPrivateKey
 } from "node-opcua-crypto";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
@@ -24,9 +24,9 @@ import { hexDump } from "node-opcua-debug";
 import {
     ClientSecureChannelLayer,
     ClientSecureChannelParent,
+    invalidPrivateKey,
     Message,
     MessageSecurityMode,
-    Response,
     SecurityPolicy,
     ServerSecureChannelLayer,
     ServerSecureChannelParent
@@ -41,8 +41,8 @@ interface TestParam {
     securityPolicy: SecurityPolicy;
     serverCertificate?: Certificate;
     clientCertificate?: Certificate;
-    serverPrivateKey?: PrivateKeyPEM;
-    clientPrivateKey?: PrivateKeyPEM;
+    serverPrivateKey: PrivateKey;
+    clientPrivateKey: PrivateKey;
     shouldFailAtClientConnection?: boolean;
 }
 
@@ -103,8 +103,8 @@ describe("Testing secure client and server connection", () => {
                 return new EndpointDescription({});
             },
 
-            getPrivateKey: () => {
-                return param.serverPrivateKey!;
+            getPrivateKey: (): PrivateKey => {
+                return param.serverPrivateKey;
             }
         };
 
@@ -140,7 +140,7 @@ describe("Testing secure client and server connection", () => {
                 }
             });
         }
-        function simulateTransation(request: FindServersRequest, response: FindServersResponse, callback: SimpleCallback) {
+        function simulateTransaction(request: FindServersRequest, response: FindServersResponse, callback: SimpleCallback) {
             serverSChannel.once("message", (message: Message) => {
                 doDebug && console.log("server receiving message =", response.responseHeader.requestHandle);
                 response.responseHeader.requestHandle = message.request.requestHeader.requestHandle;
@@ -173,8 +173,8 @@ describe("Testing secure client and server connection", () => {
                 return param.clientCertificate!;
             },
 
-            getPrivateKey: () => {
-                return param.clientPrivateKey!;
+            getPrivateKey: (): PrivateKey => {
+                return param.clientPrivateKey;
             }
         };
 
@@ -194,7 +194,7 @@ describe("Testing secure client and server connection", () => {
                 maxChunkCount: 1000,
                 maxMessageSize: 0,
                 receiveBufferSize: 0,
-                sendBufferSize: 0,
+                sendBufferSize: 0
             }
         });
         clientChannel.on("receive_chunk", (chunk: Buffer) => {
@@ -224,7 +224,6 @@ describe("Testing secure client and server connection", () => {
                     callback();
                 },
                 (callback: SimpleCallback) => {
-
                     (serverSChannel as any)._build_message_builder();
 
                     serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
@@ -248,7 +247,7 @@ describe("Testing secure client and server connection", () => {
                     }
                     const request = new FindServersRequest({});
                     const response = new FindServersResponse({});
-                    simulateTransation(request, response, callback);
+                    simulateTransaction(request, response, callback);
                 },
 
                 (callback: SimpleCallback) => {
@@ -286,7 +285,9 @@ describe("Testing secure client and server connection", () => {
             {
                 securityMode: MessageSecurityMode.None,
                 securityPolicy: SecurityPolicy.None,
-                serverCertificate: undefined
+                serverCertificate: undefined,
+                serverPrivateKey: invalidPrivateKey,
+                clientPrivateKey: invalidPrivateKey
             },
             done
         );
@@ -304,12 +305,12 @@ describe("Testing secure client and server connection", () => {
         const serverCertificateFile = m(`server_cert_${sizeS}.pem`);
         const serverPrivateKeyFile = m(`server_key_${sizeS}.pem`);
         const serverCertificate = readCertificate(serverCertificateFile);
-        const serverPrivateKey = readKeyPem(serverPrivateKeyFile);
+        const serverPrivateKey = readPrivateKey(serverPrivateKeyFile);
 
         const clientCertificateFile = m(`client_cert_${sizeC}.pem`);
         const clientPrivateKeyFile = m(`client_key_${sizeC}.pem`);
         const clientCertificate = readCertificate(clientCertificateFile);
-        const clientPrivateKey = readKeyPem(clientPrivateKeyFile);
+        const clientPrivateKey = readPrivateKey(clientPrivateKeyFile);
 
         performTest(
             {
@@ -328,7 +329,6 @@ describe("Testing secure client and server connection", () => {
     it("RR-client & server channel  - with security ", (done) => {
         performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);
     });
-
 
     it("client & server channel  - A", (done) => {
         performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);

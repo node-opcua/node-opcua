@@ -1,3 +1,4 @@
+import { createPrivateKey } from "crypto";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUASecureObject } from "node-opcua-common";
 
@@ -126,7 +127,7 @@ export async function performCertificateSanityCheck(
 ): Promise<void> {
     // verify that certificate is matching private key, and inform the developper if not
     const certificate = this.getCertificate();
-    const privateKey = convertPEMtoDER(this.getPrivateKey());
+    const privateKey = this.getPrivateKey();
     //
     if (!publicKeyAndPrivateKeyMatches(certificate, privateKey)) {
         errorLog("[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match !");

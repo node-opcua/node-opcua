@@ -15,8 +15,8 @@ import {
     exploreCertificateSigningRequest,
     makeSHA1Thumbprint,
     PrivateKey,
-    PrivateKeyPEM,
     readCertificate,
+    readPrivateKey,
     split_der,
     toPem
 } from "node-opcua-crypto";
@@ -29,6 +29,7 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { UserTokenType } from "node-opcua-types";
+import { certificateMatchesPrivateKey } from "node-opcua-crypto";
 import { dumpCertificate } from "node-opcua-pki";
 import {
     initializeHelpers,
@@ -39,7 +40,7 @@ import {
 
 import { installPushCertificateManagementOnServer } from "../..";
 import { ClientPushCertificateManagement } from "../..";
-import { certificateMatchesPrivateKey } from "../..";
+
 import { OPCUAServerPartial } from "../../source";
 const { readFile } = fs.promises;
 
@@ -53,10 +54,8 @@ const errorLog = make_errorLog("ServerConfiguration");
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing server configured with push certificate management", () => {
-    
     let _folder: string;
 
-    
     let clientCertificateFile = "";
     let clientPrivateKeyFile = "";
 
@@ -64,21 +63,18 @@ describe("Testing server configured with push certificate management", () => {
     let clientCertificateManager: OPCUACertificateManager;
 
     before(async () => {
-
-         _folder = await initializeHelpers("CC", 2);
+        _folder = await initializeHelpers("CC", 2);
 
         const fakeClientPKI = path.join(_folder, "FakeClientPKI");
         if (!fs.existsSync(fakeClientPKI)) {
             fs.mkdirSync(fakeClientPKI);
-        
         }
         clientCertificateManager = new OPCUACertificateManager({
             automaticallyAcceptUnknownCertificate: true,
             rootFolder: fakeClientPKI
         });
-        
-        await clientCertificateManager.initialize();
 
+        await clientCertificateManager.initialize();
 
         const fakePKI = path.join(_folder, "FakePKI");
         if (!fs.existsSync(fakePKI)) {
@@ -89,7 +85,6 @@ describe("Testing server configured with push certificate management", () => {
         });
         await certificateManager.initialize();
 
-        
         clientCertificateFile = path.join(clientCertificateManager.rootDir, "own/certs/certificate.pem");
         // recreate certificate every time ! ( short date)
         await clientCertificateManager.createSelfSignedCertificate({
@@ -119,7 +114,7 @@ describe("Testing server configured with push certificate management", () => {
         await certificateManager.dispose();
         await clientCertificateManager.dispose();
     });
-    
+
     it("SCT-1 should modify a server to support push certificate management", async () => {
         const server = new OPCUAServer({
             port,
@@ -131,10 +126,9 @@ describe("Testing server configured with push certificate management", () => {
 
         await installPushCertificateManagementOnServer(server);
 
-        const privateKey1PEM = await readFile(server.serverCertificateManager.privateKey, "utf8");
-        const privateKey1 = convertPEMtoDER(privateKey1PEM);
-        const privateKey2 = convertPEMtoDER(server.getPrivateKey());
-        privateKey1.toString("base64").should.eql(privateKey2.toString("base64"));
+        const privateKey1 = readPrivateKey(server.serverCertificateManager.privateKey);
+        const privateKey2 = server.getPrivateKey();
+        toPem(privateKey1, "RSA PRIVATE KEY").should.eql(toPem(privateKey2, "RSA PRIVATE KEY"));
 
         // now start the server
         await server.start();
@@ -150,8 +144,11 @@ describe("Testing server configured with push certificate management", () => {
             "server.getCertificateChain() =",
             makeSHA1Thumbprint(certificateChain1).toString("hex") + " l=" + certificateChain1.length
         );
-        const privateKey1 = convertPEMtoDER(server.getPrivateKey());
-        debugLog("server.getPrivateKey()       =", makeSHA1Thumbprint(privateKey1).toString("hex"));
+        const privateKey1 = server.getPrivateKey();
+        debugLog(
+            "server.getPrivateKey()       =",
+            makeSHA1Thumbprint(privateKey1.export({ format: "der", type: "pkcs1" })).toString("hex")
+        );
 
         const match = certificateMatchesPrivateKey(certificateChain1, privateKey1);
         debugLog("math                         =", match);
@@ -280,10 +277,12 @@ describe("Testing server configured with push certificate management", () => {
         // create a new key pair
         const { certificate, privateKey } = await produceCertificateAndPrivateKey(_folder);
 
+        const privateKeyFormat = "PEM"; // or PFX
+        const privateKeyPEM = privateKey.export({ format: "pem", type: "pkcs1" }).toString();
+
         await withSecureClient(endpointUrl, async (session: ClientSession) => {
             const pm = new ClientPushCertificateManagement(session);
 
-            const privateKeyFormat = "PEM"; // or PFX
             const issuerCertificates: Certificate[] = [];
             // generate some certificate
             const response2 = await pm.updateCertificate(
@@ -292,7 +291,7 @@ describe("Testing server configured with push certificate management", () => {
                 certificate,
                 issuerCertificates,
                 privateKeyFormat,
-                privateKey
+                privateKeyPEM
             );
             debugLog(" updateCertificate  status", response2.statusCode.toString());
 
@@ -349,7 +348,7 @@ describe("Testing server configured with push certificate management", () => {
             return { certificate };
         });
     }
-    
+
     async function constructServerWithPushCertificate(): Promise<OPCUAServer> {
         // given that the server user manager is able to identify a  system administrator
         const mockUserManager = {
@@ -556,7 +555,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateBefore2.toString("base64").should.not.eql(certificateBefore.toString("base64"));
 
             step("I should also verify that the new certificate matches the server private key");
-            certificateMatchesPrivateKey(certificateAfter, convertPEMtoDER(server.getPrivateKey())).should.eql(true);
+            certificateMatchesPrivateKey(certificateAfter, server.getPrivateKey()).should.eql(true);
 
             const d2 = await new Promise<string>((resolve) => {
                 dumpCertificate(server.certificateFile, (err, data?: string) => resolve(data!));
@@ -583,13 +582,14 @@ describe("Testing server configured with push certificate management", () => {
         // create a new key pair
         const { certificate, privateKey } = await produceCertificateAndPrivateKey(_folder);
 
-        _server.$$privateKeyPEM = toPem(privateKey, "RSA PRIVATE KEY");
+        _server.$$privateKey = privateKey;
         _server.$$certificateChain = certificate;
         _server.$$certificate = split_der(certificate)[0];
         await server.suspendEndPoints();
         await server.shutdownChannels();
         await server.resumeEndPoints();
     }
+
     it("SCT-3 - Client reconnection should work if server changes its private key", async () => {
         step("Given a server with push management");
         const server = await constructServerWithPushCertificate();
@@ -633,15 +633,15 @@ describe("Testing server configured with push certificate management", () => {
 
         step("When Server changes certificates");
         const certificateBefore: Certificate = server.getCertificate();
-        const privateKeyBefore: PrivateKeyPEM = server.getPrivateKey();
+        const privateKeyBefore = server.getPrivateKey();
 
         await simulateCertificateAndPrivateKeyChange(server);
 
         const certificateAfter: Certificate = server.getCertificate();
-        const privateKeyAfter: PrivateKeyPEM = server.getPrivateKey();
+        const privateKeyAfter = server.getPrivateKey();
 
         makeSHA1Thumbprint(certificateBefore).should.not.eql(makeSHA1Thumbprint(certificateAfter));
-        privateKeyBefore.should.not.eql(privateKeyAfter);
+        toPem(privateKeyBefore, "RSA PRIVATE KEY").should.not.eql(toPem(privateKeyAfter, "RSA PRIVATE KEY"));
 
         step("then I should see the client being reconnected");
         await new Promise((resolve) => setTimeout(resolve, 6000));
@@ -686,17 +686,22 @@ describe("Testing server configured with push certificate management", () => {
             certificateAfter.toString("base64").should.eql(certificate.toString("base64"));
 
             step("then I should verify that the server private key has changed");
-            const privateKeyAfter: PrivateKeyPEM = server.getPrivateKey();
-            privateKeyBefore.should.not.eql(privateKeyAfter);
+            const privateKeyAfter = server.getPrivateKey();
+            toPem(privateKeyBefore, "RSA PRIVATE KEY").should.not.eql(toPem(privateKeyAfter, "RSA PRIVATE KEY"));
 
             step("and I should verify that the new server private key matches the new private key provided by the admin client");
-            privateKeyAfter.should.eql(toPem(privateKey, "RSA PRIVATE KEY"));
+            toPem(privateKeyAfter, "RSA PRIVATE KEY").should.eql(toPem(privateKey, "RSA PRIVATE KEY"));
+
+            if (!certificateMatchesPrivateKey(certificateAfter, privateKey)) {
+                throw new Error("The new certificate doesn't match with the new private key");
+            }
 
             await new Promise((resolve) => setTimeout(resolve, 3000));
 
             await testWithSimpleClient(endpointUrl);
 
-            onGoingClient.isReconnecting.should.eql(false, "client shall not be reconnected");
+            await new Promise((resolve) => setTimeout(resolve, 500));
+            onGoingClient.isReconnecting.should.eql(false, "client shall not be reconnecting anymore");
         } catch (err) {
             errorLog("---------------------------------------------- ERROR ! in Test ");
             errorLog(err);
@@ -737,8 +742,8 @@ describe("Testing server configured with push certificate management", () => {
             certificateAfter.toString("base64").should.eql(certificate.toString("base64"));
 
             step("then I should verify that the server private key has changed");
-            const privateKeyAfter: PrivateKeyPEM = server.getPrivateKey();
-            privateKeyBefore.should.not.eql(privateKeyAfter);
+            const privateKeyAfter = server.getPrivateKey();
+            toPem(privateKeyBefore, "RSA PRIVATE KEY").should.not.eql(toPem(privateKeyAfter, "RSA PRIVATE KEY"));
 
             await new Promise((resolve) => setTimeout(resolve, 3000));
 

@@ -19,10 +19,13 @@ import {
     makeMessageChunkSignatureWithDerivedKeys,
     Nonce,
     privateDecrypt_long,
-    PrivateKeyPEM,
+    PrivateKey,
+ 
     publicEncrypt_long,
-    PublicKeyPEM,
-    rsa_length,
+    PublicKey,
+ 
+    rsaLengthPrivateKey,
+    rsaLengthPublicKey,
     RSA_PKCS1_OAEP_PADDING,
     RSA_PKCS1_PADDING,
     Signature,
@@ -183,13 +186,13 @@ export function coerceSecurityPolicy(value?: string | SecurityPolicy | null): Se
 }
 
 // --------------------
-function RSAPKCS1V15_Decrypt(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
-    const blockSize = rsa_length(privateKey);
+function RSAPKCS1V15_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
+    const blockSize = rsaLengthPrivateKey(privateKey);
     return privateDecrypt_long(buffer, privateKey, blockSize, RSA_PKCS1_PADDING);
 }
 
-function RSAOAEP_Decrypt(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
-    const blockSize = rsa_length(privateKey);
+function RSAOAEP_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
+    const blockSize = rsaLengthPrivateKey(privateKey);
     return privateDecrypt_long(buffer, privateKey, blockSize, RSA_PKCS1_OAEP_PADDING);
 }
 
@@ -229,37 +232,37 @@ function RSAPKCS1OAEPSHA256_Verify(buffer: Buffer, signature: Signature, certifi
     return verifyMessageChunkSignature(buffer, signature, options);
 }
 
-function RSAPKCS1V15SHA1_Sign(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
+function RSAPKCS1V15SHA1_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
     assert(!((privateKey as any) instanceof Buffer), "privateKey should not be a Buffer but a PEM");
     const params = {
         algorithm: "RSA-SHA1",
         privateKey,
-        signatureLength: rsa_length(privateKey)
+        signatureLength: rsaLengthPrivateKey(privateKey)
     };
     return makeMessageChunkSignature(buffer, params);
 }
 
-function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKeyPEM): Buffer {
+function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
     // xx    if (privateKey instanceof Buffer) {
     // xx        privateKey = toPem(privateKey, "RSA PRIVATE KEY");
     // xx   }
     const params = {
         algorithm: "RSA-SHA256",
         privateKey,
-        signatureLength: rsa_length(privateKey)
+        signatureLength: rsaLengthPrivateKey(privateKey)
     };
     return makeMessageChunkSignature(buffer, params);
 }
 
 const RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
 
-function RSAPKCS1V15_Encrypt(buffer: Buffer, publicKey: PublicKeyPEM): Buffer {
-    const keyLength = rsa_length(publicKey);
+function RSAPKCS1V15_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
+    const keyLength = rsaLengthPublicKey(publicKey);
     return publicEncrypt_long(buffer, publicKey, keyLength, 11, RSA_PKCS1_PADDING);
 }
 
-function RSAOAEP_Encrypt(buffer: Buffer, publicKey: PublicKeyPEM): Buffer {
-    const keyLength = rsa_length(publicKey);
+function RSAOAEP_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
+    const keyLength = rsaLengthPublicKey(publicKey);
     return publicEncrypt_long(buffer, publicKey, keyLength, 42, RSA_PKCS1_OAEP_PADDING);
 }
 
@@ -315,11 +318,11 @@ export interface CryptoFactory {
     maximumAsymmetricKeyLength: number;
 
     asymmetricVerifyChunk: (self: CryptoFactory, chunk: Buffer, certificate: Certificate) => boolean;
-    asymmetricSign: (buffer: Buffer, publicKey: PublicKeyPEM) => Buffer;
+    asymmetricSign: (buffer: Buffer, publicKey: PublicKey) => Buffer;
     asymmetricVerify: (buffer: Buffer, signature: Signature, certificate: Certificate) => boolean;
 
-    asymmetricEncrypt: (buffer: Buffer, publicKey: PublicKeyPEM) => Buffer;
-    asymmetricDecrypt: (buffer: Buffer, privateKey: PrivateKeyPEM) => Buffer;
+    asymmetricEncrypt: (buffer: Buffer, publicKey: PublicKey) => Buffer;
+    asymmetricDecrypt: (buffer: Buffer, privateKey: PrivateKey) => Buffer;
 
     /**  for info only */
     asymmetricSignatureAlgorithm: string;
@@ -531,7 +534,7 @@ export function getCryptoFactory(securityPolicy: SecurityPolicy): CryptoFactory 
 export function computeSignature(
     senderCertificate: Buffer | null,
     senderNonce: Nonce | null,
-    receiverPrivateKey: PrivateKeyPEM | null,
+    receiverPrivateKey: PrivateKey | null,
     securityPolicy: SecurityPolicy
 ): SignatureData | undefined {
     if (!senderNonce || !senderCertificate || senderCertificate.length === 0 || !receiverPrivateKey) {

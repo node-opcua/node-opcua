@@ -12,7 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.77.0",
-        "node-opcua-crypto": "^1.12.0",
+        "node-opcua-crypto": "^2.1.2",
         "node-opcua-types": "2.85.0"
     },
     "devDependencies": {

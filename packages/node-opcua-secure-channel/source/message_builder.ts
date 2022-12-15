@@ -4,6 +4,8 @@
 // tslint:disable:variable-name
 // tslint:disable:max-line-length
 
+
+import { createPrivateKey } from "crypto";
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -14,7 +16,7 @@ import {
     DerivedKeys,
     exploreCertificateInfo,
     makeSHA1Thumbprint,
-    PrivateKeyPEM,
+    PrivateKey,
     reduceLength,
     removePadding,
     verifyChunkSignatureWithDerivedKeys
@@ -74,7 +76,7 @@ export interface ObjectFactory {
 
 export interface MessageBuilderOptions extends MessageBuilderBaseOptions {
     securityMode?: MessageSecurityMode;
-    privateKey?: PrivateKeyPEM;
+    privateKey?: PrivateKey;
     objectFactory?: ObjectFactory;
     signatureLength?: number;
     name?: string;
@@ -85,7 +87,9 @@ export interface SecurityTokenAndDerivedKeys {
     derivedKeys: DerivedKeys | null;
 }
 
-const invalidPrivateKey = "<invalid>";
+export const invalidPrivateKey = createPrivateKey(`-----BEGIN RSA PRIVATE KEY-----
+MB0CAQACAQ8CAwEAAQIBAQIBBQIBAwIBAQIBAQIBAg==
+-----END RSA PRIVATE KEY-----`);
 let counter = 0;
 
 type PacketInfo = any;
@@ -134,7 +138,7 @@ export class MessageBuilder extends MessageBuilderBase {
     private readonly objectFactory: ObjectFactory;
     private _previousSequenceNumber: number;
     private _tokenStack: SecurityTokenAndDerivedKeys[];
-    private privateKey: PrivateKeyPEM;
+    private privateKey: PrivateKey;
 
     constructor(options: MessageBuilderOptions) {
         super(options);
@@ -276,6 +280,7 @@ export class MessageBuilder extends MessageBuilderBase {
             return true;
         } catch (err) {
             warningLog(chalk.red("Error"), (err as Error).message);
+            console.log("REMOVE ME", err);
             return false;
         }
     }
@@ -481,13 +486,18 @@ export class MessageBuilder extends MessageBuilderBase {
 
             assert(this.privateKey !== invalidPrivateKey, "expecting a valid private key");
 
-            const decryptedBuffer = this.cryptoFactory.asymmetricDecrypt(buf, this.privateKey);
-
-            // replace decrypted buffer in initial buffer
-            decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
-
-            // adjust length
-            binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
+            try {
+                const decryptedBuffer = this.cryptoFactory.asymmetricDecrypt(buf, this.privateKey);
+                // replace decrypted buffer in initial buffer
+                decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
+                // adjust length
+                binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
+            } catch (err) {
+                warningLog("Cannot decrypt OPN package");
+                // Cannot asymetricaly decrypt, may be the certificate used by the other party to encrypt
+                // this package is wrong
+                return false;
+            }
 
             /* istanbul ignore next */
             if (doDebug) {

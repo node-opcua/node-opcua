@@ -1,29 +1,30 @@
 /**
  * @module node-opcua-common
  */
+import { createPrivateKey } from "crypto";
 import { EventEmitter } from "events";
 import * as fs from "fs";
 
 import { assert } from "node-opcua-assert";
-import { Certificate, PrivateKeyPEM, readCertificate, readKeyPem, split_der } from "node-opcua-crypto";
+import { Certificate, PrivateKey, readCertificate, readPrivateKey, split_der } from "node-opcua-crypto";
 
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
     getCertificateChain(): Certificate;
-    getPrivateKey(): PrivateKeyPEM;
+    getPrivateKey(): PrivateKey;
 }
 export interface ICertificateKeyPairProviderPriv extends ICertificateKeyPairProvider {
     $$certificate: null | Certificate;
     $$certificateChain: null | Certificate;
-    $$privateKeyPEM: null | PrivateKeyPEM;
+    $$privateKey: null | PrivateKey;
 }
 function _load_certificate(certificateFilename: string): Certificate {
     const der = readCertificate(certificateFilename);
     return der;
 }
 
-function _load_private_key_pem(privateKeyFilename: string): PrivateKeyPEM {
-    return readKeyPem(privateKeyFilename);
+function _load_private_key(privateKeyFilename: string): PrivateKey {
+    return readPrivateKey(privateKeyFilename);
 }
 
 export interface IOPCUASecureObjectOptions {
@@ -74,12 +75,12 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
         return priv.$$certificateChain;
     }
 
-    public getPrivateKey(): PrivateKeyPEM {
+    public getPrivateKey(): PrivateKey {
         const priv = this as unknown as ICertificateKeyPairProviderPriv;
-        if (!priv.$$privateKeyPEM) {
+        if (!priv.$$privateKey) {
             assert(fs.existsSync(this.privateKeyFile), "private file must exist :" + this.privateKeyFile);
-            priv.$$privateKeyPEM = _load_private_key_pem(this.privateKeyFile);
+            priv.$$privateKey = _load_private_key(this.privateKeyFile);
         }
-        return priv.$$privateKeyPEM;
+        return priv.$$privateKey;
     }
 }

@@ -11,11 +11,10 @@ import {
     Certificate,
     CertificateRevocationList,
     convertPEMtoDER,
-    makeSHA1Thumbprint,
     PrivateKey,
     readCertificate,
     readCertificateRevocationList,
-    split_der,
+    readPrivateKey,
     toPem
 } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -67,12 +66,8 @@ export async function produceCertificateAndPrivateKey(
         outputFile: certFile
     });
 
-    const content = await readFile(certFile, "utf-8");
-    const certificate = convertPEMtoDER(content);
-
-    const privateKeyFile = certificateManager.privateKey;
-    const privateKeyPEM = await readFile(privateKeyFile, "utf-8");
-    const privateKey = convertPEMtoDER(privateKeyPEM);
+    const certificate = readCertificate(certFile);
+    const privateKey = readPrivateKey(certificateManager.privateKey);
 
     return { certificate, privateKey };
 }
