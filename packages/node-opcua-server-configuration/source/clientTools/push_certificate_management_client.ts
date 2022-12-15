@@ -9,7 +9,7 @@ import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
 import { AttributeIds, QualifiedName, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { Certificate } from "node-opcua-crypto";
+import { Certificate, PrivateKey } from "node-opcua-crypto";
 import { TrustListDataType } from "node-opcua-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 
@@ -402,7 +402,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         certificate: Buffer,
         issuerCertificates: Buffer[],
         privateKeyFormat: string,
-        privateKey: Buffer
+        privateKey: Buffer | string | PrivateKey
     ): Promise<UpdateCertificateResult>;
     public async updateCertificate(
         certificateGroupId: NodeId | string,
@@ -410,8 +410,9 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         certificate: Buffer,
         issuerCertificates: Buffer[],
         privateKeyFormat?: string,
-        privateKey?: Buffer
+        privateKey?: Buffer | string | PrivateKey
     ): Promise<UpdateCertificateResult> {
+
         const inputArguments: VariantLike[] = [
             { dataType: DataType.NodeId, value: findCertificateGroupNodeId(certificateGroupId) },
             { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },

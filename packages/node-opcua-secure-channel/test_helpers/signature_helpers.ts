@@ -1,8 +1,9 @@
 import * as  fs from "fs";
+import { createPrivateKey } from "node:crypto";
+import  "should";
 import { assert } from "node-opcua-assert";
 import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto";
 import { SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import  "should";
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
 
 // tslint:disable:no-var-requires
@@ -10,7 +11,7 @@ const { getFixture } = require("node-opcua-test-fixtures");
 
 function construct_makeMessageChunkSignatureForTest() {
 
-    const privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("utf-8");
+    const privateKey = createPrivateKey(fs.readFileSync(getFixture("certs/server_key_1024.pem"),"utf-8"));
 
     return (chunk: Buffer) => {
         const options = {

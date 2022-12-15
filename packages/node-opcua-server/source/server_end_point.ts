@@ -10,7 +10,7 @@ import * as async from "async";
 
 import { assert } from "node-opcua-assert";
 import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKeyPEM, split_der } from "node-opcua-crypto";
+import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKey, PrivateKeyPEM, split_der } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
@@ -112,7 +112,7 @@ function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
 }
 
 const emptyCertificate = Buffer.alloc(0);
-const emptyPrivateKeyPEM = "";
+const emptyPrivateKey = null as any as PrivateKey;
 
 let OPCUAServerEndPointCounter = 0;
 
@@ -129,7 +129,7 @@ export interface OPCUAServerEndPointOptions {
     /**
      * privateKey
      */
-    privateKey: PrivateKeyPEM;
+    privateKey: PrivateKey;
 
     certificateManager: OPCUACertificateManager;
 
@@ -169,7 +169,7 @@ export interface AddStandardEndpointDescriptionsParam {
     allowAnonymous?: boolean;
     disableDiscovery?: boolean;
     securityModes?: MessageSecurityMode[];
- 
+
     restricted?: boolean;
     allowUnsecurePassword?: boolean;
     resourcePath?: string;
@@ -225,7 +225,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     public _on_openSecureChannelFailure?: (socketData: any, channelData: any) => void;
 
     private _certificateChain: Certificate;
-    private _privateKey: PrivateKeyPEM;
+    private _privateKey: PrivateKey;
     private _channels: { [key: string]: ServerSecureChannelLayer };
     private _server?: Server;
     private _endpoints: EndpointDescription[];
@@ -277,7 +277,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
     public dispose(): void {
         this._certificateChain = emptyCertificate;
-        this._privateKey = emptyPrivateKeyPEM;
+        this._privateKey = emptyPrivateKey;
 
         assert(Object.keys(this._channels).length === 0, "OPCUAServerEndPoint channels must have been deleted");
 
@@ -295,7 +295,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
-        const privateKey1 = convertPEMtoDER(this.getPrivateKey());
+        const privateKey1 = this.getPrivateKey().export({ format: "der", type: "pkcs1" });
 
         const txt =
             " end point" +
@@ -332,7 +332,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     /**
      * the private key
      */
-    public getPrivateKey(): PrivateKeyPEM {
+    public getPrivateKey(): PrivateKey {
         return this._privateKey;
     }
 
@@ -439,11 +439,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         options.userTokenTypes = options.userTokenTypes || defaultUserTokenTypes;
 
         options.allowAnonymous = options.allowAnonymous === undefined ? true : options.allowAnonymous;
-        // make sure we do not have anonymous 
+        // make sure we do not have anonymous
         if (!options.allowAnonymous) {
             options.userTokenTypes = options.userTokenTypes.filter((r) => r !== UserTokenType.Anonymous);
         }
-
 
         const defaultHostname = options.hostname || getFullyQualifiedDomainName();
 

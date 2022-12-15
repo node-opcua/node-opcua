@@ -579,9 +579,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                             "the server certificate has changed,  we need to retrieve server certificate again: ",
                             err.message
                         );
+                        const oldServerCertificate = this.serverCertificate;
                         warningLog(
                             "old server certificate ",
-                            this.serverCertificate ? makeSHA1Thumbprint(this.serverCertificate!).toString("hex") : "undefined"
+                            oldServerCertificate ? makeSHA1Thumbprint(oldServerCertificate!).toString("hex") : "undefined"
                         );
                         // the server may have shut down the channel because its certificate
                         // has changed ....
@@ -590,7 +591,19 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                             if (err1) {
                                 return _failAndRetry(err1, "Failing to fetch new server certificate", callback);
                             }
-                            warningLog("new server certificate ", makeSHA1Thumbprint(this.serverCertificate!).toString("hex"));
+                            const newServerCertificate = this.serverCertificate!;
+                            warningLog("new server certificate ", makeSHA1Thumbprint(newServerCertificate).toString("hex"));
+
+                            const sha1Old = makeSHA1Thumbprint(oldServerCertificate!);
+                            const sha1New = makeSHA1Thumbprint(newServerCertificate);
+                            if (sha1Old === sha1New) {
+                                warningLog("server certificate has not changed, but was expected to have changed");
+                                return _failAndRetry(
+                                    new Error("Server Certificate not changed"),
+                                    "Failing to fetch new server certificate",
+                                    callback
+                                );
+                            }
                             this._internal_create_secure_channel(infiniteConnectionRetry, (err3?: Error | null) => {
                                 if (err3) {
                                     return _failAndRetry(err3, "trying to create new channel with new certificate", callback);

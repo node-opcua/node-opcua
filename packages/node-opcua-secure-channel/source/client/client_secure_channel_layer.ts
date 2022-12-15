@@ -4,12 +4,20 @@
 // tslint:disable:variable-name
 // tslint:disable:object-literal-shorthand
 // tslint:disable:no-console
-import { randomBytes } from "crypto";
+import { createPublicKey, randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import * as chalk from "chalk";
 import * as async from "async";
 
-import { Certificate, extractPublicKeyFromCertificate, PrivateKeyPEM, PublicKeyPEM, rsa_length } from "node-opcua-crypto";
+import {
+    Certificate,
+    extractPublicKeyFromCertificate,
+    PrivateKey,
+        PublicKey,
+    PublicKeyPEM,
+    rsaLengthPrivateKey,
+    rsaLengthPublicKey
+} from "node-opcua-crypto";
 
 import { assert } from "node-opcua-assert";
 
@@ -174,7 +182,7 @@ export interface ClientSecureChannelParent extends ICertificateKeyPairProvider {
 
     getCertificateChain(): Certificate;
 
-    getPrivateKey(): PrivateKeyPEM;
+    getPrivateKey(): PrivateKey;
 }
 
 /***
@@ -361,7 +369,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private readonly connectionStrategy: any;
     private last_transaction_stats: any | ClientTransactionStatistics;
     private derivedKeys: DerivedKeys1 | null;
-    private receiverPublicKey: PublicKeyPEM | null;
+    private receiverPublicKey: PublicKey | null;
     private __call: any;
     private _isOpened: boolean;
     private serverNonce: Buffer | null;
@@ -523,7 +531,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             });
     }
 
-    public getPrivateKey(): PrivateKeyPEM | null {
+    public getPrivateKey(): PrivateKey | null {
         return this.parent ? this.parent.getPrivateKey() : null;
     }
 
@@ -612,7 +620,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     if (!publicKey) {
                         throw new Error("Internal Error");
                     }
-                    this.receiverPublicKey = publicKey;
+                    this.receiverPublicKey = createPublicKey(publicKey);
 
                     this.create(endpointUrl, callback);
                 });
@@ -1688,7 +1696,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         const options: any = {};
 
-        options.signatureLength = rsa_length(senderPrivateKey);
+        options.signatureLength = rsaLengthPrivateKey(senderPrivateKey);
 
         options.signBufferFunc = (chunk: Buffer) => {
             const s = cryptoFactory.asymmetricSign(chunk, senderPrivateKey);
@@ -1700,7 +1708,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (!this.receiverPublicKey) {
             throw new Error(" invalid receiverPublicKey");
         }
-        const keyLength = rsa_length(this.receiverPublicKey);
+        const keyLength = rsaLengthPublicKey(this.receiverPublicKey);
         options.plainBlockSize = keyLength - cryptoFactory.blockPaddingSize;
         options.cipherBlockSize = keyLength;
 

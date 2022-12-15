@@ -8,7 +8,7 @@ import "mocha";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { Certificate, PrivateKeyPEM, readCertificate, readPrivateKeyPEM, split_der } from "node-opcua-crypto";
+import { Certificate, PrivateKey, readCertificate, readPrivateKey, split_der } from "node-opcua-crypto";
 import { makeBufferFromTrace } from "node-opcua-debug";
 import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import {
@@ -104,7 +104,7 @@ const verifyX509UserIdentity1 = promisify(verifyX509UserIdentity);
 function rebuildSignature(
     certificate: Certificate, // server certificate
     serverNonce: Buffer,
-    privateKey: PrivateKeyPEM,
+    privateKey: PrivateKey,
     securityPolicy: SecurityPolicy
 ) {
     // The signature generated with private key associated with the User Certificate
@@ -135,7 +135,7 @@ describe("X509 - Wireshark Analysis", () => {
         };
 
         const userCertificate = readCertificate(path.join(__dirname, "./fixtures/user1_certificate.pem"));
-        const privateKey = readPrivateKeyPEM(path.join(__dirname, "./fixtures/private_key.pem"));
+        const privateKey = readPrivateKey(path.join(__dirname, "./fixtures/private_key.pem"));
 
         const signatureData = rebuildSignature(serverCertificate, serverNonce, privateKey, securityPolicy);
 

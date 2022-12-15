@@ -1,6 +1,6 @@
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import { EventEmitter } from "events";
+import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { displayTraceFromThisProjectOnly, hexDump, make_debugLog } from "node-opcua-debug";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
@@ -58,7 +58,7 @@ export class MockServerTransport extends EventEmitter {
 
         this._mockTransport = new DirectTransport();
         this._mockTransport.initialize(() => {
-            console.log("initialized");
+            debugLog("mock transport initialized");
         });
 
         this._mockTransport.server.on("data", (data: Buffer) => {

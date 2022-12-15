@@ -2,7 +2,7 @@
 
 import * as should from "should";
 
-import { SecurityPolicy } from "node-opcua-secure-channel";
+import { invalidPrivateKey, SecurityPolicy } from "node-opcua-secure-channel";
 import { MessageSecurityMode } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -41,7 +41,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription", function () {
             port: port,
             serverInfo: new ApplicationDescription({}),
             certificateChain,
-            privateKey: "",
+            privateKey: invalidPrivateKey,
             certificateManager
         });
     });
@@ -96,7 +96,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions", function () {
             serverInfo: new ApplicationDescription({}),
             certificateManager,
             certificateChain,
-            privateKey: ""
+            privateKey: invalidPrivateKey
         });
         server_endpoint.addStandardEndpointDescriptions();
     });
@@ -136,7 +136,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
             serverInfo: new ApplicationDescription({}),
             certificateManager,
             certificateChain,
-            privateKey: ""
+            privateKey: invalidPrivateKey
         });
         server_endpoint.addStandardEndpointDescriptions({
             securityModes: [MessageSecurityMode.SignAndEncrypt],
@@ -181,7 +181,7 @@ describe("OPCUAServerEndpoint#addStandardEndpointDescriptions extra secure", fun
             serverInfo: new ApplicationDescription({}),
             certificateManager,
             certificateChain,
-            privateKey: ""
+            privateKey: invalidPrivateKey
         });
         server_endpoint.addStandardEndpointDescriptions({
             securityModes: [MessageSecurityMode.SignAndEncrypt],
@@ -218,7 +218,7 @@ describe("OPCUAServerEndpoint#getEndpointDescription", function () {
             serverInfo: new ApplicationDescription({}),
             certificateManager,
             certificateChain,
-            privateKey: ""
+            privateKey: invalidPrivateKey
         });
     });
 
