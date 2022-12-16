@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-certificate-manager",
-    "version": "2.86.0",
+    "version": "2.86.1",
     "description": "pure nodejs OPCUA SDK - module -client",
     "scripts": {
         "clean": "npx rimraf node_modules dist *.tsbuildinfo certificates",
@@ -20,7 +20,7 @@
         "node-opcua-debug": "2.86.0",
         "node-opcua-object-registry": "2.86.0",
         "node-opcua-pki": "^3.0.1",
-        "node-opcua-status-code": "2.86.0",
+        "node-opcua-status-code": "2.86.1",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
