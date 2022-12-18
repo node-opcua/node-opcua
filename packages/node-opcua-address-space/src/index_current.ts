@@ -51,6 +51,7 @@ export * from "./data_access/ua_two_state_discrete_impl";
 
 export { VariableHistorian } from "./historical_access/address_space_historical_data_node";
 export { NodeIdManager } from "../src/nodeid_manager";
+export * from "../src/private_namespace";
 
 export * from "./alarms_and_conditions";
 export * from "./event_data";

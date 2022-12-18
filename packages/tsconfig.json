@@ -4,7 +4,7 @@
         "strictFunctionTypes": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "target": "es6",
+        "target": "es2015",
         "module": "commonjs",
         "declaration": true,
         "sourceMap": true,
