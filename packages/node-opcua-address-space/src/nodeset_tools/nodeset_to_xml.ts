@@ -61,6 +61,7 @@ const XMLWriter = require("xml-writer");
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
+const doDebug = false;
 
 function _hash(node: BaseNode | UAReference): string {
     return node.nodeId.toString();
@@ -1036,11 +1037,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             console.log(
                 " cannot find datatype " +
-                    node.dataType +
-                    " for node " +
-                    node.browseName.toString() +
-                    " id =" +
-                    node.nodeId.toString()
+                node.dataType +
+                " for node " +
+                node.browseName.toString() +
+                " id =" +
+                node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
@@ -1247,10 +1248,21 @@ function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
     xw.endElement();
 }
 
-export function constructNamespaceTranslationTable(dependency: INamespace[]): ITranslationTable {
+function constructNamespaceTranslationTable(dependency: INamespace[], exportedNamespace: INamespace): ITranslationTable {
+
     const translationTable: ITranslationTable = {};
-    for (let i = 0; i < dependency.length; i++) {
-        translationTable[dependency[i].index] = i;
+    assert(dependency[0].namespaceUri === "http://opcfoundation.org/UA/");
+
+    let counter = 0;
+    translationTable[dependency[0].index] = counter++;
+    //
+    if (exportedNamespace) {
+        translationTable[exportedNamespace.index] = counter++;
+    }
+    for (let i = 1; i < dependency.length; i++) {
+        const dep = dependency[i];
+        if (exportedNamespace && exportedNamespace === dep) { continue; }
+        translationTable[dep.index] = counter++;
     }
     return translationTable;
 }
@@ -1342,7 +1354,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
 
     xw.priorityTable = constructNamespacePriorityTable(this);
     const dependency = constructNamespaceDependency(this, xw.priorityTable);
-    const translationTable = constructNamespaceTranslationTable(dependency);
+    const translationTable = constructNamespaceTranslationTable(dependency, this);
     xw.translationTable = translationTable;
 
     xw.startDocument({ encoding: "utf-8", version: "1.0" });
@@ -1372,12 +1384,17 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     // xx xw.writeAttribute("LastModified", (new Date()).toISOString());
 
     // ------------- INamespace Uris
-    xw.startElement("NamespaceUris");
-
     initXmlWriterEx(xw, namespacesMap, namespaceArray);
 
-    // xx const namespaceArray = namespace.addressSpace.getNamespaceArray();
-    for (const depend of dependency) {
+    xw.startElement("NamespaceUris");
+
+    // let's sort the dependencies in the same order as the translation table
+    const sortedDependencies = dependency.sort((a,b)=> translationTable[a.index] > translationTable[b.index] ? 1: -1);
+    
+    doDebug && console.log(sortedDependencies.map((a)=>a.index + " + "+ a.namespaceUri).join("\n"));
+    doDebug && console.log("translation table ", translationTable);
+
+    for (const depend of sortedDependencies) {
         if (depend.index === 0) {
             continue; // ignore namespace 0
         }
@@ -1385,7 +1402,6 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
         xw.text(depend.namespaceUri);
         xw.endElement();
     }
-
     xw.endElement();
 
     // ------------- INamespace Uris
@@ -1395,7 +1411,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
         xw.writeAttribute("ModelUri", this.namespaceUri);
         xw.writeAttribute("Version", this.version);
         xw.writeAttribute("PublicationDate", this.publicationDate.toISOString());
-        for (const depend of dependency) {
+        for (const depend of sortedDependencies) {
             if (depend.index === this.index) {
                 continue; // ignore our namespace 0
             }

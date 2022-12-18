@@ -453,28 +453,28 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 
         // prettier-ignore
         x(xml).should.eql(x(`<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="MyNamespace/Type.xsd" xmlns:ns2="http://opcfoundation.org/UA/AutoID/Type.xsd" xmlns:ns3="http://opcfoundation.org/UA/DI/Type.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns2="http://opcfoundation.org/UA/DI/Type.xsd" xmlns:ns3="http://opcfoundation.org/UA/AutoID/Type.xsd" xmlns:ns1="MyNamespace/Type.xsd">
     <NamespaceUris>
         <Uri>MyNamespace</Uri>
-        <Uri>http://opcfoundation.org/UA/AutoID/</Uri>
         <Uri>http://opcfoundation.org/UA/DI/</Uri>
+        <Uri>http://opcfoundation.org/UA/AutoID/</Uri>
     </NamespaceUris>
     <Models>
         <Model ModelUri="MyNamespace" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
             <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00.000Z"/>
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/AutoID/" Version="1.01" PublicationDate="2020-06-18T13:52:03.000Z"/>
             <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.03.1" PublicationDate="2021-09-07T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/AutoID/" Version="1.01" PublicationDate="2020-06-18T13:52:03.000Z"/>
         </Model>
     </Models>
     <Aliases>
-        <Alias Alias="2:RfidScanResult">ns=2;i=3007</Alias>
+        <Alias Alias="3:RfidScanResult">ns=3;i=3007</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
     </Aliases>
     <!--ReferenceTypes-->
     <!--ObjectTypes-->
     <!--VariableTypes-->
     <!--Other Nodes-->
-    <UAVariable NodeId="ns=1;i=1000" BrowseName="1:MyVar" AccessLevel="3" DataType="2:RfidScanResult">
+    <UAVariable NodeId="ns=1;i=1000" BrowseName="1:MyVar" AccessLevel="3" DataType="3:RfidScanResult">
         <DisplayName>MyVar</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
@@ -482,7 +482,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         <Value>
             <ExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
                 <TypeId>
-                    <Identifier>ns=2;i=5012</Identifier>
+                    <Identifier>ns=3;i=5012</Identifier>
                 </TypeId>
                 <Body>
                     <RfidScanResult xmlns="http://opcfoundation.org/UA/AutoID/Types.xsd">
@@ -617,7 +617,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         </UANodeSet>`));
 
         x(xml2).should.eql(x(`<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="B/Type.xsd" xmlns:ns2="A/Type.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns2="A/Type.xsd" xmlns:ns1="B/Type.xsd">
     <NamespaceUris>
         <Uri>B</Uri>
         <Uri>A</Uri>

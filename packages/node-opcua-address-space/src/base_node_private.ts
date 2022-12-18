@@ -13,7 +13,7 @@ import {
     NodeClass,
     ResultMask
 } from "node-opcua-data-model";
-import { checkDebugFlag, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceDescription } from "node-opcua-types";
 import {
@@ -43,8 +43,9 @@ import { AddressSpacePrivate } from "./address_space_private";
 import { wipeMemorizedStuff } from "./tool_isSupertypeOf";
 
 // eslint-disable-next-line prefer-const
-let doTrace = checkDebugFlag("INSTANTIATE");
-const traceLog = console.log.bind(console);
+const errorLog = make_errorLog(__filename);
+const doTrace = checkDebugFlag("INSTANTIATE");
+const traceLog = errorLog;
 
 const g_weakMap = new WeakMap();
 
@@ -189,8 +190,8 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption): void
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(
         options.padding +
-            chalk.yellow("          displayName         : ") +
-            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+        chalk.yellow("          displayName         : ") +
+        this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
     );
 
     options.add(
@@ -209,9 +210,9 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("    references                : ") +
-            "  length =" +
-            Object.keys(_private._referenceIdx).length
+        chalk.yellow("    references                : ") +
+        "  length =" +
+        Object.keys(_private._referenceIdx).length
     );
 
     function dump_reference(follow: boolean, reference: UAReference | null) {
@@ -250,12 +251,12 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
             })();
         options.add(
             options.padding +
-                chalk.yellow("      +-> ") +
-                reference.toString(displayOptions) +
-                " " +
-                chalk.cyan(name.padEnd(25, " ")) +
-                " " +
-                chalk.magentaBright(extra)
+            chalk.yellow("      +-> ") +
+            reference.toString(displayOptions) +
+            " " +
+            chalk.cyan(name.padEnd(25, " ")) +
+            " " +
+            chalk.magentaBright(extra)
         );
 
         // ignore HasTypeDefinition as it has been already handled
@@ -284,10 +285,10 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("    back_references                 : ") +
-            chalk.cyan("  length =") +
-            br.length +
-            chalk.grey(" ( references held by other nodes involving this node)")
+        chalk.yellow("    back_references                 : ") +
+        chalk.cyan("  length =") +
+        br.length +
+        chalk.grey(" ( references held by other nodes involving this node)")
     );
     // backward reference
     br.forEach(dump_reference.bind(null, false));
@@ -297,11 +298,11 @@ function _UAType_toString(this: UAReferenceType | UADataType | UAObjectType | UA
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOf           : ") +
-                this.subtypeOfObj.browseName.toString() +
-                " (" +
-                this.subtypeOfObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          subtypeOf           : ") +
+            this.subtypeOfObj.browseName.toString() +
+            " (" +
+            this.subtypeOfObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -310,11 +311,11 @@ function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: T
     if (this.typeDefinitionObj) {
         options.add(
             options.padding +
-                chalk.yellow("          typeDefinition      : ") +
-                this.typeDefinitionObj.browseName.toString() +
-                " (" +
-                this.typeDefinitionObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          typeDefinition      : ") +
+            this.typeDefinitionObj.browseName.toString() +
+            " (" +
+            this.typeDefinitionObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -421,9 +422,9 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         if (_dataValue) {
             options.add(
                 options.padding +
-                    chalk.yellow("          value               : ") +
-                    "\n" +
-                    options.indent(_dataValue.toString(), options.padding + "                        | ")
+                chalk.yellow("          value               : ") +
+                "\n" +
+                options.indent(_dataValue.toString(), options.padding + "                        | ")
             );
         }
     }
@@ -440,19 +441,19 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     if (this.minimumSamplingInterval !== undefined) {
         options.add(
             options.padding +
-                chalk.yellow(" minimumSamplingInterval      : ") +
-                " " +
-                this.minimumSamplingInterval.toString() +
-                " ms"
+            chalk.yellow(" minimumSamplingInterval      : ") +
+            " " +
+            this.minimumSamplingInterval.toString() +
+            " ms"
         );
     }
     if (this.arrayDimensions) {
         options.add(
             options.padding +
-                chalk.yellow(" arrayDimension               : ") +
-                " [" +
-                this.arrayDimensions.join(",").toString() +
-                " ]"
+            chalk.yellow(" arrayDimension               : ") +
+            " [" +
+            this.arrayDimensions.join(",").toString() +
+            " ]"
         );
     }
 }
@@ -494,11 +495,11 @@ function _clone_collection_new(
             // tslint:disable-next-line:no-console
             warningLog(
                 chalk.red("Warning : cannot clone node ") +
-                    node.browseName.toString() +
-                    " of class " +
-                    NodeClass[node.nodeClass].toString() +
-                    " while cloning " +
-                    newParent.browseName.toString()
+                node.browseName.toString() +
+                " of class " +
+                NodeClass[node.nodeClass].toString() +
+                " while cloning " +
+                newParent.browseName.toString()
             );
             continue;
         }
@@ -535,6 +536,11 @@ function _clone_collection_new(
         extraInfo.level += 4;
         const clone = (node as UAVariable | UAMethod | UAObject).clone(options, optionalFilter, extraInfo);
         extraInfo.level -= 4;
+        doTrace &&
+            traceLog(
+                extraInfo.pad(),
+                "cloning => ", node.browseName.toString(), "nodeId", clone.nodeId.toString()
+            );
 
         // also clone or instantiate interface members that may be required in the optionals
         extraInfo.level++;
@@ -610,7 +616,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     const dedupedInterfaces = [...new Set(interfaces)];
 
-    doTrace &&
+    doTrace && dedupedInterfaces.length &&
         traceLog(
             extraInfo.pad(),
             chalk.yellow("Interface for ", typeDefinitionNode.browseName.toString()),
@@ -693,9 +699,7 @@ function _cloneInterface(
     }
     const interfaces = _extractInterfaces2(typeDefinitionNode, extraInfo);
     if (interfaces.length === 0) {
-        if (doTrace) {
-            traceLog(extraInfo.pad(), chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString()));
-        }
+        doTrace && false && traceLog(extraInfo.pad(), chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString()));
         return;
     }
     doTrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));

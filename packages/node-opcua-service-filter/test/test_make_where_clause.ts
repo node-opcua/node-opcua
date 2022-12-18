@@ -12,7 +12,7 @@ import {
     lessThan,
     greaterThanOrEqual
 } from "../source/make_content_filter";
-import { ElementOperand, FilterOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "../dist";
+import { ElementOperand, FilterOperand, FilterOperator, LiteralOperand, SimpleAttributeOperand } from "..";
 
 describe("make where clause", () => {
     it("should createa  simple OfType clause", () => {

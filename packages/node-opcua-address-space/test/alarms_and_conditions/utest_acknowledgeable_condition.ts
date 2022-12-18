@@ -5,6 +5,7 @@ import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
+
 import { AddressSpace, UAObject } from "../..";
 import { UAAcknowledgeableConditionEx } from "../../dist/source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
 

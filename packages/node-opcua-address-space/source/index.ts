@@ -63,6 +63,7 @@ export * from "./loader/register_node_promoter";
 
 export * from "./namespace";
 export * from "./namespace_data_access";
+export * from "../src/private_namespace";
 
 export { instantiateCertificateExpirationAlarm } from "../src/alarms_and_conditions/ua_certificate_expiration_alarm_impl";
 

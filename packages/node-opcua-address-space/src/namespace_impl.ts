@@ -640,7 +640,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const node = this.internalCreateNode(options) as UADataType;
 
         node.propagate_back_references();
-        
+
         return node;
     }
 
@@ -1659,32 +1659,35 @@ export class NamespaceImpl implements NamespacePrivate {
     public _register(node: BaseNode): void {
         assert(node instanceof BaseNodeImpl, "Expecting a instance of BaseNode in _register");
         assert(node.nodeId instanceof NodeId, "Expecting a NodeId");
+        // istanbul ignore next
         if (node.nodeId.namespace !== this.index) {
             throw new Error("node must belongs to this namespace");
         }
         assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
         assert(Object.prototype.hasOwnProperty.call(node, "browseName"), "Node must have a browseName");
-        // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
         const hashKey = _makeHashKey(node.nodeId);
 
         // istanbul ignore next
         if (this._nodeid_index.has(hashKey)) {
+
+            const exstingNode = this.findNode(node.nodeId)!;
             throw new Error(
                 "node " +
-                    node.browseName.toString() +
-                    "nodeId = " +
-                    node.nodeId.displayText() +
-                    " already registered " +
-                    node.nodeId.toString() +
-                    "\n" +
-                    " in namespace " +
-                    this.namespaceUri +
-                    " index = " +
-                    this.index +
-                    "\n" +
-                    " browseName = " +
-                    node.browseName.toString()
+                node.browseName.toString() +
+                " nodeId = " +
+                node.nodeId.displayText() +
+                " already registered " +
+                node.nodeId.toString() +
+                "\n" +
+                " in namespace " +
+                this.namespaceUri +
+                " index = " +
+                this.index +
+                "\n" +
+                "existing node = " +
+                exstingNode.toString() +
+                "this parent : " + node.parentNodeId?.toString() 
             );
         }
 
@@ -1747,15 +1750,15 @@ export class NamespaceImpl implements NamespacePrivate {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                                indexVerif +
-                                " do not match the index of the current namespace (" +
-                                this.index +
-                                ")"
+                            indexVerif +
+                            " do not match the index of the current namespace (" +
+                            this.index +
+                            ")"
                         )
                     );
                     errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
-                            " please refer to the NodeOPCUA documentation"
+                        " please refer to the NodeOPCUA documentation"
                     );
                 }
             }
