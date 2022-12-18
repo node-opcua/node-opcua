@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client-crawler",
-    "version": "2.86.1",
+    "version": "2.87.0",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "description": "pure nodejs OPCUA SDK - module -client-crawler",
@@ -14,23 +14,23 @@
     "dependencies": {
         "async": "^3.2.4",
         "chalk": "4.1.2",
-        "node-opcua-address-space": "2.86.1",
+        "node-opcua-address-space": "2.87.0",
         "node-opcua-assert": "2.77.0",
-        "node-opcua-client": "2.86.1",
+        "node-opcua-client": "2.87.0",
         "node-opcua-constants": "2.77.0",
         "node-opcua-data-model": "2.86.1",
-        "node-opcua-data-value": "2.86.1",
+        "node-opcua-data-value": "2.87.0",
         "node-opcua-debug": "2.86.0",
         "node-opcua-nodeid": "2.86.0",
         "node-opcua-pki": "^3.0.1",
-        "node-opcua-service-browse": "2.86.1",
+        "node-opcua-service-browse": "2.87.0",
         "node-opcua-status-code": "2.86.1",
-        "node-opcua-types": "2.86.1",
+        "node-opcua-types": "2.87.0",
         "node-opcua-utils": "2.86.0",
         "thenify": "^3.3.1"
     },
     "devDependencies": {
-        "node-opcua-pseudo-session": "2.86.1",
+        "node-opcua-pseudo-session": "2.87.0",
         "should": "^13.2.3",
         "sinon": "^14.0.2"
     },

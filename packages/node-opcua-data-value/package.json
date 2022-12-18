@@ -2,7 +2,7 @@
     "name": "node-opcua-data-value",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.86.1",
+    "version": "2.87.0",
     "description": "pure nodejs OPCUA SDK - module -data-value",
     "scripts": {
         "build": "tsc -b",
@@ -20,7 +20,7 @@
         "node-opcua-enum": "2.86.0",
         "node-opcua-factory": "2.86.1",
         "node-opcua-status-code": "2.86.1",
-        "node-opcua-variant": "2.86.1"
+        "node-opcua-variant": "2.87.0"
     },
     "devDependencies": {
         "node-opcua-debug": "2.86.0",

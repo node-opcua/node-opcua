@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-modeler",
-    "version": "2.86.1",
+    "version": "2.87.0",
     "description": "pure nodejs OPCUA SDK - module - model",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -14,10 +14,10 @@
     "dependencies": {
         "cli-table3": "^0.6.3",
         "csv-parse": "5.3.2",
-        "node-opcua-address-space": "2.86.1",
+        "node-opcua-address-space": "2.87.0",
         "node-opcua-assert": "2.77.0",
         "node-opcua-basic-types": "2.86.1",
-        "node-opcua-client-dynamic-extension-object": "2.86.1",
+        "node-opcua-client-dynamic-extension-object": "2.87.0",
         "node-opcua-constants": "2.77.0",
         "node-opcua-data-model": "2.86.1",
         "node-opcua-debug": "2.86.0",
@@ -25,11 +25,11 @@
         "node-opcua-nodeid": "2.86.0",
         "node-opcua-nodesets": "2.77.0",
         "node-opcua-numeric-range": "2.86.1",
-        "node-opcua-schemas": "2.86.1",
-        "node-opcua-service-translate-browse-path": "2.86.1",
+        "node-opcua-schemas": "2.87.0",
+        "node-opcua-service-translate-browse-path": "2.87.0",
         "node-opcua-status-code": "2.86.1",
-        "node-opcua-types": "2.86.1",
-        "node-opcua-variant": "2.86.1",
+        "node-opcua-types": "2.87.0",
+        "node-opcua-variant": "2.87.0",
         "yargs": "15.4.1"
     },
     "devDependencies": {
