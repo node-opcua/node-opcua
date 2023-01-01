@@ -5,13 +5,12 @@ import {
     UAVariable,
     resolveReferenceNode,
     resolveReferenceType,
-    UAVariableType
+    UAVariableType,
+    UAObject
 } from "node-opcua-address-space";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { UserNameIdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { option } from "yargs";
 import { TableHelper } from "./tableHelper";
 
 const a = "ⓂⓄⓋⓥⓇ❗⟵	⟶⟷";
@@ -87,6 +86,12 @@ function _dumpReferenceVariable(v: UAVariable, value: any, dataType: string): { 
     }
     return { value, dataType };
 }
+
+function getTypeDefinitionAsText(node: BaseNode): string {
+    if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable)
+        return (node as UAVariable | UAObject).typeDefinitionObj.browseName.toString() || "";
+    return "";
+}
 // eslint-disable-next-line complexity
 function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptions) {
     resolveReferenceNode(data.node.addressSpace, ref);
@@ -126,14 +131,14 @@ function dumpReference(data: Data, ref: UAReference, options: DumpReferenceOptio
         dataType = t.dataType;
         // findBasicDataType(v.dataTypeObj);
     }
-
+ 
     const prefix = options.prefix ? options.prefix + "." : "";
     const row = [
         "".padEnd(prefix.length) + refType.browseName.toString() + dir + symbol(refNode.nodeClass),
         refNode.nodeId.toString(),
         encodeXML(prefix + refNode.browseName.toString()),
         modelingRule,
-        (refNode as any).typeDefinitionObj ? (refNode as any).typeDefinitionObj.browseName.toString() : "",
+        getTypeDefinitionAsText(refNode),
         dataType,
         value
     ];
