@@ -6,7 +6,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "generate": "ts-node tools/build.ts && npm run format",
+        "generate:units": "ts-node tools/build.ts && npm run format",
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "test": "mocha",

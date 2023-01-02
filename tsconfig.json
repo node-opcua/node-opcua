@@ -90,6 +90,9 @@
         },
         {
             "path": "packages/node-opcua-nodeset-woodworking"
+        },
+        {
+            "path": "packages/node-opcua-units"
         }
 
     ],    

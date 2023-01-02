@@ -1,8 +1,56 @@
+/* eslint-disable complexity */
 import * as path from "path";
 import * as fs from "fs";
 import { readFile, utils } from "xlsx";
-import { string } from "yargs";
-import { s } from "../../node-opcua/dist";
+
+
+const j = (s: string) => s.replace(/ /gm, "_");
+
+const a = (s: string) => (s ? s.replace("U+00a0", "").replace(" ", " ").replace(/"/gm, "\\\"").replace(/'/gm, "").replace(/\n|\r/gm, " ") : "").trim();
+
+const makeU = (s: string) => {
+    const r = a(s.replace(/ /gm, "_").replace("_[", "[").replace("_(", "(")).replace(/_-_/gm, "-");
+    if (/,_/.test(r)) {
+        return r.replace(/,_/, "(") + ")";
+    }
+    return r;
+}
+
+interface EntryAnnexeII_III {
+    Name: string;
+    "Common\r\nCode": string;
+    "Description": string;
+    "Level /\r\r\nCategory": string;
+    Symbol: string;
+    "Conversion Factor": string;
+    Status: string;
+}
+
+interface Entry {
+    Sector: string;
+    Quantity: string;
+    Name: string;
+    Symbol: string;
+    'Group Number': string;
+    'Group ID': string;
+    "Level/ Category": string;
+    "Common Code": string;
+    "Conversion Factor": string;
+    "Description"?: string;
+}
+function makeDescription(u: Entry | EntryAnnexeII_III) {
+    const cf = u["Conversion Factor"] || "";
+    const name = a(u.Name);
+    const desc = a(u.Description || "");
+    let str = name;
+    if (desc) {
+        str += " - " + desc;
+    }
+    if (cf) {
+        str += ` (${cf})`;
+    }
+    return str;
+}
 
 // eslint-disable-next-line max-statements
 async function main() {
@@ -10,66 +58,32 @@ async function main() {
     // Reading our test file
     const file = readFile(path.join(__dirname, './rec20_Rev17e-2021.xlsx'));
 
-    const data: any[] = [];
-
-    const sheets = file.SheetNames
-
-    interface Entry {
-        Sector: string;
-        Quantity: string;
-        Name: string;
-        Symbol: string;
-        'Group Number': string;
-        'Group ID': string;
-        "Level/ Category": string;
-        "Common Code": string;
-        "Conversion Factor": string;
-        "Description"?: string;
-    }
     const annex1 = utils.sheet_to_json(file.Sheets[file.SheetNames[1]]) as Entry[];
-    const annex2_3 = utils.sheet_to_json(file.Sheets[file.SheetNames[3]]) as Entry[];
-
-
-    const sectors = [... new Set(annex1.map((x) => x.Sector + "/" + x.Quantity))];
+    const annex2_3 = utils.sheet_to_json(file.Sheets[file.SheetNames[2]]) as EntryAnnexeII_III[];
 
     type Unit = Record<string, Entry>;
     type Sector = Record<string, Unit>;
     const units: Record<string, Sector> = {};
-    for (const e of annex1) {
+    const quantityTitles: Record<string, string> = {};
 
+    // also add Level 3 untis that are not marked with X or D ( Deleted) from annexe II and III
+    const uncategorizedUnits = annex2_3.filter((x) => !x.Status && x["Level /\r\r\nCategory"][0] === "3").sort((a, b) => a.Name > b.Name ? 1 : -1)
+
+    for (const e of annex1) {
         units[e.Sector] = units[e.Sector] || {};
+
         const sector = units[e.Sector];
-        sector[e.Quantity] = sector[e.Quantity] || {};
-        const q = sector[e.Quantity];
+
+        const quantity = a((e.Quantity || "generic").split(",")[0].replace(/\(.*\)/gm, ""));
+
+        sector[quantity] = sector[quantity] || {};
+        quantityTitles[quantity] = a(e.Quantity);
+
+        const q = sector[quantity];
         q[e.Name] = e;
     }
     const str: string[] = [];
     const w = (s: string) => str.push(s);
-
-    const a = (s: string) => s ? s.replace("U+00a0", "").replace(/"/gm, "\\\"").replace(/'/gm, "").replace(/\n|\r/gm, " ") : "";
-
-    // {
-    //     w("// Automatically generated file, do not modify");
-    //     w(`import { EUInformation } from "node-opcua-types";`);
-    //     w(`export interface CategorizedUnits { `);
-    //     for (const [keyS, sector] of Object.entries(units)) {
-    //         w(` '${a(keyS)}': {`);
-    //         for (const [keyQ, q] of Object.entries(sector)) {
-
-    //             w(`   '${a(keyQ)}': {`);
-    //             for (const [keyU, u] of Object.entries(q)) {
-    //                 w(`       '${a(keyU.replace(/ /gm, "_"))}': EUInformation; `);
-    //             }
-    //             w(`    },`);
-    //         }
-    //         w(`  },`);
-    //     }
-    //     w(`}`);
-
-    //     const content = str.join("\n");
-    //     fs.promises.writeFile(path.join(__dirname, "../source/_generated_i_units.ts"), content);
-    //     str.splice(0);
-    // }
 
     {
         w("// Automatically generated file, do not modify");
@@ -79,21 +93,34 @@ async function main() {
             w(' /**');
             w(`  * ${keyS}`);
             w('  */');
-            w(` '${a(keyS)}': {`);
+            const shortKeyS = j(keyS.split(",")[0]);
+            w(` '${a(shortKeyS)}': {`);
             for (const [keyQ, q] of Object.entries(sector)) {
                 w('   /**');
-                w(`    * ${keyQ}`);
+                w(`    * ${quantityTitles[keyQ]}`);
                 w('    */');
-                w(`   '${a(keyQ)}': {`);
+                w(`   '${a(j(keyQ))}': {`);
                 for (const [keyU, u] of Object.entries(q)) {
-                    const cf = u["Conversion Factor"] || "";
                     const code = u["Common Code"];
-                    w(`       '${a(keyU.replace(/ /gm, "_"))}': makeEUInformation("${code}","${a(u.Symbol)}","${a(u.Name)} - ${(a(u.Description ? u.Description + " " : "") + cf)}"),`);
+                    const unit = makeU(keyU);
+                    const description = makeDescription(u);
+                    w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
 
                 }
                 w(`    },`);
             }
             w(`  },`);
+        }
+        w(' /**');
+        w(`  * Level 3 Units ( uncategorized)`);
+        w('  */');
+        for (const u of uncategorizedUnits) {
+            const code = u["Common\r\nCode"];
+            const keyU = u.Name;
+            const unit = makeU(keyU);
+            const cf = u["Conversion Factor"] || "";
+            const description = makeDescription(u);
+            w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
         }
         w(`}`);
 
@@ -115,11 +142,26 @@ async function main() {
         w(`import { makeEUInformation }  from "node-opcua-data-access";`);
         w(`export const allUnits  =  { `);
         for (const [keyU, u] of Object.entries(units).sort(([a], [b]) => a > b ? 1 : (a < b) ? -1 : 0)) {
-            const cf = u["Conversion Factor"] || "";
             const code = u["Common Code"];
-            w(`       '${a(keyU.replace(/ /gm, "_"))}': makeEUInformation("${code}","${a(u.Symbol)}","${a(u.Name)} - ${(a(u.Description ? u.Description + " " : "") + cf)}"),`);
+            const unit = makeU(keyU);
+            const cf = u["Conversion Factor"] || "";
+            const description = makeDescription(u);
+            w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
+        }
+
+        w("// Some other useful (non-SI) units");
+        for (const u of uncategorizedUnits) {
+            const keyU = u.Name;
+            // there is a conflict with this unit denier tthat we intentionaly ignore here
+            if (keyU === "denier") continue;
+            const code = u["Common\r\nCode"];
+            const unit = makeU(keyU);            
+            const cf = u["Conversion Factor"] || "";
+            const description = makeDescription(u);
+            w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);
         }
         w(`}`);
+
 
         const content = str.join("\n");
         fs.promises.writeFile(path.join(__dirname, "../source/_generated_all_units.ts"), content);
@@ -131,3 +173,5 @@ async function main() {
     }
 }
 main();
+
+
