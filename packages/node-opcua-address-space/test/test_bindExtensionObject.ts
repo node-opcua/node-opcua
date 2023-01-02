@@ -103,6 +103,19 @@ describe("Extension Object binding and sub  components\n", () => {
             extensionObjectVar.readValue().value.value.length.should.eql(2);
             extensionObjectVar.readValue().value.value[0].constructor.name.should.eql("ServiceCounterDataType");
             extensionObjectVar.readValue().value.value[1].constructor.name.should.eql("ServiceCounterDataType");
+
+            // to do 
+            const el1 = extensionObjectVar.getComponentByName("0") as UAVariable;
+            const dataValueEl1 = el1.readValue();
+            dataValueEl1.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValueEl1.value.arrayType.should.eql(VariantArrayType.Scalar);
+            dataValueEl1.value.value.constructor.name.should.eql("ServiceCounterDataType");
+
+            const el2 = extensionObjectVar.getComponentByName("1") as UAVariable;
+            const dataValueEl2 = el2.readValue();
+            dataValueEl2.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValueEl2.value.arrayType.should.eql(VariantArrayType.Scalar);
+            dataValueEl2.value.value.constructor.name.should.eql("ServiceCounterDataType");
         });
 
         it("BEO1 - should handle a Variable containing a ServiceCounterDataType", () => {
@@ -412,7 +425,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA3- updateExtensionObjectPartial: it should be possible to cascade changes " +
-                "by acting on the whole ExtensionObject",
+            "by acting on the whole ExtensionObject",
             () => {
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
@@ -445,7 +458,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA4- updateExtensionObjectPartial: it should be possible to cascade changes " +
-                "by acting on the whole ExtensionObject - middle",
+            "by acting on the whole ExtensionObject - middle",
             () => {
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
@@ -476,7 +489,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA5- incrementExtensionObjectPartial: it should be possible to cascade changes " +
-                "by increasing a value on ExtensionObject",
+            "by increasing a value on ExtensionObject",
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
@@ -509,7 +522,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA6- changing property values in extension object directly should propagates changes and notification " +
-                "to NodeVariables",
+            "to NodeVariables",
             () => {
                 _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
 
@@ -522,7 +535,7 @@ describe("Extension Object binding and sub  components\n", () => {
 });
 
 // tslint:disable-next-line: no-empty-interface
-interface UAMeasIdDataType extends UAVariable {}
+interface UAMeasIdDataType extends UAVariable { }
 // tslint:disable-next-line: no-empty-interface
 interface UAPartIdDataType extends UAVariable {
     id: UAVariableT<string, DataType.String>;
