@@ -145,7 +145,7 @@ export interface StandardUnits {
     watt: EUInformation;
 }
 
-// http://www.unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex2e.pdf
+// https://unece.org/sites/default/files/2021-06/rec20_Rev17e-2021.xlsx
 export const standardUnits: StandardUnits = {
     // pressure
     bar: makeEUInformation("BAR", "bar", "bar [unit of pressure] = 1E5 Pa"),
