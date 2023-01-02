@@ -346,12 +346,12 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     ): ExtensionObject | ExtensionObject[] | null;
 
     bindExtensionObjectScalar(
-        optionalExtensionObject: ExtensionObject,
+        optionalExtensionObject?: ExtensionObject,
         options?: BindExtensionObjectOptions
     ): ExtensionObject | null;
 
     bindExtensionObjectArray(
-        optionalExtensionObjectArray: ExtensionObject[],
+        optionalExtensionObjectArray?: ExtensionObject[],
         options?: BindExtensionObjectOptions
     ): ExtensionObject[] | null;
 

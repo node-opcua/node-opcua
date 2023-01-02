@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 // tslint:disable:no-bitwise
 // =====================================================================================================================
 // the purpose of this test is to check the ability to create a extension object from it's node
@@ -20,7 +21,7 @@ import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { StatusCodes } from "node-opcua-status-code";
 import { ServerState } from "node-opcua-types";
-import { AccessLevelFlag, NodeClass, makeAccessLevelFlag } from "node-opcua-data-model";
+import { AccessLevelFlag, NodeClass, makeAccessLevelFlag, accessLevelFlagToString } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
@@ -215,6 +216,8 @@ describe("testing address space namespace loading", function (this: any) {
         serverStatus.startTime.readValue().value.dataType.should.eql(DataType.DateTime);
         serverStatus.readValue().value.dataType.should.eql(DataType.ExtensionObject);
 
+        accessLevelFlagToString( serverStatus.accessLevel).should.eql("CurrentRead");
+        
         // Xx value.startTime.should.eql(DataType.Null);
         // xx debugLog("serverStatus.startTime =",serverStatus.startTime.readValue().value.toString());
 
@@ -259,10 +262,26 @@ describe("testing address space namespace loading", function (this: any) {
         serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName2");
         serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName2");
 
+        accessLevelFlagToString( serverStatus.buildInfo.productName.accessLevel).should.eql("CurrentRead");
+        const writeValue0 = new WriteValue({
+            attributeId: AttributeIds.Value, // value
+            value: {
+                statusCode: StatusCodes.Good,
+                value: {
+                    dataType: DataType.String,
+                    value: "productName3"
+                }
+            }
+        });
+        const statusCode0 = await serverStatus.buildInfo.productName.writeAttribute(null, writeValue0);
+        statusCode0.should.eql(StatusCodes.BadNotWritable);
+
+
         // now use WriteValue instead
         // make sure value is writable
         const rw = makeAccessLevelFlag("CurrentRead | CurrentWrite");
         assert(rw === (AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite));
+
         serverStatus.buildInfo.productName.accessLevel = rw;
         serverStatus.buildInfo.productName.userAccessLevel = rw;
 
@@ -282,11 +301,12 @@ describe("testing address space namespace loading", function (this: any) {
                 }
             }
         });
+        accessLevelFlagToString( serverStatus.buildInfo.productName.accessLevel).should.eql("CurrentRead | CurrentWrite");
         const statusCode = await serverStatus.buildInfo.productName.writeAttribute(null, writeValue);
-        statusCode.should.eql(StatusCodes.BadNotWritable);
+        statusCode.should.eql(StatusCodes.Good);
 
-        serverStatus.buildInfo.productName.readValue().value.value!.should.not.eql("productName3");
-        serverStatus.readValue().value.value.buildInfo.productName!.should.not.eql("productName3");
+        serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName3");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName3");
     });
 
     it("should instantiate SessionDiagnostics in a linear time", () => {

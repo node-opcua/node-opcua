@@ -216,7 +216,7 @@ describe("Extension Object Array Node (or Complex Variable)", () => {
             subscriptionId: 1123455
         });
 
-        const browseName = arrA.$$getElementBrowseName(extObj);
+        const browseName = arrA.$$getElementBrowseName(extObj, 0);
 
         const item1 = subscriptionDiagnosticsType.instantiate({
             browseName,
