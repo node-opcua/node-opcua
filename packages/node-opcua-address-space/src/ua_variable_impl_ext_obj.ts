@@ -2,7 +2,7 @@ import * as chalk from "chalk";
 import assert from "node-opcua-assert";
 import { BindExtensionObjectOptions, UADataType, UADynamicVariableArray, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { coerceQualifiedName, NodeClass } from "node-opcua-data-model";
-import { getCurrentClock, PreciseClock, DateWithPicoseconds } from "node-opcua-date-time";
+import { getCurrentClock, PreciseClock, DateWithPicoseconds, coerceClock } from "node-opcua-date-time";
 import { DataValue } from "node-opcua-data-value";
 import { make_debugLog, make_warningLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -17,6 +17,7 @@ import { UAVariableImpl } from "./ua_variable_impl";
 import { UADataTypeImpl } from "./ua_data_type_impl";
 import { bindExtObjArrayNode } from "./extension_object_array_node";
 import { IndexIterator } from "./idx_iterator";
+import { DateTime } from "node-opcua-basic-types";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -269,7 +270,7 @@ export function _installExtensionObjectBindingOnProperties(
 
     if (!variableNode.$extensionObject) {
         _initial_setup(variableNode);
-        return; 
+        return;
     }
     const addressSpace = variableNode.addressSpace;
     const dt = variableNode.getDataTypeNode();
@@ -469,6 +470,10 @@ export function _bindExtensionObject(
     return self.$extensionObject;
 
     function innerBindExtensionObject() {
+        const makePreciseClock = (sourceTimestamp: DateTime, picoseconds?: number): PreciseClock =>
+            ({ timestamp: sourceTimestamp as DateWithPicoseconds, picoseconds: picoseconds || 0 });
+
+
         if (s.value && (s.value.dataType === DataType.Null || (s.value.dataType === DataType.ExtensionObject && !s.value.value))) {
             if (self.valueRank === -1 /** Scalar */) {
                 // create a structure and bind it
@@ -486,14 +491,15 @@ export function _bindExtensionObject(
                             if (!self.checkExtensionObjectIsCorrect(ext)) {
                                 return callback(null, StatusCodes.BadInvalidArgument);
                             }
-                            _setExtensionObject(self, ext);
+                            const sourceTime = coerceClock(dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
+                            _setExtensionObject(self, ext, sourceTime);
                             callback(null, StatusCodes.Good);
                         }
                     },
                     true
                 );
-                const currentTime: PreciseClock = { timestamp: self.$dataValue.sourceTimestamp! as DateWithPicoseconds, picoseconds: self.$dataValue.sourcePicoseconds || 0 };
-                _setExtensionObject(self, extensionObject_, currentTime);
+                const sourceTime = coerceClock(self.$dataValue.sourceTimestamp, self.$dataValue.sourcePicoseconds);
+                _setExtensionObject(self, extensionObject_, sourceTime);
 
             } else if (self.valueRank === 1 /** Array */) {
                 // create a structure and bind it
@@ -511,17 +517,19 @@ export function _bindExtensionObject(
                             return d;
                         },
                         timestamped_set(dataValue: DataValue, callback: CallbackT<StatusCode>) {
-                            const ext = dataValue.value.value;
-                            if (!self.checkExtensionObjectIsCorrect(ext)) {
+                            const extensionObjectArray = dataValue.value.value;
+                            if (!self.checkExtensionObjectIsCorrect(extensionObjectArray)) {
                                 return callback(null, StatusCodes.BadInvalidArgument);
                             }
-                            _setExtensionObject(self, ext);
+                            const sourceTime = coerceClock(dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
+                            _setExtensionObject(self, extensionObjectArray, sourceTime);
                             callback(null, StatusCodes.Good);
                         }
                     },
                     true
                 );
-                _setExtensionObject(self, extensionObject_);
+                const sourceTime = coerceClock(self.$dataValue.sourceTimestamp, self.$dataValue.sourcePicoseconds);
+                _setExtensionObject(self, extensionObject_, sourceTime);
             } else {
                 errorLog(self.toString());
                 errorLog("Unsupported case ! valueRank= ", self.valueRank);
@@ -616,8 +624,8 @@ export function _bindExtensionObjectMatrix(
             nodeId,
             componentOf: uaVariable,
             dataType: uaVariable.dataType,
-            valueRank: -1, 
-            accessLevel:uaVariable.userAccessLevel
+            valueRank: -1,
+            accessLevel: uaVariable.userAccessLevel
         });
         {
             const capturedIndex = i;

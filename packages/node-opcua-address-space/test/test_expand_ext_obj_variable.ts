@@ -94,8 +94,9 @@ describe("Extending extension object variables", function () {
         const session = new PseudoSession(addressSpace);
         const statusCode1 = await session.write({
             nodeId: uaZ.nodeId,
-            value: { value: { dataType: DataType.Double, value: 33 } },
-            attributeId: AttributeIds.Value
+            value: { value: { dataType: DataType.Double, value: 33 }, sourceTimestamp: new Date(Date.UTC(2022, 0, 2, 0, 0, 0)) },
+            attributeId: AttributeIds.Value,
+
         });
 
         statusCode1.should.eql(StatusCodes.Good);
@@ -109,7 +110,7 @@ describe("Extending extension object variables", function () {
 
         const statusCode2 = await session.write({
             nodeId: v.nodeId,
-            value: { value: { dataType: DataType.ExtensionObject, value: p2.clone() } },
+            value: { value: { dataType: DataType.ExtensionObject, value: p2.clone() }, sourceTimestamp: new Date(Date.UTC(2022, 0, 3, 0, 0, 0)) },
             attributeId: AttributeIds.Value
         });
         statusCode2.should.eql(StatusCodes.Good);
@@ -280,7 +281,7 @@ describe("Extending extension object variables", function () {
             const session = new PseudoSession(addressSpace);
             const statusCode1 = await session.write({
                 nodeId: el11.getComponentByName("X")!.nodeId,
-                value: { value: { dataType: DataType.Double, value: 33 } },
+                value: { value: { dataType: DataType.Double, value: 33 }, sourceTimestamp: new Date(Date.UTC(2022, 0, 3, 0, 0, 0)) },
                 attributeId: AttributeIds.Value
             });
 
@@ -301,7 +302,7 @@ describe("Extending extension object variables", function () {
             const session = new PseudoSession(addressSpace);
             const statusCode1 = await session.write({
                 nodeId: el11.nodeId,
-                value: { value: { value: p4.clone(), dataType: DataType.ExtensionObject } },
+                value: { value: { value: p4.clone(), dataType: DataType.ExtensionObject }, sourceTimestamp: new Date(Date.UTC(2022, 0, 4, 0, 0, 0)) },
                 attributeId: AttributeIds.Value
             });
 
