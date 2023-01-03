@@ -16,11 +16,11 @@
         "node-opcua-utils": "2.86.0"
     },
     "devDependencies": {
-        "bignumber.js": "^9.1.0",
+        "bignumber.js": "^9.1.1",
         "node-opcua-benchmarker": "2.86.0",
         "node-opcua-debug": "2.86.0",
         "should": "^13.2.3",
-        "sinon": "^14.0.2"
+        "sinon": "^15.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
