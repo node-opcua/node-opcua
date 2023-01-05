@@ -42,13 +42,19 @@ const port = parseInt(argv.port) || 26555;
 
         const myDevices = namespace.addFolder(rootFolder.objects, { browseName: "MyDevices" });
 
+        let value = 1000;
         const variable0 = namespace.addVariable({
             organizedBy: myDevices,
             browseName: "Counter",
             nodeId: "ns=1;s=MyCounter",
             dataType: "Int32",
-            value: new Variant({ dataType: DataType.Int32, value: 1000.0 })
+            value: new Variant({ dataType: DataType.Int32, value })
         });
+        const timerId = setInterval(() => {
+            value = (value + 1) % 100000;
+            variable0.setValueFromSource({ dataType: DataType.Int32, value })
+        }, 100);
+        addressSpace.registerShutdownTask(()=> clearInterval(timerId));
 
         await server.start();
         const endpointUrl = server.getEndpointUrl();
