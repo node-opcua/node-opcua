@@ -35,7 +35,7 @@
         "node-opcua-hostname": "2.88.0",
         "node-opcua-nodeid": "2.88.0",
         "node-opcua-object-registry": "2.88.0",
-        "node-opcua-pki": "^3.0.1",
+        "node-opcua-pki": "^3.0.2",
         "node-opcua-pseudo-session": "2.88.0",
         "node-opcua-schemas": "2.88.0",
         "node-opcua-secure-channel": "2.88.0",

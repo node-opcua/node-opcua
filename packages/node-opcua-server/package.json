@@ -64,7 +64,7 @@
     "devDependencies": {
         "node-opcua-data-access": "2.88.0",
         "node-opcua-leak-detector": "2.88.0",
-        "node-opcua-pki": "^3.0.1",
+        "node-opcua-pki": "^3.0.2",
         "node-opcua-test-helpers": "2.88.0",
         "should": "^13.2.3",
         "sinon": "^15.0.1",

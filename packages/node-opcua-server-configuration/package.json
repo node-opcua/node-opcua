@@ -12,7 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "chalk": "4.1.2",
-        "memfs": "^3.4.12",
+        "memfs": "^3.4.13",
         "node-opcua-address-space": "2.88.0",
         "node-opcua-address-space-base": "2.88.0",
         "node-opcua-assert": "2.88.0",
@@ -28,7 +28,7 @@
         "node-opcua-file-transfer": "2.88.0",
         "node-opcua-hostname": "2.88.0",
         "node-opcua-nodeid": "2.88.0",
-        "node-opcua-pki": "^3.0.1",
+        "node-opcua-pki": "^3.0.2",
         "node-opcua-pseudo-session": "2.88.0",
         "node-opcua-secure-channel": "2.88.0",
         "node-opcua-server": "2.88.0",
