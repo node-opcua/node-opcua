@@ -11,7 +11,9 @@ async function main() {
         await client.disconnect();
     }
     catch (err) {
-        console.log(err.message);
+        if (err instanceof Error) {
+            console.log(err.message);
+        }
         process.exit(0);
     }
 }
