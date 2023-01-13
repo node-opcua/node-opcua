@@ -52,12 +52,6 @@ const theWatchDog = new WatchDog();
 
 const registeredNodeNameSpace = 9999;
 
-function compareSessionId(
-    sessionDiagnostics1: SessionDiagnosticsDataType | SessionSecurityDiagnosticsDataType,
-    sessionDiagnostics2: SessionDiagnosticsDataType | SessionSecurityDiagnosticsDataType
-) {
-    return sessionDiagnostics1.sessionId.toString() === sessionDiagnostics2.sessionId.toString();
-}
 
 function on_channel_abort(this: ServerSession) {
     debugLog("ON CHANNEL ABORT ON  SESSION!!!");
@@ -609,7 +603,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
             // subscription.id,"on session", session.nodeId.toString());
-            removeElement(subscriptionDiagnosticsArray, (a: SubscriptionDiagnosticsDataType) => a.subscriptionId === subscription.id);
+            removeElement(subscriptionDiagnosticsArray, (a) => a.subscriptionId === subscription.id);
         }
         debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
     }
