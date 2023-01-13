@@ -1,9 +1,9 @@
-import { AttributeIds, coerceNodeId, OPCUAClient } from "../packages/node-opcua";
+import { AttributeIds, coerceNodeId, OPCUAClient, TimestampsToReturn } from "../packages/node-opcua";
 const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
 async function main0() {
     const client = OPCUAClient.create({ applicationName: "MyClientApp" });
     // async version
-    await client.withSession(endpointUrl, async (session) => {
+    await client.withSessionAsync(endpointUrl, async (session) => {
         const dataValue = await session.read({
             attributeId: AttributeIds.BrowseName,
             nodeId: "i=84",
@@ -41,7 +41,7 @@ async function main3() {
         console.log("Error = ", err);
     }
 }
-main();
+main0();
 async function main2() {
     try {
         const client = OPCUAClient.create({ clientName: "DemoClient" });
@@ -61,7 +61,7 @@ async function main2() {
                 queueSize: 10000,
                 discardOldest: true
             };
-            const monitoredItem = await subscription.monitor(itemToMonitor, requestedParameters);
+            const monitoredItem = await subscription.monitor(itemToMonitor, requestedParameters, TimestampsToReturn.Both);
             monitoredItem.on("changed", (dataValue) => console.log("Temperature ", dataValue.value.value));
             monitoredItem.on("err", (err) => console.log(err));
             await new Promise((resolve) => setTimeout(resolve, 5000));
