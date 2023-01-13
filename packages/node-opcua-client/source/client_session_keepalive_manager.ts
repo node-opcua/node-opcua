@@ -103,7 +103,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         if (!this.timerId) {
             return 0; // keep-alive has been canceled ....
         }
-        const now = Date.now(); // getCurrentClock().timestamp.getTime();
+        const now = Date.now(); 
 
         const timeSinceLastServerContact = now - session.lastResponseReceivedTime.getTime();
         if (timeSinceLastServerContact < this.pingTimeout) {

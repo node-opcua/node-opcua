@@ -844,6 +844,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         //        which are two different nonce, with different size (although they share the same name )
         this.clientNonce = crypto.randomBytes(32);
 
+        // recycle session name if already exists
+        const sessionName =  session.name 
+
         const request = new CreateSessionRequest({
             clientCertificate: this.getCertificate(),
             clientDescription: applicationDescription,
@@ -852,7 +855,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             maxResponseMessageSize: 800000,
             requestedSessionTimeout: this.requestedSessionTimeout,
             serverUri: this.serverUri,
-            sessionName: this._nextSessionName()
+            sessionName,
         });
 
         // a client Nonce must be provided if security mode is set
@@ -897,7 +900,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
             // todo: verify SignedSoftwareCertificates and  response.serverSignature
 
-            session = session || new ClientSessionImpl(this);
             session.name = request.sessionName || "";
             session.sessionId = response.sessionId;
             session.authenticationToken = response.authenticationToken;
@@ -1166,6 +1168,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.endpointUrl = this._secureChannel!.endpointUrl;
 
         const session = new ClientSessionImpl(this);
+        session.name = this._nextSessionName();
         this.__createSession_step2(session, callback);
     }
 

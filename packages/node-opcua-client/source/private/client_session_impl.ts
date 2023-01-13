@@ -2010,7 +2010,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
         this._keepAliveManager.start();
     }
-
+    
     public stopKeepAliveManager(): void {
         if (this._keepAliveManager) {
             this._keepAliveManager.stop();
