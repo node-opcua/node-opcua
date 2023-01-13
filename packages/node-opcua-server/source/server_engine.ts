@@ -2091,7 +2091,7 @@ export class ServerEngine extends EventEmitter {
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
         if (subscriptionDiagnostics && serverSubscriptionDiagnosticsArray) {
             const node = (serverSubscriptionDiagnosticsArray as any)[subscription.id];
-            removeElement(serverSubscriptionDiagnosticsArray, subscriptionDiagnostics);
+            removeElement(serverSubscriptionDiagnosticsArray, (a)=> a.subscriptionId === subscription.id);
             /*assert(
                 !(subscriptionDiagnosticsArray as any)[subscription.id],
                 " subscription node must have been removed from subscriptionDiagnosticsArray"
