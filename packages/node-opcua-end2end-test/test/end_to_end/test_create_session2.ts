@@ -4,14 +4,13 @@
 import { OPCUAServer, RegisterServerMethod } from "node-opcua-server";
 import { OPCUAClient } from "node-opcua-client";
 import * as should from "should";
-import { until } from "async";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const sleep = async (delay: number) => await new Promise((resolve) => setTimeout(resolve, delay));
 
 const port = 1304;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns BadTooManySession", () => {
     let server: OPCUAServer;
 
@@ -34,7 +33,10 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
         return server;
     }
 
-    [createServerWithMaxAllowSessionOld, createServerWithMaxAllowSessionNew].forEach((createServerWithMaxAllowSession, index) => {
+    [
+        createServerWithMaxAllowSessionOld, 
+        createServerWithMaxAllowSessionNew
+        ].forEach((createServerWithMaxAllowSession, index) => {
         const n = 3;
         describe(" " + createServerWithMaxAllowSession.name, function () {
             before(async () => {
@@ -47,9 +49,11 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
             });
 
             it(`NOS-${index * n + 1} - OPCUAClient.createSession - should retry to connect a session`, async () => {
+                
                 // Given client1 connected to the server ( which has one allowed session)
                 const client1 = OPCUAClient.create({});
                 await client1.connect(server.getEndpointUrl());
+
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();
 
@@ -72,6 +76,7 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
                     await session1.close();
                     await client1.disconnect();
                 }
+                
                 // Then the server returns BadTooManySession
                 // ahd createSession should fail with an expection
                 should.exist(_err);

@@ -13,6 +13,7 @@ import { VariantArrayType } from "node-opcua-variant";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { UADataType, UADynamicVariableArray, UAObject, UAReferenceType, UAVariable } from "node-opcua-address-space-base";
 import { UAVariableImpl } from "./ua_variable_impl";
+import { getProxyTarget } from "./ua_variable_impl_ext_obj";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -243,7 +244,6 @@ export function addElement<T extends ExtensionObject>(
             value: { dataType: DataType.ExtensionObject, value: extensionObject }
         }) as UAVariableImpl;
         elVar.bindExtensionObject(extensionObject, { force: true });
-        elVar.$extensionObject = extensionObject;
     }
 
     // also add the value inside
@@ -257,7 +257,7 @@ export function addElement<T extends ExtensionObject>(
  */
 export function removeElement<T extends ExtensionObject>(
     uaArrayVariableNode: UADynamicVariableArray<T>,
-    element: any /* number | UAVariable | (a any) => boolean | ExtensionObject */
+    element: number | UAVariable | ((a: T) => boolean)
 ): void {
     assert(element, "removeElement: element must exist");
     const _array = uaArrayVariableNode.$$extensionObjectArray;
@@ -266,13 +266,14 @@ export function removeElement<T extends ExtensionObject>(
     if (_array.length === 0) {
         throw new Error(" cannot remove an element from an empty array ");
     }
-
     let elementIndex = -1;
-
     if (typeof element === "number") {
         // find element by index
         elementIndex = element;
         assert(elementIndex >= 0 && elementIndex < _array.length);
+    } else if (typeof element === "function") {
+        // find element by functor
+        elementIndex = _array.findIndex(element);
     } else if (element && element.nodeClass) {
         // find element by name
         const browseNameToFind = element.browseName.name!.toString();
@@ -280,13 +281,13 @@ export function removeElement<T extends ExtensionObject>(
             const browseName = uaArrayVariableNode.$$getElementBrowseName(obj, elementIndex).toString();
             return browseName === browseNameToFind;
         });
-    } else if (typeof element === "function") {
-        // find element by functor
-        elementIndex = _array.findIndex(element);
     } else {
-        // find element by inner extension object
-        assert(_array[0].constructor.name === (element as any).constructor.name, "element must match");
-        elementIndex = _array.findIndex((x: any) => x === element);
+        throw new Error("Unsupported anymore!!! please use a functor instead");
+        // // find element by inner extension object
+        // assert(_array[0].constructor.name === (element as any).constructor.name, "element must match");
+        // // let unproxyfy
+        // const elementTarget = getProxyTarget(element);
+        // elementIndex = _array.findIndex((x: any) => getProxyTarget(x) === elementTarget);
     }
 
     // istanbul ignore next

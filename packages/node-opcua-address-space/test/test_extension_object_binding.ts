@@ -136,5 +136,15 @@ describe("testing extension object binding", function () {
         changeSpyActPos.callCount.should.eql(1);
         changeSpyCmdPos.callCount.should.eql(1);
         changeSpyRemDist.callCount.should.eql(1);
+
+        // now change posTcpBcsX again
+        const actPos1 = posTcpBcsX.getComponentByName("ActPos")! as UAVariable;
+        actPos1.setValueFromSource({dataType: DataType.Double, value: 88888});
+        posTcpBcsX.readValue().value.value.actPos.should.eql(88888);
+        posTcpBcsX.readValue().value.value.cmdPos.should.eql(89);
+        posTcpBcsX.readValue().value.value.remDist.should.eql(87);
+
+
     });
+    
 });

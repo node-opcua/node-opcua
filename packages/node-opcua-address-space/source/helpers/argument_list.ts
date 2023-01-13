@@ -62,7 +62,7 @@ export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStr
     if (!Array.isArray(definition)) {
         throw new Error(
             "This BaseDataType cannot be decoded because it has no definition.\n" +
-                "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
+            "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
         );
     }
 
@@ -104,9 +104,8 @@ export function getMethodDeclaration_ArgumentList(
     const obj = addressSpace.findNode(objectId) as UAObject;
     if (!obj) {
         // istanbul ignore next
-        if (doDebug) {
-            debugLog("cannot find node ", objectId.toString());
-        }
+        doDebug && debugLog("cannot find node ", objectId.toString());
+
         return { statusCode: StatusCodes.BadNodeIdUnknown };
     }
     let objectMethod = obj.getMethodById(methodId) as UAMethod;
@@ -194,16 +193,17 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 
     // istanbul ignore next
     if (!argDataType) {
-        debugLog(" cannot find dataType ", arg.dataType, resolveNodeId(arg.dataType));
-        debugLog(" arg = ", arg.toString());
-        debugLog(" def =", argDefinition.toString());
+        
+        doDebug && debugLog(" cannot find dataType ", arg.dataType, resolveNodeId(arg.dataType));
+        doDebug && debugLog(" arg = ", arg.toString());
+        doDebug && debugLog(" def =", argDefinition.toString());
         return false;
     }
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog(" checking argDefDataType ", argDefDataType.toString());
-        debugLog(" checking argDataType ", argDataType.toString());
+        doDebug && debugLog(" checking argDefDataType ", argDefDataType.toString());
+        doDebug && debugLog(" checking argDataType ", argDataType.toString());
     }
 
     if (argDataType.nodeId.value === argDefDataType!.nodeId.value) {
@@ -219,7 +219,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
         // like argDefDataType BaseDataType and argDataType any Type
         return true;
     }
-    
+
     // special case for Enumeration
     if (arg.dataType === DataType.Int32) {
         const enumDataType = addressSpace.findDataType(coerceNodeId(DataTypeIds.Enumeration))!;
@@ -258,33 +258,33 @@ export function verifyArguments_ArgumentList(
 
     if (methodInputArguments.length > inputArguments.length) {
         // istanbul ignore next
-        if (doDebug) {
+        doDebug &&
             debugLog(
                 "verifyArguments_ArgumentList " +
-                    "\n       The client did  specify too many input arguments for the method.  " +
-                    "\n        expected : " +
-                    methodInputArguments.length +
-                    "" +
-                    "\n        actual   : " +
-                    inputArguments.length
+                "\n       The client did  specify too many input arguments for the method.  " +
+                "\n        expected : " +
+                methodInputArguments.length +
+                "" +
+                "\n        actual   : " +
+                inputArguments.length
             );
-        }
+
         return { inputArgumentResults, statusCode: StatusCodes.BadArgumentsMissing };
     }
 
     if (methodInputArguments.length < inputArguments.length) {
         // istanbul ignore next
-        if (doDebug) {
+        doDebug &&
             debugLog(
                 " verifyArguments_ArgumentList " +
-                    "\n        The client did not specify all of the input arguments for the method. " +
-                    "\n        expected : " +
-                    methodInputArguments.length +
-                    "" +
-                    "\n        actual   : " +
-                    inputArguments.length
+                "\n        The client did not specify all of the input arguments for the method. " +
+                "\n        expected : " +
+                methodInputArguments.length +
+                "" +
+                "\n        actual   : " +
+                inputArguments.length
             );
-        }
+
         return { inputArgumentResults, statusCode: StatusCodes.BadTooManyArguments };
     }
 
