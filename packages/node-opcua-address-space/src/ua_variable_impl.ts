@@ -85,13 +85,12 @@ import { EnumerationInfo, IEnumItem, UADataTypeImpl } from "./ua_data_type_impl"
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 import {
     extractPartialData,
+    incrementElement,
     propagateTouchValueUpward,
-    setExtensionObjectValue,
+    setExtensionObjectPartialValue,
     _bindExtensionObject,
-    _bindExtensionObjectArray,
-    _bindExtensionObjectMatrix,
+    _bindExtensionObjectArrayOrMatrix,
     _installExtensionObjectBindingOnProperties,
-    _setExtensionObject,
     _touchValue
 } from "./ua_variable_impl_ext_obj";
 
@@ -485,8 +484,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             if (this._timestamped_get_func.length === 0) {
                 const dataValueOrPromise = (this._timestamped_get_func as VariableDataValueGetterSync)();
                 if (!Object.prototype.hasOwnProperty.call(dataValueOrPromise, "then")) {
-                    this.$dataValue = dataValueOrPromise as DataValue;
-                    this.verifyVariantCompatibility(this.$dataValue.value);
+                    if (dataValueOrPromise !== this.$dataValue) {
+                        // TO DO : is this necessary ? this may interfere with current use of $dataValue
+                        this.$dataValue = dataValueOrPromise as DataValue;
+                        this.verifyVariantCompatibility(this.$dataValue.value);
+                    }
                 } else {
                     errorLog("Unsupported: _timestamped_get_func returns a Promise !");
                 }
@@ -822,8 +824,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 if (this.$extensionObject) {
                     // we have an extension object already bound to this node
                     // the client is asking us to replace the object entierly by a new one
-                    const ext = dataValue.value.value;
-                    _setExtensionObject(this, ext);
+                    // const ext = dataValue.value.value;
+                    this._internal_set_dataValue(dataValue);
                     return;
                 }
             } else {
@@ -1460,14 +1462,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      */
     public installExtensionObjectVariables(): void {
         _installExtensionObjectBindingOnProperties(this, { createMissingProp: true });
-        // now recursively install extension object on children
-        for (const child of this.getComponents()) {
-            if (child.nodeClass === NodeClass.Variable && child instanceof UAVariableImpl) {
-                if (child.isExtensionObject()) {
-                    child.installExtensionObjectVariables();
-                }
-            }
-        }
     }
     /**
      * @method bindExtensionObject
@@ -1477,6 +1471,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         optionalExtensionObject?: ExtensionObject,
         options?: BindExtensionObjectOptions
     ): ExtensionObject | null {
+        assert(this.valueRank === -1, "expecting an Scalar variable here");
         return _bindExtensionObject(this, optionalExtensionObject, options) as ExtensionObject;
     }
 
@@ -1484,8 +1479,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         optionalExtensionObject?: ExtensionObject[],
         options?: BindExtensionObjectOptions
     ): ExtensionObject[] | null {
-        assert(this.valueRank === 1, "expecting a Array variable here");
-        return _bindExtensionObjectArray(this, optionalExtensionObject, options) as ExtensionObject[];
+        assert(this.valueRank >= 1, "expecting an Array or a Matrix variable here");
+        return _bindExtensionObjectArrayOrMatrix(this, optionalExtensionObject, options);
     }
 
     public bindExtensionObject(
@@ -1494,32 +1489,35 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     ): ExtensionObject | ExtensionObject[] | null {
         if (optionalExtensionObject) {
             if (optionalExtensionObject instanceof Array) {
-                return this.bindExtensionObjectArray(optionalExtensionObject, options);
+                assert(this.valueRank >= 1, "expecting an Array of Matrix variable here");
+                return _bindExtensionObjectArrayOrMatrix(this, optionalExtensionObject, options);
             } else {
-                return this.bindExtensionObjectScalar(optionalExtensionObject, options);
+                assert(this.valueRank === -1, "expecting an Scalar variable here");
+                return _bindExtensionObject(this, optionalExtensionObject, options) as ExtensionObject;
             }
         }
         assert(optionalExtensionObject === undefined);
         if (this.valueRank === -1) {
-            return this.bindExtensionObjectScalar(undefined, options);
+            return _bindExtensionObject(this, undefined, options) as ExtensionObject;
         } else if (this.valueRank === 1) {
-            return this.bindExtensionObjectArray(undefined, options);
+            return _bindExtensionObjectArrayOrMatrix(this, undefined, options);
         } else if (this.valueRank > 1) {
-            return _bindExtensionObjectMatrix(this, undefined, options);
+            return _bindExtensionObjectArrayOrMatrix(this, undefined, options);
         }
         //  unsupported case ... 
         return null;
     }
 
     public updateExtensionObjectPartial(partialExtensionObject?: { [key: string]: any }): ExtensionObject {
-        setExtensionObjectValue(this, partialExtensionObject);
+        setExtensionObjectPartialValue(this, partialExtensionObject);
         return this.$extensionObject;
     }
 
     public incrementExtensionObjectPartial(path: string | string[]): void {
         const extensionObject = this.readValue().value.value as ExtensionObject;
         const partialData = extractPartialData(path, extensionObject);
-        setExtensionObjectValue(this, partialData);
+        incrementElement(path, partialData);
+        setExtensionObjectPartialValue(this, partialData);
     }
 
     public toString(): string {
@@ -1685,10 +1683,14 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         assert(dataValue !== this.$dataValue, "expecting dataValue to be different from previous DataValue instance");
 
         const addressSpace = this.addressSpace;
+
+        // istanbul ignore next
         if (!addressSpace) {
             warningLog("UAVariable#_internal_set_dataValue : no addressSpace ! may be node has already been deleted ?");
             return;
         }
+
+        // istanbul ignore next
         if (dataValue.value.arrayType === VariantArrayType.Matrix) {
             if (!dataValue.value.dimensions) {
                 throw new Error("missing dimensions: a Matrix Variant needs a dimension");
@@ -1701,31 +1703,25 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 );
             }
         }
+
+        // istanbul ignore next
         if (dataValue.value.dataType === DataType.ExtensionObject) {
+            // istanbul ignore next
             if (!this.checkExtensionObjectIsCorrect(dataValue.value.value)) {
                 warningLog(dataValue.toString());
                 throw new Error("Invalid Extension Object on nodeId =" + this.nodeId.toString());
             }
-            // ----------------------------------
-            // if (this.$extensionObject) {
-            //     // we have an extension object already bound to this node
-            //     // the client is asking us to replace the object entierly by a new one
-            //     const ext = dataValue.value.value;
-            //     _setExtensionObject(this, ext);
-            //     return;
-            // }
         }
-        // // istanbul ignore next
-        // if (this.dataType.namespace === 0) {
-        //     if (this.dataType.value === DataType.LocalizedText && dataValue.value.dataType !== DataType.LocalizedText) {
-        //         const message = "Invalid dataValue provided (expecting a LocalizedText) but got " + dataValue.toString();
-        //         errorLog(message);
-        //         // throw new Error(message);
-        //     }
-        // }
-
+   
         this.verifyVariantCompatibility(dataValue.value);
 
+        this._inner_replace_dataValue(dataValue, indexRange);
+    }
+
+    /**
+     * @private
+     */
+    public _inner_replace_dataValue(dataValue: DataValue, indexRange?: NumericRange | null) {
         const old_dataValue = this.$dataValue;
 
         this.$dataValue = dataValue;
@@ -1999,9 +1995,6 @@ function _Variable_bind_with_async_refresh(this: UAVariableImpl, options: any) {
 
     this.refreshFunc = options.refreshFunc;
 
-    // assert(this.readValue().statusCode.equals(StatusCodes.BadNodeIdUnknown));
-    this.$dataValue.statusCode = StatusCodes.UncertainInitialValue;
-
     // TO DO : REVISIT THIS ASSUMPTION
     if (false && this.minimumSamplingInterval === 0) {
         // when a getter /timestamped_getter or async_getter is provided
@@ -2140,10 +2133,9 @@ function _Variable_bind_with_timestamped_set(
         set: undefined;
     }
 ) {
-    assert(typeof options.timestamped_set === "function");
     assert(
-        options.timestamped_set.length === 2,
-        "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){}"
+        options.timestamped_set.length === 2 || options.timestamped_set.length === 1,
+        "timestamped_set must have 2 parameters  timestamped_set: function(dataValue,callback){} or one paramater  timestamped_set: function(dataValue): Promise<StatusCode>{}"
     );
     assert(!options.set, "should not specify set when timestamped_set_func exists ");
     this._timestamped_set_func = convertToCallbackFunction1<StatusCode, DataValue, UAVariable>(options.timestamped_set);
@@ -2242,6 +2234,3 @@ export interface UAVariableImplT<T, DT extends DataType> extends UAVariableImpl,
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }
 export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl { }
-// x TO DO
-// require("./data_access/ua_variable_data_access");
-// require("./historical_access/ua_variable_history");

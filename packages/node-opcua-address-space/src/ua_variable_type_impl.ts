@@ -274,7 +274,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue
         // and create a bidirectional binding with the individual properties of this type
-        instance.bindExtensionObject(options.extensionObject);
+        instance.bindExtensionObject(options.extensionObject, { createMissingProp: false });
 
         assert(instance.typeDefinition.toString() === this.nodeId.toString());
 
@@ -590,9 +590,9 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     if (parent && hasChildWithBrowseName(parent, coerceQualifiedName(options.browseName))) {
         throw new Error(
             "object " +
-                parent.browseName.name!.toString() +
-                " have already a child with browseName " +
-                options.browseName.toString()
+            parent.browseName.name!.toString() +
+            " have already a child with browseName " +
+            options.browseName.toString()
         );
     }
 }

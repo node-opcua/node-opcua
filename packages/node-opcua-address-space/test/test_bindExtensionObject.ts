@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 // tslint:disable: no-console
 import * as should from "should";
 import * as sinon from "sinon";
@@ -31,6 +32,7 @@ import {
 } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+import { assert } from "console";
 
 const doDebug = false;
 
@@ -76,13 +78,15 @@ describe("Extension Object binding and sub  components\n", () => {
 
             const counter = 1;
             const extensionObjectVar = namespace.addVariable({
-                browseName: "VariableWithExtensionObject" + counter,
+                browseName: "VariableWithExtensionObjectArray" + counter,
                 dataType: serviceCounterDataType.nodeId,
                 valueRank: 1,
                 arrayDimensions: [0],
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
             });
+            should.not.exist(extensionObjectVar.getComponentByName("0"));
+            should.not.exist(extensionObjectVar.getComponentByName("1"));
 
             extensionObjectVar.minimumSamplingInterval.should.eql(0);
 
@@ -92,7 +96,18 @@ describe("Extension Object binding and sub  components\n", () => {
             const extensionObjectArray = extensionObjectVar.bindExtensionObjectArray([
                 new ServiceCounterDataType({ errorCount: 1, totalCount: 2 }),
                 new ServiceCounterDataType({ errorCount: 3, totalCount: 4 })
-            ]) as ServiceCounterDataType[];
+            ], { createMissingProp: true }) as ServiceCounterDataType[];
+            should.exist(extensionObjectVar.getComponentByName("0"));
+            should.exist(extensionObjectVar.getComponentByName("1"));
+            should.exist(extensionObjectVar.getComponentByName("0")!.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("1")!.getChildByName("TotalCount"));
+
+            extensionObjectVar.installExtensionObjectVariables();
+            should.exist(extensionObjectVar.getComponentByName("0"));
+            should.exist(extensionObjectVar.getComponentByName("1"));
+            should.exist(extensionObjectVar.getComponentByName("0")!.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("1")!.getChildByName("TotalCount"));
+
             extensionObjectArray.length.should.eql(2);
             extensionObjectArray[0].constructor.name.should.eql("ServiceCounterDataType");
             extensionObjectArray[1].constructor.name.should.eql("ServiceCounterDataType");
@@ -136,7 +151,14 @@ describe("Extension Object binding and sub  components\n", () => {
                 organizedBy: rootFolder.objects
             }) as UAServiceCounterVariableEx;
 
+            should.exist(extensionObjectVar.$extensionObject);
+            // should.not.exist(extensionObjectVar.$$extensionObjectArray);
+            should.not.exist(extensionObjectVar.getChildByName("TotalCount"));
+            should.not.exist(extensionObjectVar.getChildByName("ErrorCount"));
+
             extensionObjectVar.installExtensionObjectVariables();
+            should.exist(extensionObjectVar.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getChildByName("ErrorCount"));
 
             extensionObjectVar.minimumSamplingInterval.should.eql(0);
 
@@ -236,26 +258,27 @@ describe("Extension Object binding and sub  components\n", () => {
             sessionDiagnosticsVariableType.browseName.toString().should.eql("SessionDiagnosticsVariableType");
 
             const counter = 1;
-            const extensionObjectVar = sessionDiagnosticsVariableType.instantiate({
+            const uaVariable = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics" + counter,
                 dataType: sessionDiagnosticsDataType.nodeId,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
             }) as UASessionDiagnosticsVariableEx;
 
-            extensionObjectVar.installExtensionObjectVariables(), extensionObjectVar.minimumSamplingInterval.should.eql(0);
-            extensionObjectVar.totalRequestCount.minimumSamplingInterval.should.eql(0);
+            uaVariable.installExtensionObjectVariables();
+            uaVariable.minimumSamplingInterval.should.eql(0);
+            uaVariable.totalRequestCount.minimumSamplingInterval.should.eql(0);
 
             const useTwoLevelsDeep = false;
 
-            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
 
-            extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.Good);
-            extensionObjectVar.totalRequestCount.readValue().statusCode.should.eql(StatusCodes.Good);
-            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
-            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            uaVariable.readValue().statusCode.should.eql(StatusCodes.Good);
+            uaVariable.totalRequestCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
 
-            const extensionObject = extensionObjectVar.bindExtensionObject() as SessionDiagnosticsDataType;
+            const extensionObject = uaVariable.bindExtensionObject() as SessionDiagnosticsDataType;
 
             extensionObject.constructor.name.should.eql("SessionDiagnosticsDataType");
 
@@ -263,34 +286,39 @@ describe("Extension Object binding and sub  components\n", () => {
             const spy_on_SessionDiagnostics_TotalRequestCount_value_changed = sinon.spy();
             const spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed = sinon.spy();
 
-            extensionObjectVar.on("value_changed", spy_on_SessionDiagnostics_value_changed);
-            extensionObjectVar.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
+            uaVariable.on("value_changed", spy_on_SessionDiagnostics_value_changed);
+            uaVariable.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
             useTwoLevelsDeep &&
-                extensionObjectVar.totalRequestCount.totalCount.on(
+                uaVariable.totalRequestCount.totalCount.on(
                     "value_changed",
                     spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed
                 );
 
-            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
-            extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-            extensionObjectVar.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
 
-            extensionObjectVar.$extensionObject.should.eql(extensionObject);
+            const dv1 = uaVariable.totalRequestCount.readValue();
+            const dv2 = uaVariable.readValue();
+
+            uaVariable.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
+
+            uaVariable.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+
+            uaVariable.$extensionObject.should.eql(extensionObject);
 
             extensionObject.totalRequestCount.totalCount = 1;
 
-            extensionObjectVar.$extensionObject.should.eql(extensionObject);
+            uaVariable.$extensionObject.should.eql(extensionObject);
             // xx sionObject.totalRequestCount = new Proxy(extensionObject.totalRequestCount,{});
 
-            extensionObjectVar.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
+            uaVariable.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
             spy_on_SessionDiagnostics_value_changed.callCount.should.eql(1);
 
-            extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
+            uaVariable.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
             spy_on_SessionDiagnostics_TotalRequestCount_value_changed.callCount.should.eql(1);
 
             // xx console.log(extensionObjectVar.totalRequestCount.totalCount.readValue());
             useTwoLevelsDeep && spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed.callCount.should.eql(1);
-            useTwoLevelsDeep && extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
         });
     });
 
@@ -322,7 +350,7 @@ describe("Extension Object binding and sub  components\n", () => {
             }) as UASessionDiagnosticsVariable<DTSessionDiagnostics>;
 
             _sessionDiagnostics = sessionDiagnostics.bindExtensionObject();
-
+            assert(sessionDiagnostics.$extensionObject === _sessionDiagnostics);
             sessionDiagnostics.installExtensionObjectVariables();
 
             // xx console.log(_sessionDiagnostics.toString());
