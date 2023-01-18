@@ -755,7 +755,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         }
         // istanbul ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
-            return callback!(new Error(" End point must exist " + this._secureChannel.endpointUrl));
+            return callback!(            
+                new Error(
+                    " End point must exist " + this._secureChannel!.endpointUrl + 
+                    "  securityMode = " + MessageSecurityMode[this.securityMode] + 
+                    "  securityPolicy = " + this.securityPolicy));
         }
 
         assert(
@@ -1154,15 +1158,21 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         assert(this._secureChannel);
         if (!this.__resolveEndPoint() || !this.endpoint) {
             /* istanbul ignore next */
-            if (doDebug && this._serverEndpoints) {
-                debugLog(
+            if (this._serverEndpoints) {
+                warningLog("server endpoints =",
                     this._serverEndpoints.map(
                         (endpoint) =>
-                            endpoint.endpointUrl + " " + endpoint.securityMode.toString() + " " + endpoint.securityPolicyUri
-                    )
+                            endpoint.endpointUrl + " "
+                             + MessageSecurityMode[endpoint.securityMode] + " " 
+                             + endpoint.securityPolicyUri + " " 
+                             + endpoint.userIdentityTokens?.map((u)=> UserTokenType[u.tokenType]).join(",")
+                    ).join('\n')
                 );
             }
-            return callback(new Error(" End point must exist " + this._secureChannel!.endpointUrl));
+            return callback(new Error(
+                " End point must exist " + this._secureChannel!.endpointUrl + 
+                "  securityMode = " + MessageSecurityMode[this.securityMode] + 
+                "  securityPolicy = " + this.securityPolicy));
         }
         this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";
         this.endpointUrl = this._secureChannel!.endpointUrl;
