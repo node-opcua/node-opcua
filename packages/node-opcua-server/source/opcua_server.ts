@@ -1165,14 +1165,14 @@ export class OPCUAServer extends OPCUABaseServer {
                     this.on_request(message, channel);
                 });
 
-                endPoint.on("error", (err: Error) => {
-                    errorLog("OPCUAServer endpoint error", err);
-                    // set serverState to ServerState.Failed;
-                    this.engine.setServerState(ServerState.Failed);
-                    this.shutdown(() => {
-                        /* empty */
-                    });
-                });
+                // endPoint.on("error", (err: Error) => {
+                //     errorLog("OPCUAServer endpoint error", err);
+                //     // set serverState to ServerState.Failed;
+                //     this.engine.setServerState(ServerState.Failed);
+                //     this.shutdown(() => {
+                //         /* empty */
+                //     });
+                // });
             }
         };
     }
