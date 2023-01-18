@@ -40,7 +40,7 @@ const performCheck = false;
  */
 export class BinaryStream {
     public static maxByteStringLength = 16 * 1024 * 1024;
-    public static maxStringLength = 16 * 1024;
+    public static maxStringLength = 16 * 1024 * 1024;
     /**
      * the current position inside the buffer
      */
