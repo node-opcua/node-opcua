@@ -13,7 +13,8 @@ import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UAManualFolder_Base extends UAFolder_Base {
-    externalManuals?: UAProperty<UAString[], /*z*/DataType.String>;
+   // PlaceHolder for $LocalManuals$
+    externalManuals?: UAProperty<UAString[], DataType.String>;
 }
 export interface UAManualFolder extends UAFolder, UAManualFolder_Base {
 }

@@ -81,15 +81,3 @@ export function decodeAccessLevelExFlag(stream: BinaryStream): AccessLevelExFlag
     const code = stream.readUInt32();
     return code;
 }
-
-registerBasicType({
-    name: "AccessLevelExFlag",
-    subType: "UInt32",
-
-    defaultValue: AccessLevelExFlag.CurrentRead | AccessLevelExFlag.CurrentWrite,
-
-    coerce: makeAccessLevelExFlag,
-    decode: decodeAccessLevelExFlag,
-    encode: encodeAccessLevelExFlag,
-    random: randomAccessLevelEx
-});

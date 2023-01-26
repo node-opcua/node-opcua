@@ -11,7 +11,7 @@ import { UInt32 } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UATransition_Base {
-    transitionNumber: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    transitionNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UATransition extends UAObject, UATransition_Base {
 }

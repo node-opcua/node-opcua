@@ -12,7 +12,7 @@ import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusiv
  * |isAbstract      |false                                             |
  */
 export interface UAExclusiveRateOfChangeAlarm_Base extends UAExclusiveLimitAlarm_Base {
-    engineeringUnits?: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+    engineeringUnits?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
 export interface UAExclusiveRateOfChangeAlarm extends UAExclusiveLimitAlarm, UAExclusiveRateOfChangeAlarm_Base {
 }

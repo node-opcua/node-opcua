@@ -15,7 +15,7 @@ const ClientSubscription = opcua.ClientSubscription;
 
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
-const { perform_operation_on_subscription } = require("../../test_helpers/perform_operation_on_client_session");
+const { perform_operation_on_subscription_with_parameters } = require("../../test_helpers/perform_operation_on_client_session");
 
 module.exports = function (test) {
 
@@ -189,14 +189,22 @@ module.exports = function (test) {
             let the_session2;
             const spy_keepalive = new sinon.spy();
 
-            perform_operation_on_subscription(client, endpointUrl, function (session, subscription, inner_done) {
+            const subscriptionParameters = {
+                requestedPublishingInterval: 100,
+                requestedLifetimeCount: 6000,
+                requestedMaxKeepAliveCount: 10,
+                maxNotificationsPerPublish: 4,
+                publishingEnabled: true,
+                priority: 6
+            };
+            perform_operation_on_subscription_with_parameters(client, endpointUrl, subscriptionParameters,  function (session, subscription, inner_done) {
 
                 subscription.on("status_changed", spy_status_changed);
                 subscription.on("keepalive", spy_keepalive);
                 async.series([
                     function (callback) {
 
-                        const timeout = subscription.publishingInterval * 2;
+                        const timeout = subscription.publishingInterval * (subscription.maxKeepAliveCount + 2);
                         setTimeout(function () {
                             //xx console.log("StatusChange Count ", spy_status_changed.callCount, " keepAlive count = ", spy_keepalive.callCount);
                             spy_status_changed.callCount.should.eql(0);
@@ -448,10 +456,17 @@ module.exports = function (test) {
                         const response1 = spy_publish_session2.getCall(1).args[1];
                         const response2 = spy_publish_session2.getCall(2).args[1];
                         const response3 = spy_publish_session2.getCall(3).args[1];
+                        should.not.exist(response1);
+                        should.not.exist(response2);
+                        should.not.exist(response3);
 
-                        response1.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-                        response2.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
-                        response3.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+                        const err1 = spy_publish_session2.getCall(1).args[0];
+                        const err2 = spy_publish_session2.getCall(2).args[0];
+                        const err3 = spy_publish_session2.getCall(3).args[0];
+                        
+                        err1.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+                        err2.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
+                        err3.response.responseHeader.serviceResult.should.eql(StatusCodes.BadNoSubscription);
                         //xx console.log(response1.toString())
                         //xx console.log(response2.toString())
                         //xx console.log(response3.toString())

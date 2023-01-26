@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAMethod } from "node-opcua-address-space-base"
+import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "./dt_argument"
@@ -13,8 +13,13 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UASecurityGroupFolder_Base extends UAFolder_Base {
+   // PlaceHolder for $SecurityGroupName$
     addSecurityGroup: UAMethod;
     removeSecurityGroup: UAMethod;
+    addSecurityGroupFolder?: UAMethod;
+    removeSecurityGroupFolder?: UAMethod;
+    supportedSecurityPolicyUris?: UAProperty<UAString[], DataType.String>;
+   // PlaceHolder for $SecurityGroupFolderName$
 }
 export interface UASecurityGroupFolder extends UAFolder, UASecurityGroupFolder_Base {
 }

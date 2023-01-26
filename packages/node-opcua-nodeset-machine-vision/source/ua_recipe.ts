@@ -20,7 +20,7 @@ export interface UARecipe_Base {
      * vision system. The ExternalID is only managed by
      * the host system.
      */
-    externalId?: UAProperty<DTRecipeIdExternal, /*z*/DataType.ExtensionObject>;
+    externalId?: UAProperty<DTRecipeIdExternal, DataType.ExtensionObject>;
     /**
      * handle
      * The file handle refers to the recipe data, which
@@ -34,14 +34,14 @@ export interface UARecipe_Base {
      * System-wide unique ID for identifying a recipe.
      * This ID is assigned by the vision system.
      */
-    internalId: UAProperty<DTRecipeIdInternal, /*z*/DataType.ExtensionObject>;
-    isPrepared: UAProperty<boolean, /*z*/DataType.Boolean>;
+    internalId: UAProperty<DTRecipeIdInternal, DataType.ExtensionObject>;
+    isPrepared: UAProperty<boolean, DataType.Boolean>;
     /**
      * lastModified
      * The time when this recipe was last modified.
      */
-    lastModified: UAProperty<Date, /*z*/DataType.DateTime>;
-    linkedProducts?: UAProperty<DTProductId[], /*z*/DataType.ExtensionObject>;
+    lastModified: UAProperty<Date, DataType.DateTime>;
+    linkedProducts?: UAProperty<DTProductId[], DataType.ExtensionObject>;
     linkProduct?: UAMethod;
     prepare: UAMethod;
     unlinkProduct?: UAMethod;

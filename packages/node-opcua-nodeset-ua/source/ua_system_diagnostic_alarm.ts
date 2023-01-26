@@ -8,7 +8,6 @@ import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "./ua_off_normal_alarm"
  * |typedDefinition |SystemDiagnosticAlarmType ns=0;i=18496            |
  * |isAbstract      |false                                             |
  */
-export interface UASystemDiagnosticAlarm_Base extends UAOffNormalAlarm_Base {
-}
+export type UASystemDiagnosticAlarm_Base = UAOffNormalAlarm_Base;
 export interface UASystemDiagnosticAlarm extends UAOffNormalAlarm, UASystemDiagnosticAlarm_Base {
 }

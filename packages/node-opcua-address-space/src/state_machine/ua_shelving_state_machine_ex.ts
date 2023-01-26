@@ -7,16 +7,17 @@
 // --------------------------------------------------------------------------------------------------
 
 import { assert } from "node-opcua-assert";
-import { Callback, CallbackT, StatusCodes } from "node-opcua-status-code";
+import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { UAProperty, ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { UAShelvedStateMachine_Base, UAState } from "node-opcua-nodeset-ua";
+import { UAState, UATransition } from "node-opcua-nodeset-ua";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { DataValue } from "node-opcua-data-value";
 
 import { UAAlarmConditionImpl } from "../alarms_and_conditions/ua_alarm_condition_impl";
+import { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
 import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
 
 import { promoteToStateMachine, UAStateMachineImpl } from "./finite_state_machine";
@@ -30,18 +31,9 @@ export interface UAShelvedStateMachineHelper {
     _unshelvedTime: Date;
     _duration: number;
 }
-export interface UAShelvedStateMachineEx
-    extends Omit<
-            UAShelvedStateMachine_Base,
-            | "oneShotShelvedToUnshelved"
-            | "unshelvedToTimedShelved"
-            | "unshelvedToOneShotShelved"
-            | "timedShelvedToUnshelved"
-            | "timedShelvedToOneShotShelved"
-            | "oneShotShelvedToTimedShelved"
-        >,
-        UAShelvedStateMachineHelper {
-    unshelveTime: UAProperty<number, DataType.Double>;
+
+export interface UAShelvedStateMachineExImpl extends UAShelvedStateMachineHelper {
+    unshelveTime: UAProperty<number, /*z*/ DataType.Double>;
     unshelved: UAState;
     timedShelved: UAState;
     oneShotShelved: UAState;
@@ -52,15 +44,19 @@ export interface UAShelvedStateMachineEx
     oneShotShelvedToUnshelved: UATransitionEx;
     oneShotShelvedToTimedShelved: UATransitionEx;
     timedShelve: UAMethod;
+    timedShelve2?: UAMethod;
     unshelve: UAMethod;
+    unshelve2?: UAMethod;
     oneShotShelve: UAMethod;
+    oneShotShelve2?: UAMethod;
 }
-export class UAShelvedStateMachineEx extends UAStateMachineImpl implements UAShelvedStateMachineEx {
+
+export class UAShelvedStateMachineExImpl extends UAStateMachineImpl implements UAShelvedStateMachineEx {
     public static promote(object: UAObject): UAShelvedStateMachineEx {
-        const shelvingState = object as UAShelvedStateMachineEx;
+        const shelvingState = object as UAShelvedStateMachineExImpl;
         promoteToStateMachine(shelvingState);
 
-        Object.setPrototypeOf(shelvingState, UAShelvedStateMachineEx.prototype);
+        Object.setPrototypeOf(shelvingState, UAShelvedStateMachineExImpl.prototype);
         shelvingState._timer = null;
 
         if (shelvingState.unshelve) {
@@ -83,7 +79,7 @@ export class UAShelvedStateMachineEx extends UAStateMachineImpl implements UAShe
             );
         }
 
-        assert(shelvingState instanceof UAShelvedStateMachineEx);
+        assert(shelvingState instanceof UAShelvedStateMachineExImpl);
         return shelvingState;
     }
 }
@@ -106,7 +102,7 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
     //     return callback(null, {statusCode: StatusCodes.BadConditionDisabled});
     // }
 
-    const shelvingState = context.object! as UAShelvedStateMachineEx;
+    const shelvingState = context.object! as UAShelvedStateMachineExImpl;
     promoteToStateMachine(shelvingState);
 
     if (shelvingState.getCurrentState() === "Unshelved") {
@@ -126,7 +122,7 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
     });
 }
 
-export function _clear_timer_if_any(shelvingState: UAShelvedStateMachineEx): void {
+export function _clear_timer_if_any(shelvingState: UAShelvedStateMachineExImpl): void {
     if (shelvingState._timer) {
         clearTimeout(shelvingState._timer);
         // xx console.log("_clear_timer_if_any shelvingState = ",shelvingState._timer,shelvingState.constructor.name);
@@ -134,7 +130,7 @@ export function _clear_timer_if_any(shelvingState: UAShelvedStateMachineEx): voi
     }
 }
 
-function _automatically_unshelve(shelvingState: UAShelvedStateMachineEx) {
+function _automatically_unshelve(shelvingState: UAShelvedStateMachineExImpl) {
     assert(shelvingState._timer, "expecting timerId to be set");
     shelvingState._timer = null;
 
@@ -152,7 +148,7 @@ function _automatically_unshelve(shelvingState: UAShelvedStateMachineEx) {
     assert(!shelvingState._timer);
 }
 
-function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachineEx, duration: number) {
+function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachineExImpl, duration: number) {
     if (duration < 10 || duration >= Math.pow(2, 31)) {
         throw new Error(" Invalid maxTimeShelved duration: " + duration + "  must be [10,2**31] ");
     }
@@ -199,7 +195,7 @@ function _timedShelve_method(
     if (!context.object) {
         return;
     }
-    const shelvingState = context.object! as UAShelvedStateMachineEx;
+    const shelvingState = context.object! as UAShelvedStateMachineExImpl;
 
     if (shelvingState.getCurrentState() !== "Unshelved") {
         return callback(null, {
@@ -259,7 +255,7 @@ function _oneShotShelve_method(
     callback: CallbackT<CallMethodResultOptions>
 ) {
     assert(inputArguments.length === 0);
-    const shelvingState = context.object! as UAShelvedStateMachineEx;
+    const shelvingState = context.object! as UAShelvedStateMachineExImpl;
     if (shelvingState.getCurrentState() === "OneShotShelved") {
         return callback(null, {
             statusCode: StatusCodes.BadConditionAlreadyShelved
@@ -296,7 +292,7 @@ function _oneShotShelve_method(
 //   TimedShelve Method call.
 // * For the OneShotShelved state the UnshelveTime will be a constant set to the maximum Duration
 //   except if a MaxTimeShelved Property is provided.
-function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineEx): DataValue {
+function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineExImpl): DataValue {
     if (shelvingState.getCurrentState() === "Unshelved") {
         return new DataValue({
             statusCode: StatusCodes.BadConditionNotShelved,
@@ -333,4 +329,3 @@ function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineEx): DataValue {
         }
     });
 }
-

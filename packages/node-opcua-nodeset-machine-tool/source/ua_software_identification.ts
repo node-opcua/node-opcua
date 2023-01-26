@@ -12,9 +12,9 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UASoftwareIdentification_Base {
-    identifier: UAProperty<UAString, /*z*/DataType.String>;
-    manufacturer?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    softwareRevision: UAProperty<UAString, /*z*/DataType.String>;
+    identifier: UAProperty<UAString, DataType.String>;
+    manufacturer?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    softwareRevision: UAProperty<UAString, DataType.String>;
 }
 export interface UASoftwareIdentification extends UAObject, UASoftwareIdentification_Base {
 }

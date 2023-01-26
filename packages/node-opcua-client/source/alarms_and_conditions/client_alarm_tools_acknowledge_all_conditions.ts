@@ -5,7 +5,6 @@ import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "n
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientSession } from "../client_session";
 import { EventStuff, fieldsToJson } from "./client_alarm";
 import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
@@ -22,6 +21,7 @@ const errorLog = make_errorLog(__filename);
  * @param comment
  */
 export async function acknowledgeCondition(session: ClientSession, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
+
     try {
         const conditionId = eventStuff.conditionId.value;
         const eventId = eventStuff.eventId.value;
@@ -65,7 +65,9 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
 
     const fields = await extractConditionFields(session, "AcknowledgeableConditionType");
 
-    const eventFilter = constructEventFilter(fields, [resolveNodeId("AcknowledgeableConditionType")]);
+    // note: we may want to have this select clause
+    //  Or(OfType("AcknowledgeableConditionType"), OfType("RefreshStartEventType"), OfType("RefreshEndEventType"))
+    const eventFilter = constructEventFilter(fields);
 
     const monitoringParameters: MonitoringParametersOptions = {
         discardOldest: false,
@@ -88,13 +90,17 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
         // now create a event monitored Item
         event_monitoringItem.on("changed", (_eventFields: any) => {
             const eventFields = _eventFields as Variant[];
+
             try {
                 if (RefreshEndEventHasBeenReceived) {
                     return;
                 }
+          
+          
                 // dumpEvent(session, fields, eventFields);
                 const pojo = fieldsToJson(fields, eventFields) as any;
-                // console.log(pojo.eventType.value.toString(), RefreshEndEventType, RefreshStartEventType);
+                
+                // console.log(pojo.eventType.value.toString({ addressSpace}), RefreshEndEventType, RefreshStartEventType);
 
                 // make sure we only start recording event after the RefreshStartEvent has been received
                 if (!refreshStartEventHasBeenReceived) {
@@ -147,7 +153,7 @@ export async function acknwoledgeAllConditions(session: ClientSession, message: 
         // filter acknowledgable conditions (no acked yet)
         conditions = conditions.filter((pojo) => pojo.ackedState.id.value === false);
 
-        const promises: Array<Promise<any>> = [];
+        const promises: Array<Promise<StatusCode>> = [];
         for (const eventStuff of conditions) {
             promises.push(acknowledgeCondition(session, eventStuff, message));
         }

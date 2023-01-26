@@ -11,11 +11,10 @@ import {
     Certificate,
     CertificateRevocationList,
     convertPEMtoDER,
-    makeSHA1Thumbprint,
     PrivateKey,
     readCertificate,
     readCertificateRevocationList,
-    split_der,
+    readPrivateKey,
     toPem
 } from "node-opcua-crypto";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
@@ -29,7 +28,7 @@ export async function initializeHelpers(prefix: string, n: number): Promise<stri
     } catch (err) {
         /** */
     }
-        try {
+    try {
         await fs.promises.mkdir(path.dirname(subfolder));
     } catch (err) {
         /** */
@@ -67,12 +66,8 @@ export async function produceCertificateAndPrivateKey(
         outputFile: certFile
     });
 
-    const content = await readFile(certFile, "ascii");
-    const certificate = convertPEMtoDER(content);
-
-    const privateKeyFile = certificateManager.privateKey;
-    const privateKeyPEM = await readFile(privateKeyFile, "ascii");
-    const privateKey = convertPEMtoDER(privateKeyPEM);
+    const certificate = readCertificate(certFile);
+    const privateKey = readPrivateKey(certificateManager.privateKey);
 
     return { certificate, privateKey };
 }
@@ -140,37 +135,77 @@ export async function produceCertificate(subfolder: string, certificateSigningRe
     return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }
 
-let tmpGroup: CertificateManager;
-
 /**
  * createSomeCertificate create a certificate from a private key
  * @param certName
  */
-export async function createSomeCertificate(subfolder: string, certName: string): Promise<Buffer> {
-    if (!tmpGroup) {
-        tmpGroup = new CertificateManager({
-            location: path.join(subfolder, "tmp")
-        });
-        await tmpGroup.initialize();
-    }
-    const certFile = path.join(subfolder, certName);
+export async function createSomeCertificate(certificateManager: CertificateManager, certName: string): Promise<Buffer> {
+    const certFile = path.join(certificateManager.rootDir, certName);
 
     const fileExists: boolean = fs.existsSync(certFile);
+
+    const millisecondPerDay = 3600 * 24 * 1000;
+    const validity = 365;
+
     if (!fileExists) {
-        await tmpGroup.createSelfSignedCertificate({
+        await certificateManager.createSelfSignedCertificate({
             applicationUri: "applicationUri",
             subject: "CN=TOTO",
 
             dns: [],
 
             startDate: new Date(),
-            validity: 365,
-
+            validity,
             outputFile: certFile
         });
     }
 
-    const content = await readFile(certFile, "ascii");
+    const content = await readFile(certFile, "utf-8");
     const certificate = convertPEMtoDER(content);
     return certificate;
+}
+
+const millisecondPerDay = 3600 * 24 * 1000;
+export async function createCertificateWithEndDate(
+    subfolder: string,
+    certificateManager: CertificateManager,
+    certName: string,
+    endDate: Date,
+    validity: number
+): Promise<Certificate> {
+    const startDate = new Date(endDate.getTime() - validity * millisecondPerDay);
+    const resultCSR = await certificateManager.createCertificateRequest({
+        applicationUri: "applicationUri",
+        subject: "CN=TOTO",
+        dns: [],
+        startDate,
+        validity
+    });
+
+    const certificateAuthority = new CertificateAuthority({
+        keySize: 2048,
+        location: path.join(subfolder, "CA")
+    });
+    await certificateAuthority.initialize();
+    await certificateAuthority.signCertificateRequest(certName, resultCSR, {
+        applicationUri: "applicationUri",
+        startDate,
+        validity
+    });
+
+    const certificate = readCertificate(certName);
+    return certificate;
+}
+
+export async function createSomeOutdatedCertificate(
+    subfolder: string,
+    certificateManager: CertificateManager,
+    certName: string
+): Promise<Certificate> {
+    const now = Date.now();
+    const startDate = new Date(now - 365 * millisecondPerDay);
+    const validity = 10;
+    const endDate = new Date(startDate.getTime() + validity * millisecondPerDay);
+
+    return await createCertificateWithEndDate(subfolder, certificateManager, certName, endDate, validity);
 }

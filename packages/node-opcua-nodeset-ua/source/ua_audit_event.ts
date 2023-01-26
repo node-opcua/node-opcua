@@ -12,11 +12,11 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
  * |isAbstract      |true                                              |
  */
 export interface UAAuditEvent_Base extends UABaseEvent_Base {
-    actionTimeStamp: UAProperty<Date, /*z*/DataType.DateTime>;
-    status: UAProperty<boolean, /*z*/DataType.Boolean>;
-    serverId: UAProperty<UAString, /*z*/DataType.String>;
-    clientAuditEntryId: UAProperty<UAString, /*z*/DataType.String>;
-    clientUserId: UAProperty<UAString, /*z*/DataType.String>;
+    actionTimeStamp: UAProperty<Date, DataType.DateTime>;
+    status: UAProperty<boolean, DataType.Boolean>;
+    serverId: UAProperty<UAString, DataType.String>;
+    clientAuditEntryId: UAProperty<UAString, DataType.String>;
+    clientUserId: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditEvent extends UABaseEvent, UAAuditEvent_Base {
 }

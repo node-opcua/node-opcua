@@ -8,7 +8,6 @@ import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_co
  * |typedDefinition |AuditConditionSilenceEventType ns=0;i=17242       |
  * |isAbstract      |false                                             |
  */
-export interface UAAuditConditionSilenceEvent_Base extends UAAuditConditionEvent_Base {
-}
+export type UAAuditConditionSilenceEvent_Base = UAAuditConditionEvent_Base;
 export interface UAAuditConditionSilenceEvent extends UAAuditConditionEvent, UAAuditConditionSilenceEvent_Base {
 }

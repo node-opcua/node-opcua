@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeTsnInterfaceConfigurationTalker_Base extends UAIIeeeTsnInterfaceConfiguration_Base {
-    timeAwareOffset?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    timeAwareOffset?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 export interface UAIIeeeTsnInterfaceConfigurationTalker extends UAIIeeeTsnInterfaceConfiguration, UAIIeeeTsnInterfaceConfigurationTalker_Base {
 }

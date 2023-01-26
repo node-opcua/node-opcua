@@ -29,7 +29,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -39,7 +39,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     });
 
     it("BSH1 - should parse some structure types", async () => {
-        dataTypeFactory.hasStructuredType("WorkOrderType").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("WorkOrderType").should.eql(true);
     });
     it("BSH2 - should parse some enumerated types", async () => {
         dataTypeFactory.hasEnumeration("Priority").should.eql(true);
@@ -234,7 +234,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -244,7 +244,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
     });
 
     it("BSHB1 - should parse some structure types", async () => {
-        dataTypeFactory.hasStructuredType("SystemStateDescriptionDataType").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("SystemStateDescriptionDataType").should.eql(true);
     });
 
     it("BSHB2 - should parse some enumerated types", async () => {
@@ -263,7 +263,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
     it("BSHB3 - should construct a dynamic object structure 1", () => {
         const SystemStateDescriptionDataType = getOrCreateConstructor("SystemStateDescriptionDataType", dataTypeFactory);
 
-        const SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues as SystemStateEnum2;
+        const SystemState = dataTypeFactory.getEnumeration("SystemStateDataType")!.enumValues;
 
         const systemStateDescription = new SystemStateDescriptionDataType({
             state: SystemStateEnum2.ENG_3,
@@ -310,7 +310,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -320,9 +320,9 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
     });
 
     it("BSHC1 - should parse ProcessingTimesDataType structure types", async () => {
-        dataTypeFactory.hasStructuredType("ProcessingTimesDataType").should.eql(true);
-        const ProcessingTimesDataType = dataTypeFactory.getStructuredTypeSchema("ProcessingTimesDataType");
-        ProcessingTimesDataType.name.should.eql("ProcessingTimesDataType");
+        dataTypeFactory.hasStructureByTypeName("ProcessingTimesDataType").should.eql(true);
+        const ProcessingTimesDataType = dataTypeFactory.getStructureInfoByTypeName("ProcessingTimesDataType");
+        ProcessingTimesDataType.schema.name.should.eql("ProcessingTimesDataType");
     });
 
     it("BSHC2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
@@ -428,7 +428,7 @@ describe("BSHD - Binary Schemas Helper 4", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -437,8 +437,8 @@ describe("BSHD - Binary Schemas Helper 4", () => {
         parameters.debugSchemaHelper = old_schema_helpers_doDebug;
     });
 
-    it("BSHD1 - should parse NodeIdType structure types", async () => {
-        dataTypeFactory.hasStructuredType("NodeId").should.eql(true);
+    it("BSHD1 - should parse NodeId2 structure types", async () => {
+        dataTypeFactory.hasStructureByTypeName("NodeId2").should.eql(true);
     });
 
     it("BSHD2 - should construct a dynamic object structure ProcessingTimesDataType - 1", () => {
@@ -454,7 +454,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -506,7 +506,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
         });
     });
     it("BSHE2 - should parse MyScanResult structure types", async () => {
-        dataTypeFactory.hasStructuredType("MyScanResult").should.eql(true);
+        dataTypeFactory.hasStructureByTypeName("MyScanResult").should.eql(true);
 
         const MyScanResult = getOrCreateConstructor("MyScanResult", dataTypeFactory);
 
@@ -535,7 +535,7 @@ describe("BSSGF - Binary Schemas Helper 5 (DerivedType -1)", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });
@@ -563,7 +563,7 @@ describe("BSHG - Binary Schema Helper 6 - Milo", () => {
 
         old_schema_helpers_doDebug = parameters.debugSchemaHelper;
         parameters.debugSchemaHelper = true;
-        const sample = fs.readFileSync(sample_file, "ascii");
+        const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
         await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
     });

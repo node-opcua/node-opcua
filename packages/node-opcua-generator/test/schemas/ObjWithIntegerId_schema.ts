@@ -4,7 +4,7 @@ export const THIS = {
     id: next_available_id(),
     name: "ObjWithIntegerId",
     fields: [
-        { name: "title", fieldType: "UAString" },
+        { name: "title", fieldType: "String" },
         {
             name: "requestHandle",
             fieldType: "IntegerId"

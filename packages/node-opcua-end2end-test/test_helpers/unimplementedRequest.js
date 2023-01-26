@@ -30,7 +30,7 @@ class ServerSideUnimplementedRequest extends  BaseUAObject
         super(options);
         this.requestHeader = new RequestHeader();
     }
-    get schema() /*: StructuredTypeSchema */ {
+    get schema() /*: IStructuredTypeSchema */ {
         return schemaServerSideUnimplementedRequest;
     }
 }

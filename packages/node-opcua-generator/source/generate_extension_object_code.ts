@@ -20,8 +20,8 @@ import {
     EnumerationDefinitionSchema,
     FieldCategory,
     getStandardDataTypeFactory,
-    StructuredTypeSchema,
-    DataTypeFactory
+    DataTypeFactory,
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSDAsync } from "node-opcua-schemas";
@@ -63,7 +63,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
 
     const str = [];
 
-    const values = Object.keys(enumerationSchema.enumValues).filter((a: any) => a.match("[0-9]+"));
+    const values = Object.keys(enumerationSchema.enumValues).filter((a: any) => a.match(/^[0-9]+$/));
 
     for (const value of values) {
         str.push(`    ${enumerationSchema.enumValues[value]} = ${value}`);
@@ -113,7 +113,7 @@ function writeEnumeratedType(enumerationSchema: EnumerationDefinitionSchema): vo
     write(`assert(_enumeration${enumerationSchema.name}.isFlaggable ===  ${isFlaggable});`);
 }
 
-function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
+function writeStructuredTypeWithSchema(structuredType: IStructuredTypeSchema) {
     write(`// --------------------------------------------------------------------------------------------`);
 
     write(`const schema${structuredType.name} = buildStructuredType({`);
@@ -139,7 +139,7 @@ function writeStructuredTypeWithSchema(structuredType: StructuredTypeSchema) {
 }
 
 export async function generate(filename: string, generatedTypescriptFilename: string): Promise<void> {
-    const content = await readFile(filename, "ascii");
+    const content = await readFile(filename, "utf-8");
 
     const idProvider: MapDataTypeAndEncodingIdProvider = {
         getDataTypeAndEncodingId(name: string): DataTypeAndEncodingId | null {
@@ -241,7 +241,7 @@ import {
     BaseUAObject, buildStructuredType, check_options_correctness_against_schema,
     initialize_field, initialize_field_array, parameters,
     registerClassDefinition,
-    registerEnumeration, StructuredTypeSchema
+    registerEnumeration, IStructuredTypeSchema
 } from "node-opcua-factory";
 import {
     ExpandedNodeId, makeExpandedNodeId, NodeId, NodeIdLike
@@ -260,13 +260,13 @@ import {
 
     write(``);
 
-    write(`export class DataTypeDefinition extends BaseUAObject {`);
-    write(`    constructor(options: any) {`);
-    write(`        options = options; // do not remove`);
-    write(`        super();`);
-    write(`    }`);
-    write(`}`);
-    write(``);
+    // write(`export class DataTypeDefinition extends BaseUAObject {`);
+    // write(`    constructor(options: any) {`);
+    // write(`        options = options; // do not remove`);
+    // write(`        super();`);
+    // write(`    }`);
+    // write(`}`);
+    // write(``);
 
     const alreadyDone: { [key: string]: any } = {};
     /* tslint:disable:no-string-literal */
@@ -301,14 +301,14 @@ import {
         writeEnumeratedType(enumerationSchema);
     }
 
-    function processStructuredType(structuredType: StructuredTypeSchema): void {
+    function processStructuredType(structuredType: IStructuredTypeSchema): void {
         if (alreadyDone[structuredType.name]) {
             return;
         }
         alreadyDone[structuredType.name] = structuredType;
 
         // make sure
-        if (dataTypeFactory.hasStructuredType(structuredType.baseType)) {
+        if (dataTypeFactory.hasStructureByTypeName(structuredType.baseType)) {
             processStructuredType(dataTypeFactory.getStructuredTypeSchema(structuredType.baseType));
         }
         for (const field of structuredType.fields) {
@@ -324,13 +324,13 @@ import {
         writeStructuredTypeWithSchema(structuredType);
     }
 
-    processStructuredType(dataTypeFactory.getStructuredTypeSchema("LocalizedText"));
+    //xx processStructuredType(dataTypeFactory.getStructuredTypeSchema("LocalizedText"));
     processStructuredType(dataTypeFactory.getStructuredTypeSchema("AxisInformation"));
     //        processStructuredType(dataTypeFactory.getStructuredTypeSchema("DiagnosticInfo"));
     processStructuredType(dataTypeFactory.getStructuredTypeSchema("SimpleAttributeOperand"));
 
     for (const structureType of [...dataTypeFactory.structuredTypesNames()].sort()) {
-        if (!dataTypeFactory.hasStructuredType(structureType)) {
+        if (!dataTypeFactory.hasStructureByTypeName(structureType)) {
             continue;
         }
         processStructuredType(dataTypeFactory.getStructuredTypeSchema(structureType));

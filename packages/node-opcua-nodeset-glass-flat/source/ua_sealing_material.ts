@@ -7,14 +7,14 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 export interface UASealingMaterial_hardener extends Omit<UABaseMaterial, "identifier"|"location"|"materialIdentifier"> { // Object
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 export interface UASealingMaterial_resin extends Omit<UABaseMaterial, "identifier"|"location"|"materialIdentifier"> { // Object
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 /**
  * |                |                                                  |
@@ -25,9 +25,9 @@ export interface UASealingMaterial_resin extends Omit<UABaseMaterial, "identifie
  * |isAbstract      |false                                             |
  */
 export interface UASealingMaterial_Base extends UABaseMaterial_Base {
-    addOnMaterial?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    addOnMaterial?: UABaseDataVariable<UAString, DataType.String>;
     hardener?: UASealingMaterial_hardener;
-    mixingRatio: UAAnalogUnit<number, /*z*/DataType.Double>;
+    mixingRatio: UAAnalogUnit<number, DataType.Double>;
     resin?: UASealingMaterial_resin;
 }
 export interface UASealingMaterial extends UABaseMaterial, UASealingMaterial_Base {

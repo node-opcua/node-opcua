@@ -20,7 +20,12 @@ import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { installPeriodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { displayTraceFromThisProjectOnly } from "node-opcua-debug";
-import { extractFullyQualifiedDomainName, getHostname, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
+import {
+    extractFullyQualifiedDomainName,
+    getFullyQualifiedDomainName,
+    getHostname,
+    resolveFullyQualifiedDomainName
+} from "node-opcua-hostname";
 import { Message, Response, ServerSecureChannelLayer, ServerSecureChannelParent } from "node-opcua-secure-channel";
 import { FindServersRequest, FindServersResponse } from "node-opcua-service-discovery";
 import { ApplicationType, GetEndpointsResponse } from "node-opcua-service-endpoints";
@@ -40,18 +45,6 @@ const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = errorLog;
-
-function constructFilename(p: string): string {
-    let filename = path.join(__dirname, "..", p);
-    if (!fs.existsSync(filename)) {
-        // try one level up
-        filename = path.join(__dirname, p);
-        if (!fs.existsSync(filename)) {
-            throw new Error("Cannot find filename " + filename + " ( __dirname = " + __dirname);
-        }
-    }
-    return filename;
-}
 
 const default_server_info = {
     // The globally unique identifier for the application instance. This URI is used as
@@ -190,14 +183,26 @@ export class OPCUABaseServer extends OPCUASecureObject {
         if (fs.existsSync(this.certificateFile)) {
             return;
         }
+
+        // collect all hostnames
+        const hostnames = [];
+        for (const e of this.endpoints) {
+            for (const ee of e.endpointDescriptions()) {
+                /* to do */
+            }
+        }
+
         const lockfile = path.join(this.certificateFile + ".lock");
         await withLock({ lockfile }, async () => {
             if (!fs.existsSync(this.certificateFile)) {
                 const applicationUri = this.serverInfo.applicationUri!;
+                const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
+                const dns = [...new Set([fqdn, hostname])];
+
                 await this.serverCertificateManager.createSelfSignedCertificate({
                     applicationUri,
-                    dns: [hostname],
+                    dns,
                     // ip: await getIpAddresses(),
                     outputFile: this.certificateFile,
 
@@ -209,7 +214,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
             }
         });
     }
-    
+
     public async initializeCM(): Promise<void> {
         await this.serverCertificateManager.initialize();
         await this.createDefaultCertificate();
@@ -504,8 +509,28 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
         const response = new GetEndpointsResponse({});
 
+        /**
+         * endpointUrl	String	The network address that the Client used to access the DiscoveryEndpoint.
+         *                      The Server uses this information for diagnostics and to determine what URLs to return in the response.
+         *                      The Server should return a suitable default URL if it does not recognize the HostName in the URL
+         * localeIds   []LocaleId	List of locales to use.
+         *                          Specifies the locale to use when returning human readable strings.
+         * profileUris []	String	List of Transport Profile that the returned Endpoints shall support.
+         *                          OPC 10000-7 defines URIs for the Transport Profiles.
+         *                          All Endpoints are returned if the list is empty.
+         *                          If the URI is a URL, this URL may have a query string appended.
+         *                          The Transport Profiles that support query strings are defined in OPC 10000-7.
+         */
         response.endpoints = this._get_endpoints(null);
-
+        const e = response.endpoints.map((e) => e.endpointUrl);
+        if (request.endpointUrl) {
+            const filtered = response.endpoints.filter(
+                (endpoint: EndpointDescription) => endpoint.endpointUrl === request.endpointUrl
+            );
+            if (filtered.length > 0) {
+                response.endpoints = filtered;
+            }
+        }
         response.endpoints = response.endpoints.filter((endpoint: EndpointDescription) => !(endpoint as any).restricted);
 
         // apply filters

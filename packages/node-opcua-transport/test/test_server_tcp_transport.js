@@ -11,7 +11,7 @@ const { readMessageHeader } = require("node-opcua-chunkmanager");
 
 const { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, AcknowledgeMessage, TCPErrorMessage } = require("..");
 
-const DirectTransport = require("../dist/test_helpers").DirectTransport;
+const { DirectTransport } = require("../dist/test_helpers");
 
 const packets = require("../dist/test-fixtures");
 const helloMessage = packets.helloMessage1;
@@ -83,7 +83,7 @@ describe("testing ServerTCP_transport", function () {
             debugLog("failed !", err.message);
         });
 
-        transport.on("message", (messageChunk) => {
+        transport.on("chunk", (messageChunk) => {
             // console.log("message ", messageChunk);
             done(new Error("Not expecting an message"));
         });
@@ -146,11 +146,21 @@ describe("testing ServerTCP_transport", function () {
     function perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario(done) {
         const transport = new ServerTCP_transport();
 
+        transport.setLimits({
+            maxChunkCount: 10000,
+            maxMessageSize: 10000,
+            receiveBufferSize: 10000,
+            sendBufferSize: 10000
+        });
+
         transport.init(fakeSocket.server, (err) => {
+            if (err) {
+                console.log(err.message);
+            }
             assert(!err);
         });
 
-        transport.on("message", (messageChunk) => {
+        transport.on("chunk", (messageChunk) => {
             utils.compare_buffers(messageChunk, openChannelRequest);
 
             // it should provide bytesRead and bytesWritten
@@ -273,7 +283,7 @@ describe("testing ServerTCP_transport", function () {
             /** */
         });
 
-        transport.on("message", (messageChunk) => {
+        transport.on("chunk", (messageChunk) => {
             // console.log("message ", messageChunk);
             done();
         });

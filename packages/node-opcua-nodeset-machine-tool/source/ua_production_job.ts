@@ -5,8 +5,8 @@ import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAOrderedList } from "node-opcua-nodeset-ua/source/ua_ordered_list"
 import { UAProductionJobStateMachine } from "./ua_production_job_state_machine"
-export interface UAProductionJob_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, /*b*/DT> { // Variable
-      isValid: UAProperty<boolean, /*z*/DataType.Boolean>;
+export interface UAProductionJob_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
+      isValid: UAProperty<boolean, DataType.Boolean>;
 }
 /**
  * |                |                                                  |
@@ -17,16 +17,16 @@ export interface UAProductionJob_runsPlanned<T, DT extends DataType> extends UAB
  * |isAbstract      |false                                             |
  */
 export interface UAProductionJob_Base {
-    customerOrderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    identifier: UAProperty<UAString, /*z*/DataType.String>;
-    numberInList: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    orderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    partsCompleted?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    customerOrderIdentifier?: UAProperty<UAString, DataType.String>;
+    identifier: UAProperty<UAString, DataType.String>;
+    numberInList: UAProperty<UInt16, DataType.UInt16>;
+    orderIdentifier?: UAProperty<UAString, DataType.String>;
+    partsCompleted?: UABaseDataVariable<UInt32, DataType.UInt32>;
     partSets?: UAObject;
-    partsGood?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    partsGood?: UABaseDataVariable<UInt32, DataType.UInt32>;
     productionPrograms: UAOrderedList;
-    runsCompleted: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    runsPlanned: UAProductionJob_runsPlanned<UInt32, /*z*/DataType.UInt32>;
+    runsCompleted: UABaseDataVariable<UInt32, DataType.UInt32>;
+    runsPlanned: UAProductionJob_runsPlanned<UInt32, DataType.UInt32>;
     state: UAProductionJobStateMachine;
 }
 export interface UAProductionJob extends UAObject, UAProductionJob_Base {

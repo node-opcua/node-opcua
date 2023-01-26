@@ -50,7 +50,6 @@ export const doTraceRequest = serverFlag.match(/REQUEST/);
 export const doTraceResponse = serverFlag.match(/RESPONSE/);
 export const doPerfMonitoring = serverFlag.match(/PERF/);
 
-
 // eslint-disable-next-line prefer-const
 export let doTraceClientMessage = clientFlag.match(/TRACE/);
 // eslint-disable-next-line prefer-const
@@ -98,7 +97,7 @@ export interface ClientTransactionStatistics {
 
 export function _dump_client_transaction_statistics(stats: ClientTransactionStatistics): void {
     function w(str: string | number) {
-        return ("                  " + str).substr(-12);
+        return str.toString().padStart(12, " ").substring(0, 12);
     }
 
     console.log(chalk.green.bold("--------------------------------------------------------------------->> Stats"));
@@ -235,14 +234,10 @@ function evaluateBinarySize(r: Request | Response): string {
     return "s=" + ("" + size).padStart(6) + " ";
 }
 
-export function isGoodish(statusCode: StatusCode): boolean {
-    return statusCode.value < 0x40000000;
-}
-
 function statusCodeToString(s: StatusCode): string {
     if (s === StatusCodes.Good) {
         return chalk.green(s.toString());
-    } else if (isGoodish(s)) {
+    } else if (s.isGoodish()) {
         return chalk.yellow(s.toString());
     } else {
         return chalk.red(s.toString());
@@ -312,6 +307,18 @@ export function traceClientRequestMessage(request: Request, channelId: number, i
     );
 }
 
+function addtionnalInfo(response: Response): string {
+    if (response instanceof BrowseNextResponse || response instanceof BrowseResponse) {
+        const results = response.results;
+        if (!results) return "";
+        const someBad = results.find((r) => r.statusCode.isNotGood());
+        if (!someBad) {
+            return "";
+        }
+        return "!!" + someBad.toString();
+    }
+    return "";
+}
 export function traceClientResponseMessage(response: Response, channelId: number, instance: number): void {
     const extra = _get_extraInfo(response);
     const size = evaluateBinarySize(response);
@@ -324,6 +331,7 @@ export function traceClientResponseMessage(response: Response, channelId: number
         response.schema.name.padEnd(nameLength),
         extra,
         size,
-        statusCodeToString(response.responseHeader.serviceResult)
+        statusCodeToString(response.responseHeader.serviceResult),
+        addtionnalInfo(response)
     );
 }

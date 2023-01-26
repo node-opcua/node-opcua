@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 import * as should from "should";
-import sinon = require("sinon");
+import * as sinon from "sinon";
 
 import { AccessLevelFlag, coerceLocalizedText } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";

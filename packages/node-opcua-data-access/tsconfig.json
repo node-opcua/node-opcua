@@ -13,25 +13,10 @@
             "path": "../node-opcua-assert"
         },
         {
-            "path": "../node-opcua-basic-types"
-        },
-        {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
             "path": "../node-opcua-data-model"
-        },
-        {
-            "path": "../node-opcua-factory"
-        },
-        {
-            "path": "../node-opcua-nodeid"
         },
         {
             "path": "../node-opcua-types"
         },
-        {
-            "path": "../node-opcua-generator"
-        }
-    ]
+     ]
 }

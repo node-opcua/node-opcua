@@ -8,7 +8,6 @@ import { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audi
  * |typedDefinition |AuditCertificateExpiredEventType ns=0;i=2085      |
  * |isAbstract      |true                                              |
  */
-export interface UAAuditCertificateExpiredEvent_Base extends UAAuditCertificateEvent_Base {
-}
+export type UAAuditCertificateExpiredEvent_Base = UAAuditCertificateEvent_Base;
 export interface UAAuditCertificateExpiredEvent extends UAAuditCertificateEvent, UAAuditCertificateExpiredEvent_Base {
 }

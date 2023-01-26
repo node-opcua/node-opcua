@@ -14,8 +14,8 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  */
 export interface UASafetyStateManagement_Base {
     reportSafetyState: UAMethod;
-    visionSafetyInformation: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    visionSafetyTriggered: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    visionSafetyInformation: UABaseDataVariable<UAString, DataType.String>;
+    visionSafetyTriggered: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UASafetyStateManagement extends UAObject, UASafetyStateManagement_Base {
 }

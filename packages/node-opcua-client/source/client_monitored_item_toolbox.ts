@@ -129,7 +129,7 @@ export class ClientMonitoredItemToolbox {
             const res = response.results[0];
 
             /* istanbul ignore next */
-            if (response.results.length === 1 && res.statusCode !== StatusCodes.Good) {
+            if (response.results.length === 1 && res.statusCode.isNotGood()) {
                 return callback(new Error("Error" + res.statusCode.toString()));
             }
             callback(null, response.results);

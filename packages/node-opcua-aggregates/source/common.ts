@@ -5,7 +5,7 @@ import { SessionContext, UAVariable, ContinuationPointManager, ContinuationPoint
 import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { HistoryData, HistoryReadResult, ReadRawModifiedDetails } from "node-opcua-service-history";
-import { StatusCode } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { coerceNodeId } from "node-opcua-nodeid";
 
 import { getAggregateConfiguration } from "./aggregates";
@@ -13,13 +13,6 @@ import { getInterval, Interval, AggregateConfigurationOptionsEx } from "./interv
 
 /**
  * @internal
- * @param node
- * @param processingInterval
- * @param startDate
- * @param endDate
- * @param dataValues
- * @param lambda
- * @param callback
  */
 function processAggregateData(
     node: UAVariable,
@@ -52,6 +45,7 @@ function processAggregateData(
             throw Error("invalid DataValue");
         }
         results.push(dataValue);
+        // console.log(" => ", dataValue.sourceTimestamp.toISOString(), dataValue.statusCode.toString(), dataValue.value.value);
     }
 
     setImmediate(() => {

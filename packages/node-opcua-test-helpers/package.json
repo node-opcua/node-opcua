@@ -1,13 +1,13 @@
 {
     "name": "node-opcua-test-helpers",
-    "version": "2.64.1",
+    "version": "2.88.0",
     "description": "pure nodejs OPCUA SDK - module -test-helpers",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "private": true,
     "scripts": {
         "build": "tsc -b",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "echo no test"
     },
     "author": "Etienne Rossignon",

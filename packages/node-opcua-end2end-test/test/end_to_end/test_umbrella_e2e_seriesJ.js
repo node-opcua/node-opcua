@@ -13,8 +13,8 @@ describe("testing Client - Umbrella-J", function () {
     // this test could be particularly slow on RaspberryPi or BeagleBoneBlack
     // so we set a big enough timeout
     // execution time could also be affected by code running under profiling/coverage tools (istanbul)
-    this.timeout(process.arch === "arm" ? 400*1000 : 20*1000);
-    this.timeout(Math.max(20*10000, this.timeout()));
+    this.timeout(process.arch === "arm" ? 400 * 1000 : 20 * 1000);
+    this.timeout(Math.max(20 * 10000, this.timeout()));
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
@@ -24,7 +24,7 @@ describe("testing Client - Umbrella-J", function () {
     beforeEach(async () => await beforeEachTest(test));
     afterEach(async () => await afterEachTest(test));
     after(async () => await afterTest(test));
- 
+
     require("./u_test_e2e_issue_205_betterSessionNames")(test);
     require("./u_test_e2e_issue_214_StatusValueTimestamp")(test);
     require("./u_test_e2e_translateBrowsePath")(test);
@@ -35,6 +35,5 @@ describe("testing Client - Umbrella-J", function () {
     require("./u_test_e2e_issue_146")(test);
     require("./u_test_e2e_read_write")(test);
     require("./u_test_e2e_issue_957")(test);
-
-
+    require("./u_test_e2e_multiple_disconnection")(test);
 });

@@ -1,19 +1,20 @@
 {
-  "name": "playground",
-  "version": "2.65.0",
-  "description": "",
-  "main": "sample1.js",
-  "private": true,
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 0"
-  },
-  "dependencies": {
-    "node-opcua": "2.65.0",
-    "node-opcua-assert": "2.64.1",
-    "node-opcua-client": "2.65.0",
-    "node-opcua-modeler": "2.65.0",
-    "node-opcua-utils": "2.64.1"
-  },
-  "author": "Etienne Rossignon",
-  "license": "MIT"
+    "name": "playground",
+    "version": "2.89.0",
+    "description": "",
+    "main": "sample1.js",
+    "private": true,
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 0"
+    },
+    "dependencies": {
+        "chalk": "4.1.2",
+        "node-opcua": "2.89.0",
+        "node-opcua-client": "2.89.0",
+        "node-opcua-modeler": "2.89.0",
+        "readline": "*",
+        "winston": "*"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT"
 }

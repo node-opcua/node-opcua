@@ -15,10 +15,10 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * |isAbstract      |true                                              |
  */
 export interface UAGlassEvent_Base extends UABaseEvent_Base {
-    identifier?: UAProperty<UAString, /*z*/DataType.String>;
-    jobdIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    location?: UAProperty<UAString, /*z*/DataType.String>;
-    materialIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
+    identifier?: UAProperty<UAString, DataType.String>;
+    jobdIdentifier?: UAProperty<UAString, DataType.String>;
+    location?: UAProperty<UAString, DataType.String>;
+    materialIdentifier?: UAProperty<UAString, DataType.String>;
 }
 export interface UAGlassEvent extends UABaseEvent, UAGlassEvent_Base {
 }

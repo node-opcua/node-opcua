@@ -1,7 +1,7 @@
-const opcua = require("node-opcua");
 const path = require("path");
+const {OPCUAServer} = require("node-opcua-server");
 
-const server = new opcua.OPCUAServer({
+const server = new OPCUAServer({
 });
 
 const { addAggregateSupport } = require("..");

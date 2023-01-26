@@ -8,39 +8,15 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import { UALimitAlarm_Base, UALimitAlarm } from "node-opcua-nodeset-ua";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
-
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, VariantOptions } from "node-opcua-variant";
+import { UAShelvedStateMachineEx } from "../../source/interfaces/state_machine/ua_shelved_state_machine_ex";
+import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
+import { UALimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
 import { NamespacePrivate } from "../namespace_private";
-import { UAShelvedStateMachineEx } from "../state_machine/ua_shelving_state_machine_ex";
-import { UAAlarmConditionEx, UAAlarmConditionHelper, UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
+import { UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
 
 const warningLog = make_warningLog("AlarmsAndConditions");
-export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
-    setLowLowLimit(value: number): void;
-    setLowLimit(value: number): void;
-    setHighLimit(value: number): void;
-    setHighHighLimit(value: number): void;
-    getHighHighLimit(): number;
-    getHighLimit(): number;
-    getLowLimit(): number;
-    getLowLowLimit(): number;
-}
-export interface UALimitAlarmEx extends UALimitAlarm_Base, UAAlarmConditionEx, UALimitAlarmHelper {
-    on(eventName: string, eventHandler: any): this;
-
-    enabledState: UATwoStateVariableEx;
-    ackedState: UATwoStateVariableEx;
-    confirmedState?: UATwoStateVariableEx;
-    activeState: UATwoStateVariableEx;
-    latchedState?: UATwoStateVariableEx;
-    outOfServiceState?: UATwoStateVariableEx;
-    silenceState?: UATwoStateVariableEx;
-    shelvingState?: UAShelvedStateMachineEx;
-    suppressedState?: UATwoStateVariableEx;
-}
 
 export declare interface UALimitAlarmImpl extends UALimitAlarmEx, UAAlarmConditionImpl {
     on(eventName: string, eventHandler: any): this;
@@ -57,6 +33,9 @@ const uaLimitAlarmInputSupportedDataType: DataType[] = [
     DataType.UInt32
 ];
 
+export interface UALimitAlarmImpl extends UALimitAlarmEx {
+    shelvingState?: UAShelvedStateMachineEx;
+}
 export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAlarmEx {
     /**
      * @method (static)UALimitAlarm.instantiate
@@ -75,8 +54,8 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     public static instantiate(
         namespace: NamespacePrivate,
         limitAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UALimitAlarmImpl {
         const addressSpace = namespace.addressSpace;
 
@@ -139,17 +118,15 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         const dataType = addressSpace.findCorrespondingBasicDataType(options.inputNode.dataType);
 
         if (-1 === uaLimitAlarmInputSupportedDataType.indexOf(dataType)) {
-            const message =(
-                `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
-                    .map((a) => DataType[a])
-                    .join("|")}, got ${DataType[dataType]}`
-            );
+            const message = `UALimitAlarm.instantiate: inputNode must be of type ${uaLimitAlarmInputSupportedDataType
+                .map((a) => DataType[a])
+                .join("|")}, got ${DataType[dataType]}`;
             warningLog(message);
-            throw(new Error(message));
+            throw new Error(message);
         }
 
-        if (Object.prototype.hasOwnProperty.call(options, "highHighLimit")) {
-            alarmNode.setHighHighLimit(options.highHighLimit);
+        if (Object.prototype.hasOwnProperty.call(options, "highHighLimit") && options.highHighLimit !== undefined) {
+            alarmNode.setHighHighLimit(options.highHighLimit!);
         }
         if (Object.prototype.hasOwnProperty.call(options, "highLimit")) {
             alarmNode.setHighLimit(options.highLimit);
@@ -157,7 +134,7 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         if (Object.prototype.hasOwnProperty.call(options, "lowLimit")) {
             alarmNode.setLowLimit(options.lowLimit);
         }
-        if (Object.prototype.hasOwnProperty.call(options, "lowLowLimit")) {
+        if (Object.prototype.hasOwnProperty.call(options, "lowLowLimit") && options.lowLowLimit != undefined) {
             alarmNode.setLowLowLimit(options.lowLowLimit);
         }
 
@@ -265,17 +242,17 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
         this.lowLowLimit.setValueFromSource({ dataType: DataType.Double, value });
     }
 
-    public _onInputDataValueChange(dataValue: DataValue): void {
+    protected _onInputDataValueChange(dataValue: DataValue): void {
         assert(dataValue instanceof DataValue);
 
         if (
-            dataValue.statusCode === StatusCodes.BadWaitingForInitialData &&
-            dataValue.statusCode === StatusCodes.UncertainInitialValue
+            dataValue.statusCode.equals(StatusCodes.BadWaitingForInitialData) &&
+            dataValue.statusCode.equals(StatusCodes.UncertainInitialValue)
         ) {
             // we are not ready yet to use the input node value
             return;
         }
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             // what shall we do ?
             this._signalNewCondition(null);
             return;

@@ -1,4 +1,4 @@
-
+import { hostname } from "os";
 import {
   OPCUAClient,
   MessageSecurityMode,
@@ -27,7 +27,7 @@ const client = OPCUAClient.create({
   endpointMustExist: false
 });
 //const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
-const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
+const endpointUrl = "opc.tcp://" + hostname() + ":4334/UA/MyLittleServer";
 
 
 async function timeout(ms: number) {
@@ -46,7 +46,7 @@ async function main() {
 
     // step 3 : browse
     const browseResult = await session.browse("RootFolder");
-    
+
     console.log("references of RootFolder :");
     for (const reference of browseResult.references) {
       console.log("   -> ", reference.browseName.toString());
@@ -77,23 +77,23 @@ async function main() {
       publishingEnabled: true,
       priority: 10
     });
-    
+
     subscription
-      .on("started", function() {
+      .on("started", function () {
         console.log(
           "subscription started for 2 seconds - subscriptionId=",
           subscription.subscriptionId
         );
       })
-      .on("keepalive", function() {
+      .on("keepalive", function () {
         console.log("keepalive");
       })
-      .on("terminated", function() {
+      .on("terminated", function () {
         console.log("terminated");
       });
-    
+
     // install monitored item
-    
+
     const itemToMonitor: ReadValueIdLike = {
       nodeId: "ns=1;s=free_memory",
       attributeId: AttributeIds.Value
@@ -103,20 +103,20 @@ async function main() {
       discardOldest: true,
       queueSize: 10
     };
-    
+
     const monitoredItem = ClientMonitoredItem.create(
       subscription,
       itemToMonitor,
       parameters,
       TimestampsToReturn.Both
     );
-    
+
     monitoredItem.on("changed", (dataValue: DataValue) => {
       console.log(" value has changed : ", dataValue.value.toString());
     });
-    
+
     await timeout(10000);
-    
+
     console.log("now terminating subscription");
     await subscription.terminate();
 
@@ -125,7 +125,7 @@ async function main() {
       "RootFolder",
       "/Objects/Server.ServerStatus.BuildInfo.ProductName"
     );
-    
+
     const result = await session.translateBrowsePath(browsePath);
     const productNameNodeId = result.targets[0].targetId;
     console.log(" Product Name nodeId = ", productNameNodeId.toString());
@@ -136,9 +136,9 @@ async function main() {
     // disconnecting
     await client.disconnect();
     console.log("done !");
-  } catch(err) {
+  } catch (err) {
     if (err instanceof Error) {
-        console.log("An error has occurred : ", err);
+      console.log("An error has occurred : ", err);
     }
   }
 }

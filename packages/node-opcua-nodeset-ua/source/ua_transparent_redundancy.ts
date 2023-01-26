@@ -13,8 +13,8 @@ import { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redunda
  * |isAbstract      |false                                             |
  */
 export interface UATransparentRedundancy_Base extends UAServerRedundancy_Base {
-    currentServerId: UAProperty<UAString, /*z*/DataType.String>;
-    redundantServerArray: UAProperty<DTRedundantServer[], /*z*/DataType.ExtensionObject>;
+    currentServerId: UAProperty<UAString, DataType.String>;
+    redundantServerArray: UAProperty<DTRedundantServer[], DataType.ExtensionObject>;
 }
 export interface UATransparentRedundancy extends UAServerRedundancy, UATransparentRedundancy_Base {
 }

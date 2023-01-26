@@ -1,10 +1,9 @@
-import { get_mini_nodeset_filename, nodesets, OPCUAClient, OPCUAServer, UserTokenType } from "node-opcua";
 import { networkInterfaces } from "os";
+import { get_mini_nodeset_filename, nodesets, OPCUAClient, OPCUAServer, UserTokenType } from "node-opcua";
 
-const doDebug = false;
+const doDebug = true;
 
-
-function getIpAddresses() {
+function getIpAddresses(): string[] {
     const nets = networkInterfaces();
     const results: any = {};
     for (const name of Object.keys(nets)) {
@@ -22,7 +21,7 @@ function getIpAddresses() {
         console.log(results);
     }
 
-    return [].concat.apply([], Object.values(results));
+    return [...(Object.values(results) as string[])].flat();
 }
 const port = 2007;
 const ip = getIpAddresses();
@@ -64,7 +63,12 @@ describe("building server with an AlternateName", () => {
         await server.shutdown();
         server.dispose();
     });
-    it("should not confuse endpoints", async () => {
+    it("should not confuse endpoints #881", async () => {
+
+        if (ip.length === 0 ) {
+            console.log(" cannot run test because no IPV4 address available", ip);
+            return;
+        }
         const client = OPCUAClient.create({ endpointMustExist: false });
         client.on("backoff", () => {
             if (doDebug) {
@@ -86,8 +90,6 @@ describe("building server with an AlternateName", () => {
                 userName: "test"
             });
             await session.close();
-        } catch (err) {
-            throw err;
         } finally {
             await client.disconnect();
         }

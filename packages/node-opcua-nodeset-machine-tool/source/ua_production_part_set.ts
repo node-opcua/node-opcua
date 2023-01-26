@@ -12,11 +12,11 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |false                                             |
  */
 export interface UAProductionPartSet_Base {
-    containsMixedParts: UAProperty<boolean, /*z*/DataType.Boolean>;
-    name?: UAProperty<UAString, /*z*/DataType.String>;
-    partsCompletedPerRun: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    containsMixedParts: UAProperty<boolean, DataType.Boolean>;
+    name?: UAProperty<UAString, DataType.String>;
+    partsCompletedPerRun: UABaseDataVariable<UInt32, DataType.UInt32>;
     partsPerRun?: UAObject;
-    partsPlannedPerRun: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    partsPlannedPerRun: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 export interface UAProductionPartSet extends UAObject, UAProductionPartSet_Base {
 }

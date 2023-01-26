@@ -16,7 +16,7 @@ const {
 
 const { start_simple_server, crash_simple_server } = require("../../test_helpers/external_server_fixture");
 
-const doDebug = false;
+const doDebug = true;
 const debugLog = make_debugLog("TEST");
 let server_data = null;
 const port = 2016;
@@ -32,12 +32,15 @@ async function start_external_opcua_server() {
 
 async function crash_external_opcua_server() {
     await crash_simple_server(server_data);
-    server_data= null;
+    server_data = null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-let client, session, subscription, intervalId, monitoredItem;
-
+let client, session, intervalId, monitoredItem;
+/**
+ * @type {ClientSubscription}
+ */
+let subscription;
 async function start_active_client(connectionStrategy) {
     const endpointUrl = server_data.endpointUrl;
 
@@ -45,9 +48,9 @@ async function start_active_client(connectionStrategy) {
         connectionStrategy,
         endpointMustExist: false,
         keepSessionAlive: true,
-        requestedSessionTimeout: 60000
+        requestedSessionTimeout: 10000
     });
-    client.on("connection_reestablished", ()=> {
+    client.on("connection_reestablished", () => {
         debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
     client.on("backoff", function (number, delay) {
@@ -68,10 +71,11 @@ async function start_active_client(connectionStrategy) {
                 chalk.yellow("KeepAlive state="),
                 state.toString(),
                 " pending request on server = ",
-                subscription.publish_engine.nbPendingPublishRequests
+                subscription.publishEngine.nbPendingPublishRequests
             );
         }
     });
+
 
     session.on("session_closed", function (statusCode) {
         debugLog(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
@@ -87,18 +91,19 @@ async function start_active_client(connectionStrategy) {
         priority: 10
     };
 
+
     subscription = await session.createSubscription2(parameters);
 
     subscription
-        .on("started", ()=> {/** */})
+        .on("started", () => {/** */ })
         .on("internal_error", function (err) {
             debugLog(" received internal error", err.message);
         })
-        .on("keepalive", ()=> {
+        .on("keepalive", () => {
             debugLog(
                 chalk.cyan("keepalive "),
                 chalk.cyan(" pending request on server = "),
-                subscription.publish_engine.nbPendingPublishRequests
+                subscription.publishEngine.nbPendingPublishRequests
             );
         })
         .on("terminated", function (err) {
@@ -126,7 +131,7 @@ async function start_active_client(connectionStrategy) {
             " ( requested ",
             parameters.requestedPublishingInterval + ")"
         );
-        debugLog("  suggested timeout hint     ", subscription.publish_engine.timeoutHint);
+        debugLog("  suggested timeout hint     ", subscription.publishEngine.timeoutHint);
     }
 
     const result = [];
@@ -136,7 +141,7 @@ async function start_active_client(connectionStrategy) {
         discardOldest: true
     };
 
-    const item = { nodeId: nodeId, attributeId: AttributeIds.Value };
+    const item = { nodeId, attributeId: AttributeIds.Value };
 
     monitoredItem = await subscription.monitor(item, requestedParameters, TimestampsToReturn.Both, MonitoringMode.Reporting);
 
@@ -220,19 +225,19 @@ async function terminate_active_client() {
 }
 
 async function f(func) {
-    return async ()=> {
+    return (async () => {
         debugLog(
             "       * " +
-                func.name
-                    .replace(
-                        /_/g,
+            func.name
+                .replace(
+                    /_/g,
 
-                        " "
-                    )
-                    .replace(/(given|when|then)/, chalk.green("**$1**"))
+                    " "
+                )
+                .replace(/(given|when|then)/, chalk.green("**$1**"))
         );
         return await func();
-    };
+    })();
 }
 
 // eslint-disable-next-line import/order
@@ -262,6 +267,18 @@ describe("Testing client reconnection with crashing server", function () {
         await new Promise((resolve) => setTimeout(resolve, 10000));
         await when_the_server_restart();
     }
+
+    async function when_the_client_emit_a_keep_alive_failure() {
+        await new Promise((resolve) =>
+            session.once("keepalive_failure", () => {
+                resolve();
+            }));
+    }
+    async function when_the_server_restart_after_some_very_long_time_greater_then_session_timeout() {
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await when_the_server_restart();
+    }
+
 
     async function given_a_active_client_with_subscription_and_monitored_items() {
         // this client starts with default parameters

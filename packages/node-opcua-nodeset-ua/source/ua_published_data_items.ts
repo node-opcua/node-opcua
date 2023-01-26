@@ -13,7 +13,7 @@ import { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data
  * |isAbstract      |false                                             |
  */
 export interface UAPublishedDataItems_Base extends UAPublishedDataSet_Base {
-    publishedData: UAProperty<DTPublishedVariable[], /*z*/DataType.ExtensionObject>;
+    publishedData: UAProperty<DTPublishedVariable[], DataType.ExtensionObject>;
     addVariables?: UAMethod;
     removeVariables?: UAMethod;
 }

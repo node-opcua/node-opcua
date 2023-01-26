@@ -17,8 +17,8 @@ function initialize() {
         id: factories.next_available_id(),
         name: "Person2",
         fields: [
-            { name: "lastName", fieldType: "UAString" },
-            { name: "address", fieldType: "UAString" },
+            { name: "lastName", fieldType: "String" },
+            { name: "address", fieldType: "String" },
             { name: "age", fieldType: "Int32", defaultValue: 25 }
         ]
     };

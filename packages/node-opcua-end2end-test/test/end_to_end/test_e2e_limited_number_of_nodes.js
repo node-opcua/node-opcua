@@ -7,13 +7,14 @@ const {
     makeNodeId,
     VariableIds,
     AttributeIds,
-    NodeCrawler,
     assert,
     OPCUAServer,
     OPCUAClient,
     BrowseDirection,
     makeBrowsePath
 } = require("node-opcua");
+
+const { NodeCrawler } = require("node-opcua-client-crawler");
 
 assert(typeof makeBrowsePath === "function");
 
@@ -36,15 +37,19 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
             port,
 
             // xx nodeset_filename: empty_nodeset_filename,
-
-            maxAllowedSessionNumber: 1,
-
             serverCapabilities: {
+                maxSessions: 1,
+
                 maxArrayLength: 0,
                 maxStringLength: 0,
                 maxBrowseContinuationPoints: 0,
                 maxQueryContinuationPoints: 0,
                 maxHistoryContinuationPoints: 0,
+                
+                // new in 1.05
+                maxSubscriptions: 10,
+                maxSubscriptionsPerSession: 3,
+                
                 operationLimits: {
                     maxNodesPerRead: 10,
                     maxNodesPerWrite: 10,

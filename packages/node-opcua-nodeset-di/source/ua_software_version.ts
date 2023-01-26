@@ -12,13 +12,13 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UASoftwareVersion_Base {
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    manufacturerUri: UAProperty<UAString, /*z*/DataType.String>;
-    softwareRevision: UAProperty<UAString, /*z*/DataType.String>;
-    patchIdentifiers?: UAProperty<UAString[], /*z*/DataType.String>;
-    releaseDate?: UAProperty<Date, /*z*/DataType.DateTime>;
-    changeLogReference?: UAProperty<UAString, /*z*/DataType.String>;
-    hash?: UAProperty<Buffer, /*z*/DataType.ByteString>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    manufacturerUri: UAProperty<UAString, DataType.String>;
+    softwareRevision: UAProperty<UAString, DataType.String>;
+    patchIdentifiers?: UAProperty<UAString[], DataType.String>;
+    releaseDate?: UAProperty<Date, DataType.DateTime>;
+    changeLogReference?: UAProperty<UAString, DataType.String>;
+    hash?: UAProperty<Buffer, DataType.ByteString>;
 }
 export interface UASoftwareVersion extends UAObject, UASoftwareVersion_Base {
 }

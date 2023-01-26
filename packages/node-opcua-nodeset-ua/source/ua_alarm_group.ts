@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
@@ -15,7 +15,6 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |typedDefinition |AlarmGroupType ns=0;i=16405                       |
  * |isAbstract      |false                                             |
  */
-export interface UAAlarmGroup_Base extends UAFolder_Base {
-}
+export type UAAlarmGroup_Base = UAFolder_Base;
 export interface UAAlarmGroup extends UAFolder, UAAlarmGroup_Base {
 }

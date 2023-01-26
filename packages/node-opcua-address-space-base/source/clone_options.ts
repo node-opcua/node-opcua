@@ -32,7 +32,7 @@ export const defaultCloneExtraInfo: CloneExtraInfo = {
     pad(this: CloneExtraInfo) {
         return " ".padEnd(this.level * 2);
     },
-    registerClonedObject(clonedObject: BaseNode, originalObject: BaseNode): void {
+    registerClonedObject(_clonedObject: BaseNode, _originalObject: BaseNode): void {
         // nothing to do
     }
 };
@@ -67,4 +67,5 @@ export interface CloneOptions /* extends ConstructNodeIdOptions */ {
     componentOf?: UAObjectType | UAObject;
 
     copyAlsoModellingRules?: boolean;
+    ignoreChildren?: boolean;
 }

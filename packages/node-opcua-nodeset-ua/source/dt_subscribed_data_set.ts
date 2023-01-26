@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |SubscribedDataSetDataType                         |
  * | isAbstract|true                                              |
  */
-export interface DTSubscribedDataSet extends DTStructure  {
-}
+export type DTSubscribedDataSet = DTStructure;

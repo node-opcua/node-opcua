@@ -14,11 +14,11 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UALockingServices_Base {
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
-    locked: UAProperty<boolean, /*z*/DataType.Boolean>;
-    lockingClient: UAProperty<UAString, /*z*/DataType.String>;
-    lockingUser: UAProperty<UAString, /*z*/DataType.String>;
-    remainingLockTime: UAProperty<number, /*z*/DataType.Double>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
+    locked: UAProperty<boolean, DataType.Boolean>;
+    lockingClient: UAProperty<UAString, DataType.String>;
+    lockingUser: UAProperty<UAString, DataType.String>;
+    remainingLockTime: UAProperty<number, DataType.Double>;
     initLock: UAMethod;
     renewLock: UAMethod;
     exitLock: UAMethod;

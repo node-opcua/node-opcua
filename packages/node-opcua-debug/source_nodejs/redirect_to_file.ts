@@ -26,7 +26,7 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
     const logFile = getTempFilename(tmpFile);
 
     // xx    console.log(" log_file ",log_file);
-    const f = fs.createWriteStream(logFile, { flags: "w", encoding: "ascii" });
+    const f = fs.createWriteStream(logFile, { flags: "w", encoding: "utf-8" });
 
     function _write_to_file(...args: [any, ...any[]]) {
         const msg = format.call(null, ...args);
@@ -53,7 +53,7 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
             // we don't want the callback anymore since we got an error
             // display file on screen  for investigation
 
-            console.log(fs.readFileSync(logFile).toString("ascii"));
+            console.log(fs.readFileSync(logFile).toString("utf-8"));
 
             f.end(() => {
                 if (callback) {

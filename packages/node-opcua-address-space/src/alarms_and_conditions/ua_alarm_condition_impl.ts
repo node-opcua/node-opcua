@@ -8,21 +8,19 @@ import { NodeClass } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
-import { UAAlarmCondition_Base } from "node-opcua-nodeset-ua";
+import { DataType, VariantOptions } from "node-opcua-variant";
+import { UAShelvedStateMachine } from "node-opcua-nodeset-ua";
+import { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
 
-import { BaseNode, INamespace, UAEventType, UAVariable } from "../../source";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { UAShelvedStateMachineEx, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
+import { UAShelvedStateMachineExImpl, _clear_timer_if_any } from "../state_machine/ua_shelving_state_machine_ex";
 import { AddressSpacePrivate } from "../address_space_private";
+import { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import { UAAlarmConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
+import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
 
-import { ConditionInfo } from "./condition_info";
-import {
-    UAAcknowledgeableConditionEx,
-    UAAcknowledgeableConditionHelper,
-    UAAcknowledgeableConditionImpl
-} from "./ua_acknowledgeable_condition_impl";
+import { ConditionInfoImpl } from "./condition_info_impl";
+import { UAAcknowledgeableConditionImpl } from "./ua_acknowledgeable_condition_impl";
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({
@@ -30,37 +28,6 @@ function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
         value: alarmNode.isSuppressedOrShelved()
     });
 }
-export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper {
-    activateAlarm(): void;
-    deactivateAlarm(): void;
-    isSuppressedOrShelved(): boolean;
-    getSuppressedOrShelved(): boolean;
-    setMaxTimeShelved(duration: number): void;
-    getMaxTimeShelved(): number;
-    getInputNodeNode(): UAVariable | null;
-    getInputNodeValue(): any | null;
-    updateState(): void;
-    getCurrentConditionInfo(): ConditionInfo;
-
-    installInputNodeMonitoring(inputNode: BaseNode | NodeId): void;
-}
-
-export declare interface UAAlarmConditionEx extends UAAlarmConditionHelper, UAAlarmCondition_Base, UAAcknowledgeableConditionEx {
-    on(eventName: string, eventHandler: any): this;
-
-    enabledState: UATwoStateVariableEx;
-    activeState: UATwoStateVariableEx;
-    ackedState: UATwoStateVariableEx;
-    confirmedState?: UATwoStateVariableEx;
-
-    suppressedState?: UATwoStateVariableEx;
-
-    outOfServiceState?: UATwoStateVariableEx;
-    shelvingState?: UAShelvedStateMachineEx;
-    silenceState?: UATwoStateVariableEx;
-    latchedState?: UATwoStateVariableEx;
-}
-
 export declare interface UAAlarmConditionImpl extends UAAlarmConditionEx, UAAcknowledgeableConditionImpl {
     on(eventName: string, eventHandler: any): this;
 }
@@ -71,8 +38,8 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     public static instantiate(
         namespace: INamespace,
         alarmConditionTypeId: UAEventType | string | NodeId,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAlarmConditionImpl {
         const addressSpace = namespace.addressSpace;
         // xx assert(Object.prototype.hasOwnProperty.call(options,"conditionOf")); // must provide a conditionOf
@@ -93,7 +60,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         options.optionals = options.optionals || [];
         if (Object.prototype.hasOwnProperty.call(options, "maxTimeShelved")) {
             options.optionals.push("MaxTimeShelved");
-            assert(isFinite(options.maxTimeShelved));
+            assert(isFinite(options.maxTimeShelved!));
         }
 
         assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
@@ -156,7 +123,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
          * @type ShelvingStateMachine
          */
         if (alarmNode.shelvingState) {
-            UAShelvedStateMachineEx.promote(alarmNode.shelvingState);
+            UAShelvedStateMachineExImpl.promote(alarmNode.shelvingState);
         }
 
         // SuppressedOrShelved : Mandatory
@@ -216,7 +183,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
 
     public dispose(): void {
         if (this.shelvingState) {
-            _clear_timer_if_any(this.shelvingState);
+            _clear_timer_if_any(this.shelvingState as any as UAShelvedStateMachineExImpl);
         }
         super.dispose();
     }
@@ -224,21 +191,24 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     public activateAlarm(): void {
         // will set acknowledgeable to false and retain to true
         const branch = this.currentBranch();
+        if (!branch) {
+            return;
+        }
         branch.setRetain(true);
         branch.setActiveState(true);
         branch.setAckedState(false);
     }
 
-    public deactivateAlarm(): void {
+    public deactivateAlarm(retain?: boolean): void {
         const branch = this.currentBranch();
-        branch.setRetain(true);
+        branch.setRetain(retain === undefined ? true : retain);
         branch.setActiveState(false);
     }
 
     /**
      * @deprecated use deactivateAlarm instead (with no s after de-activate)
      */
-    public desactivateAlarm(): void {
+    protected desactivateAlarm(): void {
         this.deactivateAlarm();
     }
 
@@ -325,7 +295,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         this._onInputDataValueChange(dataValue);
     }
 
-    public _onInputDataValueChange(newValue: DataValue): void {
+    protected _onInputDataValueChange(newValue: DataValue): void {
         // xx console.log("class=",this.constructor.name,this.browseName.toString());
         // xx throw new Error("_onInputDataValueChange must be overridden");
     }
@@ -398,7 +368,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         const oldMessage = this.currentBranch().getMessage();
         const oldRetain = this.currentBranch().getRetain();
 
-        const oldConditionInfo = new ConditionInfo({
+        const oldConditionInfo = new ConditionInfoImpl({
             message: oldMessage,
             quality: oldQuality,
             retain: oldRetain,
@@ -443,15 +413,15 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         oldCondition: ConditionInfo
     ): ConditionInfo {
         if (!stateData) {
-            return new ConditionInfo({
+            return new ConditionInfoImpl({
                 message: "Back to normal",
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 0
             });
         } else {
-            return new ConditionInfo({
-                message: "Condition value is " + value + " and state is " + stateData,
+            return new ConditionInfoImpl({
+                message: "Condition is " + value + " and state is " + stateData,
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 150

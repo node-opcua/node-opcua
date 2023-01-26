@@ -1,41 +1,41 @@
 {
-	"name": "node-opcua-address-space-for-conformance-testing",
-	"version": "2.65.0",
-	"description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
-	"scripts": {
-		"build": "tsc -b",
-		"lint": "eslint src",
-		"format": "prettier --write src",
-		"test": "mocha"
-	},
-	"dependencies": {
-		"node-opcua-address-space": "2.65.0",
-		"node-opcua-assert": "2.64.1",
-		"node-opcua-basic-types": "2.64.1",
-		"node-opcua-data-access": "2.65.0",
-		"node-opcua-data-model": "2.64.1",
-		"node-opcua-data-value": "2.64.1",
-		"node-opcua-factory": "2.64.1",
-		"node-opcua-nodeid": "2.64.1",
-		"node-opcua-status-code": "2.64.1",
-		"node-opcua-variant": "2.64.1"
-	},
-	"author": "Etienne Rossignon",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git://github.com/node-opcua/node-opcua.git"
-	},
-	"keywords": [
-		"OPCUA",
-		"opcua",
-		"m2m",
-		"iot",
-		"opc ua",
-		"internet of things"
-	],
-	"homepage": "http://node-opcua.github.io/",
-	"gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "name": "node-opcua-address-space-for-conformance-testing",
+    "version": "2.89.0",
+    "description": "pure nodejs OPCUA SDK - module -address-space-for-conformance-testing",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b",
+        "lint": "eslint src",
+        "format": "prettier --write src",
+        "test": "mocha"
+    },
+    "dependencies": {
+        "node-opcua-address-space": "2.89.0",
+        "node-opcua-assert": "2.88.0",
+        "node-opcua-basic-types": "2.89.0",
+        "node-opcua-data-access": "2.89.0",
+        "node-opcua-data-model": "2.89.0",
+        "node-opcua-data-value": "2.89.0",
+        "node-opcua-factory": "2.89.0",
+        "node-opcua-nodeid": "2.88.0",
+        "node-opcua-status-code": "2.89.0",
+        "node-opcua-variant": "2.89.0"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
 }

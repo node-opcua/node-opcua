@@ -31,7 +31,7 @@ export function messageHeaderToString(messageChunk: Buffer): string {
     securityHeader.decode(stream);
     sequenceHeader.decode(stream);
 
-    const slice = messageChunk.slice(0, stream.length);
+    const slice = messageChunk.subarray(0, stream.length);
 
     return messageHeader.msgType + " " +
         messageHeader.isFinal +

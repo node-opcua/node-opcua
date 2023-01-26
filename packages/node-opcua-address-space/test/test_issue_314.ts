@@ -37,6 +37,9 @@ describe("testing loading ExtensionObject value from NodeSet XML file", function
 
         const dataValue = node.readValue();
         dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+        
+        // console.log("xx ", dataValue.value.toString());
+
         dataValue.value.value.constructor.name.should.eql("EUInformation");
         dataValue.value.value.namespaceUri.should.eql("http://www.opcfoundation.org/UA/units/un/cefact");
         dataValue.value.value.unitId.should.eql(5066068);

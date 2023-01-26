@@ -82,13 +82,13 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
 
             dataValues = dataValues || [];
 
-            if (dataValues[0].statusCode === StatusCodes.Good) {
+            if (dataValues[0].statusCode.isGood()) {
                 clientObject.dataValue = dataValues[0].value;
             }
-            if (dataValues[1].statusCode === StatusCodes.Good) {
+            if (dataValues[1].statusCode.isGood()) {
                 clientObject.userAccessLevel = coerceAccessLevelFlag(dataValues[1].value.value);
             }
-            if (dataValues[2].statusCode === StatusCodes.Good) {
+            if (dataValues[2].statusCode.isGood()) {
                 clientObject.accessLevel = coerceAccessLevelFlag(dataValues[2].value.value);
             }
             callback(err!);
@@ -105,7 +105,7 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
                     if (!err) {
                         dataValues = dataValues!;
 
-                        if (dataValues[0].statusCode === StatusCodes.BadNodeIdUnknown) {
+                        if (dataValues[0].statusCode.equals(StatusCodes.BadNodeIdUnknown)) {
                             // xx console.log(" INVALID NODE ", nodeId.toString());
                             return callback(new Error("Invalid Node " + nodeId.toString()));
                         }

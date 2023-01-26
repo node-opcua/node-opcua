@@ -1,23 +1,15 @@
 /**
  * @module node-opcua-pseudo-session
  */
-import {
-    CreateMonitoredItemsRequest,
-    CreateMonitoredItemsResponse,
-} from "node-opcua-service-subscription";
-import {
-    IBasicSession
-} from "./basic_session_interface";
-import { 
-    IBasicSessionWithSubscription 
-} from "./basic_session_with_subscription";
+import { CreateMonitoredItemsRequest, CreateMonitoredItemsResponse } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import { IBasicSessionWithSubscription } from "./basic_session_with_subscription";
 
 export async function createMonitoredItemsLimit(
     maxMonitoredItemsPerCall: number,
     session: IBasicSessionWithSubscription,
     createMonitoredItemsRequest: CreateMonitoredItemsRequest
 ): Promise<CreateMonitoredItemsResponse>;
-
 
 export async function createMonitoredItemsLimit(
     maxMonitoredItemsPerCall: number,
@@ -26,6 +18,14 @@ export async function createMonitoredItemsLimit(
 ): Promise<CreateMonitoredItemsResponse> {
     const _session2 = session as IBasicSessionWithSubscription;
 
+    if (!createMonitoredItemsRequest.itemsToCreate || createMonitoredItemsRequest.itemsToCreate.length === 0) {
+        return new CreateMonitoredItemsResponse({
+            responseHeader: {
+                serviceResult: StatusCodes.Good
+            },
+            results: []
+        });
+    }
     if (
         maxMonitoredItemsPerCall <= 0 ||
         !createMonitoredItemsRequest.itemsToCreate ||

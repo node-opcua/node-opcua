@@ -11,12 +11,12 @@ export interface UAPubSubDiagnosticsDataSetReader_counters extends UAPubSubDiagn
       decryptionErrors?: UAPubSubDiagnosticsCounter<UInt32>;
 }
 export interface UAPubSubDiagnosticsDataSetReader_liveValues extends UAObject { // Object
-      messageSequenceNumber?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-      statusCode?: UABaseDataVariable<StatusCode, /*z*/DataType.StatusCode>;
-      majorVersion?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-      minorVersion?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-      securityTokenID?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-      timeToNextTokenID?: UABaseDataVariable<number, /*z*/DataType.Double>;
+      messageSequenceNumber?: UABaseDataVariable<UInt16, DataType.UInt16>;
+      statusCode?: UABaseDataVariable<StatusCode, DataType.StatusCode>;
+      majorVersion?: UABaseDataVariable<UInt32, DataType.UInt32>;
+      minorVersion?: UABaseDataVariable<UInt32, DataType.UInt32>;
+      securityTokenID?: UABaseDataVariable<UInt32, DataType.UInt32>;
+      timeToNextTokenID?: UABaseDataVariable<number, DataType.Double>;
 }
 /**
  * |                |                                                  |

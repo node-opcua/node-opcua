@@ -15,9 +15,9 @@ import { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data
  * |isAbstract      |false                                             |
  */
 export interface UAPublishedEvents_Base extends UAPublishedDataSet_Base {
-    "$eventNotifier": UAProperty<NodeId, /*z*/DataType.NodeId>;
-    selectedFields: UAProperty<DTSimpleAttributeOperand[], /*z*/DataType.ExtensionObject>;
-    filter: UAProperty<DTContentFilter, /*z*/DataType.ExtensionObject>;
+    "$eventNotifier": UAProperty<NodeId, DataType.NodeId>;
+    selectedFields: UAProperty<DTSimpleAttributeOperand[], DataType.ExtensionObject>;
+    filter: UAProperty<DTContentFilter, DataType.ExtensionObject>;
     modifyFieldSelection?: UAMethod;
 }
 export interface UAPublishedEvents extends UAPublishedDataSet, UAPublishedEvents_Base {

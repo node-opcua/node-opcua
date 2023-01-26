@@ -8,7 +8,6 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |typedDefinition |DictionaryFolderType ns=0;i=17591                 |
  * |isAbstract      |false                                             |
  */
-export interface UADictionaryFolder_Base extends UAFolder_Base {
-}
+export type UADictionaryFolder_Base = UAFolder_Base;
 export interface UADictionaryFolder extends UAFolder, UADictionaryFolder_Base {
 }

@@ -8,7 +8,6 @@ import { UAStream, UAStream_Base } from "./ua_stream"
  * |typedDefinition |2:MassSpectrometerDeviceStreamType ns=2;i=1031    |
  * |isAbstract      |false                                             |
  */
-export interface UAMassSpectrometerDeviceStream_Base extends UAStream_Base {
-}
+export type UAMassSpectrometerDeviceStream_Base = UAStream_Base;
 export interface UAMassSpectrometerDeviceStream extends UAStream, UAMassSpectrometerDeviceStream_Base {
 }

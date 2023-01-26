@@ -2,16 +2,16 @@
  * @module node-opcua-address-space.Private
  */
 import { assert } from "node-opcua-assert";
-import { AttributeIds, NodeClass } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { NodeId } from "node-opcua-nodeid";
-import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
+import { coerceExpandedNodeId, NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { SimpleAttributeOperand } from "node-opcua-types";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
+import { BrowsePath, BrowsePathResult } from "node-opcua-types";
+import { Variant, VariantLike } from "node-opcua-variant";
 
-import { ISessionContext, BaseNode, IEventData, UAVariable } from "node-opcua-address-space-base";
+import { BaseNode, IEventData } from "node-opcua-address-space-base";
+import { lowerFirstLetter } from "node-opcua-utils";
 
+type NodeIdString = string;
+type FullBrowsePath = string;
 /**
  * @class EventData
  * @param eventTypeNode {BaseNode}
@@ -21,91 +21,61 @@ export class EventData implements IEventData {
     public eventId: NodeId;
     public $eventDataSource: BaseNode;
 
-    private __nodes: { [key: string]: Variant };
+    public $cache: {
+        __values: { [key: NodeIdString]: Variant };
+        __nodeIdToNode: { [key: NodeIdString]: BaseNode };
+        __pathToNodeId: { [key: FullBrowsePath]: NodeId };
+        __nodeIdToFullPath: { [key: NodeIdString]: FullBrowsePath };
+    };
 
     constructor(eventTypeNode: BaseNode) {
-        this.__nodes = {};
+        this.$cache = {
+            __values: {},
+            __nodeIdToNode: {},
+            __pathToNodeId: {},
+            __nodeIdToFullPath: {}
+        };
+
         this.eventId = new NodeId();
         this.$eventDataSource = eventTypeNode;
     }
 
-    /**
-     * @method resolveSelectClause
-     * @param selectClause {SimpleAttributeOperand}
-     * @return {NodeId|null}
-     */
-    public resolveSelectClause(selectClause: SimpleAttributeOperand): NodeId | null {
-        assert(selectClause instanceof SimpleAttributeOperand);
-        const addressSpace = this.$eventDataSource.addressSpace;
-
-        if (selectClause.browsePath!.length === 0 && selectClause.attributeId === AttributeIds.NodeId) {
-            assert(!"Cannot use resolveSelectClause on this selectClause as it has no browsePath");
-        }
-        // navigate to the innerNode specified by the browsePath [ QualifiedName]
-        const browsePath = constructBrowsePathFromQualifiedName(this.$eventDataSource, selectClause.browsePath);
-
-        // xx console.log(self.$eventDataSource.browseName.toString());
-        // xx console.log("xx browse Path", browsePath.toString());
-
-        const browsePathResult = addressSpace.browsePath(browsePath);
-
-        // xx console.log(" br",
-        //    self.$eventDataSource.nodeId.toString(),
-        //    selectClause.browsePath.toString(),
-        //    browsePathResult.targets[0] ? browsePathResult.targets[0].targetId.toString() : "!!!NOT FOUND!!!"é)
-
-        if (browsePathResult.statusCode !== StatusCodes.Good) {
-            return null;
-        }
-        if (!browsePathResult.targets) {
-            return null;
-        }
-        // istanbul ignore next
-        if (browsePathResult.targets.length !== 1) {
-            // xx console.log("selectClause ",selectClause.toString());
-            // xx console.log("browsePathResult ",browsePathResult.toString());
-            // xx throw new Error("browsePathResult.targets.length !== 1"  + browsePathResult.targets.length);
-        }
-        return browsePathResult.targets[0].targetId;
-    }
-
-    public setValue(lowerName: string, node: BaseNode, variant: VariantLike): void {
+    public _createValue(fullBrowsePath: string, node: BaseNode, variant: VariantLike): void {
         const eventData = this as any;
-        eventData[lowerName] = Variant.coerce(variant); /// _coerceVariant(variant);
-        eventData.__nodes[node.nodeId.toString()] = eventData[lowerName];
+        assert(!eventData[fullBrowsePath], "already exists " + fullBrowsePath);
+
+        const lowerName = fullBrowsePath.split(".").map(lowerFirstLetter).join(".");
+
+        eventData[lowerName] = Variant.coerce(variant);
+
+        this.$cache.__pathToNodeId[fullBrowsePath] = node.nodeId;
+        this.$cache.__nodeIdToNode[node.nodeId.toString()] = node;
+        this.$cache.__nodeIdToFullPath[node.nodeId.toString()] = fullBrowsePath;
+        this.$cache.__values[node.nodeId.toString()] = eventData[lowerName];
     }
-    /**
-     * @method readValue
-     * @param nodeId {NodeId}
-     * @param selectClause {SimpleAttributeOperand}
-     * @return {Variant}
-     */
-    public readValue(sessionContext: ISessionContext, nodeId: NodeId, selectClause: SimpleAttributeOperand): Variant {
-        assert(nodeId instanceof NodeId);
-        assert(selectClause instanceof SimpleAttributeOperand);
-        assert(nodeId instanceof NodeId);
-        const addressSpace = this.$eventDataSource.addressSpace;
 
-        const node = addressSpace.findNode(nodeId)!;
-        const key = node.nodeId.toString();
+    public _browse(browsePath: BrowsePath): BrowsePathResult | null {
+        if (!sameNodeId(browsePath.startingNode, this.$eventDataSource.nodeId)) {
+            return null;
+        }
+        const fullBrowsePath = (browsePath.relativePath.elements || []).map((b=>b.targetName.toString())).join(".");
+        const nodeId = this.$cache.__pathToNodeId[fullBrowsePath];
+        if (!nodeId) return null;
+        return new BrowsePathResult({
+            statusCode: StatusCodes.Good,
+            targets: [{
+                remainingPathIndex: 0,
+                targetId: coerceExpandedNodeId(nodeId),
+            }]
+        })
+    }
 
-        // if the value exists in cache ... we read it from cache...
-        const cached_value = this.__nodes[key];
+    public _readValue(nodeId: NodeId): Variant | null {
+        const key = nodeId.toString();
+        const cached_value = this.$cache.__values[key];
         if (cached_value) {
             return cached_value;
         }
-
-        if (node.nodeClass === NodeClass.Variable && selectClause.attributeId === AttributeIds.Value) {
-            const nodeVariable = node as UAVariable;
-            return prepare(nodeVariable.readValue(sessionContext, selectClause.indexRange));
-        }
-        return prepare(node.readAttribute(sessionContext, selectClause.attributeId));
+        return null;
     }
-}
-
-function prepare(dataValue: DataValue): Variant {
-    if (dataValue.statusCode === StatusCodes.Good) {
-        return dataValue.value;
-    }
-    return new Variant({ dataType: DataType.StatusCode, value: dataValue.statusCode });
 }

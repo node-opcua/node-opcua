@@ -83,14 +83,12 @@ export function encodeAccessLevelFlag(value: AccessLevelFlag, stream: OutputBina
     stream.writeUInt8(value & 0xff);
 }
 
-registerBasicType({
-    name: "AccessLevelFlag",
-    subType: "Byte",
-
-    defaultValue: AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite,
-
-    coerce: makeAccessLevelFlag,
-    decode: decodeAccessLevelFlag,
-    encode: encodeAccessLevelFlag,
-    random: randomAccessLevel
-});
+// registerBasicType({
+//     name: "AccessLevelFlag",
+//     subType: "Byte",
+//     defaultValue: AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite,
+//     coerce: makeAccessLevelFlag,
+//     decode: decodeAccessLevelFlag,
+//     encode: encodeAccessLevelFlag,
+//     random: randomAccessLevel
+// });

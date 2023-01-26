@@ -8,10 +8,10 @@ import { DataType } from "node-opcua-variant"
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |BaseDataVariableType ns=0;i=63                    |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |false                                             |
  */
 export interface UABaseDataVariable_Base<T, DT extends DataType>  {
 }
-export interface UABaseDataVariable<T, DT extends DataType> extends UAVariableT<T, /*m*/DT>, UABaseDataVariable_Base<T, DT /*A*/> {
+export interface UABaseDataVariable<T, DT extends DataType> extends UAVariableT<T, DT>, UABaseDataVariable_Base<T, DT> {
 }

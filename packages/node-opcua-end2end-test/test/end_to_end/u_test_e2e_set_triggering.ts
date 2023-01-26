@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 // tslint:disable: no-shadowed-variable
 // tslint:disable: no-console
 import {
@@ -29,6 +30,7 @@ import {
     OPCUAClient,
     Range,
     ServerSidePublishEngine,
+    ServiceFault,
     SetTriggeringRequestOptions,
     StatusCode,
     StatusCodes,
@@ -241,16 +243,14 @@ export function t(test: any) {
 
             try {
                 const result = await subscription.setTriggering(t, [], []);
-
-                //  console.log(result.toString());
-
-                result.removeResults?.length.should.eql(0);
-                result.addResults?.length.should.eql(0);
-                result.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
+                console.log(result.toString());
             } catch (err) {
                 _err = err as Error;
             }
-            should.not.exist(_err, "not expecting any exception");
+            should.exist(_err, "expecting a ServiceFault exception");
+            const response = (_err as any).response as ServiceFault;
+            response.should.be.instanceOf(ServiceFault);
+            response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
 
             /*
              */

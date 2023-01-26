@@ -29,6 +29,8 @@ const fail_fast_connectivity_strategy = {
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 module.exports = function (test) {
     describe("Browse-Read-Write Services", function () {
+
+        /** @type {ClientSession} */
         let g_session = null;
 
         // use fail fast connectionStrategy
@@ -170,7 +172,7 @@ module.exports = function (test) {
 
             g_session.read(nodesToRead, function (err, dataValues) {
                 if (err) {
-                    const response = dataValues;
+                    const response = err.response;
                     //dataValues.length.should.be(1);
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
                     done();

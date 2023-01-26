@@ -33,11 +33,10 @@ import {
     ModifySubscriptionResponse
 } from "node-opcua-service-subscription";
 
-import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
-import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
-import { DataType, Variant } from "node-opcua-variant";
+import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
 import { createMonitoredItemsLimit, IBasicSession, readOperationLimits } from "node-opcua-pseudo-session";
 
 import { IBasicSessionWithSubscription } from "node-opcua-pseudo-session";
@@ -66,42 +65,6 @@ const warningLog = make_warningLog(__filename);
 const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
 const TERMINATED_SUBSCRIPTION_ID = 0xc0cac01b;
 const TERMINATING_SUBSCRIPTION_ID = 0xc0cac01c;
-
-async function promoteOpaqueStructureInNotificationData(
-    session: IBasicSession,
-    notificationData: NotificationData[]
-): Promise<void> {
-    const dataValuesToPromote: { value: Variant }[] = [];
-    for (const notification of notificationData) {
-        if (!notification) {
-            continue;
-        }
-        if (notification instanceof DataChangeNotification) {
-            if (notification.monitoredItems) {
-                for (const monitoredItem of notification.monitoredItems) {
-                    if (monitoredItem.value.value && monitoredItem.value.value.dataType === DataType.ExtensionObject) {
-                        dataValuesToPromote.push(monitoredItem.value);
-                    }
-                }
-            }
-        } else if (notification instanceof EventNotificationList) {
-            if (notification.events) {
-                for (const events of notification.events) {
-                    if (events.eventFields) {
-                        // eslint-disable-next-line max-depth
-                        for (const eventField of events.eventFields) {
-                            // eslint-disable-next-line max-depth
-                            if (eventField.dataType === DataType.ExtensionObject) {
-                                dataValuesToPromote.push({ value: eventField });
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    await promoteOpaqueStructure(session, dataValuesToPromote);
-}
 
 const minimumMaxKeepAliveCount = 3;
 
@@ -283,6 +246,14 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                          */
                         this.emit("started", this.subscriptionId);
                     });
+                } else {
+                    setImmediate(() => {
+                        /**
+                         * notify the observers that the subscription has now failed
+                         * @event failed
+                         */
+                        this.emit("error", err);
+                    });
                 }
             });
         });
@@ -457,7 +428,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             if (!statusCode) {
                 return callback(new Error("Internal Error"));
             }
-            if (statusCode !== StatusCodes.Good) {
+            if (statusCode.isNotGood()) {
                 return callback(null, statusCode);
             }
             callback(null, StatusCodes.Good);
@@ -500,8 +471,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         });
         session.setTriggering(setTriggeringRequest, (err: Error | null, response?: SetTriggeringResponse) => {
             if (err) {
-                // use soft error, no exceptions
-                return callback(null, response);
+                if (response) {
+                    // use soft error, no exceptions
+                    return callback(null, response);
+                } else {
+                    return callback(err);
+                }
             }
             // istanbul ignore next
             if (!response) {
@@ -779,7 +754,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             this.lifetimeCount = response.revisedLifetimeCount;
             this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
 
-            this.timeoutHint = (this.maxKeepAliveCount + 10) * this.publishingInterval;
+            this.timeoutHint = Math.min(((this.maxKeepAliveCount + 10) * this.publishingInterval) * 2, 0x7FFFF);
 
             displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
             ClientSubscription.ignoreNextWarning = false;

@@ -1,4 +1,4 @@
-import { AddVariableOptionsWithoutValue, AddYArrayItemOptions, BindVariableOptions } from "node-opcua-address-space-base";
+import { AddVariableOptionsWithoutValue, AddYArrayItemOptions, BindVariableOptions, UADataType } from "node-opcua-address-space-base";
 import { NodeIdLike } from "node-opcua-nodeid";
 import { UAAnalogItem, UADataItem } from "node-opcua-nodeset-ua";
 import { EUInformation, EUInformationOptions } from "node-opcua-types";
@@ -39,7 +39,7 @@ export interface AddAnalogDataItemOptions extends AddDataItemOptions {
     };
     engineeringUnits?: EUInformationOptions | EUInformation;
     minimumSamplingInterval?: number;
-    dataType?: string | NodeIdLike;
+    dataType?: string | NodeIdLike | UADataType;
 }
 
 export interface INamespaceDataAccess {

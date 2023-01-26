@@ -5,7 +5,7 @@ import { EventEmitter } from "events";
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
-
+import { BinaryStream } from "node-opcua-binary-stream";
 import {
     addElement,
     AddressSpace,
@@ -28,7 +28,9 @@ import {
     ISessionContext,
     DTServerStatus,
     resolveOpaqueOnAddressSpace,
-    ContinuationData
+    ContinuationData,
+    IServerBase,
+    UARole
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
@@ -80,7 +82,8 @@ import {
     ReadValueId,
     TimeZoneDataType,
     ProgramDiagnosticDataType,
-    CallMethodResultOptions
+    CallMethodResultOptions,
+    AggregateConfiguration
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -103,9 +106,9 @@ function upperCaseFirst(str: string) {
     return str.slice(0, 1).toUpperCase() + str.slice(1);
 }
 
-function shutdownAndDisposeAddressSpace(this: ServerEngine) {
+async function shutdownAndDisposeAddressSpace(this: ServerEngine) {
     if (this.addressSpace) {
-        this.addressSpace.shutdown();
+        await this.addressSpace.shutdown();
         this.addressSpace.dispose();
         delete (this as any).addressSpace;
     }
@@ -119,25 +122,13 @@ function setSubscriptionDurable(
 ) {
     // see https://reference.opcfoundation.org/v104/Core/docs/Part5/9.3/
     // https://reference.opcfoundation.org/v104/Core/docs/Part4/6.8/
-    assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
-    assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
-    const session = context.session as ServerSession;
-    if (!session) {
-        return callback(null, { statusCode: StatusCodes.BadInternalError });
-    }
-    const subscriptionId = inputArguments[0].value as UInt32;
-    const lifetimeInHours = inputArguments[1].value as UInt32;
 
-    const subscription = session.getSubscription(subscriptionId);
-    if (!subscription) {
-        // subscription may belongs to a different session  that ours
-        if (this.findSubscription(subscriptionId)) {
-            // if yes, then access to  Subscription data should be denied
-            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
-        }
-        return callback(null, { statusCode: StatusCodes.BadSubscriptionIdInvalid });
-    }
+    const data = _getSubscription.call(this, inputArguments, context);
+    if (data.statusCode) return callback(null, { statusCode: data.statusCode });
+    const { subscription } = data;
+
+    const lifetimeInHours = inputArguments[1].value as UInt32;
     if (subscription.monitoredItemCount > 0) {
         // This is returned when a Subscription already contains MonitoredItems.
         return callback(null, { statusCode: StatusCodes.BadInvalidState });
@@ -195,8 +186,7 @@ function setSubscriptionDurable(
     callback(null, callMethodResult);
 }
 
-// binding methods
-function getMonitoredItemsId(
+function requestServerStateChange(
     this: ServerEngine,
     inputArguments: Variant[],
     context: ISessionContext,
@@ -205,23 +195,70 @@ function getMonitoredItemsId(
     assert(Array.isArray(inputArguments));
     assert(typeof callback === "function");
     assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
-
     const session = context.session as ServerSession;
     if (!session) {
         return callback(null, { statusCode: StatusCodes.BadInternalError });
     }
 
+    return callback(null, { statusCode: StatusCodes.BadNotImplemented });
+}
+
+function _getSubscription(
+    this: ServerEngine,
+    inputArguments: Variant[],
+    context: ISessionContext
+): { subscription: Subscription, statusCode?: never } | { statusCode: StatusCode, subscription?: never } {
+    assert(Array.isArray(inputArguments));
+    assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
+    const session = context.session as ServerSession;
+    if (!session) {
+        return { statusCode: StatusCodes.BadInternalError };
+    }
     const subscriptionId = inputArguments[0].value;
     const subscription = session.getSubscription(subscriptionId);
     if (!subscription) {
         // subscription may belongs to a different session  that ours
         if (this.findSubscription(subscriptionId)) {
             // if yes, then access to  Subscription data should be denied
-            return callback(null, { statusCode: StatusCodes.BadUserAccessDenied });
+            return { statusCode: StatusCodes.BadUserAccessDenied };
         }
-
-        return callback(null, { statusCode: StatusCodes.BadSubscriptionIdInvalid });
+        return { statusCode: StatusCodes.BadSubscriptionIdInvalid };
     }
+    return { subscription };
+
+}
+function resendData(
+    this: ServerEngine,
+    inputArguments: Variant[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+): void {
+    assert(typeof callback === "function");
+
+    const data = _getSubscription.call(this, inputArguments, context);
+    if (data.statusCode) return callback(null, { statusCode: data.statusCode });
+    const { subscription } = data;
+
+    subscription.resendInitialValues().then(() => {
+        callback(null, { statusCode: StatusCodes.Good });
+    }).catch((err) => callback(err));
+
+}
+
+
+// binding methods
+function getMonitoredItemsId(
+    this: ServerEngine,
+    inputArguments: Variant[],
+    context: ISessionContext,
+    callback: CallbackT<CallMethodResultOptions>
+) {
+    assert(typeof callback === "function");
+
+    const data = _getSubscription.call(this, inputArguments, context);
+    if (data.statusCode) return callback(null, { statusCode: data.statusCode });
+    const { subscription } = data;
+
     const result = subscription.getMonitoredItems();
     assert(result.statusCode);
     assert(result.serverHandles.length === result.clientHandles.length);
@@ -265,6 +302,44 @@ function _get_next_subscriptionId() {
     return next_subscriptionId++;
 }
 
+function checkReadProcessedDetails(historyReadDetails: ReadProcessedDetails): StatusCode {
+    if (!historyReadDetails.aggregateConfiguration) {
+        historyReadDetails.aggregateConfiguration = new AggregateConfiguration({
+            useServerCapabilitiesDefaults: true
+        });
+    }
+    if (historyReadDetails.aggregateConfiguration.useServerCapabilitiesDefaults) {
+        return StatusCodes.Good;
+    }
+
+    // The PercentDataGood and PercentDataBad shall follow the following relationship
+    //          PercentDataGood ≥ (100 – PercentDataBad).
+    // If they are equal the result of the PercentDataGood calculation is used.
+    // If the values entered for PercentDataGood and PercentDataBad do not result in a valid calculation
+    //  (e.g. Bad = 80; Good = 0) the result will have a StatusCode of Bad_AggregateInvalidInputs.
+    if (
+        historyReadDetails.aggregateConfiguration.percentDataGood <
+        100 - historyReadDetails.aggregateConfiguration.percentDataBad
+    ) {
+        return StatusCodes.BadAggregateInvalidInputs;
+    }
+    // The StatusCode Bad_AggregateInvalidInputs will be returned if the value of PercentDataGood
+    // or PercentDataBad exceed 100.
+    if (
+        historyReadDetails.aggregateConfiguration.percentDataGood > 100 ||
+        historyReadDetails.aggregateConfiguration.percentDataGood < 0
+    ) {
+        return StatusCodes.BadAggregateInvalidInputs;
+    }
+    if (
+        historyReadDetails.aggregateConfiguration.percentDataBad > 100 ||
+        historyReadDetails.aggregateConfiguration.percentDataBad < 0
+    ) {
+        return StatusCodes.BadAggregateInvalidInputs;
+    }
+    return StatusCodes.Good;
+}
+
 export type StringGetter = () => string;
 
 export interface ServerEngineOptions {
@@ -283,10 +358,12 @@ export interface ServerEngineOptions {
 export interface CreateSessionOption {
     clientDescription?: ApplicationDescription;
     sessionTimeout?: number;
+    server: IServerBase;
 }
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
 
+export type ServerEngineShutdownTask = (this: ServerEngine) => void | Promise<void>;
 /**
  *
  */
@@ -308,10 +385,11 @@ export class ServerEngine extends EventEmitter {
     private _sessions: { [key: string]: ServerSession };
     private _closedSessions: { [key: string]: ServerSession };
     private _orphanPublishEngine?: ServerSidePublishEngineForOrphanSubscription;
-    private _shutdownTasks: ((this: ServerEngine) => void)[];
+    private _shutdownTasks: ServerEngineShutdownTask[];
     private _applicationUri: string;
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
+    private _globalCounter: { totalMonitoredItemCount: number } = { totalMonitoredItemCount: 0 };
 
     constructor(options: ServerEngineOptions) {
         super();
@@ -358,7 +436,7 @@ export class ServerEngine extends EventEmitter {
 
             // "http://opcfoundation.org/UA-Profile/Server/ReverseConnect",
             // "http://opcfoundation.org/UAProfile/Server/NodeManagement",
-            
+
             //  "Embedded UA Server Profile",
             // "Micro Embedded Device Server Profile",
             // "Nano Embedded Device Server Profile"
@@ -396,6 +474,8 @@ export class ServerEngine extends EventEmitter {
             Object.values(this._sessions).forEach((session: ServerSession) => {
                 counter += session.currentSubscriptionCount;
             });
+            // we also need to add the orphan subscriptions
+            counter += this._orphanPublishEngine ? this._orphanPublishEngine.subscriptions.length : 0;
             return counter;
         });
 
@@ -464,7 +544,7 @@ export class ServerEngine extends EventEmitter {
      * register a function that will be called when the server will perform its shut down.
      * @method registerShutdownTask
      */
-    public registerShutdownTask(task: (this: ServerEngine) => void): void {
+    public registerShutdownTask(task: ServerEngineShutdownTask): void {
         assert(typeof task === "function");
         this._shutdownTasks.push(task);
     }
@@ -472,7 +552,7 @@ export class ServerEngine extends EventEmitter {
     /**
      * @method shutdown
      */
-    public shutdown(): void {
+    public async shutdown(): Promise<void> {
         debugLog("ServerEngine#shutdown");
 
         this._internalState = "shutdown";
@@ -503,7 +583,7 @@ export class ServerEngine extends EventEmitter {
 
         // perform registerShutdownTask
         for (const task of this._shutdownTasks) {
-            task.call(this);
+            await task.call(this);
         }
 
         this.dispose();
@@ -962,6 +1042,32 @@ export class ServerEngine extends EventEmitter {
                     return this.serverCapabilities.maxHistoryContinuationPoints;
                 });
 
+                // new in 1.05
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSessions, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSessions;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptions, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSubscriptions;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItems, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxMonitoredItems;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSubscriptionsPerSession, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSubscriptionsPerSession;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxSelectClauseParameters;
+                });
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxWhereClauseParameters;
+                });
+                //bindStandardArray(VariableIds.Server_ServerCapabilities_ConformanceUnits, DataType.QualifiedName, () => {
+                //    return this.serverCapabilities.conformanceUnits;
+                //});
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription, DataType.UInt32, () => {
+                    return this.serverCapabilities.maxMonitoredItemsPerSubscription;
+                });
+
                 // added by DI : Server-specific period of time in milliseconds until the Server will revoke a lock.
                 // TODO bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxInactiveLockTime,
                 // TODO     DataType.UInt16, function () {
@@ -978,15 +1084,15 @@ export class ServerEngine extends EventEmitter {
                 );
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxArrayLength, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxArrayLength;
+                    return Math.min(this.serverCapabilities.maxArrayLength, Variant.maxArrayLength);
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxStringLength, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxStringLength;
+                    return Math.min(this.serverCapabilities.maxStringLength, BinaryStream.maxStringLength);
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength, DataType.UInt32, () => {
-                    return this.serverCapabilities.maxByteStringLength;
+                    return Math.min(this.serverCapabilities.maxByteStringLength, BinaryStream.maxByteStringLength);
                 });
 
                 const bindOperationLimits = (operationLimits: OperationLimits) => {
@@ -1087,7 +1193,7 @@ export class ServerEngine extends EventEmitter {
 
             const bindExtraStuff = () => {
                 // mainly for compliance
-
+                /*
                 // The version number for the data type description. i=104
                 bindStandardScalar(VariableIds.DataTypeDescriptionType_DataTypeVersion, DataType.String, () => {
                     return "0";
@@ -1122,12 +1228,15 @@ export class ServerEngine extends EventEmitter {
                         return namingRuleType.MandatoryPlaceholder ? namingRuleType.MandatoryPlaceholder.value : 0;
                     });
                 }
+*/
             };
 
             bindExtraStuff();
 
             this.__internal_bindMethod(makeNodeId(MethodIds.Server_GetMonitoredItems), getMonitoredItemsId.bind(this));
             this.__internal_bindMethod(makeNodeId(MethodIds.Server_SetSubscriptionDurable), setSubscriptionDurable.bind(this));
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_ResendData), resendData.bind(this));
+            this.__internal_bindMethod(makeNodeId(MethodIds.Server_RequestServerStateChange), requestServerStateChange.bind(this));
 
             // fix getMonitoredItems.outputArguments arrayDimensions
             const fixGetMonitoredItemArgs = () => {
@@ -1341,7 +1450,7 @@ export class ServerEngine extends EventEmitter {
                 (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
             ) {
                 dataValue.serverTimestamp = context.currentTime.timestamp;
-                dataValue.sourcePicoseconds = 0; // context.currentTime.picosecond // do we really need picosecond here ? this would inflate binary data
+                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds; 
             }
             dataValues.push(dataValue);
         }
@@ -1524,6 +1633,12 @@ export class ServerEngine extends EventEmitter {
             if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== nodesToRead.length) {
                 return callback(null, [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })]);
             }
+
+            // chkec parameters
+            const parameterStatus = checkReadProcessedDetails(historyReadDetails);
+            if (parameterStatus !== StatusCodes.Good) {
+                return callback(null, [new HistoryReadResult({ statusCode: parameterStatus })]);
+            }
             const promises: Promise<HistoryReadResult>[] = [];
             let index = 0;
             for (const nodeToRead of nodesToRead) {
@@ -1568,13 +1683,17 @@ export class ServerEngine extends EventEmitter {
         });
     }
 
-    public getOldestUnactivatedSession(): ServerSession | null {
-        const tmp = Object.values(this._sessions).filter((session1: ServerSession) => {
-            return session1.status === "new";
-        });
+    public getOldestInactiveSession(): ServerSession | null {
+        // search screwed or closed session first
+        let tmp = Object.values(this._sessions).filter(
+            (session1: ServerSession) =>
+                session1.status === "screwed" || session1.status === "disposed" || session1.status === "closed"
+        );
         if (tmp.length === 0) {
-            return null;
+            // if none available, tap into the session that are not yet activated
+            tmp = Object.values(this._sessions).filter((session1: ServerSession) => session1.status === "new");
         }
+        if (tmp.length === 0) return null;
         let session = tmp[0];
         for (let i = 1; i < tmp.length; i++) {
             const c = tmp[i];
@@ -1596,7 +1715,7 @@ export class ServerEngine extends EventEmitter {
      */
     public createSession(options: CreateSessionOption): ServerSession {
         options = options || {};
-
+        options.server = options.server || {};
         debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
         this.serverDiagnosticsSummary.cumulatedSessionCount += 1;
         this.serverDiagnosticsSummary.currentSessionCount += 1;
@@ -1606,7 +1725,7 @@ export class ServerEngine extends EventEmitter {
         const sessionTimeout = options.sessionTimeout || 1000;
         assert(typeof sessionTimeout === "number");
 
-        const session = new ServerSession(this, sessionTimeout);
+        const session = new ServerSession(this, options.server.userManager!, sessionTimeout);
 
         debugLog("createSession :sessionTimeout = ", session.sessionTimeout);
 
@@ -1782,10 +1901,6 @@ export class ServerEngine extends EventEmitter {
         if (!subscription) {
             return new TransferResult({ statusCode: StatusCodes.BadSubscriptionIdInvalid });
         }
-        // istanbul ignore next
-        if (!subscription.$session) {
-            return new TransferResult({ statusCode: StatusCodes.BadInternalError });
-        }
 
         // check that session have same userIdentity
         if (!sessionsCompatibleForTransfer(subscription.$session, session)) {
@@ -1816,9 +1931,11 @@ export class ServerEngine extends EventEmitter {
 
         const nbSubscriptionBefore = session.publishEngine.subscriptionCount;
 
-        subscription.$session._unexposeSubscriptionDiagnostics(subscription);
-        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
+        if (subscription.$session) {
+            subscription.$session._unexposeSubscriptionDiagnostics(subscription);
+        }
 
+        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
         subscription.$session = session;
 
         session._exposeSubscriptionDiagnostics(subscription);
@@ -1890,7 +2007,7 @@ export class ServerEngine extends EventEmitter {
     ): void {
         const referenceTime = new Date(Date.now() - maxAge);
 
-        assert(callback instanceof Function);
+        assert(typeof callback === "function");
         const objectMap: Record<string, BaseNode> = {};
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
@@ -1953,31 +2070,35 @@ export class ServerEngine extends EventEmitter {
     }
 
     private _exposeSubscriptionDiagnostics(subscription: Subscription): void {
-        debugLog("ServerEngine#_exposeSubscriptionDiagnostics");
-        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
-        const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
-        assert((subscriptionDiagnostics as any).$subscription === subscription);
-        assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
+        try {
+            debugLog("ServerEngine#_exposeSubscriptionDiagnostics", subscription.subscriptionId);
+            const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
+            const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
+            assert((subscriptionDiagnostics as any).$subscription === subscription);
+            assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
 
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+            if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
+                addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
+            }
+        } catch (err) {
+            console.log("err", err);
         }
     }
 
     protected _unexposeSubscriptionDiagnostics(subscription: Subscription): void {
-        const subscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
+        const serverSubscriptionDiagnosticsArray = this._getServerSubscriptionDiagnosticsArrayNode();
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
-        if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            const node = (subscriptionDiagnosticsArray as any)[subscription.id];
-            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+        if (subscriptionDiagnostics && serverSubscriptionDiagnosticsArray) {
+            const node = (serverSubscriptionDiagnosticsArray as any)[subscription.id];
+            removeElement(serverSubscriptionDiagnosticsArray, (a)=> a.subscriptionId === subscription.id);
             /*assert(
                 !(subscriptionDiagnosticsArray as any)[subscription.id],
                 " subscription node must have been removed from subscriptionDiagnosticsArray"
             );
             */
         }
-        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics");
+        debugLog("ServerEngine#_unexposeSubscriptionDiagnostics", subscription.subscriptionId);
     }
 
     /**
@@ -2007,7 +2128,9 @@ export class ServerEngine extends EventEmitter {
             publishingEnabled: request.publishingEnabled,
             publishingInterval,
             // -------------------
-            sessionId: NodeId.nullNodeId
+            sessionId: NodeId.nullNodeId,
+            globalCounter: this._globalCounter,
+            serverCapabilities: this.serverCapabilities // shared
         });
 
         // add subscriptionDiagnostics
@@ -2075,7 +2198,7 @@ export class ServerEngine extends EventEmitter {
         callback: CallbackT<HistoryReadResult>
     ): void {
         assert(context instanceof SessionContext);
-        assert(callback instanceof Function);
+        assert(typeof callback === "function");
 
         const nodeId = nodeToRead.nodeId;
         const indexRange = nodeToRead.indexRange;
@@ -2158,8 +2281,8 @@ export class ServerEngine extends EventEmitter {
         } else {
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                    chalk.cyan(nodeId.toString()) +
-                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
@@ -2168,16 +2291,14 @@ export class ServerEngine extends EventEmitter {
     private _getServerSubscriptionDiagnosticsArrayNode(): UADynamicVariableArray<SubscriptionDiagnosticsDataType> | null {
         // istanbul ignore next
         if (!this.addressSpace) {
-            if (doDebug) {
-                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
-            }
+            doDebug && debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray : no addressSpace");
+
             return null; // no addressSpace
         }
         const subscriptionDiagnosticsType = this.addressSpace.findVariableType("SubscriptionDiagnosticsType");
         if (!subscriptionDiagnosticsType) {
-            if (doDebug) {
-                console.warn("ServerEngine#_getServerSubscriptionDiagnosticsArray " + ": cannot find SubscriptionDiagnosticsType");
-            }
+            doDebug &&
+                debugLog("ServerEngine#_getServerSubscriptionDiagnosticsArray " + ": cannot find SubscriptionDiagnosticsType");
         }
 
         // SubscriptionDiagnosticsArray = i=2290

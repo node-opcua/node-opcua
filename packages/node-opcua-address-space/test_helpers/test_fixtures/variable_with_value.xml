@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+    xmlns:s1="http://sterfive.com/Small_instance/Types.xsd"
+    xmlns:s2="http://sterfive.com/Small_model/Types.xsd"
+    xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://sterfive.com/Small_instance/</Uri>
+        <Uri>http://sterfive.com/Small_model/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://sterfive.com/Small_instance/" PublicationDate="2021-11-12T07:49:43Z" Version="1.0.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+            <RequiredModel ModelUri="http://sterfive.com/Small_model/" PublicationDate="2021-11-12T07:45:13Z" Version="1.0.0"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="Byte">i=3</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="EUInformation">i=887</Alias>
+        <Alias Alias="OverrideMode">ns=2;i=46</Alias>
+        <Alias Alias="ConnectionDetails">ns=2;i=47</Alias>
+        <Alias Alias="GasComposition">ns=2;i=48</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+        </Extension>
+    </Extensions>
+    <UAObject NodeId="ns=1;i=5002" BrowseName="1:MyTestObject">
+        <DisplayName>fc1</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=2;i=30</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=7105</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=7106</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=7107</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="ConnectionDetails" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=7105" BrowseName="2:PrimaryConnection" AccessLevel="3">
+        <DisplayName>PrimaryConnection</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=2;i=182</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
+                        <EncodingMask>0</EncodingMask>
+                        <Url>http://10.0.19.120</Url>
+                    </ConnectionDetails>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="ConnectionDetails" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=7106" ValueRank="1" BrowseName="2:OtherConnections" AccessLevel="3">
+        <DisplayName>OtherConnections</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=2;i=182</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
+                            <EncodingMask>0</EncodingMask>
+                            <Url>http://10.0.19.121</Url>
+                        </ConnectionDetails>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=2;i=182</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
+                            <EncodingMask>0</EncodingMask>
+                            <Url>http://10.0.19.122</Url>
+                        </ConnectionDetails>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="ConnectionDetails" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=7107" ValueRank="0" BrowseName="2:Connection2WithOptionalFields" AccessLevel="3">
+        <DisplayName>Connection2WithOptionalFields</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=2;i=182</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
+                        <EncodingMask>1</EncodingMask>
+                        <Certificates>
+                            <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">aEVMTE8=</ByteString>
+                            <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">T1JMRA==</ByteString>
+                        </Certificates>
+                        <Url>http://10.0.19.123</Url>
+                    </ConnectionDetails>
+                </uax:Body>
+            </uax:ExtensionObject>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=2;i=182</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
+                        <EncodingMask>1</EncodingMask>
+                        <Certificates>
+                            <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">aEVMTE8=</ByteString>
+                            <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">T1JMRA==</ByteString>
+                        </Certificates>
+                        <Url>http://10.0.19.124</Url>
+                    </ConnectionDetails>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+
+</UANodeSet>

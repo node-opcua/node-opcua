@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-server
  */
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BrowseResultOptions, ReferenceDescription } from "node-opcua-types";
+import { StatusCodes } from "node-opcua-status-code";
+import { ReferenceDescription } from "node-opcua-types";
 import {
     ContinuationPoint,
     IContinuationPointManager,
@@ -10,8 +10,22 @@ import {
     ContinuationData
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
-import { runInThisContext } from "vm";
+import { make_warningLog } from "node-opcua-debug";
 
+const warningLog = make_warningLog(__filename);
+
+let counter = 0;
+
+function make_key() {
+    // return crypto.randomBytes(32);
+    counter += 1;
+    return Buffer.from(counter.toString(), "utf-8");
+}
+
+interface Data {
+    maxElements: number;
+    values: ReferenceDescription[] | DataValue[];
+}
 /**
  * from https://reference.opcfoundation.org/v104/Core/docs/Part4/7.6/
  *
@@ -21,9 +35,9 @@ import { runInThisContext } from "vm";
  * - The Client specifies the maximum number of results per operation in the request message.
  * - A Server shall not return more than this number of results but it may return fewer results.
  * - The Server allocates a  ContinuationPoint if there are more results to return.
- * - Servers shall support at least one ContinuationPoint per Session.
+ * - Servers shall support at least one ContinuationPoint per Session. 
  * - Servers specify a maximum number of ContinuationPoints per Session in the ServerCapabilities Object defined in OPC 10000-5.
- * - ContinuationPoints remain active until
+ * - ContinuationPoints remain active until 
  *     a/ the Client retrieves the remaining results,
  *     b/ or, the Client releases the ContinuationPoint
  *     c/ or the Session is closed.
@@ -31,6 +45,9 @@ import { runInThisContext } from "vm";
  *   from this Session.
  * - The Server returns a Bad_ContinuationPointInvalid error if a Client tries to use a ContinuationPoint that has been released.
  * - A Client can avoid this situation by completing paused operations before starting new operations.
+ *   For Session-less Service invocations, the ContinuationPoints are shared across all Session-less Service invocations from all Clients. 
+ *   The Server shall support at least the maximum number of ContinuationPoints it would allow for one Session.
+ * 
  * - Requests will often specify multiple operations that may or may not require a ContinuationPoint.
  * - A Server shall process the operations until it uses the maximum number of continuation points in this response.
  *   Once that happens the Server shall return a Bad_NoContinuationPoints error for any remaining operations. A Client can avoid
@@ -40,7 +57,7 @@ import { runInThisContext } from "vm";
  *   provided so Servers shall never return Bad_NoContinuationPoints error when continuing a previously halted operation.
  *   A ContinuationPoint is a subtype of the ByteString data type.
  *
- *
+ * 
  * for historical access: https://reference.opcfoundation.org/v104/Core/docs/Part11/6.3/
  *
  * The continuationPoint parameter in the HistoryRead Service is used to mark a point from which to continue
@@ -68,18 +85,6 @@ import { runInThisContext } from "vm";
  * release all ContinuationPoints passed in the request. If the ContinuationPoint for an operation is missing or
  * invalid then the StatusCode for the operation shall be Bad_ContinuationPointInvalid.
  */
-let counter = 0;
-
-function make_key() {
-    // return crypto.randomBytes(32);
-    counter += 1;
-    return Buffer.from(counter.toString(), "ascii");
-}
-
-interface Data {
-    maxElements: number;
-    values: ReferenceDescription[] | DataValue[];
-}
 export class ContinuationPointManager implements IContinuationPointManager {
     private _map: Map<string, Data>;
 
@@ -153,7 +158,10 @@ export class ContinuationPointManager implements IContinuationPointManager {
             };
         }
         if (!continuationData.continuationPoint && !continuationData.index) {
-            this.clearContinuationPoints();
+            if (this._map.size > 0 ) {
+                warningLog("flushing pending continuationPoints" , this._map.size );
+                this.clearContinuationPoints();
+            }
         }
 
         if (maxValues >= 1) {
@@ -179,7 +187,7 @@ export class ContinuationPointManager implements IContinuationPointManager {
         const current_block = values.splice(0, maxValues);
 
         const key = make_key();
-        const keyHash = key.toString("ascii");
+        const keyHash = key.toString("utf-8");
 
         const result = {
             continuationPoint: key,
@@ -193,7 +201,6 @@ export class ContinuationPointManager implements IContinuationPointManager {
             values: values as DataValue[] | ReferenceDescription[]
         };
         this._map.set(keyHash, data);
-
         return result;
     }
 
@@ -208,7 +215,7 @@ export class ContinuationPointManager implements IContinuationPointManager {
                 statusCode: StatusCodes.BadContinuationPointInvalid
             };
         }
-        const keyHash = continuationData.continuationPoint.toString("ascii");
+        const keyHash = continuationData.continuationPoint.toString("utf-8");
         const data = this._map.get(keyHash);
         if (!data) {
             return {

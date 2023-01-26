@@ -1,7 +1,6 @@
 "use strict";
 
-import * as should from "should";
-
+import"should";
 import { Range } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import {
@@ -81,14 +80,15 @@ describe("test DeadBand Checker", () => {
 
     it("Scalar - DeadbandType.Percent - should handle edge case - percent 99", () => {
 
-        isOutsideDeadbandPercent(v(0), v(-200), 99, r(-200, 200)).should.eql(true);
-        isOutsideDeadbandPercent(v(0), v(200), 99, r(-200, 200)).should.eql(true);
+        // 99%*400 = > 396
+        isOutsideDeadbandPercent(v(0), v(-200), 99, r(-200, 200)).should.eql(false);
+        isOutsideDeadbandPercent(v(0), v(200), 99, r(-200, 200)).should.eql(false);
 
-        isOutsideDeadbandPercent(v(-199), v(-200), 99, r(-200, 200)).should.eql(true);
+        isOutsideDeadbandPercent(v(-199), v(-200), 99, r(-200, 200)).should.eql(false);
         isOutsideDeadbandPercent(v(-200), v(200), 99, r(-200, 200)).should.eql(true);
 
-        isOutsideDeadbandPercent(v(199), v(200), 99, r(-200, 200)).should.eql(true);
-        isOutsideDeadbandPercent(v(-200), v(-200), 99, r(-200, 200)).should.eql(true);
+        isOutsideDeadbandPercent(v(199), v(200), 99, r(-200, 200)).should.eql(false);
+        isOutsideDeadbandPercent(v(-200), v(-200), 99, r(-200, 200)).should.eql(false);
 
         isOutsideDeadbandPercent(v(-200), v(200), 99, r(-200, 200)).should.eql(true);
         isOutsideDeadbandPercent(v(-198), v(198), 99, r(-200, 200)).should.eql(false);

@@ -12,7 +12,7 @@ import { UADiscreteAlarm, UADiscreteAlarm_Base } from "./ua_discrete_alarm"
  * |isAbstract      |false                                             |
  */
 export interface UAOffNormalAlarm_Base extends UADiscreteAlarm_Base {
-    normalState: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    normalState: UAProperty<NodeId, DataType.NodeId>;
 }
 export interface UAOffNormalAlarm extends UADiscreteAlarm, UAOffNormalAlarm_Base {
 }

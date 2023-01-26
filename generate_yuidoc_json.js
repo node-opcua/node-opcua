@@ -1,4 +1,4 @@
-const version = require("./packages/node-opcua/package").version;
+const { version  } = require("./packages/node-opcua/package");
 module.exports = {
     name: "The NodeOPCUA API",
     description: "The NodeOPCUA API: a library to easily create OPC UA Server and Client application with node.js",
@@ -17,6 +17,6 @@ module.exports = {
 const fs = require("fs");
 const path =require("path");
 
-fs.writeFile(path.join(__dirname,"yuidoc.json"),JSON.stringify(module.exports,null," "),"ascii",function(err) {
+fs.writeFile(path.join(__dirname,"yuidoc.json"),JSON.stringify(module.exports,null," "),"utf-8",function(err) {
     console.log("done",err);
 });

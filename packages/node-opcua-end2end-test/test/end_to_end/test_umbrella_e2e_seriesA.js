@@ -22,7 +22,7 @@ describe("testing Client - Umbrella-A ", function () {
     afterEach(async () => await afterEachTest(test));
     after(async () => await afterTest(test));
 
-    require("./u_test_e2e_client")(test);
+    require("./u_test_e2e_client").t(test);
 
     require("./u_test_e2e_call_service")(test);
     require("./u_test_e2e_ClientSession_readVariableValue")(test);

@@ -8,11 +8,10 @@ import {
     buildStructuredType,
     check_options_correctness_against_schema,
     initialize_field,
-    parameters,
-    StructuredTypeSchema
+    parameters
 } from "node-opcua-factory";
 
-const schemaHelloMessage: StructuredTypeSchema = buildStructuredType({
+const schemaHelloMessage = buildStructuredType({
     name: "HelloMessage",
 
     baseType: "BaseUAObject",
@@ -50,7 +49,7 @@ const schemaHelloMessage: StructuredTypeSchema = buildStructuredType({
         {
             name: "endpointUrl",
 
-            fieldType: "UAString",
+            fieldType: "String",
 
             documentation: "The URL of the Endpoint which the Client wished to connect to."
         }

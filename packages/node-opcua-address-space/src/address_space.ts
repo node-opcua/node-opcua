@@ -42,13 +42,15 @@ import {
     UAReferenceType,
     UAObject,
     UAView,
+    IAddressSpace,
+    ShutdownTask,
     RaiseEventData
 } from "node-opcua-address-space-base";
 import { make_errorLog } from "node-opcua-debug";
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import { UARootFolder } from "../source/ua_root_folder";
-import { Namespace } from "../source/namespace";
+import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { UAAcknowledgeableConditionImpl, UAConditionImpl } from "./alarms_and_conditions";
@@ -57,7 +59,7 @@ import { AddressSpace_installHistoricalDataNode } from "./historical_access/addr
 import { NamespaceImpl } from "./namespace_impl";
 import { isNonEmptyQualifiedName } from "./namespace_impl";
 import { NamespacePrivate } from "./namespace_private";
-import { ExtensionObjectConstructorFuncWithSchema, UADataTypeImpl } from "./ua_data_type_impl";
+import { UADataTypeImpl } from "./ua_data_type_impl";
 import { UAObjectTypeImpl } from "./ua_object_type_impl";
 import { UAObjectImpl } from "./ua_object_impl";
 import { ReferenceImpl } from "./reference_impl";
@@ -121,8 +123,6 @@ function isNodeIdString(str: unknown): boolean {
     return str.substring(0, 2) === "i=" || str.substring(0, 3) === "ns=";
 }
 
-type ShutdownTask = (this: AddressSpace) => void;
-
 /**
  * `AddressSpace` is a collection of UA nodes.
  *
@@ -159,7 +159,7 @@ export class AddressSpace implements AddressSpacePrivate {
     public readonly isNodeIdString = isNodeIdString;
     private readonly _private_namespaceIndex: number;
     private readonly _namespaceArray: NamespacePrivate[];
-    private _shutdownTask: ShutdownTask[] = [];
+    private _shutdownTask?: ShutdownTask[];
     private _modelChangeTransactionCounter = 0;
     private _modelChanges: ModelChangeStructureDataType[] = [];
 
@@ -167,7 +167,7 @@ export class AddressSpace implements AddressSpacePrivate {
         this._private_namespaceIndex = 1;
         this._namespaceArray = [];
         // special namespace 0 is reserved for the UA namespace
-        this.registerNamespace("http://opcfoundation.org/UA/");     
+        this.registerNamespace("http://opcfoundation.org/UA/");
         AddressSpace.registry.register(this);
     }
     /**
@@ -422,7 +422,9 @@ export class AddressSpace implements AddressSpacePrivate {
         // +-> Structure
         //       +-> Node
         //            +-> ObjectNode
-        if (dataType instanceof NodeId) {
+        if (dataType instanceof UADataTypeImpl) {
+            return this.findDataType(dataType.nodeId);
+        } else if (dataType instanceof NodeId) {
             return _find_by_node_id<UADataType>(this, dataType!, namespaceIndex);
         }
         if (typeof dataType === "number") {
@@ -740,20 +742,25 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error("BaseObjectType must be defined in the address space");
         }
 
-        const visitedProperties: { [key: string]: any } = {};
+        const hasProperty = (data: any, propertyName: string): boolean => Object.prototype.hasOwnProperty.call(data, propertyName);
 
-        function _process_var(self: BaseNode, prefix: string, node: BaseNode) {
-            const lowerName = prefix + lowerFirstLetter(node.browseName!.name!);
-            // istanbul ignore next
-            // xx if (doDebug) { debugLog("      " + lowerName.toString()); }
+        const visitedProperties: { [key: string]: number } = {};
+        const alreadyVisited = (key: string) => Object.prototype.hasOwnProperty.call(visitedProperties, key);
+        const markAsVisited = (key: string) => (visitedProperties[key] = 1);
 
-            visitedProperties[lowerName] = node;
-            if (Object.prototype.hasOwnProperty.call(data, lowerName)) {
-                eventData.setValue(lowerName, node, data[lowerName] as VariantOptions);
-                // xx eventData[lowerName] = _coerceVariant(data[lowerName]);
+        function _process_var(self: BaseNode, prefixLower: string, prefixStandard: string, node: BaseNode) {
+            const lowerName = prefixLower + lowerFirstLetter(node.browseName!.name!);
+            const fullBrowsePath = prefixStandard + node.browseName.toString();
+            if (alreadyVisited(lowerName)) {
+                return;
+            }
+            markAsVisited(lowerName);
+
+            if (hasProperty(data, lowerName)) {
+                eventData._createValue(fullBrowsePath, node, data[lowerName] as VariantOptions);
             } else {
                 // add a property , but with a null variant
-                eventData.setValue(lowerName, node, { dataType: DataType.Null });
+                eventData._createValue(fullBrowsePath, node, { dataType: DataType.Null });
 
                 if (doDebug) {
                     if (node.modellingRule === "Mandatory") {
@@ -779,13 +786,13 @@ export class AddressSpace implements AddressSpacePrivate {
         }
 
         // verify that all elements of data are valid
-        function verify_data_is_valid(data1: { [key: string]: any }) {
+        function verify_data_is_valid(data1: Record<string, unknown>) {
             Object.keys(data1).map((k: string) => {
                 if (k === "$eventDataSource") {
                     return;
                 }
                 /* istanbul ignore next */
-                if (!Object.prototype.hasOwnProperty.call(visitedProperties, k)) {
+                if (!alreadyVisited(k)) {
                     throw new Error(
                         " cannot find property '" +
                             k +
@@ -839,7 +846,7 @@ export class AddressSpace implements AddressSpacePrivate {
                     continue;
                 }
 
-                _process_var(self, "", node);
+                _process_var(self, "", "", node);
 
                 // also store value in index
                 // xx eventData.__nodes[node.nodeId.toString()] = eventData[lowerName];
@@ -847,10 +854,11 @@ export class AddressSpace implements AddressSpacePrivate {
                 const children2 = node.getAggregates();
                 if (children2.length > 0) {
                     const lowerName = lowerFirstLetter(node.browseName.name!);
+                    const standardName = node.browseName.toString();
                     //  console.log(" Children to visit = ",lowerName,
                     //  children.map(function(a){ return a.browseName.toString();}).join(" "));
                     for (const child2 of children2) {
-                        _process_var(self, lowerName + ".", child2);
+                        _process_var(self, lowerName + ".", standardName + ".", child2);
                     }
                 }
             }
@@ -1061,21 +1069,24 @@ export class AddressSpace implements AddressSpacePrivate {
      * register a function that will be called when the server will perform its shut down.
      * @method registerShutdownTask
      */
-    public registerShutdownTask(task: (this: AddressSpace) => void): void {
+    public registerShutdownTask(task: ShutdownTask): void {
         this._shutdownTask = this._shutdownTask || [];
         assert(typeof task === "function");
         this._shutdownTask.push(task);
     }
 
-    public shutdown(): void {
-        if (!this._shutdownTask) {
-            return;
+    public async shutdown(): Promise<void> {
+        const performTasks = async (tasks: ShutdownTask[]) => {
+            // perform registerShutdownTask
+            for (const task of tasks) {
+                await task.call(this);
+            }
+        };
+        if (this._shutdownTask) {
+            const tasks = this._shutdownTask;
+            this._shutdownTask = [];
+            await performTasks(tasks);
         }
-        // perform registerShutdownTask
-        this._shutdownTask.forEach((task: any) => {
-            task.call(this);
-        });
-        this._shutdownTask = [];
     }
 
     /**
@@ -1336,29 +1347,16 @@ export class AddressSpace implements AddressSpacePrivate {
                 _nodeId = (_nodeId as any).nodeId as NodeId;
             }
             _nodeId = resolveNodeId(_nodeId);
-            /* istanbul ignore next */
-            if (!(_nodeId instanceof NodeId) || _nodeId.isEmpty()) {
-                // tslint:disable:no-console
-                console.log("xx =>", JSON.stringify(params, null, " "));
-                throw new Error(" Invalid reference nodeId " + _nodeId.toString());
-            }
             params.nodeId = _nodeId;
         }
         return new ReferenceImpl(params);
     }
 
-    /**
-     *
-     * @param references
-     */
     public normalizeReferenceTypes(references: AddReferenceOpts[] | ReferenceImpl[] | null): UAReference[] {
         if (!references || references.length === 0) {
             return [];
         }
-        references = references as UAReference[] | AddReferenceOpts[];
-        assert(Array.isArray(references));
-
-        return (references as any).map((el: UAReference | AddReferenceOpts) => this.normalizeReferenceType(el));
+        return references.map((el) => this.normalizeReferenceType(el));
     }
 
     // -- Historical Node  -----------------------------------------------------------------------------------------
@@ -1441,8 +1439,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!baseType) {
             return topMostBaseTypeNode;
         }
-
-        assert(typeof baseType === "string" || baseType instanceof BaseNodeImpl);
+        assert(typeof baseType === "string" || baseType instanceof BaseNodeImpl || baseType instanceof NodeId);
         let baseTypeNode: T;
         if (baseType instanceof BaseNodeImpl) {
             baseTypeNode = baseType as BaseNode as T;
@@ -1533,8 +1530,6 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         return nodeId;
     }
-
-
 
     private _findReferenceType(refType: NodeId | string, namespaceIndex?: number): UAReferenceType | null {
         if (refType instanceof NodeId) {

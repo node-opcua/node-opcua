@@ -134,8 +134,6 @@ export interface UATypesFolder extends UAFolder {
     variableTypes: UAFolder;
 }
 
-export interface IdentityMappingRuleType {}
-
 type LocaleId = string;
 
 export interface AddressSpace extends IAddressSpace {
@@ -203,7 +201,7 @@ export declare function addElement<T extends ExtensionObject>(
 
 export declare function removeElement<T extends ExtensionObject>(
     uaArrayVariableNode: UADynamicVariableArray<T>,
-    element: any /* number | UAVariable | (a any) => boolean | ExtensionObject */
+    element: number | UAVariable | ((a: T)=>boolean )
 ): void;
 
 // }}

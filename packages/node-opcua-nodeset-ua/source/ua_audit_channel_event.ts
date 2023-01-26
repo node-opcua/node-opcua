@@ -12,7 +12,7 @@ import { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_secu
  * |isAbstract      |true                                              |
  */
 export interface UAAuditChannelEvent_Base extends UAAuditSecurityEvent_Base {
-    secureChannelId: UAProperty<UAString, /*z*/DataType.String>;
+    secureChannelId: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditChannelEvent extends UAAuditSecurityEvent, UAAuditChannelEvent_Base {
 }

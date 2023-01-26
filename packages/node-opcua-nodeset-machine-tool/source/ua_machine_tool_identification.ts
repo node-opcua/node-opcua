@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { UInt16, Byte, UAString } from "node-opcua-basic-types"
 import { UAMachineIdentification, UAMachineIdentification_Base } from "node-opcua-nodeset-machinery/source/ua_machine_identification"

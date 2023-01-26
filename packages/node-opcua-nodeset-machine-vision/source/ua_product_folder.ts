@@ -10,7 +10,6 @@ import { DTProduct } from "./dt_product"
  * |typedDefinition |4:ProductFolderType ns=4;i=1010                   |
  * |isAbstract      |false                                             |
  */
-export interface UAProductFolder_Base extends UAFolder_Base {
-}
+export type UAProductFolder_Base = UAFolder_Base;
 export interface UAProductFolder extends UAFolder, UAProductFolder_Base {
 }

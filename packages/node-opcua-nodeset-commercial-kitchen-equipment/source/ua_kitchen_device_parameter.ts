@@ -13,9 +13,9 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |true                                              |
  */
 export interface UAKitchenDeviceParameter_Base {
-    programId?: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
-    programName?: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    programUId?: UABaseDataVariable<Guid, /*z*/DataType.Guid>;
+    programId?: UABaseDataVariable<Int32, DataType.Int32>;
+    programName?: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    programUId?: UABaseDataVariable<Guid, DataType.Guid>;
 }
 export interface UAKitchenDeviceParameter extends UAObject, UAKitchenDeviceParameter_Base {
 }

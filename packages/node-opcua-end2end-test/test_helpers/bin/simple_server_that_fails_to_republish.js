@@ -5,12 +5,13 @@ const path = require("path");
 const fs = require("fs");
 // simulate kepware server that sometime shutdown session too early
 const chalk = require("chalk");
+const yargs = require("yargs");
 
 const { OPCUAServer, nodesets, StatusCodes, DataType, RepublishResponse, Variant } = require("node-opcua");
 
 Error.stackTraceLimit = Infinity;
 
-const argv = require("yargs").wrap(132).string("port").describe("port").alias("p", "port").argv;
+const argv = yargs.wrap(132).string("port").describe("port").alias("p", "port").argv;
 
 const port = parseInt(argv.port) || 26555;
 

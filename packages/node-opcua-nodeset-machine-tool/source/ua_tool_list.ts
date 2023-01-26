@@ -11,7 +11,8 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAToolList_Base {
-    nodeVersion?: UAProperty<UAString, /*z*/DataType.String>;
+   // PlaceHolder for $Tool$
+    nodeVersion?: UAProperty<UAString, DataType.String>;
 }
 export interface UAToolList extends UAObject, UAToolList_Base {
 }

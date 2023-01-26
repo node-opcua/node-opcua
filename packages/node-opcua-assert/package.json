@@ -1,17 +1,16 @@
 {
     "name": "node-opcua-assert",
-    "version": "2.64.1",
+    "version": "2.88.0",
     "description": "pure nodejs OPCUA SDK - module -assert",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
         "test": "echo nothing to do",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "lint": "eslint source/**/*.ts"
     },
     "dependencies": {
-        "better-assert": "^1.0.2",
         "chalk": "4.1.2"
     },
     "author": "Etienne Rossignon",

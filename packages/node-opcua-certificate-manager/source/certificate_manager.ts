@@ -6,15 +6,11 @@ import * as fs from "fs";
 import * as path from "path";
 
 import * as mkdirp from "mkdirp";
-import envPaths = require("env-paths");
+import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
-import {
-     Certificate, 
-     makeSHA1Thumbprint    } from "node-opcua-crypto";
-import { 
-    CertificateManager, 
-    CertificateManagerOptions} from "node-opcua-pki";
+import { Certificate, makeSHA1Thumbprint } from "node-opcua-crypto";
+import { CertificateManager, CertificateManagerOptions } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
 
@@ -78,7 +74,7 @@ export interface OPCUACertificateManagerOptions {
 export class OPCUACertificateManager extends CertificateManager implements ICertificateManager {
     public static defaultCertificateSubject = "/O=Sterfive/L=Orleans/C=FR";
 
-    public static registry = new ObjectRegistry({});
+    public static registry = new ObjectRegistry();
     public referenceCounter: number;
     public automaticallyAcceptUnknownCertificate: boolean;
     /* */
@@ -105,7 +101,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(callback: (err?: Error) => void): void;
     public initialize(...args: any[]): any {
         const callback = args[0];
-        assert(callback && callback instanceof Function);
+        assert(callback && typeof callback === "function");
         return super.initialize(callback);
     }
 
@@ -133,7 +129,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             const statusCode = (StatusCodes as any)[status!];
 
             debugLog("checkCertificate => StatusCode = ", statusCode.toString());
-            if (statusCode === StatusCodes.BadCertificateUntrusted) {
+            if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
                 const thumbprint = makeSHA1Thumbprint(certificateChain).toString("hex");
                 if (this.automaticallyAcceptUnknownCertificate) {
                     debugLog("automaticallyAcceptUnknownCertificate = true");

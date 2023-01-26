@@ -24,8 +24,12 @@ const { NumericRange } = require("node-opcua-numeric-range");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-extension-object");
 const { resolveNodeId } = require("node-opcua-nodeid");
+const { makeNodeId } = require("node-opcua-nodeid");
+const { analyze_object_binary_encoding } = require("node-opcua-packet-analyzer");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
+const { get_clock_tick } = require("node-opcua-utils");
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -48,7 +52,7 @@ describe("Variant", () => {
 
         var1.dataType.should.eql(DataType.UInt32);
         var1.arrayType.should.eql(VariantArrayType.Scalar);
-
+        var1.value.should.eql(10);
         encode_decode_round_trip_test(var1, (stream) => {
             stream.length.should.equal(5);
         });
@@ -379,6 +383,24 @@ describe("Variant", () => {
             });
         }).throwError();
     });
+    it("should raise an exception when invalid dataType : undefined", () => {
+        should(function construct_matrix_variant_with_invalid_value() {
+            const var1 = new Variant({
+                dataType: undefined,
+                arrayType: VariantArrayType.Matrix,
+                dimensions: [2, 3],
+                value: [0x000] // wrong size !
+            });
+        }).throwError();
+    });
+    it('should raise an exception when invalid dataType : "invalid"', () => {
+        should(function construct_matrix_variant_with_invalid_value() {
+            const var1 = new Variant({
+                dataType: "INVALID DATATYPE",
+                value: 0
+            });
+        }).throwError();
+    });
 
     it("should create a Array of ByteString Variant ", () => {
         const var1 = new Variant({
@@ -536,8 +558,6 @@ describe("Variant", () => {
     });
 });
 
-const analyze_object_binary_encoding = require("node-opcua-packet-analyzer").analyze_object_binary_encoding;
-const makeNodeId = require("node-opcua-nodeid").makeNodeId;
 const {
     Variant,
     DataType,
@@ -646,8 +666,6 @@ describe("Variant - Analyser", function () {
     });
 
     it("should encode/decode a very large array of Float - 1", () => {
-        const get_clock_tick = require("node-opcua-utils").get_clock_tick;
-
         const nbElements = 1500 * 1024;
 
         const t0 = get_clock_tick();
@@ -778,7 +796,17 @@ const old_encode = function (variant, stream) {
     }
 };
 
-xdescribe("benchmarking variant encode", () => {
+const { encodeVariant } = require("..");
+
+describe("encodeVariant", () => {
+    it("should throw if variant is missing", () => {
+        should.throws(() => {
+            encodeVariant(null);
+        });
+    });
+});
+
+describe("benchmarking variant encode", () => {
     function perform_benchmark(done) {
         const bench = new Benchmarker();
 
@@ -787,9 +815,6 @@ xdescribe("benchmarking variant encode", () => {
             encode.call(this, v, stream);
         }
 
-        const encodeVariant = require("..").encodeVariant;
-
-        const stream = new BinaryStream(4096);
         const variant = new Variant({
             dataType: DataType.UInt32,
             arrayType: VariantArrayType.Array,
@@ -797,6 +822,8 @@ xdescribe("benchmarking variant encode", () => {
         });
 
         variant.value = Array.from(new Array(10000), (_, i) => i);
+        const stream = new BinaryStream(variant.binaryStoreSize());
+
         bench
             .add("Variant.encode", () => {
                 assert(typeof encodeVariant === "function");
@@ -982,7 +1009,6 @@ describe("Variant with Advanced Array", () => {
             value: [0, 1, 2, 3, 4, 5]
         });
 
-        const NumericRange = require("node-opcua-numeric-range").NumericRange;
         const nr = new NumericRange("3:4");
         v.value = nr.extract_values(v.value).array;
         v.value[0].should.eql(3);
@@ -1083,7 +1109,7 @@ describe("Variant with enumeration", () => {
             value: Buffer.from("abcd")
         });
         v.dataType.should.eql(DataType.ByteString);
-        v.value.toString("ascii").should.eql("abcd");
+        v.value.toString("utf-8").should.eql("abcd");
     });
     it("should create a variant copy (with it's own array) ", () => {
         const options = {
@@ -1148,7 +1174,7 @@ describe("Variant with enumeration", () => {
 const { sameVariant } = require("..");
 
 describe("testing sameVariant Performance", function () {
-    this.timeout(40000);
+    this.timeout(Math.max(50 * 1000, this.timeout()));
 
     function largeArray(n) {
         const a = new Int32Array(n);

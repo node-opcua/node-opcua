@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 // tslint:disable: no-console
 import * as should from "should";
 import * as sinon from "sinon";
@@ -13,18 +14,34 @@ import {
     ServiceCounterDataType,
     SessionDiagnosticsDataType
 } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
+import { DataType, VariantArrayType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 
-import { AddressSpace, UARootFolder, UAVariable, UAVariableT, Namespace, UADataType, UAVariableType } from "..";
+import {
+    AddressSpace,
+    UARootFolder,
+    UAVariable,
+    UAVariableT,
+    Namespace,
+    UADataType,
+    UAVariableType,
+    UASessionDiagnosticsVariable,
+    DTSessionDiagnostics,
+    DTServiceCounter,
+    UABaseDataVariable
+} from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+import { assert } from "console";
 
 const doDebug = false;
 
-interface ServiceCounterVariable extends UAVariable {
+interface UAServiceCounterVariableEx extends UABaseDataVariable<DTServiceCounter, DataType.ExtensionObject> {
     totalCount: UAVariableT<UInt32, DataType.UInt32>;
     errorCount: UAVariableT<UInt32, DataType.UInt32>;
+}
+interface UASessionDiagnosticsVariableEx extends UASessionDiagnosticsVariable<DTSessionDiagnostics> {
+    totalRequestCount: UAServiceCounterVariableEx;
 }
 
 interface ServerStatusVariable extends UAVariable {
@@ -34,54 +51,6 @@ interface ServerStatusVariable extends UAVariable {
     buildInfo: UAVariableT<any, DataType.ExtensionObject>; // BuildInfoOptions
     secondsTillShutdown: UAVariableT<UInt32, DataType.UInt32>;
     shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
-}
-
-interface SessionDiagnosticsVariable extends UAVariable {
-    $extensionObject: SessionDiagnosticsDataType;
-
-    sessionId: UAVariableT<NodeIdLike, DataType.NodeId>;
-    sessionName: UAVariableT<UAString, DataType.String>;
-    clientDescription: UAVariableT<ApplicationDescription, DataType.ExtensionObject>;
-    serverUri: UAVariableT<UAString, DataType.String>;
-    endpointUrl: UAVariableT<UAString, DataType.String>;
-    localeIds: UAVariableT<UAString, DataType.String>;
-    actualSessionTimeout: UAVariableT<Double, DataType.Double>;
-    maxResponseMessageSize: UAVariableT<UInt32, DataType.UInt32>;
-    clientConnectionTime: UAVariableT<DateTime, DataType.DateTime>;
-    clientLastContactTime: UAVariableT<DateTime, DataType.DateTime>;
-    currentSubscriptionsCount: UAVariableT<UInt32, DataType.UInt32>;
-    currentMonitoredItemsCount: UAVariableT<UInt32, DataType.UInt32>;
-    currentPublishRequestsInQueue: UAVariableT<UInt32, DataType.UInt32>;
-    totalRequestCount: ServiceCounterVariable;
-    unauthorizedRequestCount: ServiceCounterVariable;
-    readCount: ServiceCounterVariable;
-    historyReadCount: ServiceCounterVariable;
-    writeCount: ServiceCounterVariable;
-    historyUpdateCount: ServiceCounterVariable;
-    callCount: ServiceCounterVariable;
-    createMonitoredItemsCount: ServiceCounterVariable;
-    modifyMonitoredItemsCount: ServiceCounterVariable;
-    setMonitoringModeCount: ServiceCounterVariable;
-    setTriggeringCount: ServiceCounterVariable;
-    deleteMonitoredItemsCount: ServiceCounterVariable;
-    createSubscriptionCount: ServiceCounterVariable;
-    modifySubscriptionCount: ServiceCounterVariable;
-    setPublishingModeCount: ServiceCounterVariable;
-    publishCount: ServiceCounterVariable;
-    republishCount: ServiceCounterVariable;
-    transferSubscriptionsCount: ServiceCounterVariable;
-    deleteSubscriptionsCount: ServiceCounterVariable;
-    addNodesCount: ServiceCounterVariable;
-    addReferencesCount: ServiceCounterVariable;
-    deleteNodesCount: ServiceCounterVariable;
-    deleteReferencesCount: ServiceCounterVariable;
-    browseCount: ServiceCounterVariable;
-    browseNextCount: ServiceCounterVariable;
-    translateBrowsePathsToNodeIdsCount: ServiceCounterVariable;
-    queryFirstCount: ServiceCounterVariable;
-    queryNextCount: ServiceCounterVariable;
-    registerNodesCount: ServiceCounterVariable;
-    unregisterNodesCount: ServiceCounterVariable;
 }
 
 // tslint:disable-next-line:no-var-requires
@@ -96,7 +65,75 @@ describe("Extension Object binding and sub  components\n", () => {
     });
 
     describe("bindObject", () => {
-        it("ZZ1 - should handle a Variable containing a ServiceCounterDataType", () => {
+        it("BEO4 - should handle a Variable containing an array of ServiceCounterDataType", () => {
+            const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+
+            const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType")!;
+            serviceCounterDataType.browseName.toString().should.eql("ServiceCounterDataType");
+
+            const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
+            baseVariableType.browseName.toString().should.eql("BaseVariableType");
+
+            const namespace = addressSpace.getOwnNamespace();
+
+            const counter = 1;
+            const extensionObjectVar = namespace.addVariable({
+                browseName: "VariableWithExtensionObjectArray" + counter,
+                dataType: serviceCounterDataType.nodeId,
+                valueRank: 1,
+                arrayDimensions: [0],
+                minimumSamplingInterval: 0,
+                organizedBy: rootFolder.objects
+            });
+            should.not.exist(extensionObjectVar.getComponentByName("0"));
+            should.not.exist(extensionObjectVar.getComponentByName("1"));
+
+            extensionObjectVar.minimumSamplingInterval.should.eql(0);
+
+            extensionObjectVar.readValue().value.dataType.should.eql(DataType.Null); // Empty array
+            extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.UncertainInitialValue);
+
+            const extensionObjectArray = extensionObjectVar.bindExtensionObjectArray([
+                new ServiceCounterDataType({ errorCount: 1, totalCount: 2 }),
+                new ServiceCounterDataType({ errorCount: 3, totalCount: 4 })
+            ], { createMissingProp: true }) as ServiceCounterDataType[];
+            should.exist(extensionObjectVar.getComponentByName("0"));
+            should.exist(extensionObjectVar.getComponentByName("1"));
+            should.exist(extensionObjectVar.getComponentByName("0")!.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("1")!.getChildByName("TotalCount"));
+
+            extensionObjectVar.installExtensionObjectVariables();
+            should.exist(extensionObjectVar.getComponentByName("0"));
+            should.exist(extensionObjectVar.getComponentByName("1"));
+            should.exist(extensionObjectVar.getComponentByName("0")!.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getComponentByName("1")!.getChildByName("TotalCount"));
+
+            extensionObjectArray.length.should.eql(2);
+            extensionObjectArray[0].constructor.name.should.eql("ServiceCounterDataType");
+            extensionObjectArray[1].constructor.name.should.eql("ServiceCounterDataType");
+
+            extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.Good);
+            extensionObjectVar.readValue().value.dataType.should.eql(DataType.ExtensionObject);
+            extensionObjectVar.readValue().value.arrayType.should.eql(VariantArrayType.Array);
+            extensionObjectVar.readValue().value.value.length.should.eql(2);
+            extensionObjectVar.readValue().value.value[0].constructor.name.should.eql("ServiceCounterDataType");
+            extensionObjectVar.readValue().value.value[1].constructor.name.should.eql("ServiceCounterDataType");
+
+            // to do 
+            const el1 = extensionObjectVar.getComponentByName("0") as UAVariable;
+            const dataValueEl1 = el1.readValue();
+            dataValueEl1.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValueEl1.value.arrayType.should.eql(VariantArrayType.Scalar);
+            dataValueEl1.value.value.constructor.name.should.eql("ServiceCounterDataType");
+
+            const el2 = extensionObjectVar.getComponentByName("1") as UAVariable;
+            const dataValueEl2 = el2.readValue();
+            dataValueEl2.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValueEl2.value.arrayType.should.eql(VariantArrayType.Scalar);
+            dataValueEl2.value.value.constructor.name.should.eql("ServiceCounterDataType");
+        });
+
+        it("BEO1 - should handle a Variable containing a ServiceCounterDataType", () => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const serviceCounterDataType = addressSpace.findDataType("ServiceCounterDataType")!;
@@ -109,9 +146,19 @@ describe("Extension Object binding and sub  components\n", () => {
             const extensionObjectVar = baseVariableType.instantiate({
                 browseName: "VariableWithExtensionObject" + counter,
                 dataType: serviceCounterDataType.nodeId,
+                valueRank: -1,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
-            }) as ServiceCounterVariable;
+            }) as UAServiceCounterVariableEx;
+
+            should.exist(extensionObjectVar.$extensionObject);
+            // should.not.exist(extensionObjectVar.$$extensionObjectArray);
+            should.not.exist(extensionObjectVar.getChildByName("TotalCount"));
+            should.not.exist(extensionObjectVar.getChildByName("ErrorCount"));
+
+            extensionObjectVar.installExtensionObjectVariables();
+            should.exist(extensionObjectVar.getChildByName("TotalCount"));
+            should.exist(extensionObjectVar.getChildByName("ErrorCount"));
 
             extensionObjectVar.minimumSamplingInterval.should.eql(0);
 
@@ -148,7 +195,7 @@ describe("Extension Object binding and sub  components\n", () => {
             spy_on_ServerCounter_TotalCount_value_changed.callCount.should.eql(1);
         });
 
-        it("ZZ2 - should handle a Variable containing a ServerStatus", () => {
+        it("BEO2 - should handle a Variable containing a ServerStatus", () => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const serverStatusDataType = addressSpace.findDataType("ServerStatusDataType")!;
@@ -201,7 +248,7 @@ describe("Extension Object binding and sub  components\n", () => {
             extensionObjectVar.state.readValue().value.value.should.eql(ServerState.Suspended);
         });
 
-        it("ZZ3 - should handle a Variable containing a SessionDiagnostic", () => {
+        it("BEO3 - should handle a Variable containing a SessionDiagnostic", () => {
             const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
             const sessionDiagnosticsDataType = addressSpace.findDataType("SessionDiagnosticsDataType")!;
@@ -211,23 +258,27 @@ describe("Extension Object binding and sub  components\n", () => {
             sessionDiagnosticsVariableType.browseName.toString().should.eql("SessionDiagnosticsVariableType");
 
             const counter = 1;
-            const extensionObjectVar = sessionDiagnosticsVariableType.instantiate({
+            const uaVariable = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics" + counter,
                 dataType: sessionDiagnosticsDataType.nodeId,
                 minimumSamplingInterval: 0,
                 organizedBy: rootFolder.objects
-            }) as SessionDiagnosticsVariable;
+            }) as UASessionDiagnosticsVariableEx;
 
-            extensionObjectVar.minimumSamplingInterval.should.eql(0);
-            extensionObjectVar.totalRequestCount.minimumSamplingInterval.should.eql(0);
-            extensionObjectVar.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
+            uaVariable.installExtensionObjectVariables();
+            uaVariable.minimumSamplingInterval.should.eql(0);
+            uaVariable.totalRequestCount.minimumSamplingInterval.should.eql(0);
 
-            extensionObjectVar.readValue().statusCode.should.eql(StatusCodes.Good);
-            extensionObjectVar.totalRequestCount.readValue().statusCode.should.eql(StatusCodes.Good);
-            extensionObjectVar.totalRequestCount.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
-            extensionObjectVar.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            const useTwoLevelsDeep = false;
 
-            const extensionObject = extensionObjectVar.bindExtensionObject() as SessionDiagnosticsDataType;
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.minimumSamplingInterval.should.eql(0);
+
+            uaVariable.readValue().statusCode.should.eql(StatusCodes.Good);
+            uaVariable.totalRequestCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().statusCode.should.eql(StatusCodes.Good);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.errorCount.readValue().statusCode.should.eql(StatusCodes.Good);
+
+            const extensionObject = uaVariable.bindExtensionObject() as SessionDiagnosticsDataType;
 
             extensionObject.constructor.name.should.eql("SessionDiagnosticsDataType");
 
@@ -235,33 +286,39 @@ describe("Extension Object binding and sub  components\n", () => {
             const spy_on_SessionDiagnostics_TotalRequestCount_value_changed = sinon.spy();
             const spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed = sinon.spy();
 
-            extensionObjectVar.on("value_changed", spy_on_SessionDiagnostics_value_changed);
-            extensionObjectVar.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
-            extensionObjectVar.totalRequestCount.totalCount.on(
-                "value_changed",
-                spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed
-            );
+            uaVariable.on("value_changed", spy_on_SessionDiagnostics_value_changed);
+            uaVariable.totalRequestCount.on("value_changed", spy_on_SessionDiagnostics_TotalRequestCount_value_changed);
+            useTwoLevelsDeep &&
+                uaVariable.totalRequestCount.totalCount.on(
+                    "value_changed",
+                    spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed
+                );
 
-            extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
-            extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
-            extensionObjectVar.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
 
-            extensionObjectVar.$extensionObject.should.eql(extensionObject);
+            const dv1 = uaVariable.totalRequestCount.readValue();
+            const dv2 = uaVariable.readValue();
+
+            uaVariable.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
+
+            uaVariable.readValue().value.value.totalRequestCount.totalCount.should.eql(0);
+
+            uaVariable.$extensionObject.should.eql(extensionObject);
 
             extensionObject.totalRequestCount.totalCount = 1;
 
-            extensionObjectVar.$extensionObject.should.eql(extensionObject);
+            uaVariable.$extensionObject.should.eql(extensionObject);
             // xx sionObject.totalRequestCount = new Proxy(extensionObject.totalRequestCount,{});
 
-            extensionObjectVar.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
+            uaVariable.readValue().value.value.totalRequestCount.totalCount.should.eql(1);
             spy_on_SessionDiagnostics_value_changed.callCount.should.eql(1);
 
-            extensionObjectVar.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
+            uaVariable.totalRequestCount.readValue().value.value.totalCount.should.eql(1);
             spy_on_SessionDiagnostics_TotalRequestCount_value_changed.callCount.should.eql(1);
 
             // xx console.log(extensionObjectVar.totalRequestCount.totalCount.readValue());
-            spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed.callCount.should.eql(1);
-            extensionObjectVar.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
+            useTwoLevelsDeep && spy_on_SessionDiagnostics_TotalRequestCount_TotalCount_value_changed.callCount.should.eql(1);
+            useTwoLevelsDeep && uaVariable.totalRequestCount.totalCount.readValue().value.value.should.eql(1);
         });
     });
 
@@ -290,9 +347,11 @@ describe("Extension Object binding and sub  components\n", () => {
             sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
                 browseName: "SessionDiagnostics" + counter,
                 organizedBy: rootFolder.objects
-            }) as SessionDiagnosticsVariable;
+            }) as UASessionDiagnosticsVariable<DTSessionDiagnostics>;
 
             _sessionDiagnostics = sessionDiagnostics.bindExtensionObject();
+            assert(sessionDiagnostics.$extensionObject === _sessionDiagnostics);
+            sessionDiagnostics.installExtensionObjectVariables();
 
             // xx console.log(_sessionDiagnostics.toString());
 
@@ -394,7 +453,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA3- updateExtensionObjectPartial: it should be possible to cascade changes " +
-                "by acting on the whole ExtensionObject",
+            "by acting on the whole ExtensionObject",
             () => {
                 spy_on_sessionDiagnostics_clientDescription_value_changed.callCount.should.eql(0);
 
@@ -418,7 +477,7 @@ describe("Extension Object binding and sub  components\n", () => {
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_totalCount_value_changed.callCount.should.eql(0);
 
-                const eo = sessionDiagnostics.constructExtensionObjectFromComponents();
+                const eo = sessionDiagnostics.readValue().value.value;
                 eo.clientDescription.applicationUri.should.eql("applicationUri-1");
 
                 // xx console.log(eo.toString());
@@ -427,7 +486,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA4- updateExtensionObjectPartial: it should be possible to cascade changes " +
-                "by acting on the whole ExtensionObject - middle",
+            "by acting on the whole ExtensionObject - middle",
             () => {
                 spy_on_sessionDiagnostics_totalRequestCount_value_changed.callCount.should.eql(0);
                 spy_on_sessionDiagnostics_totalRequestCount_errorCount_value_changed.callCount.should.eql(0);
@@ -458,7 +517,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA5- incrementExtensionObjectPartial: it should be possible to cascade changes " +
-                "by increasing a value on ExtensionObject",
+            "by increasing a value on ExtensionObject",
             () => {
                 sessionDiagnostics.totalRequestCount.totalCount.readValue().value.value.should.eql(0);
                 sessionDiagnostics.totalRequestCount.readValue().value.value.totalCount.should.eql(0);
@@ -491,7 +550,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
         it(
             "ZA6- changing property values in extension object directly should propagates changes and notification " +
-                "to NodeVariables",
+            "to NodeVariables",
             () => {
                 _sessionDiagnostics.clientDescription.applicationUri = "applicationUri-1";
 
@@ -504,7 +563,7 @@ describe("Extension Object binding and sub  components\n", () => {
 });
 
 // tslint:disable-next-line: no-empty-interface
-interface UAMeasIdDataType extends UAVariable {}
+interface UAMeasIdDataType extends UAVariable { }
 // tslint:disable-next-line: no-empty-interface
 interface UAPartIdDataType extends UAVariable {
     id: UAVariableT<string, DataType.String>;

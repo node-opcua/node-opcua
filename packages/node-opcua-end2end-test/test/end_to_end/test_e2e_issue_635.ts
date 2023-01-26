@@ -9,12 +9,13 @@ import {
     OPCUAClient,
     OPCUAServer,
     ReadValueIdOptions,
+    StatusCode,
     StatusCodes,
     TimestampsToReturn,
     UAVariable,
     Variant
 } from "node-opcua";
-import * as should  from "should";
+import * as should from "should";
 
 const _should = should;
 
@@ -118,7 +119,7 @@ describe("Testing bug #635", () => {
         server = new OPCUAServer({ port });
         await server.initialize();
         createAddressSpace(server.engine.addressSpace!);
-        let endpoints = server._get_endpoints(null);
+        const endpoints = server._get_endpoints(null);
         endpointUrl = endpoints[0].endpointUrl!;
         await server.start();
     });
@@ -147,9 +148,7 @@ describe("Testing bug #635", () => {
             requestedPublishingInterval: 200
         };
 
-        let subscription: ClientSubscription;
-
-        subscription = await session.createSubscription2(parameters);
+        const subscription = await session.createSubscription2(parameters);
 
         const monitoringParameters = {
             discardOldest: true,
@@ -191,10 +190,13 @@ describe("Testing bug #635", () => {
         let errorCount = 0;
         for (const dataValue of data) {
             let correctness = false;
-            if ((dataValue.value.value === 1 || dataValue.value.value === "ciao") && dataValue.statusCode === StatusCodes.Good) {
+            if ((dataValue.value.value === 1 || dataValue.value.value === "ciao") && dataValue.statusCode.isGood()) {
                 correctness = true;
             }
-            if ((dataValue.value.value === 2 || dataValue.value.value === "addio") && dataValue.statusCode === StatusCodes.Bad) {
+            if (
+                (dataValue.value.value === 2 || dataValue.value.value === "addio") &&
+                dataValue.statusCode.equals(StatusCodes.Bad)
+            ) {
                 correctness = true;
             }
             if (correctness) {

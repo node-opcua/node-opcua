@@ -29,7 +29,7 @@ export function getMiniAddressSpace(...args: any[]): any {
     const serverNamespace = addressSpace.registerNamespace("http://MYNAMESPACE");
     assert(serverNamespace.index === 1);
 
-    generateAddressSpace(addressSpace, get_mini_nodeset_filename(), (err?: Error) => {
+    generateAddressSpace(addressSpace, get_mini_nodeset_filename(), {}, (err?: Error) => {
         // istanbul ignore next
         if (err) {
             // tslint:disable:no-console

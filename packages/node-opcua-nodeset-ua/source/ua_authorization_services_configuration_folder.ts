@@ -10,7 +10,6 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |typedDefinition |AuthorizationServicesConfigurationFolderType ns=0;i=23556|
  * |isAbstract      |false                                             |
  */
-export interface UAAuthorizationServicesConfigurationFolder_Base extends UAFolder_Base {
-}
+export type UAAuthorizationServicesConfigurationFolder_Base = UAFolder_Base;
 export interface UAAuthorizationServicesConfigurationFolder extends UAFolder, UAAuthorizationServicesConfigurationFolder_Base {
 }

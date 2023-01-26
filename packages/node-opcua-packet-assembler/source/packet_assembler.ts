@@ -1,7 +1,9 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
+import { make_warningLog } from "node-opcua-debug";
 
 const doDebug = false;
+const warningLog = make_warningLog("PacketAssembler");
 
 /***
  * @class PacketAssembler
@@ -20,20 +22,39 @@ export interface PacketInfo {
     extra: string;
 }
 
-export type ReadMessageFuncType = (data: Buffer) => PacketInfo;
+export type ReadChunkFuncType = (data: Buffer) => PacketInfo;
 
 export interface PacketAssemblerOptions {
-    readMessageFunc: ReadMessageFuncType;
-
-    // the minimum number of bytes that need to be received before the readMessageFunc can be called
+    readChunkFunc: ReadChunkFuncType;
+    // the minimum number of bytes that need to be received before the readChunkFunc can be called
     minimumSizeInBytes: number;
+    maxChunkSize: number;
 }
 
+export enum PacketAssemblerErrorCode {
+    ChunkSizeExceeded = 1,
+    ChunkTooSmall = 2
+}
+export interface PacketAssembler {
+    on(eventName: "startChunk", eventHandler: (packetInfo: PacketInfo, partial: Buffer) => void): this;
+    on(eventName: "chunk", eventHandler: (chunk: Buffer) => void): this;
+    on(eventName: "error", eventHandler: (err: Error, errCode: PacketAssemblerErrorCode) => void): this;
+}
+/**
+ * this class is used to assemble partial data from the tranport layer
+ * into message chunks
+ */
 export class PacketAssembler extends EventEmitter {
+    public static defaultMaxChunkCount = 777;
+    public static defaultMaxMessageSize = 1024 * 64 - 7;
+
     private readonly _stack: Buffer[];
     private expectedLength: number;
     private currentLength: number;
-    private readonly readMessageFunc: ReadMessageFuncType;
+
+    private maxChunkSize: number;
+
+    private readonly readChunkFunc: ReadChunkFuncType;
     private readonly minimumSizeInBytes: number;
     private packetInfo?: PacketInfo;
 
@@ -42,9 +63,15 @@ export class PacketAssembler extends EventEmitter {
         this._stack = [];
         this.expectedLength = 0;
         this.currentLength = 0;
-        this.readMessageFunc = options.readMessageFunc;
+        this.readChunkFunc = options.readChunkFunc;
         this.minimumSizeInBytes = options.minimumSizeInBytes || 8;
-        assert(typeof this.readMessageFunc === "function", "packet assembler requires a readMessageFunc");
+        assert(typeof this.readChunkFunc === "function", "packet assembler requires a readChunkFunc");
+
+        // istanbul ignore next
+        assert(options.maxChunkSize === undefined || options.maxChunkSize !== 0);
+
+        this.maxChunkSize = options.maxChunkSize || PacketAssembler.defaultMaxMessageSize;
+        assert(this.maxChunkSize >= this.minimumSizeInBytes);
     }
 
     public feed(data: Buffer) {
@@ -60,12 +87,22 @@ export class PacketAssembler extends EventEmitter {
 
             // we can extract the expected length here
             this.packetInfo = this._readPacketInfo(data);
-            this.expectedLength = this.packetInfo.length;
-            assert(this.currentLength === 0);
-            assert(this.expectedLength > 0);
 
+            assert(this.currentLength === 0);
+            if (this.packetInfo.length < this.minimumSizeInBytes) {
+                this.emit("error", new Error("chunk is too small "), PacketAssemblerErrorCode.ChunkTooSmall);
+                return;
+            }
+
+            if (this.packetInfo.length > this.maxChunkSize) {
+                const message = `maximum chunk size exceeded (maxChunkSize=${this.maxChunkSize} current chunk size = ${this.packetInfo.length})`;
+                warningLog(message);
+                this.emit("error", new Error(message), PacketAssemblerErrorCode.ChunkSizeExceeded);
+                return;
+            }
             // we can now emit an event to signal the start of a new packet
-            this.emit("newMessage", this.packetInfo, data);
+            this.emit("startChunk", this.packetInfo, data);
+            this.expectedLength = this.packetInfo.length;
         }
 
         if (this.expectedLength === 0 || this.currentLength + data.length < this.expectedLength) {
@@ -87,16 +124,16 @@ export class PacketAssembler extends EventEmitter {
             this.currentLength = 0;
             this.expectedLength = 0;
 
-            this.emit("message", messageChunk);
+            this.emit("chunk", messageChunk);
         } else {
             // there is more data in this chunk than expected...
             // the chunk need to be split
             const size1 = this.expectedLength - this.currentLength;
             if (size1 > 0) {
-                const chunk1 = data.slice(0, size1);
+                const chunk1 = data.subarray(0, size1);
                 this.feed(chunk1);
             }
-            const chunk2 = data.slice(size1);
+            const chunk2 = data.subarray(size1);
             if (chunk2.length > 0) {
                 this.feed(chunk2);
             }
@@ -104,10 +141,10 @@ export class PacketAssembler extends EventEmitter {
     }
 
     private _readPacketInfo(data: Buffer) {
-        return this.readMessageFunc(data);
+        return this.readChunkFunc(data);
     }
 
-    private _buildData(data: Buffer) {
+    private _buildData(data: Buffer): Buffer {
         if (data && this._stack.length === 0) {
             return data;
         }

@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int32, Int16, Byte } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -9,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |3:DhcpGeoConfCoordinate                           |
  * | isAbstract|false                                             |
  */
-export interface DTDhcpGeoConfCoordinate extends DTStructure  {
+export interface DTDhcpGeoConfCoordinate extends DTStructure {
   laRes: Byte; // Byte ns=0;i=3
   latitudeInteger: Int16; // Int16 ns=0;i=4
   latitudeFraction: Int32; // Int32 ns=0;i=6
@@ -22,3 +23,4 @@ export interface DTDhcpGeoConfCoordinate extends DTStructure  {
   altitudeFraction: Int16; // Int16 ns=0;i=4
   datum: Byte; // Byte ns=0;i=3
 }
+export interface UDTDhcpGeoConfCoordinate extends ExtensionObject, DTDhcpGeoConfCoordinate {};

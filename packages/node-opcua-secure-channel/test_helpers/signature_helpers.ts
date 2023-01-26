@@ -1,8 +1,9 @@
 import * as  fs from "fs";
+import { createPrivateKey } from "node:crypto";
+import  "should";
 import { assert } from "node-opcua-assert";
 import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto";
 import { SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import  "should";
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
 
 // tslint:disable:no-var-requires
@@ -10,7 +11,7 @@ const { getFixture } = require("node-opcua-test-fixtures");
 
 function construct_makeMessageChunkSignatureForTest() {
 
-    const privateKey = fs.readFileSync(getFixture("certs/server_key_1024.pem")).toString("ascii");
+    const privateKey = createPrivateKey(fs.readFileSync(getFixture("certs/server_key_1024.pem"),"utf-8"));
 
     return (chunk: Buffer) => {
         const options = {
@@ -27,7 +28,7 @@ function construct_makeMessageChunkSignatureForTest() {
 export const makeMessageChunkSignatureForTest = construct_makeMessageChunkSignatureForTest();
 
 export function construct_verifyMessageChunkSignatureForTest() {
-    const publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("ascii");
+    const publicKey = fs.readFileSync(getFixture("certs/server_public_key_1024.pub")).toString("utf-8");
     return (chunk: Buffer) => {
         assert(chunk instanceof Buffer);
         const options = {
@@ -105,16 +106,16 @@ export function performMessageChunkManagerTest(options: SecureMessageChunkManage
 
     // checking final flags ...
     chunks.forEach((chunk: Buffer) => {
-        chunk.slice(0, 3).toString().should.eql("HEL");
+        chunk.subarray(0, 3).toString().should.eql("HEL");
     });
 
-    // check length
-    chunks[0].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[1].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[2].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
-    chunks[3].slice(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    // check lengths
+    chunks[0].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[1].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[2].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
+    chunks[3].subarray(4, 8).readUInt32LE(0).should.eql(options.chunkSize);
 
-    chunks[chunks.length - 1].slice(4, 8).readUInt32LE(0).should.eql(12 + options.signatureLength + headerSize + 8);
+    chunks[chunks.length - 1].subarray(4, 8).readUInt32LE(0).should.eql(12 + options.signatureLength + headerSize + 8);
 
     // check final car
     chunks[0].readUInt8(3).should.equal("C".charCodeAt(0));

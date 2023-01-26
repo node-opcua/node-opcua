@@ -42,7 +42,7 @@ const NUMERIC_RANGE_EMPTY_STRING = "NumericRange:<Empty>";
 // tslint:disable:only-arrow-functions
 export const schemaNumericRange = {
     name: "NumericRange",
-    subType: "UAString",
+    subType: "String",
 
     defaultValue: (): NumericRange => {
         return new NumericRange();
@@ -529,7 +529,7 @@ export class NumericRange implements NumericalRange1 {
             statusCode: StatusCodes.Good
         };
     }
-    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []): { array: Buffer | []; statusCode: StatusCode } {
+    public set_values(arrayToAlter: Buffer | [], newValues: Buffer | []): { array: Buffer | [] | null; statusCode: StatusCode } {
         assert_array_or_buffer(arrayToAlter);
         assert_array_or_buffer(newValues);
 
@@ -554,15 +554,14 @@ export class NumericRange implements NumericalRange1 {
                 // for the time being MatrixRange is not supported
                 return { array: arrayToAlter, statusCode: StatusCodes.BadIndexRangeNoData };
             default:
-                return { array: [], statusCode: StatusCodes.BadIndexRangeInvalid };
+                return { array: null, statusCode: StatusCodes.BadIndexRangeInvalid };
         }
 
         if (high_index >= arrayToAlter.length || low_index >= arrayToAlter.length) {
-            return { array: [], statusCode: StatusCodes.BadIndexRangeNoData };
+            return { array: null, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        // istanbul ignore next
         if (this.type !== NumericRangeType.Empty && newValues.length !== high_index - low_index + 1) {
-            return { array: [], statusCode: StatusCodes.BadIndexRangeInvalid };
+            return { array: null, statusCode: StatusCodes.BadIndexRangeInvalid };
         }
         const insertInPlace = Array.isArray(arrayToAlter)
             ? insertInPlaceStandardArray
@@ -584,6 +583,8 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
     let res;
     if ((arr as any).buffer instanceof ArrayBuffer) {
         res = (arr as any).subarray(start, end);
+    } else if (arr instanceof Buffer) {
+        res = arr.subarray(start, end);
     } else {
         assert(typeof (arr as any).slice === "function");
         assert(arr instanceof Buffer || arr instanceof Array || typeof arr === "string");
@@ -600,7 +601,7 @@ function slice<U, T extends ArrayLike<U>>(arr: T, start: number, end: number): T
 }
 
 export interface ExtractResult<T> {
-    array?: T;
+    array?: T | null;
     statusCode: StatusCode;
     dimensions?: number[];
 }
@@ -618,7 +619,7 @@ function extract_single_value<U, T extends ArrayLike<U>>(array: T, index: number
         if (typeof array === "string") {
             return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: [] as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: null as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     return {
         array: slice(array, index, index + 1),
@@ -634,7 +635,7 @@ function extract_array_range<U, T extends ArrayLike<U>>(array: T, low_index: num
         if (typeof array === "string") {
             return { array: "" as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
         }
-        return { array: [] as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
+        return { array: null as any as T, statusCode: StatusCodes.BadIndexRangeNoData };
     }
     // clamp high index
     high_index = Math.min(high_index, array.length - 1);
@@ -659,7 +660,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
 
     if (array.length === 0) {
         return {
-            array: [] as any as T,
+            array: null,
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
@@ -674,7 +675,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     }
     if (!dimension) {
         return {
-            array: [] as any as T,
+            array: null,
             statusCode: StatusCodes.BadIndexRangeNoData
         };
     }
@@ -738,9 +739,12 @@ function insertInPlaceTypedArray(arrayToAlter: any, low: number, high: number, n
     return arrayToAlter;
 }
 
-function insertInPlaceBuffer(bufferToAlter: any, low: number, high: number, newValues: any): any {
+function insertInPlaceBuffer(bufferToAlter: Buffer | [], low: number, high: number, newValues: any): Buffer {
+    // insertInPlaceBuffer with buffer is not really possible as existing Buffer cannot be resized
+    if (!(bufferToAlter instanceof Buffer)) throw new Error("expecting a buffer");
     if (low === 0 && high === bufferToAlter.length - 1) {
-        return Buffer.from(newValues);
+        bufferToAlter = Buffer.from(newValues);
+        return bufferToAlter;
     }
     assert(newValues.length === high - low + 1);
     for (let i = 0; i < newValues.length; i++) {

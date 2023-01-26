@@ -70,38 +70,38 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=12</Reference>
         </References>
     </UADataType>
-    <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyStruct">
-        <DisplayName>MyStruct</DisplayName>
+    <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyStructDataType">
+        <DisplayName>MyStructDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
-        <Definition Name="1:MyStruct">
+        <Definition Name="1:MyStructDataType">
             <Field DataType="MyIdentifierString" Name="Id"/>
         </Definition>
     </UADataType>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6005" BrowseName="1:MyStruct">
-        <DisplayName>MyStruct</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6005" BrowseName="1:MyStructDataType">
+        <DisplayName>MyStructDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5001</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
         </References>
         <Value>
-            <uax:String>MyStruct</uax:String>
+            <uax:String>MyStructDataType</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6006" BrowseName="1:MyStruct">
-        <DisplayName>MyStruct</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6006" BrowseName="1:MyStructDataType">
+        <DisplayName>MyStructDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
         </References>
         <Value>
-            <uax:String>//xs:element[@name='MyStruct']</uax:String>
+            <uax:String>//xs:element[@name='MyStructDataType']</uax:String>
         </Value>
     </UAVariable>
     <UAVariable SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary">

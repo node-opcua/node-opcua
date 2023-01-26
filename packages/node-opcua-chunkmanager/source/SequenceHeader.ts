@@ -9,10 +9,10 @@ import {
     check_options_correctness_against_schema,
     initialize_field,
     parameters,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 
-const schemaSequenceHeader: StructuredTypeSchema = buildStructuredType({
+const schemaSequenceHeader: IStructuredTypeSchema = buildStructuredType({
     baseType: "BaseUAObject",
     fields: [
         // A monotonically increasing sequence number assigned by the sender to each
@@ -25,13 +25,17 @@ const schemaSequenceHeader: StructuredTypeSchema = buildStructuredType({
     name: "SequenceHeader"
 });
 
+export interface SequenceHeaderOptions {
+    sequenceNumber?: UInt32;
+    requestId?: UInt32;
+}
 export class SequenceHeader extends BaseUAObject {
     public static possibleFields: string[] = ["sequenceNumber", "requestId"];
     public static schema = schemaSequenceHeader;
     public sequenceNumber: UInt32;
     public requestId: UInt32;
 
-    constructor(options?: any) {
+    constructor(options?: SequenceHeaderOptions) {
         options = options || {};
         super();
         const schema = schemaSequenceHeader;

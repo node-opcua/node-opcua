@@ -7,15 +7,15 @@
     </NamespaceUris>
     <Models>
         <Model ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7" />
         </Model>
         <Model ModelUri="http://B" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7" />
         </Model>
         <Model ModelUri="http://C" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
-            <RequiredModel ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00"/>
-            <RequiredModel ModelUri="http://B" PublicationDate="2021-01-01T00:00:00Z" Version="1.00"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7" />
+            <RequiredModel ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00" />
+            <RequiredModel ModelUri="http://B" PublicationDate="2021-01-01T00:00:00Z" Version="1.00" />
         </Model>
     </Models>
     <Aliases>
@@ -69,10 +69,10 @@
             <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
         </References>
         <Definition Name="1:MixingToFilling">
-            <Field DataType="Boolean" Name="Start"/>
-            <Field DataType="Boolean" Name="Stop"/>
-            <Field DataType="Boolean" Name="Hold"/>
-            <Field DataType="Double" Name="Amount"/>
+            <Field DataType="Boolean" Name="Start" />
+            <Field DataType="Boolean" Name="Stop" />
+            <Field DataType="Boolean" Name="Hold" />
+            <Field DataType="Double" Name="Amount" />
         </Definition>
     </UADataType>
     <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5003" BrowseName="Default Binary">
@@ -82,6 +82,34 @@
         </References>
     </UAObject>
     <UAObject SymbolicName="DefaultXML" NodeId="ns=1;i=5004" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+
+
+    <UADataType NodeId="ns=1;i=10001" BrowseName="1:MyStructureWithMatrix">
+        <DisplayName>MyStructureWithMatrix</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=10002</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=10003</Reference>
+        </References>
+        <Definition Name="1:MyStructureWithMatrix">
+            <Field DataType="Double" Name="MyArray"  ValueRank="1" ArrayDimensions="2" />
+            <Field DataType="Double" Name="MyMatrix" ValueRank="2" ArrayDimensions="2,3" />
+            <Field DataType="Double" Name="MyCube"   ValueRank="3" ArrayDimensions="2,2,2" />
+        </Definition>
+    </UADataType>
+    
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=10002" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXML" NodeId="ns=1;i=10003" BrowseName="Default XML">
         <DisplayName>Default XML</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>

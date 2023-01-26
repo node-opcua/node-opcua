@@ -12,7 +12,7 @@ import { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_secu
  * |isAbstract      |true                                              |
  */
 export interface UAAuditSessionEvent_Base extends UAAuditSecurityEvent_Base {
-    sessionId: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    sessionId: UAProperty<NodeId, DataType.NodeId>;
 }
 export interface UAAuditSessionEvent extends UAAuditSecurityEvent, UAAuditSessionEvent_Base {
 }

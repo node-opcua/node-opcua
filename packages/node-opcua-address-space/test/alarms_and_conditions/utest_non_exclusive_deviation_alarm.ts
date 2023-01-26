@@ -1,15 +1,16 @@
+/* eslint-disable max-statements */
 // tslint:disable:max-statements
 import * as should from "should";
-import { Variant } from "node-opcua-variant";
-import { AddressSpace, UANonExclusiveDeviationAlarmEx, UAObject, UAVariable } from "../..";
+import { DataType, Variant } from "node-opcua-variant";
+import { AddressSpace, UANonExclusiveDeviationAlarmEx, UAObject, UAVariable, UAVariableT } from "../..";
 
 export function utest_non_exclusive_deviation_alarm(test: any): void {
     describe("Deviation Alarms : Non ExclusiveDeviationAlarms", () => {
         let addressSpace: AddressSpace;
         let source: UAObject;
         let engine: UAObject;
-        let variableWithAlarm: UAVariable;
-        let setpointNodeNode: UAVariable;
+        let variableWithAlarm: UAVariableT<number, DataType.Double>;
+        let setpointNodeNode: UAVariableT<number, DataType.Double>;
         before(() => {
             addressSpace = test.addressSpace;
             source = test.source;
@@ -47,7 +48,7 @@ export function utest_non_exclusive_deviation_alarm(test: any): void {
             });
             it("should provide correct properties", () => {
                 alarm.getInputNodeValue().should.eql(0);
-                alarm.getSetpointNodeNode().should.eql(setpointNodeNode);
+                alarm.getSetpointNodeNode()!.should.eql(setpointNodeNode);
 
                 setpointNodeNode.readValue().value.should.eql(new Variant({ dataType: "Double", value: 0 }));
                 alarm.getInputNodeValue().should.eql(0);
@@ -58,16 +59,16 @@ export function utest_non_exclusive_deviation_alarm(test: any): void {
                 alarm.getHighHighLimit().should.eql(100);
 
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(false);
-                alarm.highState.getValue().should.eql(false);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(false);
+                alarm.highState!.getValue().should.eql(false);
+                alarm.highHighState!.getValue().should.eql(false);
             });
 
             it("should provide correct properties when set value is changed and back to orignal value", () => {
                 alarm.getInputNodeValue().should.eql(0);
 
-                alarm.getSetpointNodeNode().should.eql(setpointNodeNode);
+                alarm.getSetpointNodeNode()!.should.eql(setpointNodeNode);
                 setpointNodeNode.readValue().value.should.eql(new Variant({ dataType: "Double", value: 0 }));
                 alarm.getSetpointValue()!.should.eql(0);
 
@@ -78,10 +79,10 @@ export function utest_non_exclusive_deviation_alarm(test: any): void {
                 alarm.getSetpointValue()!.should.eql(0);
 
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(false);
-                alarm.highState.getValue().should.eql(false);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(false);
+                alarm.highState!.getValue().should.eql(false);
+                alarm.highHighState!.getValue().should.eql(false);
             });
 
             it("NonExclusiveDeviationAlarm", () => {
@@ -94,45 +95,45 @@ export function utest_non_exclusive_deviation_alarm(test: any): void {
                 setpointNodeNode.readValue().value.should.eql(new Variant({ dataType: "Double", value: 0 }));
 
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(false);
-                alarm.highState.getValue().should.eql(false);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(false);
+                alarm.highState!.getValue().should.eql(false);
+                alarm.highHighState!.getValue().should.eql(false);
 
                 setVariableValue(-100);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState.getValue().should.eql(true);
-                alarm.lowState.getValue().should.eql(true);
-                alarm.highState.getValue().should.eql(false);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(true);
+                alarm.lowState!.getValue().should.eql(true);
+                alarm.highState!.getValue().should.eql(false);
+                alarm.highHighState!.getValue().should.eql(false);
 
                 setVariableValue(-9);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(true);
-                alarm.highState.getValue().should.eql(false);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(true);
+                alarm.highState!.getValue().should.eql(false);
+                alarm.highHighState!.getValue().should.eql(false);
 
                 setVariableValue(4);
                 alarm.activeState.getValue().should.eql(false);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(false);
-                alarm.highState.getValue().should.eql(false);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(false);
+                alarm.highState!.getValue().should.eql(false);
+                alarm.highHighState!.getValue().should.eql(false);
 
                 setVariableValue(11);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(false);
-                alarm.highState.getValue().should.eql(true);
-                alarm.highHighState.getValue().should.eql(false);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(false);
+                alarm.highState!.getValue().should.eql(true);
+                alarm.highHighState!.getValue().should.eql(false);
 
                 setVariableValue(200);
                 alarm.activeState.getValue().should.eql(true);
-                alarm.lowLowState.getValue().should.eql(false);
-                alarm.lowState.getValue().should.eql(false);
-                alarm.highState.getValue().should.eql(true);
-                alarm.highHighState.getValue().should.eql(true);
+                alarm.lowLowState!.getValue().should.eql(false);
+                alarm.lowState!.getValue().should.eql(false);
+                alarm.highState!.getValue().should.eql(true);
+                alarm.highHighState!.getValue().should.eql(true);
             });
         });
     });

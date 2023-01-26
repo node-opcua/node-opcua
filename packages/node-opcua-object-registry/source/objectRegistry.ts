@@ -11,22 +11,21 @@ export class ObjectRegistry {
     public static doDebug = false;
     public static registries: any = gRegistries;
 
-    private _objectType: any;
-    private readonly _cache: any;
+    private _objectTypeName?: string;
+    private readonly _cache: Record<string, object | null>;
 
-    constructor(objectType?: any) {
-        this._objectType = objectType;
+    constructor() {
         this._cache = {};
         gRegistries.push(this);
     }
 
     public getClassName(): string {
-        return this._objectType ? this._objectType.name : "<???>";
+        return this._objectTypeName ? this._objectTypeName : "<???>";
     }
 
     public register(obj: any): void {
-        if (!this._objectType) {
-            this._objectType = obj.constructor;
+        if (!this._objectTypeName) {
+            this._objectTypeName = obj.constructor.name;
         }
 
         if (!obj._____hash) {

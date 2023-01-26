@@ -1,3 +1,5 @@
+const should = require("should");
+
 const {
     coerceNodeId,
     makeExpandedNodeId,
@@ -7,7 +9,6 @@ const {
     NodeIdType
 } = require("..");
 
-const should = require("should");
 
 describe("testing ExpandedNodeId", function() {
 

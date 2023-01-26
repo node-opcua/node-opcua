@@ -12,7 +12,6 @@ import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
  * |typedDefinition |6:AuthorizationServicesFolderType ns=6;i=233      |
  * |isAbstract      |false                                             |
  */
-export interface UAAuthorizationServicesFolder_Base extends UAFolder_Base {
-}
+export type UAAuthorizationServicesFolder_Base = UAFolder_Base;
 export interface UAAuthorizationServicesFolder extends UAFolder, UAAuthorizationServicesFolder_Base {
 }

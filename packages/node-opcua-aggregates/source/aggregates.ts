@@ -1,19 +1,23 @@
 /**
  * @module node-opcua-aggregates
  */
-import { AggregateFunction } from "node-opcua-constants";
-import { makeNodeId } from "node-opcua-nodeid";
+import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import {
     AddressSpace,
     BaseNode,
+    IAddressSpace,
+    UAHistoricalDataConfiguration,
     UAHistoryServerCapabilities,
     UAObject,
     UAServerCapabilities,
     UAVariable
 } from "node-opcua-address-space";
 import { AddressSpacePrivate } from "node-opcua-address-space/src/address_space_private";
+import { BrowseDirection, coerceQualifiedName, NodeClass, NodeClassMask } from "node-opcua-data-model";
+import { assert } from "node-opcua-assert";
 
 import { AggregateConfigurationOptionsEx } from "./interval";
 import { readProcessedDetails } from "./read_processed_details";
@@ -121,53 +125,11 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
     // xx setBoolean("InsertAnnotationsCapability");
 }
 
-export type AggregateFunctionName =
-    | "AnnotationCount"
-    | "Average"
-    | "Count"
-    | "Delta"
-    | "DeltaBounds"
-    | "DurationBad"
-    | "DurationGood"
-    | "DurationInStateNonZero"
-    | "DurationInStateZero"
-    | "EndBound"
-    | "Interpolative"
-    | "Maximum"
-    | "Maximum2"
-    | "MaximumActualTime"
-    | "MaximumActualTime2"
-    | "Minimum"
-    | "Minimum2"
-    | "MinimumActualTime"
-    | "MinimumActualTime2"
-    | "NumberOfTransitions"
-    | "PercentBad"
-    | "PercentGood"
-    | "Range"
-    | "Range2"
-    | "StandardDeviationPopulation"
-    | "StandardDeviationSample"
-    | "Start"
-    | "StartBound"
-    | "TimeAverage"
-    | "TimeAverage2"
-    | "Total"
-    | "Total2"
-    | "VariancePopulation"
-    | "VarianceSample"
-    | "WorstQuality"
-    | "WorstQuality2";
-
 interface UAHistoryServerCapabilitiesWithH extends UAServerCapabilities {
     historyServerCapabilities: UAHistoryServerCapabilities;
 }
-function addAggregateFunctionSupport(addressSpace: AddressSpace, functionName: number): void {
-    /* istanbul ignore next */
-    if (!functionName) {
-        throw new Error("Invalid function name");
-    }
 
+export function addAggregateFunctionSupport(addressSpace: AddressSpace, aggregateFunctionNodeId: NodeIdLike): void {
     const serverCapabilities = addressSpace.rootFolder.objects.server.serverCapabilities as UAHistoryServerCapabilitiesWithH;
 
     /* istanbul ignore next */
@@ -179,12 +141,19 @@ function addAggregateFunctionSupport(addressSpace: AddressSpace, functionName: n
 
     const aggregateFunctionsInHist = serverCapabilities.historyServerCapabilities.aggregateFunctions;
 
-    const functionNodeId = makeNodeId(functionName);
-    const functionNode = addressSpace.getNamespace(0).findNode(functionNodeId);
+    const functionNode = addressSpace.findNode(aggregateFunctionNodeId);
 
     /* istanbul ignore next */
     if (!functionNode) {
-        throw new Error("Cannot find node " + functionName + " in addressSpace");
+        throw new Error("Cannot find node " + aggregateFunctionNodeId.toString() + " in addressSpace");
+    }
+    /* istanbul ignore next */
+    if (functionNode.nodeClass !== NodeClass.Object) {
+        throw new Error("Expecting an object Node");
+    }
+    /* istanbul ignore next */
+    if (!sameNodeId((functionNode as UAObject).typeDefinition, coerceNodeId(ObjectTypeIds.AggregateFunctionType))) {
+        throw new Error("Expecting an object with TypeDefinition AggregateFunctionType");
     }
 
     aggregateFunctions.addReference({
@@ -197,7 +166,23 @@ function addAggregateFunctionSupport(addressSpace: AddressSpace, functionName: n
     });
 }
 
-export function addAggregateSupport(addressSpace: AddressSpace): void {
+export function addAggregateStandardFunctionSupport(addressSpace: AddressSpace, functionName: AggregateFunction): void {
+    /* istanbul ignore next */
+    if (!functionName) {
+        throw new Error("Invalid function name");
+    }
+    const functionNodeId = makeNodeId(functionName);
+    addAggregateFunctionSupport(addressSpace, functionNodeId);
+}
+
+export function addAggregateSupport(addressSpace: AddressSpace, aggregatedFunctions?: AggregateFunction[]): void {
+    aggregatedFunctions = aggregatedFunctions || [
+        AggregateFunction.Interpolative,
+        AggregateFunction.Minimum,
+        AggregateFunction.Maximum,
+        AggregateFunction.Average
+    ];
+
     const aggregateConfigurationType = addressSpace.getNamespace(0).findObjectType("AggregateConfigurationType");
 
     /* istanbul ignore next */
@@ -232,37 +217,108 @@ export function addAggregateSupport(addressSpace: AddressSpace): void {
 
     setHistoricalServerCapabilities(historyServerCapabilities, historicalCapabilitiesDefaultProperties);
 
-    addAggregateFunctionSupport(addressSpace, AggregateFunction.Interpolative);
-    addAggregateFunctionSupport(addressSpace, AggregateFunction.Minimum);
-    addAggregateFunctionSupport(addressSpace, AggregateFunction.Maximum);
-    addAggregateFunctionSupport(addressSpace, AggregateFunction.Average);
-
+    for (const f of aggregatedFunctions) {
+        addAggregateStandardFunctionSupport(addressSpace, f);
+    }
     const addressSpaceInternal = addressSpace as unknown as AddressSpacePrivate;
     addressSpaceInternal._readProcessedDetails = readProcessedDetails;
 }
 
-export function installAggregateConfigurationOptions(node: UAVariable, options: AggregateConfigurationOptionsEx): void {
-    const nodePriv = node as any;
+interface BaseNodeWithHistoricalDataConfiguration extends UAVariable {
+    $historicalDataConfiguration: UAHistoricalDataConfiguration;
+}
+
+export function getAggregateFunctions(addressSpace: IAddressSpace): NodeId[] {
+    const aggregateFunctionTypeNodeId = resolveNodeId(ObjectTypeIds.AggregateFunctionType);
+    const aggregateFunctions = addressSpace.findNode(ObjectIds.Server_ServerCapabilities_AggregateFunctions) as UAObject;
+    if (!aggregateFunctions) {
+        return [];
+    }
+    const referenceDescripitions = aggregateFunctions.browseNode({
+        referenceTypeId: ReferenceTypeIds.HierarchicalReferences,
+        resultMask: 63,
+        nodeClassMask: NodeClassMask.Object,
+        browseDirection: BrowseDirection.Forward,
+        includeSubtypes: true
+    });
+    const aggregateFunctionsNodeIds = referenceDescripitions
+        .filter((a) => sameNodeId(a.typeDefinition, aggregateFunctionTypeNodeId))
+        .map((a) => a.nodeId);
+    return aggregateFunctionsNodeIds;
+}
+
+/**
+ * Install aggregateConfiguration on an historizing variable
+ * 
+ * @param node the variable on which to add the aggregateConfiguration.
+ * @param options the default AggregateConfigurationOptions.
+ * @param aggregateFunctions the aggregatedFunctions, if not specified the aggregatedFunction of ServerCapabilities.AggregatedFunction will be used.
+
+ */
+export function installAggregateConfigurationOptions(
+    node: UAVariable,
+    options: AggregateConfigurationOptionsEx,
+    aggregateFunctions?: NodeIdLike[]
+): void {
+    const nodePriv = node as BaseNodeWithHistoricalDataConfiguration;
+
+    // istanbul ignore next
+    if (!nodePriv.historizing) {
+        throw new Error(
+            "variable.historizing is not set\n make sure addressSpace.installHistoricalDataNode(variable) has been called"
+        );
+    }
+
     const aggregateConfiguration = nodePriv.$historicalDataConfiguration.aggregateConfiguration;
-    aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: options.percentDataBad });
-    aggregateConfiguration.percentDataGood.setValueFromSource({ dataType: "Byte", value: options.percentDataGood });
+
+    const f = (a: number | boolean | undefined, defaultValue: number | boolean): number | boolean =>
+        a === undefined ? defaultValue : a;
+
+    aggregateConfiguration.percentDataBad.setValueFromSource({ dataType: "Byte", value: f(options.percentDataBad, 100) });
+    aggregateConfiguration.percentDataGood.setValueFromSource({ dataType: "Byte", value: f(options.percentDataGood, 100) });
     aggregateConfiguration.treatUncertainAsBad.setValueFromSource({
         dataType: "Boolean",
-        value: options.treatUncertainAsBad
+        value: f(options.treatUncertainAsBad, false)
     });
     aggregateConfiguration.useSlopedExtrapolation.setValueFromSource({
         dataType: "Boolean",
-        value: options.useSlopedExtrapolation
+        value: f(options.useSlopedExtrapolation, false)
     });
 
     nodePriv.$historicalDataConfiguration.stepped.setValueFromSource({
         dataType: "Boolean",
-        value: options.stepped
+        value: f(options.stepped, false)
     });
+    // https://reference.opcfoundation.org/v104/Core/docs/Part13/4.4/
+    // Exposing Supported Functions and Capabilities
+    if (!aggregateFunctions) {
+        aggregateFunctions = getAggregateFunctions(node.addressSpace);
+    }
+
+    let uaAggregateFunctions = nodePriv.$historicalDataConfiguration.aggregateFunctions;
+    if (!uaAggregateFunctions) {
+        const namespace = nodePriv.namespace;
+        uaAggregateFunctions = namespace.addObject({
+            browseName: coerceQualifiedName({ name: "AggregateFunctions", namespaceIndex: 0 }),
+            componentOf: nodePriv.$historicalDataConfiguration
+        });
+        uaAggregateFunctions = nodePriv.$historicalDataConfiguration.aggregateFunctions;
+    }
+    // verify that all aggregateFunctions are of type AggregateFunctionType
+    // ... to do
+
+    const referenceType = resolveNodeId(ReferenceTypeIds.Organizes);
+    for (const nodeId of aggregateFunctions) {
+        uaAggregateFunctions!.addReference({
+            nodeId,
+            referenceType,
+            isForward: true
+        });
+    }
 }
 
 export function getAggregateConfiguration(node: BaseNode): AggregateConfigurationOptionsEx {
-    const nodePriv = node as any;
+    const nodePriv = node as BaseNodeWithHistoricalDataConfiguration;
 
     /* istanbul ignore next */
     if (!nodePriv.$historicalDataConfiguration) {

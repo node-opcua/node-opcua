@@ -8,7 +8,7 @@ const { PublishRequest } = require("node-opcua-service-subscription");
 const { StatusCodes } = require("node-opcua-status-code");
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 
-const { ServerEngine, ServerSession } = require("..");
+const { ServerEngine, ServerSession, SubscriptionState, installSessionLoggingOnEngine} = require("..");
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -39,6 +39,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
             FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
             BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
+            installSessionLoggingOnEngine(engine);
             done();
         });
     });
@@ -60,28 +61,37 @@ describe("ServerEngine Subscriptions Transfer", function () {
         test.clock.tick(0);
     }
 
-    it("ST01 - should send keep alive when starving and no notification exists", async () => {
-        session1 = engine.createSession({ sessionTimeout: 10000 });
+    it("ZDZ-ST01 - should send keep alive when starving and no notification exists", async () => {
+        session1 = engine.createSession({ sessionTimeout: 100 * 1000 });
         const publishSpy = sinon.spy();
 
         await with_fake_timer.call(test, async (test) => {
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000, // Duration
-                requestedLifetimeCount: 10, // Counter
+                requestedLifetimeCount: 60, // Counter
                 requestedMaxKeepAliveCount: 10, // Counter
                 maxNotificationsPerPublish: 10, // Counter
                 publishingEnabled: true, // Boolean
                 priority: 14 // Byte
             });
+            subscription.publishingInterval.should.eql(1000);
+            subscription.lifeTimeCount.should.eql(60);
+            subscription.maxKeepAliveCount.should.eql(10);
+
+            subscription.currentKeepAliveCount.should.eql(0);
+            subscription.currentLifetimeCount.should.eql(0);
 
             // Given there is no Publish Request
             // when wait a very long time , longer than maxKeepAlive ,
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
+            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount));
+            subscription.state.should.eql(SubscriptionState.LATE);
+            subscription.currentKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
 
             sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval);
+            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount));
 
             {
+                publishSpy.callCount.should.eql(1);
                 const publishResponse = publishSpy.getCall(0).args[1];
                 publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
                 publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -91,9 +101,9 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             publishSpy.resetHistory();
 
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval);
+            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount));
             {
                 const publishResponse = publishSpy.getCall(0).args[1];
                 publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
@@ -106,7 +116,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST02 - should NOT send keep alive when starving and some notification exists", async () => {
+    it("ZDZ-ST02 - should NOT send keep alive when starving and some notification exists", async () => {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         const publishSpy = sinon.spy();
 
@@ -130,6 +140,8 @@ describe("ServerEngine Subscriptions Transfer", function () {
             test.clock.tick(subscription.publishingInterval);
 
             {
+                publishSpy.callCount.should.eql(1);
+
                 const publishResponse = publishSpy.getCall(0).args[1];
                 publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
                 publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -140,11 +152,13 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             publishSpy.resetHistory();
 
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval);
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
             {
+                publishSpy.callCount.should.eql(1);
+                
                 const publishResponse = publishSpy.getCall(0).args[1];
                 publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
                 publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -156,7 +170,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST03 - should NOT send keep alive when starving and some StatusChangeNotification exists", async () => {
+    it("ZDZ-ST03 - should NOT send keep alive when starving and some StatusChangeNotification exists", async () => {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         const publishSpy = sinon.spy();
 
@@ -217,7 +231,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST04 - should transfer a subscription - with no monitored items", async () => {
+    it("ZDZ-ST04 - should transfer a subscription - with no monitored items", async () => {
         session1 = engine.createSession({ sessionTimeout: 10000 });
 
         await with_fake_timer.call(test, async () => {
@@ -262,7 +276,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST05 - should transfer a subscription 2: with monitored items", async () => {
+    it("ZDZ-ST05 - should transfer a subscription 2: with monitored items", async () => {
         session1 = engine.createSession({ sessionTimeout: 10000 });
         session2 = engine.createSession({ sessionTimeout: 10000 });
 
@@ -365,7 +379,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST06 - CTT 007 republish5105002 - republish after the subscriptions had been transferred to a different session", async () => {
+    it("ZDZ-ST06 - CTT 007 republish5105002 - republish after the subscriptions had been transferred to a different session", async () => {
         await with_fake_timer.call(test, async () => {
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000 });
@@ -455,7 +469,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST07 - CTT 008 Test for transfer subscription", async () => {
+    it("ZDZ-ST07 - CTT 008 Test for transfer subscription", async () => {
         /* 
             A/ Create a subscription, 
             B/ make some changes,
@@ -586,7 +600,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
+    it("ZDZ-ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
         await with_fake_timer.call(test, async () => {
             // create session1
             session1 = engine.createSession({ sessionTimeout: 100000 });
@@ -659,7 +673,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
         });
     });
 
-    it("ST09 - 0115.js (subscriptionTransfer015) Transfer to session 2 then back to session 1", async () => {
+    it("ZDZ-ST09 - 0115.js (subscriptionTransfer015) Transfer to session 2 then back to session 1", async () => {
         /*
             Description:
                 Create 2 sessions.

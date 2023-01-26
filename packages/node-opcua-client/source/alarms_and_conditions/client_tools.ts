@@ -7,7 +7,7 @@
 import * as async from "async";
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { CallMethodRequest, CallMethodResult } from "node-opcua-service-call";
 import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-browse-path";
@@ -20,9 +20,10 @@ import { ClientSubscription } from "../client_subscription";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = debugLog;
+const debugLog = make_debugLog("A&E");
+const doDebug = checkDebugFlag("A&E");
+const warningLog = make_warningLog("A&E");
+
 
 export async function callConditionRefresh(subscription: ClientSubscription): Promise<void>;
 export function callConditionRefresh(subscription: ClientSubscription, callback: ErrorCallback): void;
@@ -67,7 +68,7 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
                     objectId: conditionTypeNodeId
                 };
 
-                debugLog("xxxxx Calling method ", methodToCall.toString());
+                doDebug && debugLog("Calling method ", new CallMethodRequest(methodToCall).toString());
                 theSession.call(methodToCall, (err: Error | null, result?: CallMethodResult) => {
                     if (err) {
                         return innerCallback(err);
@@ -75,7 +76,8 @@ export function callConditionRefresh(subscription: ClientSubscription, callback?
                     result = result!;
 
                     // istanbul ignore next
-                    if (result.statusCode !== StatusCodes.Good) {
+                    if (result.statusCode.isNotGood()) {
+                        warningLog(new CallMethodRequest(methodToCall).toString());
                         return innerCallback(new Error("Error " + result.statusCode.toString()));
                     }
                     innerCallback();

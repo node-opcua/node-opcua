@@ -13,8 +13,8 @@ import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
  * |isAbstract      |false                                             |
  */
 export interface UAProductionJobEndPrognosis_Base extends UAPrognosis_Base {
-    jobNodeId?: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
-    sourceIdentifier: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    jobNodeId?: UABaseDataVariable<NodeId, DataType.NodeId>;
+    sourceIdentifier: UABaseDataVariable<UAString, DataType.String>;
 }
 export interface UAProductionJobEndPrognosis extends UAPrognosis, UAProductionJobEndPrognosis_Base {
 }

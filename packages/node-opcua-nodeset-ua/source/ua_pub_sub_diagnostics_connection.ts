@@ -5,7 +5,7 @@ import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 import { UAPubSubDiagnostics, UAPubSubDiagnostics_Base } from "./ua_pub_sub_diagnostics"
 export interface UAPubSubDiagnosticsConnection_liveValues extends UAObject { // Object
-      resolvedAddress: UABaseDataVariable<UAString, /*z*/DataType.String>;
+      resolvedAddress: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
  * |                |                                                  |

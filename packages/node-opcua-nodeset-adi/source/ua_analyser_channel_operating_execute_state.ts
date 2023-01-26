@@ -8,7 +8,6 @@ import { UAState, UAState_Base } from "node-opcua-nodeset-ua/source/ua_state"
  * |typedDefinition |2:AnalyserChannelOperatingExecuteStateType ns=2;i=8964|
  * |isAbstract      |false                                             |
  */
-export interface UAAnalyserChannelOperatingExecuteState_Base extends UAState_Base {
-}
+export type UAAnalyserChannelOperatingExecuteState_Base = UAState_Base;
 export interface UAAnalyserChannelOperatingExecuteState extends UAState, UAAnalyserChannelOperatingExecuteState_Base {
 }

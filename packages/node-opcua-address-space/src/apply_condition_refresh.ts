@@ -4,9 +4,9 @@ import { BaseNodeImpl } from "./base_node_impl";
 import { UAObjectImpl } from "./ua_object_impl";
 
 export type ConditionRefreshCache = { [key in string]: UAObject };
-export function apply_condition_refresh(this: BaseNodeImpl, _cache?: ConditionRefreshCache): void {
+export function apply_condition_refresh(this: BaseNodeImpl, cache?: ConditionRefreshCache): void {
     // visit all notifiers recursively
-    _cache = _cache || {};
+    cache = cache || {};
     const notifiers = this.getNotifiers();
     const eventSources = this.getEventSources();
 
@@ -20,10 +20,10 @@ export function apply_condition_refresh(this: BaseNodeImpl, _cache?: ConditionRe
 
     for (const notifier of arr) {
         const key = notifier.nodeId.toString();
-        if (!_cache[key]) {
-            _cache[key] = notifier;
+        if (!cache[key]) {
+            cache[key] = notifier;
             if (notifier._conditionRefresh) {
-                notifier._conditionRefresh(_cache);
+                notifier._conditionRefresh(cache);
             }
         }
     }

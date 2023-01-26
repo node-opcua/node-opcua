@@ -17,7 +17,7 @@ import {
 } from "node-opcua-types";
 import { ISessionContext, UAObject, UAObjectType, UAVariable, BaseNode, ISessionBase } from "node-opcua-address-space-base";
 import { ObjectIds } from "node-opcua-constants";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { NamespacePrivate } from "../src/namespace_private";
 
 export { RolePermissionType, RolePermissionTypeOptions, PermissionType } from "node-opcua-types";
@@ -139,7 +139,7 @@ function getAccessRestrictionsOnNamespace(namespace: NamespacePrivate, context: 
     const defaultAccessRestriction = namespaceObject.getChildByName("defaultAccessRestriction");
     if (defaultAccessRestriction) {
         const dataValue = defaultAccessRestriction.readAttribute(null, AttributeIds.Value);
-        if (dataValue && dataValue.statusCode === StatusCodes.Good) {
+        if (dataValue && dataValue.statusCode.isGood()) {
             return dataValue.value.value as AccessRestrictionsFlag;
         }
     }
@@ -166,14 +166,14 @@ function getDefaultUserRolePermissionsOnNamespace(
     const defaultUserRolePermissions = uaNamespaceObject.getChildByName("DefaultUserRolePermissions") as UAVariable;
     if (defaultUserRolePermissions) {
         const dataValue = defaultUserRolePermissions.readValue();
-        if (dataValue && dataValue.statusCode === StatusCodes.Good && dataValue.value.value && dataValue.value.value.length > 0) {
+        if (dataValue && dataValue.statusCode.isGood() && dataValue.value.value && dataValue.value.value.length > 0) {
             return dataValue.value.value as RolePermissionType[];
         }
     }
     const defaultRolePermissions = uaNamespaceObject.getChildByName("DefaultRolePermissions") as UAVariable;
     if (defaultRolePermissions) {
         const dataValue = defaultRolePermissions.readValue();
-        if (dataValue && dataValue.statusCode === StatusCodes.Good) {
+        if (dataValue && dataValue.statusCode.isGood()) {
             return dataValue.value.value as RolePermissionType[] | null;
         }
     }

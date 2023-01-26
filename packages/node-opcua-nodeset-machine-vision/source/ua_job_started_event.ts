@@ -12,7 +12,7 @@ import { DTJobId } from "./dt_job_id"
  * |isAbstract      |false                                             |
  */
 export interface UAJobStartedEvent_Base extends UABaseEvent_Base {
-    jobId: UAProperty<DTJobId, /*z*/DataType.ExtensionObject>;
+    jobId: UAProperty<DTJobId, DataType.ExtensionObject>;
 }
 export interface UAJobStartedEvent extends UABaseEvent, UAJobStartedEvent_Base {
 }

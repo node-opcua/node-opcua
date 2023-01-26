@@ -6,7 +6,7 @@ import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { getMiniAddressSpace } from "../testHelpers";
-
+    
 import { AddressSpace, AddVariableOptions, BindVariableOptionsVariation1, SessionContext, UAVariable } from "..";
 
 // tslint:disable-next-line:no-var-requires

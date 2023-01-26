@@ -1,5 +1,5 @@
-// <Definition Name="SomeName">
-//   <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
+//<Definition Name="SomeName">
+//    <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
 //      [<Description>text</Description>]
 //   <Field>
 // </Definition>
@@ -7,7 +7,7 @@ import assert from "node-opcua-assert";
 import { ReaderStateParserLike, XmlAttributes } from "./xml2json";
 
 // <Definition Name="SomeName">
-//   <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
+//        <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
 //      [<Description>text</Description>]
 //   <Field>
 // </Definition>
@@ -17,9 +17,41 @@ import { ReaderStateParserLike, XmlAttributes } from "./xml2json";
 //  (IsOptionSet)
 //
 //
+type UAString = string |null;
+type NodeIdLike = string | null;
+type Int32 = number;
+type UInt32 = number;
+type UABoolean = boolean;
+type LocalizedTextLike = string | null;
+
+export interface StructureFieldOptions {
+    name?: UAString ;
+    description?: (LocalizedTextLike | null);
+    dataType?: (NodeIdLike | null);
+    valueRank?: Int32 ;
+    arrayDimensions?: UInt32 [] | null;
+    maxStringLength?: UInt32 ;
+    isOptional?: UABoolean ;
+}
+interface AA {
+    parent: {
+        definitionFields: StructureFieldOptions[];
+        nFields: number;
+        definitionName: string;
+    
+    },
+    array: StructureFieldOptions[];
+    isUnion: boolean;
+}
+interface FieldParser {
+    description?: (LocalizedTextLike | null);
+    parent: AA;
+    attrs: Record<string, string>;
+}
 export const _definitionParser: ReaderStateParserLike = {
-    init(this: any, name: string, attrs: XmlAttributes) {
-        assert(!this.parent.definitionFields || this.parent.definitionFields.length === 0);
+    init(this: AA, name: string, attrs: XmlAttributes) {
+        assert(!this.parent.
+            nFields || this.parent.definitionFields.length === 0);
         this.parent.definitionFields = [];
         this.parent.definitionName = attrs.SymbolicName || attrs.Name;
         this.array = this.parent.definitionFields;
@@ -27,7 +59,7 @@ export const _definitionParser: ReaderStateParserLike = {
     },
     parser: {
         Field: {
-            init(this: any) {
+            init(this: FieldParser) {
                 this.description = undefined;
             },
             parser: {
@@ -37,10 +69,15 @@ export const _definitionParser: ReaderStateParserLike = {
                     }
                 }
             },
-            finish(this: any) {
+            finish(this: FieldParser) {
                 const obj: any = {
                     name: this.attrs.Name
                 };
+                if (this.attrs.AllowSubtype !== undefined) {
+                    obj.allowSubtype = this.attrs.AllowSubtype === "true";
+                } else {
+                    obj.allowSubtype = false;
+                }
                 if (this.attrs.DataType !== undefined) {
                     obj.dataType = this.attrs.DataType;
                 }

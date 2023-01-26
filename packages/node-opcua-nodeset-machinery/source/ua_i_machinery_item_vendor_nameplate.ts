@@ -23,13 +23,13 @@ export interface UAIMachineryItemVendorNameplate_Base extends UAIVendorNameplate
      * the first time after it has left the manufacturer
      * plant.
      */
-    initialOperationDate?: UAProperty<Date, /*z*/DataType.DateTime>;
+    initialOperationDate?: UAProperty<Date, DataType.DateTime>;
     /**
      * manufacturer
      * A human-readable, localized name of the
      * manufacturer of the MachineryItem.
      */
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * monthOfConstruction
      * The month in which the manufacturing process of
@@ -37,7 +37,7 @@ export interface UAIMachineryItemVendorNameplate_Base extends UAIVendorNameplate
      * a number between 1 and 12, representing the month
      * from January to December.
      */
-    monthOfConstruction?: UAProperty<Byte, /*z*/DataType.Byte>;
+    monthOfConstruction?: UAProperty<Byte, DataType.Byte>;
     /**
      * serialNumber
      * A string containing a unique production number of
@@ -47,7 +47,7 @@ export interface UAIMachineryItemVendorNameplate_Base extends UAIVendorNameplate
      * the model. The value shall not change during the
      * life-cycle of the MachineryItem.
      */
-    serialNumber: UAProperty<UAString, /*z*/DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
     /**
      * yearOfConstruction
      * The year (Gregorian calendar) in which the
@@ -56,7 +56,7 @@ export interface UAIMachineryItemVendorNameplate_Base extends UAIVendorNameplate
      * and never change during the life-cycle of a
      * MachineryItem.
      */
-    yearOfConstruction?: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    yearOfConstruction?: UAProperty<UInt16, DataType.UInt16>;
 }
 export interface UAIMachineryItemVendorNameplate extends Omit<UAIVendorNameplate, "manufacturer"|"serialNumber">, UAIMachineryItemVendorNameplate_Base {
 }

@@ -11,7 +11,6 @@ import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_c
  * |typedDefinition |7:PowerTrainType ns=7;i=16794                     |
  * |isAbstract      |false                                             |
  */
-export interface UAPowerTrain_Base extends UAComponent_Base {
-}
+export type UAPowerTrain_Base = UAComponent_Base;
 export interface UAPowerTrain extends UAComponent, UAPowerTrain_Base {
 }

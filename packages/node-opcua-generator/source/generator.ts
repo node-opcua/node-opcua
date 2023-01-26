@@ -27,7 +27,7 @@ const doDebug = checkDebugFlag(__filename);
  */
 
 function compileTScriptCode(typescriptFilename: string): string {
-    const content = fs.readFileSync(typescriptFilename, "ascii");
+    const content = fs.readFileSync(typescriptFilename, "utf-8");
 
     const compilerOptions = {
         module: ts.ModuleKind.CommonJS,
@@ -48,8 +48,8 @@ function compileTScriptCode(typescriptFilename: string): string {
     const javascriptFilename = typescriptFilename.replace(/\.ts$/, ".js");
     const sourceMapFilename = typescriptFilename.replace(/\.ts$/, ".js.map");
 
-    fs.writeFileSync(javascriptFilename, res1.outputText, "ascii");
-    fs.writeFileSync(sourceMapFilename, res1.sourceMapText!, "ascii");
+    fs.writeFileSync(javascriptFilename, res1.outputText, "utf-8");
+    fs.writeFileSync(sourceMapFilename, res1.sourceMapText!, "utf-8");
 
     return res1.outputText;
 }

@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, Byte } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -10,7 +11,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |SubscriptionDiagnosticsDataType                   |
  * | isAbstract|false                                             |
  */
-export interface DTSubscriptionDiagnostics extends DTStructure  {
+export interface DTSubscriptionDiagnostics extends DTStructure {
   sessionId: NodeId; // NodeId ns=0;i=17
   subscriptionId: UInt32; // UInt32 ns=0;i=7
   priority: Byte; // Byte ns=0;i=3
@@ -43,3 +44,4 @@ export interface DTSubscriptionDiagnostics extends DTStructure  {
   nextSequenceNumber: UInt32; // UInt32 ns=0;i=7
   eventQueueOverFlowCount: UInt32; // UInt32 ns=0;i=7
 }
+export interface UDTSubscriptionDiagnostics extends ExtensionObject, DTSubscriptionDiagnostics {};

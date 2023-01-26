@@ -86,7 +86,7 @@ async function dumpUserTokenTrustedCertificates(session: IBasicSession) {
 async function getRejectedList(session: IBasicSession) {
     const s = new ClientPushCertificateManagement(session);
     const rejectedList = await s.getRejectedList();
-    if (rejectedList.statusCode !== StatusCodes.Good) {
+    if (rejectedList.statusCode.isNotGood()) {
         throw new Error(rejectedList.statusCode.name);
     }
 
@@ -157,7 +157,7 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
     const s = new ClientPushCertificateManagement(session);
     const ag = await s.getApplicationGroup();
     const csr = await s.createSigningRequest("DefaultApplicationGroup", CertificateType.RsaSha256Application, "CN=toto", false);
-    if (csr.statusCode !== StatusCodes.Good) {
+    if (csr.statusCode.isNotGood()) {
         console.log("Signing Request = ", csr.statusCode.toString());
         throw new Error(csr.statusCode.name);
     }
@@ -195,13 +195,13 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
         certificates[1],
         crl
     ]);
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         throw new Error("updateCertificate failed " + csr.statusCode.name);
     }
     if (result.applyChangesRequired) {
         console.log("Applying changes");
         const statusCode = await s.applyChanges();
-        if (statusCode !== StatusCodes.Good) {
+        if (statusCode.isNotGood()) {
             throw new Error("applyChanged failed " + csr.statusCode.name);
         }
     }

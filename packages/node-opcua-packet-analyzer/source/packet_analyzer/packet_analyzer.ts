@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { decodeByte, decodeExpandedNodeId, decodeNodeId, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
-import { BaseUAObject, constructObject } from "node-opcua-factory";
+import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { buffer_ellipsis } from "node-opcua-utils";
 
 const spaces =
@@ -13,7 +13,7 @@ const spaces =
 
 function f(n: number, width: number): string {
     const s = n.toString();
-    return (s + "      ").substr(0, Math.max(s.length, width));
+    return (s + "      ").substring(0, Math.max(s.length, width));
 }
 
 function display_encoding_mask(padding: string, encodingMask: any, encodingInfo: any) {
@@ -57,14 +57,14 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
     padding = !padding ? 0 : padding;
     offset = offset || 0;
 
-    const pad = () => "                                                       ".substr(0, padding);
+    const pad = () => "                                                       ".substring(0, padding);
 
     function _display(str: string, hexInfo?: string) {
         hexInfo = hexInfo || "";
         // account for ESC codes for colors
         const nbColorAttributes = [...str.split("")].filter((c) => c === "\u001b").length;
         const extra = nbColorAttributes * 5;
-        console.log((pad() + str + spaces).substr(0, 132 + extra) + "|" + hexInfo);
+        console.log((pad() + str + spaces).substring(0, 132 + extra) + "|" + hexInfo);
     }
     function display(str: string, hexInfo?: string) {
         const lines = str.split("\n");
@@ -74,7 +74,7 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
     }
 
     function display_encodeable(value: any, buffer1: Buffer, start: number, end: number) {
-        const bufferExtract = buffer1.slice(start, end);
+        const bufferExtract = buffer1.subarray(start, end);
         const stream = new BinaryStream(bufferExtract);
         const nodeId = decodeNodeId(stream);
         const encodingMask = decodeByte(stream); // 1 bin 2: xml
@@ -83,7 +83,7 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
         display(chalk.green("     ExpandedNodId =") + " " + nodeId);
         display(chalk.green("     encoding mask =") + " " + encodingMask);
         display(chalk.green("            length =") + " " + length);
-        analyzePacket(bufferExtract.slice(stream.length), value.encodingDefaultBinary, padding + 2, start + stream.length);
+        analyzePacket(bufferExtract.subarray(stream.length), value.encodingDefaultBinary, padding + 2, start + stream.length);
     }
 
     return {
@@ -92,13 +92,13 @@ function make_tracer(buffer: Buffer, padding: number, offset?: number): Tracer {
 
             encoding_byte: (encodingMask: any, valueEnum: any, start: number, end: number) => {
                 assert(valueEnum);
-                const b = buffer.slice(start, end);
+                const b = buffer.subarray(start, end);
                 display("  012345678", hex_block(start, end, b));
                 display_encoding_mask(pad(), encodingMask, valueEnum);
             },
 
             trace: (operation: any, name: any, value: any, start: number, end: number, fieldType: string) => {
-                const b = buffer.slice(start, end);
+                const b = buffer.subarray(start, end);
                 let _hexDump = "";
 
                 switch (operation) {
@@ -188,7 +188,7 @@ export function analyseExtensionObject(
     let objMessage;
     try {
         id = decodeExpandedNodeId(stream);
-        objMessage = constructObject(id);
+        objMessage = getStandardDataTypeFactory().constructObject(id);
     } catch (err) {
         console.log(id);
         console.log(err);

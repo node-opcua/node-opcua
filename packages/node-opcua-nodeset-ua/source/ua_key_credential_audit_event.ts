@@ -12,7 +12,7 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_au
  * |isAbstract      |true                                              |
  */
 export interface UAKeyCredentialAuditEvent_Base extends UAAuditUpdateMethodEvent_Base {
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
 }
 export interface UAKeyCredentialAuditEvent extends UAAuditUpdateMethodEvent, UAKeyCredentialAuditEvent_Base {
 }

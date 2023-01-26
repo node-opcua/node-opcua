@@ -1,8 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { EnumAxisMotionProfile } from "./enum_axis_motion_profile"
 import { UALoad } from "./ua_load"
 export interface UAAxis_parameterSet extends UAObject { // Object
       /**
@@ -10,13 +11,13 @@ export interface UAAxis_parameterSet extends UAObject { // Object
        * The axis position inclusive Unit and
        * RangeOfMotion.
        */
-      actualPosition: UAAnalogUnit<number, /*z*/DataType.Double>;
+      actualPosition: UAAnalogUnit<number, DataType.Double>;
       /**
        * actualSpeed
        * The axis speed on load side (after gear/spindle)
        * inclusive Unit.
        */
-      actualSpeed?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      actualSpeed?: UAAnalogUnit<number, DataType.Double>;
       /**
        * actualAcceleration
        * : The ActualAcceleration variable provides the
@@ -24,7 +25,7 @@ export interface UAAxis_parameterSet extends UAObject { // Object
        * of the axis shall be provided by the EURange
        * property of the AnalogUnitType.
        */
-      actualAcceleration?: UAAnalogUnit<number, /*z*/DataType.Double>;
+      actualAcceleration?: UAAnalogUnit<number, DataType.Double>;
 }
 /**
  * The AxisType describes an axis of a motion device.
@@ -47,7 +48,7 @@ export interface UAAxis_Base extends UAComponent_Base {
      * The kind of axis motion as defined with the
      * AxisMotionProfileEnumeration.
      */
-    motionProfile: UAProperty<any, any>;
+    motionProfile: UAProperty<EnumAxisMotionProfile, DataType.Int32>;
     /**
      * additionalLoad
      * The additional load which is mounted on this

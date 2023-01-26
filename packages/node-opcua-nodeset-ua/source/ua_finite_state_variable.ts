@@ -14,8 +14,8 @@ import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
  * |dataType Name   |LocalizedText ns=0;i=21                           |
  * |isAbstract      |false                                             |
  */
-export interface UAFiniteStateVariable_Base<T extends LocalizedText/*j*/>  extends UAStateVariable_Base<T/*h*/> {
-    id: UAProperty<NodeId, /*z*/DataType.NodeId>;
+export interface UAFiniteStateVariable_Base<T extends LocalizedText>  extends UAStateVariable_Base<T> {
+    id: UAProperty<NodeId, DataType.NodeId>;
 }
-export interface UAFiniteStateVariable<T extends LocalizedText/*j*/> extends Omit<UAStateVariable<T/*k*/>, "id">, UAFiniteStateVariable_Base<T /*B*/> {
+export interface UAFiniteStateVariable<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id">, UAFiniteStateVariable_Base<T> {
 }

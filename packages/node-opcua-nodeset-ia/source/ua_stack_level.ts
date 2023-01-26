@@ -1,8 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
+import { EnumLevelDisplayMode } from "./enum_level_display_mode"
 /**
  * Contains information relevant to a stacklight
  * operating as a level meter. The whole stack is
@@ -21,7 +22,7 @@ export interface UAStackLevel_Base {
      * Indicates in what way the percentual value is
      * displayed with the stacklight.
      */
-    displayMode: UABaseDataVariable<any, any>;
+    displayMode: UABaseDataVariable<EnumLevelDisplayMode, DataType.Int32>;
     /**
      * levelPercent
      * Shows the percentual value the stacklight is
@@ -32,7 +33,7 @@ export interface UAStackLevel_Base {
      * value is interpreted as 0 percent, the highest is
      * interpreted as 100 percent.
      */
-    levelPercent: UAAnalogItem<number, /*z*/DataType.Float>;
+    levelPercent: UAAnalogItem<number, DataType.Float>;
 }
 export interface UAStackLevel extends UAObject, UAStackLevel_Base {
 }

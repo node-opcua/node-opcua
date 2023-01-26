@@ -8,7 +8,6 @@ import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
  * |typedDefinition |13:CommunicationErrorEventType ns=13;i=1040       |
  * |isAbstract      |true                                              |
  */
-export interface UACommunicationErrorEvent_Base extends UAGlassEvent_Base {
-}
+export type UACommunicationErrorEvent_Base = UAGlassEvent_Base;
 export interface UACommunicationErrorEvent extends UAGlassEvent, UACommunicationErrorEvent_Base {
 }

@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { Int32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -9,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |EndpointConfiguration                             |
  * | isAbstract|false                                             |
  */
-export interface DTEndpointConfiguration extends DTStructure  {
+export interface DTEndpointConfiguration extends DTStructure {
   operationTimeout: Int32; // Int32 ns=0;i=6
   useBinaryEncoding: boolean; // Boolean ns=0;i=1
   maxStringLength: Int32; // Int32 ns=0;i=6
@@ -20,3 +21,4 @@ export interface DTEndpointConfiguration extends DTStructure  {
   channelLifetime: Int32; // Int32 ns=0;i=6
   securityTokenLifetime: Int32; // Int32 ns=0;i=6
 }
+export interface UDTEndpointConfiguration extends ExtensionObject, DTEndpointConfiguration {};

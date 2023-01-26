@@ -8,7 +8,6 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
  * |typedDefinition |SystemEventType ns=0;i=2130                       |
  * |isAbstract      |true                                              |
  */
-export interface UASystemEvent_Base extends UABaseEvent_Base {
-}
+export type UASystemEvent_Base = UABaseEvent_Base;
 export interface UASystemEvent extends UABaseEvent, UASystemEvent_Base {
 }

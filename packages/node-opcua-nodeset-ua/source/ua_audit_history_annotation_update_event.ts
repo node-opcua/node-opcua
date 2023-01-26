@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { DataValue } from "node-opcua-data-value"
+import { EnumPerformUpdate } from "./enum_perform_update"
 import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event"
 /**
  * |                |                                                  |
@@ -12,9 +13,9 @@ import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryAnnotationUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
-    performInsertReplace: UAProperty<any, any>;
-    newValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
-    oldValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
+    performInsertReplace: UAProperty<EnumPerformUpdate, DataType.Int32>;
+    newValues: UAProperty<DataValue[], DataType.DataValue>;
+    oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
 export interface UAAuditHistoryAnnotationUpdateEvent extends UAAuditHistoryUpdateEvent, UAAuditHistoryAnnotationUpdateEvent_Base {
 }

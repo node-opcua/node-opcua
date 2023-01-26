@@ -1,8 +1,8 @@
-import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { TrustListDataType } from "node-opcua-types";
-
 import *as fs from "fs";
 import * as path from "path";
+
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { TrustListDataType } from "node-opcua-types";
 import { AbstractFs } from "node-opcua-file-transfer";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";

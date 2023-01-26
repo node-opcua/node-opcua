@@ -103,7 +103,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         if (!this.timerId) {
             return 0; // keep-alive has been canceled ....
         }
-        const now = Date.now(); // getCurrentClock().timestamp.getTime();
+        const now = Date.now(); 
 
         const timeSinceLastServerContact = now - session.lastResponseReceivedTime.getTime();
         if (timeSinceLastServerContact < this.pingTimeout) {
@@ -158,7 +158,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                     return;
                 }
 
-                if (dataValue.statusCode === StatusCodes.Good) {
+                if (dataValue.statusCode.isGood()) {
                     const newState = dataValue.value.value as ServerState;
                     // istanbul ignore next
                     if (newState !== this.lastKnownState && this.lastKnownState) {

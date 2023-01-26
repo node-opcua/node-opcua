@@ -8,7 +8,6 @@ import { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_ev
  * |typedDefinition |13:OpenSecurityFenceType ns=13;i=1033             |
  * |isAbstract      |true                                              |
  */
-export interface UAOpenSecurityFence_Base extends UAInterruptedEvent_Base {
-}
+export type UAOpenSecurityFence_Base = UAInterruptedEvent_Base;
 export interface UAOpenSecurityFence extends UAInterruptedEvent, UAOpenSecurityFence_Base {
 }

@@ -49,8 +49,7 @@
         <opc:Field Name="Identifier" TypeName="opc:ByteString"/>
     </opc:StructuredType>
 
-    <opc:StructuredType Name="NodeId">
-        <opc:Documentation>An identifier for a node in a UA server address space.</opc:Documentation>
+    <opc:StructuredType Name="NodeId2">
         <opc:Field Name="NodeIdType" TypeName="ua:NodeIdType"/>
         <opc:Field Name="Reserved1" TypeName="opc:Bit" Length="2"/>
         <opc:Field Name="TwoByte" TypeName="ua:TwoByteNodeId" SwitchField="NodeIdType" SwitchValue="0"/>

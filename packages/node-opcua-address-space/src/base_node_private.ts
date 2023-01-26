@@ -13,7 +13,7 @@ import {
     NodeClass,
     ResultMask
 } from "node-opcua-data-model";
-import { make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceDescription } from "node-opcua-types";
 import {
@@ -40,26 +40,46 @@ import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
+import { wipeMemorizedStuff } from "./tool_isSupertypeOf";
 
 // eslint-disable-next-line prefer-const
-let dotrace = false;
-const traceLog = console.log.bind(console);
+const errorLog = make_errorLog(__filename);
+const doTrace = checkDebugFlag("INSTANTIATE");
+const traceLog = errorLog;
 
 const g_weakMap = new WeakMap();
 
 const warningLog = make_warningLog(__filename);
 
+interface BaseNodeCacheInner {
+    typeDefinition?: NodeId;
+    _childByNameMap?: Record<string, BaseNode>;
+    typeDefinitionObj?: UAVariableType | UAObjectType | null;
+    _aggregates?: BaseNode[];
+    _components?: BaseNode[];
+    _properties?: BaseNode[];
+    _notifiers?: BaseNode[];
+    _eventSources?: BaseNode[];
+    _methods?: UAMethod[];
+    _ref?: Record<string, UAReference[]>;
+    _encoding?: Record<string, UAObject | null>;
+    _subtype_id?: Record<string, UAReferenceType[]> | null;
+    _subtype_idx?: Record<string, UAReferenceType> | null;
+    _subtype_idxVersion?: number;
+    _allSubTypes?: UAReferenceType[] | null;
+    _allSubTypesVersion?: number;
+    _subtypeOfObj?: BaseNode | null;
+}
+
 interface BaseNodeCache {
     __address_space: IAddressSpace | null;
     _browseFilter?: (this: BaseNode, context?: ISessionContext) => boolean;
-    _cache: any;
+    _cache: BaseNodeCacheInner;
     _description?: LocalizedText;
     _displayName: LocalizedText[];
     _parent?: BaseNode | null;
-
     _back_referenceIdx: { [key: string]: UAReference };
     _referenceIdx: { [key: string]: UAReference };
-
     _subtype_idxVersion: number;
     _subtype_idx: any;
 }
@@ -100,7 +120,7 @@ export function BaseNode_getPrivate(self: BaseNode): BaseNodeCache {
     return g_weakMap.get(self);
 }
 
-export function BaseNode_getCache(node: BaseNode): any {
+export function BaseNode_getCache(node: BaseNode): BaseNodeCacheInner {
     return BaseNode_getPrivate(node)._cache;
 }
 export function BaseNode_clearCache(node: BaseNode): void {
@@ -108,6 +128,7 @@ export function BaseNode_clearCache(node: BaseNode): void {
     if (_private && _private._cache) {
         _private._cache = {};
     }
+    wipeMemorizedStuff(node);
 }
 const hasTypeDefinition_ReferenceTypeNodeId = resolveNodeId("HasTypeDefinition");
 
@@ -169,8 +190,8 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption): void
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(
         options.padding +
-            chalk.yellow("          displayName         : ") +
-            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+        chalk.yellow("          displayName         : ") +
+        this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
     );
 
     options.add(
@@ -189,9 +210,9 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("    references                : ") +
-            "  length =" +
-            Object.keys(_private._referenceIdx).length
+        chalk.yellow("    references                : ") +
+        "  length =" +
+        Object.keys(_private._referenceIdx).length
     );
 
     function dump_reference(follow: boolean, reference: UAReference | null) {
@@ -230,12 +251,12 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
             })();
         options.add(
             options.padding +
-                chalk.yellow("      +-> ") +
-                reference.toString(displayOptions) +
-                " " +
-                chalk.cyan(name.padEnd(25, " ")) +
-                " " +
-                chalk.magentaBright(extra)
+            chalk.yellow("      +-> ") +
+            reference.toString(displayOptions) +
+            " " +
+            chalk.cyan(name.padEnd(25, " ")) +
+            " " +
+            chalk.magentaBright(extra)
         );
 
         // ignore HasTypeDefinition as it has been already handled
@@ -264,10 +285,10 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("    back_references                 : ") +
-            chalk.cyan("  length =") +
-            br.length +
-            chalk.grey(" ( references held by other nodes involving this node)")
+        chalk.yellow("    back_references                 : ") +
+        chalk.cyan("  length =") +
+        br.length +
+        chalk.grey(" ( references held by other nodes involving this node)")
     );
     // backward reference
     br.forEach(dump_reference.bind(null, false));
@@ -277,11 +298,11 @@ function _UAType_toString(this: UAReferenceType | UADataType | UAObjectType | UA
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOf           : ") +
-                this.subtypeOfObj.browseName.toString() +
-                " (" +
-                this.subtypeOfObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          subtypeOf           : ") +
+            this.subtypeOfObj.browseName.toString() +
+            " (" +
+            this.subtypeOfObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -290,11 +311,11 @@ function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: T
     if (this.typeDefinitionObj) {
         options.add(
             options.padding +
-                chalk.yellow("          typeDefinition      : ") +
-                this.typeDefinitionObj.browseName.toString() +
-                " (" +
-                this.typeDefinitionObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          typeDefinition      : ") +
+            this.typeDefinitionObj.browseName.toString() +
+            " (" +
+            this.typeDefinitionObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -401,9 +422,9 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         if (_dataValue) {
             options.add(
                 options.padding +
-                    chalk.yellow("          value               : ") +
-                    "\n" +
-                    options.indent(_dataValue.toString(), options.padding + "                        | ")
+                chalk.yellow("          value               : ") +
+                "\n" +
+                options.indent(_dataValue.toString(), options.padding + "                        | ")
             );
         }
     }
@@ -420,19 +441,19 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     if (this.minimumSamplingInterval !== undefined) {
         options.add(
             options.padding +
-                chalk.yellow(" minimumSamplingInterval      : ") +
-                " " +
-                this.minimumSamplingInterval.toString() +
-                " ms"
+            chalk.yellow(" minimumSamplingInterval      : ") +
+            " " +
+            this.minimumSamplingInterval.toString() +
+            " ms"
         );
     }
     if (this.arrayDimensions) {
         options.add(
             options.padding +
-                chalk.yellow(" arrayDimension               : ") +
-                " [" +
-                this.arrayDimensions.join(",").toString() +
-                " ]"
+            chalk.yellow(" arrayDimension               : ") +
+            " [" +
+            this.arrayDimensions.join(",").toString() +
+            " ]"
         );
     }
 }
@@ -474,17 +495,18 @@ function _clone_collection_new(
             // tslint:disable-next-line:no-console
             warningLog(
                 chalk.red("Warning : cannot clone node ") +
-                    node.browseName.toString() +
-                    " of class " +
-                    NodeClass[node.nodeClass].toString() +
-                    " while cloning " +
-                    newParent.browseName.toString()
+                node.browseName.toString() +
+                " of class " +
+                NodeClass[node.nodeClass].toString() +
+                " while cloning " +
+                newParent.browseName.toString()
             );
             continue;
         }
 
         if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
-            dotrace && traceLog(extraInfo.pad(), "skipping ", node.browseName.toString());
+            doTrace &&
+                traceLog(extraInfo.pad(), "skipping optional ", node.browseName.toString(), "that doesn't appear in the filter");
             continue; // skip this node
         }
         const key = node.browseName.toString();
@@ -501,7 +523,7 @@ function _clone_collection_new(
             copyAlsoModellingRules
         };
 
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 "cloning => ",
@@ -514,6 +536,11 @@ function _clone_collection_new(
         extraInfo.level += 4;
         const clone = (node as UAVariable | UAMethod | UAObject).clone(options, optionalFilter, extraInfo);
         extraInfo.level -= 4;
+        doTrace &&
+            traceLog(
+                extraInfo.pad(),
+                "cloning => ", node.browseName.toString(), "nodeId", clone.nodeId.toString()
+            );
 
         // also clone or instantiate interface members that may be required in the optionals
         extraInfo.level++;
@@ -538,6 +565,12 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
 
     const addressSpace = typeDefinitionNode.addressSpace;
+
+    const hasInterfaceReference = addressSpace.findReferenceType("HasInterface");
+    if (!hasInterfaceReference) {
+        // this version of the standard UA namespace doesn't support Interface yet
+        return [];
+    }
     // example:
     // FolderType
     //   FunctionalGroupType
@@ -554,7 +587,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
 
     const baseInterfaces: UAInterface[] = [];
     for (const iface of interfaces) {
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 typeDefinitionNode.browseName.toString(),
@@ -570,7 +603,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     interfaces.push(...baseInterfaces);
     if (typeDefinitionNode.subtypeOfObj) {
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 typeDefinitionNode.browseName.toString(),
@@ -583,7 +616,7 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     const dedupedInterfaces = [...new Set(interfaces)];
 
-    dotrace &&
+    doTrace && dedupedInterfaces.length &&
         traceLog(
             extraInfo.pad(),
             chalk.yellow("Interface for ", typeDefinitionNode.browseName.toString()),
@@ -635,7 +668,7 @@ function _crap_extractInterfaces(typeDefinitionNode: UAObjectType | UAVariableTy
     const interfacesRef = typeDefinitionNode.findReferencesEx("HasInterface", BrowseDirection.Forward);
     const interfaces = interfacesRef.map((r) => r.node! as UAInterface);
     for (const iface of interfaces) {
-        dotrace && traceLog(extraInfo.pad(), "   interface ", iface.browseName.toString());
+        doTrace && traceLog(extraInfo.pad(), "   interface ", iface.browseName.toString());
     }
 
     return interfaces;
@@ -648,7 +681,7 @@ function _cloneInterface(
     extraInfo: CloneExtraInfo,
     browseNameMap: Set<string>
 ): void {
-    dotrace &&
+    doTrace &&
         traceLog(
             extraInfo?.pad(),
             chalk.green("-------------------- now cloning interfaces of ", node.browseName.toString(), node.nodeId.toString())
@@ -656,27 +689,33 @@ function _cloneInterface(
 
     extraInfo = extraInfo || defaultExtraInfo;
     const addressSpace = node.addressSpace;
+
+    if (node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Variable) {
+        return;
+    }
     const typeDefinitionNode = node.typeDefinitionObj;
     if (!typeDefinitionNode) {
         return;
     }
-    dotrace && traceLog(extraInfo.pad(), "  --- {");
     const interfaces = _extractInterfaces2(typeDefinitionNode, extraInfo);
-    dotrace && traceLog(extraInfo.pad(), "  --- }");
-    dotrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
+    if (interfaces.length === 0) {
+        doTrace && false && traceLog(extraInfo.pad(), chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString()));
+        return;
+    }
+    doTrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
 
     const localFilter = optionalFilter.filterFor(node);
 
     for (const iface of interfaces) {
         const aggregates = iface.findReferencesEx("Aggregates", BrowseDirection.Forward);
-        dotrace &&
+        doTrace &&
             traceLog(
                 extraInfo.pad(),
                 chalk.magentaBright("   interface ", iface.browseName.toString()),
                 "\n" + extraInfo?.pad(),
                 aggregates.map((r) => r.toString({ addressSpace })).join("\n" + extraInfo?.pad())
             );
-        _clone_collection_new(newParent, aggregates, false, localFilter, extraInfo, browseNameMap);
+        _clone_collection_new(node, aggregates, false, localFilter, extraInfo, browseNameMap);
     }
 }
 export function _clone_children_references(
@@ -775,36 +814,37 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     const cloneObj = new Constructor(constructorOptions);
     (this.addressSpace as AddressSpacePrivate)._register(cloneObj);
 
-    options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
+    if (!options.ignoreChildren) {
+        // clone children and the rest ....
+        options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
 
-    const newFilter = optionalFilter.filterFor(cloneObj);
+        const newFilter = optionalFilter.filterFor(cloneObj);
 
-    const browseNameMap = new Set<string>();
-    _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
+        const browseNameMap = new Set<string>();
+        _clone_children_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
 
-    //
-    let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
-    while (typeDefinitionNode) {
-        dotrace &&
-            traceLog(
-                extraInfo?.pad(),
-                chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
-            );
-        _clone_children_references(
-            typeDefinitionNode,
-            cloneObj,
-            options.copyAlsoModellingRules,
-            newFilter,
-            extraInfo,
-            browseNameMap
-        );
-        typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+        if (this.nodeClass === NodeClass.Object || this.nodeClass === NodeClass.Variable) {
+            let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
+            while (typeDefinitionNode) {
+                doTrace &&
+                    traceLog(
+                        extraInfo?.pad(),
+                        chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+                    );
+                _clone_children_references(
+                    typeDefinitionNode,
+                    cloneObj,
+                    options.copyAlsoModellingRules,
+                    newFilter,
+                    extraInfo,
+                    browseNameMap
+                );
+                typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+            }
+        }
+        _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
     }
-
-    _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
-
     cloneObj.propagate_back_references();
-
     cloneObj.install_extra_properties();
 
     return cloneObj;

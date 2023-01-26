@@ -13,6 +13,8 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  */
 export interface UAAliasNameCategory_Base extends UAFolder_Base {
     findAlias: UAMethod;
+   // PlaceHolder for $Alias$
+   // PlaceHolder for $SubAliasNameCategories$
 }
 export interface UAAliasNameCategory extends UAFolder, UAAliasNameCategory_Base {
 }

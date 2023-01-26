@@ -154,6 +154,12 @@ export class ChunkManager extends EventEmitter {
         this.pendingChunk = null;
     }
 
+    public evaluateTotalLengthAndChunks(bodySize: number): { totalLength: number; chunkCount: number } {
+        const chunkCount = Math.ceil(bodySize / this.maxBodySize);
+        const totalLength = this.chunkSize + chunkCount;
+        return { totalLength, chunkCount };
+    }
+
     public write(buffer: Buffer, length?: number) {
         length = length || buffer.length;
         assert(buffer instanceof Buffer || buffer === null);
@@ -210,7 +216,7 @@ export class ChunkManager extends EventEmitter {
             assert(this.signatureLength !== 0);
 
             const signatureStart = this.dataEnd;
-            const sectionToSign = chunk.slice(0, signatureStart);
+            const sectionToSign = chunk.subarray(0, signatureStart);
 
             const signature = this.signBufferFunc(sectionToSign);
             assert(signature.length === this.signatureLength);
@@ -227,7 +233,7 @@ export class ChunkManager extends EventEmitter {
             const startEncryptionPos = this.headerSize;
             const endEncryptionPos = this.dataEnd + this.signatureLength;
 
-            const areaToEncrypt = chunk.slice(startEncryptionPos, endEncryptionPos);
+            const areaToEncrypt = chunk.subarray(startEncryptionPos, endEncryptionPos);
 
             assert(areaToEncrypt.length % this.plainBlockSize === 0); // padding should have been applied
             const nbBlock = areaToEncrypt.length / this.plainBlockSize;
@@ -248,10 +254,10 @@ export class ChunkManager extends EventEmitter {
                 // Release 1.02  39  OPC Unified Architecture, Part 6:
                 // The sequence header ensures that the first  encrypted block of every  Message  sent over
                 // a channel will start with different data.
-                this.writeHeaderFunc!(this.pendingChunk.slice(0, this.headerSize), isLast, expectedLength);
+                this.writeHeaderFunc!(this.pendingChunk.subarray(0, this.headerSize), isLast, expectedLength);
             }
             if (this.sequenceHeaderSize > 0) {
-                this.writeSequenceHeaderFunc!(this.pendingChunk.slice(this.headerSize, this.headerSize + this.sequenceHeaderSize));
+                this.writeSequenceHeaderFunc!(this.pendingChunk.subarray(this.headerSize, this.headerSize + this.sequenceHeaderSize));
             }
 
             this._write_signature(this.pendingChunk);
@@ -322,7 +328,7 @@ export class ChunkManager extends EventEmitter {
         // calculate the expected length of the chunk, once encrypted if encryption apply
         const expectedLength = this.dataEnd + this.signatureLength + extraEncryptionBytes;
 
-        this.pendingChunk = this.chunk!.slice(0, expectedLength);
+        this.pendingChunk = this.chunk!.subarray(0, expectedLength);
         // note :
         //  - this.pending_chunk has the correct size but is not signed nor encrypted yet
         //    as we don't know what to write in the header yet

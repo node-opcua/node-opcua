@@ -13,7 +13,7 @@ const port_discovery = 1436;
 export function t() {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DISCO7 - Discovery server", function (this: any) {
-        this.timeout(50000);
+        this.timeout(Math.max(50000,this.timeout()));
 
         let discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
 
@@ -70,7 +70,7 @@ export function t() {
                     // waiting for server to be registered
                     debugLog("Waiting for server to be registered");
                     server.once("serverRegistered", () => {
-                        debugLog("server serverRegistered");
+                        debugLog("on serverRegistered event received:  server has registered itself to the LDS");
                         resolve();
                     });
                 });
@@ -83,9 +83,8 @@ export function t() {
                     debugLog("server serverUnregistered");
                     serverUnregisteredCount += 1;
                 });
-
-                //
                 await server.shutdown();
+                debugLog("server has shut down");
             });
             await fa("then server must have unregistered itself from the LDS", async () => {
                 serverUnregisteredCount.should.eql(1);
@@ -287,7 +286,7 @@ export function t() {
     });
 
     describe("DISCO8 - Discovery Server 2", function (this: any) {
-        this.timeout(50000);
+        this.timeout(Math.max(50000,this.timeout()));
 
         it("DISCO8-A server shall not struggle to start if discovery server is not available", function (done) {
             const discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;

@@ -12,8 +12,8 @@ import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
  * |isAbstract      |true                                              |
  */
 export interface UAIntermediateStepEvent_Base extends UAGlassEvent_Base {
-    processStep?: UAProperty<UAString, /*z*/DataType.String>;
-    status?: UAProperty<UAString, /*z*/DataType.String>;
+    processStep?: UAProperty<UAString, DataType.String>;
+    status?: UAProperty<UAString, DataType.String>;
 }
 export interface UAIntermediateStepEvent extends UAGlassEvent, UAIntermediateStepEvent_Base {
 }

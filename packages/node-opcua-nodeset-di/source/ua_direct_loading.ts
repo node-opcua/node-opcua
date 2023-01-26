@@ -13,8 +13,8 @@ import { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading"
  * |isAbstract      |false                                             |
  */
 export interface UADirectLoading_Base extends UAPackageLoading_Base {
-    updateBehavior: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    writeTimeout?: UAProperty<number, /*z*/DataType.Double>;
+    updateBehavior: UABaseDataVariable<UInt32, DataType.UInt32>;
+    writeTimeout?: UAProperty<number, DataType.Double>;
 }
 export interface UADirectLoading extends UAPackageLoading, UADirectLoading_Base {
 }

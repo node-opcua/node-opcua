@@ -139,7 +139,7 @@ export class ProxyBaseNode extends EventEmitter {
             if (err) {
                 return callback(err);
             }
-            if (statusCode !== StatusCodes.Good) {
+            if (statusCode && statusCode.isNotGood()) {
                 callback(new Error(statusCode!.toString()));
             } else {
                 callback();

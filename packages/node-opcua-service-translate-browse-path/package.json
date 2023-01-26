@@ -1,28 +1,23 @@
 {
     "name": "node-opcua-service-translate-browse-path",
-    "version": "2.65.0",
+    "version": "2.89.0",
     "description": "pure nodejs OPCUA SDK - module -service-translate-browse-path",
     "scripts": {
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "build": "tsc -b"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.64.1",
-        "node-opcua-basic-types": "2.64.1",
-        "node-opcua-binary-stream": "2.64.1",
-        "node-opcua-constants": "2.64.1",
-        "node-opcua-data-model": "2.64.1",
-        "node-opcua-factory": "2.64.1",
-        "node-opcua-nodeid": "2.64.1",
-        "node-opcua-service-secure-channel": "2.65.0",
-        "node-opcua-types": "2.65.0"
+        "node-opcua-assert": "2.88.0",
+        "node-opcua-constants": "2.88.0",
+        "node-opcua-data-model": "2.89.0",
+        "node-opcua-nodeid": "2.88.0",
+        "node-opcua-types": "2.89.0"
     },
     "devDependencies": {
-        "should": "^13.2.3",
-        "sinon": "^13.0.1"
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

@@ -1,11 +1,14 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType, Variant, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt64, UInt32, Int32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
+import { EnumExecutionCycle } from "./enum_execution_cycle"
+import { EnumAcquisitionResultStatus } from "./enum_acquisition_result_status"
 import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
 /**
  * |                |                                                  |
@@ -15,7 +18,6 @@ import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
  * |typedDefinition |2:ChromatographDeviceType ns=2;i=1013             |
  * |isAbstract      |false                                             |
  */
-export interface UAChromatographDevice_Base extends UAAnalyserDevice_Base {
-}
+export type UAChromatographDevice_Base = UAAnalyserDevice_Base;
 export interface UAChromatographDevice extends UAAnalyserDevice, UAChromatographDevice_Base {
 }

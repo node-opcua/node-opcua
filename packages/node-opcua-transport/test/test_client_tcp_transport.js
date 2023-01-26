@@ -1,16 +1,15 @@
 "use strict";
 const should = require("should");
-const { assert } = require("node-opcua-assert");
 const chalk = require("chalk");
 const sinon = require("sinon");
 
-const { StatusCodes, StatusCode } = require("node-opcua-status-code");
-
+const { assert } = require("node-opcua-assert");
 const { hexDump } = require("node-opcua-debug");
-
+const { make_debugLog, make_errorLog } = require("node-opcua-debug");
+const { StatusCodes, StatusCode } = require("node-opcua-status-code");
 const { compare_buffers } = require("node-opcua-utils");
 
-const { make_debugLog, make_errorLog } = require("node-opcua-debug");
+
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 
@@ -19,9 +18,10 @@ const { FakeServer } = require("../dist/test_helpers");
 const port = 5678;
 
 const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage } = require("..");
+const { MessageBuilderBase, writeTCPMessageHeader } = require("..");
 
 describe("testing ClientTCP_transport", function () {
-    this.timeout(15000);
+    this.timeout(Math.max(15*1000,this.timeout()));
 
     let transport;
     let spyOnClose, spyOnConnect, spyOnConnectionBreak;
@@ -215,7 +215,7 @@ describe("testing ClientTCP_transport", function () {
 
         transport.timeout = 1000; // very short timeout;
 
-        transport.on("message", function (message_chunk) {
+        transport.on("chunk", function (message_chunk) {
             debugLog(chalk.cyan.bold(hexDump(message_chunk)));
             compare_buffers(message_chunk.slice(8), message1);
 
@@ -228,12 +228,34 @@ describe("testing ClientTCP_transport", function () {
             done();
         });
 
-        transport.connect(endpointUrl, function (err) {
+
+        /**
+         * ```createChunk``` is used to construct a pre-allocated chunk to store up to ```length``` bytes of data.
+         * The created chunk includes a prepended header for ```chunk_type``` of size ```self.headerSize```.
+         *
+         * @method createChunk
+         * @param msgType
+         * @param chunkType {String} chunk type. should be 'F' 'C' or 'A'
+         * @param length
+         * @return a buffer object with the required length representing the chunk.
+         *
+         * Note:
+         *  - only one chunk can be created at a time.
+         *  - a created chunk should be committed using the ```write``` method before an other one is created.
+         */
+        function createChunk(msgType, chunkType, headerSize, length) {
+            assert(msgType === "MSG");
+            const totalLength = length + headerSize;
+            const buffer = Buffer.alloc(totalLength);
+            writeTCPMessageHeader("MSG", chunkType, totalLength, buffer);
+            return buffer;
+        }
+        transport.connect(endpointUrl, (err) => {
             if (err) {
                 errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
-            const buf = transport.createChunk("MSG", "F", message1.length);
+            const buf = createChunk("MSG", "F", transport.headerSize, message1.length);
             message1.copy(buf, transport.headerSize, 0, message1.length);
             transport.write(buf);
         });
@@ -343,6 +365,41 @@ describe("testing ClientTCP_transport", function () {
         });
     });
 
+    it("should send socket_closed on internal timeout - #1205", function (done) {
+        
+        transport.timeout = 100;
+        
+        transport.on("connect", ()=>{
+            console.log("B - transport connected")
+        });
+
+        const spyOnServerWrite = sinon.spy(function (socket, data) {
+            assert(data);
+            // received Fake HEL Message
+            // send Fake ACK response
+            const messageChunk = packTcpMessage("ACK", fakeAcknowledgeMessage);
+            socket.write(messageChunk);
+        });
+
+        fakeServer.pushResponse(spyOnServerWrite);
+
+        transport.on("socket_closed", function () {
+            clearTimeout(timeoutId);
+            done();
+        });
+
+        transport.connect(endpointUrl,  () => {
+            console.log("A  - transport connected");
+        });
+        
+        console.log("transport.timeout ", transport.timeout);
+        const timeoutId = setTimeout(()=>{
+            done(new Error("the ClientTCP_transport didn't receive the socket_close event as the communication timed out"))
+        }, transport.timeout + 10000);
+
+    });
+
+
     it("should returns an error if url has invalid port", function (done) {
         transport.connect("opc.tcp://localhost:XXXXX/SomeAddress", function (err) {
             if (err) {
@@ -350,15 +407,18 @@ describe("testing ClientTCP_transport", function () {
                 const regexp_2 = /port(" option)* should be/; // node >v0.10 < 9.000
                 const regexp_3 = /Port should be > 0 and < 65536. Received NaN/; // node >= 9.00
                 const regexp_4 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received NaN./; // node > 10.20
+                const regexp_5 = /ERR_SOCKET_BAD_PORT|Port should be >= 0 and < 65536. Received type number/; // node > 19.0
                 const test1 = !!err.message.match(regexp_1);
                 const test2 = !!err.message.match(regexp_2);
                 const test3 = !!err.message.match(regexp_3);
                 const test4 = !!err.message.match(regexp_4);
-                (test1 || test2 || test3 || test4).should.eql(true, "expecting one of those error message. got: " + err.message);
+                const test5 = !!err.message.match(regexp_5);
+                (test1 || test2 || test3 || test4 || test5).should.eql(true, "expecting one of those error message. got: " + err.message);
                 done();
             } else {
                 done(new Error("Should have raised a connection error"));
             }
         });
     });
+
 });

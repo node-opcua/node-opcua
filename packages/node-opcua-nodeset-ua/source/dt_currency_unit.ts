@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { Int16, SByte, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -10,9 +11,10 @@ import { DTStructure } from "./dt_structure"
  * | name      |CurrencyUnitType                                  |
  * | isAbstract|false                                             |
  */
-export interface DTCurrencyUnit extends DTStructure  {
+export interface DTCurrencyUnit extends DTStructure {
   numericCode: Int16; // Int16 ns=0;i=4
   exponent: SByte; // SByte ns=0;i=2
   alphabeticCode: UAString; // String ns=0;i=12
   currency: LocalizedText; // LocalizedText ns=0;i=21
 }
+export interface UDTCurrencyUnit extends ExtensionObject, DTCurrencyUnit {};

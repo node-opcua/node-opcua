@@ -13,10 +13,10 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |dataType Name   |DT3DOrientation ns=0;i=18812                      |
  * |isAbstract      |false                                             |
  */
-export interface UA3DOrientation_Base<T extends DT3DOrientation/*j*/>  extends UAOrientation_Base<T/*h*/> {
-    a: UABaseDataVariable<number, /*z*/DataType.Double>;
-    b: UABaseDataVariable<number, /*z*/DataType.Double>;
-    c: UABaseDataVariable<number, /*z*/DataType.Double>;
+export interface UA3DOrientation_Base<T extends DT3DOrientation>  extends UAOrientation_Base<T> {
+    a: UABaseDataVariable<number, DataType.Double>;
+    b: UABaseDataVariable<number, DataType.Double>;
+    c: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UA3DOrientation<T extends DT3DOrientation/*j*/> extends UAOrientation<T/*k*/>, UA3DOrientation_Base<T /*B*/> {
+export interface UA3DOrientation<T extends DT3DOrientation> extends UAOrientation<T>, UA3DOrientation_Base<T> {
 }

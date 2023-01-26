@@ -16,10 +16,10 @@ import { UAPubSubDiagnosticsDataSetWriter } from "./ua_pub_sub_diagnostics_data_
  * |isAbstract      |false                                             |
  */
 export interface UADataSetWriter_Base {
-    dataSetWriterId: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    dataSetFieldContentMask: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    keyFrameCount?: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    dataSetWriterProperties: UAProperty<DTKeyValuePair[], /*z*/DataType.ExtensionObject>;
+    dataSetWriterId: UAProperty<UInt16, DataType.UInt16>;
+    dataSetFieldContentMask: UAProperty<UInt32, DataType.UInt32>;
+    keyFrameCount?: UAProperty<UInt32, DataType.UInt32>;
+    dataSetWriterProperties: UAProperty<DTKeyValuePair[], DataType.ExtensionObject>;
     transportSettings?: UADataSetWriterTransport;
     messageSettings?: UADataSetWriterMessage;
     status: UAPubSubStatus;

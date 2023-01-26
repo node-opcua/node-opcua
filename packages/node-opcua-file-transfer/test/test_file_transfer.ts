@@ -16,15 +16,16 @@ import { MethodIds } from "node-opcua-client";
 import { nodesets } from "node-opcua-nodesets";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 
-import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs } from "..";
+import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs, readFile } from "..";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-
 ["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {
     const useGlobalMethod = !!message.match(/FileType/);
     const withMemFS = message.match(/memory/);
-
+    const m1 = useGlobalMethod ? "Global" : "Local";
+    const m2 = withMemFS ? "MemFS" : "FileFS";
+    const m = m1 + "-" + m2 + "-";
     describe("FileTransfer " + message, () => {
         let addressSpace: AddressSpace;
 
@@ -79,13 +80,13 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
                 organizedBy: addressSpace.rootFolder.objects.server
             }) as UAFile;
             const filename2 = path.join(tempFolder, "tempFile2.txt");
-            installFileType(opcuaFile2, { filename: filename2 });
+            installFileType(opcuaFile2, { filename: filename2, fileSystem: withMemFS ? fileSystem : undefined });
         });
         after(() => {
             /* empty */
         });
 
-        it("should expose a File Transfer node and open/close", async () => {
+        it(m + "should expose a File Transfer node and open/close", async () => {
             const session = new PseudoSession(addressSpace);
 
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -102,7 +103,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             }
         });
 
-        it("should expose a File Transfer node", async () => {
+        it(m + "should expose a File Transfer node", async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -118,7 +119,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             await clientFile.close();
         });
 
-        it("should read a file ", async () => {
+        it(m + "should read a file ", async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -127,10 +128,10 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             const buf = await clientFile.read(1000);
             await clientFile.close();
 
-            buf.toString("ascii").should.eql("content");
+            buf.toString("utf-8").should.eql("content");
         });
 
-        it("should increase openCount when a file is opened and decrease it when it's closed", async () => {
+        it(m + "should increase openCount when a file is opened and decrease it when it's closed", async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -154,7 +155,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             size.should.eql([0, 7]); // 7 bytes file
         });
 
-        it("should not be possible to write to a file if Write Bit is not set in open mode", async () => {
+        it(m + "should not be possible to write to a file if Write Bit is not set in open mode", async () => {
             // Given a OCUA File
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -164,22 +165,22 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             // When I try to write to the file
             let hasSucceeded = false;
-            let hasReceivedException: any = null;
+            let hasReceivedException: Error | undefined;
             try {
                 const buf = await clientFile.write(Buffer.from("This is Me !!!"));
                 hasSucceeded = true;
             } catch (err) {
-                err.message.should.match(/BadInvalidState/);
-                hasReceivedException = err;
+                hasReceivedException = err as Error;
             }
             await clientFile.close();
 
             // Then I should verify that the read method has failed
             should.exist(hasReceivedException);
+            hasReceivedException!.message.should.match(/BadInvalidState/);
             hasSucceeded.should.eql(false);
         });
 
-        (withMemFS ? xit : it)("should be possible to write a file - in create mode", async () => {
+        it(m + "should be possible to write a file - in create mode", async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
@@ -200,7 +201,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             content.should.eql("#### REPLACE ####");
         });
 
-        (withMemFS ? xit : it)("should be possible to write to a file - in append mode", async () => {
+        it(m + "should be possible to write to a file - in append mode", async () => {
             // Given a file on server side with some original content
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
@@ -233,7 +234,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             content.should.eql("!!! ORIGINAL CONTENT !!!" + "#### REPLACE ####");
         });
 
-        it("should not allow read method if Read bit is not set in open mode", async () => {
+        it(m + "should not allow read method if Read bit is not set in open mode", async () => {
             // Given a OCUA File
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
@@ -243,23 +244,23 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             // When I read the file
             let hasSucceeded = false;
-            let hasReceivedException: any = null;
+            let hasReceivedException: Error | undefined;
             try {
                 const numberOfByteToRead = 1;
                 const buf = await clientFile.read(numberOfByteToRead);
                 hasSucceeded = true;
             } catch (err) {
-                err.message.should.match(/BadInvalidState/);
-                hasReceivedException = err;
+                hasReceivedException = err as Error;
             }
             await clientFile.close();
 
             // Then I should verify that the read method has failed
             should.exist(hasReceivedException, "It should have received an exception");
+            hasReceivedException!.message.should.match(/BadInvalidState/);
             hasSucceeded.should.eql(false);
         });
 
-        (withMemFS ? xit : it)("should allow file to grow", async () => {
+        it(m + "should allow file to grow", async () => {
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "!!! ORIGINAL CONTENT !!!", "utf-8");
             await fileData.refresh();
@@ -293,7 +294,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             await clientFile.close();
         });
-        (withMemFS ? xit : it)("file size must change on client size if file changes on server side", async () => {
+
+        it(m + "file size must change on client size if file changes on server side", async () => {
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "1", "utf-8");
             await fileData.refresh();
@@ -312,54 +314,63 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             size2.should.eql(coerceUInt64(2));
         });
 
+        it(m + "readFile", async () => {
+            const fileData = getFileData(opcuaFile2);
+            await promisify(fileSystem.writeFile)(fileData.filename, "1234567890", "utf-8");
+            await fileData.refresh();
+
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            const buf = await readFile(clientFile);
+            buf.toString("utf-8").should.eql("1234567890");
+        });
+
         function swapHandle(c1: ClientFile, c2: ClientFile) {
             const b = (c2 as any).fileHandle;
             (c2 as any).fileHandle = c1.fileHandle;
             (c1 as any).fileHandle = b;
         }
-        (withMemFS ? xit : it)(
-            "should not be possible to reuse filehandle generated by one session with an other session",
-            async () => {
-                // Given client 1$
-                const contextA = new SessionContext({
-                    session: {
-                        getSessionId: () => coerceNodeId(1),
-                        continuationPointManager: new MockContinuationPointManager()
-                    }
-                });
-                const sessionA = new PseudoSession(addressSpace, contextA);
-                const clientFileA = new ClientFile(sessionA, opcuaFile2.nodeId);
 
-                // Given client 2
-                const contextB = new SessionContext({
-                    session: {
-                        getSessionId: () => coerceNodeId(2),
-                        continuationPointManager: new MockContinuationPointManager()
-                    }
-                });
-                const sessionB = new PseudoSession(addressSpace, contextB);
-                const clientFileB = new ClientFile(sessionB, opcuaFile2.nodeId);
-
-                // When I open the file in Rread
-                const fileHandle = await clientFileA.open(OpenFileMode.Read);
-
-                swapHandle(clientFileA, clientFileB);
-
-                // if the handle is used by the wrong session
-                let exceptionHasBeenRaised = false;
-                try {
-                    const buf = await clientFileB.read(1000);
-                } catch (err) {
-                    // then a exception should be raised
-                    exceptionHasBeenRaised = true;
-                } finally {
-                    /** */
+        it(m + "should not be possible to reuse filehandle generated by one session with an other session", async () => {
+            // Given client 1$
+            const contextA = new SessionContext({
+                session: {
+                    getSessionId: () => coerceNodeId(1),
+                    continuationPointManager: new MockContinuationPointManager()
                 }
-                exceptionHasBeenRaised.should.eql(true);
+            });
+            const sessionA = new PseudoSession(addressSpace, contextA);
+            const clientFileA = new ClientFile(sessionA, opcuaFile2.nodeId);
 
-                swapHandle(clientFileA, clientFileB);
-                await clientFileA.close();
+            // Given client 2
+            const contextB = new SessionContext({
+                session: {
+                    getSessionId: () => coerceNodeId(2),
+                    continuationPointManager: new MockContinuationPointManager()
+                }
+            });
+            const sessionB = new PseudoSession(addressSpace, contextB);
+            const clientFileB = new ClientFile(sessionB, opcuaFile2.nodeId);
+
+            // When I open the file in Rread
+            const fileHandle = await clientFileA.open(OpenFileMode.Read);
+
+            swapHandle(clientFileA, clientFileB);
+
+            // if the handle is used by the wrong session
+            let exceptionHasBeenRaised = false;
+            try {
+                const buf = await clientFileB.read(1000);
+            } catch (err) {
+                // then a exception should be raised
+                exceptionHasBeenRaised = true;
+            } finally {
+                /** */
             }
-        );
+            exceptionHasBeenRaised.should.eql(true);
+
+            swapHandle(clientFileA, clientFileB);
+            await clientFileA.close();
+        });
     });
 });

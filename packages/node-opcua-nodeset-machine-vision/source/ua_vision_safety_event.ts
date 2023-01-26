@@ -12,8 +12,8 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * |isAbstract      |false                                             |
  */
 export interface UAVisionSafetyEvent_Base extends UABaseEvent_Base {
-    visionSafetyInformation: UAProperty<UAString, /*z*/DataType.String>;
-    visionSafetyTriggered: UAProperty<boolean, /*z*/DataType.Boolean>;
+    visionSafetyInformation: UAProperty<UAString, DataType.String>;
+    visionSafetyTriggered: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAVisionSafetyEvent extends UABaseEvent, UAVisionSafetyEvent_Base {
 }

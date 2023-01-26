@@ -15,10 +15,10 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType, check_options_correctness_against_schema,
-    initialize_field, parameters, StructuredTypeSchema
+    initialize_field, parameters, IStructuredTypeSchema
 } from "node-opcua-factory";
 
-const schemaAsymmetricAlgorithmSecurityHeader: StructuredTypeSchema = buildStructuredType({
+const schemaAsymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStructuredType({
     name: "AsymmetricAlgorithmSecurityHeader",
 
     baseType: "BaseUAObject",

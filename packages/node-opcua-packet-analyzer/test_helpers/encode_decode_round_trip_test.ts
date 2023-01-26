@@ -4,7 +4,7 @@ import * as chalk from "chalk";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import { ExpandedNodeId } from "node-opcua-nodeid";
-import { BaseUAObject, constructObject, ConstructorFuncWithSchema } from "node-opcua-factory";
+import { BaseUAObject, ConstructorFuncWithSchema, getStandardDataTypeFactory } from "node-opcua-factory";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import * as should from "should";
 
@@ -115,7 +115,7 @@ export function encode_decode_round_trip_test(
 
     // reconstruct a object ( some object may not have a default Binary and should be recreated
     const expandedNodeId = obj.encodingDefaultBinary;
-    const objReloaded = expandedNodeId ? constructObject(expandedNodeId) : new obj.constructor();
+    const objReloaded = expandedNodeId ? getStandardDataTypeFactory().constructObject(expandedNodeId) : new obj.constructor();
 
     objReloaded.decode(stream);
 

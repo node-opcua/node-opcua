@@ -17,8 +17,8 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
 export interface UAFiniteStateMachine_Base extends UAStateMachine_Base {
     currentState: UAStateVariable<LocalizedText>;
     lastTransition?: UATransitionVariable<LocalizedText>;
-    availableStates?: UABaseDataVariable<NodeId[], /*z*/DataType.NodeId>;
-    availableTransitions?: UABaseDataVariable<NodeId[], /*z*/DataType.NodeId>;
+    availableStates?: UABaseDataVariable<NodeId[], DataType.NodeId>;
+    availableTransitions?: UABaseDataVariable<NodeId[], DataType.NodeId>;
 }
 export interface UAFiniteStateMachine extends Omit<UAStateMachine, "currentState"|"lastTransition">, UAFiniteStateMachine_Base {
 }

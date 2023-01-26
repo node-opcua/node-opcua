@@ -33,9 +33,6 @@
       "path": "../node-opcua-debug"
     },
     {
-      "path": "../node-opcua-enum"
-    },
-    {
       "path": "../node-opcua-factory"
     },
     {

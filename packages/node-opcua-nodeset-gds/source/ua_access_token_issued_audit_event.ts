@@ -8,7 +8,6 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-op
  * |typedDefinition |6:AccessTokenIssuedAuditEventType ns=6;i=975      |
  * |isAbstract      |true                                              |
  */
-export interface UAAccessTokenIssuedAuditEvent_Base extends UAAuditUpdateMethodEvent_Base {
-}
+export type UAAccessTokenIssuedAuditEvent_Base = UAAuditUpdateMethodEvent_Base;
 export interface UAAccessTokenIssuedAuditEvent extends UAAuditUpdateMethodEvent, UAAccessTokenIssuedAuditEvent_Base {
 }

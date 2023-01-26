@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataTypeDefinition } from "./dt_data_type_definition"
+import { EnumStructure } from "./enum_structure"
 import { DTStructureField } from "./dt_structure_field"
 /**
  * |           |                                                  |
@@ -11,9 +12,10 @@ import { DTStructureField } from "./dt_structure_field"
  * | name      |StructureDefinition                               |
  * | isAbstract|false                                             |
  */
-export interface DTStructureDefinition extends DTDataTypeDefinition  {
+export interface DTStructureDefinition extends DTDataTypeDefinition {
   defaultEncodingId: NodeId; // NodeId ns=0;i=17
   baseDataType: NodeId; // NodeId ns=0;i=17
-  structureType: Variant; // Variant ns=0;i=98
+  structureType: EnumStructure; // Int32 ns=0;i=98
   fields: DTStructureField[]; // ExtensionObject ns=0;i=101
 }
+export interface UDTStructureDefinition extends ExtensionObject, DTStructureDefinition {};

@@ -8,7 +8,6 @@ import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcu
  * |typedDefinition |10:ClampingConditionClassType ns=10;i=48          |
  * |isAbstract      |true                                              |
  */
-export interface UAClampingConditionClass_Base extends UAProcessConditionClass_Base {
-}
+export type UAClampingConditionClass_Base = UAProcessConditionClass_Base;
 export interface UAClampingConditionClass extends UAProcessConditionClass, UAClampingConditionClass_Base {
 }

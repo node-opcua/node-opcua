@@ -1,31 +1,29 @@
 {
     "name": "node-opcua-data-model",
-    "version": "2.64.1",
+    "version": "2.89.0",
     "description": "pure nodejs OPCUA SDK - module -data-model",
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
         "lint": "eslint source test",
         "format": "prettier --write source test",
-        "clean": "node -e \"require('rimraf').sync('_generated_');require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf _generated_ dist *.tsbuildinfo",
         "coverage": "npx nyc node ../../node_modules/mocha/bin/mocha"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.64.1",
-        "node-opcua-basic-types": "2.64.1",
-        "node-opcua-binary-stream": "2.64.1",
-        "node-opcua-enum": "2.64.1",
-        "node-opcua-factory": "2.64.1",
-        "node-opcua-nodeid": "2.64.1",
-        "node-opcua-status-code": "2.64.1",
-        "node-opcua-utils": "2.64.1"
+        "node-opcua-assert": "2.88.0",
+        "node-opcua-basic-types": "2.89.0",
+        "node-opcua-binary-stream": "2.89.0",
+        "node-opcua-enum": "2.88.0",
+        "node-opcua-factory": "2.89.0",
+        "node-opcua-nodeid": "2.88.0",
+        "node-opcua-status-code": "2.89.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.64.1",
-        "should": "^13.2.3",
-        "source-map-support": "^0.5.21"
+        "node-opcua-packet-analyzer": "2.89.0",
+        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

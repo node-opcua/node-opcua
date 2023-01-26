@@ -11,7 +11,7 @@ import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_co
  * |isAbstract      |false                                             |
  */
 export interface UAAuditConditionShelvingEvent_Base extends UAAuditConditionEvent_Base {
-    shelvingTime?: UAProperty<number, /*z*/DataType.Double>;
+    shelvingTime?: UAProperty<number, DataType.Double>;
 }
 export interface UAAuditConditionShelvingEvent extends UAAuditConditionEvent, UAAuditConditionShelvingEvent_Base {
 }

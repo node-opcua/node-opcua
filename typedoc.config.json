@@ -1,12 +1,16 @@
 {
-    "out": "../node-opcua.github.io/api_doc/2.56.0",
+    "out": "../node-opcua.github.io/api_doc/2.68.0",
     "exclude": [
-        "**/node_modules/**",
-        "**/*.spec.ts",
-        "**/tests/**.ts"
+        "./**/node_modules/**",
+        "./**/*.spec.ts",
+        "./**/tests/**.ts",
+        "./packages_extra/**/*.ts",
+        "./packages_extra/**/**/*.ts"
     ],
     "name": "NodeOPCUA reference documentation - public API",
     "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
     "readme": "documentation/readme_for_doc.md",
     "gaID": "UA-25438821-3",
     "gaSite": "node-opcua.github.io",

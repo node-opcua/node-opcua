@@ -14,7 +14,7 @@ import { UAOpticalScanEvent, UAOpticalScanEvent_Base } from "./ua_optical_scan_e
  * |isAbstract      |true                                              |
  */
 export interface UAOpticalVerifierScanEvent_Base extends UAOpticalScanEvent_Base {
-    scanResult: UAProperty<DTOpticalVerifierScanResult[], /*z*/DataType.ExtensionObject>;
+    scanResult: UAProperty<DTOpticalVerifierScanResult[], DataType.ExtensionObject>;
 }
 export interface UAOpticalVerifierScanEvent extends Omit<UAOpticalScanEvent, "scanResult">, UAOpticalVerifierScanEvent_Base {
 }

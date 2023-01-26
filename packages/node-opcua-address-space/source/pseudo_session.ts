@@ -32,6 +32,96 @@ import { callMethodHelper } from "./helpers/call_helpers";
 import { SessionContext } from "./session_context";
 
 const errorLog = make_errorLog("PseudoSession");
+
+function coerceBrowseDescription(browseDescription: BrowseDescriptionLike): BrowseDescription {
+    if (typeof browseDescription === "string") {
+        return coerceBrowseDescription({
+            nodeId: resolveNodeId(browseDescription)
+        });
+    } else if (browseDescription instanceof BrowseDescription) {
+        return browseDescription;
+    } else {
+        return new BrowseDescription(browseDescription);
+    }
+}
+export interface InnerBrowseEngine {
+    requestedMaxReferencesPerNode: number;
+    maxBrowseContinuationPoints: number;
+    continuationPointManager: ContinuationPointManager;
+    context: ISessionContext;
+    browseAll: (nodesToBrowse: BrowseDescriptionOptions[], callack: ResponseCallback<BrowseResult[]>) => void;
+}
+
+export function innerBrowse(
+    engine: InnerBrowseEngine,
+    nodesToBrowse: BrowseDescriptionOptions[],
+    callback?: ResponseCallback<BrowseResult[]>
+): void {
+    engine.browseAll(nodesToBrowse, (err, results) => {
+        if (err || !results) {
+            return callback!(err);
+        }
+        // handle continuation points
+        results = results.map((result: BrowseResult, index) => {
+            assert(!result.continuationPoint);
+            // istanbul ignore next
+            if (!engine.continuationPointManager) {
+                return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+            }
+            if (index === 0) {
+                // clear previous continuation points
+                engine.continuationPointManager.clearContinuationPoints();
+            }
+            if (engine.continuationPointManager.hasReachedMaximum(engine.maxBrowseContinuationPoints)) {
+                return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
+            }
+
+            const truncatedResult = engine.continuationPointManager.registerReferences(
+                engine.requestedMaxReferencesPerNode,
+                result.references || [],
+                { continuationPoint: null, index }
+            );
+            let { statusCode } = truncatedResult;
+            const { continuationPoint, values } = truncatedResult;
+            assert(statusCode.isGood() || statusCode.equals(StatusCodes.GoodNoData));
+            statusCode = result.statusCode;
+            return new BrowseResult({
+                statusCode,
+                continuationPoint,
+                references: values
+            });
+        });
+        callback!(null, results);
+    });
+}
+
+export interface InnerBrowseNextEngine {
+    continuationPointManager: ContinuationPointManager;
+}
+export function innerBrowseNext(
+    engine: InnerBrowseNextEngine,
+    continuationPoints: Buffer[],
+    releaseContinuationPoints: boolean,
+    callback?: ResponseCallback<BrowseResult[]>
+): void {
+    const results = continuationPoints
+        .map((continuationPoint: ContinuationPoint, index: number) => {
+            return engine.continuationPointManager.getNextReferences(0, {
+                continuationPoint,
+                index,
+                releaseContinuationPoints
+            });
+        })
+        .map(
+            (r) =>
+                new BrowseResult({
+                    statusCode: r.statusCode,
+                    continuationPoint: r.continuationPoint,
+                    references: r.values
+                })
+        );
+    callback!(null, results);
+}
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -44,6 +134,7 @@ const errorLog = make_errorLog("PseudoSession");
  */
 export class PseudoSession implements IBasicSession {
     public requestedMaxReferencesPerNode = 0;
+    public maxBrowseContinuationPoints = 0; // 0=no limits
     private _sessionId: NodeId = new NodeId(NodeIdType.GUID, randomGuid());
     private readonly addressSpace: IAddressSpace;
     private readonly continuationPointManager: ContinuationPointManager;
@@ -63,40 +154,36 @@ export class PseudoSession implements IBasicSession {
     public browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
     public browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
     public browse(nodesToBrowse: BrowseDescriptionLike | BrowseDescriptionLike[], callback?: ResponseCallback<any>): any {
-        setImmediate(() => {
-            const isArray = Array.isArray(nodesToBrowse);
-            if (!isArray) {
-                nodesToBrowse = [nodesToBrowse as BrowseDescriptionLike];
-            }
-            let results: BrowseResult[] = [];
+        const isArray = Array.isArray(nodesToBrowse);
+        if (!isArray) {
+            return this.browse([nodesToBrowse as BrowseDescriptionLike], (err, results) => {
+                return callback!(err, results ? results[0] : undefined);
+            });
+        }
+        const browseAll = (nodesToBrowse: BrowseDescriptionOptions[], callack: ResponseCallback<BrowseResult[]>) => {
+            const results: BrowseResult[] = [];
             for (const browseDescription of nodesToBrowse as BrowseDescriptionOptions[]) {
                 browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId!);
-                const _browseDescription =
-                    browseDescription instanceof BrowseDescription ? browseDescription : new BrowseDescription(browseDescription);
+                const _browseDescription = coerceBrowseDescription(browseDescription);
                 const nodeId = resolveNodeId(_browseDescription.nodeId);
                 const r = this.addressSpace.browseSingleNode(nodeId, _browseDescription, this.context);
                 results.push(r);
             }
+            callack(null, results);
+        };
 
-            // handle continuation points
-            results = results.map((result: BrowseResult, index) => {
-                assert(!result.continuationPoint);
-                const r = this.continuationPointManager.registerReferences(
-                    this.requestedMaxReferencesPerNode,
-                    result.references || [],
-                    { continuationPoint: null, index }
-                );
-                let { statusCode } = r;
-                const { continuationPoint, values } = r;
-                assert(statusCode === StatusCodes.Good || statusCode === StatusCodes.GoodNoData);
-                statusCode = result.statusCode;
-                return new BrowseResult({
-                    statusCode,
-                    continuationPoint,
-                    references: values
-                });
-            });
-            callback!(null, isArray ? results : results[0]);
+        setImmediate(() => {
+            innerBrowse(
+                {
+                    browseAll,
+                    context: this.context,
+                    continuationPointManager: this.continuationPointManager,
+                    requestedMaxReferencesPerNode: this.requestedMaxReferencesPerNode,
+                    maxBrowseContinuationPoints: this.maxBrowseContinuationPoints
+                },
+                nodesToBrowse as BrowseDescriptionOptions[],
+                callback
+            );
         });
     }
 
@@ -175,25 +262,12 @@ export class PseudoSession implements IBasicSession {
                     callback!(null, _results![0]);
                 });
             }
-
-            const results = continuationPoints
-                .map((continuationPoint: ContinuationPoint, index: number) => {
-                    return this.continuationPointManager.getNextReferences(0, {
-                        continuationPoint,
-                        index,
-                        releaseContinuationPoints
-                    });
-                })
-                .map(
-                    (r) =>
-                        new BrowseResult({
-                            statusCode: r.statusCode,
-                            continuationPoint: r.continuationPoint,
-                            references: r.values
-                        })
-                );
-
-            callback!(null, results);
+            innerBrowseNext(
+                { continuationPointManager: this.continuationPointManager },
+                continuationPoints,
+                releaseContinuationPoints,
+                callback
+            );
         });
     }
 

@@ -22,7 +22,7 @@ import {
     UserTokenType
 } from "node-opcua-client";
 
-async function timeout(ms: number) {
+async function wait(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -105,7 +105,7 @@ async function test1() {
         };
         const item2 = subscription.monitor(itemToMonitor2, parameters2, TimestampsToReturn.Both);
 
-        await timeout(20000);
+        await wait(20000);
 
         await subscription.terminate();
 
@@ -183,7 +183,7 @@ async function test2() {
                 console.log("item2 has been terminated");
             });
 
-        await timeout(10000);
+        await wait(10000);
 
         await subscription.terminate();
 

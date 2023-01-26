@@ -12,8 +12,8 @@ import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua
  * |isAbstract      |true                                              |
  */
 export interface UAProductionProgramTransitionEvent_Base extends UATransitionEvent_Base {
-    jobIdentifier: UAProperty<UAString, /*z*/DataType.String>;
-    name: UAProperty<UAString, /*z*/DataType.String>;
+    jobIdentifier: UAProperty<UAString, DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
 }
 export interface UAProductionProgramTransitionEvent extends UATransitionEvent, UAProductionProgramTransitionEvent_Base {
 }

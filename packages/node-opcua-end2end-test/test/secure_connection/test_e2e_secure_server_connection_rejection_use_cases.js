@@ -22,7 +22,7 @@ const crypto_utils = require("node-opcua-crypto");
 
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function() {
+describe("testing the server ability to deny client session request (server with maxSessions = 1)", function() {
 
 
     let server, endpointUrl, options;
@@ -204,6 +204,11 @@ describe("testing the server ability to deny client session request (server with
                     clientNonce: Buffer.alloc(31)
                 });
                 client.performMessageTransaction(createSessionRequest, function(err, response) {
+                    if(err) {
+                        console.log(err);
+                        err.message.should.match(/BadNonceInvalid/);
+                        return callback();
+                    }
                     response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
                     callback(err);
                 });

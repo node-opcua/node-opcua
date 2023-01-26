@@ -11,7 +11,7 @@ import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/source/ua_c
  * |isAbstract      |true                                              |
  */
 export interface UAInterruptionCondition_Base extends UACondition_Base {
-    isAutomated: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isAutomated: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAInterruptionCondition extends UACondition, UAInterruptionCondition_Base {
 }

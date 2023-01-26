@@ -12,7 +12,7 @@ import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
  * |isAbstract      |true                                              |
  */
 export interface UAJobMovedEvent_Base extends UAGlassEvent_Base {
-    jobdIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+    jobdIdentifier: UAProperty<UAString, DataType.String>;
     newPosition?: UAProperty<any, any>;
 }
 export interface UAJobMovedEvent extends Omit<UAGlassEvent, "jobdIdentifier">, UAJobMovedEvent_Base {

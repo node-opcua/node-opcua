@@ -22,12 +22,11 @@ import {
     UAVariable,
     ContinuationData
 } from "node-opcua-address-space-base";
-
 import { UARootFolder } from "../source/ua_root_folder";
+import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 
 import { NamespacePrivate } from "./namespace_private";
-import { ExtensionObjectConstructorFuncWithSchema } from "./ua_data_type_impl";
-import { NamespaceImpl } from "./namespace_impl";
+
 
 export interface AddressSpacePrivate extends IAddressSpace {
     rootFolder: UARootFolder;
@@ -60,7 +59,7 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     getExtensionObjectConstructor(dataType: NodeId | UADataType): ExtensionObjectConstructorFuncWithSchema;
 
-    constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
+    constructExtensionObject(dataType: UADataType | NodeId, options?: Record<string, unknown>): ExtensionObject;
 
     normalizeReferenceType(params: AddReferenceOpts | UAReference): UAReference;
 

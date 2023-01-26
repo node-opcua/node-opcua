@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://acme.com/UA/ACME</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://acme.com/UA/ACME" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.04.10" PublicationDate="2021-09-15T00:00:00.000Z" />
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Argument">i=296</Alias>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="EUInformation">i=887</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="Range">i=884</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+    </Aliases>
+
+    <UAObjectType NodeId="ns=1;i=1300" BrowseName="MyObjectType">
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1301</Reference>
+        </References>
+    </UAObjectType>
+
+    <UAVariable NodeId="ns=1;i=1301" BrowseName="Range" AccessLevel="3" DataType="Range">
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=1317</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <ExtensionObject>
+                <TypeId>
+                    <Identifier>i=885</Identifier>
+                </TypeId>
+                <Body>
+                    <Range>
+                        <Low>100</Low>
+                        <High>200</High>
+                    </Range>
+                </Body>
+            </ExtensionObject>
+        </Value>
+    </UAVariable>
+
+    <UAVariableType NodeId="ns=1;i=1317" BrowseName="MyVariableType" AccessLevel="3" DataType="Range">
+        <DisplayName>EURange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=68</Reference>
+        </References>
+        <Value>
+            <ExtensionObject>
+                <TypeId>
+                    <Identifier>i=885</Identifier>
+                </TypeId>
+                <Body>
+                    <Range>
+                        <Low>0</Low>
+                        <High>2000000</High>
+                    </Range>
+                </Body>
+            </ExtensionObject>
+        </Value>
+    </UAVariableType>
+</UANodeSet>

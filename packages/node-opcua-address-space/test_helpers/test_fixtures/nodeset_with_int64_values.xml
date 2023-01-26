@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UANodeSet xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+    <NamespaceUris>
+        <Uri>http://A</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://A" PublicationDate="2021-01-01T00:00:00Z" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.03" PublicationDate="2013-12-02T00:00:00Z" />
+        </Model>
+    </Models>
+    <Aliases/>
+    <UAVariable DataType="UInt64" ParentNodeId="ns=0;i=2253" NodeId="ns=1;i=1000" BrowseName="1:VariableWithUInt64" AccessLevel="3">
+        <DisplayName>NominalParts</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:UInt64>1234567890</uax:UInt64>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="Int64" ParentNodeId="ns=0;i=2253" NodeId="ns=1;i=1001" BrowseName="1:VariableWithInt64" AccessLevel="3">
+        <DisplayName>NominalParts</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:Int64>-1234567890</uax:Int64>
+        </Value>
+    </UAVariable>
+</UANodeSet>

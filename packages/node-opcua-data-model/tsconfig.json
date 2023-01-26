@@ -30,9 +30,6 @@
             "path": "../node-opcua-status-code"
         },
         {
-            "path": "../node-opcua-utils"
-        },
-        {
             "path": "../node-opcua-packet-analyzer"
         }
     ],

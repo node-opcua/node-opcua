@@ -7,32 +7,26 @@ import {
     DataChangeNotification,
     DataType,
     DataValue,
-    ExtensionObject,
     MonitoredItemNotification,
     MonitoringMode,
     MonitoringParametersOptions,
     Namespace,
     NodeId,
-    NodeIdLike,
     NotificationData,
-    NotificationMessage,
     NumericRange,
     OPCUAClient,
     OPCUAClientOptions,
     ReadValueIdOptions,
     SetMonitoringModeRequest,
-    SetMonitoringModeRequestOptions,
     SetMonitoringModeResponse,
     StatusCode,
     TimestampsToReturn,
     UInt32,
     VariantArrayType
 } from "node-opcua";
-import sinon = require("sinon");
-import should = require("should");
+import "should";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 

@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/source/ua_base_interface"
 /**
  * Base interface for managing statistical data.
@@ -20,7 +20,7 @@ export interface UAIStatistics_Base extends UABaseInterface_Base {
      * collection of the statistical data has been
      * started.
      */
-    startTime?: UAProperty<Date, /*z*/DataType.DateTime>;
+    startTime?: UAProperty<Date, DataType.DateTime>;
 }
 export interface UAIStatistics extends UABaseInterface, UAIStatistics_Base {
 }

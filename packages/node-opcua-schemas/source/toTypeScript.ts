@@ -1,12 +1,30 @@
-import { ConstructorFuncWithSchema, DataTypeFactory, EnumerationDefinitionSchema, StructuredTypeSchema } from "node-opcua-factory";
+import {
+    ConstructorFuncWithSchema,
+    DataTypeFactory,
+    EnumerationDefinitionSchema,
+    IStructuredTypeSchema,
+    StructureInfo
+} from "node-opcua-factory";
 
 export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
-    const enumeratedTypes: Map<string, EnumerationDefinitionSchema> = (dataTypeFactory as any)._enumerations;
-    const structuredTypes: Map<string, ConstructorFuncWithSchema> = (dataTypeFactory as any)._structureTypeConstructorByNameMap;
+    const enumeratedTypes: Map<string, EnumerationDefinitionSchema> = new Map();
+    for (const k of dataTypeFactory.enumerations()) {
+        enumeratedTypes.set(k, dataTypeFactory.getEnumeration(k)!);
+    }
+    const structuredTypes: Map<string, StructureInfo> = new Map();
+    for (const k of dataTypeFactory.structuredTypesNames()) {
+        structuredTypes.set(k, dataTypeFactory.getStructureInfoByTypeName(k)!);
+    }
 
     const declaration: Map<string, string> = new Map();
 
     function adjustType(t: string): string {
+        if (t === "String") {
+            t = "UAString";
+        } else if (t === "Boolean") {
+            t = "UABoolean";
+        }
+
         if (!enumeratedTypes.has(t) && !structuredTypes.has(t)) {
             declaration.set(t, t);
         }
@@ -27,17 +45,14 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
         l.push(`}`);
     }
     const alreadyDone: Set<string> = new Set();
-    function dumpType(o: StructuredTypeSchema) {
+    function dumpType(o: IStructuredTypeSchema) {
         // base type first
-        const b = o.baseType;
-
-        const bt = structuredTypes.get(b)?.schema;
-
-        if (b && !alreadyDone.has(o.baseType) && bt) {
+        const bt = o.getBaseSchema();
+        if (bt && !alreadyDone.has(o.baseType) && bt) {
             dumpType(bt);
         }
         alreadyDone.add(o.name);
-        const ex1 = b && bt ? `extends ${b} ` : "";
+        const ex1 =  bt ? `extends ${bt.name} ` : "";
 
         if (o.baseType === "Union") {
             const p: string[] = [];

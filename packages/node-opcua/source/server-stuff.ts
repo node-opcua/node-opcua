@@ -4,3 +4,5 @@
 export * from "node-opcua-certificate-manager";
 export * from "node-opcua-address-space";
 export * from "node-opcua-server";
+
+export { OPCUADiscoveryServer } from "node-opcua-server-discovery";

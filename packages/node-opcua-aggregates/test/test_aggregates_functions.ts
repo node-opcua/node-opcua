@@ -63,7 +63,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(15);
         });
         it("should find interval starting with interpolated data - case 2", () => {
@@ -78,7 +78,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(11);
         });
         it("should find interval starting with uncertain raw data", () => {
@@ -153,7 +153,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(11);
         });
         it("should extrapolate if interval is beyond end data - useSlopedExtrapolation = true", () => {
@@ -235,7 +235,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(10);
         });
         it("should find interval starting with interpolated data - case 2", () => {
@@ -250,7 +250,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(10);
         });
         it("should find interval starting with uncertain raw data", () => {
@@ -280,7 +280,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(30);
         });
         it("should find interval starting with bad raw data", () => {
@@ -295,7 +295,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(50);
         });
         it("should find interval having a single bad raw data inside - ", () => {
@@ -310,7 +310,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(50);
         });
         it("should find interval with no data in it", () => {
@@ -325,7 +325,7 @@ describe("Aggregates Intervals & Regions", () => {
 
             const interpolated = interpolatedValue(interval, options);
 
-            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00002)");
+            interpolated.statusCode.toString().should.eql("Good#HistorianInterpolated (0x00000002)");
             interpolated.value.value.should.eql(10);
         });
         it("should extrapolate if interval is beyond end data - useSlopedExtrapolation = true", () => {

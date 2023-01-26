@@ -1,30 +1,38 @@
-/* eslint-disable no-case-declarations */
 #!/usr/bin/env node
+/* eslint-disable complexity */
+/* eslint-disable no-case-declarations */
 /* eslint no-process-exit: 0 */
 "use strict";
-const chalk = require("chalk");
-const treeify = require("treeify");
-const sprintf = require("sprintf-js").sprintf;
 const util = require("util");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
+const chalk = require("chalk");
+const treeify = require("treeify");
+const { sprintf } = require("sprintf-js");
 const _ = require("underscore");
 
-const opcua = require("node-opcua");
-const UAProxyManager = opcua.UAProxyManager;
-const DataType = opcua.DataType;
-
-
-
-const utils = opcua.utils;
-
+const {
+    DataType,
+    OPCUAClient,
+    version,
+    makeNodeId,
+    coerceNodeId,
+    ObjectIds,
+    analyze_object_binary_encoding,
+    StatusCodes,
+    parseEndpointUrl
+} = require("node-opcua");
+const { NodeCrawler } = require("node-opcua-client-crawler");
+const { UAProxyManager } = require("node-opcua-client-proxy");
+const utils = require("node-opcua-utils");
 const { assert } = require("node-opcua-assert");
 
-console.log(" Version ", opcua.version);
+console.log(" Version ", version);
 
 const sessionTimeout = 2 * 60 * 1000; // 2 minutes
 
-const client = opcua.OPCUAClient.create({
+const client = OPCUAClient.create({
     requestedSessionTimeout: sessionTimeout,
     keepSessionAlive: true
 });
@@ -44,7 +52,7 @@ let curNodeCompletion = [];
 
 function save_endpoint_history(callback) {
     if (endpoints_history.length > 0) {
-        fs.writeFileSync(endpoints_history_file, endpoints_history.join("\n"), "ascii");
+        fs.writeFileSync(endpoints_history_file, endpoints_history.join("\n"), "utf-8");
     }
     if (callback) {
         callback();
@@ -60,21 +68,17 @@ function add_endpoint_to_history(endpoint) {
 
 let lines = [];
 
-
-
 if (fs.existsSync(endpoints_history_file)) {
-    lines = fs.readFileSync(endpoints_history_file, "ascii");
+    lines = fs.readFileSync(endpoints_history_file, "utf-8");
     endpoints_history = lines.split(/\r\n|\n/);
 }
 
 const history_file = path.join(__dirname, ".history");
 
-
 function completer(line, callback) {
-
     let completions, hits;
 
-    if ((line.trim() === "") && curNode) {
+    if (line.trim() === "" && curNode) {
         // console.log(" completions ",completions);
         let c = [".."].concat(curNodeCompletion);
         if (curNodeCompletion.length === 1) {
@@ -86,7 +90,6 @@ function completer(line, callback) {
     if ("open".match(new RegExp("^" + line.trim()))) {
         completions = ["open localhost:port"];
         return callback(null, [completions, line]);
-
     } else {
         if (the_session === null) {
             if (client._secureChannel) {
@@ -99,12 +102,11 @@ function completer(line, callback) {
         }
     }
     assert(completions.length >= 0);
-    hits = completions.filter(function(c) {
+    hits = completions.filter(function (c) {
         return c.indexOf(line) === 0;
     });
     return callback(null, [hits.length ? hits : completions, line]);
 }
-
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -118,12 +120,12 @@ rl.prompt();
 
 function save_history(callback) {
     const history_uniq = _.uniq(rl.history);
-    fs.writeFileSync(history_file, history_uniq.join("\n"), "ascii");
+    fs.writeFileSync(history_file, history_uniq.join("\n"), "utf-8");
     callback();
 }
 
 function w(str, width) {
-    return (str + "                                                      ").substr(0, width);
+    return str.padEnd(width, " ").substring(0, width);
 }
 /**
  * @method toDate
@@ -183,7 +185,6 @@ function toDate(str) {
     } else {
         return new Date(str);
     }
-
 }
 function log() {
     rl.pause();
@@ -197,16 +198,14 @@ let rootFolder = null;
 
 let nodePath = [];
 let nodePathName = [];
-const lowerFirstLetter = opcua.utils.lowerFirstLetter;
-
+const lowerFirstLetter = utils.lowerFirstLetter;
 
 function setCurrentNode(node) {
-
     curNode = node;
     const curNodeBrowseName = lowerFirstLetter(curNode.browseName.name.toString());
     nodePathName.push(curNodeBrowseName);
     nodePath.push(node);
-    curNodeCompletion = node.$components.map(function(c) {
+    curNodeCompletion = node.$components.map(function (c) {
         if (!c.browseName) {
             return "???";
         }
@@ -221,7 +220,6 @@ function setRootNode(node) {
     setCurrentNode(node);
 }
 function moveToChild(browseName) {
-
     if (browseName === "..") {
         nodePathName.pop();
         curNode = nodePath.splice(-1, 1)[0];
@@ -235,13 +233,11 @@ function moveToChild(browseName) {
     }
     setCurrentNode(child);
 }
+
 function get_root_folder(callback) {
-
     if (!rootFolder) {
-
         rl.pause();
-        proxyManager.getObject(opcua.makeNodeId(opcua.ObjectIds.RootFolder), function(err, data) {
-
+        proxyManager.getObject(makeNodeId(ObjectIds.RootFolder), function (err, data) {
             if (!err) {
                 rootFolder = data;
                 assert(rootFolder, "expecting rootFolder");
@@ -256,52 +252,48 @@ function get_root_folder(callback) {
     }
 }
 
-
-client.on("send_chunk", function(message_chunk) {
+client.on("send_chunk", function (message_chunk) {
     if (dumpMessageChunk) {
         process.stdout.write(">> " + message_chunk.length + "\r");
     }
 });
 
-client.on("receive_chunk", function(message_chunk) {
+client.on("receive_chunk", function (message_chunk) {
     if (dumpMessageChunk) {
         process.stdout.write("<< " + message_chunk.length + "\r");
     }
 });
 
-client.on("send_request", function(message) {
+client.on("send_request", function (message) {
     if (dumpPacket) {
         log(chalk.red(" sending request"));
-        opcua.analyze_object_binary_encoding(message);
+        analyze_object_binary_encoding(message);
     }
 });
 
-client.on("receive_response", function(message) {
+client.on("receive_response", function (message) {
     if (dumpPacket) {
         assert(message);
         log(chalk.cyan.bold(" receive response"));
-        opcua.analyze_object_binary_encoding(message);
+        analyze_object_binary_encoding(message);
     }
 });
 
-
 function dumpNodeResult(node) {
-    const str = sprintf("    %-30s%s%s", node.browseName.name, (node.isForward ? "->" : "<-"), node.nodeId.displayText());
+    const str = sprintf("    %-30s%s%s", node.browseName.name, node.isForward ? "->" : "<-", node.nodeId.displayText());
     log(str);
 }
 function colorize(value) {
     return chalk.yellow.bold("" + value);
 }
 
-
 if (rl.history) {
-
     if (fs.existsSync(history_file)) {
-        lines = fs.readFileSync(history_file, "ascii");
+        lines = fs.readFileSync(history_file, "utf-8");
         lines = lines.split(/\r\n|\n/);
     }
     if (lines.length === 0) {
-        let hostname = require("os").hostname();
+        let hostname = os.hostname();
         hostname = hostname.toLowerCase();
         rl.history.push("open opc.tcp://opcua.demo-this.com:51210/UA/SampleServer");
         rl.history.push("open opc.tcp://" + hostname + ":51210/UA/SampleServer");
@@ -316,18 +308,15 @@ if (rl.history) {
     }
 }
 
-process.on("uncaughtException", function(e) {
+process.on("uncaughtException", function (e) {
     util.puts(e.stack.red);
     rl.prompt();
 });
 
-
-
-
 function apply_command(cmd, func, callback) {
-    callback = callback || function() { };
+    callback = callback || function () {};
     rl.pause();
-    func(function(err) {
+    func(function (err) {
         callback();
         rl.resume();
         rl.prompt(the_prompt);
@@ -335,12 +324,11 @@ function apply_command(cmd, func, callback) {
 }
 
 function apply_on_valid_session(cmd, func, callback) {
-
     assert(typeof func === "function");
     assert(func.length === 2);
 
     if (the_session) {
-        apply_command(cmd, function(callback) {
+        apply_command(cmd, function (callback) {
             func(the_session, callback);
         });
     } else {
@@ -351,7 +339,7 @@ function apply_on_valid_session(cmd, func, callback) {
 function dump_dataValues(nodesToRead, dataValues) {
     for (let i = 0; i < dataValues.length; i++) {
         const dataValue = dataValues[i];
-        log("           Node : ", chalk.cyan.bold((nodesToRead[i].nodeId.toString())), nodesToRead[i].attributeId.toString());
+        log("           Node : ", chalk.cyan.bold(nodesToRead[i].nodeId.toString()), nodesToRead[i].attributeId.toString());
         if (dataValue.value) {
             log("           type : ", colorize(DataType[dataValue.value.dataType]));
             log("           value: ", colorize(dataValue.value.value));
@@ -364,11 +352,10 @@ function dump_dataValues(nodesToRead, dataValues) {
 }
 
 function dump_historyDataValues(nodeToRead, startDate, endDate, historyReadResult) {
-
-    log("           Node : ", chalk.cyan.bold((nodeToRead.nodeId.toString())), nodeToRead.attributeId.toString());
+    log("           Node : ", chalk.cyan.bold(nodeToRead.nodeId.toString()), nodeToRead.attributeId.toString());
     log("      startDate : ", startDate);
     log("        endDate : ", endDate);
-    if (historyReadResult.statusCode !== opcua.StatusCodes.Good) {
+    if (historyReadResult.statusCode.isNotGood()) {
         log("                          error ", historyReadResult.statusCode.toString());
         return;
     }
@@ -392,7 +379,8 @@ function dump_historyDataValues(nodeToRead, startDate, endDate, historyReadResul
                 dataValue.sourceTimestamp,
                 w(dataValue.sourcePicoseconds, 4),
                 colorize(w(dataValue.value.value, 15)),
-                w(dataValue.statusCode.toString(16), 16));
+                w(dataValue.statusCode.toString(16), 16)
+            );
         } else {
             log("           value: <null>", dataValue.toString());
         }
@@ -400,20 +388,15 @@ function dump_historyDataValues(nodeToRead, startDate, endDate, historyReadResul
 }
 
 function open_session(callback) {
-
-
     if (the_session !== null) {
         log(" a session exists already ! use closeSession First");
         return callback();
-
     } else {
-
         client.requestedSessionTimeout = sessionTimeout;
-        client.createSession(function(err, session) {
+        client.createSession(function (err, session) {
             if (err) {
                 log(chalk.red("Error : "), err);
             } else {
-
                 the_session = session;
                 log("session created ", session.sessionId.toString());
                 proxyManager = new UAProxyManager(the_session);
@@ -424,11 +407,10 @@ function open_session(callback) {
                 assert(!crawler);
 
                 rl.prompt(the_prompt);
-
             }
             callback();
         });
-        client.on("close", function() {
+        client.on("close", function () {
             log(chalk.red(" Server has disconnected "));
             the_session = null;
             crawler = null;
@@ -437,8 +419,8 @@ function open_session(callback) {
 }
 
 function close_session(outer_callback) {
-    apply_on_valid_session("closeSession", function(session, inner_callback) {
-        session.close(function(err) {
+    apply_on_valid_session("closeSession", function (session, inner_callback) {
+        session.close(function (err) {
             the_session = null;
             crawler = null;
             if (!outer_callback) {
@@ -462,7 +444,6 @@ function set_debug(flag) {
         log(" Debug is OFF");
     }
 }
-
 function process_line(line) {
     let nodes;
     const args = line.trim().split(/ +/);
@@ -474,7 +455,7 @@ function process_line(line) {
     }
     switch (cmd) {
         case "debug":
-            const flag = (!args[1]) ? true : (["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0);
+            const flag = !args[1] ? true : ["ON", "TRUE", "1"].indexOf(args[1].toUpperCase()) >= 0;
             set_debug(flag);
             break;
         case "open":
@@ -482,17 +463,15 @@ function process_line(line) {
             if (!endpointUrl.match(/^opc.tcp:\/\//)) {
                 endpointUrl = "opc.tcp://" + endpointUrl;
             }
-            const p = opcua.parseEndpointUrl(endpointUrl);
+            const p = parseEndpointUrl(endpointUrl);
             const hostname = p.hostname;
             const port = p.port;
             log(" open    url : ", endpointUrl);
             log("    hostname : ", chalk.yellow(hostname || "<null>"));
             log("        port : ", chalk.yellow(port.toString()));
 
-            apply_command(cmd, function(callback) {
-
-
-                client.connect(endpointUrl, function(err) {
+            apply_command(cmd, function (callback) {
+                client.connect(endpointUrl, function (err) {
                     if (err) {
                         log("client connected err=", err);
                     } else {
@@ -500,8 +479,7 @@ function process_line(line) {
 
                         add_endpoint_to_history(endpointUrl);
 
-                        save_history(function() {
-                        });
+                        save_history(function () {});
                     }
                     callback(err);
                 });
@@ -510,8 +488,8 @@ function process_line(line) {
 
         case "fs":
         case "FindServers":
-            apply_command(cmd, function(callback) {
-                client.findServers({}, function(err, data) {
+            apply_command(cmd, function (callback) {
+                client.findServers({}, function (err, data) {
                     const { servers, endpoints } = data;
                     if (err) {
                         log(err.message);
@@ -523,8 +501,8 @@ function process_line(line) {
             break;
         case "gep":
         case "getEndpoints":
-            apply_command(cmd, function(callback) {
-                client.getEndpoints(function(err, endpoints) {
+            apply_command(cmd, function (callback) {
+                client.getEndpoints(function (err, endpoints) {
                     if (err) {
                         log(err.message);
                     }
@@ -541,19 +519,19 @@ function process_line(line) {
             break;
 
         case "closeSession":
-            close_session(function() { });
+            close_session(function () {});
             break;
 
         case "disconnect":
             if (the_session) {
-                close_session(function(callback) {
-                    client.disconnect(function() {
+                close_session(function (callback) {
+                    client.disconnect(function () {
                         rl.write("client disconnected");
                         callback();
                     });
                 });
             } else {
-                client.disconnect(function() {
+                client.disconnect(function () {
                     rl.write("client disconnected");
                 });
             }
@@ -561,19 +539,15 @@ function process_line(line) {
 
         case "b":
         case "browse":
-            apply_on_valid_session(cmd, function(the_session, callback) {
-
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 nodes = [args[1]];
 
-                the_session.browse(nodes, function(err, nodeResults) {
-
+                the_session.browse(nodes, function (err, nodeResults) {
                     if (err) {
                         log(err);
                         log(nodeResults);
                     } else {
-
-                        save_history(function() {
-                        });
+                        save_history(function () {});
 
                         for (let i = 0; i < nodeResults.length; i++) {
                             log("Node: ", nodes[i]);
@@ -583,70 +557,74 @@ function process_line(line) {
                     }
                     callback();
                 });
-
             });
 
             break;
 
         case "rootFolder":
-
-            apply_on_valid_session(cmd, function(the_session, callback) {
-
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 get_root_folder(callback);
             });
             break;
 
         case "hr":
         case "readHistoryValue":
-            apply_on_valid_session(cmd, function(the_session, callback) {
-
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 // example:
                 // hr ns=2;s=Demo.History.DoubleWithHistory 13:45 13:59
                 nodes = [args[1]];
 
-                let startTime = toDate(args[2]);// "2015-06-10T09:00:00.000Z"
-                let endTime = toDate(args[3]);  // "2015-06-10T09:01:00.000Z"
+                let startTime = toDate(args[2]); // "2015-06-10T09:00:00.000Z"
+                let endTime = toDate(args[3]); // "2015-06-10T09:01:00.000Z"
                 if (startTime > endTime) {
-                    const tmp = endTime; endTime = startTime; startTime = tmp;
+                    const tmp = endTime;
+                    endTime = startTime;
+                    startTime = tmp;
                 }
-                nodes = nodes.map(opcua.coerceNodeId);
+                nodes = nodes.map(coerceNodeId);
 
-                the_session.readHistoryValue(nodes, startTime, endTime, function(err, historyReadResults) {
+                the_session.readHistoryValue(nodes, startTime, endTime, function (err, historyReadResults) {
                     if (err) {
                         log(err);
                         log(historyReadResults.toString());
                     } else {
-                        save_history(function() { });
+                        save_history(function () {});
                         assert(historyReadResults.length === 1);
-                        dump_historyDataValues({
-                            nodeId: nodes[0],
-                            attributeId: 13
-                        }, startTime, endTime, historyReadResults[0]);
+                        dump_historyDataValues(
+                            {
+                                nodeId: nodes[0],
+                                attributeId: 13
+                            },
+                            startTime,
+                            endTime,
+                            historyReadResults[0]
+                        );
                     }
                     callback();
-
                 });
-
             });
             break;
         case "r":
         case "read":
-            apply_on_valid_session(cmd, function(the_session, callback) {
-
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 nodes = [args[1]];
-                nodes = nodes.map(opcua.coerceNodeId);
+                nodes = nodes.map(coerceNodeId);
 
-                the_session.readVariableValue(nodes, function(err, dataValues) {
+                the_session.readVariableValue(nodes, function (err, dataValues) {
                     if (err) {
                         log(err);
                         log(dataValues);
                     } else {
-                        save_history(function() {
-                        });
-                        dump_dataValues([{
-                            nodeId: nodes[0],
-                            attributeId: 13
-                        }], dataValues);
+                        save_history(function () {});
+                        dump_dataValues(
+                            [
+                                {
+                                    nodeId: nodes[0],
+                                    attributeId: 13
+                                }
+                            ],
+                            dataValues
+                        );
                     }
                     callback();
                 });
@@ -654,13 +632,12 @@ function process_line(line) {
             break;
         case "ra":
         case "readall":
-            apply_on_valid_session(cmd, function(the_session, callback) {
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 const node = args[1];
 
-                the_session.readAllAttributes(node, function(err, result/*,diagnosticInfos*/) {
+                the_session.readAllAttributes(node, function (err, result /*,diagnosticInfos*/) {
                     if (!err) {
-                        save_history(function() {
-                        });
+                        save_history(function () {});
                         console.log(result);
                         //xx dump_dataValues(nodesToRead, dataValues);
                     }
@@ -670,10 +647,9 @@ function process_line(line) {
             break;
 
         case "tb":
-            apply_on_valid_session(cmd, function(the_session, callback) {
-
+            apply_on_valid_session(cmd, function (the_session, callback) {
                 const path = args[1];
-                the_session.translateBrowsePath(path, function(err, results) {
+                the_session.translateBrowsePath(path, function (err, results) {
                     if (err) {
                         log(err.message);
                     }
@@ -686,24 +662,22 @@ function process_line(line) {
             break;
         case "crawl":
             {
-                apply_on_valid_session(cmd, function(the_session, callback) {
-
+                apply_on_valid_session(cmd, function (the_session, callback) {
                     if (!crawler) {
-                        crawler = new opcua.NodeCrawler(the_session);
-                        crawler.on("browsed", function(element) {
+                        crawler = new NodeCrawler(the_session);
+                        crawler.on("browsed", function (element) {
                             // log("->",element.browseName.name,element.nodeId.toString());
                         });
-
                     }
 
                     const nodeId = args[1] || "ObjectsFolder";
                     log("now crawling " + chalk.yellow(nodeId) + " ...please wait...");
-                    crawler.read(nodeId, function(err, obj) {
+                    crawler.read(nodeId, function (err, obj) {
                         if (!err) {
                             log(" crawling done ");
                             // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
                             //xx log(treeify.asTree(obj, true));
-                            treeify.asLines(obj, true, true, function(line) {
+                            treeify.asLines(obj, true, true, function (line) {
                                 log(line);
                             });
                         } else {
@@ -717,7 +691,6 @@ function process_line(line) {
             break;
 
         case ".info":
-
             log("            bytesRead  ", client.bytesRead, " bytes");
             log("         bytesWritten  ", client.bytesWritten, " bytes");
             log("transactionsPerformed  ", client.transactionsPerformed, "");
@@ -738,13 +711,11 @@ function process_line(line) {
     }
 }
 
-rl.on("line", function(line) {
-
+rl.on("line", function (line) {
     try {
         process_line(line);
         rl.prompt();
-    }
-    catch (err) {
+    } catch (err) {
         log(chalk.red("------------------------------------------------"));
         log(chalk.bgRed.yellow.bold(err.message));
         log(err.stack);
@@ -752,7 +723,3 @@ rl.on("line", function(line) {
         rl.resume();
     }
 });
-
-
-
-

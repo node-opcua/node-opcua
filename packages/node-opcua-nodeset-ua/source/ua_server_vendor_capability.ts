@@ -8,10 +8,9 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |nodeClass       |VariableType                                      |
  * |typedDefinition |ServerVendorCapabilityType ns=0;i=2137            |
  * |dataType        |Null                                              |
- * |dataType Name   |undefined ns=0;i=0                                |
+ * |dataType Name   |VariantOptions ns=0;i=0                           |
  * |isAbstract      |true                                              |
  */
-export interface UAServerVendorCapability_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T/*g*/, DT> {
-}
-export interface UAServerVendorCapability<T, DT extends DataType> extends UABaseDataVariable<T, /*m*/DT>, UAServerVendorCapability_Base<T, DT /*A*/> {
+export type UAServerVendorCapability_Base<T, DT extends DataType> = UABaseDataVariable_Base<T, DT>;
+export interface UAServerVendorCapability<T, DT extends DataType> extends UABaseDataVariable<T, DT>, UAServerVendorCapability_Base<T, DT> {
 }

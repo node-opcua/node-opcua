@@ -264,7 +264,7 @@ export class ClientSidePublishEngine {
         // in our case:
 
         assert(this.nbPendingPublishRequests > 0);
-        const calculatedTimeout = this.nbPendingPublishRequests * this.timeoutHint;
+        const calculatedTimeout = Math.min(0x7FFFFFFF, this.nbPendingPublishRequests * this.timeoutHint);
 
         const publishRequest = new PublishRequest({
             requestHeader: { timeoutHint: calculatedTimeout }, // see note

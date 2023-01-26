@@ -2,6 +2,7 @@
 import { QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTFilterOperand } from "./dt_filter_operand"
 /**
  * |           |                                                  |
@@ -11,9 +12,10 @@ import { DTFilterOperand } from "./dt_filter_operand"
  * | name      |SimpleAttributeOperand                            |
  * | isAbstract|false                                             |
  */
-export interface DTSimpleAttributeOperand extends DTFilterOperand  {
+export interface DTSimpleAttributeOperand extends DTFilterOperand {
   typeDefinitionId: NodeId; // NodeId ns=0;i=17
   browsePath: QualifiedName[]; // QualifiedName ns=0;i=20
   attributeId: UInt32; // UInt32 ns=0;i=288
   indexRange: UAString; // String ns=0;i=291
 }
+export interface UDTSimpleAttributeOperand extends ExtensionObject, DTSimpleAttributeOperand {};

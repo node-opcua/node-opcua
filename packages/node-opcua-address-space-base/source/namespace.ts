@@ -250,13 +250,23 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
 
 export type CreateNodeOptions = any;
 
+export interface RequiredModel {
+    modelUri: string;
+    version: string;
+    publicationDate: Date;
+}
+
 export declare interface INamespace {
     version: string;
     publicationDate: Date;
     namespaceUri: string;
     addressSpace: IAddressSpace;
     index: number;
- 
+
+    $emulateVersion103?: boolean;
+
+    getRequiredModels(): RequiredModel[] | undefined;
+
     constructNodeId(options: ConstructNodeIdOptions): NodeId;
 
     // -------------------------------------------------------------------------
@@ -297,6 +307,8 @@ export declare interface INamespace {
     addFolder(parentFolder: NodeIdLike | UAObject, options: any): UAObject;
 
     createNode(options: CreateNodeOptions): BaseNode;
+
+    /** @private */
     internalCreateNode(options: CreateNodeOptions): BaseNode;
 
     // -------------------------------------------------------------------------

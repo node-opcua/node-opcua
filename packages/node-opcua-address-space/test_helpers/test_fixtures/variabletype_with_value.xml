@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+    xmlns:s1="http://sterfive.com/Small_model/Types.xsd"
+    xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://sterfive.com/Small_model/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://sterfive.com/Small_model/" PublicationDate="2021-11-12T07:45:13Z" Version="1.0.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2020-07-15T00:00:00Z" Version="1.04.7"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="Byte">i=3</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="Enumeration">i=29</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="EUInformation">i=887</Alias>
+        <Alias Alias="OverrideMode">ns=1;i=46</Alias>
+        <Alias Alias="ConnectionDetails">ns=1;i=47</Alias>
+        <Alias Alias="GasComposition">ns=1;i=48</Alias>
+        <Alias Alias="FlowDirection">ns=1;i=49</Alias>
+        <Alias Alias="MyEnum">ns=1;i=3002</Alias>
+        <Alias Alias="MyStructDataType">ns=1;i=3003</Alias>
+    </Aliases>
+    <Extensions>
+    </Extensions>
+    <UADataType NodeId="ns=1;i=49" BrowseName="1:FlowDirection">
+        <DisplayName>FlowDirection</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=1250</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="1:FlowDirection">
+            <Field Name="Forward" Value="0"/>
+            <Field Name="Reverse" Value="1"/>
+        </Definition>
+    </UADataType>
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=49" ValueRank="1" NodeId="ns=1;i=1250" ArrayDimensions="2" BrowseName="EnumStrings">
+        <DisplayName>EnumStrings</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=49</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfLocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Forward</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>Reverse</uax:Text>
+                </uax:LocalizedText>
+            </uax:ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+
+    <UAObjectType NodeId="ns=1;i=39" BrowseName="1:Meter">
+        <DisplayName>Meter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+
+    <UAObjectType NodeId="ns=1;i=40" BrowseName="1:LinearMeter">
+        <DisplayName>LinearMeter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">ns=1;i=1522</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=39</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1242</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable DataType="FlowDirection" ParentNodeId="ns=1;i=40" NodeId="ns=1;i=1522" BrowseName="1:FlowDirection">
+        <DisplayName>FlowDirection</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;i=44</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=40</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=1523</Reference>
+        </References>
+    </UAVariable>
+
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=1059" NodeId="ns=1;i=1195" BrowseName="1:ConnectionDetails">
+        <DisplayName>ConnectionDetails</DisplayName>
+        <References>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=80</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1059</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+        </References>
+        <Value>
+            <uax:String>ConnectionDetails</uax:String>
+        </Value>
+    </UAVariable>
+
+    <UADataType NodeId="ns=1;i=47" BrowseName="1:ConnectionDetails">
+        <DisplayName>ConnectionDetails</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=80</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=183</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=182</Reference>
+        </References>
+        <Definition Name="1:ConnectionDetails">
+            <Field IsOptional="true" DataType="ByteString" ValueRank="1" ArrayDimensions="0" Name="Certificates"/>
+            <Field DataType="String" Name="Url"/>
+        </Definition>
+    </UADataType>
+
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=182" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasDescription">ns=1;i=1196</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=47</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=183" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=47</Reference>
+        </References>
+    </UAObject>
+
+    <UAVariableType DataType="ConnectionDetails" NodeId="ns=1;i=42" BrowseName="1:ConnectionDetailsType">
+        <DisplayName>ConnectionDetailsType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">ns=1;i=1194</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=11333</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=63</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=182</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <ConnectionDetails xmlns="http://sterfive.com/Small_model/Types.xsd">
+                        <EncodingMask>1</EncodingMask>
+                        <Certificates>
+                            <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">SGVsbG8=</ByteString>
+                            <ByteString xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">V29ybGQ=</ByteString>
+                        </Certificates>
+                        <Url>Put Default URL here</Url>
+                    </ConnectionDetails>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariableType>
+    <UAVariable DataType="ByteString" ParentNodeId="ns=1;i=42" ValueRank="1" NodeId="ns=1;i=1194" BrowseName="1:Certificates" AccessLevel="3">
+        <DisplayName>Certificates</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=42</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=42" NodeId="ns=1;i=11333" BrowseName="1:Url">
+        <DisplayName>Url</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=42</Reference>
+        </References>
+    </UAVariable>
+
+    <UADataType NodeId="ns=1;i=3002" BrowseName="1:MyEnum">
+        <DisplayName>MyEnum</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+        </References>
+        <Definition Name="1:MyEnum">
+            <Field Name="Green" Value="100"/>
+            <Field Name="Orange" Value="200"/>
+            <Field Name="Blue" Value="300"/>
+        </Definition>
+    </UADataType>
+
+    <UAVariable DataType="EnumValueType" ParentNodeId="ns=1;i=3002" ValueRank="1" NodeId="ns=1;i=6001" ArrayDimensions="3" BrowseName="EnumValues">
+        <DisplayName>EnumValues</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3002</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=7616</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:EnumValueType>
+                            <uax:Value>100</uax:Value>
+                            <uax:DisplayName>
+                                <uax:Text>Green</uax:Text>
+                            </uax:DisplayName>
+                            <uax:Description/>
+                        </uax:EnumValueType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=7616</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:EnumValueType>
+                            <uax:Value>200</uax:Value>
+                            <uax:DisplayName>
+                                <uax:Text>Orange</uax:Text>
+                            </uax:DisplayName>
+                            <uax:Description/>
+                        </uax:EnumValueType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=7616</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <uax:EnumValueType>
+                            <uax:Value>300</uax:Value>
+                            <uax:DisplayName>
+                                <uax:Text>Blue</uax:Text>
+                            </uax:DisplayName>
+                            <uax:Description/>
+                        </uax:EnumValueType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6007</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5003" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    
+    <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyStructDataType">
+        <DisplayName>MyStructDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:MyStructDataType">
+            <Field DataType="MyEnum" Name="F1"/>
+            <Field DataType="MyEnum" ValueRank="1" ArrayDimensions="0" Name="F2"/>
+        </Definition>
+    </UADataType>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6002" NodeId="ns=1;i=6006" BrowseName="1:MyStructType">
+        <DisplayName>MyStructType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5001</Reference>
+        </References>
+        <Value>
+            <uax:String>MyStructDataType</uax:String>
+        </Value>
+    </UAVariable>
+
+    <UAVariable DataType="MyStructDataType" NodeId="ns=1;i=6009" BrowseName="1:TestVar" AccessLevel="3">
+        <DisplayName>TestVar</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=2253</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <MyStructDataType xmlns="http://yourorganisation.org/enumInExtObj/Types.xsd">
+                        <F1>Orange_200</F1>
+                        <F2>
+                            <MyEnum>Green_100</MyEnum>
+                            <MyEnum>Orange_200</MyEnum>
+                            <MyEnum>Red_300</MyEnum>
+                        </F2>
+                    </MyStructDataType>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+</UANodeSet>

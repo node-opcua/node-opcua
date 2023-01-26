@@ -13,8 +13,8 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |number ns=0;i=11                                  |
  * |isAbstract      |false                                             |
  */
-export interface UAAlarmRateVariable_Base<T extends number/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.Double> {
-    rate: UAProperty<UInt16, /*z*/DataType.UInt16>;
+export interface UAAlarmRateVariable_Base<T extends number>  extends UABaseDataVariable_Base<T, DataType.Double> {
+    rate: UAProperty<UInt16, DataType.UInt16>;
 }
-export interface UAAlarmRateVariable<T extends number/*j*/> extends UABaseDataVariable<T, /*n*/DataType.Double>, UAAlarmRateVariable_Base<T /*B*/> {
+export interface UAAlarmRateVariable<T extends number> extends UABaseDataVariable<T, DataType.Double>, UAAlarmRateVariable_Base<T> {
 }

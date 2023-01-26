@@ -11,9 +11,9 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAAuthorizationServiceConfiguration_Base {
-    serviceUri: UAProperty<UAString, /*z*/DataType.String>;
-    serviceCertificate: UAProperty<Buffer, /*z*/DataType.ByteString>;
-    issuerEndpointUrl: UAProperty<UAString, /*z*/DataType.String>;
+    serviceUri: UAProperty<UAString, DataType.String>;
+    serviceCertificate: UAProperty<Buffer, DataType.ByteString>;
+    issuerEndpointUrl: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuthorizationServiceConfiguration extends UAObject, UAAuthorizationServiceConfiguration_Base {
 }

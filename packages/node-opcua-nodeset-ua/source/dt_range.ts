@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -8,7 +9,8 @@ import { DTStructure } from "./dt_structure"
  * | name      |Range                                             |
  * | isAbstract|false                                             |
  */
-export interface DTRange extends DTStructure  {
+export interface DTRange extends DTStructure {
   low: number; // Double ns=0;i=11
   high: number; // Double ns=0;i=11
 }
+export interface UDTRange extends ExtensionObject, DTRange {};

@@ -11,6 +11,9 @@
   "references": [
     {
       "path": "../node-opcua-assert"
+    },
+    {
+      "path": "../node-opcua-debug"
     }
   ],
   "exclude": [

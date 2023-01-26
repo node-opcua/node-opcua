@@ -20,7 +20,7 @@ export interface UARfidAccessEvent_Base extends UAAutoIdAccessEvent_Base {
      * accessResult
      * Result values of the access.
      */
-    accessResult: UAProperty<DTRfidAccessResult[], /*z*/DataType.ExtensionObject>;
+    accessResult: UAProperty<DTRfidAccessResult[], DataType.ExtensionObject>;
 }
 export interface UARfidAccessEvent extends Omit<UAAutoIdAccessEvent, "accessResult">, UARfidAccessEvent_Base {
 }

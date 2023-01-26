@@ -13,15 +13,10 @@ Note: Github issues are intended to be handled by the community. You may want to
 
 !! Please do not submit support requests here. !!
 
-**for community support**
 
-      - use [gitter](https://gitter.im/node-opcua/node-opcua)
-      - use [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
-      - access the "NodeOPCUA by example" book at https://leanpub.com/node-opcuabyexample
+Support requests are handled exclusively through the NodeOPCUA Membership program on a dedicated forum.
 
-**for professional support** 
-
-You can access sterfive professional support by subscribing to our **[NODE-OPCUA membership program](https://support.sterfive.com)**
+Please subscribe to the **[NODE-OPCUA membership program](https://support.sterfive.com)**
      
                            https://support.sterfive.com
                  
@@ -34,8 +29,7 @@ Professional support ensures the following:
 - 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample)
 
 
-
-You may also [contact Sterfive directly](https://www.sterfive.com) for dedicated professional support: mailto:contact@sterfive.com
+You may also [contact Sterfive](https://www.sterfive.com) for dedicated professional support: mailto:contact@sterfive.com
 
 
 **Consider backing or sponsoring the node-opcua initiative** 
@@ -61,6 +55,13 @@ Grants ensure the following:
 🐛 Quick responses to bug reports
 🚀 New features & enhancements
 ⚖️ representing the node-opcua user community at the OPC Foundation
+
+
+**for community support**
+    - use [gitter](https://gitter.im/node-opcua/node-opcua)
+    - use [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
+    - access the "NodeOPCUA by example" book at https://leanpub.com/node-opcuabyexample
+
 -->
 
 **Current behavior**
@@ -138,8 +139,10 @@ gist:
     - link to the manufacturer or product site: https://
 
 - **node-opcua version:** :
+
   <!-- provide the semver version numero of node-opcua -->
   <!-- Check which is the hash of the last commit from node-opcua that you have locally -->
 
 - **Node:**
+
   `node --version` =

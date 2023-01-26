@@ -24,7 +24,7 @@ export interface UADrive_Base extends UADevice_Base {
      * information displayed on type shields or in ERP
      * systems.
      */
-    productCode: UAProperty<UAString, /*z*/DataType.String>;
+    productCode: UAProperty<UAString, DataType.String>;
 }
 export interface UADrive extends Omit<UADevice, "productCode">, UADrive_Base {
 }

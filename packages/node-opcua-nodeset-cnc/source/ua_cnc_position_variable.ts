@@ -17,24 +17,24 @@ import { DTCncPosition } from "./dt_cnc_position"
  * |dataType Name   |DTCncPosition ns=11;i=3007                        |
  * |isAbstract      |false                                             |
  */
-export interface UACncPositionVariable_Base<T extends DTCncPosition/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
+export interface UACncPositionVariable_Base<T extends DTCncPosition>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**
      * actPos
      * Position current value.
      */
-    actPos: UABaseDataVariable<number, /*z*/DataType.Double>;
+    actPos: UABaseDataVariable<number, DataType.Double>;
     /**
      * cmdPos
      * Position setpoint value.
      */
-    cmdPos: UABaseDataVariable<number, /*z*/DataType.Double>;
-    engineeringUnits: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-    euRange: UAProperty<DTRange, /*z*/DataType.ExtensionObject>;
+    cmdPos: UABaseDataVariable<number, DataType.Double>;
+    engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;
+    euRange: UAProperty<DTRange, DataType.ExtensionObject>;
     /**
      * remDist
      * Remaining distance to go.
      */
-    remDist: UABaseDataVariable<number, /*z*/DataType.Double>;
+    remDist: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UACncPositionVariable<T extends DTCncPosition/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UACncPositionVariable_Base<T /*B*/> {
+export interface UACncPositionVariable<T extends DTCncPosition> extends UABaseDataVariable<T, DataType.ExtensionObject>, UACncPositionVariable_Base<T> {
 }

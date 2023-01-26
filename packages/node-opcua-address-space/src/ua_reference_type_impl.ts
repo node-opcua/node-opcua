@@ -56,7 +56,7 @@ function _getAllSubtypes(ref: UAReferenceType) {
 function _internal_getSubtypeIndex(referenceType: UAReferenceType): { [key: string]: UAReferenceTypePublic } {
     const possibleReferenceTypes = _getAllSubtypes(referenceType);
     // create a index of reference type with browseName as key for faster search
-    const keys: any = {};
+    const keys: Record<string, UAReferenceType> = {};
     for (const refType of possibleReferenceTypes) {
         keys[refType.nodeId.toString()] = refType;
     }
@@ -65,7 +65,7 @@ function _internal_getSubtypeIndex(referenceType: UAReferenceType): { [key: stri
 
 function _getSubtypeIndex(referenceType: UAReferenceType): { [key: string]: UAReferenceTypePublic } {
     const _cache = BaseNode_getCache(referenceType);
-    if (!_cache._subtype_idx || _cache._subtype_idxVersion < ReferenceTypeCounter.count) {
+    if (!_cache._subtype_idx || (_cache._subtype_idxVersion && _cache._subtype_idxVersion < ReferenceTypeCounter.count)) {
         // the cache need to be invalidated
         _cache._subtype_idx = null;
     }

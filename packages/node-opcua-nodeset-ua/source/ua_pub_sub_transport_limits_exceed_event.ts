@@ -12,8 +12,8 @@ import { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_stat
  * |isAbstract      |true                                              |
  */
 export interface UAPubSubTransportLimitsExceedEvent_Base extends UAPubSubStatusEvent_Base {
-    actual: UAProperty<UInt32, /*z*/DataType.UInt32>;
-    maximum: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    actual: UAProperty<UInt32, DataType.UInt32>;
+    maximum: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAPubSubTransportLimitsExceedEvent extends UAPubSubStatusEvent, UAPubSubTransportLimitsExceedEvent_Base {
 }

@@ -11,7 +11,7 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |true                                              |
  */
 export interface UAElementMonitoring_Base {
-    name: UAProperty<UAString, /*z*/DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
 }
 export interface UAElementMonitoring extends UAObject, UAElementMonitoring_Base {
 }

@@ -1,11 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { EnumMotionDeviceCategory } from "./enum_motion_device_category"
 import { UALoad } from "./ua_load"
 export interface UAMotionDevice_parameterSet extends UAObject { // Object
       /**
@@ -18,7 +19,7 @@ export interface UAMotionDevice_parameterSet extends UAObject { // Object
        * false. If OnPath is false, the motion device
        * needs repositioning to continue program execution.
        */
-      onPath?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+      onPath?: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
        * inControl
        * InControl provides the information if the
@@ -26,13 +27,13 @@ export interface UAMotionDevice_parameterSet extends UAObject { // Object
        * device are powered up and in control: "true". The
        * motion device might be in a standstill.
        */
-      inControl?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+      inControl?: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
        * speedOverride
        * SpeedOverride provides the current speed setting
        * in percent of programmed speed (0 - 100%).
        */
-      speedOverride: UABaseDataVariable<number, /*z*/DataType.Double>;
+      speedOverride: UABaseDataVariable<number, DataType.Double>;
 }
 /**
  * Represents a specific motion device in the motion
@@ -53,17 +54,17 @@ export interface UAMotionDevice_Base extends UAComponent_Base {
      * Flat list of Parameters
      */
     parameterSet: UAMotionDevice_parameterSet;
-    manufacturer: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    model: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    productCode: UAProperty<UAString, /*z*/DataType.String>;
-    serialNumber: UAProperty<UAString, /*z*/DataType.String>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
+    productCode: UAProperty<UAString, DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
     /**
      * motionDeviceCategory
      * The variable MotionDeviceCategory provides the
      * kind of motion device defined by
      * MotionDeviceCategoryEnumeration based on ISO 8373.
      */
-    motionDeviceCategory: UAProperty<any, any>;
+    motionDeviceCategory: UAProperty<EnumMotionDeviceCategory, DataType.Int32>;
     /**
      * axes
      * Axes is a container for one or more instances of

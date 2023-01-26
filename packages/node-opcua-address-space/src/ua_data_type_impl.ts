@@ -5,10 +5,8 @@ import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
-import { EnumerationDefinition, StructuredTypeSchema } from "node-opcua-factory";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { StatusCodes } from "node-opcua-status-code";
@@ -17,29 +15,21 @@ import {
     EnumDefinition,
     EnumFieldOptions,
     StructureDefinition,
-    StructureField,
     StructureFieldOptions,
     StructureType
 } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode, CreateDataTypeOptions } from "node-opcua-address-space-base";
+import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
 
 import { SessionContext } from "../source/session_context";
+import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { BaseNode_getCache } from "./base_node_private";
-
-export type ExtensionObjectConstructor = new (options: any) => ExtensionObject;
-export interface ExtensionObjectConstructorFuncWithSchema extends ExtensionObjectConstructor {
-    schema: StructuredTypeSchema;
-    possibleFields: string[];
-    encodingDefaultBinary: ExpandedNodeId;
-    encodingDefaultXml: ExpandedNodeId;
-}
 
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
@@ -55,6 +45,7 @@ export interface EnumerationInfo {
 }
 export interface UADataTypeOptions extends InternalBaseNodeOptions {
     partialDefinition: StructureFieldOptions[] | EnumFieldOptions[];
+    isUnion?: boolean;
     isAbstract?: boolean;
     symbolicName?: string;
 }
@@ -87,6 +78,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     public readonly isAbstract: boolean;
 
+    private $isUnion?: boolean;
     private enumStrings?: any;
     private enumValues?: any;
     private $partialDefinition?: StructureFieldOptions[] | EnumFieldOptions[];
@@ -96,6 +88,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         super(options);
         if (options.partialDefinition) {
             this.$partialDefinition = options.partialDefinition;
+            this.$isUnion = options.isUnion;
         }
         this.isAbstract = options.isAbstract === undefined || options.isAbstract === null ? false : options.isAbstract;
         this.symbolicName = options.symbolicName || this.browseName.name!;
@@ -125,7 +118,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             case AttributeIds.DataTypeDefinition:
                 {
                     const _definition = this._getDefinition()?.clone();
-                    if (_definition !== null) {
+                    if (_definition) {
                         options.value = { dataType: DataType.ExtensionObject, value: _definition };
                     } else {
                         options.statusCode = StatusCodes.BadAttributeIdInvalid;
@@ -155,8 +148,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     public getEncodingNode(encoding_name: string): UAObject | null {
         const _cache = BaseNode_getCache(this);
+        _cache._encoding = _cache._encoding || {};
         const key = encoding_name + "Node";
-        if (_cache[key] === undefined) {
+        if (_cache._encoding[key] === undefined) {
             assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
             // could be binary or xml
             const refs = this.findReferences("HasEncoding", true);
@@ -166,24 +160,18 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 .filter((obj: any) => obj !== null)
                 .filter((obj: any) => obj.browseName.toString() === encoding_name);
             const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
-            _cache[key] = node;
+            _cache._encoding[key] = node;
         }
-        return _cache[key];
+        return _cache._encoding[key];
     }
 
     public getEncodingNodeId(encoding_name: string): ExpandedNodeId | null {
-        const _cache = BaseNode_getCache(this);
-        const key = encoding_name + "NodeId";
-        if (_cache[key] === undefined) {
-            const encoding = this.getEncodingNode(encoding_name);
-            if (encoding) {
-                const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
-                _cache[key] = ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
-            } else {
-                _cache[key] = null;
-            }
+        const encoding = this.getEncodingNode(encoding_name);
+        if (!encoding) {
+            return null;
         }
-        return _cache[key];
+        const namespaceUri = this.addressSpace.getNamespaceUri(encoding.nodeId.namespace);
+        return ExpandedNodeId.fromNodeId(encoding.nodeId, namespaceUri);
     }
     /**
      * returns the encoding of this node's
@@ -387,7 +375,11 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
             chalk.yellow("          xmlEncodingNodeId   : ") +
             (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
-
+    options.add(
+        options.padding +
+            chalk.yellow("          jsonEncodingNodeId  : ") +
+            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+    );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
@@ -410,6 +402,7 @@ function makeEnumDefinition(definitionFields: EnumFieldOptions[]) {
         }))
     });
 }
+
 function makeStructureDefinition(
     name: string,
     baseDataType: NodeId,

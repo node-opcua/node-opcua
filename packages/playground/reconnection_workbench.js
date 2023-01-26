@@ -39,8 +39,10 @@ const { cli } = require("winston/lib/winston/config");
 
 async function startServer() {
     const server = new OPCUAServer({
-        maxAllowedSessionNumber: 1,
-        defaultSecureTokenLifetime: 20000
+        defaultSecureTokenLifetime: 20000,
+        serverCapabilities: {
+            maxSessions: 1,
+        }
         // use default timeout: 100000,
     });
 

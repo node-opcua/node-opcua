@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { Int32 } from "node-opcua-basic-types"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 import { DTResult } from "./dt_result"
@@ -20,7 +20,6 @@ import { DTResultId } from "./dt_result_id"
  * |typedDefinition |4:ResultFolderType ns=4;i=1016                    |
  * |isAbstract      |false                                             |
  */
-export interface UAResultFolder_Base extends UAFolder_Base {
-}
+export type UAResultFolder_Base = UAFolder_Base;
 export interface UAResultFolder extends UAFolder, UAResultFolder_Base {
 }

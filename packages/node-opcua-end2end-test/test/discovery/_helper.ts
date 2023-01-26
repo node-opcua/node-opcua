@@ -84,16 +84,16 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
     server.discoveryServerEndpointUrl.should.eql(discoveryServerEndpointUrl);
 
     server.on("serverRegistrationPending", () => {
-        debugLog("server serverRegistrationPending");
+        debugLog("on serverRegistrationPending event received on server " + server.getEndpointUrl());
     });
     server.on("serverRegistered", () => {
-        debugLog("server serverRegistered");
+        debugLog("on serverRegistered event received on server " + server.getEndpointUrl());
     });
     server.on("serverRegistrationRenewed", () => {
-        debugLog("server serverRegistrationRenewed");
+        debugLog("on serverRegistrationRenewed event received on server " + server.getEndpointUrl());
     });
     server.on("serverUnregistered", () => {
-        debugLog("server serverUnregistered");
+        debugLog("on serverUnregistered event received on server " + server.getEndpointUrl());
     });
     return server;
 }
@@ -104,11 +104,8 @@ export function ep(server: OPCUABaseServer) {
 }
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
-    const serverCertificateManager = new OPCUACertificateManager({
-        automaticallyAcceptUnknownCertificate: true,
-        rootFolder: path.join(configFolder, "PKI-Discovery" + port)
-    });
-    await serverCertificateManager.initialize();
+
+    const serverCertificateManager = await createServerCertificateManager(port)
 
     const privateKeyFile = serverCertificateManager.privateKey;
     const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");

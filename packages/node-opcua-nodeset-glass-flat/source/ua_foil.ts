@@ -12,7 +12,7 @@ import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
  * |isAbstract      |false                                             |
  */
 export interface UAFoil_Base extends UABaseMaterial_Base {
-    z: UAAnalogUnit<number, /*z*/DataType.Double>;
+    z: UAAnalogUnit<number, DataType.Double>;
 }
 export interface UAFoil extends Omit<UABaseMaterial, "z">, UAFoil_Base {
 }

@@ -50,7 +50,7 @@ describe("ServerConfiguration", () => {
         channel: {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientCertificate: Buffer.from("dummy", "ascii")
+            clientCertificate: Buffer.from("dummy", "utf-8")
         },
         getSessionId() {
             return NodeId.nullNodeId;
@@ -84,7 +84,9 @@ describe("ServerConfiguration", () => {
             throw err;
         }
     });
+
     afterEach(async () => {
+        await addressSpace.shutdown();
         addressSpace.dispose();
         await applicationGroup.dispose();
         await userTokenGroup.dispose();
@@ -172,7 +174,7 @@ describe("ServerConfiguration", () => {
 
             const certificateGroupId = await clientPullCertificateManager.getCertificateGroupId("DefaultApplicationGroup");
             const certificateTypeId = new NodeId();
-            const subjectName = "/O=NodeOPCUA/CN=urn:NodeOPCUA-Server";
+            const subjectName = "O=NodeOPCUA/CN=urn:NodeOPCUA-Server";
             const regeneratePrivateKey = false;
             const nonce = Buffer.alloc(0);
 
@@ -235,7 +237,7 @@ describe("ServerConfiguration", () => {
 
             const trustList = await defaultApplicationGroup.getTrustList();
             let a = await trustList.readTrustedCertificateList();
-            console.log(a.toString());
+            doDebug && console.log(a.toString());
 
             // now add a certificate
             const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
@@ -246,7 +248,7 @@ describe("ServerConfiguration", () => {
             sc.should.eql(StatusCodes.Good);
 
             a = await trustList.readTrustedCertificateList();
-            console.log(a.toString());
+            doDebug && console.log(a.toString());
             a.trustedCertificates!.length.should.eql(1);
             a.issuerCertificates!.length.should.eql(1); // the issuer certificate in the chain
             a.issuerCrls!.length.should.eql(0);

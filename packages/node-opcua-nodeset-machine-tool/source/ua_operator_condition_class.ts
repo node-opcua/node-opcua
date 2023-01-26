@@ -8,7 +8,6 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "node-opcua-node
  * |typedDefinition |10:OperatorConditionClassType ns=10;i=47          |
  * |isAbstract      |true                                              |
  */
-export interface UAOperatorConditionClass_Base extends UABaseConditionClass_Base {
-}
+export type UAOperatorConditionClass_Base = UABaseConditionClass_Base;
 export interface UAOperatorConditionClass extends UABaseConditionClass, UAOperatorConditionClass_Base {
 }

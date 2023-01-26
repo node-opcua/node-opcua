@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { Guid } from "node-opcua-basic-types"
 import { DTConfigurationVersion } from "./dt_configuration_version"
 import { DTDataSetMeta } from "./dt_data_set_meta"
@@ -15,6 +15,7 @@ import { UAFolder, UAFolder_Base } from "./ua_folder"
  * |isAbstract      |false                                             |
  */
 export interface UADataSetFolder_Base extends UAFolder_Base {
+   // PlaceHolder for $PublishedDataSetName$
     addPublishedDataItems?: UAMethod;
     addPublishedEvents?: UAMethod;
     addPublishedDataItemsTemplate?: UAMethod;
@@ -22,6 +23,7 @@ export interface UADataSetFolder_Base extends UAFolder_Base {
     removePublishedDataSet?: UAMethod;
     addDataSetFolder?: UAMethod;
     removeDataSetFolder?: UAMethod;
+   // PlaceHolder for $DataSetFolderName$
 }
 export interface UADataSetFolder extends UAFolder, UADataSetFolder_Base {
 }

@@ -3,10 +3,11 @@
 const should = require("should");
 const async = require("async");
 
-const { OPCUAClient, DataType, NodeCrawler, StatusCodes, AttributeIds } = require("node-opcua");
-
+const { OPCUAClient, DataType, StatusCodes, AttributeIds } = require("node-opcua");
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
+
+const { NodeCrawler } = require("node-opcua-client-crawler");
 
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");

@@ -1,4 +1,4 @@
-const getFunctionParameterNames = require("..").getFunctionParameterNames;
+const { getFunctionParameterNames } = require("..");
 
 describe("testing getFunctionParameterNames", function () {
     it("#getFunctionParameterNames", function () {

@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |PublishedDataSetSourceDataType                    |
  * | isAbstract|true                                              |
  */
-export interface DTPublishedDataSetSource extends DTStructure  {
-}
+export type DTPublishedDataSetSource = DTStructure;

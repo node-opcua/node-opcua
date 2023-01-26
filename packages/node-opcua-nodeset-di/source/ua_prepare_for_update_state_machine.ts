@@ -16,7 +16,7 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
  * |isAbstract      |false                                             |
  */
 export interface UAPrepareForUpdateStateMachine_Base extends UAFiniteStateMachine_Base {
-    percentComplete?: UABaseDataVariable<Byte, /*z*/DataType.Byte>;
+    percentComplete?: UABaseDataVariable<Byte, DataType.Byte>;
     prepare: UAMethod;
     abort: UAMethod;
     resume?: UAMethod;

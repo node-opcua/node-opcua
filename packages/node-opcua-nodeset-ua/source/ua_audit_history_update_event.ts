@@ -12,7 +12,7 @@ import { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_e
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryUpdateEvent_Base extends UAAuditUpdateEvent_Base {
-    parameterDataTypeId: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    parameterDataTypeId: UAProperty<NodeId, DataType.NodeId>;
 }
 export interface UAAuditHistoryUpdateEvent extends UAAuditUpdateEvent, UAAuditHistoryUpdateEvent_Base {
 }

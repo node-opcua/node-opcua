@@ -24,7 +24,7 @@ export interface UALoad_Base {
      * The weight of the load mounted on one mounting
      * point.
      */
-    mass: UAAnalogUnit<number, /*z*/DataType.Double>;
+    mass: UAAnalogUnit<number, DataType.Double>;
     /**
      * centerOfMass
      * The position and orientation of the center of the

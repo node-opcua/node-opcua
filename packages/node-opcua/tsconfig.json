@@ -9,6 +9,9 @@
     "include": ["source/**/*.ts"],
     "references": [
         {
+            "path": "../node-opcua-aggregates"
+        },
+        {
             "path": "../node-opcua-address-space"
         },
         {
@@ -54,12 +57,6 @@
             "path": "../node-opcua-debug"
         },
         {
-            "path": "../node-opcua-enum"
-        },
-        {
-            "path": "../node-opcua-factory"
-        },
-        {
             "path": "../node-opcua-hostname"
         },
         {
@@ -70,12 +67,6 @@
         },
         {
             "path": "../node-opcua-numeric-range"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer"
-        },
-        {
-            "path": "../node-opcua-secure-channel"
         },
         {
             "path": "../node-opcua-server"

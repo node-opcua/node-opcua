@@ -7,7 +7,6 @@ const {
     ClientSidePublishEngine,
     Subscription
 } = require("node-opcua");
-const { perform_operation_on_session_async } = require("../../test_helpers/perform_operation_on_client_session");
 const sinon = require("sinon");
 
 const itemsToMonitor1 = [
@@ -167,7 +166,7 @@ module.exports = function(test) {
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItemGroup.on("initialized", function() {
 
-                        const allGood = monitoredItemGroup.monitoredItems.filter((item, index) => item.statusCode !== StatusCodes.Good);
+                        const allGood = monitoredItemGroup.monitoredItems.filter((item, index) => item.statusCode.isNotGood());
                         if (allGood.length > 0) {
                             console.log(" Initialized Failed!", monitoredItemGroup.monitoredItems.map((item, index) => itemsToMonitor[index].nodeId.toString().padEnd(20) + " " + item.statusCode.toString()).join("\n"));
                             return reject(new Error("Initialization failed , some nodeId are "));

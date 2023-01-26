@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-utils",
-    "version": "2.64.1",
+    "version": "2.88.0",
     "description": "pure nodejs OPCUA SDK - module -utils",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -9,16 +9,15 @@
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('dist');\""
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.64.1"
+        "node-opcua-assert": "2.88.0"
     },
     "devDependencies": {
-        "@types/node": "17.0.21",
         "should": "^13.2.3",
-        "sinon": "^13.0.1"
+        "sinon": "^15.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

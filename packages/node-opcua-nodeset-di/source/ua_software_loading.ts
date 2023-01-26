@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |true                                              |
  */
 export interface UASoftwareLoading_Base {
-    updateKey?: UABaseDataVariable<UAString, /*z*/DataType.String>;
+    updateKey?: UABaseDataVariable<UAString, DataType.String>;
 }
 export interface UASoftwareLoading extends UAObject, UASoftwareLoading_Base {
 }

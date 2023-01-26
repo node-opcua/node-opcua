@@ -12,17 +12,18 @@ import {
     CreateNodeOptions,
     IAddressSpace,
     INamespace,
+    RequiredModel,
     UADataType,
     UAVariable,
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
-import { isValidGuid, StatusCodes } from "node-opcua-basic-types";
-import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import { coerceInt64, coerceUInt64, Int64, isValidGuid, StatusCodes, UInt64 } from "node-opcua-basic-types";
 import { EUInformation } from "node-opcua-data-access";
 import {
     AccessLevelFlag,
     coerceLocalizedText,
+    LocalizedTextOptions,
     makeAccessLevelFlag,
     NodeClass,
     QualifiedName,
@@ -31,18 +32,16 @@ import {
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { DataTypeFactory, findSimpleType, getStandardDataTypeFactory } from "node-opcua-factory";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { getBuiltInType } from "node-opcua-factory";
+import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
-import { CallbackT, ErrorCallback } from "node-opcua-status-code";
+import { ErrorCallback } from "node-opcua-status-code";
 import { EnumFieldOptions, EnumValueType, Range, StructureFieldOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
     _definitionParser,
-    Definition,
     FragmentClonerParser,
     InternalFragmentClonerReaderState,
-    makeExtensionObjectReader,
     ParserLike,
     ReaderState,
     ReaderStateParserLike,
@@ -54,106 +53,15 @@ import * as semver from "semver";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
-import { PseudoSession } from "../pseudo_session";
+import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
+import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
+import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
+import { makeSemverCompatible } from "./make_semver_compatible";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
-
-export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
-    const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
-    if (!addressSpacePriv.$$extraDataTypeManager) {
-        const dataTypeManager = new ExtraDataTypeManager();
-
-        const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
-        debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
-        dataTypeManager.setNamespaceArray(namespaceArray);
-        addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
-
-        for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-            const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
-            dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
-        }
-        // inject simple types
-
-        // now extract structure and enumeration from old form if
-        const session = new PseudoSession(addressSpace);
-        await populateDataTypeManager(session, dataTypeManager, true);
-    }
-    return addressSpacePriv.$$extraDataTypeManager;
-}
-
-export function ensureDatatypeExtractedWithCallback(addressSpace: IAddressSpace, callback: CallbackT<ExtraDataTypeManager>): void {
-    ensureDatatypeExtracted(addressSpace)
-        .then((result: ExtraDataTypeManager) => callback(null, result))
-        .catch((err) => callback(err));
-}
-
-function findDataTypeNode(addressSpace: IAddressSpace, encodingNodeId: NodeId): UADataType {
-    const encodingNode = addressSpace.findNode(encodingNodeId)!;
-
-    // istanbul ignore next
-    if (!encodingNode) {
-        throw new Error("findDataTypeNode:  Cannot find " + encodingNodeId.toString());
-    }
-    // xx console.log("encodingNode", encodingNode.toString());
-
-    const refs = encodingNode.findReferences("HasEncoding", false);
-    const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
-
-    // istanbul ignore next
-    if (dataTypes.length !== 1) {
-        throw new Error("Internal Error");
-    }
-
-    const dataTypeNode = dataTypes[0] as UADataType;
-    // istanbul ignore next
-    if (dataTypeNode.nodeClass !== NodeClass.DataType) {
-        throw new Error("internal error: expecting a UADataType node here");
-    }
-    return dataTypeNode;
-}
-
-async function decodeXmlObject(
-    addressSpace2: IAddressSpace,
-    xmlEncodingNodeId: NodeId,
-    xmlBody: string
-): Promise<ExtensionObject | null> {
-    const dataTypeManager = await ensureDatatypeExtracted(addressSpace2);
-    const dataTypeNode = findDataTypeNode(addressSpace2, xmlEncodingNodeId);
-
-    const dataTypeFactory = dataTypeManager.getDataTypeFactory(xmlEncodingNodeId.namespace);
-
-    // istanbul ignore next
-    if (!dataTypeNode) {
-        debugLog(" cannot find ", xmlEncodingNodeId.toString());
-        return null;
-    }
-    const dataTypeName = dataTypeNode.browseName.name!;
-    const definitionMap = {
-        findDefinition(name: string): Definition {
-            debugLog(chalk.magentaBright("xxxxxxxxxxxxx !!!! "), name);
-            if (!name) {
-                return { name: "", fields: [] };
-            }
-            return dataTypeFactory.getStructuredTypeSchema(name) as any as Definition;
-        }
-    };
-    const reader = makeExtensionObjectReader(dataTypeName, definitionMap, {});
-    const parser2 = new Xml2Json(reader);
-    const pojo = await parser2.parseString(xmlBody);
-    // at this time the bsd file containing object definition
-    // must have been found and object can be constructed
-    const userDefinedExtensionObject = addressSpace2.constructExtensionObject(dataTypeNode, pojo);
-
-    // istanbul ignore next
-    if (doDebug) {
-        debugLog("userDefinedExtensionObject", userDefinedExtensionObject.toString());
-    }
-    //
-    return userDefinedExtensionObject;
-}
 
 function __make_back_references(namespace: INamespace) {
     const namespaceP = namespace as NamespacePrivate;
@@ -183,34 +91,29 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
-function makeDefaultVariant2(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
-    const variant: VariantOptions = { dataType: DataType.Null };
-    return variant;
-}
 function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
-    if (nodeDataType) {
+    if (nodeDataType && nodeDataType.basicDataType) {
         const basicDataType = nodeDataType.basicDataType;
         if (basicDataType === DataType.Variant) {
             /// we don't now what is the variant
             return undefined;
         }
 
-        //  addressSpace.findCorrespondingBasicDataType(dataTypeNode);
         if (basicDataType === DataType.ExtensionObject) {
-            // console.log("xxxxxxxxxx ", dataTypeNode.toString(addressSpace as any));
             return { dataType: DataType.ExtensionObject, value: null };
         }
-        const dv = findSimpleType(DataType[basicDataType]).defaultValue;
-        if (dv === undefined || dv === null) {
-            // return
+        const builtInType = getBuiltInType(DataType[basicDataType]);
+        if (builtInType === undefined || builtInType === null) {
+            errorLog("Cannot find builtInType for ", basicDataType);
             return { dataType: DataType.Null };
         }
-        let arrayType: VariantArrayType;
+        const dv = builtInType.defaultValue;
         const value = typeof dv === "function" ? dv() : dv;
-        //  if (dataType === DataType.ByteString ) { value = Buffer.alloc(0) }
+
+        let arrayType: VariantArrayType;
         /*
          *  * n > 1                     : the Value is an array with the specified number of dimensions.
          *  * OneDimension (1):           The value is an array with one dimension.
@@ -236,7 +139,6 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
                 variant = { dataType: basicDataType, value: [], arrayType, dimensions: [] };
                 break;
         }
-        // console.log(variant, DataType[dataType], valueRank);
     }
     return variant;
 }
@@ -245,14 +147,18 @@ export interface NodeSet2ParserEngine {
     terminate: (callback: SimpleCallback) => void;
 }
 
-export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2ParserEngine {
+function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLoaderOptions): NodeSet2ParserEngine {
     const addressSpace1 = addressSpace as AddressSpacePrivate;
     addressSpace1.suspendBackReference = true;
 
-    let postTasks: Task[] = [];
-    let postTaskInitializeVariable: Task[] = [];
-    let postTasks2: Task[] = [];
-    let postTasks3: Task[] = [];
+    options.loadDeprecatedNodes = options.loadDeprecatedNodes === undefined ? true : options.loadDeprecatedNodes;
+    options.loadDraftNodes = options.loadDraftNodes || false;
+
+    const postTasks: Task[] = [];
+    const postTasks0_InitializeVariable: Task[] = [];
+    const postTasks0_DecodePojoString: Task[] = [];
+    const postTasks1_InitializeVariable: Task[] = [];
+    const postTasks2_AssignedExtensionObjectToDataValue: Task[] = [];
 
     let alias_map: { [key: string]: NodeId } = {};
 
@@ -271,6 +177,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
     let namespaceCounter = 0;
     let found_namespace_in_uri: { [key: string]: NamespacePrivate } = {};
     let models: Model[] = [];
+    let performedCalled = false;
 
     function _reset_namespace_translation() {
         debugLog("_reset_namespace_translation");
@@ -279,6 +186,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         namespaceCounter = 0;
         alias_map = {};
         models = [];
+        performedCalled = false;
     }
 
     function _translateNamespaceIndex(innerIndex: number) {
@@ -286,9 +194,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
         // istanbul ignore next
         if (namespaceIndex === undefined) {
-            // tslint:disable-next-line: no-console
             debugLog("Warning: namespace_uri_translation = ", namespace_uri_translation);
-            throw new Error("_translateNamespaceIndex! Cannot find namespace definition for index " + innerIndex);
+            errorLog("namespace_uri_translation", namespace_uri_translation);
+            throw new Error("_translateNamespaceIndex() ! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
     }
@@ -313,11 +221,13 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         return namespace.internalCreateNode(params) as BaseNode;
     }
 
-    function _register_namespace_uri_in_translation_table(namespaceUri: string): NamespacePrivate {
+    function _register_namespace_uri_in_translation_table(namespaceUri: string): void {
         if (found_namespace_in_uri[namespaceUri]) {
-            return found_namespace_in_uri[namespaceUri];
+            return;
         }
         const namespace = addressSpace1.getNamespace(namespaceUri);
+
+        // istanbul ignore next
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
@@ -340,28 +250,15 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 " index in addressSpace",
                 namespace.index
             );
-        return namespace;
     }
 
-    /**
-     * take a OPCUA version string and make it compliant with the semver specification
-     * @param version
-     * @returns
-     */
-    function makeSemverCompatible(version?: string): string {
-        version = version || "0.0.0";
-        const version_array = version.split(".").map((a) => parseInt(a, 10));
-
-        if (version_array.length === 2) {
-            version_array.push(0);
-        }
-        return version_array.map((a) => a.toString()).join(".");
-    }
     function _add_namespace(model: Model) {
         if (model.requiredModels.length > 0) {
             // check that required models exist already in the address space
             for (const requiredModel of model.requiredModels) {
                 const existingNamespace = addressSpace1.getNamespace(requiredModel.modelUri);
+                
+                // istanbul ignore next
                 if (!existingNamespace) {
                     errorLog(
                         "Please ensure that the required namespace ",
@@ -371,8 +268,19 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     );
                     throw new Error("LoadNodeSet : Cannot find namespace for " + requiredModel.modelUri);
                 }
-
-                if (semver.lt(makeSemverCompatible(existingNamespace.version), makeSemverCompatible(requiredModel.version))) {
+                /**
+                 *  from https://reference.opcfoundation.org/Core/docs/Part6/F.2/
+                 *  The version of the model defined in the UANodeSet.
+                 *  This is a human readable string and not intended for programmatic comparisons.
+                 *
+                 */
+                const isLowerVersion = (existingVersion: string, requiredVersion: string): boolean => {
+                    const existingSemver = makeSemverCompatible(existingVersion);
+                    const requiredSemver = makeSemverCompatible(requiredVersion);
+                    return semver.lt(existingSemver, requiredSemver);
+                };
+                
+                if (isLowerVersion(existingNamespace.version, requiredModel.version)) {
                     errorLog(
                         "Expecting ",
                         requiredModel.modelUri,
@@ -400,6 +308,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         const existingNamespace = addressSpace1.getNamespace(model.modelUri);
         if (existingNamespace) {
             // special treatment for namespace 0
+            // istanbul ignore else
             if (model.modelUri === "http://opcfoundation.org/UA/") {
                 namespace = existingNamespace;
             } else {
@@ -407,6 +316,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             }
         } else {
             namespace = addressSpace1.registerNamespace(model.modelUri);
+            namespace.setRequiredModels(model.requiredModels)
         }
 
         namespace.version = model.version;
@@ -488,6 +398,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAObject = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.Object;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -497,12 +409,10 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.obj.symbolicName = attrs.SymbolicName || null;
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
-            this.obj.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                // ignore Draft or Deprecated element
-                debugLog("Ignoring Draft/Deprecated UAObject =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);
@@ -526,6 +436,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAObjectType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.ObjectType;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -555,6 +467,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAReferenceType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.ReferenceType;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
@@ -590,6 +504,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UADataType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.DataType;
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract) || false;
@@ -605,30 +521,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.definitionFields = [];
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                // ignore Draft or Deprecated element
-                debugLog("Ignoring Draft/Deprecated dataType =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
-            /*
-            export interface StructureFieldOptions {
-                name?: UAString ; // **
-                description?: (LocalizedTextLike | null); // **
-                dataType?: (NodeIdLike | null);
-                valueRank?: Int32 ;
-                arrayDimensions?: UInt32 [] | null;
-                maxStringLength?: UInt32 ;
-                isOptional?: UABoolean ;
-            }
-            export interface EnumValueTypeOptions {
-                value?: Int64 ;
-                displayName?: (LocalizedTextLike | null);
-                description?: (LocalizedTextLike | null); // **
-            }
-            export interface EnumFieldOptions extends EnumValueTypeOptions {
-                name?: UAString ; // **
-            }
-            */
 
             const definitionFields = this.definitionFields as StructureFieldOptions[] | EnumFieldOptions[];
 
@@ -647,17 +542,16 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             });
             this.obj.partialDefinition = definitionFields;
 
-            const dataTypeNode = _internal_createNode(this.obj) as UADataType;
-            assert(addressSpace1.findNode(this.obj.nodeId));
-            const definitionName = dataTypeNode.browseName.name!;
-
+            let capturedDataTypeNode = _internal_createNode(this.obj) as UADataType;
             const processBasicDataType = async (addressSpace2: IAddressSpace) => {
-                const isStructure = dataTypeNode.isStructure();
-                const isEnumeration = dataTypeNode.isEnumeration();
-                if (!isEnumeration && !isStructure && dataTypeNode.nodeId.namespace !== 0) {
+                const definitionName = capturedDataTypeNode.browseName.name!;
+                const isStructure = capturedDataTypeNode.isStructure();
+                const isEnumeration = capturedDataTypeNode.isEnumeration();
+                if (!isEnumeration && !isStructure && capturedDataTypeNode.nodeId.namespace !== 0) {
                     // add a custom basic type that is not a structure nor a enumeration
-                    pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: dataTypeNode.nodeId });
+                    pendingSimpleTypeToRegister.push({ name: definitionName, dataTypeNodeId: capturedDataTypeNode.nodeId });
                 }
+                (capturedDataTypeNode as any) = undefined;
             };
             postTasks.push(processBasicDataType);
         },
@@ -906,7 +800,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         TypeId: {
             parser: {
                 Identifier: {
-                    finish(this: any) {
+                    finish(this: ExtensionObjectTypeIdIdentifierParser) {
                         const typeDefinitionId = this.text.trim();
                         const self = this.parent.parent; // ExtensionObject
                         self.typeDefinitionId = resolveNodeId(typeDefinitionId);
@@ -924,7 +818,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 EnumValueType: enumValueType_parser.EnumValueType,
                 Range: Range_parser.Range
             },
-            startElement(this: any, elementName: string, attrs: any) {
+            startElement(this: ExtensionObjectBodyParser, elementName: string, attrs: any) {
                 const self = this.parent; // ExtensionObject
                 self.extensionObject = null;
                 self.extensionObjectPojo = null;
@@ -936,7 +830,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     this.engine!._promote(this._cloneFragment, this.engine!.currentLevel, elementName, attrs);
                 }
             },
-            finish(this: any) {
+            finish(this: ExtensionObjectBodyParser) {
                 const self = this.parent; // ExtensionObject
 
                 // typeDefinitionId is also the "Default XML" encoding nodeId !
@@ -966,33 +860,53 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                         assert(self.extensionObject instanceof ExtensionObject);
                         break;
                     default: {
+                        // istanbul ignore next
+                        if (!this._cloneFragment) {
+                            // the XML file is probably not exposing standard UA extension object correctly.
+                            // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding
+                            // nodeid
+                            errorLog(
+                                "[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId",
+                                self.typeDefinitionId.toString()
+                            );
+                            break;
+                        }
                         this.bodyXML = this._cloneFragment!.value;
                         this._cloneFragment!.value = null;
 
                         // the "Default Xml" encoding  nodeId
                         const xmlEncodingNodeId = _translateNodeId(self.typeDefinitionId.toString());
-                        const xmlBody = this.bodyXML;
+
+                        if (xmlEncodingNodeId.isEmpty()) {
+                            debugLog("xmlEncodingNodeId is empty for " + self.typeDefinitionId.toString());
+                            break;
+                        }
+                        let captureXmlBody = this.bodyXML;
+                        if (doDebug) {
+                            debugLog("xxxx ", chalk.yellow(captureXmlBody));
+                        }
                         // this is a user defined Extension Object
                         debugLog(
                             "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );
-                        if (doDebug) {
-                            debugLog("xxxx ", chalk.yellow(xmlBody));
-                        }
-                        const postTaskData = self.postTaskData;
+
+                        let captured = self.postTaskData;
+                        self.extensionObjectPojo = null;
                         const task = async (addressSpace2: IAddressSpace) => {
-                            const extensionObject: ExtensionObject | null = await decodeXmlObject(
+                            const extensionObject: ExtensionObject | null = await decodeXmlExtensionObject(
                                 addressSpace2,
                                 xmlEncodingNodeId,
-                                xmlBody
+                                captureXmlBody
                             );
-                            if (postTaskData) {
-                                postTaskData.postponedExtensionObject = extensionObject;
+                            if (captured) {
+                                captured.postponedExtensionObject = extensionObject;
                             }
+                            (captureXmlBody as any) = undefined;
+                            (captured as any) = undefined;
                         };
-                        postTasks2.push(task);
-                        self.extensionObjectPojo = null;
+                        postTasks0_DecodePojoString.push(task);
                         assert(!self.extensionObject || self.extensionObject instanceof ExtensionObject);
+
                         break;
                     }
                 }
@@ -1002,27 +916,28 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const extensionObject_parser = {
         ExtensionObject: {
-            init(this: any) {
-                this.typeDefinitionId = "";
+            init(this: ExtensionObjectParser) {
+                this.typeDefinitionId = NodeId.nullNodeId;
                 this.extensionObject = null;
                 this.extensionObjectPojo = null;
+                this.postTaskData = { postponedExtensionObject: null };
             },
             parser: _extensionObject_inner_parser,
-            finish(this: any) {
+            finish(this: ExtensionObjectParser) {
                 /* empty */
             }
         }
     };
 
-    function BasicType_parser(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
+    function BasicType_parser<T>(dataType: string, parseFunc: (this: { value: T | undefined }, text: string) => any): ParserLike {
         const _parser: ParserLike = {};
 
         const r: ReaderStateParserLike = {
-            init(this: any, name: string, attrs: XmlAttributes) {
-                this.value = 0;
+            init(this: { value: T | undefined }, name: string, attrs: XmlAttributes) {
+                this.value = undefined;
             },
 
-            finish(this: any) {
+            finish(this: { value: T | undefined; text: string }) {
                 this.value = parseFunc.call(this, this.text);
             }
         };
@@ -1030,22 +945,22 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         return _parser;
     }
 
-    function ListOf(dataType: string, parseFunc: any) {
+    function ListOf<T>(dataType: string, parseFunc: any) {
         return {
-            init(this: any) {
+            init(this: ListOfTParser<T>) {
                 this.listData = [];
             },
 
-            parser: BasicType_parser(dataType, parseFunc),
+            parser: BasicType_parser<T>(dataType, parseFunc),
 
-            finish(this: any) {
+            finish(this: ListOfTParser<T>) {
                 this.parent.parent.obj.value = {
                     arrayType: VariantArrayType.Array,
                     dataType: (DataType as any)[dataType],
                     value: this.listData
                 };
             },
-            endElement(this: any, element: string) {
+            endElement(this: ListOfTParser<T>, element: string) {
                 this.listData.push(this.parser[dataType].value);
             }
         };
@@ -1055,12 +970,68 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         return {
             finish(this: any) {
                 this.parent.parent.obj.value = {
+                    arrayType: VariantArrayType.Scalar,
                     dataType: (DataType as any)[type],
                     value: p(this.text)
                 };
             }
         };
     }
+
+    interface PostExtensionObjectData {
+        postponedExtensionObject: ExtensionObject | null;
+        // variant: Variant;
+        // nodeId: NodeId;
+    }
+    interface ExtensionObjectParser {
+        parent: any;
+        typeDefinitionId: NodeId;
+        extensionObject: ExtensionObject | null;
+        extensionObjectPojo: any | null;
+        postTaskData?: PostExtensionObjectData;
+        parser: {
+            Body: ExtensionObjectBodyParser;
+        };
+    }
+
+    interface ExtensionObjectTypeIdParser {
+        parent: ExtensionObjectParser;
+    }
+    interface ExtensionObjectTypeIdIdentifierParser {
+        text: string;
+        parent: ExtensionObjectTypeIdParser;
+    }
+
+    interface ExtensionObjectBodyParser {
+        parent: ExtensionObjectParser;
+        _cloneFragment: InternalFragmentClonerReaderState;
+        bodyXML: string;
+        engine: any;
+        NodeSet2ParserEngine: any;
+        parser: any;
+    }
+
+    interface Parser {
+        parent: Parser | any;
+    }
+    interface ListOfTParser<T> extends Parser {
+        listData: T[];
+        parent: Parser;
+        parser: {
+            [key: string]: Parser | any;
+        };
+    }
+
+    interface ListOfExtensionObjectParser extends ListOfTParser<ExtensionObject> {
+        listExtensionObject: (ExtensionObject | null)[];
+        parser: {
+            ExtensionObject: ExtensionObjectParser;
+        };
+    }
+
+    const parseUInt64 = (str: string): UInt64 => coerceUInt64(str);
+    const parseInt64 = (str: string): Int64 => coerceInt64(str);
+
     const state_Variant = {
         init: () => {
             /* empty */
@@ -1144,6 +1115,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             UInt32: parser2("UInt32", parseInt),
             UInt8: parser2("UInt8", parseInt),
 
+            UInt64: parser2("UInt64", parseUInt64),
+            Int64: parser2("Int64", parseInt64),
+
             ByteString: {
                 init(this: any) {
                     this.value = null;
@@ -1177,152 +1151,210 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             },
 
             ListOfExtensionObject: {
-                init(this: any) {
-                    this.listData = [];
+                init(this: ListOfExtensionObjectParser) {
+                    this.listExtensionObject = [];
                 },
                 parser: extensionObject_parser,
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        arrayType: VariantArrayType.Array,
-                        dataType: DataType.ExtensionObject,
-                        value: this.listData
-                    };
+                finish(this: ListOfExtensionObjectParser) {
+                    installExtensionObjectListInitializationPostTask(this);
                 },
-                startElement(this: any, elementName: string) {
+                startElement(this: ListOfExtensionObjectParser, elementName: string) {
                     /* empty */
+                    const extensionObjectParser = this.parser.ExtensionObject;
+                    extensionObjectParser.postTaskData = { postponedExtensionObject: null };
                 },
-                endElement(this: any, elementName: string) {
-                    this.listData.push(this.parser.ExtensionObject.extensionObject);
+                endElement(this: ListOfExtensionObjectParser, elementName: string) {
+                    const extensionObjectParser = this.parser.ExtensionObject;
 
-                    if (this.parser.ExtensionObject.extensionObject) {
-                        // assert(element === "ExtensionObject");
+                    this.listExtensionObject.push(extensionObjectParser.extensionObject);
+                    if (this.parser.ExtensionObject.extensionObject === null) {
+                        // extension object creation will be postponed
+                        const index = this.listExtensionObject.length - 1;
+                        let capturedData = extensionObjectParser.postTaskData;
 
                         // istanbul ignore next
-                        if (!(this.parser.ExtensionObject.extensionObject instanceof ExtensionObject)) {
-                            throw new Error("expecting an extension object");
+                        if (!capturedData) {
+                            throw new Error("Internal Error : postponedExtensionObject not resolved");
                         }
+
+                        let listExtensionObject = this.listExtensionObject;
+                        const task = async (addressSpace2: IAddressSpace) => {
+                            // istanbul ignore next
+                            if (!capturedData!.postponedExtensionObject) {
+                                throw new Error("Internal Error : postponedExtensionObject not resolved");
+                            }
+                            listExtensionObject[index] = capturedData!.postponedExtensionObject!;
+                            capturedData = undefined;
+                            (listExtensionObject as any) = undefined;
+                        };
+                        postTasks2_AssignedExtensionObjectToDataValue.push(task);
                     }
                 }
             },
 
             ListOfLocalizedText: {
-                init(this: any) {
+                init(this: ListOfTParser<LocalizedTextOptions>) {
                     this.listData = [];
                 },
                 parser: localizedText_parser,
-                finish(this: any) {
+                finish(this: ListOfTParser<QualifiedNameOptions>) {
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.LocalizedText,
                         value: this.listData
                     };
                 },
-                endElement(this: any /*element*/) {
+                endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
                     this.listData.push(this.parser.LocalizedText.localizedText);
                 }
             },
             ListOfQualifiedName: {
-                init(this: any) {
+                init(this: ListOfTParser<QualifiedNameOptions>) {
                     this.listData = [];
                 },
                 parser: qualifiedName_parser,
-                finish(this: any) {
+                finish(this: ListOfTParser<QualifiedNameOptions>) {
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.QualifiedName,
                         value: this.listData
                     };
                 },
-                endElement(this: any /*element*/) {
+                endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
                     this.listData.push(this.parser.QualifiedName.qualifiedName);
                 }
             },
             ListOfNodeId: {
-                init(this: any) {
+                init(this: ListOfTParser<NodeIdLike>) {
                     this.listData = [];
                 },
                 parser: nodeId_parser,
-                finish(this: any) {
+                finish(this: ListOfTParser<NodeIdLike>) {
                     this.parent.parent.obj.value = {
                         arrayType: VariantArrayType.Array,
                         dataType: DataType.NodeId,
                         value: this.listData
                     };
                 },
-                endElement(this: any, elementName: string) {
+                endElement(this: ListOfTParser<NodeIdLike>, elementName: string) {
                     this.listData.push(this.parser.NodeId.nodeId);
                 }
             },
-            ListOfBoolean: ListOf("Boolean", ec.coerceBoolean),
-            ListOfByte: ListOf("Byte", parseInt),
 
-            ListOfDouble: ListOf("Double", parseFloat),
+            ListOfBoolean: ListOf<boolean>("Boolean", ec.coerceBoolean),
 
-            ListOfFloat: ListOf("Float", parseFloat),
+            ListOfByte: ListOf<number>("Byte", parseInt),
 
-            ListOfInt32: ListOf("Int32", parseInt),
+            ListOfDouble: ListOf<number>("Double", parseFloat),
 
-            ListOfInt16: ListOf("Int16", parseInt),
+            ListOfFloat: ListOf<number>("Float", parseFloat),
 
-            ListOfInt8: ListOf("Int8", parseInt),
+            ListOfInt32: ListOf<number>("Int32", parseInt),
 
-            ListOfUInt32: ListOf("UInt32", parseInt),
+            ListOfInt16: ListOf<number>("Int16", parseInt),
 
-            ListOfUInt16: ListOf("UInt16", parseInt),
+            ListOfInt8: ListOf<number>("Int8", parseInt),
 
-            ListOfUInt8: ListOf("UInt8", parseInt),
+            ListOfUInt32: ListOf<number>("UInt32", parseInt),
 
-            ListOfString: ListOf("String", (value: string) => value),
+            ListOfUInt16: ListOf<number>("UInt16", parseInt),
 
-            ListOfXmlElement: ListOf("XmlElement", (value: string) => value),
+            ListOfUInt8: ListOf<number>("UInt8", parseInt),
+
+            ListOfString: ListOf<string>("String", (value: string) => value),
+
+            ListOfXmlElement: ListOf<string>("XmlElement", (value: string) => value),
 
             ExtensionObject: {
-                init(this: any) {
-                    this.typeDefinitionId = {};
+                init(this: ExtensionObjectParser) {
+                    this.typeDefinitionId = NodeId.nullNodeId;
                     this.extensionObject = null;
-                    this.postTaskData = {};
+                    this.postTaskData = { postponedExtensionObject: null };
                 },
                 parser: _extensionObject_inner_parser,
-                finish(this: any) {
+                finish(this: ExtensionObjectParser) {
                     // istanbul ignore next
                     if (this.extensionObject && !(this.extensionObject instanceof ExtensionObject)) {
                         throw new Error("expecting an extension object");
                     }
-
                     this.parent.parent.obj.value = {
                         dataType: DataType.ExtensionObject,
                         value: this.extensionObject
                     };
-
-                    // let's create the mechanism that postpone the creation of the
-                    // extension object
-                    const data = this.postTaskData;
-                    data.variant = this.parent.parent.obj.value;
-                    if (!data.variant) {
-                        data.nodeId = this.parent.parent.obj.nodeId;
-                        this.postTaskData = null;
-                        const task = async (addressSpace2: IAddressSpace) => {
-                            data.variant.value = data.postponedExtensionObject;
-                            assert(data.nodeId, "expecting a nodeid");
-                            const node = addressSpace2.findNode(data.nodeId)!;
-                            if (node.nodeClass === NodeClass.Variable) {
-                                const v = node as UAVariable;
-                                v.setValueFromSource(data.variant);
-                            }
-                            if (node.nodeClass === NodeClass.VariableType) {
-                                const v = node as UAVariableType;
-                                (v as any) /*fix me*/.value.value = data.variant.value;
-                            }
-                        };
-                        postTasks3.push(task);
+                    if (!this.extensionObject) {
+                        installExtensionObjectInitializationPostTask(this);
                     }
                 }
             }
         }
     };
 
+    function installExtensionObjectListInitializationPostTask(element: ListOfExtensionObjectParser) {
+        let listExtensionObject = element.listExtensionObject;
+        let nodeId = element.parent.parent.obj.nodeId;
+        assert(nodeId, "expecting a nodeid");
+        const task = async (addressSpace2: IAddressSpace) => {
+            const node = addressSpace2.findNode(nodeId)!;
+            if (!node) {
+                debugLog("Cannot find node with nodeId " + nodeId + ". may be the node was marked as deprecated");
+            } else if (node.nodeClass === NodeClass.Variable) {
+                const v = node as UAVariable;
+                v.setValueFromSource({
+                    dataType: DataType.ExtensionObject,
+                    value: listExtensionObject
+                });
+            } else if (node.nodeClass === NodeClass.VariableType) {
+                const v = node as UAVariableType;
+                (v as any) /*fix me*/.value.value = listExtensionObject;
+            }
+            listExtensionObject.slice(0);
+            (listExtensionObject as any) = undefined;
+            (nodeId as any) = undefined;
+        };
+        postTasks2_AssignedExtensionObjectToDataValue.push(task);
+    }
+
+    function installExtensionObjectInitializationPostTask(element: ExtensionObjectParser) {
+        // let's create the mechanism that postpone the creation of the
+        // extension object
+        let data = element.postTaskData!;
+        let variant = element.parent.parent.obj.value;
+        let nodeId = element.parent.parent.obj.nodeId;
+        const task = async (addressSpace2: IAddressSpace) => {
+            variant.value = data.postponedExtensionObject;
+            assert(nodeId, "expecting a nodeid");
+            const node = addressSpace2.findNode(nodeId)!;
+            if (node.nodeClass === NodeClass.Variable) {
+                const v = node as UAVariable;
+                v.setValueFromSource(variant);
+            } else if (node.nodeClass === NodeClass.VariableType) {
+                const v = node as UAVariableType;
+                (v as any) /*fix me*/.value.value = variant.value;
+            }
+
+            data.postponedExtensionObject = null;
+            (data as any) = undefined;
+            (variant as any) = undefined;
+            (nodeId as any) = undefined;
+        };
+        postTasks2_AssignedExtensionObjectToDataValue.push(task);
+    }
+
+    const canIngore = ({ isDraft, isDeprecated }: { isDraft: boolean; isDeprecated: boolean }, node: BaseNode) => {
+        if (isDraft && !options.loadDraftNodes) {
+            debugLog("Ignoring Draft            =", NodeClass[node.nodeClass], node.browseName.toString());
+            return true;
+        }
+        if (isDeprecated && !options.loadDeprecatedNodes) {
+            debugLog("Ignoring Deprecate        =", NodeClass[node.nodeClass], node.browseName.toString());
+            return true;
+        }
+        return false;
+    };
     const state_UAVariable = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
 
             this.obj.nodeClass = NodeClass.Variable;
@@ -1346,10 +1378,10 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                debugLog("Ignoring Draft/Deprecated UAVariable =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
+
             /*
             // set default value based on obj data Type
             if (this.obj.value === undefined) {
@@ -1359,38 +1391,44 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             }
             */
             // eslint-disable-next-line prefer-const
-            let variable: UAVariable;
+            let capturedVariable: UAVariable;
             if (this.obj.value) {
-                const capturedValue = this.obj.value;
+                let capturedValue = this.obj.value;
                 const task = async (addressSpace2: IAddressSpace) => {
                     if (false && doDebug) {
-                        debugLog("1 setting value to ", variable.nodeId.toString(), new Variant(capturedValue).toString());
+                        debugLog("1 setting value to ", capturedVariable.nodeId.toString(), new Variant(capturedValue).toString());
                     }
-                    variable.setValueFromSource(capturedValue);
+                    capturedVariable.setValueFromSource(capturedValue);
+                    capturedValue = undefined;
+                    (capturedVariable as any) = undefined;
                 };
-                postTaskInitializeVariable.push(task);
+                if (capturedValue.dataType !== DataType.ExtensionObject) {
+                    postTasks0_InitializeVariable.push(task);
+                } else {
+                    // do them later
+                    postTasks1_InitializeVariable.push(task);
+                }
             } else {
-                const captureName = this.obj.browseName.toString();
-                const captureNodeId = this.obj.nodeId;
                 const task = async (addressSpace2: IAddressSpace) => {
-                    const dataTypeNode = variable.dataType;
-                    const valueRank = variable.valueRank;
+                    const dataTypeNode = capturedVariable.dataType;
+                    const valueRank = capturedVariable.valueRank;
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
                     if (value) {
                         if (false && doDebug) {
-                            debugLog("2 setting value to ", variable.nodeId.toString(), value);
+                            debugLog("2 setting value to ", capturedVariable.nodeId.toString(), value);
                         }
                         if (value.dataType === DataType.Null) {
-                            variable.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
+                            capturedVariable.setValueFromSource(value, StatusCodes.BadWaitingForInitialData);
                         } else {
-                            variable.setValueFromSource(value, StatusCodes.Good);
+                            capturedVariable.setValueFromSource(value, StatusCodes.Good);
                         }
                     }
+                    (capturedVariable as any) = undefined;
                 };
-                postTaskInitializeVariable.push(task);
+                postTasks0_InitializeVariable.push(task);
             }
             this.obj.value = undefined;
-            variable = _internal_createNode(this.obj) as UAVariable;
+            capturedVariable = _internal_createNode(this.obj) as UAVariable;
         },
         parser: {
             DisplayName: {
@@ -1412,6 +1450,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAVariableType = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
 
@@ -1432,8 +1472,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                debugLog("Ignoring Draft/Deprecated UAVariableType =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             try {
@@ -1464,6 +1503,8 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
 
     const state_UAMethod = {
         init(this: any, name: string, attrs: XmlAttributes) {
+            _perform();
+
             this.obj = {};
             this.obj.nodeClass = NodeClass.Method;
             // MethodDeclarationId
@@ -1477,8 +1518,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (this.isDraft || this.isDeprecated) {
-                debugLog("Ignoring Draft/Deprecated UAMethod =", this.obj.browseName.toString());
+            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);
@@ -1493,11 +1533,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         }
     };
 
-    interface RequiredModel {
-        modelUri: string;
-        version: string;
-        publicationDate: Date;
-    }
+
     interface Model {
         modelUri: string;
         version: string;
@@ -1548,7 +1584,17 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         }
     });
 
+    function _updateTranslationTable() {
+        _register_namespace_uri_in_translation_table("http://opcfoundation.org/UA/");
+        for (const namespaceUri of _namespaceUris) {
+            _register_namespace_uri_in_translation_table(namespaceUri);
+        }
+    }
+
     function _perform() {
+        if (performedCalled) return;
+        performedCalled = true;
+
         /**special case for old nodeset file version 1.02 where no models exists */
         if (models.length === 0) {
             for (const namespaceuri of _namespaceUris) {
@@ -1564,13 +1610,7 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 });
             }
         }
-
-        doDebug && debugLog("xxx models =", JSON.stringify(models, null, " "));
-        doDebug && debugLog("xxx _namespaceUris =", _namespaceUris);
-        _register_namespace_uri_in_translation_table("http://opcfoundation.org/UA/");
-        for (const namespaceUri of _namespaceUris) {
-            _register_namespace_uri_in_translation_table(namespaceUri);
-        }
+        _updateTranslationTable();
     }
     // state_ModelTableEntry.parser["RequiredModel"] = state_ModelTableEntry;
     let _namespaceUris: string[] = [];
@@ -1609,7 +1649,9 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     Model: state_ModelTableEntry
                 },
 
-                finish(this: any) {}
+                finish(this: any) {
+                    /** */
+                }
             },
 
             UADataType: state_UADataType,
@@ -1662,17 +1704,22 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                     await task(addressSpace1);
                 }
             }
+            tasks.splice(0);
         }
         async function finalSteps(): Promise<void> {
             /// ----------------------------------------------------------------------------------------
             // perform post task
             doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks -------------------------------------------"));
             await performPostLoadingTasks(postTasks);
-            postTasks = [];
+
+            doDebug &&
+                debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Simple Variables ---------------------"));
+            await performPostLoadingTasks(postTasks0_InitializeVariable);
 
             doDebug && debugLog(chalk.bgGreenBright("Performing DataType extraction -------------------------------------------"));
             assert(!addressSpace1.suspendBackReference);
             await ensureDatatypeExtracted(addressSpace);
+            const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
 
             /// ----------------------------------------------------------------------------------------
             doDebug && debugLog(chalk.bgGreenBright("DataType extraction done ") + chalk.green("DONE"));
@@ -1681,28 +1728,21 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
                 if (dataTypeNodeId.namespace === 0) {
                     continue;
                 }
-                const dataTypeManager = (addressSpace as AddressSpacePrivate).getDataTypeManager();
                 const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
             }
             pendingSimpleTypeToRegister.splice(0);
 
-            doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks 2 (parsing XML objects) ---------------------"));
-            await performPostLoadingTasks(postTasks2);
-            postTasks2 = [];
-
-            doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
-            await performPostLoadingTasks(postTaskInitializeVariable);
-            postTaskInitializeVariable = [];
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading task: Decoding Pojo String (parsing XML objects) -"));
+            await performPostLoadingTasks(postTasks0_DecodePojoString);
 
             doDebug &&
-                debugLog(
-                    chalk.bgGreenBright(
-                        "Performing post loading tasks 3 (assigning Extension Object to Variables) ---------------------"
-                    )
-                );
-            await performPostLoadingTasks(postTasks3);
-            postTasks3 = [];
+                debugLog(chalk.bgGreenBright("Performing post loading task: Initializing Complex Variables ---------------------"));
+            await performPostLoadingTasks(postTasks1_InitializeVariable);
 
+            doDebug && debugLog(chalk.bgGreenBright("Performing post loading tasks: (assigning Extension Object to Variables) -"));
+            await performPostLoadingTasks(postTasks2_AssignedExtensionObjectToDataValue);
+
+            doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
             promoteObjectsAndVariables(addressSpace);
         }
         finalSteps()
@@ -1722,10 +1762,11 @@ export function makeNodeSetParserEngine(addressSpace: IAddressSpace): NodeSet2Pa
         terminate
     };
 }
+
 export class NodeSetLoader {
-    _s: any;
-    constructor(addressSpace: IAddressSpace) {
-        this._s = makeNodeSetParserEngine(addressSpace);
+    _s: NodeSet2ParserEngine;
+    constructor(addressSpace: IAddressSpace, private options?: NodeSetLoaderOptions) {
+        this._s = makeNodeSetParserEngine(addressSpace, options || {});
     }
 
     addNodeSet(xmlData: string, callback: ErrorCallback): void {

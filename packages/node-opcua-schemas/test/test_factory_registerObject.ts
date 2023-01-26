@@ -15,12 +15,12 @@ import {
     getOrCreateStructuredTypeSchema,
     MapDataTypeAndEncodingIdProvider,
     StructureTypeRaw,
-    TypeDictionary
+    InternalTypeDictionary
 } from "../source";
 import { MockProvider } from "./mock_id_provider";
 const a = BaseUAObject;
 
-const typeDictionary = new TypeDictionary();
+const typeDictionary = new InternalTypeDictionary();
 
 const Person_Schema: StructureTypeRaw = {
     baseType: "ExtensionObject",
@@ -66,7 +66,7 @@ const Company_Schema = {
 
 const FakeBlob_Schema = {
     name: "FakeBlob",
-
+    baseType: "",
     fields: [
         { name: "name", fieldType: "String" },
         { name: "buffer0", fieldType: "ByteString" },
@@ -77,8 +77,8 @@ const FakeBlob_Schema = {
 const dataTypeFactory = new DataTypeFactory([]);
 const idProvider = new MockProvider();
 
-function p(structuredType: StructureTypeRaw, typeDictionary1: TypeDictionary): AnyConstructorFunc {
-    typeDictionary1.addRaw(structuredType);
+function p(structuredType: StructureTypeRaw, typeDictionary1: InternalTypeDictionary): AnyConstructorFunc {
+    typeDictionary1.addStructureRaw(structuredType);
     const schema = getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary1, dataTypeFactory, idProvider);
     return createDynamicObjectConstructor(schema, dataTypeFactory);
 }

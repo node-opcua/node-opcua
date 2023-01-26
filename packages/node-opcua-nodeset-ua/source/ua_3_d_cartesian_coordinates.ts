@@ -13,10 +13,10 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |dataType Name   |DT3DCartesianCoordinates ns=0;i=18810             |
  * |isAbstract      |false                                             |
  */
-export interface UA3DCartesianCoordinates_Base<T extends DT3DCartesianCoordinates/*j*/>  extends UACartesianCoordinates_Base<T/*h*/> {
-    x: UABaseDataVariable<number, /*z*/DataType.Double>;
-    y: UABaseDataVariable<number, /*z*/DataType.Double>;
-    z: UABaseDataVariable<number, /*z*/DataType.Double>;
+export interface UA3DCartesianCoordinates_Base<T extends DT3DCartesianCoordinates>  extends UACartesianCoordinates_Base<T> {
+    x: UABaseDataVariable<number, DataType.Double>;
+    y: UABaseDataVariable<number, DataType.Double>;
+    z: UABaseDataVariable<number, DataType.Double>;
 }
-export interface UA3DCartesianCoordinates<T extends DT3DCartesianCoordinates/*j*/> extends UACartesianCoordinates<T/*k*/>, UA3DCartesianCoordinates_Base<T /*B*/> {
+export interface UA3DCartesianCoordinates<T extends DT3DCartesianCoordinates> extends UACartesianCoordinates<T>, UA3DCartesianCoordinates_Base<T> {
 }

@@ -11,8 +11,8 @@ import { UAString } from "node-opcua-basic-types"
  * |isAbstract      |false                                             |
  */
 export interface UAKeyCredentialService_Base {
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    profileUris: UAProperty<UAString[], /*z*/DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    profileUris: UAProperty<UAString[], DataType.String>;
     startRequest: UAMethod;
     finishRequest: UAMethod;
     revoke?: UAMethod;

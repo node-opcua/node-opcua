@@ -1,6 +1,7 @@
 // a simple client that is design to crash in the middle of a connection
 // once a item has been monitored
 "use strict";
+const { hostname } = require("os");
 if (process.argv.length !== 3) {
     console.log(" Invalid number of argument, please specify port number");
     return;
@@ -12,7 +13,7 @@ const async = require("async");
 
 const port = process.argv[2];
 
-const endpointUrl = "opc.tcp://" + require("os").hostname() + ":" + port;
+const endpointUrl = "opc.tcp://" + hostname() + ":" + port;
 console.log("endpointUrl = ", endpointUrl);
 
 const options = {

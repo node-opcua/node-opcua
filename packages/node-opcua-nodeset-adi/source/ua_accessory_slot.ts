@@ -22,14 +22,15 @@ export interface UAAccessorySlot_Base extends UAConfigurableObject_Base {
      * True if an accessory can be inserted in the
      * accessory slot while it is powered
      */
-    isHotSwappable: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isHotSwappable: UAProperty<boolean, DataType.Boolean>;
     /**
      * isEnabled
      * True if this accessory slot is capable of
      * accepting an accessory in it
      */
-    isEnabled: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isEnabled: UAProperty<boolean, DataType.Boolean>;
     accessorySlotStateMachine: UAAccessorySlotStateMachine;
+   // PlaceHolder for $AccessoryIdentifier$
 }
 export interface UAAccessorySlot extends UAConfigurableObject, UAAccessorySlot_Base {
 }

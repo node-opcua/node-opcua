@@ -8,7 +8,6 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condi
  * |typedDefinition |StatisticalConditionClassType ns=0;i=18665        |
  * |isAbstract      |true                                              |
  */
-export interface UAStatisticalConditionClass_Base extends UABaseConditionClass_Base {
-}
+export type UAStatisticalConditionClass_Base = UABaseConditionClass_Base;
 export interface UAStatisticalConditionClass extends UABaseConditionClass, UAStatisticalConditionClass_Base {
 }

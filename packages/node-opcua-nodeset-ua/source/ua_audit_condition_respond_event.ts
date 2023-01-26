@@ -12,7 +12,7 @@ import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_co
  * |isAbstract      |false                                             |
  */
 export interface UAAuditConditionRespondEvent_Base extends UAAuditConditionEvent_Base {
-    selectedResponse: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    selectedResponse: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAuditConditionRespondEvent extends UAAuditConditionEvent, UAAuditConditionRespondEvent_Base {
 }

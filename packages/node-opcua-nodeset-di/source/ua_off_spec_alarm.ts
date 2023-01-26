@@ -8,7 +8,6 @@ import { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } fro
  * |typedDefinition |1:OffSpecAlarmType ns=1;i=15590                   |
  * |isAbstract      |false                                             |
  */
-export interface UAOffSpecAlarm_Base extends UADeviceHealthDiagnosticAlarm_Base {
-}
+export type UAOffSpecAlarm_Base = UADeviceHealthDiagnosticAlarm_Base;
 export interface UAOffSpecAlarm extends UADeviceHealthDiagnosticAlarm, UAOffSpecAlarm_Base {
 }

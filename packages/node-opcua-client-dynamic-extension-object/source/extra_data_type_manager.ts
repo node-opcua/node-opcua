@@ -4,18 +4,13 @@
 import { format } from "util";
 
 import { assert } from "node-opcua-assert";
-import { 
-    ConstructorFunc, 
-    DataTypeFactory, 
-    getStandardDataTypeFactory 
-} from "node-opcua-factory";
+import { ConstructorFunc, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 
 export class ExtraDataTypeManager {
     public namespaceArray: string[] = [];
-
-    private readonly dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
+    private dataTypeFactoryMapByNamespace: { [key: number]: DataTypeFactory } = {};
 
     constructor() {
         /* */
@@ -26,7 +21,7 @@ export class ExtraDataTypeManager {
     }
 
     public hasDataTypeFactory(namespaceIndex: number): boolean {
-        return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace,namespaceIndex);
+        return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace, namespaceIndex);
     }
 
     public registerDataTypeFactory(namespaceIndex: number, dataTypeFactory: DataTypeFactory): void {
@@ -42,6 +37,7 @@ export class ExtraDataTypeManager {
         assert(namespaceIndex !== 0, "getTypeDictionaryForNamespace cannot be used for namespace 0");
         return this.dataTypeFactoryMapByNamespace[namespaceIndex];
     }
+
     public getDataTypeFactory(namespaceIndex: number): DataTypeFactory {
         if (namespaceIndex === 0) {
             return getStandardDataTypeFactory();
@@ -52,10 +48,13 @@ export class ExtraDataTypeManager {
     public getExtensionObjectConstructorFromDataType(dataTypeNodeId: NodeId): AnyConstructorFunc {
         const dataTypeFactory = this.getDataTypeFactory(dataTypeNodeId.namespace);
         if (!dataTypeFactory) {
-            throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace);
+            throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace + " when requested for " + dataTypeNodeId.toString());
         }
         // find schema corresponding to dataTypeNodeId in typeDictionary
-        const Constructor = dataTypeFactory.findConstructorForDataType(dataTypeNodeId);
+        const Constructor = dataTypeFactory.findStructureInfoForDataType(dataTypeNodeId).constructor;
+        if (!Constructor) {
+            throw new Error("Cannot find Extension Object Constructor for Abstract dataType");
+        }
         return Constructor;
     }
 
@@ -70,6 +69,7 @@ export class ExtraDataTypeManager {
         }
         return Constructor;
     }
+
     public toString(): string {
         const l: string[] = [];
         function write(...args: [any, ...any[]]) {

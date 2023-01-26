@@ -17,7 +17,7 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
  */
 export interface UAConfirmationStateMachine_Base extends UAFiniteStateMachine_Base {
     confirm: UAMethod;
-    confirmationTimeout: UABaseDataVariable<number, /*z*/DataType.Double>;
+    confirmationTimeout: UABaseDataVariable<number, DataType.Double>;
     notWaitingForConfirm: UAInitialState;
     waitingForConfirm: UAState;
     notWaitingForConfirmToWaitingForConfirm: UATransition;

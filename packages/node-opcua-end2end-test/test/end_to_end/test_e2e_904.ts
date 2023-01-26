@@ -98,6 +98,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
             }
             await session.close();
         } catch (err) {
+            console.log("Error", (err as Error).message);
             // createSession is not supposed to raise an exception
             throw err;
         } finally {

@@ -2,23 +2,19 @@
  * @module node-opcua-pseudo-session
  */
 import { assert } from "node-opcua-assert";
+import { ByteString} from "node-opcua-basic-types";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import {
-    BrowseDescription,
-    BrowseDescriptionOptions,
-    BrowseRequest,
-    BrowseResponse,
-    BrowseResult
-} from "node-opcua-service-browse";
-import { Argument, CallMethodRequest, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
-import { ReadValueId, ReadValueIdOptions } from "node-opcua-service-read";
+import { BrowseDescription, BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
+import { Argument, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
+import { ReadValueIdOptions } from "node-opcua-service-read";
 import { WriteValueOptions } from "node-opcua-service-write";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { DataType, VariantArrayType } from "node-opcua-variant";
+import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { VariableIds } from "node-opcua-constants";
+import { UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type CallMethodRequestLike = CallMethodRequestOptions;
@@ -114,8 +110,31 @@ export interface IBasicSession {
     write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
 }
 
+export type PrivateKeyPEM = string;
+export interface UserIdentityInfoUserName {
+    type: UserTokenType.UserName;
+    userName: string;
+    password: string;
+}
+
+export interface UserIdentityInfoX509 extends X509IdentityTokenOptions {
+    type: UserTokenType.Certificate;
+    certificateData: ByteString;
+    privateKey: PrivateKeyPEM;
+}
+export interface AnonymousIdentity {
+    type: UserTokenType.Anonymous;
+}
+
+export type UserIdentityInfo = AnonymousIdentity | UserIdentityInfoX509 | UserIdentityInfoUserName;
+
+export interface IBasicSessionChangeUser {
+    changeUser(userIdentityInfo: UserIdentityInfo): Promise<StatusCode>;
+    changeUser(userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
+}
+
 function isValid(result: DataValue): boolean {
-    assert(result.statusCode === StatusCodes.Good);
+    assert(result.statusCode.isGood());
     if (result.value.dataType !== DataType.Null) {
         assert(result.value.dataType === DataType.ExtensionObject);
         assert(result.value.arrayType === VariantArrayType.Array);
@@ -182,7 +201,7 @@ export function getArgumentDefinitionHelper(
                 nodeId: outputArgumentRef.nodeId
             });
             actions.push((result: DataValue) => {
-                assert(result.statusCode === StatusCodes.Good);
+                assert(result.statusCode.isGood());
                 if (isValid(result)) {
                     outputArguments = result.value.value as Argument[];
                 }
@@ -218,7 +237,7 @@ export async function readNamespaceArray(session: IBasicSession): Promise<string
         nodeId,
         attributeId: AttributeIds.Value
     });
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         // errorLog("namespaceArray is not populated ! Your server must expose a list of namespaces in node ", nodeId.toString());
         return [];
     }

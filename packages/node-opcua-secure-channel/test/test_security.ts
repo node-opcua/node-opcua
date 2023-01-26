@@ -6,15 +6,15 @@ import { Socket } from "net";
 import "should";
 import * as async from "async";
 import * as chalk from "chalk";
-
+import { ErrorCallback } from "node-opcua-status-code";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
-    PrivateKeyPEM,
     readCertificate,
-    readKeyPem,
     split_der,
-    readCertificateRevocationList
+    readCertificateRevocationList,
+    PrivateKey,
+    readPrivateKey
 } from "node-opcua-crypto";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
@@ -24,6 +24,7 @@ import { hexDump } from "node-opcua-debug";
 import {
     ClientSecureChannelLayer,
     ClientSecureChannelParent,
+    invalidPrivateKey,
     Message,
     MessageSecurityMode,
     SecurityPolicy,
@@ -40,8 +41,8 @@ interface TestParam {
     securityPolicy: SecurityPolicy;
     serverCertificate?: Certificate;
     clientCertificate?: Certificate;
-    serverPrivateKey?: PrivateKeyPEM;
-    clientPrivateKey?: PrivateKeyPEM;
+    serverPrivateKey: PrivateKey;
+    clientPrivateKey: PrivateKey;
     shouldFailAtClientConnection?: boolean;
 }
 
@@ -102,8 +103,8 @@ describe("Testing secure client and server connection", () => {
                 return new EndpointDescription({});
             },
 
-            getPrivateKey: () => {
-                return param.serverPrivateKey!;
+            getPrivateKey: (): PrivateKey => {
+                return param.serverPrivateKey;
             }
         };
 
@@ -113,6 +114,16 @@ describe("Testing secure client and server connection", () => {
             parent: parentS,
             timeout: 0
         });
+        const s = serverSChannel.send_response;
+        (serverSChannel as any).send_response = function (
+            this: ServerSecureChannelLayer,
+            msgType: string,
+            response: any,
+            message: Message,
+            callback?: ErrorCallback
+        ): void {
+            s.call(this, msgType, response, message, callback);
+        };
 
         function simulateOpenSecureChannel(callback: SimpleCallback) {
             clientChannel.create("fake://foobar:123", (err?: Error) => {
@@ -125,24 +136,25 @@ describe("Testing secure client and server connection", () => {
                     if (err) {
                         return callback(err);
                     }
-                    callback();
+                    setImmediate(() => callback());
                 }
             });
         }
-        function simulateTransation(request: FindServersRequest, response: FindServersResponse, callback: SimpleCallback) {
+        function simulateTransaction(request: FindServersRequest, response: FindServersResponse, callback: SimpleCallback) {
             serverSChannel.once("message", (message: Message) => {
-                // response.responseHeader.requestHandle = request.requestHeader.requestHandle;
+                doDebug && console.log("server receiving message =", response.responseHeader.requestHandle);
+                response.responseHeader.requestHandle = message.request.requestHeader.requestHandle;
                 serverSChannel.send_response("MSG", response, message, () => {
                     /** */
-                    console.log("server message sent");
+                    doDebug && console.log("server message sent ", response.responseHeader.requestHandle);
                 });
             });
 
-            console.log(" now sending a request");
+            doDebug && console.log(" now sending a request " + request.constructor.name);
 
             clientChannel.performMessageTransaction(request, (err, response) => {
-                console.log("client received a response");
-                console.log(response?.toString());
+                doDebug && console.log("client received a response ", response?.constructor.name);
+                doDebug && console.log(response?.toString());
                 callback(err || undefined);
             });
         }
@@ -161,8 +173,8 @@ describe("Testing secure client and server connection", () => {
                 return param.clientCertificate!;
             },
 
-            getPrivateKey: () => {
-                return param.clientPrivateKey!;
+            getPrivateKey: (): PrivateKey => {
+                return param.clientPrivateKey;
             }
         };
 
@@ -176,14 +188,20 @@ describe("Testing secure client and server connection", () => {
             securityMode: param.securityMode,
             securityPolicy: param.securityPolicy,
             serverCertificate: param.serverCertificate,
-            tokenRenewalInterval: 50, // very short ! but not zero
-            transportTimeout: 0
+            tokenRenewalInterval: 150, // very short ! but not zero
+            transportTimeout: 0,
+            transportSettings: {
+                maxChunkCount: 1000,
+                maxMessageSize: 0,
+                receiveBufferSize: 0,
+                sendBufferSize: 0
+            }
         });
         clientChannel.on("receive_chunk", (chunk: Buffer) => {
             doDebug && console.log(chalk.green(hexDump(chunk, 32, 20000)));
         });
         clientChannel.on("send_chunk", (chunk: Buffer) => {
-            doDebug && console.log(chalk.cyan(hexDump(chunk,  32, 20000)));
+            doDebug && console.log(chalk.cyan(hexDump(chunk, 32, 20000)));
         });
 
         // function renewToken(callback: SimpleCallback) {
@@ -197,16 +215,17 @@ describe("Testing secure client and server connection", () => {
         async.series(
             [
                 (callback: SimpleCallback) => {
-
                     serverSChannel.init(transportServer, (err?: Error) => {
                         /* */
                         /// callback(err);
-                        console.log("server secure channel initialized");
+                        doDebug && console.log("server secure channel initialized");
                     });
-                  //  clientChannel.connect("")
+                    //  clientChannel.connect("")
                     callback();
                 },
                 (callback: SimpleCallback) => {
+                    (serverSChannel as any)._build_message_builder();
+
                     serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
                     if (param.clientCertificate) {
                         const certMan = serverSChannel.certificateManager;
@@ -228,7 +247,7 @@ describe("Testing secure client and server connection", () => {
                     }
                     const request = new FindServersRequest({});
                     const response = new FindServersResponse({});
-                    simulateTransation(request, response, callback);
+                    simulateTransaction(request, response, callback);
                 },
 
                 (callback: SimpleCallback) => {
@@ -236,7 +255,7 @@ describe("Testing secure client and server connection", () => {
                         return callback();
                     }
                     clientChannel.once("security_token_renewed", () => {
-                        console.log("security_token_renewed");
+                        doDebug && console.log("security_token_renewed");
                         callback();
                     });
                     /** */
@@ -266,7 +285,9 @@ describe("Testing secure client and server connection", () => {
             {
                 securityMode: MessageSecurityMode.None,
                 securityPolicy: SecurityPolicy.None,
-                serverCertificate: undefined
+                serverCertificate: undefined,
+                serverPrivateKey: invalidPrivateKey,
+                clientPrivateKey: invalidPrivateKey
             },
             done
         );
@@ -284,12 +305,12 @@ describe("Testing secure client and server connection", () => {
         const serverCertificateFile = m(`server_cert_${sizeS}.pem`);
         const serverPrivateKeyFile = m(`server_key_${sizeS}.pem`);
         const serverCertificate = readCertificate(serverCertificateFile);
-        const serverPrivateKey = readKeyPem(serverPrivateKeyFile);
+        const serverPrivateKey = readPrivateKey(serverPrivateKeyFile);
 
         const clientCertificateFile = m(`client_cert_${sizeC}.pem`);
         const clientPrivateKeyFile = m(`client_key_${sizeC}.pem`);
         const clientCertificate = readCertificate(clientCertificateFile);
-        const clientPrivateKey = readKeyPem(clientPrivateKeyFile);
+        const clientPrivateKey = readPrivateKey(clientPrivateKeyFile);
 
         performTest(
             {
@@ -305,7 +326,7 @@ describe("Testing secure client and server connection", () => {
         );
     }
 
-    it("client & server channel  - with security ", (done) => {
+    it("RR-client & server channel  - with security ", (done) => {
         performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);
     });
 

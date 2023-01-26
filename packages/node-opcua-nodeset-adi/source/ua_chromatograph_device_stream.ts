@@ -8,7 +8,6 @@ import { UAStream, UAStream_Base } from "./ua_stream"
  * |typedDefinition |2:ChromatographDeviceStreamType ns=2;i=1034       |
  * |isAbstract      |false                                             |
  */
-export interface UAChromatographDeviceStream_Base extends UAStream_Base {
-}
+export type UAChromatographDeviceStream_Base = UAStream_Base;
 export interface UAChromatographDeviceStream extends UAStream, UAChromatographDeviceStream_Base {
 }

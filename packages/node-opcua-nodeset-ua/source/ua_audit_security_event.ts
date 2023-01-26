@@ -12,7 +12,7 @@ import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
  * |isAbstract      |true                                              |
  */
 export interface UAAuditSecurityEvent_Base extends UAAuditEvent_Base {
-    statusCodeId?: UAProperty<StatusCode, /*z*/DataType.StatusCode>;
+    statusCodeId?: UAProperty<StatusCode, DataType.StatusCode>;
 }
 export interface UAAuditSecurityEvent extends UAAuditEvent, UAAuditSecurityEvent_Base {
 }

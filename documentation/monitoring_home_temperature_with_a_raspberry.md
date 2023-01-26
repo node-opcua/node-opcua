@@ -79,6 +79,7 @@ find_sensors(function() {
 });
 
 function start_server() {
+
   const server = new opcua.OPCUAServer({
     port: 1234
   });
@@ -103,7 +104,7 @@ function start_server() {
 
     const devices = addressSpace.rootFolder.objects.devices;
 
-    const sensor = namespace.addObject({
+    const uaSensor = namespace.addObject({
       organizedBy: devices,
       browseName: sensorName
     });

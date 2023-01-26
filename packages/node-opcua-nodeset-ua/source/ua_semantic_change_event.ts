@@ -12,7 +12,7 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
  * |isAbstract      |true                                              |
  */
 export interface UASemanticChangeEvent_Base extends UABaseEvent_Base {
-    changes: UAProperty<DTSemanticChangeStructure[], /*z*/DataType.ExtensionObject>;
+    changes: UAProperty<DTSemanticChangeStructure[], DataType.ExtensionObject>;
 }
 export interface UASemanticChangeEvent extends UABaseEvent, UASemanticChangeEvent_Base {
 }

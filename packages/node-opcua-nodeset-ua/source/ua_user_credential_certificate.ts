@@ -8,7 +8,6 @@ import { UACertificate, UACertificate_Base } from "./ua_certificate"
  * |typedDefinition |UserCredentialCertificateType ns=0;i=15181        |
  * |isAbstract      |false                                             |
  */
-export interface UAUserCredentialCertificate_Base extends UACertificate_Base {
-}
+export type UAUserCredentialCertificate_Base = UACertificate_Base;
 export interface UAUserCredentialCertificate extends UACertificate, UAUserCredentialCertificate_Base {
 }

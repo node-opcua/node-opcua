@@ -8,7 +8,6 @@ import { UAEccApplicationCertificate, UAEccApplicationCertificate_Base } from ".
  * |typedDefinition |EccNistP384ApplicationCertificateType ns=0;i=23539|
  * |isAbstract      |false                                             |
  */
-export interface UAEccNistP384ApplicationCertificate_Base extends UAEccApplicationCertificate_Base {
-}
+export type UAEccNistP384ApplicationCertificate_Base = UAEccApplicationCertificate_Base;
 export interface UAEccNistP384ApplicationCertificate extends UAEccApplicationCertificate, UAEccNistP384ApplicationCertificate_Base {
 }

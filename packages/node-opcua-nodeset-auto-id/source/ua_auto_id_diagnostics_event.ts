@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt16, UAString } from "node-opcua-basic-types"
@@ -21,7 +21,7 @@ export interface UAAutoIdDiagnosticsEvent_Base extends UABaseEvent_Base {
      * deviceName
      * Name of the device of the diagnostic data.
      */
-    deviceName: UAProperty<UAString, /*z*/DataType.String>;
+    deviceName: UAProperty<UAString, DataType.String>;
 }
 export interface UAAutoIdDiagnosticsEvent extends UABaseEvent, UAAutoIdDiagnosticsEvent_Base {
 }

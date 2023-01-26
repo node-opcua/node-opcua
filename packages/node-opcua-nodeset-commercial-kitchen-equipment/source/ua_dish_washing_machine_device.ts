@@ -1,8 +1,11 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { EnumHygieneMode } from "./enum_hygiene_mode"
+import { EnumOperationMode } from "./enum_operation_mode"
+import { EnumProgramMode } from "./enum_program_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UADishWashingMachineProgramParameter } from "./ua_dish_washing_machine_program_parameter"
 /**

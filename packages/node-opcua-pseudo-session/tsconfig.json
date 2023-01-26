@@ -8,6 +8,11 @@
     "include": ["source/**/*.ts"],
     "references": [
         {
+            "path": "../node-opcua-assert"
+        },{
+            "path": "../node-opcua-constants"
+        },
+        {
             "path": "../node-opcua-data-model"
         },
         {
@@ -33,9 +38,6 @@
         },
         {
             "path": "../node-opcua-status-code"
-        },
-        {
-            "path": "../node-opcua-utils"
         },
         {
             "path": "../node-opcua-variant"

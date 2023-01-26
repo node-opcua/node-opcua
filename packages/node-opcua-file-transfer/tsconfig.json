@@ -38,12 +38,6 @@
       "path": "../node-opcua-pseudo-session"
     },
     {
-      "path": "../node-opcua-secure-channel"
-    },
-    {
-      "path": "../node-opcua-server"
-    },
-    {
       "path": "../node-opcua-service-call"
     },
     {
@@ -56,16 +50,7 @@
       "path": "../node-opcua-status-code"
     },
     {
-      "path": "../node-opcua-types"
-    },
-    {
       "path": "../node-opcua-variant"
-    },
-    {
-      "path": "../node-opcua-binary-stream"
-    },
-    {
-      "path": "../node-opcua-data-value"
     },
     {
       "path": "../node-opcua-leak-detector"

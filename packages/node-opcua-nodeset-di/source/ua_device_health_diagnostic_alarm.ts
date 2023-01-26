@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
@@ -15,7 +15,6 @@ import { UAInstrumentDiagnosticAlarm, UAInstrumentDiagnosticAlarm_Base } from "n
  * |typedDefinition |1:DeviceHealthDiagnosticAlarmType ns=1;i=15143    |
  * |isAbstract      |true                                              |
  */
-export interface UADeviceHealthDiagnosticAlarm_Base extends UAInstrumentDiagnosticAlarm_Base {
-}
+export type UADeviceHealthDiagnosticAlarm_Base = UAInstrumentDiagnosticAlarm_Base;
 export interface UADeviceHealthDiagnosticAlarm extends UAInstrumentDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base {
 }

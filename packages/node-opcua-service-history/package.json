@@ -1,30 +1,22 @@
 {
     "name": "node-opcua-service-history",
-    "version": "2.65.0",
+    "version": "2.89.0",
     "description": "pure nodejs OPCUA SDK - module -service-history",
     "scripts": {
         "test": "mocha",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "build": "tsc -b"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "node-opcua-assert": "2.64.1",
-        "node-opcua-basic-types": "2.64.1",
-        "node-opcua-binary-stream": "2.64.1",
-        "node-opcua-data-model": "2.64.1",
-        "node-opcua-data-value": "2.64.1",
-        "node-opcua-extension-object": "2.64.1",
-        "node-opcua-factory": "2.64.1",
-        "node-opcua-nodeid": "2.64.1",
-        "node-opcua-service-filter": "2.65.0",
-        "node-opcua-service-secure-channel": "2.65.0",
-        "node-opcua-types": "2.65.0"
+        "node-opcua-assert": "2.88.0",
+        "node-opcua-data-value": "2.89.0",
+        "node-opcua-types": "2.89.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.64.1",
-        "node-opcua-service-read": "2.65.0"
+        "node-opcua-packet-analyzer": "2.89.0",
+        "node-opcua-service-read": "2.89.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

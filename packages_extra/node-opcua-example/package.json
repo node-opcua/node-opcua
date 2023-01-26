@@ -1,33 +1,33 @@
 {
-  "name": "node-opcua-example",
-  "version": "2.65.0",
-  "description": "pure nodejs OPCUA SDK - module -status-code",
-  "private": true,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo no"
-  },
-  "dependencies": {
-    "node-opcua": "2.65.0"
-  },
-  "devDependencies": {
-    "should": "^13.2.3"
-  },
-  "author": "Etienne Rossignon",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/node-opcua/node-opcua.git"
-  },
-  "keywords": [
-    "OPCUA",
-    "opcua",
-    "m2m",
-    "iot",
-    "opc ua",
-    "internet of things"
-  ],
-  "homepage": "http://node-opcua.github.io/"
+    "name": "node-opcua-example",
+    "version": "2.89.0",
+    "description": "pure nodejs OPCUA SDK - module -status-code",
+    "private": true,
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "test": "echo no"
+    },
+    "dependencies": {
+        "node-opcua": "2.89.0"
+    },
+    "devDependencies": {
+        "should": "^13.2.3"
+    },
+    "author": "Etienne Rossignon",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/"
 }

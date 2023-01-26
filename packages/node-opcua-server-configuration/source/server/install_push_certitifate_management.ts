@@ -4,18 +4,20 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { createPrivateKey } from "crypto";
 
 import * as chalk from "chalk";
 
-import { UAServerConfiguration } from "node-opcua-address-space";
+import { UAServerConfiguration, AddressSpace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKeyPEM, split_der } from "node-opcua-crypto";
+import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKey, PrivateKeyPEM, split_der } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { ICertificateKeyPairProvider } from "node-opcua-secure-channel";
+import { ICertificateKeyPairProviderPriv } from "node-opcua-common";
 import { OPCUAServer, OPCUAServerEndPoint } from "node-opcua-server";
 import { ApplicationDescriptionOptions } from "node-opcua-types";
+
 import { installPushCertificateManagement } from "./push_certificate_manager_helpers";
 import { ActionQueue, PushCertificateManagerServerImpl } from "./push_certificate_manager_server_impl";
 
@@ -26,15 +28,15 @@ const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
 
-export interface OPCUAServerPartial extends ICertificateKeyPairProvider {
+export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv {
     serverInfo?: ApplicationDescriptionOptions;
     serverCertificateManager: OPCUACertificateManager;
     privateKeyFile: string;
     certificateFile: string;
-
-    $$privateKeyPEM: PrivateKeyPEM;
-    $$certificate?: Certificate;
-    $$certificateChain: Certificate;
+    $$certificate: null | Certificate;
+    $$certificateChain: null | Certificate;
+    $$privateKey: null | PrivateKey;
+    engine: { addressSpace?: AddressSpace };
 }
 
 function getCertificate(this: OPCUAServerPartial): Certificate {
@@ -52,11 +54,12 @@ function getCertificateChain(this: OPCUAServerPartial): Certificate {
     return this.$$certificateChain;
 }
 
-function getPrivateKey(this: OPCUAServerPartial): PrivateKeyPEM {
-    if (!this.$$privateKeyPEM) {
-        throw new Error("internal Error. cannot find $$privateKeyPEM");
+function getPrivateKey(this: OPCUAServerPartial): PrivateKey {
+    // istanbul ignore next
+    if (!this.$$privateKey) {
+        throw new Error("internal Error. cannot find $$privateKey");
     }
-    return this.$$privateKeyPEM;
+    return this.$$privateKey;
 }
 
 async function getIpAddresses(): Promise<string[]> {
@@ -88,8 +91,8 @@ async function install(this: OPCUAServerPartial): Promise<void> {
         path.join(this.serverCertificateManager.rootDir, "own/certs/certificate.pem")
     );
 
-    if (!this.$$privateKeyPEM) {
-        this.$$privateKeyPEM = await readFile(this.serverCertificateManager.privateKey, "utf8");
+    if (!this.$$privateKey) {
+        this.$$privateKey = createPrivateKey(await readFile(this.serverCertificateManager.privateKey, "utf8"));
     }
 
     if (!this.$$certificateChain) {
@@ -140,9 +143,9 @@ function getCertificateChainEP(this: OPCUAServerEndPoint): Certificate {
     return $$certificateChain;
 }
 
-function getPrivateKeyEP(this: OPCUAServerEndPoint): PrivateKeyPEM {
-    const $$privateKeyPEM = fs.readFileSync(this.certificateManager.privateKey, "utf8");
-    return $$privateKeyPEM;
+function getPrivateKeyEP(this: OPCUAServerEndPoint): PrivateKey {
+    const $$privateKey = createPrivateKey(fs.readFileSync(this.certificateManager.privateKey, "utf8"));
+    return $$privateKey;
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
@@ -165,18 +168,18 @@ async function onCertificateChange(server: OPCUAServer) {
 
     const _server = server as any as OPCUAServerPartial;
 
-    _server.$$privateKeyPEM = fs.readFileSync(server.serverCertificateManager.privateKey, "utf8");
+    _server.$$privateKey = createPrivateKey(fs.readFileSync(server.serverCertificateManager.privateKey, "utf8"));
     const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
     const certificatePEM = fs.readFileSync(certificateFile, "utf8");
 
     const privateKeyFile = server.serverCertificateManager.privateKey;
-    const privateKeyPEM = fs.readFileSync(privateKeyFile, "utf8");
+    const privateKey = createPrivateKey(fs.readFileSync(privateKeyFile, "utf8"));
     // also reread the private key
 
     _server.$$certificateChain = convertPEMtoDER(certificatePEM);
-    _server.$$privateKeyPEM = privateKeyPEM;
+    _server.$$privateKey = privateKey;
     // note : $$certificate will be reconstructed on demand
-    _server.$$certificate = undefined;
+    _server.$$certificate = split_der(_server.$$certificateChain)[0];
 
     setTimeout(async () => {
         try {
@@ -190,7 +193,6 @@ async function onCertificateChange(server: OPCUAServer) {
 
             debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
         } catch (err) {
-            // tslint:disable:no-console
             if (err instanceof Error) {
                 errorLog("Error in CertificateChanged handler ", err.message);
             }

@@ -1,7 +1,7 @@
 import assert from "node-opcua-assert";
 
 /**
- * ValueRank indicates whether the Value Attribute of the Variable can be an Array and how many dimensions 
+ * ValueRank indicates whether the Value Attribute of the Variable can be an Array and how many dimensions
  *  * n > 1                     : the Value is an array with the specified number of dimensions.
  *  * OneDimension (1):           The value is an array with one dimension.
  *  * OneOrMoreDimensions (0):    The value is an array with one or more dimensions.
@@ -31,6 +31,7 @@ export function verifyRankAndDimensions(options: { valueRank?: number; arrayDime
     if (options.valueRank > 0 && (!options.arrayDimensions || options.arrayDimensions.length === 0)) {
         options.arrayDimensions = new Array(options.valueRank).fill(0);
     }
+    // istanbul ignore next
     if (!options.arrayDimensions && options.valueRank > 0) {
         throw new Error("[CONFORMANCE] arrayDimension must be specified  if valueRank >0 " + options.valueRank);
     }

@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |DiscoveryConfiguration                            |
  * | isAbstract|false                                             |
  */
-export interface DTDiscoveryConfiguration extends DTStructure  {
-}
+export type DTDiscoveryConfiguration = DTStructure;

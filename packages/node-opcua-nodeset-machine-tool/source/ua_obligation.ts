@@ -11,8 +11,8 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |false                                             |
  */
 export interface UAObligation_Base {
-    endUserObligated: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    machineBuilderObligated: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    endUserObligated: UABaseDataVariable<boolean, DataType.Boolean>;
+    machineBuilderObligated: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UAObligation extends UAObject, UAObligation_Base {
 }

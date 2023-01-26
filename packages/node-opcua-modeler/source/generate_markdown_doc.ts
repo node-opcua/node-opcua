@@ -50,7 +50,7 @@ export class Writer implements IWriter {
 export interface BuildDocumentationOptions {
     node?: BaseNode;
 
-    dumpGraphics? :(writer: IWriter, type: UAObjectType | UAVariableType)=>void;
+    dumpGraphics?: (writer: IWriter, type: UAObjectType | UAVariableType) => void;
 }
 
 export async function buildDocumentationToString(namespace: INamespace, options?: BuildDocumentationOptions): Promise<string> {
@@ -269,9 +269,8 @@ export async function buildDocumentation(
     writer: IWriter,
     options?: BuildDocumentationOptions
 ): Promise<void> {
-
     options = options || {};
-    
+
     const namespacePriv = namespace as unknown as NamespacePriv2;
 
     const namespaceUri = namespace.namespaceUri;
@@ -295,7 +294,7 @@ export async function buildDocumentation(
     }
 
     function d(node: BaseNode): string {
-        return node.description ? node.description!.text!.toString() : "";
+        return node.description && node.description.text ? node.description!.text!.toString() : "";
     }
 
     // -------------- writeDataType
@@ -361,4 +360,3 @@ export async function buildDocumentation(
         }
     }
 }
-

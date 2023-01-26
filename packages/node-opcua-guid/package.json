@@ -2,16 +2,13 @@
     "name": "node-opcua-guid",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.64.1",
+    "version": "2.88.0",
     "description": "pure nodejs OPCUA SDK - module -guid",
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "mocha"
-    },
-    "dependencies": {
-        "node-opcua-assert": "2.64.1"
     },
     "devDependencies": {
         "should": "^13.2.3"

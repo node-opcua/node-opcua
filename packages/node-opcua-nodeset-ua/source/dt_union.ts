@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |Union                                             |
  * | isAbstract|true                                              |
  */
-export interface DTUnion extends DTStructure  {
-}
+export type DTUnion = DTStructure;

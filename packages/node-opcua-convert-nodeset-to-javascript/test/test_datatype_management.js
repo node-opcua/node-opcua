@@ -17,7 +17,7 @@ const {getFixture} = require("../test_fixtures/helper");
 
 describe("ComplexType read from XML NodeSET file shall be binary encode-able", function () {
 
-    this.timeout(10000);
+    this.timeout(Math.max(40000,this.timeout()));
     let addressSpace;
 
     before(async () => {

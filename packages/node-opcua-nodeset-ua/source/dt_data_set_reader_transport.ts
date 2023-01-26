@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |DataSetReaderTransportDataType                    |
  * | isAbstract|true                                              |
  */
-export interface DTDataSetReaderTransport extends DTStructure  {
-}
+export type DTDataSetReaderTransport = DTStructure;

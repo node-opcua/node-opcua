@@ -1,10 +1,10 @@
 /**
  * @module node-opcua-server-discovery
  */
-import * as bonjour from "bonjour";
+import { Service, Bonjour, Browser } from "sterfive-bonjour-service";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import { acquireBonjour, releaseBonjour, ServerOnNetwork } from "node-opcua-service-discovery";
+import {  ServerOnNetwork, serviceToString } from "node-opcua-service-discovery";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename) || true;
@@ -17,22 +17,21 @@ export class MDNSResponder {
      */
     public registeredServers: ServerOnNetwork[];
 
-    private multicastDNS: bonjour.Bonjour;
+    private multicastDNS: Bonjour;
+    private browser: Browser;
+
     private recordId: number;
-    private responder: any;
-    private lastUpdateDate: Date = new Date();
+    public lastUpdateDate: Date = new Date();
 
     constructor() {
-
-
         registry.register(this);
-        
+
         this.registeredServers = [];
 
-        this.multicastDNS = acquireBonjour();
+        this.multicastDNS = new Bonjour(); 
         this.recordId = 0;
 
-        this.responder = this.multicastDNS.find({
+        this.browser = this.multicastDNS.find({
             protocol: "tcp",
             type: "opcua-tcp"
         });
@@ -42,7 +41,7 @@ export class MDNSResponder {
             return index;
         };
 
-        const addService = (service: bonjour.Service) => {
+        const addService = (service: Service) => {
             if (doDebug) {
                 debugLog("adding server ", service.name, "port =", service.port);
             }
@@ -101,7 +100,7 @@ export class MDNSResponder {
             debugLog("a new OPCUA server has been registered on mDNS", service.name, recordId);
         };
 
-        const removeService = (service: bonjour.Service) => {
+        const removeService = (service: Service) => {
             const serverName = service.name;
             debugLog("a OPCUA server has been unregistered in mDNS", serverName);
             const index = findServiceIndex(serverName);
@@ -113,24 +112,24 @@ export class MDNSResponder {
             this.lastUpdateDate = new Date();
         };
 
-        this.responder.on("up", (service: bonjour.Service) => {
+        this.browser.on("up", (service: Service) => {
             if (doDebug) {
-                debugLog("service is up with  ", service.fqdn);
+                debugLog("MDNSResponder : service is up with  ", serviceToString(service));
             }
             addService(service);
         });
 
-        this.responder.on("down", (service: bonjour.Service) => {
+        this.browser.on("down", (service: Service) => {
             if (doDebug) {
-                debugLog("service is down with  ", service.fqdn);
+                debugLog("MDNSResponder : service is down with  ", serviceToString(service));
             }
             removeService(service);
         });
     }
 
     public dispose() {
-        delete (this as any).multicastDNS;
+        // yy delete (this as any).multicastDNS;
+        this.multicastDNS.destroy();
         registry.unregister(this);
-        releaseBonjour();
     }
 }

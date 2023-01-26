@@ -6,10 +6,6 @@ const { OPCUAClient, makeResultMask, BrowseDescription, BrowseDirection, nodeset
 
 const { UAProxyManager, makeRefId } = require("node-opcua-client-proxy");
 
-
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const { promoteToStateMachine } = require("node-opcua-address-space");
-
 const { build_server_with_temperature_device } = require("../../../../test_helpers/build_server_with_temperature_device");
 const { perform_operation_on_client_session } = require("../../../../test_helpers/perform_operation_on_client_session");
 
@@ -55,8 +51,6 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         nodeset_filename: [nodesets.standard, nodesets.di, nodesets.adi]
     };
 
-    let analyser_device;
-
     let addressSpace;
     before(async () => {
         server = await build_server_with_temperature_device(server_options);
@@ -101,7 +95,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
     function dumpObjectType(objectType) {
         function w(s, l) {
-            return (s + "                       ").substr(0, l);
+            return (s + "                       ").substring(0, l);
         }
 
         function f(c) {
@@ -206,7 +200,8 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
     });
 
     it("should create a analyser device", function () {
-        analyser_device = create_analyser_device(server.engine.addressSpace);
+        const analyser_device = create_analyser_device(server.engine.addressSpace);
+        should.exist(analyser_device);
     });
 
     function dumpStateMachine(stateMachineType) {

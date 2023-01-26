@@ -8,7 +8,6 @@ import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcu
  * |typedDefinition |10:PartMissingConditionClassType ns=10;i=54       |
  * |isAbstract      |true                                              |
  */
-export interface UAPartMissingConditionClass_Base extends UAProcessConditionClass_Base {
-}
+export type UAPartMissingConditionClass_Base = UAProcessConditionClass_Base;
 export interface UAPartMissingConditionClass extends UAProcessConditionClass, UAPartMissingConditionClass_Base {
 }

@@ -40,11 +40,11 @@ export interface UAVisionSystem_visionStateMachine extends Omit<UAVisionStateMac
  */
 export interface UAVisionSystem_Base {
     configurationManagement?: UAConfigurationManagement;
-    diagnosticLevel?: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
+    diagnosticLevel?: UABaseDataVariable<UInt16, DataType.UInt16>;
     recipeManagement?: UARecipeManagement;
     resultManagement?: UAResultManagement;
     safetyStateManagement?: UASafetyStateManagement;
-    systemState?: UABaseDataVariable<DTSystemStateDescription, /*z*/DataType.ExtensionObject>;
+    systemState?: UABaseDataVariable<DTSystemStateDescription, DataType.ExtensionObject>;
     visionStateMachine: UAVisionSystem_visionStateMachine;
 }
 export interface UAVisionSystem extends UAObject, UAVisionSystem_Base {

@@ -2,11 +2,16 @@ import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ClientSession, ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";
+import { UserIdentityInfo } from "../user_identity_info";
 import { ClientSessionImpl } from "./client_session_impl";
 
 export interface IClientBase {
     __createSession_step2(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void;
-    _activateSession(session: ClientSessionImpl, callback: (err: Error | null, session?: ClientSessionImpl) => void): void;
+    _activateSession(
+        session: ClientSessionImpl,
+        userIdentity: UserIdentityInfo,
+        callback: (err: Error | null, session?: ClientSessionImpl) => void
+    ): void;
     _removeSession(session: ClientSessionImpl): void;
     closeSession(session: ClientSession, deleteSubscription: any, arg2: (err?: Error | undefined) => void): void;
 

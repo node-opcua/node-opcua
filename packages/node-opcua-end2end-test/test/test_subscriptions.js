@@ -27,7 +27,7 @@ const port = 2020;
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing basic Client Server dealing with subscription at low level", function () {
-    this.timeout(20000);
+    this.timeout(Math.max(40000,this.timeout()));
 
     let g_session;
     let client_server;

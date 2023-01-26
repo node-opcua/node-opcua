@@ -21,12 +21,12 @@ import {
     UAVariableType,
     CloneFilter
 } from "node-opcua-address-space-base";
-import { ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
+import { ReferenceTypeIds } from "node-opcua-constants";
 import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { UInt32 } from "node-opcua-basic-types";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
@@ -40,7 +40,6 @@ import { _clone_children_references, ToStringBuilder, UAVariableType_toString } 
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
-import { resolveReferenceNode } from "./reference_impl";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -48,7 +47,7 @@ const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 
 // eslint-disable-next-line prefer-const
-let doTrace = false;
+let doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 
 interface InstantiateS {
@@ -150,7 +149,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
                     options.statusCode = StatusCodes.Good;
                 } else {
                     debugLog(" warning Value not implemented");
-                    options.value = { dataType: DataType.UInt32, value: 0 };
+                    options.value = { dataType: DataType.Null };
                     options.statusCode = StatusCodes.BadAttributeIdInvalid;
                 }
                 break;
@@ -239,6 +238,14 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         const copyAlsoModellingRules = topMostParentIsObjectTypeOrVariableType(addressSpace, options);
 
+        const defaultDataType = this.dataType;
+        // BadAttributeIdInvalid
+        const defaultDataValue = this.readAttribute(null, AttributeIds.Value);
+        const defaultValue =
+            (defaultDataType.namespace === 0 && defaultDataType.value == 0) || defaultDataValue.statusCode.isNotGood()
+                ? undefined
+                : defaultDataValue.value;
+
         const opts: AddVariableOptions = {
             arrayDimensions,
             browseName: options.browseName,
@@ -253,7 +260,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
             typeDefinition: this.nodeId,
-            value: options.value,
+            value: options.value || defaultValue,
             valueRank
         };
 
@@ -267,7 +274,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue
         // and create a bidirectional binding with the individual properties of this type
-        instance.bindExtensionObject(options.extensionObject);
+        instance.bindExtensionObject(options.extensionObject, { createMissingProp: false });
 
         assert(instance.typeDefinition.toString() === this.nodeId.toString());
 
@@ -531,7 +538,6 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         extraInfo
     );
     extraInfo.level--;
-
 }
 
 /**
@@ -584,9 +590,9 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     if (parent && hasChildWithBrowseName(parent, coerceQualifiedName(options.browseName))) {
         throw new Error(
             "object " +
-                parent.browseName.name!.toString() +
-                " have already a child with browseName " +
-                options.browseName.toString()
+            parent.browseName.name!.toString() +
+            " have already a child with browseName " +
+            options.browseName.toString()
         );
     }
 }

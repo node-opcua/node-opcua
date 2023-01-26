@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as should from "should";
+import "should";
 
 import { getTempFilename } from "node-opcua-debug/nodeJS";
 import { DataType, VariantArrayType } from "node-opcua-variant";
@@ -7,11 +8,26 @@ import { Variant } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceLocalizedText, coerceQualifiedName, makeAccessLevelFlag } from "node-opcua-data-model";
 import { checkDebugFlag } from "node-opcua-debug";
-
-import { AddressSpace, dumpXml, Namespace, UAVariable, UARootFolder } from "..";
+import { DataTypeIds } from "node-opcua-constants";
+import { ThreeDCartesianCoordinates } from "node-opcua-types";
+import { AddressSpace, Namespace, UAVariable, UARootFolder, BaseNode } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
+
 import { generateAddressSpace } from "../nodeJS";
+
+const XMLWriter = require("xml-writer");
 const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
+const { createCameraType } = require("./fixture_camera_type");
+
+function dumpXml(node: BaseNode): string {
+    const xw = new XMLWriter(true);
+    xw.translationTable = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+    xw.priorityTable = [0, 1, 2, 3, 4, 5, 6];
+    xw.startDocument({ encoding: "utf-8" });
+    (node as any).dumpXML(xw);
+    xw.endDocument();
+    return xw.toString();
+}
 
 const doDebug = checkDebugFlag("TEST");
 
@@ -36,7 +52,7 @@ describe("testing nodeset to xml", () => {
         if (doDebug) {
             console.log(argumentDataType.toString());
         }
-        const str = dumpXml(argumentDataType, {});
+        const str = dumpXml(argumentDataType);
         if (doDebug) {
             console.log(str);
         }
@@ -46,7 +62,7 @@ describe("testing nodeset to xml", () => {
     it("KLKL2 should output a standard Enum node to xml (ServerState)", () => {
         // TemperatureSensorType
         const serverStateType = addressSpace.findDataType("ServerState")!;
-        const str = dumpXml(serverStateType, {});
+        const str = dumpXml(serverStateType);
         if (doDebug) {
             console.log(str);
         }
@@ -65,7 +81,7 @@ describe("testing nodeset to xml", () => {
         values.join(",").should.eql("locale=null text=RUNNING,locale=null text=STOPPED");
 
         myEnumType.browseName.toString().should.eql("1:MyEnumTypeForm1");
-        const str = dumpXml(myEnumType, {});
+        const str = dumpXml(myEnumType);
         if (doDebug) {
             console.log(str);
         }
@@ -84,7 +100,7 @@ describe("testing nodeset to xml", () => {
         });
 
         myEnumType.browseName.toString().should.eql("1:MyEnumType");
-        const str = dumpXml(myEnumType, {});
+        const str = dumpXml(myEnumType);
         if (doDebug) {
             console.log(str);
         }
@@ -97,7 +113,7 @@ describe("testing nodeset to xml", () => {
         // TemperatureSensorType
         const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
-        const str = dumpXml(temperatureSensorType, {});
+        const str = dumpXml(temperatureSensorType);
         str.should.match(/UAObjectType/);
     });
 
@@ -130,7 +146,7 @@ describe("testing nodeset to xml", () => {
             organizedBy: "RootFolder"
         });
 
-        const str = dumpXml(temperatureSensor, {});
+        const str = dumpXml(temperatureSensor);
         if (doDebug) {
             console.log(str);
         }
@@ -138,15 +154,13 @@ describe("testing nodeset to xml", () => {
     });
 
     it("KLKL7 should output a instance of object with method  to xml", () => {
-        const createCameraType = require("./fixture_camera_type").createCameraType;
-
         const cameraType = createCameraType(addressSpace);
 
         const camera1 = cameraType.instantiate({
             browseName: "Camera1",
             organizedBy: "RootFolder"
         });
-        const str = dumpXml(camera1, {});
+        const str = dumpXml(camera1);
         if (doDebug) {
             console.log(str);
         }
@@ -155,15 +169,17 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
-        str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">/);
-        str.should.match(/<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" MethodDeclarationId="ns=1;i=1001"/);
+        str.should.match(/<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger" ParentNodeId="ns=1;i=1000">/);
+        str.should.match(
+            /<UAMethod NodeId="ns=1;i=[0-9]+" BrowseName="1:Trigger" ParentNodeId="ns=1;i=[0-9]+" MethodDeclarationId="ns=1;i=1001"/
+        );
     });
 
     it("KLKL8 should output an instance of variable type to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
         const variableType = ownNamespace.addVariableType({ browseName: "MyCustomVariableType" });
 
-        const str = dumpXml(variableType, {});
+        const str = dumpXml(variableType);
         if (doDebug) {
             console.log(str);
         }
@@ -177,7 +193,7 @@ describe("testing nodeset to xml", () => {
             inverseName: "StuffOf"
         });
 
-        const str = dumpXml(referenceType, {});
+        const str = dumpXml(referenceType);
         if (doDebug) {
             console.log(str);
         }
@@ -213,12 +229,11 @@ describe("testing nodeset to xml", () => {
                 }
             ]
         });
-        let str = dumpXml(obj1, {});
+        let str = dumpXml(obj1);
 
         str.should.match(/<\/UAMethod>/g, "must have a complex UAMethod element");
         str.should.match(/BrowseName="InputArguments"/);
         str.should.match(/BrowseName="OutputArguments"/);
-
 
         str = str.replace(/LastModified=".*" /g, 'LastModified="DATE" ');
         if (doDebug) {
@@ -226,91 +241,84 @@ describe("testing nodeset to xml", () => {
         }
 
         str.should.eql(`<?xml version="1.0"?>
-<UANodeSet xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Version="1.02" LastModified="DATE" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
-    <Aliases>
-        <Alias Alias="HasComponent">i=47</Alias>
-        <Alias Alias="HasTypeDefinition">i=40</Alias>
-        <Alias Alias="Organizes">i=35</Alias>
-    </Aliases>
 <!--Object - 1:Object {{{{ -->
-    <UAObject NodeId="ns=1;i=1000" BrowseName="1:Object">
-        <DisplayName>Object</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
-            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=1001</Reference>
-        </References>
-    </UAObject>
-    <UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger">
-        <DisplayName>Trigger</DisplayName>
-        <References>
-            <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=1002</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
-        </References>
-    </UAMethod>
-    <UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
-        <DisplayName>InputArguments</DisplayName>
-        <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasModellingRule">i=78</Reference>
-        </References>
-        <Value>
-            <ListOfExtensionObject>
-                <ExtensionObject>
-                    <TypeId>
-                        <Identifier>ns=0;i=297</Identifier>
-                    </TypeId>
-                    <Body>
-                        <Argument>
-                            <Name>ShutterLag</Name>
-                            <DataType>
-                                <Identifier>ns=0;i=7</Identifier>
-                            </DataType>
-                            <ValueRank>-1</ValueRank>
-                            <ArrayDimensions></ArrayDimensions>
-                            <Description>
-                                <Text>specifies the number of seconds to wait before the picture is taken </Text>
-                            </Description>
-                        </Argument>
-                    </Body>
-                </ExtensionObject>
-            </ListOfExtensionObject>
-        </Value>
-    </UAVariable>
-    <UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ValueRank="1" ArrayDimensions="1" DataType="Argument">
-        <DisplayName>OutputArguments</DisplayName>
-        <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasModellingRule">i=78</Reference>
-        </References>
-        <Value>
-            <ListOfExtensionObject>
-                <ExtensionObject>
-                    <TypeId>
-                        <Identifier>ns=0;i=297</Identifier>
-                    </TypeId>
-                    <Body>
-                        <Argument>
-                            <Name>Image</Name>
-                            <DataType>
-                                <Identifier>ns=0;i=30</Identifier>
-                            </DataType>
-                            <ValueRank>-1</ValueRank>
-                            <ArrayDimensions></ArrayDimensions>
-                            <Description>
-                                <Text>the generated image</Text>
-                            </Description>
-                        </Argument>
-                    </Body>
-                </ExtensionObject>
-            </ListOfExtensionObject>
-        </Value>
-    </UAVariable>
-<!--Object - 1:Object }}}} -->
-</UANodeSet>`);
+<UAObject NodeId="ns=1;i=1000" BrowseName="1:Object">
+    <DisplayName>Object</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+        <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        <Reference ReferenceType="HasComponent">ns=1;i=1001</Reference>
+    </References>
+</UAObject>
+<UAMethod NodeId="ns=1;i=1001" BrowseName="1:Trigger" ParentNodeId="ns=1;i=1000">
+    <DisplayName>Trigger</DisplayName>
+    <References>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        <Reference ReferenceType="HasProperty">ns=1;i=1002</Reference>
+        <Reference ReferenceType="HasProperty">ns=1;i=1003</Reference>
+    </References>
+</UAMethod>
+<UAVariable NodeId="ns=1;i=1002" BrowseName="InputArguments" ParentNodeId="ns=1;i=1001" ValueRank="1" ArrayDimensions="1" DataType="Argument">
+    <DisplayName>InputArguments</DisplayName>
+    <Description>the definition of the input argument of method 1:Object.1:Trigger</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+    <Value>
+        <ListOfExtensionObject>
+            <ExtensionObject>
+                <TypeId>
+                    <Identifier>i=297</Identifier>
+                </TypeId>
+                <Body>
+                    <Argument>
+                        <Name>ShutterLag</Name>
+                        <DataType>
+                            <Identifier>i=7</Identifier>
+                        </DataType>
+                        <ValueRank>-1</ValueRank>
+                        <ArrayDimensions/>
+                        <Description>
+                            <Text>specifies the number of seconds to wait before the picture is taken </Text>
+                        </Description>
+                    </Argument>
+                </Body>
+            </ExtensionObject>
+        </ListOfExtensionObject>
+    </Value>
+</UAVariable>
+<UAVariable NodeId="ns=1;i=1003" BrowseName="OutputArguments" ParentNodeId="ns=1;i=1001" ValueRank="1" ArrayDimensions="1" DataType="Argument">
+    <DisplayName>OutputArguments</DisplayName>
+    <Description>the definition of the output arguments of method 1:Object.1:Trigger</Description>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        <Reference ReferenceType="HasModellingRule">i=78</Reference>
+    </References>
+    <Value>
+        <ListOfExtensionObject>
+            <ExtensionObject>
+                <TypeId>
+                    <Identifier>i=297</Identifier>
+                </TypeId>
+                <Body>
+                    <Argument>
+                        <Name>Image</Name>
+                        <DataType>
+                            <Identifier>i=30</Identifier>
+                        </DataType>
+                        <ValueRank>-1</ValueRank>
+                        <ArrayDimensions/>
+                        <Description>
+                            <Text>the generated image</Text>
+                        </Description>
+                    </Argument>
+                </Body>
+            </ExtensionObject>
+        </ListOfExtensionObject>
+    </Value>
+</UAVariable>
+<!--Object - 1:Object }}}} -->`);
     });
 });
 
@@ -342,7 +350,7 @@ describe("Namespace to NodeSet2.xml", () => {
         xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://MYNAMESPACE/Type.xsd">
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
@@ -383,7 +391,7 @@ describe("Namespace to NodeSet2.xml", () => {
         xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://MYNAMESPACE/Type.xsd">
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
@@ -432,7 +440,7 @@ describe("Namespace to NodeSet2.xml", () => {
         xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://MYNAMESPACE/Type.xsd">
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
@@ -484,7 +492,7 @@ describe("Namespace to NodeSet2.xml", () => {
         xml = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         xml.should.eql(
             `<?xml version="1.0"?>
-<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://MYNAMESPACE/Type.xsd">
     <NamespaceUris>
         <Uri>http://MYNAMESPACE</Uri>
     </NamespaceUris>
@@ -513,7 +521,7 @@ describe("Namespace to NodeSet2.xml", () => {
 });
 
 describe("nodeset2.xml with more than one referenced namespace", function (this: any) {
-    this.timeout(20000);
+    this.timeout(Math.max(40000, this.timeout()));
 
     let addressSpace: AddressSpace;
     let namespace: Namespace;
@@ -805,5 +813,67 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         r_xml2.split("\n").should.eql(xml2.split("\n"));
 
         //  console.log(xml);
+    });
+
+    it("NSXML8 - matrix of standard type ", async () => {
+        const v = namespace.addVariable({
+            browseName: "TestVariable",
+            dataType: DataType.Int32,
+            organizedBy: addressSpace.rootFolder.objects,
+            valueRank: 2,
+            arrayDimensions: [3, 2]
+        });
+
+        v.setValueFromSource({
+            dataType: DataType.Int32,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [3, 2],
+            value: [10, 20, 30, 11, 21, 31]
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        xml2.should.match(/<ListOfInt32/gm);
+        xml2.should.match(/<\/ListOfInt32>/gm);
+
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+    });
+    it("NSXML9 - matrix of extension objects", async () => {
+        const v = namespace.addVariable({
+            browseName: "TestVariable",
+            dataType: DataTypeIds.ThreeDCartesianCoordinates,
+            organizedBy: addressSpace.rootFolder.objects,
+            valueRank: 2,
+            arrayDimensions: [3, 2]
+        });
+
+        v.setValueFromSource({
+            dataType: DataType.ExtensionObject,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [3, 2],
+            value: [
+                new ThreeDCartesianCoordinates({ x: 0, y: 0, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 1, y: 0, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 2, y: 0, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 0, y: 1, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 1, y: 1, z: 0 }),
+                new ThreeDCartesianCoordinates({ x: 2, y: 1, z: 0 })
+            ]
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        xml2.should.match(/<ListOfExtensionObject/gm);
+        xml2.should.match(/<\/ListOfExtensionObject/gm);
     });
 });

@@ -15,7 +15,6 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * |typedDefinition |9:OneTimeCalibrationTargetCategoryType ns=9;i=1017|
  * |isAbstract      |false                                             |
  */
-export interface UAOneTimeCalibrationTargetCategory_Base extends UABaseCalibrationTargetCategory_Base {
-}
+export type UAOneTimeCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
 export interface UAOneTimeCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAOneTimeCalibrationTargetCategory_Base {
 }

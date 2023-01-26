@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
+import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service"
 import { UADataSetWriterTransport, UADataSetWriterTransport_Base } from "./ua_data_set_writer_transport"
 /**
  * |                |                                                  |
@@ -12,12 +13,12 @@ import { UADataSetWriterTransport, UADataSetWriterTransport_Base } from "./ua_da
  * |isAbstract      |false                                             |
  */
 export interface UABrokerDataSetWriterTransport_Base extends UADataSetWriterTransport_Base {
-    queueName: UAProperty<UAString, /*z*/DataType.String>;
-    metaDataQueueName: UAProperty<UAString, /*z*/DataType.String>;
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
-    requestedDeliveryGuarantee: UAProperty<any, any>;
-    metaDataUpdateTime: UAProperty<number, /*z*/DataType.Double>;
+    queueName: UAProperty<UAString, DataType.String>;
+    metaDataQueueName: UAProperty<UAString, DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    authenticationProfileUri: UAProperty<UAString, DataType.String>;
+    requestedDeliveryGuarantee: UAProperty<EnumBrokerTransportQualityOfService, DataType.Int32>;
+    metaDataUpdateTime: UAProperty<number, DataType.Double>;
 }
 export interface UABrokerDataSetWriterTransport extends UADataSetWriterTransport, UABrokerDataSetWriterTransport_Base {
 }

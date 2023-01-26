@@ -39,6 +39,8 @@ const performCheck = false;
  *
  */
 export class BinaryStream {
+    public static maxByteStringLength = 16 * 1024 * 1024;
+    public static maxStringLength = 16 * 1024 * 1024;
     /**
      * the current position inside the buffer
      */
@@ -363,11 +365,14 @@ export class BinaryStream {
      * @param length
      */
     public readArrayBuffer(length: number): Uint8Array {
+        if (length > BinaryStream.maxByteStringLength) {
+            throw new Error(`maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${length}`);
+        }
         // istanbul ignore next
         if (performCheck) {
             assert(this.length + length <= this.buffer.length, "not enough bytes in buffer");
         }
-        const slice = this.buffer.slice(this.length, this.length + length);
+        const slice = this.buffer.subarray(this.length, this.length + length);
         // istanbul ignore next
         if (performCheck) {
             assert(slice.length === length);
@@ -395,6 +400,9 @@ export class BinaryStream {
         if (bufLen === 0) {
             return zeroLengthBuffer;
         }
+        if (bufLen > BinaryStream.maxByteStringLength) {
+            throw new Error(`maxStringLength(${BinaryStream.maxByteStringLength}) has been exceeded in BinaryStream.readArrayBuffer len=${bufLen}`);
+        }
         // check that there is enough space in the buffer
         const remainingBytes = this.buffer.length - this.length;
         // istanbul ignore next
@@ -408,7 +416,7 @@ export class BinaryStream {
             );
         }
         // create a shared memory buffer ! for speed
-        const buf = this.buffer.slice(this.length, this.length + bufLen);
+        const buf = this.buffer.subarray(this.length, this.length + bufLen);
         this.length += bufLen;
         return buf;
     }
@@ -420,6 +428,9 @@ export class BinaryStream {
         }
         if (bufLen === 0) {
             return "";
+        }
+        if (bufLen > BinaryStream.maxStringLength) {
+            throw new Error(`maxStringLength(${BinaryStream.maxStringLength}) has been exceeded in BinaryStream.readString len=${bufLen}`);
         }
         // check that there is enough space in the buffer
         const remainingBytes = this.buffer.length - this.length;

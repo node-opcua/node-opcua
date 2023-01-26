@@ -9,6 +9,12 @@
     "include": ["source/**/*.ts"],
     "references": [
         {
+            "path": "../node-opcua-address-space-base"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
             "path": "../node-opcua-address-space"
         },
         {
@@ -43,9 +49,6 @@
         },
         {
             "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-enum"
         },
         {
             "path": "../node-opcua-extension-object"
@@ -136,9 +139,6 @@
         },
         {
             "path": "../node-opcua-test-helpers"
-        },
-        {
-            "path": "../node-opcua-transport"
         }
     ],
     "exclude": ["node_modules", "test", "dist"]

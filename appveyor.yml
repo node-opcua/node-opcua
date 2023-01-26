@@ -7,9 +7,10 @@ environment:
     # - nodejs_version: "9"  (not supported any more)
     # - nodejs_version: "10" (not supported any mopre -> end of life 2021-04-30)
     # - nodejs_version: "11" (not supported any more)
-    - nodejs_version: "12" 
-    - nodejs_version: "14"
-    - nodejs_version: "15"
+    # - nodejs_version: "12"  (deprecated in April 30th 2022)
+    # - nodejs_version: "14"
+    - nodejs_version: "16"
+    # - nodejs_version: "18" 
 
 platform:
   - x64
@@ -29,10 +30,10 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version $env:platform
   # install modules (using appveyor-retry to prevent EPERM bug)
-  - npm install -g npm pnpm typescript ts-node
+  - npm install -g npm pnpm@7 typescript ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
-  - appveyor-retry pnpm recursive install
+  - appveyor-retry pnpm recursive install --no-frozen-lockfile
 
 # Post-install test scripts.
 test_script:
@@ -49,5 +50,5 @@ test_script:
 build: false
 
 cache:
-  - node_modules                        # local npm modules
+  # - node_modules                        # local npm modules
   - '%APPDATA%\npm-cache'               # npm cache

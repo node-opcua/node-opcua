@@ -1,5 +1,5 @@
 function w(s: string | number, length: number): string {
-    return ("000" + s).substr(-length);
+    return ("" + s).padStart(length, "0");
 }
 
 function t(d: Date): string {

@@ -63,7 +63,7 @@ describe("testing extension object with client residing on a different process t
 
                                     //xx console.log(" input,",nodesToRead[0].toString());
                                     //xx console.log(" result,",results[0].toString());
-                                    const xmlData = dataValues[0].value.value.toString("ascii");
+                                    const xmlData = dataValues[0].value.value.toString("utf-8");
                                     xmlData.should.match(
                                         /opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStructureDataType"/
                                     );
@@ -82,7 +82,7 @@ describe("testing extension object with client residing on a different process t
                                 if (!err) {
                                     //xx console.log(" input,",nodesToRead[0].toString());
                                     //xx console.log(" result,",results[0].toString());
-                                    const xmlData = dataValue.value.value.toString("ascii");
+                                    const xmlData = dataValue.value.value.toString("utf-8");
                                     xmlData.should.match(
                                         /opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStructureDataType"/
                                     );

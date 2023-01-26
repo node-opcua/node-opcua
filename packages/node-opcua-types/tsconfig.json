@@ -20,19 +20,10 @@
       "path": "../node-opcua-binary-stream"
     },
     {
-      "path": "../node-opcua-buffer-utils"
-    },
-    {
       "path": "../node-opcua-data-model"
     },
     {
       "path": "../node-opcua-data-value"
-    },
-    {
-      "path": "../node-opcua-date-time"
-    },
-    {
-      "path": "../node-opcua-debug"
     },
     {
       "path": "../node-opcua-enum"
@@ -47,25 +38,13 @@
       "path": "../node-opcua-generator"
     },
     {
-      "path": "../node-opcua-guid"
-    },
-    {
       "path": "../node-opcua-nodeid"
     },
     {
       "path": "../node-opcua-numeric-range"
     },
     {
-      "path": "../node-opcua-packet-analyzer"
-    },
-    {
-      "path": "../node-opcua-schemas"
-    },
-    {
       "path": "../node-opcua-status-code"
-    },
-    {
-      "path": "../node-opcua-utils"
     },
     {
       "path": "../node-opcua-variant"

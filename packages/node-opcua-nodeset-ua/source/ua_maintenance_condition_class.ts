@@ -8,7 +8,6 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condi
  * |typedDefinition |MaintenanceConditionClassType ns=0;i=11165        |
  * |isAbstract      |true                                              |
  */
-export interface UAMaintenanceConditionClass_Base extends UABaseConditionClass_Base {
-}
+export type UAMaintenanceConditionClass_Base = UABaseConditionClass_Base;
 export interface UAMaintenanceConditionClass extends UABaseConditionClass, UAMaintenanceConditionClass_Base {
 }

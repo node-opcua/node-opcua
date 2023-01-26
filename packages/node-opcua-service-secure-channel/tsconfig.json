@@ -20,16 +20,7 @@
       "path": "../node-opcua-binary-stream"
     },
     {
-      "path": "../node-opcua-data-model"
-    },
-    {
-      "path": "../node-opcua-extension-object"
-    },
-    {
       "path": "../node-opcua-factory"
-    },
-    {
-      "path": "../node-opcua-nodeid"
     },
     {
       "path": "../node-opcua-types"
@@ -42,9 +33,6 @@
     },
     {
       "path": "../node-opcua-debug"
-    },
-    {
-      "path": "../node-opcua-generator"
     },
     {
       "path": "../node-opcua-packet-analyzer"

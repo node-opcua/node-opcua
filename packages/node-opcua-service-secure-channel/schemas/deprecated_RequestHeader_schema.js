@@ -29,7 +29,7 @@ const RequestHeader_Schema = {
 
         // An identifier that identifies the Client's security audit log entry associated with
         // this request.
-        { name: "auditEntryId", fieldType: "UAString"                   },
+        { name: "auditEntryId", fieldType: "String"                   },
 
         { name: "timeoutHint", fieldType: "UInt32"                    },
 

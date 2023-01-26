@@ -1,9 +1,9 @@
 "use strict";
 
-const { makebuffer_from_trace  } = require("node-opcua-debug");
+const { makeBufferFromTrace  } = require("node-opcua-debug");
 
 
-exports.packet_ReadResponse= makebuffer_from_trace(function () {
+exports.packet_ReadResponse= makeBufferFromTrace(function () {
     /*
      00000000: 01 00 7a 02 87 bb 66 e8 6e 19 d1 01 e0 16 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03 00 00 00    ..z..;fhn.Q.`...................
      00000020: 0d c1 18 00 00 00 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 00 01 03 00    .A..............................

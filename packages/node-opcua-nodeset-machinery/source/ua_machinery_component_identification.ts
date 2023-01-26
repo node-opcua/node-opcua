@@ -20,7 +20,7 @@ export interface UAMachineryComponentIdentification_Base extends UAMachineryItem
      * defaultInstanceBrowseName
      * The default BrowseName for instances of the type.
      */
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     /**
      * deviceRevision
      * A string representation of the overall revision
@@ -30,7 +30,7 @@ export interface UAMachineryComponentIdentification_Base extends UAMachineryItem
      * As an example, it can be used in ERP systems
      * together with the ProductCode.
      */
-    deviceRevision?: UAProperty<UAString, /*z*/DataType.String>;
+    deviceRevision?: UAProperty<UAString, DataType.String>;
 }
 export interface UAMachineryComponentIdentification extends UAMachineryItemIdentification, UAMachineryComponentIdentification_Base {
 }

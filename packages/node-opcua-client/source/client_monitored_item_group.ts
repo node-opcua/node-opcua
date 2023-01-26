@@ -20,6 +20,10 @@ export interface ClientMonitoredItemGroup extends EventEmitter, ClientMonitoredI
     on(event: "initialized", eventHandler: () => void): this;
 }
 
+export interface ClientMonitoredItemGroup {
+    monitoredItems: ClientMonitoredItemBase[];
+}
+
 export class ClientMonitoredItemGroup {
     public static create(
         subscription: ClientSubscription,

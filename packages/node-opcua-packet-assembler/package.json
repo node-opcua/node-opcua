@@ -1,21 +1,23 @@
 {
     "name": "node-opcua-packet-assembler",
-    "version": "2.64.1",
+    "version": "2.88.0",
     "description": "pure nodejs OPCUA SDK - module -packet-assembler",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "mocha"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-assert": "2.64.1"
+        "node-opcua-assert": "2.88.0",
+        "node-opcua-debug": "2.88.0"
     },
     "devDependencies": {
-        "should": "^13.2.3"
+        "should": "^13.2.3",
+        "sinon": "^15.0.1"
     },
     "repository": {
         "type": "git",

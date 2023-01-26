@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -9,7 +10,8 @@ import { DTStructure } from "./dt_structure"
  * | name      |ConfigurationVersionDataType                      |
  * | isAbstract|false                                             |
  */
-export interface DTConfigurationVersion extends DTStructure  {
+export interface DTConfigurationVersion extends DTStructure {
   majorVersion: UInt32; // UInt32 ns=0;i=20998
   minorVersion: UInt32; // UInt32 ns=0;i=20998
 }
+export interface UDTConfigurationVersion extends ExtensionObject, DTConfigurationVersion {};

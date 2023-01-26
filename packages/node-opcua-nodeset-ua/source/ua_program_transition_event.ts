@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { UATransitionEvent, UATransitionEvent_Base } from "./ua_transition_event"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**

@@ -12,7 +12,7 @@ import { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_sessio
  * |isAbstract      |true                                              |
  */
 export interface UAAuditCancelEvent_Base extends UAAuditSessionEvent_Base {
-    requestHandle: UAProperty<UInt32, /*z*/DataType.UInt32>;
+    requestHandle: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAAuditCancelEvent extends UAAuditSessionEvent, UAAuditCancelEvent_Base {
 }

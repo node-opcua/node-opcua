@@ -8,10 +8,10 @@ import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import {
     BaseUAObject,
     buildStructuredType,
-    initialize_field, StructuredTypeSchema
+    initialize_field, IStructuredTypeSchema
 } from "node-opcua-factory";
 
-const schemaSymmetricAlgorithmSecurityHeader: StructuredTypeSchema = buildStructuredType({
+const schemaSymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStructuredType({
     name: "SymmetricAlgorithmSecurityHeader",
 
     baseType: "BaseUAObject",

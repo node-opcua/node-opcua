@@ -12,10 +12,11 @@ const {
     Variant,
     DataType
 } = require("node-opcua");
+const yargs = require("yargs");
 
 Error.stackTraceLimit = Infinity;
 
-const argv = require("yargs").wrap(132).string("port").describe("port").alias("p", "port").argv;
+const argv = yargs.wrap(132).string("port").describe("port").alias("p", "port").argv;
 
 const packageFolder = path.join(__dirname, "../");
 

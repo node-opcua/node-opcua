@@ -13,13 +13,13 @@ import { UAAlarmRateVariable } from "./ua_alarm_rate_variable"
  * |isAbstract      |false                                             |
  */
 export interface UAAlarmMetrics_Base {
-    alarmCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    startTime: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
-    maximumActiveState: UABaseDataVariable<number, /*z*/DataType.Double>;
-    maximumUnAck: UABaseDataVariable<number, /*z*/DataType.Double>;
+    alarmCount: UABaseDataVariable<UInt32, DataType.UInt32>;
+    startTime: UABaseDataVariable<Date, DataType.DateTime>;
+    maximumActiveState: UABaseDataVariable<number, DataType.Double>;
+    maximumUnAck: UABaseDataVariable<number, DataType.Double>;
     currentAlarmRate: UAAlarmRateVariable<number>;
     maximumAlarmRate: UAAlarmRateVariable<number>;
-    maximumReAlarmCount: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    maximumReAlarmCount: UABaseDataVariable<UInt32, DataType.UInt32>;
     averageAlarmRate: UAAlarmRateVariable<number>;
     reset: UAMethod;
 }

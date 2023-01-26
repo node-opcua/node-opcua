@@ -12,10 +12,11 @@ import { DTArgument } from "./dt_argument"
  * |isAbstract      |false                                             |
  */
 export interface UATemporaryFileTransfer_Base {
-    clientProcessingTimeout: UAProperty<number, /*z*/DataType.Double>;
+    clientProcessingTimeout: UAProperty<number, DataType.Double>;
     generateFileForRead: UAMethod;
     generateFileForWrite: UAMethod;
     closeAndCommit: UAMethod;
+   // PlaceHolder for $TransferState$
 }
 export interface UATemporaryFileTransfer extends UAObject, UATemporaryFileTransfer_Base {
 }

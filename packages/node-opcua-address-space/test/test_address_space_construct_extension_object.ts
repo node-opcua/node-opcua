@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 // tslint:disable:no-bitwise
 // =====================================================================================================================
 // the purpose of this test is to check the ability to create a extension object from it's node
@@ -18,10 +19,9 @@ import * as should from "should";
 import * as utils from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { makeNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { ServerState } from "node-opcua-types";
-import { AccessLevelFlag, NodeClass, makeAccessLevelFlag } from "node-opcua-data-model";
+import { AccessLevelFlag, NodeClass, makeAccessLevelFlag, accessLevelFlagToString } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
@@ -30,7 +30,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { WriteValue } from "node-opcua-service-write";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
-import { AddressSpace, BaseNode, Namespace, SessionContext, UAServerStatus, DTServerStatus } from "..";
+import { AddressSpace, BaseNode, Namespace, UAServerStatus, DTServerStatus, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
 const debugLog = make_debugLog("TEST");
@@ -129,7 +129,7 @@ describe("testing address space namespace loading", function (this: any) {
         });
         myVar.browseName.toString().should.eql("1:MyVar");
 
-        (myVar as any).$extensionObject.should.be.instanceOf(op.constructor);
+        myVar.$extensionObject.should.be.instanceOf(op.constructor);
 
         myVar.readValue().value.value.should.be.instanceOf(op.constructor);
 
@@ -139,11 +139,11 @@ describe("testing address space namespace loading", function (this: any) {
 
         // now change the underlying data
 
-        (myVar as any).$extensionObject.lowValue = 10;
+        myVar.$extensionObject.lowValue = 10;
 
-        // verify that value has changed using all way to access it
-        (myVar as any).lowValue.readValue().value.value.should.eql(10);
+        // verify that value has changed using all possible way to access it
         myVar.readValue().value.value.lowValue.should.eql(10);
+        (myVar.getComponentByName("LowValue")! as UAVariable).readValue().value.value.should.eql(10);
     });
 
     it("should explore the DataType through OPCUA", () => {
@@ -208,13 +208,15 @@ describe("testing address space namespace loading", function (this: any) {
         // in this test, we verify that we can easily bind the Server_ServerStatus object
         // the process shall automatically bind variables and substructures recursively
 
-        const serverStatus = addressSpace.findNode(makeNodeId(VariableIds.Server_ServerStatus))! as UAServerStatus<DTServerStatus>;
+        const serverStatus = addressSpace.findNode(VariableIds.Server_ServerStatus)! as UAServerStatus<DTServerStatus>;
         serverStatus.browseName.toString().should.eql("ServerStatus");
 
         // before bindExtensionObject is called, startTime property exists but is not bound
         serverStatus.should.have.property("startTime");
         serverStatus.startTime.readValue().value.dataType.should.eql(DataType.DateTime);
         serverStatus.readValue().value.dataType.should.eql(DataType.ExtensionObject);
+
+        accessLevelFlagToString(serverStatus.accessLevel).should.eql("CurrentRead");
 
         // Xx value.startTime.should.eql(DataType.Null);
         // xx debugLog("serverStatus.startTime =",serverStatus.startTime.readValue().value.toString());
@@ -253,17 +255,33 @@ describe("testing address space namespace loading", function (this: any) {
         // xx debugLog(serverStatus.readValue().value.toString());
 
         serverStatus.$extensionObject.buildInfo.productName = "productName1";
-        serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName1");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName1");
         serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName1");
 
         serverStatus.buildInfo.productName.setValueFromSource({ dataType: DataType.String, value: "productName2" });
-        serverStatus.readValue().value.value.buildInfo.productName.should.eql("productName2");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName2");
         serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName2");
+
+        accessLevelFlagToString(serverStatus.buildInfo.productName.accessLevel).should.eql("CurrentRead");
+        const writeValue0 = new WriteValue({
+            attributeId: AttributeIds.Value, // value
+            value: {
+                statusCode: StatusCodes.Good,
+                value: {
+                    dataType: DataType.String,
+                    value: "productName3"
+                }
+            }
+        });
+        const statusCode0 = await serverStatus.buildInfo.productName.writeAttribute(null, writeValue0);
+        statusCode0.should.eql(StatusCodes.BadNotWritable);
+
 
         // now use WriteValue instead
         // make sure value is writable
         const rw = makeAccessLevelFlag("CurrentRead | CurrentWrite");
         assert(rw === (AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite));
+
         serverStatus.buildInfo.productName.accessLevel = rw;
         serverStatus.buildInfo.productName.userAccessLevel = rw;
 
@@ -283,11 +301,12 @@ describe("testing address space namespace loading", function (this: any) {
                 }
             }
         });
+        accessLevelFlagToString(serverStatus.buildInfo.productName.accessLevel).should.eql("CurrentRead | CurrentWrite");
         const statusCode = await serverStatus.buildInfo.productName.writeAttribute(null, writeValue);
-        statusCode.should.eql(StatusCodes.BadNotWritable);
+        statusCode.should.eql(StatusCodes.Good);
 
-        serverStatus.buildInfo.productName.readValue().value.value!.should.not.eql("productName3");
-        serverStatus.readValue().value.value.buildInfo.productName.should.not.eql("productName3");
+        serverStatus.buildInfo.productName.readValue().value.value!.should.eql("productName3");
+        serverStatus.readValue().value.value.buildInfo.productName!.should.eql("productName3");
     });
 
     it("should instantiate SessionDiagnostics in a linear time", () => {

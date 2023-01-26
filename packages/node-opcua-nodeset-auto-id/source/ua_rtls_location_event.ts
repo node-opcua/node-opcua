@@ -13,7 +13,7 @@ import { UAAutoIdScanEvent, UAAutoIdScanEvent_Base } from "./ua_auto_id_scan_eve
  * |isAbstract      |true                                              |
  */
 export interface UARtlsLocationEvent_Base extends UAAutoIdScanEvent_Base {
-    scanResult: UAProperty<DTRtlsLocationResult[], /*z*/DataType.ExtensionObject>;
+    scanResult: UAProperty<DTRtlsLocationResult[], DataType.ExtensionObject>;
 }
 export interface UARtlsLocationEvent extends Omit<UAAutoIdScanEvent, "scanResult">, UARtlsLocationEvent_Base {
 }

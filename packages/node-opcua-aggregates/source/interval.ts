@@ -9,24 +9,25 @@ export { AggregateConfigurationOptions } from "node-opcua-types";
 export interface AggregateConfigurationOptionsEx extends AggregateConfigurationOptions {
     stepped?: boolean;
 }
-export function isGoodish(statusCode: StatusCode): boolean {
-    return statusCode.value < 0x40000000;
+
+
+export function isGoodish2(statusCode: StatusCode, { treatUncertainAsBad }: { treatUncertainAsBad?: boolean }): boolean {
+    if (statusCode.isGoodish()) return true;
+    if (isUncertain(statusCode)) return !treatUncertainAsBad;
+    return false;
 }
 
-export function isBad(statusCode: StatusCode): boolean {
-    return statusCode.value >= 0x80000000;
-}
 
-export function isGood(statusCode: StatusCode): boolean {
-    return statusCode.value === 0x0;
+export function isUncertain(statusCode: StatusCode): boolean {
+    return (statusCode.value & 0x40000000) === 0x40000000 && statusCode.value !== StatusCodes.BadNoData.value;
 }
-
 export interface IntervalOptions {
     startTime: Date;
     dataValues: DataValue[];
     index: number;
     count: number;
     isPartial: boolean;
+    processingInterval: number;
 }
 
 interface DataValueWithIndex {
@@ -42,10 +43,10 @@ export function _findGoodDataValueBefore(
     index--;
     while (index >= 0) {
         const dataValue1 = dataValues[index];
-        if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
+        if (!bTreatUncertainAsBad && !dataValue1.statusCode.isBad()) {
             return { index, dataValue: dataValue1 };
         }
-        if (bTreatUncertainAsBad && isGood(dataValue1.statusCode)) {
+        if (bTreatUncertainAsBad && dataValue1.statusCode.isGood()) {
             return { index, dataValue: dataValue1 };
         }
         index -= 1;
@@ -60,13 +61,13 @@ export function _findGoodDataValueBefore(
 export function _findGoodDataValueAfter(dataValues: DataValue[], index: number, bTreatUncertainAsBad: boolean): DataValueWithIndex {
     while (index < dataValues.length) {
         const dataValue1 = dataValues[index];
-        if (!bTreatUncertainAsBad && !isBad(dataValue1.statusCode)) {
+        if (!bTreatUncertainAsBad && !dataValue1.statusCode.isBad()) {
             return {
                 dataValue: dataValue1,
                 index
             };
         }
-        if (bTreatUncertainAsBad && isGood(dataValue1.statusCode)) {
+        if (bTreatUncertainAsBad && dataValue1.statusCode.isGood()) {
             return {
                 dataValue: dataValue1,
                 index
@@ -97,6 +98,7 @@ export class Interval {
     public index: number;
     public count: number;
     public isPartial: boolean;
+    public processingInterval: number;
 
     // startTime
     // dataValues
@@ -108,6 +110,7 @@ export class Interval {
         this.index = options.index;
         this.count = options.count;
         this.isPartial = options.isPartial;
+        this.processingInterval = options.processingInterval;
     }
 
     public getPercentBad(): number {
@@ -155,9 +158,44 @@ export class Interval {
         }
         return str;
     }
+    public getEffectiveEndTime(): number {
+        const e = this.startTime.getTime() + this.processingInterval;
+        if (!this.dataValues || this.dataValues.length === 0) {
+            return e;
+        }
+        let i = this.dataValues.length - 1;
+        while (i >= 0 && this.dataValues[i].statusCode.equals(StatusCodes.BadNoData)) {
+            i--;
+        }
+        if (i < 0) {
+            return e;
+        }
+        const lastTimestamp = this.dataValues[i].sourceTimestamp!;
+        return Math.min(e, lastTimestamp.getTime() + 1);
+    }
+
+    /**
+     * 
+     * @returns the interval duration
+     */
+    duration() {
+        const t1 = this.dataValues[this.index].sourceTimestamp!.getTime();
+        const e = this.getEffectiveEndTime();
+        return e - t1;
+    }
+
+    /**
+     * returns the region duration starting at index and finishing at index+1 or end limit of the interval
+     */
+    regionDuration(index: number): number {
+        const t1 = this.dataValues[index].sourceTimestamp!.getTime();
+        const e = this.getEffectiveEndTime();
+        const t2 = index < this.dataValues.length - 1 ? Math.min(this.dataValues[index + 1].sourceTimestamp!.getTime(), e) : e;
+        return t2 - t1;
+    }
 }
 
-export function getInterval(startTime: Date, duration: number, indexHint: number, dataValues: DataValue[]): Interval {
+export function getInterval(startTime: Date, processingInterval: number, indexHint: number, dataValues: DataValue[]): Interval {
     let count = 0;
     let index = -1;
     for (let i = indexHint; i < dataValues.length; i++) {
@@ -170,7 +208,7 @@ export function getInterval(startTime: Date, duration: number, indexHint: number
 
     if (index >= 0) {
         for (let i = index; i < dataValues.length; i++) {
-            if (dataValues[i].sourceTimestamp!.getTime() >= startTime.getTime() + duration) {
+            if (dataValues[i].sourceTimestamp!.getTime() >= startTime.getTime() + processingInterval) {
                 break;
             }
             count++;
@@ -181,7 +219,7 @@ export function getInterval(startTime: Date, duration: number, indexHint: number
     let isPartial = false;
     if (
         index + count >= dataValues.length &&
-        dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < startTime.getTime() + duration
+        dataValues[dataValues.length - 1].sourceTimestamp!.getTime() < startTime.getTime() + processingInterval
     ) {
         isPartial = true;
     }
@@ -194,6 +232,7 @@ export function getInterval(startTime: Date, duration: number, indexHint: number
         dataValues,
         index,
         isPartial,
-        startTime
+        startTime,
+        processingInterval
     });
 }

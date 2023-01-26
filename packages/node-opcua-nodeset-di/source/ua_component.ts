@@ -13,20 +13,20 @@ import { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element
  * |isAbstract      |true                                              |
  */
 export interface UAComponent_Base extends UATopologyElement_Base {
-    manufacturer?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    manufacturerUri?: UAProperty<UAString, /*z*/DataType.String>;
-    model?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
-    hardwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
-    softwareRevision?: UAProperty<UAString, /*z*/DataType.String>;
-    deviceRevision?: UAProperty<UAString, /*z*/DataType.String>;
-    productCode?: UAProperty<UAString, /*z*/DataType.String>;
-    deviceManual?: UAProperty<UAString, /*z*/DataType.String>;
-    deviceClass?: UAProperty<UAString, /*z*/DataType.String>;
-    serialNumber?: UAProperty<UAString, /*z*/DataType.String>;
-    productInstanceUri?: UAProperty<UAString, /*z*/DataType.String>;
-    revisionCounter?: UAProperty<Int32, /*z*/DataType.Int32>;
-    assetId?: UAProperty<UAString, /*z*/DataType.String>;
-    componentName?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    manufacturer?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    manufacturerUri?: UAProperty<UAString, DataType.String>;
+    model?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    hardwareRevision?: UAProperty<UAString, DataType.String>;
+    softwareRevision?: UAProperty<UAString, DataType.String>;
+    deviceRevision?: UAProperty<UAString, DataType.String>;
+    productCode?: UAProperty<UAString, DataType.String>;
+    deviceManual?: UAProperty<UAString, DataType.String>;
+    deviceClass?: UAProperty<UAString, DataType.String>;
+    serialNumber?: UAProperty<UAString, DataType.String>;
+    productInstanceUri?: UAProperty<UAString, DataType.String>;
+    revisionCounter?: UAProperty<Int32, DataType.Int32>;
+    assetId?: UAProperty<UAString, DataType.String>;
+    componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
 export interface UAComponent extends UATopologyElement, UAComponent_Base {
 }

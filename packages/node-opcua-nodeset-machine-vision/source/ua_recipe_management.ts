@@ -8,7 +8,7 @@ import { UAProductFolder } from "./ua_product_folder"
 import { UARecipeFolder } from "./ua_recipe_folder"
 import { UARecipeTransfer } from "./ua_recipe_transfer"
 export interface UARecipeManagement_products extends Omit<UAProductFolder, "$Product$"> { // Object
-      "$Product$": UABaseDataVariable<DTProduct, /*z*/DataType.ExtensionObject>;
+      "$Product$": UABaseDataVariable<DTProduct, DataType.ExtensionObject>;
 }
 /**
  * |                |                                                  |

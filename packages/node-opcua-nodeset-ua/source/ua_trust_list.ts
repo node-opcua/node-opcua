@@ -11,8 +11,8 @@ import { UAFile, UAFile_Base } from "./ua_file"
  * |isAbstract      |false                                             |
  */
 export interface UATrustList_Base extends UAFile_Base {
-    lastUpdateTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    updateFrequency?: UAProperty<number, /*z*/DataType.Double>;
+    lastUpdateTime: UAProperty<Date, DataType.DateTime>;
+    updateFrequency?: UAProperty<number, DataType.Double>;
     openWithMasks: UAMethod;
     closeAndUpdate?: UAMethod;
     addCertificate?: UAMethod;

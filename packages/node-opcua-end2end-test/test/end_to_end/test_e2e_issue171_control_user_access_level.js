@@ -4,14 +4,14 @@ const should = require("should");
 const {
     allPermissions,
     AttributeIds,
-    RolePermissionType,
     PermissionType,
     DataType,
     OPCUAClient,
     StatusCodes,
-    Permission,
     WellKnownRoles,
-    makeRoles
+    makeRoles,
+    makeAccessLevelFlag,
+    AccessLevelFlag
 } = require("node-opcua");
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
@@ -62,7 +62,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         const serverCertificateManager = await createServerCertificateManager(port);
         const options = {
             port,
-            serverCertificateManager
+            serverCertificateManager,
+            userManager
             //xx            allowAnonymous: false
         };
 
@@ -84,8 +85,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         ];
         endpointUrl = server.getEndpointUrl();
         // replace user manager with our custom one
-        server.userManager = userManager;
-
+      
         const addressSpace = server.engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
 
@@ -96,7 +96,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             dataType: "Double",
             value: { dataType: "Double", value: 3.14 },
 
-            rolePermissions: rolePermission1
+            rolePermissions: rolePermission1,
+            accessLevel: AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite
         });
     });
 
@@ -153,7 +154,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             console.log("    impersonate user user1 on existing session (ConfigAdmin)");
             const userIdentity = { userName: "user1", password: "1" };
            
-            await client.changeSessionIdentity(session, userIdentity);
+            const statusCodeChangeUser = await session.changeUser(userIdentity);
+            statusCodeChangeUser.should.eql(StatusCodes.Good);
 
             statusCode = await read(session);
             statusCode.should.eql(StatusCodes.Good);

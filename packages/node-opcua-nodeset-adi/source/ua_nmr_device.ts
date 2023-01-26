@@ -8,7 +8,6 @@ import { UAAnalyserDevice, UAAnalyserDevice_Base } from "./ua_analyser_device"
  * |typedDefinition |2:NMRDeviceType ns=2;i=1016                       |
  * |isAbstract      |false                                             |
  */
-export interface UANMRDevice_Base extends UAAnalyserDevice_Base {
-}
+export type UANMRDevice_Base = UAAnalyserDevice_Base;
 export interface UANMRDevice extends UAAnalyserDevice, UANMRDevice_Base {
 }

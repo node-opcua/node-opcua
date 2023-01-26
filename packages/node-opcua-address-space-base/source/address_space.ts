@@ -8,15 +8,18 @@ import { AddReferenceOpts, BaseNode } from "./base_node";
 import { INamespace } from "./namespace";
 import { ISessionContext } from "./session_context";
 import { UADataType } from "./ua_data_type";
-import { IEventData, UAEventType } from "./ua_event_type";
+import { IEventData } from "./i_event_data";
 import { UAMethod } from "./ua_method";
 import { UAObject } from "./ua_object";
+import { UAEventType } from "./ua_event_type";
 import { UAObjectType } from "./ua_object_type";
 import { UAReference } from "./ua_reference";
 import { UAReferenceType } from "./ua_reference_type";
 import { IHistoricalDataNodeOptions, UAVariable } from "./ua_variable";
 import { UAVariableType } from "./ua_variable_type";
 import { UAView } from "./ua_view";
+
+export type ShutdownTask = ((this: IAddressSpace) => void) | ((this: IAddressSpace) => Promise<void>);
 
 interface UARootFolder_Objects extends UAObject {
     server: UAObject;
@@ -153,7 +156,7 @@ export interface IAddressSpace {
      * construct an extension object constructor from a DataType nodeID or UADataType object
      *
      */
-    constructExtensionObject(dataType: UADataType | NodeId, options?: any): ExtensionObject;
+    constructExtensionObject(dataType: UADataType | NodeId, options?: Record<string, unknown>): ExtensionObject;
 
     // -------------- Event helpers
 
@@ -184,9 +187,16 @@ export interface IAddressSpace {
     installHistoricalDataNode(variableNode: UAVariable, options?: IHistoricalDataNodeOptions): void;
 
     // -------------- Shutdown helpers
-    registerShutdownTask(task: (this: IAddressSpace) => void): void;
+    /**
+     *  register a task that will be executed just before the address space is disposed.
+     */
+    registerShutdownTask(task: ShutdownTask): void;
 
-    shutdown(): void;
+    /**
+     * shutdown the address space by executingthe registered shutdown tasks.
+     * @see registerShutdownTask, dispose
+     */
+    shutdown(): Promise<void>;
 
     dispose(): void;
 

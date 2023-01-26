@@ -5,9 +5,9 @@ const fs = require("fs");
 const path = require("path");
 const chalk = require("chalk");
 const Mocha = require("mocha");
-
+const ts_node = require("ts-node");
 require("source-map-support").install();
-require("ts-node").register({
+ts_node.register({
     transpileOnly: true
 });
 
@@ -92,7 +92,7 @@ async function extractTestFiles({ page, pageCount, pageSize }) {
 }
 
 function test_no_leak(file) {
-    let sourceCode = fs.readFileSync(file, "ascii");
+    let sourceCode = fs.readFileSync(file, "utf-8");
     if (sourceCode.match("OPCUAClient")) {
         if (!sourceCode.match("Leak")) {
             console.log(chalk.yellow(" OPCUAClient without leak detection mechanism  !!!"), file);
@@ -281,7 +281,7 @@ async function runtests({ selectedTests, reporter, dryRun, filterOpts, skipped }
 
     const suite = mocha.suite;
     suite.on("pre-require", (global, file, self) => {
-     //   console.log("pre-require", file);
+        //   console.log("pre-require", file);
     });
     suite.on("require", (script, file, self) => {
         /* */

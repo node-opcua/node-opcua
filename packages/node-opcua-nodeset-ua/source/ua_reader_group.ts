@@ -13,6 +13,7 @@ import { UAReaderGroupMessage } from "./ua_reader_group_message"
  * |isAbstract      |false                                             |
  */
 export interface UAReaderGroup_Base extends UAPubSubGroup_Base {
+   // PlaceHolder for $DataSetReaderName$
     diagnostics?: UAPubSubDiagnosticsReaderGroup;
     transportSettings?: UAReaderGroupTransport;
     messageSettings?: UAReaderGroupMessage;

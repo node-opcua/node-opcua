@@ -8,7 +8,6 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_au
  * |typedDefinition |TrustListUpdatedAuditEventType ns=0;i=12561       |
  * |isAbstract      |true                                              |
  */
-export interface UATrustListUpdatedAuditEvent_Base extends UAAuditUpdateMethodEvent_Base {
-}
+export type UATrustListUpdatedAuditEvent_Base = UAAuditUpdateMethodEvent_Base;
 export interface UATrustListUpdatedAuditEvent extends UAAuditUpdateMethodEvent, UATrustListUpdatedAuditEvent_Base {
 }

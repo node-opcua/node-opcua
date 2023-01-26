@@ -13,6 +13,7 @@ export function getBuiltInDataType(
     variableNodeId: NodeId,
     callback: (err: Error | null, dataType?: DataType) => void
 ): void;
+
 export function getBuiltInDataType(
     session: IBasicSession,
     variableNodeId: NodeId,

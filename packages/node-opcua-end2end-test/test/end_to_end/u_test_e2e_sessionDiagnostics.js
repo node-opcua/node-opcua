@@ -19,14 +19,15 @@ const {
 const sinon = require("sinon");
 
 const { wait, wait_until_condition } = require("../../test_helpers/utils");
+const doDebug = false;
 
 module.exports = function (test) {
     describe("SDS1 Testing SessionDiagnostics 1/2", function () {
         /** @type {ClientSubscriptionOptions} */
         const subscriptionParameters = {
             requestedPublishingInterval: 100,
-            requestedLifetimeCount: 100,
-            requestedMaxKeepAliveCount: 10,
+            requestedLifetimeCount: 1000,
+            requestedMaxKeepAliveCount: 100,
             publishingEnabled: true
         };
         it("SDS1-A server should expose a ServerDiagnostic object", async () => {
@@ -71,6 +72,28 @@ module.exports = function (test) {
             const client = OPCUAClient.create({});
             // eslint-disable-next-line max-statements
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
+                console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
+                console.log("subscription.publishingInterval", subscription.publishingInterval);
+                console.log("subscription.lifetimeCount ", subscription.lifetimeCount);
+
+                async function writeSomeValue(value) {
+                    const nodeId = "ns=2;s=Static_Scalar_Double";
+                    const variantValue = new Variant({
+                        dataType: DataType.Double,
+                        value
+                    });
+
+                    const results = await session.write({
+                        nodeId,
+                        attributeId: AttributeIds.Value,
+                        value: { value: variantValue }
+                    });
+
+                    results.should.eql(StatusCodes.Good);
+                }
+
+                await writeSomeValue(1);
+
                 const dataValue = await session.read({
                     nodeId: session.sessionId,
                     attributeId: AttributeIds.BrowseName
@@ -85,11 +108,11 @@ module.exports = function (test) {
                 browseResult.statusCode.should.eql(StatusCodes.Good);
 
                 const browsePath = [
-                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount.TotalCount"),
+                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.TotalRequestCount"),
                     makeBrowsePath(session.sessionId, ".SessionDiagnostics.EndpointUrl"),
                     makeBrowsePath(session.sessionId, ".SessionDiagnostics.ClientLastContactTime"),
                     makeBrowsePath(session.sessionId, ".SessionDiagnostics"),
-                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount.TotalCount")
+                    makeBrowsePath(session.sessionId, ".SessionDiagnostics.WriteCount")
                 ];
 
                 const browsePathResults = await session.translateBrowsePath(browsePath);
@@ -99,11 +122,14 @@ module.exports = function (test) {
                 browsePathResults[1].statusCode.should.eql(StatusCodes.Good);
                 browsePathResults[2].statusCode.should.eql(StatusCodes.Good);
                 browsePathResults[3].statusCode.should.eql(StatusCodes.Good);
+                browsePathResults[4].statusCode.should.eql(StatusCodes.Good);
 
-                const totalRequestCountTotalCountNodeId = browsePathResults[0].targets[0].targetId;
+                /** prettier-ignore  */
+                const totalRequestCountNodeId = browsePathResults[0].targets[0].targetId;
+                const endpointUrlNodeId = browsePathResults[1].targets[0].targetId;
                 const clientLastContactTimeNodeId = browsePathResults[2].targets[0].targetId;
                 const currentSessionDiagnosticNodeId = browsePathResults[3].targets[0].targetId;
-                const writeCountTotalCountNodeId = browsePathResults[4].targets[0].targetId;
+                const writeCountNodeId = browsePathResults[4].targets[0].targetId;
 
                 {
                     const nodeToRead = {
@@ -119,20 +145,24 @@ module.exports = function (test) {
                 const itemsToMonitor = [
                     {
                         nodeId: currentSessionDiagnosticNodeId,
-                        attributeId: AttributeIds.Value
+                        attributeId: AttributeIds.Value,
+                        name: "currentSessionDiagnosticNodeId"
                     },
 
                     {
                         nodeId: clientLastContactTimeNodeId,
-                        attributeId: AttributeIds.Value
+                        attributeId: AttributeIds.Value,
+                        name: "clientLastContactTimeNodeId"
                     },
                     {
-                        nodeId: totalRequestCountTotalCountNodeId,
-                        attributeId: AttributeIds.Value
+                        nodeId: totalRequestCountNodeId,
+                        attributeId: AttributeIds.Value,
+                        name: "totalRequestCountNodeId"
                     },
                     {
-                        nodeId: writeCountTotalCountNodeId,
-                        attributeId: AttributeIds.Value
+                        nodeId: writeCountNodeId,
+                        attributeId: AttributeIds.Value,
+                        name: "writeCountNodeId"
                     }
                 ];
                 const monitoringParamaters = {
@@ -141,62 +171,52 @@ module.exports = function (test) {
                     queueSize: 10
                 };
 
+                const monitoredItemGroupChangeSpy = sinon.spy();
                 const monitoredItemGroup = await subscription.monitorItems(
                     itemsToMonitor,
                     monitoringParamaters,
                     TimestampsToReturn.Both
                 );
                 monitoredItemGroup.monitoredItems.length.should.eql(4);
+                monitoredItemGroup.monitoredItems[0].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemGroup.monitoredItems[1].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemGroup.monitoredItems[2].statusCode.should.eql(StatusCodes.Good);
+                monitoredItemGroup.monitoredItems[3].statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItemGroupChangeSpy = sinon.spy();
                 monitoredItemGroup.on("changed", monitoredItemGroupChangeSpy);
-
                 const dataValuesMap = {};
                 monitoredItemGroup.on(
                     "changed",
                     (monitoredItem /* : ClientMonitoredItemBase */, dataValue /*: DataValue */, index /*: number */) => {
+                        doDebug && console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
                         const nodeId = monitoredItem.itemToMonitor.nodeId.toString();
                         dataValuesMap[nodeId] = dataValuesMap[nodeId] || [];
                         dataValuesMap[nodeId].push(dataValue.value.value);
                         //  console.log(monitoredItem.itemToMonitor.nodeId.toString(), dataValue.value.value.toString());
                     }
                 );
+                doDebug && console.log("itemsToMonitor= ", itemsToMonitor.map((item) => item.nodeId.toString()).join(" "));
 
-                const nodeId = "ns=2;s=Static_Scalar_Double";
+                await writeSomeValue(42);
 
-                const variantValue = new Variant({
-                    dataType: DataType.Double,
-                    value: 42
-                });
+                //  await writeSomeValue(43);
 
-                const results = await session.write({
-                    nodeId,
-                    attributeId: AttributeIds.Value,
-                    value: { value: variantValue }
-                });
+                await wait_until_condition(
+                    () => dataValuesMap[writeCountNodeId.toString()] && dataValuesMap[writeCountNodeId.toString()].length >= 2,
+                    10 * 1000
+                );
 
-                results.should.eql(StatusCodes.Good);
-
-                await wait_until_condition(() => 
-                    dataValuesMap[writeCountTotalCountNodeId.toString()] && dataValuesMap[writeCountTotalCountNodeId.toString()].length >= 2,
-                 10*1000);
-
-               //  console.log(dataValuesMap);
+                //  console.log(dataValuesMap);
                 // verify_that_session_diagnostics_has_reported_a_new_writeCounter_value;
 
                 // extract DataChangeNotification that matches writeCounter
-                const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
-                    return arg[0].itemToMonitor.nodeId.toString() === writeCountTotalCountNodeId.toString();
-                });
+                const args = monitoredItemGroupChangeSpy.args.filter(
+                    (arg) => arg[0].itemToMonitor.nodeId.toString() === writeCountNodeId.toString()
+                );
                 args.length.should.eql(2);
 
-                args[0][1].value.value.should.eql(0, "first  WriteCounter value should eql 0");
-                args[1][1].value.value.should.eql(1, "second WriteCounter value should eql 1");
-
-                const writeCounterValue = args[1][1].value.value;
-                writeCounterValue.should.eql(1);
-
-                //    verify_that_clientLastContactTime_has_changed_in_monitored_item
+                args[0][1].value.value.totalCount.should.eql(1, "first  WriteCounter value should eql 0");
+                args[1][1].value.value.totalCount.should.eql(2, "second WriteCounter value should eql 1");
 
                 {
                     const nodeToRead = {
@@ -208,16 +228,14 @@ module.exports = function (test) {
                     sessionDiagnostic.clientConnectionTime
                         .getTime()
                         .should.be.lessThan(sessionDiagnostic.clientLastContactTime.getTime());
-                    sessionDiagnostic.writeCount.totalCount.should.eql(1);
+                    sessionDiagnostic.writeCount.totalCount.should.eql(2);
                     sessionDiagnostic.readCount.totalCount.should.eql(2);
 
-                    
                     //xx console.log(results[0].toString());
-                    const args = monitoredItemGroupChangeSpy.args.filter(function (arg) {
-                        return arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString();
-                    });
+                    const args = monitoredItemGroupChangeSpy.args.filter(
+                        (arg) => arg[0].itemToMonitor.nodeId.toString() === clientLastContactTimeNodeId.toString()
+                    );
                     args.length.should.be.greaterThan(0);
-                    
                 }
                 await monitoredItemGroup.terminate();
             });

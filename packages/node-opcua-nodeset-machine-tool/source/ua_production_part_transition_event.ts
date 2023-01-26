@@ -1,9 +1,11 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/source/ua_transition_event"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { EnumPartQuality } from "./enum_part_quality"
+import { EnumProcessIrregularity } from "./enum_process_irregularity"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -13,12 +15,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |true                                              |
  */
 export interface UAProductionPartTransitionEvent_Base extends UATransitionEvent_Base {
-    customerOrderIdentifier?: UAProperty<UAString, /*z*/DataType.String>;
-    identifier?: UAProperty<UAString, /*z*/DataType.String>;
-    jobIdentifier: UAProperty<UAString, /*z*/DataType.String>;
-    name: UAProperty<UAString, /*z*/DataType.String>;
-    partQuality: UABaseDataVariable<any, any>;
-    processIrregularity: UABaseDataVariable<any, any>;
+    customerOrderIdentifier?: UAProperty<UAString, DataType.String>;
+    identifier?: UAProperty<UAString, DataType.String>;
+    jobIdentifier: UAProperty<UAString, DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
+    partQuality: UABaseDataVariable<EnumPartQuality, DataType.Int32>;
+    processIrregularity: UABaseDataVariable<EnumProcessIrregularity, DataType.Int32>;
 }
 export interface UAProductionPartTransitionEvent extends UATransitionEvent, UAProductionPartTransitionEvent_Base {
 }

@@ -9,6 +9,7 @@ import { UAObject, UAMethod } from "node-opcua-address-space-base"
  * |isAbstract      |false                                             |
  */
 export interface UARoleSet_Base {
+   // PlaceHolder for $RoleName$
     addRole: UAMethod;
     removeRole: UAMethod;
 }

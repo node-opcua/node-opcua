@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -9,8 +10,9 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |13:FileFormatType                                 |
  * | isAbstract|false                                             |
  */
-export interface DTFileFormat extends DTStructure  {
+export interface DTFileFormat extends DTStructure {
   name: UAString; // String ns=0;i=12
   fileExtension: UAString; // String ns=0;i=12
   version: UAString; // String ns=0;i=12
 }
+export interface UDTFileFormat extends ExtensionObject, DTFileFormat {};

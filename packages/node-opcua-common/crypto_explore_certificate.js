@@ -1,1 +1,2 @@
-module.exports = require("node-opcua-crypto").crypto_explore_certificate;
+const { crypto_explore_certificate } = require("node-opcua-crypto");
+module.exports = crypto_explore_certificate;

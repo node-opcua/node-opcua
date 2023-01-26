@@ -4,7 +4,14 @@
 import { decodeNodeId, encodeNodeId } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject, is_internal_id, registerBuiltInType, StructuredTypeSchema } from "node-opcua-factory";
+import {
+    BaseUAObject,
+    getStandardDataTypeFactory,
+    IStructuredTypeSchema,
+    is_internal_id,
+    registerBuiltInType,
+    StructuredTypeSchema
+} from "node-opcua-factory";
 import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
@@ -14,11 +21,12 @@ import * as chalk from "chalk";
 
 /* tslint:disable:no-empty */
 export class ExtensionObject extends BaseUAObject {
-    public static schema: StructuredTypeSchema = new StructuredTypeSchema({
+    public static schema: IStructuredTypeSchema = new StructuredTypeSchema({
         baseType: "",
         documentation: "",
         fields: [],
-        name: "ExtensionObject"
+        name: "ExtensionObject",
+        dataTypeFactory: getStandardDataTypeFactory()
     });
 
     constructor(options?: null | Record<string, any>) {
@@ -27,10 +35,6 @@ export class ExtensionObject extends BaseUAObject {
 }
 
 ExtensionObject.prototype.schema = ExtensionObject.schema;
-
-function constructEmptyExtensionObject(expandedNodeId: NodeId): ExtensionObject {
-    return constructObject(expandedNodeId as ExpandedNodeId);
-}
 
 // OPC-UA Part 6 - $5.2.2.15 ExtensionObject
 // An ExtensionObject is encoded as sequence of bytes prefixed by the  NodeId of its
@@ -165,12 +169,16 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         stream.length -= 4;
         object = new OpaqueStructure(nodeId, stream.readByteStream()!);
     } else {
-        object = constructEmptyExtensionObject(nodeId);
+        try {
+            object = getStandardDataTypeFactory().constructObject(nodeId);
+        } catch (err) {
+            warningLog("cannot construct object with dataType nodeId", nodeId.toString());
+        }
         /* istanbul ignore next */
         if (object === null) {
             // this object is unknown to us ..
-            stream.length += length;
-            object = {} as ExtensionObject;
+            stream.length -= 4;
+            object = new OpaqueStructure(nodeId, stream.readByteStream()!);
         } else {
             try {
                 object.decode(stream);
@@ -186,14 +194,17 @@ export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionOb
         // causing 2 extra member to be added.
         debugLog(chalk.bgWhiteBright.red("========================================="));
 
-        // tslint:disable-next-line:no-console
         warningLog(
-            "WARNING => Extension object decoding error on ",
-            object.constructor.name,
+            "WARNING => decodeExtensionObject: Extension object decoding error on ",
+            object?.constructor.name,
             " expected size was",
             length,
             "but only this amount of bytes have been read :",
-            stream.length - streamLengthBefore
+            stream.length - streamLengthBefore,
+            "\n           encoding nodeId = ",
+            nodeId.toString(),
+            "encodingType = ",
+            encodingType
         );
         stream.length = streamLengthBefore + length;
     }

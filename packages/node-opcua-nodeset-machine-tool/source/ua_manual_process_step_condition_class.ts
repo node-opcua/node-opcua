@@ -8,7 +8,6 @@ import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcu
  * |typedDefinition |10:ManualProcessStepConditionClassType ns=10;i=52 |
  * |isAbstract      |true                                              |
  */
-export interface UAManualProcessStepConditionClass_Base extends UAProcessConditionClass_Base {
-}
+export type UAManualProcessStepConditionClass_Base = UAProcessConditionClass_Base;
 export interface UAManualProcessStepConditionClass extends UAProcessConditionClass, UAManualProcessStepConditionClass_Base {
 }

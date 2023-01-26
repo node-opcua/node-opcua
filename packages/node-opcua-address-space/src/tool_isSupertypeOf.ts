@@ -10,6 +10,7 @@ import { BaseNode, UADataType, UAObjectType, UAReference, UAReferenceType, UAVar
 import { BaseNode_getCache } from "./base_node_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl } from "./base_node_impl";
+import { NodeClass } from "node-opcua-data-model";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
@@ -59,6 +60,11 @@ function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeIm
 
 export type MemberFuncValue<T, P, R> = (this: T, param: P) => R;
 
+export function wipeMemorizedStuff(node: any) {
+    if (!node.__cache) {
+        node.__cache = undefined;
+    }
+}
 //  http://jsperf.com/underscore-js-memoize-refactor-test
 //  http://addyosmani.com/blog/faster-javascript-memoization/
 function wrap_memoize<T, P, R>(
@@ -96,8 +102,19 @@ export type UAType = UAReferenceType | UADataType | UAObjectType | UAVariableTyp
 
 export function construct_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSupertypeOfFunc<T> {
     return wrap_memoize(function (this: T, baseType: T | NodeIdLike): boolean {
-        assert(baseType instanceof Class);
-        assert(this instanceof Class);
+        if (!(baseType instanceof Class)) {
+            throw new Error(
+                "expecting baseType to be " +
+                    Class.name +
+                    " but got " +
+                    baseType.constructor.name +
+                    " " +
+                    NodeClass[(baseType as BaseNode).nodeClass]
+            );
+        }
+        if (!(this instanceof Class)) {
+            throw new Error("expecting this to be " + Class.name + " but got " + baseType.constructor.name);
+        }
         return _slow_isSupertypeOf.call(this, Class, baseType as T);
     }, hashBaseNode);
 }

@@ -8,7 +8,6 @@ import { UAVisionCondition, UAVisionCondition_Base } from "./ua_vision_condition
  * |typedDefinition |4:VisionWarningConditionType ns=4;i=1034          |
  * |isAbstract      |false                                             |
  */
-export interface UAVisionWarningCondition_Base extends UAVisionCondition_Base {
-}
+export type UAVisionWarningCondition_Base = UAVisionCondition_Base;
 export interface UAVisionWarningCondition extends UAVisionCondition, UAVisionWarningCondition_Base {
 }

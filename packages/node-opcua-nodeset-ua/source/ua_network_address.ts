@@ -12,7 +12,7 @@ import { UASelectionList } from "./ua_selection_list"
  * |isAbstract      |true                                              |
  */
 export interface UANetworkAddress_Base {
-    networkInterface: UASelectionList<UAString, /*z*/DataType.String>;
+    networkInterface: UASelectionList<UAString, DataType.String>;
 }
 export interface UANetworkAddress extends UAObject, UANetworkAddress_Base {
 }

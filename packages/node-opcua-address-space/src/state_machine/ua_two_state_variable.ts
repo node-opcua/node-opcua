@@ -5,14 +5,13 @@ import { assert } from "node-opcua-assert";
 
 import { VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, coerceLocalizedText, LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { DataValueT, DataValueOptionsT } from "node-opcua-data-value";
+import { DataValueT } from "node-opcua-data-value";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes, StatusCode, StatusCodeCallback } from "node-opcua-status-code";
 import { Variant, VariantLike, VariantT } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { BaseNode, BindVariableOptions, INamespace, UAReference, UAVariable, ISessionContext } from "node-opcua-address-space-base";
-import { UATwoStateVariable } from "node-opcua-nodeset-ua";
 import { NumericRange } from "node-opcua-numeric-range";
 import { QualifiedNameLike } from "node-opcua-data-model";
 
@@ -77,7 +76,7 @@ function _getEffectiveDisplayName<T, DT extends DataType>(
     node: UATwoStateVariableImpl
 ): DataValueT<LocalizedText, DataType.LocalizedText> {
     const humanReadableString = _getHumanReadableString(node);
-    if (humanReadableString.statusCode !== StatusCodes.Good) {
+    if (humanReadableString.statusCode.isNotGood()) {
         return humanReadableString;
     }
     const boolValue = node.getValue();
@@ -98,7 +97,7 @@ function _getEffectiveDisplayName<T, DT extends DataType>(
 function _getHumanReadableString(node: UATwoStateVariableImpl): DataValueT<LocalizedText, DataType.LocalizedText> {
     const dataValue = node.id.readValue();
 
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         const _c = dataValue.clone() as DataValueT<LocalizedText, DataType.LocalizedText>;
         _c.value = new Variant({
             dataType: DataType.LocalizedText,
@@ -297,7 +296,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         // for which state or sub-state should be used. It is up to the Server and will depend on the
         // semantics of the StateMachineType
         //
-        // EffectiveDisplayName will be constructed by adding the EnableState
+        // EffectiveDisplayName will be constructed by adding the EnabledState
         // and the State of the addTrue state
         if (this.effectiveDisplayName) {
             this.id.on("value_changed", () => {
@@ -314,7 +313,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         assert(typeof boolValue === "boolean");
         const dataValue = this.id!.readValue();
         const oldValue = dataValue.value.value;
-        if (dataValue.statusCode === StatusCodes.Good && boolValue === oldValue) {
+        if (dataValue.statusCode.isGood() && boolValue === oldValue) {
             return; // nothing to do
         }
         //
@@ -329,7 +328,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      */
     public getValue(): boolean {
         const dataValue = this.id!.readValue();
-        assert(dataValue.statusCode === StatusCodes.Good);
+        assert(dataValue.statusCode.isGood());
         assert(dataValue.value.dataType === DataType.Boolean);
         return dataValue.value.value;
     }
@@ -340,7 +339,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
      */
     public getValueAsString(): string {
         const dataValue = this.readValue();
-        assert(dataValue.statusCode === StatusCodes.Good);
+        assert(dataValue.statusCode.isGood());
         assert(dataValue.value.dataType === DataType.LocalizedText);
         return dataValue.value.value.text?.toString() || "";
     }

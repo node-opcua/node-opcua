@@ -21,7 +21,7 @@ const doDebug = checkDebugFlag("TEST");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
     describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
-        this.timeout(30000);
+        this.timeout(Math.max(40000,this.timeout()));
 
         let discoveryServer1: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl1: string;

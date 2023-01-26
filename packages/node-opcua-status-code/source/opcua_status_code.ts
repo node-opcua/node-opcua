@@ -150,7 +150,7 @@ export abstract class StatusCode {
     }
 
     public toString(): string {
-        return this.name + " (0x" + ("0000" + this.value.toString(16)).substr(-8) + ")";
+        return this.name + " (0x" + this.value.toString(16).padStart(8, "0") + ")";
     }
 
     public checkBit(mask: number): boolean {
@@ -188,6 +188,22 @@ export abstract class StatusCode {
 
     public toJSONFull(): any {
         return { value: this.value, name: this.name, description: this.description };
+    }
+
+    public isGood(): boolean {
+        return this.value === 0;
+    }
+
+    public isNotGood(): boolean {
+        return this.value !== 0;
+    }
+
+    public isGoodish(): boolean {
+        return this.value < 0x10000000;
+    }
+
+    public isBad(): boolean {
+        return this.value >= 0x80000000;
     }
 }
 

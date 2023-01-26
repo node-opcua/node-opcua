@@ -12,7 +12,7 @@ import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
  * |isAbstract      |true                                              |
  */
 export interface UAInterruptedEvent_Base extends UAGlassEvent_Base {
-    processName?: UAProperty<UAString, /*z*/DataType.String>;
+    processName?: UAProperty<UAString, DataType.String>;
 }
 export interface UAInterruptedEvent extends UAGlassEvent, UAInterruptedEvent_Base {
 }

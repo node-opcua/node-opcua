@@ -14,6 +14,7 @@
      { "path": "../node-opcua-data-access" },
      { "path": "../node-opcua-data-model" },
      { "path": "../node-opcua-data-value" },
+     { "path": "../node-opcua-extension-object" },
      { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-status-code" },
      { "path": "../node-opcua-variant" }

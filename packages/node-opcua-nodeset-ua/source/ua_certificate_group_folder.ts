@@ -19,6 +19,7 @@ export interface UACertificateGroupFolder_Base extends UAFolder_Base {
     defaultApplicationGroup: UACertificateGroup;
     defaultHttpsGroup?: UACertificateGroup;
     defaultUserTokenGroup?: UACertificateGroup;
+   // PlaceHolder for $AdditionalGroup$
 }
 export interface UACertificateGroupFolder extends UAFolder, UACertificateGroupFolder_Base {
 }

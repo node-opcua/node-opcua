@@ -8,19 +8,29 @@ import { MessageBuilder, messageHeaderToString, MessageSecurityMode, SecurityPol
  */
 export function verify_multi_chunk_message(packets: any[]) {
 
-    const messageBuilder = new MessageBuilder({});
+    const maxChunkSize = packets.map((p) => p.length).reduce((a, b) => Math.max(a, b), 0);
+
+    const messageBuilder = new MessageBuilder({
+        maxChunkCount: packets.length + 1,
+        maxMessageSize: 1000000,
+        maxChunkSize
+    });
     messageBuilder.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
     messageBuilder.on("full_message_body", (fullMessageBody: Buffer) => {
         console.log("full_message_body received:");
         analyseExtensionObject(fullMessageBody, 0, 0);
     });
-    messageBuilder.on("start_chunk", (info) => {
+    messageBuilder.on("startChunk", (info) => {
         console.log(" starting new chunk ", info.messageHeader);
     });
 
     messageBuilder.on("chunk", (messageChunk) => {
         console.log(messageHeaderToString(messageChunk));
+    });
+
+    messageBuilder.on("error", (err) => {
+        console.log("verify_multi_chunk_message : err", err.message);
     });
 
     let totalLength = 0;

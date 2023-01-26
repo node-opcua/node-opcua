@@ -5,6 +5,7 @@
 import * as chalk from "chalk";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { NodeId } from "node-opcua-nodeid";
 
 import { ServerSidePublishEngine, ServerSidePublishEngineOptions } from "./server_publish_engine";
 import { Subscription } from "./server_subscription";
@@ -28,6 +29,10 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
 
     public add_subscription(subscription: Subscription): Subscription {
         debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
+
+        // detach subscription from old seession
+        subscription.$session = undefined;
+        
         super.add_subscription(subscription);
         // also add an event handler to detected when the subscription has ended
         // so we can automatically remove it from the orphan table
@@ -38,7 +43,7 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
             // xx publish_engine.detach_subscription(subscription);
             // Xx subscription.dispose();
         };
-        subscription.on("expired", (subscription as any)._expired_func);
+        subscription.once("expired", (subscription as any)._expired_func);
         return subscription;
     }
 

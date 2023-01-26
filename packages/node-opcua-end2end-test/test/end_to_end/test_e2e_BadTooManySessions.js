@@ -14,7 +14,7 @@ const port = 2010;
 const empty_nodeset_filename = opcua.empty_nodeset_filename;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing the server ability to deny client session request (server with maxAllowedSessionNumber = 1)", function () {
+describe("testing the server ability to deny client session request (server with maxSessions = 1)", function () {
     this.timeout(Math.max(300000, this.timeout()));
 
     let server, client1, client2;
@@ -25,7 +25,7 @@ describe("testing the server ability to deny client session request (server with
         server = new OPCUAServer({
             port,
             nodeset_filename: empty_nodeset_filename,
-            maxAllowedSessionNumber: 1
+            serverCapabilities: {maxSessions: 1}
         });
 
         client1 = OPCUAClient.create();

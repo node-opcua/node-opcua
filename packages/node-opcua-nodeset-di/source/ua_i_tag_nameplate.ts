@@ -13,8 +13,8 @@ import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/sou
  * |isAbstract      |true                                              |
  */
 export interface UAITagNameplate_Base extends UABaseInterface_Base {
-    assetId?: UAProperty<UAString, /*z*/DataType.String>;
-    componentName?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    assetId?: UAProperty<UAString, DataType.String>;
+    componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
 export interface UAITagNameplate extends UABaseInterface, UAITagNameplate_Base {
 }

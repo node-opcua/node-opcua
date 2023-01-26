@@ -20,6 +20,7 @@ export interface UAConfigurableObject_Base {
      * ConfigurableComponent
      */
     supportedTypes: UAFolder;
+   // PlaceHolder for $ObjectIdentifier$
 }
 export interface UAConfigurableObject extends UAObject, UAConfigurableObject_Base {
 }

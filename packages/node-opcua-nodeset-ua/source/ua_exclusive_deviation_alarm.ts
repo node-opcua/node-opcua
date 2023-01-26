@@ -12,8 +12,8 @@ import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusiv
  * |isAbstract      |false                                             |
  */
 export interface UAExclusiveDeviationAlarm_Base extends UAExclusiveLimitAlarm_Base {
-    setpointNode: UAProperty<NodeId, /*z*/DataType.NodeId>;
-    baseSetpointNode?: UAProperty<NodeId, /*z*/DataType.NodeId>;
+    setpointNode: UAProperty<NodeId, DataType.NodeId>;
+    baseSetpointNode?: UAProperty<NodeId, DataType.NodeId>;
 }
 export interface UAExclusiveDeviationAlarm extends UAExclusiveLimitAlarm, UAExclusiveDeviationAlarm_Base {
 }

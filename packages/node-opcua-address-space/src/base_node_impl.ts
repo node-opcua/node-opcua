@@ -54,6 +54,7 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 
 import { UAStateVariable } from "node-opcua-nodeset-ua";
+import { ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
 
 import { XmlWriter } from "../source/xml_writer";
 import { dumpReferenceDescriptions, dumpReferences } from "../source/helpers/dump_tools";
@@ -209,7 +210,19 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         const _cache = BaseNode_getCache(this);
         if (!_cache.typeDefinition) {
             const has_type_definition_ref = this.findReference("HasTypeDefinition", true);
-            _cache.typeDefinition = has_type_definition_ref ? has_type_definition_ref.nodeId : null;
+            let nodeId = has_type_definition_ref ? has_type_definition_ref.nodeId : null;
+            if (!nodeId) {
+                switch (this.nodeClass) {
+                    case NodeClass.Object:
+                        nodeId = coerceNodeId(ObjectTypeIds.BaseObjectType);
+                        break;
+                    case NodeClass.Variable:
+                        nodeId = coerceNodeId(VariableTypeIds.BaseVariableType);
+                        break;
+                    default:
+                }
+            }
+            _cache.typeDefinition = nodeId as NodeId;
         }
         return _cache.typeDefinition;
     }
@@ -221,9 +234,18 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         const _cache = BaseNode_getCache(this);
         if (undefined === _cache.typeDefinitionObj) {
             const nodeId = this.typeDefinition;
-            _cache.typeDefinitionObj = nodeId ? this.addressSpace.findNode(nodeId) : null;
+            _cache.typeDefinitionObj = nodeId ? (this.addressSpace.findNode(nodeId) as UAObjectType | UAVariableType) : null;
         }
-        return _cache.typeDefinitionObj;
+        if (!_cache.typeDefinitionObj) {
+            warningLog(
+                this.nodeClass,
+                "cannot find typeDefinitionObj ",
+                this.browseName.toString(),
+                this.nodeId.toString(),
+                NodeClass[this.nodeClass]
+            );
+        }
+        return _cache.typeDefinitionObj as UAObjectType | UAVariableType;
     }
 
     public get parentNodeId(): NodeId | undefined {
@@ -374,26 +396,8 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return results;
     }
 
-    public findReferences(referenceType: string | NodeId | UAReferenceType, isForward = true): UAReference[] {
-        const _cache = BaseNode_getCache(this);
+    public findReferences_no_cache(referenceTypeNode: UAReferenceType, isForward = true): UAReference[] {
         const _private = BaseNode_getPrivate(this);
-
-        const referenceTypeNode = this._coerceReferenceType(referenceType);
-        if (!referenceTypeNode) {
-            // note: when loading nodeset2.xml files, reference type may not exit yet
-            // throw new Error("expecting valid reference name " + strReference);
-            return [];
-        }
-        const hash = "_ref_" + referenceTypeNode.nodeId.toString() + isForward.toString();
-        if (_cache[hash]) {
-            return _cache[hash];
-        }
-
-        // istanbul ignore next
-        if (doDebug && !this.addressSpace.findReferenceType(referenceTypeNode.nodeId)) {
-            throw new Error("expecting valid reference name " + referenceType);
-        }
-
         const result: UAReference[] = [];
         for (const ref of Object.values(_private._referenceIdx)) {
             if (ref.isForward === isForward) {
@@ -410,8 +414,28 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
                 }
             }
         }
+        return result;
+    }
 
-        _cache[hash] = result;
+    public findReferences(referenceType: string | NodeId | UAReferenceType, isForward = true): UAReference[] {
+        const _cache = BaseNode_getCache(this);
+        const referenceTypeNode = this._coerceReferenceType(referenceType);
+        if (!referenceTypeNode) {
+            // note: when loading nodeset2.xml files, reference type may not exit yet
+            // throw new Error("expecting valid reference name " + strReference);
+            return [];
+        }
+        _cache._ref = _cache._ref || {};
+        const hash = "_ref_" + referenceTypeNode.nodeId.toString() + isForward.toString();
+        if (_cache._ref[hash]) {
+            return _cache._ref[hash];
+        }
+        // istanbul ignore next
+        if (doDebug && !this.addressSpace.findReferenceType(referenceTypeNode.nodeId)) {
+            throw new Error("expecting valid reference name " + referenceType);
+        }
+        const result = this.findReferences_no_cache(referenceTypeNode, isForward);
+        _cache._ref[hash] = result;
         return result;
     }
 
@@ -440,66 +464,72 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * return an array with the Aggregates of this object.
      */
     public getAggregates(): BaseNode[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._aggregates) {
-            _cache._aggregates = this.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
-        }
-        return _cache._aggregates;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._aggregates) {
+        //     _cache._aggregates = this.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
+        // }
+        // return _cache._aggregates;
+        return this.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
     }
 
     /**
      * return an array with the components of this object.
      */
     public getComponents(): BaseNode[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._components) {
-            _cache._components = this.findReferencesExAsObject("HasComponent", BrowseDirection.Forward);
-        }
-        return _cache._components;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._components) {
+        //     _cache._components = this.findReferencesExAsObject("HasComponent", BrowseDirection.Forward);
+        // }
+        // return _cache._components;
+        return this.findReferencesExAsObject("HasComponent", BrowseDirection.Forward);
     }
 
     /**
      *  return a array with the properties of this object.
      */
     public getProperties(): BaseNode[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._properties) {
-            _cache._properties = this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
-        }
-        return _cache._properties;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._properties) {
+        //     _cache._properties = this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
+        // }
+        // return _cache._properties;
+        return this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
     }
 
     /**
      * return a array with the notifiers of this object.
      */
     public getNotifiers(): BaseNode[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._notifiers) {
-            _cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
-        }
-        return _cache._notifiers;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._notifiers) {
+        //     _cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
+        // }
+        // return _cache._notifiers;
+        return this.findReferencesAsObject("HasNotifier", true);
     }
 
     /**
      * return a array with the event source of this object.
      */
     public getEventSources(): BaseNode[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._eventSources) {
-            _cache._eventSources = this.findReferencesAsObject("HasEventSource", true);
-        }
-        return _cache._eventSources;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._eventSources) {
+        //     _cache._eventSources = this.findReferencesAsObject("HasEventSource", true);
+        // }
+        // return _cache._eventSources;
+        return this.findReferencesAsObject("HasEventSource", true);
     }
 
     /**
      * return a array of the objects for which this node is an EventSource
      */
     public getEventSourceOfs(): BaseNode[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._eventSources) {
-            _cache._eventSources = this.findReferencesAsObject("HasEventSource", false);
-        }
-        return _cache._eventSources;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._eventSources) {
+        //     _cache._eventSources = this.findReferencesAsObject("HasEventSource", false);
+        // }
+        // return _cache._eventSources;
+        return this.findReferencesAsObject("HasEventSource", false);
     }
 
     /**
@@ -566,12 +596,14 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * Note: internally, methods are special types of components
      */
     public getMethods(): UAMethod[] {
-        const _cache = BaseNode_getCache(this);
-        if (!_cache._methods) {
-            const components = this.getComponents();
-            _cache._methods = components.filter((obj) => obj.nodeClass === NodeClass.Method);
-        }
-        return _cache._methods;
+        // const _cache = BaseNode_getCache(this);
+        // if (!_cache._methods) {
+        //     const components = this.getComponents();
+        //     _cache._methods = components.filter((obj) => obj.nodeClass === NodeClass.Method) as UAMethod[];
+        // }
+        // return _cache._methods;
+        const components = this.getComponents();
+        return components.filter((obj) => obj.nodeClass === NodeClass.Method) as UAMethod[];
     }
 
     /**
@@ -676,6 +708,9 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             writeValue.attributeId > AttributeIds.AccessLevelEx
         ) {
             return callback(null, StatusCodes.BadAttributeIdInvalid);
+        }
+        if (!this.canUserWriteAttribute(context, writeValue.attributeId)) {
+            return callback(null, StatusCodes.BadUserAccessDenied);
         }
         // by default Node is read-only,
         // this method needs to be overridden to change the behavior
@@ -1263,6 +1298,23 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     private _clear_caches() {
         BaseNode_clearCache(this);
     }
+
+    public canUserWriteAttribute(context: ISessionContext | null, attributeId: AttributeIds): boolean {
+        // the Client is allowed to write to Attributes other than the Value,
+        // Historizing or RolePermissions Attribute
+        if (!context) return true;
+        if (attributeId === AttributeIds.Historizing) {
+            return context.checkPermission(this, PermissionType.WriteHistorizing);
+        }
+        if (attributeId === AttributeIds.RolePermissions) {
+            return context.checkPermission(this, PermissionType.WriteRolePermissions);
+        }
+        if (attributeId === AttributeIds.Value) {
+            return context.checkPermission(this, PermissionType.Write);
+        }
+        return context.checkPermission(this, PermissionType.WriteAttribute);
+    }
+
     private _readAccessRestrictions(context: ISessionContext | null): DataValue {
         // https://reference.opcfoundation.org/v104/Core/docs/Part3/8.56/
         if (this.accessRestrictions === undefined) {
@@ -1281,7 +1333,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         // https://reference.opcfoundation.org/v104/Core/docs/Part3/4.8.3/
 
         // to do check that current user can read permission
-        if (context && !context?.checkPermission(this as any, PermissionType.ReadRolePermissions)) {
+        if (context && !context.checkPermission(this, PermissionType.ReadRolePermissions)) {
             return new DataValue({
                 statusCode: StatusCodes.BadSecurityModeInsufficient
             });
@@ -1312,6 +1364,16 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     private _readUserRolePermissions(context: ISessionContext | null): DataValue {
+        const allUserCanSeeTheirOwnRolePermissions = true;
+        if (!allUserCanSeeTheirOwnRolePermissions) {
+            // to do check that current user can read permission
+            if (context && !context.checkPermission(this, PermissionType.ReadRolePermissions)) {
+                return new DataValue({
+                    statusCode: StatusCodes.BadSecurityModeInsufficient
+                });
+            }
+        }
+
         if (this.rolePermissions === undefined) {
             // to do : If not specified, the value of DefaultUserRolePermissions Property from
             // the Namespace Metadata Object associated with the Node is used instead.
@@ -1320,8 +1382,8 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             });
         }
         const context1: ISessionContext = context === null ? SessionContext.defaultContext : context;
-        // for the time being ...
-        // get user Permission
+
+        // for the time being  get user Permission
         const rolePermissions = this.rolePermissions
             .map(({ roleId, permissions }) => {
                 return new RolePermissionType({
@@ -1330,6 +1392,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
                 });
             })
             .filter(({ roleId }) => context1.currentUserHasRole(roleId));
+
         return new DataValue({
             statusCode: StatusCodes.Good,
             value: {
@@ -1514,7 +1577,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
             }
         }
         // xx ignore this assert(reference.nodeId.toString() !== this.nodeId.toString());
-        // function w(s,l) { return (s+"                                                          ").substr(0,l);}
+        // function w(s,l) { return (s+"                                                          ").substring(0,l);}
         // if (reference.isForward) {
         //    console.log("  CHILD => ",w(related_node.browseName   + " " + related_node.nodeId.toString(),30),
         //    "  PARENT   ",w(this.browseName + " " + this.nodeId.toString(),30) , reference.toString());

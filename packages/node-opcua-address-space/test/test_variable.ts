@@ -1,16 +1,16 @@
 import * as path from "path";
 import * as should from "should";
 import * as sinon from "sinon";
-
 import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { DataValue, sameDataValue } from "node-opcua-data-value";
-import { NodeId, makeNodeId } from "node-opcua-nodeid";
+import { NodeId, makeNodeId, resolveNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue, WriteValueOptions } from "node-opcua-types";
 import { StatusCodeCallback } from "node-opcua-status-code";
+import { VariableTypeIds } from "node-opcua-constants";
 
 const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
 
@@ -193,13 +193,11 @@ describe("Address Space : add Variable :  testing various variations for specify
     });
 
     it("AddressSpace#addVariable should accept a typeDefinition as a VariableTypeId value", () => {
-        const VariableTypeIds = require("node-opcua-constants").VariableTypeIds;
-
         const nodeVar = namespace.addVariable({
             browseName: "SomeVariable6",
             dataType: "Double",
             organizedBy: rootFolder,
-            typeDefinition: VariableTypeIds.PropertyType
+            typeDefinition: resolveNodeId(VariableTypeIds.PropertyType)
         });
         nodeVar.typeDefinition.should.be.instanceOf(NodeId);
         nodeVar.typeDefinition.toString().should.eql("ns=0;i=68");
@@ -262,7 +260,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T1 - testing Variable#bindVariable -> Getter - " +
-            "should create a static read only variable (static value defined at construction time)",
+        "should create a static read only variable (static value defined at construction time)",
         async () => {
             const variable = namespace.addVariable({
                 accessLevel: "CurrentRead",
@@ -305,7 +303,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T2 - testing Variable#bindVariable -> Getter - " +
-            "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
+        "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
         async () => {
             const variable = namespace.addVariable({
                 browseName: "Variable37",
@@ -643,7 +641,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "Q4 - testing Variable#bindVariable -> Setter - " +
-            "issue#332 should create a variable with async setter and an async getter",
+        "issue#332 should create a variable with async setter and an async getter",
         async () => {
             const value_with_timestamp = new DataValue({
                 sourcePicoseconds: 100,

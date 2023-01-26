@@ -8,7 +8,6 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condi
  * |typedDefinition |ProcessConditionClassType ns=0;i=11164            |
  * |isAbstract      |true                                              |
  */
-export interface UAProcessConditionClass_Base extends UABaseConditionClass_Base {
-}
+export type UAProcessConditionClass_Base = UABaseConditionClass_Base;
 export interface UAProcessConditionClass extends UABaseConditionClass, UAProcessConditionClass_Base {
 }

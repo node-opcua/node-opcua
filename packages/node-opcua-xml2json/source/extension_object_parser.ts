@@ -172,6 +172,7 @@ interface Field {
     name: string;
     value?: any;
     valueRank?: number; // default is -1 => scalar
+    allowSubtype?: boolean;
 }
 
 export interface Definition {
@@ -186,6 +187,9 @@ export interface DefinitionMap {
 function _clone(a: any): any {
     if (typeof a === "string" || typeof a === "number" || typeof a === "boolean") {
         return a;
+    }
+    if (a instanceof Buffer) {
+        return Buffer.from(a);
     }
     if (a instanceof Array) {
         return a.map((x) => _clone(x));
@@ -262,7 +266,7 @@ function _makeExtensionObjectReader(
             listReader.parser![field.dataType] = fieldReader;
             reader.parser![field.name] = listReader;
         } else {
-            throw new Error("Unsupported ValueRank !");
+            throw new Error("Unsupported ValueRank ! " + field.valueRank);
         }
     }
     // xx const parser: ParserLike = {};
@@ -271,6 +275,13 @@ function _makeExtensionObjectReader(
     return reader;
 }
 
+/**
+ * @deprecated ( use makeXmlExtensionObjectReader instead)
+ * @param definitionName 
+ * @param definitionMap 
+ * @param readerMap 
+ * @returns 
+ */
 export function makeExtensionObjectReader(
     definitionName: string,
     definitionMap: DefinitionMap,

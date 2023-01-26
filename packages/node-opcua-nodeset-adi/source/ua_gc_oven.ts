@@ -8,7 +8,6 @@ import { UAAccessory, UAAccessory_Base } from "./ua_accessory"
  * |typedDefinition |2:GcOvenType ns=2;i=1020                          |
  * |isAbstract      |false                                             |
  */
-export interface UAGcOven_Base extends UAAccessory_Base {
-}
+export type UAGcOven_Base = UAAccessory_Base;
 export interface UAGcOven extends UAAccessory, UAGcOven_Base {
 }

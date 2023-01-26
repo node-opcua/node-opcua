@@ -1,12 +1,21 @@
 #!/usr/bin/env ts-node
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import * as path from "path";
-import * as yargs from "yargs";
 import * as os from "os";
 
-import { makeApplicationUrn, MessageSecurityMode, nodesets, OPCUAServer, SecurityPolicy, ServerSession } from "node-opcua";
+import * as chalk from "chalk";
+import * as yargs from "yargs";
+
+import {
+    makeApplicationUrn,
+    MessageSecurityMode,
+    nodesets,
+    OPCUAServer,
+    OPCUAServerOptions,
+    SecurityPolicy,
+    ServerSession
+} from "node-opcua";
 
 Error.stackTraceLimit = Infinity;
 
@@ -26,9 +35,7 @@ const userManager = {
     }
 };
 
-
 async function main() {
-
     const argv = await yargs(process.argv)
         .wrap(132)
 
@@ -47,17 +54,16 @@ async function main() {
             default: false,
             describe: "silent - no trace"
         })
-        .option("maxAllowedSessionNumber", {
+        .option("maxSessions", {
             alias: "m",
             default: 10
         })
         .help(true).argv;
 
-
     const port = argv.port || 26543;
     // server_options.alternateHostname = argv.alternateHostname;
 
-    const server_options = {
+    const server_options: OPCUAServerOptions = {
         securityPolicies: [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256],
 
         securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt],
@@ -81,13 +87,18 @@ async function main() {
             buildNumber: "1234"
         },
 
+        serverCapabilities: {
+            maxSessions: argv.maxSessions
+        },
+
+        maxConnectionsPerEndpoint: argv.maxSessions,
+
         userManager,
 
         isAuditing: false
     };
 
     process.title = "Node OPCUA Server on port : " + server_options.port;
-
 
     const server = new OPCUAServer(server_options);
 

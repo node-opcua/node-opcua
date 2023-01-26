@@ -1,5 +1,5 @@
 const should = require("should");
-const buffer_ellipsis = require("..").buffer_ellipsis;
+const { buffer_ellipsis } = require("..");
 
 describe("buffer_ellipsis", function () {
     it("should create a buffer ellipse", function () {

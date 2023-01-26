@@ -33,8 +33,8 @@ describe("DataAccess", () => {
         await generateAddressSpace(addressSpace, xmlFiles);
     });
 
-    after(() => {
-        addressSpace.shutdown();
+    after(async () => {
+        await addressSpace.shutdown();
         addressSpace.dispose();
     });
 

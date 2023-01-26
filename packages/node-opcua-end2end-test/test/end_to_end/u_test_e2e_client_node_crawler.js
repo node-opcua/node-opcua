@@ -3,7 +3,8 @@ const should = require("should");
 const { assert } = require("node-opcua-assert");
 const async = require("async");
 
-const { ObjectIds, OPCUAClient, NodeCrawler, AttributeIds } = require("node-opcua");
+const { ObjectIds, OPCUAClient, AttributeIds } = require("node-opcua");
+const { NodeCrawler } = require("node-opcua-client-crawler");
 
 const { redirectToFile } = require("node-opcua-debug/nodeJS");
 const { make_debugLog } = require("node-opcua-debug");
@@ -45,11 +46,11 @@ module.exports = function (test) {
             debugLog(
                 "    referenceTypeId ",
                 f(chalk.yellow(reference.referenceTypeId.displayText(), 35)) +
-                    (reference.isForward ? " => " : " <= ") +
-                    f(chalk.blue.bold(reference.browseName.name, 20)) +
-                    "(" +
-                    chalk.cyan(reference.nodeId.displayText()) +
-                    ")"
+                (reference.isForward ? " => " : " <= ") +
+                f(chalk.blue.bold(reference.browseName.name, 20)) +
+                "(" +
+                chalk.cyan(reference.nodeId.displayText()) +
+                ")"
             );
         }
 
@@ -232,7 +233,7 @@ module.exports = function (test) {
                         function (the_session, callback) {
                             const crawler = new NodeCrawler(the_session);
 
-                            crawler.on("browsed", function (element) {});
+                            crawler.on("browsed", function (element) { });
 
                             const nodeId = "ObjectsFolder";
                             debugLog("now crawling object folder ...please wait...");

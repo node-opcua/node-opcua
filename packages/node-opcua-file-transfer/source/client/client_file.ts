@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-file-transfer
  */
-import { Byte, Int32, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
+import { Byte, coerceInt32, Int32, Int64, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
@@ -25,10 +25,9 @@ export { OpenFileMode } from "../open_mode";
  *
  */
 export class ClientFile {
-
     public static useGlobalMethod = false;
 
-    public    fileHandle = 0;
+    public fileHandle = 0;
     protected session: IBasicSession;
     protected readonly fileNodeId: NodeId;
 
@@ -47,7 +46,6 @@ export class ClientFile {
     }
 
     public async open(mode: OpenFileMode): Promise<number> {
-
         if (mode === null || mode === undefined) {
             throw new Error("expecting a validMode " + OpenFileMode[mode]);
         }
@@ -57,13 +55,11 @@ export class ClientFile {
         await this.ensureInitialized();
 
         const result = await this.session.call({
-            inputArguments: [
-                { dataType: DataType.Byte, value: mode as Byte }
-            ],
+            inputArguments: [{ dataType: DataType.Byte, value: mode as Byte }],
             methodId: this.openMethodNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             debugLog("Cannot open file : ");
             throw new Error("cannot open file statusCode = " + result.statusCode.toString() + " mode = " + OpenFileMode[mode]);
         }
@@ -80,13 +76,11 @@ export class ClientFile {
         await this.ensureInitialized();
 
         const result = await this.session.call({
-            inputArguments: [
-                { dataType: DataType.UInt32, value: this.fileHandle }
-            ],
+            inputArguments: [{ dataType: DataType.UInt32, value: this.fileHandle }],
             methodId: this.closeMethodNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             debugLog("Cannot close file : ");
             throw new Error("cannot close file statusCode = " + result.statusCode.toString());
         }
@@ -101,13 +95,11 @@ export class ClientFile {
         }
 
         const result = await this.session.call({
-            inputArguments: [
-                { dataType: DataType.UInt32, value: this.fileHandle }
-            ],
+            inputArguments: [{ dataType: DataType.UInt32, value: this.fileHandle }],
             methodId: this.getPositionNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         return result.outputArguments![0].value as UInt64;
@@ -133,13 +125,13 @@ export class ClientFile {
             methodId: this.setPositionNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         return;
     }
 
-    public async read(bytesToRead: Int32): Promise<Buffer> {
+    public async read(bytesToRead: UInt32 | Int32 | Int64 | UInt64): Promise<Buffer> {
         await this.ensureInitialized();
         if (!this.fileHandle) {
             throw new Error("File has not been opened yet");
@@ -150,13 +142,13 @@ export class ClientFile {
                 {
                     arrayType: VariantArrayType.Scalar,
                     dataType: DataType.Int32,
-                    value: bytesToRead
+                    value: coerceInt32(bytesToRead)
                 }
             ],
             methodId: this.readNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         if (!result.outputArguments || result.outputArguments[0].dataType !== DataType.ByteString) {
@@ -182,7 +174,7 @@ export class ClientFile {
             methodId: this.writeNodeId,
             objectId: this.fileNodeId
         });
-        if (result.statusCode !== StatusCodes.Good) {
+        if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
         }
         return;
@@ -208,7 +200,6 @@ export class ClientFile {
 
     // eslint-disable-next-line max-statements
     protected async extractMethodsIds(): Promise<void> {
-
         if (ClientFile.useGlobalMethod) {
             debugLog("Using GlobalMethodId");
             this.openMethodNodeId = resolveNodeId(MethodIds.FileType_Open);
@@ -222,10 +213,10 @@ export class ClientFile {
                 makeBrowsePath(this.fileNodeId, "/Size")
             ];
             const results = await this.session.translateBrowsePath(browsePaths);
-            if (results[0].statusCode !== StatusCodes.Good) {
+            if (results[0].statusCode.isNotGood()) {
                 throw new Error("fileType object does not expose mandatory OpenCount Property");
             }
-            if (results[1].statusCode !== StatusCodes.Good) {
+            if (results[1].statusCode.isNotGood()) {
                 throw new Error("fileType object does not expose mandatory Size Property");
             }
             this.openCountNodeId = results[0].targets![0].targetId;
@@ -245,28 +236,28 @@ export class ClientFile {
 
         const results = await this.session.translateBrowsePath(browsePaths);
 
-        if (results[0].statusCode !== StatusCodes.Good) {
+        if (results[0].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Open Method");
         }
-        if (results[1].statusCode !== StatusCodes.Good) {
+        if (results[1].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Close Method");
         }
-        if (results[2].statusCode !== StatusCodes.Good) {
+        if (results[2].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory SetPosition Method");
         }
-        if (results[3].statusCode !== StatusCodes.Good) {
+        if (results[3].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory GetPosition Method");
         }
-        if (results[4].statusCode !== StatusCodes.Good) {
+        if (results[4].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Write Method");
         }
-        if (results[5].statusCode !== StatusCodes.Good) {
+        if (results[5].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Read Method");
         }
-        if (results[6].statusCode !== StatusCodes.Good) {
+        if (results[6].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory OpenCount Variable");
         }
-        if (results[7].statusCode !== StatusCodes.Good) {
+        if (results[7].statusCode.isNotGood()) {
             throw new Error("fileType object does not expose mandatory Size Variable");
         }
 
@@ -289,6 +280,22 @@ export class ClientFile {
         }
     }
 }
+
+export async function readFile(clientFile: ClientFile): Promise<Buffer> {
+    await clientFile.open(OpenFileMode.Read);
+    try {
+        const fileSize = await clientFile.size();
+        const data = await clientFile.read(fileSize);
+        return data;
+    } finally {
+        await clientFile.close();
+    }
+}
+
+export async function readOPCUAFile(clientFile: ClientFile): Promise<Buffer> {
+    return await readFile(clientFile);
+}
+
 
 /**
  * 5.2.10 UserRolePermissions

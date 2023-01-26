@@ -8,7 +8,6 @@ import { UAGlassMaterialEvent, UAGlassMaterialEvent_Base } from "./ua_glass_mate
  * |typedDefinition |13:MaterialExitEventType ns=13;i=1025             |
  * |isAbstract      |true                                              |
  */
-export interface UAMaterialExitEvent_Base extends UAGlassMaterialEvent_Base {
-}
+export type UAMaterialExitEvent_Base = UAGlassMaterialEvent_Base;
 export interface UAMaterialExitEvent extends UAGlassMaterialEvent, UAMaterialExitEvent_Base {
 }

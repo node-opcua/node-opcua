@@ -1,11 +1,14 @@
 /* eslint-disable no-undef */
 "use strict";
-const fs = require("fs");
 const should = require("should");
 const _ = require("underscore");
-const utils = require("node-opcua-utils");
-const factories = require("node-opcua-factory");
-
+const { registerEnumeration, registerBasicType } = require("node-opcua-factory");
+const { StatusCodes } = require("node-opcua-status-code");
+const { ExtensionObject } = require("node-opcua-status-code");
+const { parameters } = require("node-opcua-factory");
+const { getTypeMap }= require("node-opcua-factory");
+const schema_helpers = parameters;
+      
 const ec = require("node-opcua-basic-types");
 
 const { compare_obj_by_encoding, encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
@@ -17,7 +20,7 @@ require("../../node-opcua-data-model");
 let temporary_folder = "";
 
 function initialize() {
-    const ShapeType = factories.registerEnumeration({
+    const ShapeType = registerEnumeration({
         name: "EnumShapeType",
         enumValues: {
             CIRCLE: 1,
@@ -27,7 +30,7 @@ function initialize() {
         }
     });
 
-    const Color = factories.registerEnumeration({
+    const Color = registerEnumeration({
         name: "EnumColor",
         enumValues: {
             RED: 100,
@@ -37,7 +40,7 @@ function initialize() {
     });
 
     exports.Shape_Schema = {
-        id: factories.next_available_id(),
+        id: next_available_id(),
         name: "Shape",
         fields: [
             {
@@ -64,19 +67,22 @@ function initialize() {
 
     const Shape = generator.registerObject(exports.Shape_Schema, temporary_folder);
 
-    factories.registerBasicType({
+    registerBasicType({
         name: "MyInteger",
         subType: "UInt16",
         defaultValue: 0
     });
 }
+
+let c = 10000;
+function next_available_id() {
+    return c++;
+}
 xdescribe("Factories: testing object factory", function () {
     it("should handle subtype properly", function () {
-        should.exist(factories.findSimpleType("MyInteger"));
-
         exports.MyStruct_Schema = {
             name: "MyStruct",
-            id: factories.next_available_id(),
+            id: next_available_id(),
             fields: [{ name: "value", fieldType: "MyInteger" }]
         };
         generator.unregisterObject(exports.MyStruct_Schema, temporary_folder);
@@ -90,11 +96,9 @@ xdescribe("Factories: testing object factory", function () {
     });
 
     it("should handle StatusCode ", function () {
-        const StatusCodes = require("node-opcua-status-code").StatusCodes;
-
         exports.MyStruct2_Schema = {
             name: "MyStruct2",
-            id: factories.next_available_id(),
+            id: next_available_id(),
             fields: [
                 { name: "value", fieldType: "MyInteger" },
                 { name: "statusCode", fieldType: "StatusCode" }
@@ -145,8 +149,6 @@ xdescribe("Factories: testing object factory", function () {
     });
 
     it("should raise an exception when trying to pass an invalid field to constructor", function () {
-        const schema_helpers = require("node-opcua-factory").parameters;
-
         const old_schema_helpers_doDebug = schema_helpers.debugSchemaHelper;
         schema_helpers.debugSchemaHelper = true;
 
@@ -216,7 +218,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
 
     it("should persist and restore a object in JSON when field has a special toJSON behavior", function () {
         exports.FakeBlob2_Schema = {
-            id: factories.next_available_id(),
+            id: next_available_id(),
             name: "FakeBlob2",
             fields: [
                 { name: "name", fieldType: "String" },
@@ -242,7 +244,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
 
     it("should persist and restore a object in JSON when field is a array of value with special toJSON behavior", function () {
         exports.FakeBlob3_Schema = {
-            id: factories.next_available_id(),
+            id: next_available_id(),
             name: "FakeBlob3",
             fields: [
                 { name: "name", fieldType: "String" },
@@ -277,7 +279,7 @@ xdescribe("Testing that objects created by factory can be persisted as JSON stri
     it("should persist and restore a object in JSON when field has a null value", function () {
         exports.FakeQualifiedName_Schema = {
             name: "FakeQualifiedName",
-            id: factories.next_available_id(),
+            id: next_available_id(),
             fields: [
                 { name: "namespaceIndex", fieldType: "UInt16", documentation: "The namespace index" },
                 {
@@ -326,7 +328,7 @@ xdescribe("factories testing advanced cases", function () {
     it("should set a field to null when default value is specifically null and no value has been provided", function () {
         exports.Blob4_Schema = {
             name: "Blob4",
-            id: factories.next_available_id(),
+            id: next_available_id(),
             fields: [{ name: "createdOn", fieldType: "DateTime", defaultValue: null }]
         };
         generator.unregisterObject(exports.Blob4_Schema, temporary_folder);
@@ -340,15 +342,14 @@ xdescribe("factories testing advanced cases", function () {
     });
 
     it("should accept all basic types as field scalar or field arrays", function () {
-        const ExtensionObject = require("node-opcua-status-code").ExtensionObject;
-
+    
         exports.Blob6_Schema = {
             name: "Blob6",
-            id: factories.next_available_id(),
+            id: next_available_id(),
             fields: []
         };
 
-        const _defaultTypeMap = require("node-opcua-factory").getTypeMap();
+        const _defaultTypeMap = getTypeMap();
 
         _defaultTypeMap.forEach(function (value, key, map) {
             if (key === "Any") {

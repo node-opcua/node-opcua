@@ -33,7 +33,7 @@ path.join(__dirname, "nodesets/Opc.Ua.Adi.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.AutoID.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.MachineVision.NodeSet2.xml");
 path.join(__dirname, "nodesets/Opc.Ua.Robotics.NodeSet2.xml");
-
+path.join(__dirname, "nodeset/Opc.Ua.Ijt.Tightening.NodeSet2.xml");
 // ------------------------------------------------------------- }}
 
 const standardNodeSetFilename = constructNodesetFilename("Opc.Ua.NodeSet2.xml");
@@ -52,6 +52,7 @@ const iaNodeSetFilename = constructNodesetFilename("Opc.Ua.IA.NodeSet2.xml");
 const woodWorkingNodeSetFilename = constructNodesetFilename("Opc.Ua.Woodworking.NodeSet2.xml");
 const eumaboisNodeSetFilename = constructNodesetFilename("Opc.Ua.Eumabois.NodeSet2.xml");
 const glassNodeSetFilename = constructNodesetFilename("Opc.Ua.Glass.NodeSet2.xml");
+const tighteningNodeSetFilename = constructNodesetFilename("Opc.Ua.Ijt.Tightening.NodeSet2.xml")
 
 export const nodesets = {
     adi: adiNodeSetFilename,
@@ -84,7 +85,9 @@ export const nodesets = {
 
     eumabois: eumaboisNodeSetFilename,
 
-    glass: glassNodeSetFilename
+    glass: glassNodeSetFilename,
+
+    tightening: tighteningNodeSetFilename
 };
 
 function makeDeprecated(id: string, newName: keyof typeof nodesets) {

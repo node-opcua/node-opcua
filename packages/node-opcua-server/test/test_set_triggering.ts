@@ -5,9 +5,6 @@ import * as sinon from "sinon";
 import {
     MonitoringMode,
     MonitoredItemCreateRequest,
-    DataChangeFilter,
-    DataChangeTrigger,
-    DeadbandType,
     PublishRequest,
     PublishResponse,
     DataChangeNotification
@@ -15,14 +12,21 @@ import {
 import { StatusCodes } from "node-opcua-status-code";
 import { TimestampsToReturn } from "node-opcua-service-read";
 
-import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
-import { DataValue } from "node-opcua-data-value";
+import { DataType } from "node-opcua-variant";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, coerceNodeId } from "node-opcua-nodeid";
-import { AddressSpace, Namespace, SessionContext, UAVariable } from "node-opcua-address-space";
+import { AddressSpace, Namespace, UAVariable, SessionContext } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-import { MonitoredItem, Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState } from "..";
+import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "..";
+
+function makeSubscription(options: SubscriptionOptions) {
+    const subscription1 = new Subscription(options);
+    (subscription1 as any).$session = {
+        sessionContext: SessionContext.defaultContext
+    };
+    return subscription1;
+}
 
 // tslint:disable-next-line: no-var-requires
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
@@ -140,7 +144,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         });
     }
     function install_spying_samplingFunc(nodeId: NodeId) {
-        const spy_samplingEventCall = sinon.spy((oldValue, callback) => {
+        const spy_samplingEventCall = sinon.spy((sessionContext,oldValue, callback) => {
             const variable = addressSpace.findNode(nodeId) as UAVariable;
             const dataValue = variable.readValue();
             callback(null, dataValue);
@@ -155,7 +159,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         serverSidePublishEngine = new ServerSidePublishEngine({});
         send_response_for_request_spy = sinon.spy(serverSidePublishEngine, "_send_response_for_request");
 
-        subscription = new Subscription({
+        subscription = makeSubscription({
             id: 1234,
             publishingInterval: 100,
 
@@ -163,8 +167,14 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
             lifeTimeCount: 1000,
 
-            publishEngine: serverSidePublishEngine
+            publishEngine: serverSidePublishEngine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
+
+        (subscription as any).$session = {
+            sessionContext: SessionContext.defaultContext
+        };
         serverSidePublishEngine.add_subscription(subscription);
         subscription.state.should.equal(SubscriptionState.CREATING);
         send_response_for_request_spy.callCount.should.equal(0);
@@ -399,6 +409,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
         const publishedResponse0 = waitInitialNotification();
         {
+            console.log(publishedResponse0.toString());
             publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
             const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);

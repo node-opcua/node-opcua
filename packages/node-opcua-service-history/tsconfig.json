@@ -13,37 +13,10 @@
             "path": "../node-opcua-assert"
         },
         {
-            "path": "../node-opcua-basic-types"
-        },
-        {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
-            "path": "../node-opcua-data-model"
-        },
-        {
             "path": "../node-opcua-data-value"
         },
         {
-            "path": "../node-opcua-extension-object"
-        },
-        {
-            "path": "../node-opcua-factory"
-        },
-        {
-            "path": "../node-opcua-nodeid"
-        },
-        {
-            "path": "../node-opcua-service-filter"
-        },
-        {
-            "path": "../node-opcua-service-secure-channel"
-        },
-        {
             "path": "../node-opcua-types"
-        },
-        {
-            "path": "../node-opcua-generator"
         },
         {
             "path": "../node-opcua-packet-analyzer"

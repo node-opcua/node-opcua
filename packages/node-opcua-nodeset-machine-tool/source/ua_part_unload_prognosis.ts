@@ -14,10 +14,10 @@ import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
  * |isAbstract      |false                                             |
  */
 export interface UAPartUnloadPrognosis_Base extends UAPrognosis_Base {
-    location: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    partIdentifier?: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    partName: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    partNodeId?: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
+    location: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    partIdentifier?: UABaseDataVariable<UAString, DataType.String>;
+    partName: UABaseDataVariable<UAString, DataType.String>;
+    partNodeId?: UABaseDataVariable<NodeId, DataType.NodeId>;
 }
 export interface UAPartUnloadPrognosis extends UAPrognosis, UAPartUnloadPrognosis_Base {
 }

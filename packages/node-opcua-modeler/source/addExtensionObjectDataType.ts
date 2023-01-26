@@ -1,29 +1,17 @@
-import {
-    Namespace,
-    PseudoSession,
-    UADataType,
-    UAObject,
-    UAVariable,
-    UAVariableT,
-    UAVariableType,
-    dumpToBSD,
-    DTDataTypeDefinition,
-    UAProperty
-} from "node-opcua-address-space";
+import { Namespace as INamespace, PseudoSession, UADataType, UAObject, UAVariableType } from "node-opcua-address-space";
 import assert from "node-opcua-assert";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
-import { coerceQualifiedName, LocalizedTextLike, NodeClass, QualifiedNameLike } from "node-opcua-data-model";
+import { coerceQualifiedName, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import { ConstructorFuncWithSchema } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { createDynamicObjectConstructor } from "node-opcua-schemas";
 import { StructureDefinition, StructureDefinitionOptions } from "node-opcua-types";
-import { DataType, Variant } from "node-opcua-variant";
 
 /**
  * create the deprecated DataTypeDictionary node that was
  * used up to version 1.03
  */
-export function getOrCreateDataTypeSystem(namespace: Namespace): UAObject {
+export function getOrCreateDataTypeSystem(namespace: INamespace): UAObject {
     const addressSpace = namespace.addressSpace;
 
     const opcBinaryTypeSystem = addressSpace.findNode("OPCBinarySchema_TypeSystem") as UAObject;
@@ -49,7 +37,7 @@ export interface ExtensionObjectDefinition {
     subtypeOf?: UADataType;
 }
 
-export async function addExtensionObjectDataType(namespace: Namespace, options: ExtensionObjectDefinition): Promise<UADataType> {
+export async function addExtensionObjectDataType(namespace: INamespace, options: ExtensionObjectDefinition): Promise<UADataType> {
     const addressSpace = namespace.addressSpace;
 
     // encodings
@@ -66,16 +54,18 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
 
     const baseSuperType = "Structure";
     const subtypeOf = addressSpace.findDataType(options.subtypeOf ? options.subtypeOf : baseSuperType)!;
-
+    if (!subtypeOf) {
+        throw new Error("Cannot find  base DataType ");
+    }
     const structureDefinition = options.structureDefinition;
-    structureDefinition.baseDataType = structureDefinition.baseDataType
-        ? resolveNodeId(structureDefinition.baseDataType)
-        : resolveNodeId("Structure");
+    structureDefinition.baseDataType = resolveNodeId(structureDefinition.baseDataType || "Structure");
+
+    const isAbstract = options.isAbstract || false;
 
     const dataType = namespace.createDataType({
         browseName: options.browseName,
         description: options.description,
-        isAbstract: options.isAbstract,
+        isAbstract,
         subtypeOf
     });
 
@@ -104,6 +94,7 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
         className,
         dataType.getStructureDefinition(),
         dataTypeFactory,
+        isAbstract,
         cache
     );
     const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
@@ -111,7 +102,7 @@ export async function addExtensionObjectDataType(namespace: Namespace, options: 
     return dataType;
 }
 
-export function addVariableTypeForDataType(namespace: Namespace, dataType: UADataType): UAVariableType {
+export function addVariableTypeForDataType(namespace: INamespace, dataType: UADataType): UAVariableType {
     const addressSpace = namespace.addressSpace;
 
     // get Definition

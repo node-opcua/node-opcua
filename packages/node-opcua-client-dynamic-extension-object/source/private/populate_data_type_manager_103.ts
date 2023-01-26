@@ -6,8 +6,8 @@
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { AttributeIds, makeNodeClassMask, makeResultMask, QualifiedName } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog} from "node-opcua-debug";
+import { AttributeIds, makeNodeClassMask, makeResultMask, NodeClassMask, QualifiedName } from "node-opcua-data-model";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ConstructorFuncWithSchema, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
@@ -20,7 +20,7 @@ import {
 import { BrowseDescriptionOptions, BrowseDirection, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
-import { ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
+import { BrowsePath, ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
 
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
 import {
@@ -122,13 +122,20 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
     const binaryEncodings = [];
     const nodesToBrowseDataType: BrowseDescriptionOptions[] = [];
 
-    let i = 0;
-    for (const result3 of results3) {
-        const dataTypeDescription = dataTypeDescriptions[i++];
+    for (let i=0;i< results3.length;i++) {
+   
+        const result3 = results3[i];
+        const dataTypeDescription = dataTypeDescriptions[i];
 
         result3.references = result3.references || [];
+
+        if (result3.references.length === 0) {
+            // may be the dataType is abstract and as no need for DescriptionOF
+            continue;
+        }
         if (result3.references.length !== 1) {
             warningLog("_enrichWithDescriptionOf : expecting 1 reference for ", dataTypeDescription.browseName.toString());
+            warningLog(result3.toString()); 
             continue;
         }
         for (const ref of result3.references) {
@@ -144,34 +151,65 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
             nodesToBrowseDataType.push({
                 browseDirection: BrowseDirection.Inverse,
                 includeSubtypes: false,
-                nodeClassMask: makeNodeClassMask("DataType"),
-                nodeId: ref.nodeId.toString(),
+                nodeClassMask: NodeClassMask.DataType,
+                nodeId: ref.nodeId,
                 referenceTypeId: resolveNodeId("HasEncoding"),
                 //            resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
                 resultMask: makeResultMask("NodeId | BrowseName")
             });
         }
     }
+
     const dataTypeNodeIds: NodeId[] = [];
+
     if (nodesToBrowseDataType.length > 0) {
         const results4 = await browseAll(session, nodesToBrowseDataType);
-        i = 0;
-        for (const result4 of results4) {
+        for (let i=0;i< results4.length; i++) {
+
+            const result4 =results4[i];
             result4.references = result4.references || [];
 
             /* istanbul ignore next */
             if (result4.references.length !== 1) {
-                console.log("What's going on ?", result4.toString());
+                errorLog("What's going on ?", result4.toString(), "result4.references.length = ", result4.references.length);
             }
 
-            for (const ref of result4.references) {
-                const dataTypeNodeId = ref.nodeId;
+            const ref = result4.references![0];
+            const dataTypeNodeId = ref.nodeId;
+            dataTypeNodeIds[i]= dataTypeNodeId;
+            const dataTypeDescription = dataTypeDescriptions[i];
+            dataTypeDescription.encodings!.dataTypeNodeId = dataTypeNodeId;
+        }
+    }
 
-                dataTypeNodeIds.push(dataTypeNodeId);
+    const otherEncodingBrowse = dataTypeNodeIds.map((dataTypeNodeId)=>({
+        browseDirection: BrowseDirection.Forward,
+        includeSubtypes: false,
+        nodeClassMask: NodeClassMask.Object,
+        nodeId: dataTypeNodeId,
+        referenceTypeId: resolveNodeId("HasEncoding"),
+        //            resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
+        resultMask: makeResultMask("NodeId | BrowseName")
+    }));
 
-                const dataTypeDescription = dataTypeDescriptions[i++];
-                dataTypeDescription.encodings!.dataTypeNodeId = dataTypeNodeId;
-            }
+    const results5 = await browseAll(session, otherEncodingBrowse);
+    for (let i=0;i<results5.length;i++) {
+        const result5= results5[i];
+        const dataTypeDescription = dataTypeDescriptions[i];
+        for (const ref of result5.references || []) {
+            switch(ref.browseName.name) {
+                case "Default XML":
+                    dataTypeDescription.encodings!.xmlEncodingNodeId = ref.nodeId;
+                    break;
+                case "Default Binary":
+                    dataTypeDescription.encodings!.binaryEncodingNodeId = ref.nodeId;
+                    break;
+                case "Default JSON":
+                    dataTypeDescription.encodings!.jsonEncodingNodeId = ref.nodeId;
+                    break;
+                default:
+                    errorLog("Cannot handle unknown encoding", ref.browseName.name);
+            } 
         }
     }
     return dataTypeNodeIds;
@@ -181,6 +219,7 @@ interface IDataTypeDefInfo {
     className: string;
     dataTypeNodeId: NodeId;
     dataTypeDefinition: StructureDefinition;
+    isAbstract: boolean;
 }
 type DataTypeDefinitions = IDataTypeDefInfo[];
 
@@ -211,7 +250,7 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
             }
             _visit(ddd);
         }
-       
+
         dataTypeDefinitionsSorted.push(d);
     }
     for (const d of dataTypeDefinitions) {
@@ -250,12 +289,12 @@ async function _extractDataTypeDictionaryFromDefinition(
         const dataTypeDescription = dataTypeDescriptions[index];
 
         /* istanbul ignore else */
-        if (dataValue.statusCode === StatusCodes.Good) {
+        if (dataValue.statusCode.isGood()) {
             const dataTypeDefinition = dataValue.value.value;
 
             if (dataTypeDefinition && dataTypeDefinition instanceof StructureDefinition) {
                 const className = dataTypeDescription.browseName.name!;
-                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition });
+                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract: false });
             }
         } else {
             debugLog(
@@ -272,12 +311,12 @@ async function _extractDataTypeDictionaryFromDefinition(
     if (doDebug) {
         debugLog("order ", dataTypeDefinitionsSorted.map((a) => a.className + " " + a.dataTypeNodeId).join(" ->  "));
     }
-    for (const { className, dataTypeNodeId, dataTypeDefinition } of dataTypeDefinitionsSorted) {
+    for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
         // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
         }
-        if (dataTypeFactory.hasStructuredType(className)) {
+        if (dataTypeFactory.hasStructureByTypeName(className)) {
             continue; // this structure has already been seen
         }
         // now fill typeDictionary
@@ -288,6 +327,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                 className,
                 dataTypeDefinition,
                 dataTypeFactory,
+                isAbstract,
                 cache
             );
 
@@ -295,7 +335,7 @@ async function _extractDataTypeDictionaryFromDefinition(
             if (doDebug) {
                 debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
             }
-            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
+            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
             assert(Constructor.schema === schema);
         } catch (err) {
             console.log("Constructor verification err: ", (<Error>err).message);
@@ -336,6 +376,11 @@ interface TypeDictionaryInfo {
     targetNamespace: string;
 }
 
+function _isOldDataTypeDictionary(d: TypeDictionaryInfo) {
+    const isDictionaryDeprecated = d.isDictionaryDeprecated; // await _readDeprecatedFlag(session, dataTypeDictionaryNodeId);
+    const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
+    return !isDictionaryDeprecated && rawSchema.length >=0;
+}
 async function _extractDataTypeDictionary(
     session: IBasicSession,
     d: TypeDictionaryInfo,
@@ -343,13 +388,10 @@ async function _extractDataTypeDictionary(
 ): Promise<void> {
     const dataTypeDictionaryNodeId = d.reference.nodeId;
 
-    const isDictionaryDeprecated = d.isDictionaryDeprecated; // await _readDeprecatedFlag(session, dataTypeDictionaryNodeId);
-    const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
-
     const name = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.BrowseName });
     const namespace = await _readNamespaceUriProperty(session, dataTypeDictionaryNodeId);
 
-    if (isDictionaryDeprecated || rawSchema.length === 0) {
+    if (!_isOldDataTypeDictionary(d)) {
         debugLog(
             "DataTypeDictionary is deprecated or BSD schema stored in dataValue is null !",
             chalk.cyan(name.value.value.toString()),
@@ -364,8 +406,8 @@ async function _extractDataTypeDictionary(
             throw new Error("cannot find dataTypeFactory for namespace " + dataTypeDictionaryNodeId.namespace);
         }
         await _extractDataTypeDictionaryFromDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory2);
-        return;
     } else {
+        const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
         debugLog(" ----- Using old method for extracting schema => with BSD files");
         // old method ( until 1.03 )
         // one need to read the schema file store in the dataTypeDictionary node and parse it !
@@ -440,9 +482,12 @@ async function _exploreDataTypeDefinition(
             }
             // let's verify that constructor is operational
             try {
-                const constructor = dataTypeFactory.getStructureTypeConstructor(name);
+                const Constructor = dataTypeFactory.getStructureInfoByTypeName(name).constructor;
+                if (!Constructor) {
+                    throw new Error(`Cannot instantiate abstract DataType(name=${name})`);
+                }
                 // xx const constructor = getOrCreateConstructor(name, dataTypeFactory, defaultBinary);
-                const testObject = new constructor();
+                const testObject = new Constructor();
                 debugLog(testObject.toString());
             } catch (err) {
                 debugLog("         Error cannot construct Extension Object " + name);
@@ -452,7 +497,7 @@ async function _exploreDataTypeDefinition(
     }
 }
 
-const regexTargetNamespaceAttribute = /TargetNamespace="([^"]+)"|TargetNamespace='([^"]+)'/;
+const regexTargetNamespaceAttribute = /TargetNamespace="([^"]+)"|TargetNamespace='([^']+)'/;
 function extractTargetNamespaceAttribute(xmlElement: string): string {
     // warning TargetNamespace could have ' or " , Wago PLC for instance uses simple quotes
     const c2 = xmlElement.match(regexTargetNamespaceAttribute);
@@ -466,7 +511,7 @@ function extraNamespaceRef(attribute: string): { xmlns: string; namespace: strin
     const c = attribute.match(regexNamespaceRef);
     if (c) {
         const xmlns = c[1] as string;
-        const namespace: string = c[3] || c[4];
+        const namespace: string = c[4] || c[5];
         return { xmlns, namespace };
     }
     return null;
@@ -501,7 +546,7 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
         debugLog("namespaceArray ", namespaceArray.map((a, index) => " " + index.toString().padEnd(3) + ":" + a).join(" "));
     }
 
-    if (dataValueNamespaceArray.statusCode === StatusCodes.Good && namespaceArray && namespaceArray.length > 0) {
+    if (dataValueNamespaceArray.statusCode.isGood() && namespaceArray && namespaceArray.length > 0) {
         dataTypeManager.setNamespaceArray(namespaceArray);
 
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {

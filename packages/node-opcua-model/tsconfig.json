@@ -7,7 +7,7 @@
         "incremental": true
     },
     "include": ["source/**/*.ts"],
-      "references": [
+    "references": [
         {
             "path": "../node-opcua-address-space"
         },
@@ -15,37 +15,13 @@
             "path": "../node-opcua-assert"
         },
         {
-            "path": "../node-opcua-basic-types"
-        },
-        {
             "path": "../node-opcua-client"
-        },
-        {
-            "path": "../node-opcua-enum"
-        },
-        {
-            "path": "../node-opcua-factory"
-        },
-        {
-            "path": "../node-opcua-generator"
-        },
-        {
-            "path": "../node-opcua-nodeid"
         },
         {
             "path": "../node-opcua-nodesets"
         },
         {
-            "path": "../node-opcua-schemas"
-        },
-        {
-            "path": "../node-opcua-service-browse"
-        },
-        {
-            "path": "../node-opcua-status-code"
-        },
-        {
-            "path": "../node-opcua-xml2json"
+            "path": "../node-opcua-pseudo-session"
         },
         {
             "path": "../node-opcua-client-dynamic-extension-object"

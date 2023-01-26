@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
@@ -23,20 +23,20 @@ export interface UACncAlarm_Base extends UADiscreteAlarm_Base {
      * alarmIdentifier
      * Unique alarm number.
      */
-    alarmIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+    alarmIdentifier: UAProperty<UAString, DataType.String>;
     /**
      * auxParameters
      * Array of auxiliary parameter for additional alarm
      * description.
      */
-    auxParameters?: UAProperty<UAString[], /*z*/DataType.String>;
+    auxParameters?: UAProperty<UAString[], DataType.String>;
     /**
      * helpSource
      * Additional information to message giving
      * information on how to solve problem that caused
      * the alarm.
      */
-    helpSource?: UAProperty<UAString, /*z*/DataType.String>;
+    helpSource?: UAProperty<UAString, DataType.String>;
 }
 export interface UACncAlarm extends UADiscreteAlarm, UACncAlarm_Base {
 }

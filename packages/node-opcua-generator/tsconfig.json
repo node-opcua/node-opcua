@@ -15,31 +15,16 @@
             "path": "../node-opcua-basic-types"
         },
         {
-            "path": "../node-opcua-buffer-utils"
-        },
-        {
             "path": "../node-opcua-constants"
-        },
-        {
-            "path": "../node-opcua-date-time"
         },
         {
             "path": "../node-opcua-debug"
         },
         {
-            "path": "../node-opcua-enum"
-        },
-        {
             "path": "../node-opcua-factory"
         },
         {
-            "path": "../node-opcua-guid"
-        },
-        {
             "path": "../node-opcua-nodeid"
-        },
-        {
-            "path": "../node-opcua-numeric-range"
         },
         {
             "path": "../node-opcua-schemas"
@@ -49,9 +34,6 @@
         },
         {
             "path": "../node-opcua-utils"
-        },
-        {
-            "path": "../node-opcua-xml2json"
         },
         {
             "path": "../node-opcua-binary-stream"

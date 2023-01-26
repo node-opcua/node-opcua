@@ -12,10 +12,10 @@ import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditHistoryRawModifyDeleteEvent_Base extends UAAuditHistoryDeleteEvent_Base {
-    isDeleteModified: UAProperty<boolean, /*z*/DataType.Boolean>;
-    startTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    endTime: UAProperty<Date, /*z*/DataType.DateTime>;
-    oldValues: UAProperty<DataValue[], /*z*/DataType.DataValue>;
+    isDeleteModified: UAProperty<boolean, DataType.Boolean>;
+    startTime: UAProperty<Date, DataType.DateTime>;
+    endTime: UAProperty<Date, DataType.DateTime>;
+    oldValues: UAProperty<DataValue[], DataType.DataValue>;
 }
 export interface UAAuditHistoryRawModifyDeleteEvent extends UAAuditHistoryDeleteEvent, UAAuditHistoryRawModifyDeleteEvent_Base {
 }

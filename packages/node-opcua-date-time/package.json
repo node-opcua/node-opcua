@@ -2,24 +2,25 @@
     "name": "node-opcua-date-time",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.64.1",
+    "version": "2.89.0",
     "description": "pure nodejs OPCUA SDK - module -date-time",
     "scripts": {
         "build": "tsc -b",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "mocha"
     },
     "dependencies": {
         "long": "^4.0.0",
-        "node-opcua-assert": "2.64.1",
-        "node-opcua-utils": "2.64.1"
+        "node-opcua-assert": "2.88.0",
+        "node-opcua-binary-stream": "2.89.0",
+        "node-opcua-utils": "2.88.0"
     },
     "devDependencies": {
-        "bignumber.js": "^9.0.2",
-        "node-opcua-benchmarker": "2.64.1",
-        "node-opcua-binary-stream": "2.64.1",
-        "node-opcua-debug": "2.64.1",
-        "should": "^13.2.3"
+        "bignumber.js": "^9.1.1",
+        "node-opcua-benchmarker": "2.88.0",
+        "node-opcua-debug": "2.88.0",
+        "should": "^13.2.3",
+        "sinon": "^15.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

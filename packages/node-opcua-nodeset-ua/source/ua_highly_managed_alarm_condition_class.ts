@@ -8,7 +8,6 @@ import { UABaseConditionClass, UABaseConditionClass_Base } from "./ua_base_condi
  * |typedDefinition |HighlyManagedAlarmConditionClassType ns=0;i=17219 |
  * |isAbstract      |true                                              |
  */
-export interface UAHighlyManagedAlarmConditionClass_Base extends UABaseConditionClass_Base {
-}
+export type UAHighlyManagedAlarmConditionClass_Base = UABaseConditionClass_Base;
 export interface UAHighlyManagedAlarmConditionClass extends UABaseConditionClass, UAHighlyManagedAlarmConditionClass_Base {
 }

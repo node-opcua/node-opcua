@@ -26,7 +26,7 @@ export interface UAIMachineTagNameplate_Base extends UAITagNameplate_Base {
      * strings with a length of 60 Unicode characters
      * into that field.
      */
-    location?: UAProperty<UAString, /*z*/DataType.String>;
+    location?: UAProperty<UAString, DataType.String>;
 }
 export interface UAIMachineTagNameplate extends UAITagNameplate, UAIMachineTagNameplate_Base {
 }

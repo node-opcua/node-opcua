@@ -1,8 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAPubSubDiagnosticsCounter } from "./ua_pub_sub_diagnostics_counter"
+import { EnumDiagnosticsLevel } from "./enum_diagnostics_level"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 export interface UAPubSubDiagnostics_counters extends UAObject { // Object
       stateError: UAPubSubDiagnosticsCounter<UInt32>;
@@ -21,11 +22,11 @@ export interface UAPubSubDiagnostics_counters extends UAObject { // Object
  * |isAbstract      |true                                              |
  */
 export interface UAPubSubDiagnostics_Base {
-    diagnosticsLevel: UABaseDataVariable<any, any>;
+    diagnosticsLevel: UABaseDataVariable<EnumDiagnosticsLevel, DataType.Int32>;
     totalInformation: UAPubSubDiagnosticsCounter<UInt32>;
     totalError: UAPubSubDiagnosticsCounter<UInt32>;
     reset: UAMethod;
-    subError: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    subError: UABaseDataVariable<boolean, DataType.Boolean>;
     counters: UAPubSubDiagnostics_counters;
     liveValues: UAObject;
 }

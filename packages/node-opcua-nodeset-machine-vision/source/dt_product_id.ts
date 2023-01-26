@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * |           |                                                  |
@@ -10,9 +11,10 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * | name      |4:ProductIdDataType                               |
  * | isAbstract|false                                             |
  */
-export interface DTProductId extends DTStructure  {
-/** Id is a system-wide unique identifier/name for identifying the product.*/
+export interface DTProductId extends DTStructure {
+  /** Id is a system-wide unique identifier/name for identifying the product.*/
   id: UAString; // String ns=4;i=3017
-/** Optional short human readable description of the configuration*/
-  description: LocalizedText; // LocalizedText ns=0;i=21
+  /** Optional short human readable description of the configuration*/
+  description?: LocalizedText; // LocalizedText ns=0;i=21
 }
+export interface UDTProductId extends ExtensionObject, DTProductId {};

@@ -25,10 +25,12 @@ export async function buildModelInner(data: BuildModelOptions): Promise<{ markdo
             nodeIdManager.setSymbols(data.presetSymbols);
         }
 
-        await generateAddressSpaceRaw(addressSpace, data.xmlFiles, data.xmlLoader);
+        await generateAddressSpaceRaw(addressSpace, data.xmlFiles, data.xmlLoader, {});
 
+        (addressSpace.getOwnNamespace() as any).registerSymbolicNames = true;
         await data.createModel(addressSpace);
-
+        (addressSpace.getOwnNamespace() as any).registerSymbolicNames = false;
+        
         const xmlModel = ns.toNodeset2XML();
         const symbols = nodeIdManager.getSymbols();
         const doc = await buildDocumentationToString(ns, {});

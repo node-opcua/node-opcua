@@ -12,7 +12,7 @@ import {
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
-    StructuredTypeSchema
+    IStructuredTypeSchema
 } from "node-opcua-factory";
 import { coerceStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions, VariantOptionsT, VariantT } from "node-opcua-variant";
@@ -206,13 +206,13 @@ function isValidDataValue(self: DataValue): boolean {
     } else {
         assert(!self.value);
         // in this case StatusCode shall not be Good
-        assert(self.statusCode !== StatusCodes.Good);
+        assert(self.statusCode.isNotGood());
     }
     return true;
 }
 
 // OPC-UA part 4 -  $7.7
-const schemaDataValue: StructuredTypeSchema = buildStructuredType({
+const schemaDataValue: IStructuredTypeSchema = buildStructuredType({
     baseType: "BaseUAObject",
     name: "DataValue",
 
@@ -346,7 +346,7 @@ registerSpecialVariantEncoder(DataValue);
 export type DataValueLike = DataValueOptions | DataValue;
 
 function w(n: number): string {
-    return ("0000" + n).substr(-3);
+    return n.toString().padStart(3, "0");
 }
 
 function _partial_clone(dataValue: DataValue): DataValue {
@@ -372,11 +372,11 @@ export function apply_timestamps(
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            // xx if (!cloneDataValue.serverTimestamp) {
-            now = now || getCurrentClock();
-            cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-            cloneDataValue.serverPicoseconds = now.picoseconds;
-            // xx }
+            if (!cloneDataValue.serverTimestamp) {
+                now = now || getCurrentClock();
+                cloneDataValue.serverTimestamp = now.timestamp as DateTime;
+                cloneDataValue.serverPicoseconds = now.picoseconds;
+            }
             break;
         case TimestampsToReturn.Source:
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
@@ -389,11 +389,11 @@ export function apply_timestamps(
             cloneDataValue = cloneDataValue || _partial_clone(dataValue);
             cloneDataValue.serverTimestamp = dataValue.serverTimestamp;
             cloneDataValue.serverPicoseconds = dataValue.serverPicoseconds;
-            // xx if (!cloneDataValue.serverTimestamp) {
-            now = now || getCurrentClock();
-            cloneDataValue.serverTimestamp = now.timestamp as DateTime;
-            cloneDataValue.serverPicoseconds = now.picoseconds;
-            // xx }
+            if (!dataValue.serverTimestamp) {
+                now = now || getCurrentClock();
+                cloneDataValue.serverTimestamp = now.timestamp as DateTime;
+                cloneDataValue.serverPicoseconds = now.picoseconds;
+            }
             cloneDataValue.sourceTimestamp = dataValue.sourceTimestamp;
             cloneDataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
             break;
@@ -490,7 +490,7 @@ function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsT
  * @static
  */
 function _clone_with_array_replacement(dataValue: DataValue, result: any): DataValue {
-    const statusCode = result.statusCode === StatusCodes.Good ? dataValue.statusCode : result.statusCode;
+    const statusCode = result.statusCode.isGood() ? dataValue.statusCode : result.statusCode;
 
     const clonedDataValue = new DataValue({
         statusCode,
@@ -648,4 +648,4 @@ export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOpti
 export declare interface DataValueT<T, DT extends DataType> extends DataValue {
     value: VariantT<T, DT>;
 }
-export class DataValueT<T, DT extends DataType> extends DataValue {}
+export class DataValueT<T, DT extends DataType> extends DataValue { }

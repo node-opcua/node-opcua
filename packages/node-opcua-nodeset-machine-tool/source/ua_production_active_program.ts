@@ -14,8 +14,8 @@ import { UAProductionProgramStateMachine } from "./ua_production_program_state_m
  * |isAbstract      |false                                             |
  */
 export interface UAProductionActiveProgram_Base extends UAProductionProgram_Base {
-    jobIdentifier?: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    jobNodeId?: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
+    jobIdentifier?: UABaseDataVariable<UAString, DataType.String>;
+    jobNodeId?: UABaseDataVariable<NodeId, DataType.NodeId>;
     state: UAProductionProgramStateMachine;
 }
 export interface UAProductionActiveProgram extends Omit<UAProductionProgram, "state">, UAProductionActiveProgram_Base {

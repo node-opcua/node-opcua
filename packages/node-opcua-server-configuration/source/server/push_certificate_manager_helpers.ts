@@ -1,35 +1,46 @@
 /**
  * @module node-opcua-server-configuration
  */
-
-import { callbackify } from "util";
-
+import * as path from "path";
+import * as fs from "fs";
 import {
     AddressSpace,
     SessionContext,
     UAMethod,
     UATrustList,
-    UAObject,
-    UAVariable,
     UAServerConfiguration,
-    ISessionContext
+    ISessionContext,
+    UACertificateGroup,
+    UACertificateExpirationAlarmEx,
+    instantiateCertificateExpirationAlarm,
 } from "node-opcua-address-space";
+import { UAObject, UAVariable, EventNotifierFlags } from "node-opcua-address-space-base";
+
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { AccessRestrictionsFlag, NodeClass } from "node-opcua-data-model";
+import {
+    AccessLevelFlag,
+    AccessRestrictionsFlag,
+    BrowseDirection,
+    coerceQualifiedName,
+    NodeClass,
+    QualifiedName
+} from "node-opcua-data-model";
 import { ByteString, UAString } from "node-opcua-basic-types";
-import { ObjectTypeIds } from "node-opcua-constants";
+import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
+import { CertificateManager } from "node-opcua-certificate-manager";
+import { Certificate, readCertificate } from "node-opcua-crypto";
 
 import { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager";
 
-import { installCertificateExpirationAlarm } from "./install_CertificateAlarm";
 import { PushCertificateManagerServerImpl, PushCertificateManagerServerOptions } from "./push_certificate_manager_server_impl";
 import { installAccessRestrictionOnTrustList, promoteTrustList } from "./promote_trust_list";
 import { hasEncryptedChannel, hasExpectedUserAccess } from "./tools";
 import { rolePermissionAdminOnly, rolePermissionRestricted } from "./roles_and_permissions";
+import { installCertificateFileWatcher } from "./install_certificate_file_watcher";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
@@ -117,7 +128,7 @@ async function _createSigningRequest(
         nonce
     );
 
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         return { statusCode: result.statusCode };
     }
 
@@ -175,7 +186,7 @@ async function _updateCertificate(
 
     // todo   raise a CertificateUpdatedAuditEventType
 
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         return { statusCode: result.statusCode };
     }
     const callMethodResult = {
@@ -209,7 +220,7 @@ async function _getRejectedList(
 
     const result = await pushCertificateManager.getRejectedList();
 
-    if (result.statusCode !== StatusCodes.Good) {
+    if (result.statusCode.isNotGood()) {
         return { statusCode: result.statusCode };
     }
 
@@ -247,43 +258,143 @@ async function _applyChanges(
     return { statusCode };
 }
 
+function getCertificateFilename(certificateManager: CertificateManager): string {
+    return path.join(certificateManager.rootDir, "own/certs/certificate.pem"); // to do , find a better way
+}
+async function getCertificate(certificateManager: CertificateManager): Promise<Certificate | null> {
+    try {
+        const certificateFile = getCertificateFilename(certificateManager);
+        if (fs.existsSync(certificateFile)) {
+            const certificate = await readCertificate(certificateFile);
+            return certificate;
+        }
+        return null;
+    } catch (err) {
+        warningLog("getCertificate Error", (err as Error).message);
+        return null;
+    }
+}
+
+function bindCertificateGroup(certificateGroup: UACertificateGroup, certificateManager?: CertificateManager) {
+    if (certificateManager) {
+        const certificateFile = getCertificateFilename(certificateManager);
+        const changeDetector = installCertificateFileWatcher(certificateGroup, certificateFile);
+        changeDetector.on("certificateChange", () => {
+            debugLog("detecting certificate change", certificateFile);
+            updateCertificateAlarm();
+        });
+    }
+
+    async function updateCertificateAlarm() {
+        try {
+            debugLog("updateCertificateAlarm", certificateGroup.browseName.toString());
+            const certificateExpired = certificateGroup.getComponentByName("CertificateExpired");
+            if (certificateExpired && certificateManager) {
+                const certificateExpiredEx = certificateExpired as unknown as UACertificateExpirationAlarmEx;
+                const certificate = await getCertificate(certificateManager);
+                certificateExpiredEx.setCertificate(certificate);
+            }
+        } catch (err) {
+            warningLog("updateCertificateAlarm Error", (err as Error).message);
+        }
+    }
+
+    const addressSpace = certificateGroup.addressSpace;
+    if (!certificateManager) {
+        return;
+    }
+    const trustList = certificateGroup.getComponentByName("TrustList");
+    if (trustList) {
+        (trustList as any).$$certificateManager = certificateManager;
+    }
+    const certificateExpired = certificateGroup.getComponentByName("CertificateExpired");
+    if (certificateExpired) {
+        (certificateExpired as any).$$certificateManager = certificateManager;
+        // install alarm handling
+        const timerId = setInterval(updateCertificateAlarm, 60 * 1000);
+        addressSpace.registerShutdownTask(() => clearInterval(timerId));
+        updateCertificateAlarm();
+    }
+}
+
 function bindCertificateManager(addressSpace: AddressSpace, options: PushCertificateManagerServerOptions) {
     const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName(
         "ServerConfiguration"
     )! as UAServerConfiguration;
 
-    const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup");
+    const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName(
+        "DefaultApplicationGroup"
+    ) as UACertificateGroup | null;
     if (defaultApplicationGroup) {
-        const trustList = defaultApplicationGroup.getComponentByName("TrustList");
-        if (trustList) {
-            (trustList as any).$$certificateManager = options.applicationGroup;
-        }
+        bindCertificateGroup(defaultApplicationGroup, options.applicationGroup);
     }
-    const defaultTokenGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultUserTokenGroup");
+    const defaultTokenGroup = serverConfiguration.certificateGroups.getComponentByName(
+        "DefaultUserTokenGroup"
+    ) as UACertificateGroup | null;
     if (defaultTokenGroup) {
-        const trustList = defaultTokenGroup.getComponentByName("TrustList");
-        if (trustList) {
-            (trustList as any).$$certificateManager = options.userTokenGroup;
-        }
+        bindCertificateGroup(defaultTokenGroup, options.userTokenGroup);
     }
 }
 
-export async function promoteCertificateGroup(certificateGroup: UAObject) {
+function setNotifierOfChain(childObject: UAObject | null) {
+    if (!childObject) {
+        return;
+    }
+    const parentObject: UAObject | null = childObject.parent as UAObject | null;
+    if (!parentObject) {
+        return;
+    }
+    const notifierOf = childObject.findReferencesEx("HasNotifier", BrowseDirection.Inverse);
+    if (notifierOf.length === 0) {
+        const notifierOfNode = childObject.addReference({
+            referenceType: "HasNotifier",
+            nodeId: parentObject.nodeId,
+            isForward: false
+        });
+    }
+    parentObject.setEventNotifier(parentObject.eventNotifier | EventNotifierFlags.SubscribeToEvents);
+    if (parentObject.nodeId.namespace === 0 && parentObject.nodeId.value === ObjectIds.Server) {
+        return;
+    }
+    setNotifierOfChain(parentObject);
+}
+
+export async function promoteCertificateGroup(certificateGroup: UACertificateGroup): Promise<void> {
     const trustList = certificateGroup.getChildByName("TrustList") as UATrustList;
     if (trustList) {
-        promoteTrustList(trustList);
+        await promoteTrustList(trustList);
     }
-}
+    if (!certificateGroup.certificateExpired) {
+        const namespace = certificateGroup.addressSpace.getOwnNamespace();
 
+        // certificateGroup.
+        instantiateCertificateExpirationAlarm(namespace, "CertificateExpirationAlarmType", {
+            browseName: coerceQualifiedName("0:CertificateExpired"),
+            componentOf: certificateGroup,
+            conditionSource: null,
+            conditionOf: certificateGroup,
+            inputNode: NodeId.nullNodeId,
+            normalState: NodeId.nullNodeId,
+            optionals: ["ExpirationLimit"],
+            conditionName: "CertificateExpired",                                                      
+            conditionClass: resolveNodeId("CertificateExpirationAlarmType"),
+        });
+    }
+    certificateGroup.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
+    setNotifierOfChain(certificateGroup);
+}
+interface UAServerConfigurationPriv extends UAServerConfiguration { $pushCertificateManager: PushCertificateManagerServerImpl};
 export async function installPushCertificateManagement(
     addressSpace: AddressSpace,
     options: PushCertificateManagerServerOptions
 ): Promise<void> {
+    addressSpace.installAlarmsAndConditionsService();
+
     const serverConfiguration = addressSpace.rootFolder.objects.server.getChildByName(
         "ServerConfiguration"
     )! as UAServerConfiguration;
 
-    const serverConfigurationPriv = serverConfiguration as any;
+    const serverConfigurationPriv = serverConfiguration as UAServerConfigurationPriv;
     if (serverConfigurationPriv.$pushCertificateManager) {
         warningLog("PushCertificateManagement has already been installed");
         return;
@@ -322,8 +433,8 @@ export async function installPushCertificateManagement(
             }
         }
         for (const group of certificateGroups.getComponents()) {
-            group?.setRolePermissions(rolePermissionAdminOnly);
-            group?.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
+            group.setRolePermissions(rolePermissionAdminOnly);
+            group.setAccessRestrictions(AccessRestrictionsFlag.SigningRequired | AccessRestrictionsFlag.EncryptionRequired);
             if (group.nodeClass === NodeClass.Object) {
                 installAccessRestrictionOnGroup(group as UAObject);
             }
@@ -359,8 +470,6 @@ export async function installPushCertificateManagement(
         serverConfiguration.applyChanges!.bindMethod(_applyChanges);
     }
 
-    installCertificateExpirationAlarm(addressSpace);
-
     const cg = serverConfiguration.certificateGroups.getComponents();
 
     const defaultApplicationGroup = serverConfiguration.certificateGroups.getComponentByName("DefaultApplicationGroup")!;
@@ -370,11 +479,18 @@ export async function installPushCertificateManagement(
         arrayType: VariantArrayType.Array,
         value: [resolveNodeId(ObjectTypeIds.RsaSha256ApplicationCertificateType)]
     });
+
+    const certificateGroupType = addressSpace.findObjectType("CertificateGroupType")!;
+
     for (const certificateGroup of cg) {
         if (certificateGroup.nodeClass !== NodeClass.Object) {
             continue;
         }
-        await promoteCertificateGroup(certificateGroup as UAObject);
+        const o = certificateGroup as UAObject;
+        if (!o.typeDefinitionObj.isSupertypeOf(certificateGroupType)) {
+            continue;
+        }
+        await promoteCertificateGroup(certificateGroup as UACertificateGroup);
     }
     await bindCertificateManager(addressSpace, options);
 }

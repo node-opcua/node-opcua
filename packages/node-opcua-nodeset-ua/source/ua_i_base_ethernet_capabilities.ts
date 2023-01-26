@@ -11,7 +11,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIBaseEthernetCapabilities_Base extends UABaseInterface_Base {
-    vlanTagCapable: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    vlanTagCapable: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UAIBaseEthernetCapabilities extends UABaseInterface, UAIBaseEthernetCapabilities_Base {
 }

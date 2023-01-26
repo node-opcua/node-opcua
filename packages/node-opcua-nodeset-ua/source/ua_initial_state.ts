@@ -8,7 +8,6 @@ import { UAState, UAState_Base } from "./ua_state"
  * |typedDefinition |InitialStateType ns=0;i=2309                      |
  * |isAbstract      |false                                             |
  */
-export interface UAInitialState_Base extends UAState_Base {
-}
+export type UAInitialState_Base = UAState_Base;
 export interface UAInitialState extends UAState, UAInitialState_Base {
 }

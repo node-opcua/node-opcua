@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |Frame                                             |
  * | isAbstract|true                                              |
  */
-export interface DTFrame extends DTStructure  {
-}
+export type DTFrame = DTStructure;

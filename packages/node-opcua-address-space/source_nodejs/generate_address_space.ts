@@ -1,11 +1,12 @@
 import * as fs from "fs";
-import { callbackify, promisify } from "util";
+import { callbackify } from "util";
 
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { ErrorCallback } from "node-opcua-status-code";
 import { IAddressSpace } from "node-opcua-address-space-base";
 
 import { generateAddressSpaceRaw } from "..";
+import { NodeSetLoaderOptions } from "../source/interfaces/nodeset_loader_options";
+
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -18,7 +19,7 @@ export async function readNodeSet2XmlFile(xmlFile: string): Promise<string> {
         throw new Error(msg);
     }
     debugLog(" parsing ", xmlFile);
-    const xmlData = await fs.promises.readFile(xmlFile, "ascii");
+    const xmlData = await fs.promises.readFile(xmlFile, "utf-8");
     return xmlData;
 }
 export function generateAddressSpace(
@@ -26,9 +27,31 @@ export function generateAddressSpace(
     xmlFiles: string | string[],
     callback: (err?: Error) => void
 ): void;
-export function generateAddressSpace(addressSpace: IAddressSpace, xmlFiles: string | string[]): Promise<void>;
-export function generateAddressSpace(addressSpace: IAddressSpace, xmlFiles: string | string[], callback?: ErrorCallback): any {
-    callbackify(generateAddressSpaceRaw)(addressSpace, xmlFiles, readNodeSet2XmlFile, callback!);
+export function generateAddressSpace(
+    addressSpace: IAddressSpace,
+    xmlFiles: string | string[],
+    options: NodeSetLoaderOptions | undefined,
+    callback: (err?: Error) => void
+): void;
+export function generateAddressSpace(
+    addressSpace: IAddressSpace,
+    xmlFiles: string | string[],
+    options?: NodeSetLoaderOptions
+): Promise<void>;
+export function generateAddressSpace(
+    ... args: any[]
+): any {
+    const addressSpace = args[0] as IAddressSpace;
+    const xmlFiles = args[1] as string | string[];
+    if (args.length === 4) {
+        const options = args[2] as NodeSetLoaderOptions | undefined;
+        const callback = args[3]  as (err?: Error) => void;
+        callbackify(generateAddressSpaceRaw)(addressSpace, xmlFiles, readNodeSet2XmlFile, options ||{}, callback!);
+    } else {
+        const options = {};
+        const callback = args[2]  as (err?: Error) => void;
+        callbackify(generateAddressSpaceRaw)(addressSpace, xmlFiles, readNodeSet2XmlFile, options, callback!);
+    }
 }
 
 // tslint:disable:no-var-requires

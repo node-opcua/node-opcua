@@ -1,16 +1,23 @@
+/* eslint-disable max-depth */
 import * as chalk from "chalk";
-import * as wrap from "wordwrap";
 import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
-import { EnumDefinition, ReferenceDescription, StructureDefinition, _enumerationDataChangeTrigger } from "node-opcua-types";
+import {
+    EnumDefinition,
+    ReferenceDescription,
+    StructureDefinition,
+    StructureField,
+    Union,
+    _enumerationDataChangeTrigger
+} from "node-opcua-types";
 import { LineFile, lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import assert from "node-opcua-assert";
 import { ModellingRuleType } from "node-opcua-address-space-base";
 import { make_warningLog } from "node-opcua-debug";
 import {
-    convertNodeIdToDataTypeAsync,
+    _convertNodeIdToDataTypeAsync,
     getBrowseName,
     getIsAbstract,
     getDefinition,
@@ -26,15 +33,37 @@ import {
     getValueRank
 } from "./private/utils";
 
-import { Cache, constructCache, Import, makeTypeNameNew, referenceExtensionObject, RequestedSubSymbol } from "./private/cache";
+import {
+    Cache,
+    constructCache,
+    Import,
+    makeTypeNameNew,
+    referenceExtensionObject,
+    referenceEnumeration,
+    RequestedSubSymbol
+} from "./private/cache";
 import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
+import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
+import { _exportDataTypeToTypescript } from "./_dataType";
+import { getCorrepondingJavascriptType2 } from "./private/get_corresponding_data_type";
 const warningLog = make_warningLog("typescript");
 const doDebug = false;
-const wrapText = wrap(0, 50);
-const f2 = (str: string) => str.padEnd(50, "-");
-const f1 = (str: string) => str.padEnd(50, " ");
 const baseExtension = "_Base";
+
+const m0 = !doDebug ? "" : `/* 0 */`;
+const m1 = !doDebug ? "" : `/* 1 */`;
+const m2 = !doDebug ? "" : `/* 2 */`;
+const m3 = !doDebug ? "" : `/* 3 */`;
+const m4 = !doDebug ? "" : `/* 4 */`;
+const m5 = !doDebug ? "" : `/* 5 */`;
+const m6 = !doDebug ? "" : `/* 6 */`;
+const m7 = !doDebug ? "" : `/* 7 */`;
+const m8 = !doDebug ? "" : `/* 8 */`;
+const m9 = !doDebug ? "" : `/* 9 */`;
+const mA = !doDebug ? "" : `/* a */`;
+const mB = !doDebug ? "" : `/* b */`;
+const mC = !doDebug ? "" : `/* c */`;
 
 export async function convertDataTypeToTypescript(session: IBasicSession, dataTypeId: NodeId): Promise<void> {
     const definition = await getDefinition(session, dataTypeId);
@@ -48,129 +77,6 @@ export async function convertDataTypeToTypescript(session: IBasicSession, dataTy
             /** */
         }
         f.write(`}`);
-    }
-}
-
-// to avoid clashes
-function toJavascritPropertyName(childName: string, { ignoreConflictingName }: { ignoreConflictingName: boolean }): string {
-    childName = lowerFirstLetter(childName);
-
-    if (ignoreConflictingName) {
-        if (childName === "namespaceUri") {
-            childName = "$namespaceUri";
-        }
-        if (childName === "rolePermissions") {
-            childName = "$rolePermissions";
-        }
-        if (childName === "displayName") {
-            childName = "$displayName";
-        }
-        if (childName === "eventNotifier") {
-            childName = "$eventNotifier";
-        }
-        if (childName === "description") {
-            childName = "$description";
-        }
-    }
-    return childName.replace(/</g, "$").replace(/>/g, "$").replace(/ |\./g, "_").replace(/#/g, "_");
-}
-
-function quotifyIfNecessary(s: string): string {
-    if (s.match(/(^[^a-zA-Z])|([^a-zA-Z_0-9])/)) {
-        return `"${s}"`;
-    }
-    if (s === "nodeClass") {
-        return `["$nodeClass"]`;
-    }
-    return s;
-}
-
-async function getCorrepondingJavascriptType2(
-    session: IBasicSession,
-    nodeId: NodeId,
-    dataTypeNodeId: NodeId,
-    cache: Cache,
-    importCollect?: (t: Import) => void
-): Promise<{ dataType: DataType; jtype: string }> {
-    const q = await getCorrepondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
-    const valueRank = await getValueRank(session, nodeId);
-    return { dataType: q.dataType, jtype: q.jtype + (valueRank >= 1 ? "[]" : "") };
-}
-
-// eslint-disable-next-line complexity
-async function getCorrepondingJavascriptType(
-    session: IBasicSession,
-    dataTypeNodeId: NodeId,
-    cache: Cache,
-    importCollect?: (t: Import) => void
-): Promise<{ dataType: DataType; jtype: string }> {
-    const dataType = await convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
-
-    const referenceBasicType = (name: string): string => {
-        const t = { name, namespace: -1, module: "BasicType" };
-        importCollect && importCollect(t);
-        cache.ensureImported(t);
-        return t.name;
-    };
-    if (dataType === DataType.ExtensionObject) {
-        const jtypeImport = await referenceExtensionObject(session, dataTypeNodeId);
-        const jtype = jtypeImport.name;
-        importCollect && importCollect(jtypeImport);
-        return { dataType, jtype: jtype };
-    }
-    switch (dataType) {
-        case DataType.Null:
-            return { dataType, jtype: "undefined" };
-        case DataType.Boolean:
-            return { dataType, jtype: "boolean" };
-        case DataType.Byte:
-            return { dataType, jtype: referenceBasicType("Byte") };
-        case DataType.ByteString:
-            return { dataType, jtype: "Buffer" };
-        case DataType.DataValue:
-            return { dataType, jtype: referenceBasicType("DataValue") };
-        case DataType.DateTime:
-            return { dataType, jtype: "Date" };
-        case DataType.DiagnosticInfo:
-            return { dataType, jtype: referenceBasicType("DiagnosticInfo") };
-        case DataType.Double:
-            return { dataType, jtype: "number" };
-        case DataType.Float:
-            return { dataType, jtype: "number" };
-        case DataType.Guid:
-            return { dataType, jtype: referenceBasicType("Guid") };
-        case DataType.Int16:
-            return { dataType, jtype: referenceBasicType("Int16") };
-        case DataType.Int32:
-            return { dataType, jtype: referenceBasicType("Int32") };
-        case DataType.UInt16:
-            return { dataType, jtype: referenceBasicType("UInt16") };
-        case DataType.UInt32:
-            return { dataType, jtype: referenceBasicType("UInt32") };
-        case DataType.UInt64:
-            return { dataType, jtype: referenceBasicType("UInt64") };
-        case DataType.Int64:
-            return { dataType, jtype: referenceBasicType("Int64") };
-        case DataType.LocalizedText:
-            return { dataType, jtype: referenceBasicType("LocalizedText") };
-        case DataType.NodeId:
-            return { dataType, jtype: referenceBasicType("NodeId") };
-        case DataType.ExpandedNodeId:
-            return { dataType, jtype: referenceBasicType("ExpandedNodeId") };
-        case DataType.QualifiedName:
-            return { dataType, jtype: referenceBasicType("QualifiedName") };
-        case DataType.SByte:
-            return { dataType, jtype: referenceBasicType("SByte") };
-        case DataType.StatusCode:
-            return { dataType, jtype: referenceBasicType("StatusCode") };
-        case DataType.String:
-            return { dataType, jtype: referenceBasicType("UAString") };
-        case DataType.Variant:
-            return { dataType, jtype: referenceBasicType("Variant") };
-        case DataType.XmlElement:
-            return { dataType, jtype: referenceBasicType("UAString") };
-        default:
-            throw new Error("Unsupported " + dataType + " " + DataType[dataType]);
     }
 }
 
@@ -336,15 +242,19 @@ interface ClassMember extends ClassMemberBasic {
     childBase?: Import | null;
 }
 
-interface Classified {
+interface ClassifiedReferenceDescriptions {
     Mandatory: ReferenceDescription[];
     Optional: ReferenceDescription[];
     MandatoryPlaceholder: ReferenceDescription[];
     OptionalPlaceholder: ReferenceDescription[];
     ExposesItsArray: ReferenceDescription[];
 }
-async function classify(session: IBasicSession, refs: ReferenceDescription[]): Promise<Classified> {
-    const r: Classified = {
+async function classify(
+    session: IBasicSession,
+    refs: ReferenceDescription[],
+    classDef: ClassDefinition
+): Promise<ClassifiedReferenceDescriptions> {
+    const r: ClassifiedReferenceDescriptions = {
         Mandatory: [],
         Optional: [],
         MandatoryPlaceholder: [],
@@ -353,8 +263,24 @@ async function classify(session: IBasicSession, refs: ReferenceDescription[]): P
     };
 
     for (const mm of refs) {
-        const modellingRule = await getModellingRule(session, mm.nodeId);
+        let modellingRule = await getModellingRule(session, mm.nodeId);
+
         if (modellingRule) {
+            // if Optional, check that base class member is also Optional or force to Mandatory
+            if (modellingRule === "Optional" && classDef.baseClassDef) {
+                const sameMember = classDef.baseClassDef.members.find((m) => m.browseName.name === mm.browseName.name);
+                if (sameMember) {
+                    if (!sameMember.isOptional) {
+                        console.log(
+                            chalk.cyan("Warning: ") +
+                                chalk.yellow(classDef.browseName.toString()) +
+                                " ModellingRule is Optional but base class member is Mandatory"
+                        );
+                        modellingRule = "Mandatory";
+                    }
+                }
+            }
+
             r[modellingRule] = r[modellingRule] || [];
             r[modellingRule].push(mm);
         }
@@ -362,7 +288,11 @@ async function classify(session: IBasicSession, refs: ReferenceDescription[]): P
     return r;
 }
 
-async function extractAllMembers(session: IBasicSession, classDef: ClassDefinition, cache: Cache) {
+async function extractAllMembers(
+    session: IBasicSession,
+    classDef: ClassDefinition,
+    cache: Cache
+): Promise<ClassifiedReferenceDescriptions> {
     const m = [...classDef.children];
     let s = classDef;
     while (s.baseClassDef) {
@@ -377,7 +307,7 @@ async function extractAllMembers(session: IBasicSession, classDef: ClassDefiniti
         }
     }
     // now separate mandatory and optionals
-    const members = await classify(session, m);
+    const members = await classify(session, m, classDef);
     return members;
 }
 export async function findClassMember(
@@ -386,8 +316,8 @@ export async function findClassMember(
     baseParentDef: ClassDefinition,
     cache: Cache
 ): Promise<ClassMember | null> {
-    const str = browseName.toString();
-    const r = baseParentDef.children.find((a) => a.browseName.toString() === str);
+    const childBrowseName = browseName.toString();
+    const r = baseParentDef.children.find((a) => a.browseName.toString() === childBrowseName);
     if (r) {
         const d = await extractClassMemberDef(session, r!.nodeId, baseParentDef, cache);
         return d;
@@ -399,7 +329,8 @@ export async function findClassMember(
     }
     return await findClassMember(session, browseName, baseBaseParentDef, cache);
 }
-function hasNewMaterial(referenceMembers: ReferenceDescription[], instanceMembers: ReferenceDescription[]) {
+
+function hasNewMaterial(referenceMembers: ReferenceDescription[], instanceMembers: ReferenceDescription[]): boolean {
     const ref = referenceMembers.map((x) => x.browseName.toString()).sort();
     const instance = instanceMembers.map((x) => x.browseName.toString()).sort();
     for (const n of instance) {
@@ -413,12 +344,15 @@ function hasNewMaterial(referenceMembers: ReferenceDescription[], instanceMember
 // we should expose an inner definition if
 //  - at least one mandatory in instnace doesn't exist in main.Mandatory
 //  - at least one optional in instnace doesn't exist in main.Mandatory
-export function checkIfShouldExposeInnerDefinition(main: Classified, instance: Classified): boolean {
+export function checkIfShouldExposeInnerDefinition(
+    main: ClassifiedReferenceDescriptions,
+    instance: ClassifiedReferenceDescriptions
+): boolean {
     const hasNewStuff = hasNewMaterial(main.Mandatory, instance.Mandatory) || hasNewMaterial(main.Optional, instance.Optional);
     return hasNewStuff;
 }
 
-function dump1(a: Classified) {
+function dump1(a: ClassifiedReferenceDescriptions): void {
     console.log(
         "Mandatory = ",
         a.Mandatory.map((x) => x.browseName.toString())
@@ -433,7 +367,23 @@ function dump1(a: Classified) {
     );
 }
 
-async function _extractLocalMembers(session: IBasicSession, classMember: ClassMember, cache: Cache): Promise<ClassMemberBasic[]> {
+function getSameInBaseClass(parent: ClassDefinitionB | null, browseName: QualifiedName): ClassMember | null {
+    if (!parent || !parent.baseClassDef) return null;
+    const originalClassMember = parent.baseClassDef.members.find((m) => m.browseName.toString() === browseName.toString());
+    return originalClassMember || null;
+}
+function sameInBaseClassIsMandatory(parent: ClassDefinitionB | null, browseName: QualifiedName): boolean {
+    const originalClassMember = getSameInBaseClass(parent, browseName);
+    if (!originalClassMember) return false;
+    return !originalClassMember.isOptional;
+}
+
+async function _extractLocalMembers(
+    session: IBasicSession,
+    parent: ClassDefinition | null,
+    classMember: ClassMember,
+    cache: Cache
+): Promise<ClassMemberBasic[]> {
     const children2: ClassMemberBasic[] = [];
     for (const child of classMember.children) {
         const nodeId = child.nodeId;
@@ -442,7 +392,8 @@ async function _extractLocalMembers(session: IBasicSession, classMember: ClassMe
 
         const description = await getDescription(session, nodeId);
         const modellingRule = await getModellingRule(session, nodeId);
-        const isOptional = modellingRule === "Optional";
+
+        const isOptional = sameInBaseClassIsMandatory(parent, browseName) ? false : modellingRule === "Optional";
 
         const typeDefinition = await getTypeDefOrBaseType(session, nodeId);
 
@@ -500,13 +451,14 @@ async function extractVariableExtra(session: IBasicSession, nodeId: NodeId, cach
         importCollector({ name: "DataType", namespace: -1, module: "BasicType" });
 
         const t = isUnspecifiedDataType(classMember.classDef?.dataType);
+
         const suffix =
             jtype === "undefined" || isUnspecifiedDataType(dataType)
                 ? `<any, any>`
-                : `<${jtype}${t ? `, /*c*/DataType.${DataType[dataType]}` : ""}>`;
+                : `<${jtype}${t ? `, ${m0}DataType.${DataType[dataType]}` : ""}>`;
 
-        // const suffix2 = `<T${t ? `, /*a*/DT extends DataType` : ""}>`;
-        const suffix3 = `<T${t ? `, /*b*/DT` : ""}>`;
+        // const suffix2 = `<T${t ? `, /DT extends DataType` : ""}>`;
+        const suffix3 = `<T${t ? `, ${m1}DT` : ""}>`;
 
         const typeDef = await getTypeDefOrBaseType(session, nodeId);
         const typeDefCD = await extractClassDefinition(session, typeDef.nodeId!, cache);
@@ -527,7 +479,7 @@ async function extractVariableExtra(session: IBasicSession, nodeId: NodeId, cach
             if (!isUnspecifiedDataType(typeDefCD.dataType)) {
                 suffixInstantiate = `<${jtype}>`;
             } else {
-                suffixInstantiate = `<${jtype}, /*z*/DataType.${DataType[dataType]}>`;
+                suffixInstantiate = `<${jtype}, DataType.${DataType[dataType]}>`;
             }
         }
 
@@ -541,6 +493,7 @@ interface ClassDefinitionB {
         nodeId: NodeId;
     };
     interfaceName: Import;
+    baseClassDef?: ClassDefinition | null;
 }
 // eslint-disable-next-line max-statements
 export async function extractClassMemberDef(
@@ -551,6 +504,7 @@ export async function extractClassMemberDef(
 ): Promise<ClassMember> {
     const nodeClass = await getNodeClass(session, nodeId);
     const browseName = await getBrowseName(session, nodeId);
+
     const name = toJavascritPropertyName(browseName.name!, { ignoreConflictingName: true });
 
     if (nodeClass !== NodeClass.Method && nodeClass !== NodeClass.Object && nodeClass !== NodeClass.Variable) {
@@ -561,7 +515,7 @@ export async function extractClassMemberDef(
     const children = await getChildrenOrFolderElements(session, nodeId);
 
     const modellingRule = await getModellingRule(session, nodeId);
-    const isOptional = modellingRule === "Optional";
+    const isOptional = sameInBaseClassIsMandatory(parentDef, browseName) ? false : modellingRule === "Optional";
 
     const typeDefinition = await getTypeDefOrBaseType(session, nodeId);
 
@@ -586,7 +540,7 @@ export async function extractClassMemberDef(
         // let's extract the member that are theorically defined in the member
         const membersReference = await extractAllMembers(session, classDef, cache);
         // find member exposed by this member
-        const membersInstance: Classified = await classify(session, children);
+        const membersInstance: ClassifiedReferenceDescriptions = await classify(session, children, classDef);
 
         // if (name==="powerup") {
         //     dump1(membersReference);
@@ -655,7 +609,9 @@ export async function extractClassMemberDef(
         childBase,
         chevrons: null
     };
-    classMember.children2 = await _extractLocalMembers(session, classMember, cache);
+
+    classMember.children2 = await _extractLocalMembers(session, classDef, classMember, cache);
+
     if (nodeClass === NodeClass.Variable) {
         const extra = await extractVariableExtra(session, nodeId, cache, classMember);
         classMember = {
@@ -667,7 +623,7 @@ export async function extractClassMemberDef(
     return classMember;
 }
 
-async function preDumpChildren(session: IBasicSession, padding: string, classDef: ClassDefinition, f: LineFile, cache: Cache) {
+async function preDumpChildren(padding: string, classDef: ClassDefinition, f: LineFile, cache: Cache) {
     f = f || new LineFile();
 
     for (const memberDef of classDef.members) {
@@ -683,19 +639,30 @@ async function preDumpChildren(session: IBasicSession, padding: string, classDef
 
         //f.write(`export interface ${innerClass.name}${suffix2} extends ${childBase.name}${suffix3} { // ${NodeClass[nodeClass]}`);
         f.write(`export interface ${innerClass.name}${suffix2} extends ${baseStuff} { // ${NodeClass[nodeClass]}`);
-        await dumpChildren(session, padding + "  ", memberDef.children2, f, cache);
+        await dumpChildren(padding + "  ", memberDef.children2, f, cache);
         f.write("}");
     }
 }
 
-function dumpChildren(session: IBasicSession, padding: string, children: ClassMemberBasic[], f: LineFile, cache: Cache): void {
+const isPlaceHolder = (def: ClassMemberBasic) => {
+    const { modellingRule } = def;
+    return modellingRule === "MandatoryPlaceholder" || modellingRule === "OptionalPlaceholder";
+};
+
+function countExposedChildren(children: ClassMemberBasic[]) {
+    return children.reduce((p, def) => p + (isPlaceHolder(def) ? 0 : 1), 0);
+}
+function dumpChildren(padding: string, children: ClassMemberBasic[], f: LineFile, cache: Cache): void {
     f = f || new LineFile();
 
     for (const def of children) {
         const { suffixInstantiate, name, childType, modellingRule, isOptional, description } = def;
         def.typeToReference.forEach((t) => cache.ensureImported(t));
 
-        if (modellingRule === "MandatoryPlaceholder" || modellingRule === "OptionalPlaceholder") continue;
+        if (isPlaceHolder(def)) {
+            f.write("   // PlaceHolder for ", name);
+            continue;
+        }
         cache.ensureImported(childType);
         const adjustedName = toJavascritPropertyName(name, { ignoreConflictingName: true });
         if (description.text) {
@@ -782,98 +749,8 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
     return f.toString();
 }
 
-function toComment(prefix: string, description: string) {
-    const d = wrapText(description);
-    return d
-        .split("\n")
-        .map((x) => prefix + x)
-        .join("\n");
-}
+
 export type Type = "enum" | "basic" | "structure" | "ua";
-// eslint-disable-next-line max-statements
-export async function _exportDataTypeToTypescript(
-    session: IBasicSession,
-    nodeId: NodeId,
-    cache: Cache,
-    f?: LineFile
-): Promise<{ type: Type; content: string; typeName: string }> {
-    f = f || new LineFile();
-
-    const importCollector = (i: Import) => {
-        cache.ensureImported(i);
-    };
-    const nodeClass = NodeClass.DataType;
-    const description = await getDescription(session, nodeId);
-    const definition = await getDefinition(session, nodeId);
-    const browseName = await getBrowseName(session, nodeId);
-    const isAbstract = await getIsAbstract(session, nodeId);
-
-    const interfaceImport: Import = makeTypeNameNew(nodeClass, definition, browseName);
-    const interfaceName = interfaceImport.name;
-
-    const superType = await getSubtypeNodeId(session, nodeId);
-    const baseInterfaceImport: Import = makeTypeNameNew(nodeClass, definition, superType.browseName);
-
-    cache.ensureImported(baseInterfaceImport);
-
-    const baseInterfaceName = baseInterfaceImport.name;
-    //  f.write(superType.toString());
-    f.write(`/**`);
-    if (description.text) {
-        f.write(toComment(" * ", description.text || ""));
-        f.write(` *`);
-    }
-    f.write(` * |           |${f1(" ")}|`);
-    f.write(` * |-----------|${f2("-")}|`);
-    f.write(` * | namespace |${f1(cache.namespace[nodeId.namespace].namespaceUri)}|`);
-    f.write(` * | nodeClass |${f1(NodeClass[nodeClass])}|`);
-    f.write(` * | name      |${f1(browseName.toString())}|`);
-    f.write(` * | isAbstract|${f1(isAbstract.toString())}|`);
-    f.write(` */`);
-
-    let type: "basic" | "structure" | "enum" | "ua" = "basic";
-    if (definition instanceof EnumDefinition) {
-        type = "enum";
-        f.write(`export enum ${interfaceName}  {`);
-        for (const field of definition.fields!) {
-            if (field.description.text) {
-                f.write(`  /**`);
-                f.write(toComment("   * ", field.description.text || ""));
-                f.write(`   */`);
-            }
-            f.write(`  ${quotifyIfNecessary(field.name!)} = ${field.value[1]},`);
-        }
-        f.write(`}`);
-    } else if (definition instanceof StructureDefinition) {
-        type = "structure";
-        if (interfaceName === "DTStructure") {
-            f.write(`export interface ${interfaceName} {`);
-        } else {
-            f.write(`export interface ${interfaceName} extends ${baseInterfaceName}  {`);
-        }
-        for (const field of definition.fields!) {
-            const fieldName = toJavascritPropertyName(field.name!, { ignoreConflictingName: false });
-            // special case ! fieldName=
-            if (field.description.text) {
-                f.write(`/** ${field.description.text}*/`);
-            }
-            let ar = "";
-            if (field.valueRank >= 1) {
-                ar = "[]";
-            }
-            const { dataType, jtype } = await getCorrepondingJavascriptType(session, field.dataType, cache, importCollector);
-            f.write(`  ${quotifyIfNecessary(fieldName)}: ${jtype}${ar}; // ${DataType[dataType]} ${field.dataType.toString()}`);
-        }
-        f.write(`}`);
-    } else {
-        type = "basic";
-        f.write(`// NO DEFINITION`);
-        f.write(`export interface ${interfaceName} extends ${baseInterfaceName}  {`);
-        f.write(`}`);
-        // throw new Error("Invalid " + definition?.constructor.name);
-    }
-    return { type, content: f.toString(), typeName: interfaceName };
-}
 
 function calculateChevrons(classDef: ClassDefinition, classDefDerived?: { dataType: DataType }) {
     const { nodeClass, dataType, dataTypeName } = classDef;
@@ -885,13 +762,13 @@ function calculateChevrons(classDef: ClassDefinition, classDefDerived?: { dataTy
     }
 
     if (!isUnspecifiedDataType(dataType)) {
-        chevronsDef = `<T extends ${dataTypeName}/*j*/>`;
-        chevronsUse = "<T/*k*/>";
+        chevronsDef = `<T extends ${dataTypeName}${m3}>`;
+        chevronsUse = `<T${m4}>`;
         if (classDefDerived) {
             if (isUnspecifiedDataType(classDefDerived.dataType)) {
-                chevronsExtend = `<T, /*i*/DataType.${DataType[dataType]}>`;
+                chevronsExtend = `<T, ${m5}DataType.${DataType[dataType]}>`;
             } else {
-                chevronsExtend = `<T/*h*/>`;
+                chevronsExtend = `<T${m6}>`;
             }
         }
     } else {
@@ -899,11 +776,11 @@ function calculateChevrons(classDef: ClassDefinition, classDefDerived?: { dataTy
         chevronsDef = `<T, DT extends DataType>`;
         if (classDefDerived) {
             if (isUnspecifiedDataType(classDefDerived.dataType)) {
-                chevronsUse = "<T, /*m*/DT>";
-                chevronsExtend = `<T/*g*/, DT>`;
+                chevronsUse = `<T, ${m7}DT>`;
+                chevronsExtend = `<T${m8}, DT>`;
             } else {
-                chevronsUse = `<T, /*n*/DataType.${DataType[classDefDerived.dataType]}>`;
-                chevronsExtend = `<T, /*e*/DataType.${DataType[classDefDerived.dataType]}>`;
+                chevronsUse = `<T, ${m9}DataType.${DataType[classDefDerived.dataType]}>`;
+                chevronsExtend = `<T, ${mA}DataType.${DataType[classDefDerived.dataType]}>`;
             }
         }
     }
@@ -989,7 +866,7 @@ export async function _convertTypeToTypescript(
         members
     } = classDef;
 
-    await preDumpChildren(session, "    ", classDef, f, cache);
+    await preDumpChildren("    ", classDef, f, cache);
 
     //  f.write(superType.toString());
     f.write(`/**`);
@@ -1017,46 +894,60 @@ export async function _convertTypeToTypescript(
 
     const ch = calculateChevrons(classDef);
 
-    if (nodeClass === NodeClass.VariableType) {
-        if (classDef.dataTypeImport) {
-            console.log(chalk.red(" ----------------> ", classDef.browseName));
-            classDef.dataTypeImport.forEach((a) => {
-                console.log(chalk.red(" ------------------------> ", a.module, a.name, a.namespace));
-            });
-            classDef.dataTypeImport.forEach(cache.ensureImported.bind(cache));
-        }
-
-        cache.referenceBasicType("DataType");
-        const chevrons = calculateChevrons(classDef);
-        const chevronsBase = calculateChevrons(classDef.baseClassDef!, classDef);
-        //  Shall we  cache.ensureImported({ ...baseInterfaceName!, module: dataTypeName, name: dataTypeName });
-        const classBaseName = `${interfaceName.name}${baseExtension}${chevrons.chevronsDef}`;
-
-        if (baseInterfaceName?.name === "UAVariableT") {
-            f.write(`export interface ${classBaseName}  {`);
+    {
+        if (nodeClass === NodeClass.VariableType) {
+            if (classDef.dataTypeImport) {
+                if (doDebug) {
+                    console.log(chalk.red(" ----------------> ", classDef.browseName));
+                    classDef.dataTypeImport.forEach((a) => {
+                        console.log(chalk.red(" ------------------------> ", a.module, a.name, a.namespace));
+                    });
+                }
+                classDef.dataTypeImport.forEach(cache.ensureImported.bind(cache));
+            }
+            cache.referenceBasicType("DataType");
+            const chevrons = calculateChevrons(classDef);
+            const chevronsBase = calculateChevrons(classDef.baseClassDef!, classDef);
+            //  Shall we  cache.ensureImported({ ...baseInterfaceName!, module: dataTypeName, name: dataTypeName });
+            const classBaseName = `${interfaceName.name}${baseExtension}${chevrons.chevronsDef}`;
+            if (countExposedChildren(members) === 0 && baseInterfaceName?.name !== "UAVariableT") {
+                //
+                const baseName = `${baseInterfaceName?.name}${baseExtension}${chevronsBase.chevronsExtend}`;
+                f.write(`export type ${classBaseName} = ${baseName};`);
+            }  else {
+                if (baseInterfaceName?.name === "UAVariableT") {
+                    f.write(`export interface ${classBaseName}  {`);
+                } else {
+                    const baseName = `${baseInterfaceName?.name}${baseExtension}${chevronsBase.chevronsExtend}`;
+                    f.write(`export interface ${classBaseName}  extends ${baseName} {`);
+                }
+                await dumpChildren("    ", members, f, cache);
+                f.write(`}`);
+            }
         } else {
-            const baseName = `${baseInterfaceName?.name}${baseExtension}${chevronsBase.chevronsExtend}`;
-            f.write(`export interface ${classBaseName}  extends ${baseName} {`);
-        }
-    } else {
-        const classBaseName = `${interfaceName.name}${baseExtension}`;
-        if (baseInterfaceName?.name === "UAObject") {
-            f.write(`export interface ${classBaseName} {`);
-        } else {
-            const baseName = `${baseInterfaceName?.name}${baseExtension}`;
-            f.write(`export interface ${classBaseName} extends ${baseName} {`);
+            const classBaseName = `${interfaceName.name}${baseExtension}`;
+            if (countExposedChildren(members) === 0 && baseInterfaceName?.name !== "UAObject") {
+                const baseName = `${baseInterfaceName?.name}${baseExtension}`;
+                f.write(`export type ${classBaseName} = ${baseName};`);
+            } else {
+                if (baseInterfaceName?.name === "UAObject") {
+                    f.write(`export interface ${classBaseName} {`);
+                } else {
+                    const baseName = `${baseInterfaceName?.name}${baseExtension}`;
+                    f.write(`export interface ${classBaseName} extends ${baseName} {`);
+                }
+                await dumpChildren("    ", members, f, cache);
+                f.write(`}`);
+            }
         }
     }
-    await dumpChildren(session, "    ", members, f, cache);
-    f.write(`}`);
-
     const baseStuff = getBaseClassWithOmit(classDef);
 
     if (nodeClass === NodeClass.VariableType) {
         cache.referenceBasicType("DataType");
         // if dataType is a extension object we can simpligy by forcing DT
         const className = `${interfaceName.name}${ch.chevronsDef}`;
-        const c = isUnspecifiedDataType(dataType) ? "<T, DT /*A*/>" : "<T /*B*/>";
+        const c = isUnspecifiedDataType(dataType) ? `<T, DT${mB}>` : `<T${mC}>`;
         const classBaseName = `${interfaceName.name}${baseExtension}${c}`;
         f.write(`export interface ${className} extends ${baseStuff}, ${classBaseName} {`);
     } else {
@@ -1065,6 +956,7 @@ export async function _convertTypeToTypescript(
         f.write(`export interface ${className} extends ${baseStuff}, ${classBaseName} {`);
     }
     f.write(`}`);
+
     return { type: "ua", content: f.toString(), typeName: interfaceName.name };
 }
 

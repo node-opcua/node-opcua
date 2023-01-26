@@ -3,7 +3,7 @@
 
 import * as path from "path";
 import * as fs from "fs";
-import "should";
+import * as should from "should";
 import { make_warningLog } from "node-opcua-debug";
 
 import {
@@ -26,8 +26,7 @@ import {
     NodeId,
     UserManagerOptions
 } from "node-opcua";
-import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
-import should = require("should");
+import { readCertificate, readPrivateKey, readPrivateKeyPEM, toPem } from "node-opcua-crypto";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const warningLog = make_warningLog("TEST");
 
@@ -183,7 +182,7 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         let _err: Error | undefined;
 
-        const privateKeyBefore = readPrivateKey(server.privateKeyFile).toString("hex");
+        const privateKeyBefore = toPem(readPrivateKey(server.privateKeyFile),"RSA PRIVATE KEY");
         const privateKeyAfter = await (async () => {
             try {
                 await server.shutdown();
@@ -202,7 +201,7 @@ describe("test reconnection when server stops and change it privateKey and certi
                 server = await startServer();
                 warningLog("server restarted");
 
-                const privateKeyAfter = readPrivateKey(server.privateKeyFile).toString("hex");
+                const privateKeyAfter = toPem(readPrivateKey(server.privateKeyFile),"RSA PRIVATE KEY");
 
                 warningLog("waiting for client session to be back and running");
                 await waitForReconnection(session);

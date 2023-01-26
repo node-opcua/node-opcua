@@ -15,14 +15,15 @@ import { UAPubSubDiagnosticsWriterGroup } from "./ua_pub_sub_diagnostics_writer_
  * |isAbstract      |false                                             |
  */
 export interface UAWriterGroup_Base extends UAPubSubGroup_Base {
-    writerGroupId: UAProperty<UInt16, /*z*/DataType.UInt16>;
-    publishingInterval: UAProperty<number, /*z*/DataType.Double>;
-    keepAliveTime: UAProperty<number, /*z*/DataType.Double>;
-    priority: UAProperty<Byte, /*z*/DataType.Byte>;
-    localeIds: UAProperty<UAString[], /*z*/DataType.String>;
-    headerLayoutUri: UAProperty<UAString, /*z*/DataType.String>;
+    writerGroupId: UAProperty<UInt16, DataType.UInt16>;
+    publishingInterval: UAProperty<number, DataType.Double>;
+    keepAliveTime: UAProperty<number, DataType.Double>;
+    priority: UAProperty<Byte, DataType.Byte>;
+    localeIds: UAProperty<UAString[], DataType.String>;
+    headerLayoutUri: UAProperty<UAString, DataType.String>;
     transportSettings?: UAWriterGroupTransport;
     messageSettings?: UAWriterGroupMessage;
+   // PlaceHolder for $DataSetWriterName$
     diagnostics?: UAPubSubDiagnosticsWriterGroup;
     addDataSetWriter?: UAMethod;
     removeDataSetWriter?: UAMethod;

@@ -1,5 +1,7 @@
-import { assert } from "console";
+import { make_warningLog } from "node-opcua-debug";
 import { CallbackT } from "node-opcua-status-code";
+
+const warningLog = make_warningLog(__filename);
 
 export type StraightFunc<T, This> = (this: This) => T;
 export type PromiseFunc<T, This> = (this: This) => Promise<T>;
@@ -31,7 +33,7 @@ export function convertToCallbackFunction<T, This>(func: MultiformFunc<T, This>)
             try {
                 (func as CallbackFunc<T, This>).call(this, callback);
             } catch (err) {
-                console.log("internal error", (err as Error).message);
+                warningLog("internal error", (err as Error).message);
                 callback(err as Error);
             }
         };
@@ -68,7 +70,7 @@ export function convertToCallbackFunction1<T, P, This>(func: MultiformFunc1<T, P
             try {
                 (func as CallbackFunc1<T, P, This>).call(this, param, callback);
             } catch (err) {
-                console.log("internal error", (err as Error).message);
+                warningLog("internal error", (err as Error).message);
                 callback(err as Error);
             }
         };

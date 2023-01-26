@@ -18,6 +18,8 @@ const crypto_utils = require("node-opcua-crypto");
  */
 async function start_simple_server(options) {
     options = options || {};
+    
+    options.silent = false;
 
     const serverScript = options.server_sourcefile || path.join(__dirname, "./bin/simple_server.js");
 
@@ -51,6 +53,8 @@ async function start_simple_server(options) {
     return await new Promise((resolve, reject) => {
         function detect_early_termination(code, signal) {
             console.log("child process terminated due to receipt of signal " + signal + " code = " + code);
+            console.log("serverScript: ",serverScript);
+            console.log(" -p ", port);
             reject(new Error("Process has terminated unexpectedly with code=" + code + " signal=" + signal));
         }
 

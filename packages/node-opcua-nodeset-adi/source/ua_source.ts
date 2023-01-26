@@ -8,7 +8,6 @@ import { UAAccessory, UAAccessory_Base } from "./ua_accessory"
  * |typedDefinition |2:SourceType ns=2;i=9368                          |
  * |isAbstract      |false                                             |
  */
-export interface UASource_Base extends UAAccessory_Base {
-}
+export type UASource_Base = UAAccessory_Base;
 export interface UASource extends UAAccessory, UASource_Base {
 }

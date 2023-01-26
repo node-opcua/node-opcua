@@ -114,11 +114,11 @@ export class StatusCodes {
         value: 0x800e0000,
         description: "The server has stopped and cannot process any requests."
     });
-    /** There was nothing to do because the client passed a list of operations with no elements. */
+    /** No processing could be done because there was nothing to do. */
     static BadNothingToDo: ConstantStatusCode = new ConstantStatusCode({
         name: "BadNothingToDo",
         value: 0x800f0000,
-        description: "There was nothing to do because the client passed a list of operations with no elements."
+        description: "No processing could be done because there was nothing to do."
     });
     /** The request could not be processed because it specified too many operations. */
     static BadTooManyOperations: ConstantStatusCode = new ConstantStatusCode({
@@ -1253,11 +1253,11 @@ export class StatusCodes {
         value: 0xa50000,
         description: "No data exists for the requested time range or event filter."
     });
-    /** The data or event field was successfully replaced in the historical database. */
+    /** More data is available in the time range beyond the number of values requested. */
     static GoodMoreData: ConstantStatusCode = new ConstantStatusCode({
         name: "GoodMoreData",
         value: 0xa60000,
-        description: "The data or event field was successfully replaced in the historical database."
+        description: "More data is available in the time range beyond the number of values requested."
     });
     /** The requested number of Aggregates does not match the requested number of NodeIds. */
     static BadAggregateListMismatch: ConstantStatusCode = new ConstantStatusCode({
@@ -1301,6 +1301,12 @@ export class StatusCodes {
         value: 0x81130000,
         description: "The request has not been processed by the server yet."
     });
+    /** The operation is not allowed because a transaction is in progress. */
+    static BadTransactionPending: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadTransactionPending",
+        value: 0x80e80000,
+        description: "The operation is not allowed because a transaction is in progress."
+    });
     /** The device identity needs a ticket before it can be accepted. */
     static BadTicketRequired: ConstantStatusCode = new ConstantStatusCode({
         name: "BadTicketRequired",
@@ -1312,6 +1318,12 @@ export class StatusCodes {
         name: "BadTicketInvalid",
         value: 0x81200000,
         description: "The device identity needs a ticket before it can be accepted."
+    });
+    /** The requested operation is not allowed, because the Node is locked by a different application. */
+    static BadLocked: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadLocked",
+        value: 0x80e90000,
+        description: "The requested operation is not allowed, because the Node is locked by a different application."
     });
     /** The value does not come from the real source and has been edited by the server. */
     static GoodEdited: ConstantStatusCode = new ConstantStatusCode({
@@ -1521,6 +1533,81 @@ export class StatusCodes {
         name: "BadMaxConnectionsReached",
         value: 0x80b70000,
         description: "The operation could not be finished because all available connections are in use."
+    });
+    /** The value may not be accurate because the transducer is in manual mode. */
+    static UncertainTransducerInManual: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainTransducerInManual",
+        value: 0x42080000,
+        description: "The value may not be accurate because the transducer is in manual mode."
+    });
+    /** The value is simulated. */
+    static UncertainSimulatedValue: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainSimulatedValue",
+        value: 0x42090000,
+        description: "The value is simulated."
+    });
+    /** The value may not be accurate due to a sensor calibration fault. */
+    static UncertainSensorCalibration: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainSensorCalibration",
+        value: 0x420a0000,
+        description: "The value may not be accurate due to a sensor calibration fault."
+    });
+    /** The value may not be accurate due to a configuration issue. */
+    static UncertainConfigurationError: ConstantStatusCode = new ConstantStatusCode({
+        name: "UncertainConfigurationError",
+        value: 0x420f0000,
+        description: "The value may not be accurate due to a configuration issue."
+    });
+    /** The value source supports cascade handshaking and the value has been Initialized based on an initialization request from a cascade secondary. */
+    static GoodCascadeInitializationAcknowledged: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeInitializationAcknowledged",
+        value: 0x4010000,
+        description:
+            "The value source supports cascade handshaking and the value has been Initialized based on an initialization request from a cascade secondary."
+    });
+    /** The value source supports cascade handshaking and is requesting initialization of a cascade primary. */
+    static GoodCascadeInitializationRequest: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeInitializationRequest",
+        value: 0x4020000,
+        description: "The value source supports cascade handshaking and is requesting initialization of a cascade primary."
+    });
+    /** The value source supports cascade handshaking, however, the source’s current state does not allow for cascade. */
+    static GoodCascadeNotInvited: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeNotInvited",
+        value: 0x4030000,
+        description:
+            "The value source supports cascade handshaking, however, the source’s current state does not allow for cascade."
+    });
+    /** The value source supports cascade handshaking, however, the source has not selected the corresponding cascade primary for use. */
+    static GoodCascadeNotSelected: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascadeNotSelected",
+        value: 0x4040000,
+        description:
+            "The value source supports cascade handshaking, however, the source has not selected the corresponding cascade primary for use."
+    });
+    /** There is a fault state condition active in the value source. */
+    static GoodFaultStateActive: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodFaultStateActive",
+        value: 0x4070000,
+        description: "There is a fault state condition active in the value source."
+    });
+    /** A fault state condition is being requested of the destination. */
+    static GoodInitiateFaultState: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodInitiateFaultState",
+        value: 0x4080000,
+        description: "A fault state condition is being requested of the destination."
+    });
+    /** The value is accurate, and the signal source supports cascade handshaking. */
+    static GoodCascade: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodCascade",
+        value: 0x4090000,
+        description: "The value is accurate, and the signal source supports cascade handshaking."
+    });
+    /** The DataSet specified for the DataSetWriter creation is invalid. */
+    static BadDataSetIdInvalid: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadDataSetIdInvalid",
+        value: 0x80e70000,
+        description: "The DataSet specified for the DataSetWriter creation is invalid."
     });
     static GoodWithOverflowBit = StatusCode.makeStatusCode(StatusCodes.Good, `Overflow | InfoTypeDataValue`);
 }

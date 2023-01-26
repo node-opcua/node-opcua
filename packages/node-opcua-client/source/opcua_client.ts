@@ -8,29 +8,14 @@ import { ConnectionStrategyOptions, Message, SecurityPolicy } from "node-opcua-s
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { X509IdentityTokenOptions } from "node-opcua-types";
-import { ErrorCallback } from "node-opcua-status-code";
+import { CallbackT, ErrorCallback, StatusCode } from "node-opcua-status-code";
 import { FindServersRequestLike, GetEndpointsOptions, OPCUAClientBase, OPCUAClientBaseOptions } from "./client_base";
 
 import { ClientSession, ResponseCallback } from "./client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "./client_subscription";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
+import { UserIdentityInfo } from "./user_identity_info";
 
-export interface UserIdentityInfoUserName {
-    type: UserTokenType.UserName;
-    userName: string;
-    password: string;
-}
-
-export interface UserIdentityInfoX509 extends X509IdentityTokenOptions {
-    type: UserTokenType.Certificate;
-    certificateData: ByteString;
-    privateKey: PrivateKeyPEM;
-}
-export interface AnonymousIdentity {
-    type: UserTokenType.Anonymous;
-}
-
-export type UserIdentityInfo = AnonymousIdentity | UserIdentityInfoX509 | UserIdentityInfoUserName;
 
 export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     /**
@@ -107,11 +92,9 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
 
 export interface OPCUAClient extends OPCUAClientBase {
     connect(endpointUrl: string): Promise<void>;
-
     connect(endpointUrl: string, callback: ErrorCallback): void;
 
     disconnect(): Promise<void>;
-
     disconnect(callback: ErrorCallback): void;
 
     getEndpoints(options?: GetEndpointsOptions): Promise<EndpointDescription[]>;
@@ -138,9 +121,9 @@ export interface OPCUAClient extends OPCUAClientBase {
 
     createSession2(callback: (err: Error | null, session?: ClientSession) => void): void;
 
-    changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo): Promise<void>;
-
-    changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: (err?: Error) => void): void;
+    /** @deprecated */
+    changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo): Promise<StatusCode>;
+    changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
 
     closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
 

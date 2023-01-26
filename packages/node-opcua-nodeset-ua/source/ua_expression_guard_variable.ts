@@ -14,8 +14,8 @@ import { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable"
  * |dataType Name   |LocalizedText ns=0;i=21                           |
  * |isAbstract      |false                                             |
  */
-export interface UAExpressionGuardVariable_Base<T extends LocalizedText/*j*/>  extends UAGuardVariable_Base<T/*h*/> {
-    expression: UAProperty<DTContentFilter, /*z*/DataType.ExtensionObject>;
+export interface UAExpressionGuardVariable_Base<T extends LocalizedText>  extends UAGuardVariable_Base<T> {
+    expression: UAProperty<DTContentFilter, DataType.ExtensionObject>;
 }
-export interface UAExpressionGuardVariable<T extends LocalizedText/*j*/> extends UAGuardVariable<T/*k*/>, UAExpressionGuardVariable_Base<T /*B*/> {
+export interface UAExpressionGuardVariable<T extends LocalizedText> extends UAGuardVariable<T>, UAExpressionGuardVariable_Base<T> {
 }

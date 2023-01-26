@@ -30,7 +30,7 @@
             "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
         }
     },
-    "exclude": ["./documentation", "build" , "dist"],
+    "exclude": ["./documentation", "build" , "dist", "packages/node-opcua-convert-nodeset-to-javascript/tmp/*"],
     "references": [
         {
             "path": "packages/node-opcua"
@@ -81,7 +81,20 @@
         ,
         {
             "path": "packages/node-opcua-nodeset-robotics"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-glass-flat"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-ijt"
+        },
+        {
+            "path": "packages/node-opcua-nodeset-woodworking"
+        },
+        {
+            "path": "packages/node-opcua-units"
         }
+
     ],    
     "compileOnSave": false,
 }

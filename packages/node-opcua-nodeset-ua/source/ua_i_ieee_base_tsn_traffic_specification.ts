@@ -13,9 +13,9 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                              |
  */
 export interface UAIIeeeBaseTsnTrafficSpecification_Base extends UABaseInterface_Base {
-    maxIntervalFrames: UABaseDataVariable<UInt16, /*z*/DataType.UInt16>;
-    maxFrameSize: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
-    interval: UABaseDataVariable<DTUnsignedRationalNumber, /*z*/DataType.ExtensionObject>;
+    maxIntervalFrames: UABaseDataVariable<UInt16, DataType.UInt16>;
+    maxFrameSize: UABaseDataVariable<UInt32, DataType.UInt32>;
+    interval: UABaseDataVariable<DTUnsignedRationalNumber, DataType.ExtensionObject>;
 }
 export interface UAIIeeeBaseTsnTrafficSpecification extends UABaseInterface, UAIIeeeBaseTsnTrafficSpecification_Base {
 }

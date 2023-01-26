@@ -21,7 +21,7 @@ export interface UAServerDiagnostics_Base {
     samplingIntervalDiagnosticsArray?: UASamplingIntervalDiagnosticsArray<DTSamplingIntervalDiagnostics[]>;
     subscriptionDiagnosticsArray: UASubscriptionDiagnosticsArray<DTSubscriptionDiagnostics[]>;
     sessionsDiagnosticsSummary: UASessionsDiagnosticsSummary;
-    enabledFlag: UAProperty<boolean, /*z*/DataType.Boolean>;
+    enabledFlag: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAServerDiagnostics extends UAObject, UAServerDiagnostics_Base {
 }

@@ -58,7 +58,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 
 import { getAggregateData } from "./common";
-import { AggregateConfigurationOptions, Interval, isGood } from "./interval";
+import { AggregateConfigurationOptions, Interval } from "./interval";
 
 // eslint-disable-next-line max-statements
 function calculateIntervalMinOrMaxValue(
@@ -81,12 +81,12 @@ function calculateIntervalMinOrMaxValue(
     for (let i = indexStart; i < indexStart + interval.count; i++) {
         const dataValue = interval.dataValues[i];
 
-        if (dataValue.statusCode === StatusCodes.BadNoData) {
+        if (dataValue.statusCode.equals(StatusCodes.BadNoData)) {
             isPartial = true;
             continue;
         }
 
-        if (!isGood(dataValue.statusCode)) {
+        if (!dataValue.statusCode.isGood()) {
             hasBad = true;
             continue;
         }

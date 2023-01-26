@@ -39,12 +39,6 @@ describe("Testing AccessLevelExFlag", function () {
         makeAccessLevelExFlag(makeAccessLevelExFlag("NoSubDataTypes")).should.equal(AccessLevelExFlag.NoSubDataTypes);
     });
 
-    it("should have a accessLevel Flag Basic Type", function () {
-        (findBuiltInType("AccessLevelExFlag") !== null && typeof findBuiltInType("AccessLevelExFlag") === "object").should.equal(
-            true
-        );
-    });
-
     it("should provide a easy way to check if a flag is set or not", function () {
         const accessLevel = makeAccessLevelExFlag("CurrentWrite | CurrentRead");
         (accessLevel & AccessLevelExFlag.CurrentWrite).should.be.eql(AccessLevelExFlag.CurrentWrite);

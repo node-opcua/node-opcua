@@ -9,7 +9,7 @@ import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
 import { AttributeIds, QualifiedName, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { Certificate } from "node-opcua-crypto";
+import { Certificate, PrivateKey } from "node-opcua-crypto";
 import { TrustListDataType } from "node-opcua-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 
@@ -22,7 +22,6 @@ import {
 
 import { ITrustList } from "../trust_list";
 import { TrustListMasks } from "../server/trust_list_server";
-
 
 const serverConfigurationNodeId = resolveNodeId("ServerConfiguration");
 const createSigningRequestMethod = resolveNodeId("ServerConfiguration_CreateSigningRequest");
@@ -41,7 +40,6 @@ function findCertificateGroupName(certificateGroupNodeId: NodeId): string {
 }
 
 function findCertificateGroupNodeId(certificateGroup: NodeId | string): NodeId {
-
     if (certificateGroup instanceof NodeId) {
         return certificateGroup;
     }
@@ -64,10 +62,7 @@ function findCertificateTypeIdNodeId(certificateTypeId: NodeId | string): NodeId
     return resolveNodeId(certificateTypeId);
 }
 
-
-
 export class TrustListClient extends ClientFile implements ITrustList {
-
     private closeAndUpdateNodeId?: NodeId;
     private addCertificateNodeId?: NodeId;
     private removeCertificateNodeId?: NodeId;
@@ -80,12 +75,11 @@ export class TrustListClient extends ClientFile implements ITrustList {
      * @private
      */
     async _extractMethodIds(): Promise<void> {
-
         const browseResults = await this.session.translateBrowsePath([
-            makeBrowsePath(this.nodeId, "/CloseAndUpdate"),    // Optional
-            makeBrowsePath(this.nodeId, "/AddCertificate"),    // Optional
+            makeBrowsePath(this.nodeId, "/CloseAndUpdate"), // Optional
+            makeBrowsePath(this.nodeId, "/AddCertificate"), // Optional
             makeBrowsePath(this.nodeId, "/RemoveCertificate"), // Optional
-            makeBrowsePath(this.nodeId, "/OpenWithMasks")      // OpenWithMasks Mandatory
+            makeBrowsePath(this.nodeId, "/OpenWithMasks") // OpenWithMasks Mandatory
         ]);
 
         this.closeAndUpdateNodeId = browseResults[0].targets![0].targetId;
@@ -114,16 +108,14 @@ export class TrustListClient extends ClientFile implements ITrustList {
         if (!this.openWithMasksNodeId) {
             throw new Error("OpenWithMasks doesn't exist");
         }
-        const inputArguments = [
-            { dataType: DataType.UInt32, value: trustListMask },
-        ];
+        const inputArguments = [{ dataType: DataType.UInt32, value: trustListMask }];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
             methodId: this.openWithMasksNodeId,
             objectId: this.nodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode !== StatusCodes.Good) {
+        if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
         this.fileHandle = callMethodResult.outputArguments![0].value as number;
@@ -140,7 +132,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
         }
         const inputArguments = [
             { dataType: DataType.UInt32, value: this.fileHandle },
-            { dataType: DataType.Boolean, value: !!applyChangesRequired },
+            { dataType: DataType.Boolean, value: !!applyChangesRequired }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -148,7 +140,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
             objectId: this.nodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode !== StatusCodes.Good) {
+        if (callMethodResult.statusCode.isNotGood()) {
             throw new Error(callMethodResult.statusCode.name);
         }
         return callMethodResult.outputArguments![0].value as boolean;
@@ -159,7 +151,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
 
         const inputArguments: VariantLike[] = [
             { dataType: DataType.ByteString, value: certificate },
-            { dataType: DataType.Boolean, value: !!isTrustedCertificate },
+            { dataType: DataType.Boolean, value: !!isTrustedCertificate }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -175,7 +167,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
 
         const inputArguments: VariantLike[] = [
             { dataType: DataType.String, value: thumbprint },
-            { dataType: DataType.Boolean, value: !!isTrustedCertificate },
+            { dataType: DataType.Boolean, value: !!isTrustedCertificate }
         ];
         const methodToCall: CallMethodRequestLike = {
             inputArguments,
@@ -188,7 +180,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
 
     /**
      * helper function to retrieve the list of certificates ...
-     * @returns 
+     * @returns
      */
     async readTrustedCertificateList(): Promise<TrustListDataType> {
         // const size = await this.size();
@@ -218,38 +210,31 @@ export class TrustListClient extends ClientFile implements ITrustList {
         trustedList.encode(stream);
         return await this.closeAndUpdate(true);
     }
-
 }
 export class CertificateGroup {
-
-    constructor(public session: IBasicSession, public nodeId: NodeId) {
-
-    }
+    constructor(public session: IBasicSession, public nodeId: NodeId) {}
     async getCertificateTypes(): Promise<NodeId[]> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertificateTypes"));
-        if (browsePathResult.statusCode !== StatusCodes.Good) {
+        if (browsePathResult.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
         const certificateTypesNodeId = browsePathResult.targets![0].targetId;
         const dataValue = await this.session.read({ nodeId: certificateTypesNodeId, attributeId: AttributeIds.Value });
-        if (dataValue.statusCode !== StatusCodes.Good) {
+        if (dataValue.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
         return dataValue.value.value as NodeId[];
     }
     async getTrustList(): Promise<TrustListClient> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/TrustList"));
-        if (browsePathResult.statusCode !== StatusCodes.Good) {
+        if (browsePathResult.statusCode.isNotGood()) {
             throw new Error(browsePathResult.statusCode.name);
         }
         const trustListNodeId = browsePathResult.targets![0].targetId;
         return new TrustListClient(this.session, trustListNodeId);
-
     }
-
 }
 export class ClientPushCertificateManagement implements PushCertificateManager {
-
     public static rsaSha256ApplicationCertificateType: NodeId = resolveNodeId("i=12560");
 
     public session: IBasicSession;
@@ -303,7 +288,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         regeneratePrivateKey?: boolean,
         nonce?: ByteString
     ): Promise<CreateSigningRequestResult> {
-
         nonce = nonce || Buffer.alloc(0);
 
         const inputArguments = [
@@ -320,7 +304,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         };
         const callMethodResult = await this.session.call(methodToCall);
 
-        if (callMethodResult.statusCode === StatusCodes.Good) {
+        if (callMethodResult.statusCode.isGood()) {
             // xx console.log(callMethodResult.toString());
             return {
                 certificateSigningRequest: callMethodResult.outputArguments![0].value,
@@ -350,7 +334,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
             objectId: serverConfigurationNodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode === StatusCodes.Good) {
+        if (callMethodResult.statusCode.isGood()) {
             if (callMethodResult.outputArguments![0].dataType !== DataType.ByteString) {
                 return { statusCode: StatusCodes.BadInvalidArgument };
             }
@@ -418,7 +402,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         certificate: Buffer,
         issuerCertificates: Buffer[],
         privateKeyFormat: string,
-        privateKey: Buffer
+        privateKey: Buffer | string | PrivateKey
     ): Promise<UpdateCertificateResult>;
     public async updateCertificate(
         certificateGroupId: NodeId | string,
@@ -426,7 +410,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         certificate: Buffer,
         issuerCertificates: Buffer[],
         privateKeyFormat?: string,
-        privateKey?: Buffer
+        privateKey?: Buffer | string | PrivateKey
     ): Promise<UpdateCertificateResult> {
 
         const inputArguments: VariantLike[] = [
@@ -443,7 +427,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
             objectId: serverConfigurationNodeId
         };
         const callMethodResult = await this.session.call(methodToCall);
-        if (callMethodResult.statusCode === StatusCodes.Good) {
+        if (callMethodResult.statusCode.isGood()) {
             if (!callMethodResult.outputArguments || callMethodResult.outputArguments!.length !== 1) {
                 return {
                     statusCode: StatusCodes.BadInternalError
@@ -481,7 +465,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
      * BadUserAccessDenied   The current user does not have the rights required.
      */
     public async applyChanges(): Promise<StatusCode> {
-
         const methodToCall: CallMethodRequestLike = {
             inputArguments: [],
             methodId: applyChangesMethod,
@@ -496,7 +479,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
     }
 
     public async getSupportedPrivateKeyFormats(): Promise<string[]> {
-
         const dataValue = await this.session.read({
             attributeId: AttributeIds.Value,
             nodeId: supportedPrivateKeyFormatsNodeId
@@ -505,7 +487,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
     }
 
     public async getCertificateGroupId(certificateGroupName: string): Promise<NodeId> {
-
         if (certificateGroupName === "DefaultApplicationGroup") {
             return defaultApplicationGroup;
         }
@@ -513,20 +494,19 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         throw new Error("Not Implemented yet");
     }
 
-
-
     /**
-     * 
-     * @param browseName 
+     *
+     * @param browseName
      */
     public async getCertificateGroup(
-        browseName: QualifiedNameLike | "DefaultApplicationGroup" | "DefaultUserTokenGroup"): Promise<CertificateGroup> {
+        browseName: QualifiedNameLike | "DefaultApplicationGroup" | "DefaultUserTokenGroup"
+    ): Promise<CertificateGroup> {
         browseName = coerceQualifiedName(browseName);
         if (browseName.toString() === "DefaultApplicationGroup") {
-            return new CertificateGroup(this.session, resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup"));
+            return new CertificateGroup(this.session, defaultApplicationGroup);
         }
         if (browseName.toString() === "DefaultUserTokenGroup") {
-            return new CertificateGroup(this.session, resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup"));
+            return new CertificateGroup(this.session, defaultUserTokenGroup);
         }
         // istanbul ignore next
         throw new Error("Not Implemented yet");
@@ -535,6 +515,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         return this.getCertificateGroup("DefaultApplicationGroup");
     }
     public async getUserTokenGroup(): Promise<CertificateGroup> {
-        return this.getCertificateGroup("DefaultApplicationGroup");
+        return this.getCertificateGroup("DefaultUserTokenGroup");
     }
 }

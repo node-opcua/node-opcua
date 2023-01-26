@@ -14,9 +14,9 @@ import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_work
  * |isAbstract      |false                                             |
  */
 export interface UASpindleMonitoring_Base extends UAWorkingUnitMonitoring_Base {
-    isRotating: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    isUsedAsAxis?: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
-    override?: UAAnalogUnitRange<number, /*z*/DataType.Double>;
+    isRotating: UABaseDataVariable<boolean, DataType.Boolean>;
+    isUsedAsAxis?: UABaseDataVariable<boolean, DataType.Boolean>;
+    override?: UAAnalogUnitRange<number, DataType.Double>;
 }
 export interface UASpindleMonitoring extends UAWorkingUnitMonitoring, UASpindleMonitoring_Base {
 }

@@ -5,7 +5,7 @@
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { ByteString, UAString, UInt16 } from "node-opcua-basic-types";
+import { ByteString } from "node-opcua-basic-types";
 import { randomGuid } from "node-opcua-basic-types";
 import {
     AttributeIds,
@@ -18,76 +18,42 @@ import {
     QualifiedName
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { minDate } from "node-opcua-factory";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { minDate } from "node-opcua-basic-types";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, TimeZoneDataType } from "node-opcua-types";
-import { DataType, Variant, VariantLike } from "node-opcua-variant";
-import { UAVariable, INamespace, ISessionContext, UAEventType, BaseNode, UAObject } from "node-opcua-address-space-base";
-import { UACondition_Base, UAConditionVariable, UACondition } from "node-opcua-nodeset-ua";
+import { DataType, Variant, VariantLike, VariantOptions } from "node-opcua-variant";
+import {
+    UAVariable,
+    INamespace,
+    ISessionContext,
+    UAEventType,
+    BaseNode,
+    UAObject,
+    InstantiateObjectOptions
+} from "node-opcua-address-space-base";
+import { UAConditionVariable } from "node-opcua-nodeset-ua";
 
 import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import { UAConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex";
+import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
+import { InstantiateConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_condition_options";
+
 import { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
 import { UAObjectImpl } from "../ua_object_impl";
 import { UAVariableImpl } from "../ua_variable_impl";
 import { UAConditionType } from "../ua_condition_type";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
-import { UABaseEventHelper, UABaseEventImpl } from "./ua_base_event_impl";
-import { ConditionSnapshot } from "./condition_snapshot";
+import { UABaseEventImpl } from "./ua_base_event_impl";
+import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
+
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const warningLog = make_warningLog(__filename);
 
-export type AddCommentEventHandler = (eventId: Buffer | null, comment: LocalizedText, branch: ConditionSnapshot) => void;
-export interface UAConditionHelper {
-    on(eventName: string, eventHandler: (...args: any[]) => void): this;
-    // -- Events
-    on(eventName: "addComment", eventHandler: AddCommentEventHandler): this;
-    on(eventName: "branch_deleted", eventHandler: (branchId: string) => void): this;
-}
-export interface UAConditionHelper extends UABaseEventHelper {
-    getBranchCount(): number;
-    getBranches(): ConditionSnapshot[];
-    getBranchIds(): NodeId[];
-    createBranch(): ConditionSnapshot;
-    deleteBranch(branch: ConditionSnapshot): void;
-    getEnabledState(): boolean;
-    getEnabledStateAsString(): string;
-    setEnabledState(requestedEnabledState: boolean): StatusCode;
-    setReceiveTime(time: Date): void;
-    setLocalTime(time: TimeZoneDataType): void;
-    setTime(time: Date): void;
-    conditionOfNode(): UAObject | UAVariable | null;
-    raiseConditionEvent(branch: ConditionSnapshot, renewEventId: boolean): void;
-    raiseNewCondition(conditionInfo: ConditionInfoOptions): void;
-    raiseNewBranchState(branch: ConditionSnapshot): void;
-    currentBranch(): ConditionSnapshot;
-}
-
-export interface UAConditionEx extends UAObject, UACondition_Base, UAConditionHelper {
-    enabledState: UATwoStateVariableEx;
-    on(eventName: string, eventHandler: any): this;
-    //
-    // conditionClassId: UAProperty<NodeId, /*c*/DataType.NodeId>;
-    // conditionClassName: UAProperty<LocalizedText, /*c*/DataType.LocalizedText>;
-    // conditionSubClassId?: UAProperty<NodeId, /*c*/DataType.NodeId>;
-    // conditionSubClassName?: UAProperty<LocalizedText, /*c*/DataType.LocalizedText>;
-    // conditionName: UAProperty<UAString, /*c*/DataType.String>;
-    // branchId: UAProperty<NodeId, /*c*/DataType.NodeId>;
-    // retain: UAProperty<boolean, /*c*/DataType.Boolean>;
-    // quality: UAConditionVariable<StatusCode, /*c*/DataType.StatusCode>;
-    // lastSeverity: UAConditionVariable<UInt16, /*c*/DataType.UInt16>;
-    // comment: UAConditionVariable<LocalizedText, /*c*/DataType.LocalizedText>;
-    // clientUserId: UAProperty<UAString, /*c*/DataType.String>;
-    // disable: UAMethod;
-    // enable: UAMethod;
-    // addComment: UAMethod;
-    // conditionRefresh: UAMethod;
-    // conditionRefresh2: UAMethod;
-}
 export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl {
     on(eventName: string, eventHandler: any): this;
 }
@@ -209,7 +175,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
             });
             return;
         }
-        assert(branch instanceof ConditionSnapshot);
+        assert(branch instanceof ConditionSnapshotImpl);
 
         const statusCode = inner_func(eventId, comment, branch, conditionNode);
 
@@ -238,8 +204,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
      */
     public post_initialize(): void {
         assert(!this._branch0);
-        this._branch0 = new ConditionSnapshot(this, new NodeId());
-
+        this._branch0 = new ConditionSnapshotImpl(this, new NodeId());
         // the condition OPCUA object alway reflects the default branch states
         // so we set a mechanism that automatically keeps self in sync
         // with the default branch.
@@ -273,7 +238,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
      */
     public createBranch(): ConditionSnapshot {
         const branchId = _create_new_branch_id();
-        const snapshot = new ConditionSnapshot(this, branchId);
+        const snapshot = new ConditionSnapshotImpl(this, branchId);
         this._branches[branchId.toString()] = snapshot;
         return snapshot;
     }
@@ -461,7 +426,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
 
-        assert(branch instanceof ConditionSnapshot);
+        assert(branch instanceof ConditionSnapshotImpl);
 
         this._assert_valid();
 
@@ -469,7 +434,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         const conditionOfNode = this.conditionOfNode();
 
         if (conditionOfNode) {
-            const eventData = branch._constructEventData();
+            const eventData = (branch as ConditionSnapshotImpl)._constructEventData();
 
             this.emit("event", eventData);
 
@@ -486,6 +451,8 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
                     node._bubble_up_event(eventData);
                 }
             }
+        } else {
+            warningLog("Condition ", this.nodeId.toString(), "is not linked to a Object with a IsConditionOf(reversed(HasCondition))");
         }
         // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
@@ -680,6 +647,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 }
 
+
 /**
  * instantiate a Condition.
  * this will create the unique EventId and will set eventType
@@ -709,8 +677,8 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 function UACondition_instantiate(
     namespace: INamespace,
     conditionTypeId: UAEventType | NodeId | string,
-    options: any,
-    data: any
+    options: InstantiateConditionOptions,
+    data?: Record<string, VariantOptions>
 ): UAConditionEx {
     /* eslint max-statements: ["error", 100] */
     const addressSpace = namespace.addressSpace as AddressSpacePrivate;
@@ -766,7 +734,7 @@ function UACondition_instantiate(
     }
     if (options.conditionOf) {
         assert(Object.prototype.hasOwnProperty.call(options, "conditionOf")); // must provide a conditionOf
-        options.conditionOf = addressSpace._coerceNode(options.conditionOf);
+        options.conditionOf = addressSpace._coerceNode(options.conditionOf)!;
 
         // HasCondition References can be used in the Type definition of an Object or a Variable.
         assert(options.conditionOf.nodeClass === NodeClass.Object || options.conditionOf.nodeClass === NodeClass.Variable);
@@ -826,11 +794,11 @@ function UACondition_instantiate(
     conditionNode.enabledState.setValue(true);
 
     // set properties to in initial values
-    Object.keys(data).forEach((key: string) => {
+    Object.entries(data).forEach(([key, value]) => {
         const varNode = _getCompositeKey(conditionNode, key);
         assert(varNode.nodeClass === NodeClass.Variable);
 
-        const variant = new Variant(data[key]);
+        const variant = new Variant(value);
 
         // check that Variant DataType is compatible with the UAVariable dataType
         // xx var nodeDataType = addressSpace.findNode(varNode.dataType).browseName;
@@ -839,10 +807,7 @@ function UACondition_instantiate(
         if (!varNode._validate_DataType(variant.dataType)) {
             throw new Error(" Invalid variant dataType " + variant + " " + varNode.browseName.toString());
         }
-
-        const value = new Variant(data[key]);
-
-        varNode.setValueFromSource(value);
+        varNode.setValueFromSource(variant);
     });
 
     // bind condition methods -
@@ -880,7 +845,7 @@ function UACondition_instantiate(
     //    with the motor.
 
     if (options.conditionSource) {
-        options.conditionSource = addressSpace._coerceNode(options.conditionSource);
+        options.conditionSource = addressSpace._coerceNode(options.conditionSource)!;
         if (options.conditionSource.nodeClass !== NodeClass.Object && options.conditionSource.nodeClass !== NodeClass.Variable) {
             // tslint:disable:no-console
             console.log(options.conditionSource);
@@ -960,6 +925,9 @@ function UACondition_instantiate(
     if (options.conditionClass) {
         if (typeof options.conditionClass === "string") {
             options.conditionClass = addressSpace.findObjectType(options.conditionClass);
+            if (!options.conditionClass) {
+                throw new Error("cannot find condition class " + options.conditionClass);
+            }
         }
         const conditionClassNode = addressSpace._coerceNode(options.conditionClass);
         if (!conditionClassNode) {
@@ -1079,7 +1047,7 @@ function _condition_refresh_method(
     const subscriptionId = inputArguments[0].value;
 
     let statusCode = _check_subscription_id_is_valid(subscriptionId, context);
-    if (statusCode !== StatusCodes.Good) {
+    if (statusCode.isNotGood()) {
         return statusCode;
     }
 
@@ -1158,11 +1126,11 @@ function _add_comment_method(
     callback: CallbackT<CallMethodResultOptions>
 ) {
     //
-    // The AddComment Method is used to apply a comment to a specific state of a Condition
-    // instance. Normally, the NodeId of the object instance as the ObjectId is passed to the Call
-    // Service. However, some Servers do not expose Condition instances in the AddressSpace.
-    // Therefore all Servers shall also allow Clients to call the AddComment Method by specifying
-    // ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the
+    // The AddComment Method is used to apply a comment to a specific state of a Condition 
+    // instance. Normally, the NodeId of the Object instance is passed as the ObjectId to the Call 
+    // Service. However, some Servers do not expose Condition instances in the AddressSpace. 
+    // Therefore, all Servers shall also allow Clients to call the AddComment Method by specifying 
+    // ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the 
     // ConditionType Node.
     // Signature
     //   - EventId EventId identifying a particular Event Notification where a state was reported for a
@@ -1178,7 +1146,7 @@ function _add_comment_method(
         (conditionEventId: ByteString, comment: LocalizedText, branch: ConditionSnapshot, conditionNode: UAConditionImpl) => {
             assert(inputArguments instanceof Array);
             assert(conditionEventId instanceof Buffer || conditionEventId === null);
-            assert(branch instanceof ConditionSnapshot);
+            assert(branch instanceof ConditionSnapshotImpl);
             branch.setComment(comment);
 
             const sourceName = "Method/AddComment";

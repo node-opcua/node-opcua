@@ -22,11 +22,12 @@ export interface UAMachineComponents_$Component$ extends UAObject { // Object
  * |isAbstract      |false                                             |
  */
 export interface UAMachineComponents_Base {
+   // PlaceHolder for $Component$
     /**
      * defaultInstanceBrowseName
      * The default BrowseName for instances of the type.
      */
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
 }
 export interface UAMachineComponents extends UAObject, UAMachineComponents_Base {
 }

@@ -14,9 +14,9 @@ import { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_sessio
  * |isAbstract      |true                                              |
  */
 export interface UAAuditActivateSessionEvent_Base extends UAAuditSessionEvent_Base {
-    clientSoftwareCertificates: UAProperty<DTSignedSoftwareCertificate[], /*z*/DataType.ExtensionObject>;
-    userIdentityToken: UAProperty<DTUserIdentityToken, /*z*/DataType.ExtensionObject>;
-    secureChannelId: UAProperty<UAString, /*z*/DataType.String>;
+    clientSoftwareCertificates: UAProperty<DTSignedSoftwareCertificate[], DataType.ExtensionObject>;
+    userIdentityToken: UAProperty<DTUserIdentityToken, DataType.ExtensionObject>;
+    secureChannelId: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditActivateSessionEvent extends UAAuditSessionEvent, UAAuditActivateSessionEvent_Base {
 }

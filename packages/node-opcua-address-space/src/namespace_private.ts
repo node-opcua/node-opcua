@@ -10,13 +10,17 @@ import {
     CreateNodeOptions,
     ModellingRuleType,
     INamespace,
-    UADataType
+    UADataType,
+    RequiredModel
 } from "node-opcua-address-space-base";
 
 import { AddressSpacePrivate } from "./address_space_private";
 
+
 export interface NamespacePrivate extends INamespace {
     addressSpace: AddressSpacePrivate;
+
+    setRequiredModels(requiredModels: RequiredModel[]): void;
 
     nodeIterator(): IterableIterator<BaseNode>;
 
@@ -33,6 +37,10 @@ export interface NamespacePrivate extends INamespace {
     internalCreateNode(options: CreateNodeOptions): BaseNode;
 
     _dataTypeIterator(): IterableIterator<UADataType>;
+
+    registerSymbolicNames: boolean;
+
+
 }
 
 export declare const NamespacePrivate: new (options: any) => NamespacePrivate;

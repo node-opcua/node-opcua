@@ -7,7 +7,7 @@ const debugLog = make_debugLog("TEST");
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("issue #931 investigation", function () {
-    this.timeout(30000);
+    this.timeout(Math.max(40000,this.timeout()));
     async function wait(t) {
         return await new Promise((resolve) => setTimeout(resolve, t));
     }

@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
@@ -16,7 +16,7 @@ import { UAAlarmCondition, UAAlarmCondition_Base } from "node-opcua-nodeset-ua/s
  * |isAbstract      |false                                             |
  */
 export interface UAAlert_Base extends UAAlarmCondition_Base {
-    errorCode: UAProperty<UAString, /*z*/DataType.String>;
+    errorCode: UAProperty<UAString, DataType.String>;
 }
 export interface UAAlert extends UAAlarmCondition, UAAlert_Base {
 }

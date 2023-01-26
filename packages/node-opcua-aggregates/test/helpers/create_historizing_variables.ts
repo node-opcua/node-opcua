@@ -47,8 +47,8 @@ export function createHistorian1(addressSpace: AddressSpace): UAVariable {
         dataType: "Float"
     });
 
-    const options: AggregateConfigurationOptionsEx & IHistoricalDataNodeOptions = {
-        historian: undefined,
+    addressSpace.installHistoricalDataNode(node);
+    const options: AggregateConfigurationOptionsEx = {
         percentDataBad: 100,
         percentDataGood: 100, // Therefore if all values are Good then the
         // quality will be Good, or if all values are Bad then the quality will be Bad, but if there is
@@ -57,9 +57,6 @@ export function createHistorian1(addressSpace: AddressSpace): UAVariable {
         treatUncertainAsBad: false, // Therefore Uncertain values are included in Aggregate calls.
         useSlopedExtrapolation: false // Therefore SteppedExtrapolation is used at end boundary conditions.
     };
-
-    addressSpace.installHistoricalDataNode(node, options);
-
     installAggregateConfigurationOptions(node, options);
 
     // 12:00:00 - BadNoData First archive entry, Point created
@@ -97,9 +94,17 @@ export function createHistorian2(addressSpace: AddressSpace): UAVariable {
         dataType: "Double"
     });
 
-    const options = {};
-
-    addressSpace.installHistoricalDataNode(node, options);
+    addressSpace.installHistoricalDataNode(node);
+    const options: AggregateConfigurationOptionsEx = {
+        treatUncertainAsBad: true, // Therefore Uncertain values are treated as Bad, and not included in the Aggregate call.
+        percentDataBad: 100,
+        percentDataGood: 100, // Therefore if all values are Good then the
+        // quality will be Good, or if all values are Bad then the quality will be Bad, but if there is
+        // some Good and some Bad then the quality will be Uncertain
+        stepped: false, // Therefore SlopedInterpolation is used between data points.
+        useSlopedExtrapolation: false // Therefore SteppedExtrapolation is used at end boundary conditions.
+    };
+    installAggregateConfigurationOptions(node, options);
 
     // 12:00:00  -      Bad_NoData         First archive entry, Point created
     addHistory(node, "12:00:00", 10, StatusCodes.BadNoData);
@@ -195,7 +200,9 @@ export function createHistorian3(addressSpace: AddressSpace): UAVariable {
         dataType: "Double"
     });
 
-    const options: AggregateConfigurationOptionsEx & IHistoricalDataNodeOptions = {
+    addressSpace.installHistoricalDataNode(node);
+
+    const options: AggregateConfigurationOptionsEx = {
         percentDataBad: 50,
         percentDataGood: 50,
         stepped: true, // therefore SteppedInterpolation is used between data points
@@ -203,8 +210,6 @@ export function createHistorian3(addressSpace: AddressSpace): UAVariable {
         // and not included in the Aggregate call.
         useSlopedExtrapolation: false // therefore SteppedExtrapolation is used at end boundary conditions.
     };
-
-    addressSpace.installHistoricalDataNode(node, options);
     installAggregateConfigurationOptions(node, options);
 
     // 12:00:00  -      Bad_NoData         First archive entry, Point created

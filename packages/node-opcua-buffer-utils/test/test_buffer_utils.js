@@ -1,10 +1,8 @@
 "use strict";
-
-
+const { Benchmarker } = require("node-opcua-benchmarker");
 const buffer_utils = require("..");
 const createFastUninitializedBuffer = buffer_utils.createFastUninitializedBuffer;
 
-const { Benchmarker } = require("node-opcua-benchmarker");
 
 
 describe("testing buffer utils",function() {

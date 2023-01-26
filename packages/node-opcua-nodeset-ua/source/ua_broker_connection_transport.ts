@@ -12,8 +12,8 @@ import { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connecti
  * |isAbstract      |false                                             |
  */
 export interface UABrokerConnectionTransport_Base extends UAConnectionTransport_Base {
-    resourceUri: UAProperty<UAString, /*z*/DataType.String>;
-    authenticationProfileUri: UAProperty<UAString, /*z*/DataType.String>;
+    resourceUri: UAProperty<UAString, DataType.String>;
+    authenticationProfileUri: UAProperty<UAString, DataType.String>;
 }
 export interface UABrokerConnectionTransport extends UAConnectionTransport, UABrokerConnectionTransport_Base {
 }

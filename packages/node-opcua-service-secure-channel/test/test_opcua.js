@@ -1,14 +1,10 @@
 "use strict";
 const should = require("should");
 
-const RequestHeader = require("..").RequestHeader;
-const ResponseHeader =  require("..").ResponseHeader;
+const { RequestHeader, ResponseHeader } = require("..");
 
 describe("testing OPCUA structures ", function () {
-
-
     it("should create a RequestHeader", function () {
-
         const requestHeader = new RequestHeader();
 
         requestHeader.should.have.property("authenticationToken");
@@ -18,16 +14,12 @@ describe("testing OPCUA structures ", function () {
         requestHeader.should.have.property("auditEntryId");
         requestHeader.should.have.property("timeoutHint");
         requestHeader.should.have.property("additionalHeader");
-
     });
     it("should create a ResponseHeader", function () {
-
-
         function get_current_date_with_delta_seconds(date, delta) {
             const result = new Date(date);
             result.setTime(date.getTime() + delta * 1000);
             return result;
-
         }
 
         const date_before_construction = get_current_date_with_delta_seconds(new Date(), -1);
@@ -51,6 +43,4 @@ describe("testing OPCUA structures ", function () {
         responseHeader.timestamp.should.be.greaterThan(date_before_construction);
         responseHeader.timestamp.should.be.lessThan(date_after_construction);
     });
-
-
 });

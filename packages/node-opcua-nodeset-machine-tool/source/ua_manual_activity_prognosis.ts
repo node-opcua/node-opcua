@@ -12,7 +12,7 @@ import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
  * |isAbstract      |false                                             |
  */
 export interface UAManualActivityPrognosis_Base extends UAPrognosis_Base {
-    activity: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
+    activity: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
 }
 export interface UAManualActivityPrognosis extends UAPrognosis, UAManualActivityPrognosis_Base {
 }

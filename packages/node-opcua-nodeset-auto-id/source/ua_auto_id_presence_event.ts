@@ -18,7 +18,7 @@ export interface UAAutoIdPresenceEvent_Base extends UAAutoIdDiagnosticsEvent_Bas
      * presence
      * Current presence of AutoID Identifier.
      */
-    presence: UAProperty<UInt16, /*z*/DataType.UInt16>;
+    presence: UAProperty<UInt16, DataType.UInt16>;
 }
 export interface UAAutoIdPresenceEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdPresenceEvent_Base {
 }

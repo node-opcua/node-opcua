@@ -12,7 +12,7 @@ import { UANonTransparentRedundancy, UANonTransparentRedundancy_Base } from "./u
  * |isAbstract      |false                                             |
  */
 export interface UANonTransparentNetworkRedundancy_Base extends UANonTransparentRedundancy_Base {
-    serverNetworkGroups: UAProperty<DTNetworkGroup[], /*z*/DataType.ExtensionObject>;
+    serverNetworkGroups: UAProperty<DTNetworkGroup[], DataType.ExtensionObject>;
 }
 export interface UANonTransparentNetworkRedundancy extends UANonTransparentRedundancy, UANonTransparentNetworkRedundancy_Base {
 }

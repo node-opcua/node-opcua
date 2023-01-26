@@ -1,82 +1,70 @@
-<!--
-IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION WE MIGHT CLOSE YOUR ISSUE WITHOUT INVESTIGATING
--->
-
-**I'm submitting a ...**  (check one with "x")
-
-
- - ( ) bug report => search github for a similar issue or PR before submitting
- - ( ) feature request
-<!--
-      => Please do not submit support request here, instead see use 
-      - use [gitter](https://gitter.im/node-opcua/node-opcua) or [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua) for community support, or 
-      - [contact Sterfive for commercial support](https://www.sterfive.com) (contact (@) sterfive.com )
--->
- - ( ) support request 
-
-**Current behavior**
-<!-- Describe how the bug manifests. -->
-
-**Expected behavior**
-<!-- Describe what the behavior would be without the bug. -->
-
-**Minimal reproduction of the problem with instructions**
-<!--
-If the current behavior is a bug or you can illustrate your feature request better with an example, 
-please provide the *STEPS TO REPRODUCE* and if possible a *MINIMAL DEMO* of the problem.
--->
-  1. ________________
-  2. ________________
-  3. ________________
-  ...
+---
+name: NodeOPCUA Issue
+about: Create a report to help us improve
+title: 
+labels:
+assignees:
+---
 
 <!--
-Important !: Please also provide a self -contains source code of a node-opcua client and server that demonstrate the isssue
--->
-gist:
+IF YOU DON'T FILL OUT THE FOLLOWING INFORMATION, WE MIGHT CLOSE YOUR ISSUE WITHOUT INVESTIGATING
 
-  
-**What is the motivation / use case for changing the behavior?**
-<!-- Describe the motivation or the concrete use case -->
+Note: Github issues are intended to be handled by the community. 
 
-**Please tell us about your environment:**
-<!-- Operating system, opcua server or client type, package manager,  equipment , vendor info -->
+!! Please do not submit technical support requests here. !!
 
-  * ( ) my request is related to node-opcua acting as a  OPCUA CLIENT 
-  * ( )  my request is related to node-opcua acting as a OPCUA SERVER 
+Support requests are handled exclusively through the NodeOPCUA Membership program on a dedicated forum.
 
-
-  * ( ) I have installed node-opcua from source ( using git clone)
-  * ( ) I have installed node-opcua as a package ( using npm install )
-  * ( ) I am using an application that uses node-opcua 
-       - ( ) node-red
-       - ( ) other : please specify 
-        
-  * Device: _____
-  * OS version: _____
-    
-    - ( ) Windows : version : _________
-    - ( ) Linux   : version : _________
-    - ( ) MacOs   : version : _________
-    - ( ) Raspbian: version : _________
-    - ( ) Other   : specify :
-   
-   * Description of the other OPCUA system I am trying to connect to:
-   
-     - Name:_________
-     - Version:_________
-     - Manufacturer/Software vendor:_________
-     - link : https://
+Please subscribe to the **[NODE-OPCUA membership program](https://support.sterfive.com)**
      
-    
-* **node-opcua version:**  :
-<!-- provide the semver version numero of node-opca -->
-<!-- Check which is the hash of the last commit from node-opcua that you have locally -->
+                           https://support.sterfive.com
+                 
+Professional support ensures the following:
 
-* **Node:** 
-   `node --version` =
+- 🚀 Fast reply and resolution
+- 🔐 confidentiality & privacy
+- 🔍 dedicated investigation for your issue
+- 🐛 prompt resolution of bugs or issues
+- 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample)
 
-* **Typscript:** 
-   `tsc --version` =
-     
+
+You may also [contact Sterfive](https://www.sterfive.com) for dedicated professional support: mailto:contact@sterfive.com
+
+
+**Consider backing or sponsoring the node-opcua initiative** 
+
+Node-opcua is an initiative of sterfive.com.
+Sterfive is an independent company and not affiliated with any industrial or software vendors.
+Sterfive is a corporate member of the OPC Foundation.
+Sterfive needs the support of the node-opcua users to maintain a high quality level and always up-to-date technology. 
+
+Once you have evaluated node-opcua and prove it useful to your company, please consider backing us and sponsoring us.
+
+                 https://github.com/sponsors/node-opcua 
+             or 
+                 https://opencollective.com/node-opcua 
+             or
+                 contact us directly   mailto:contact@sterfive.com
+                 
+Grants ensure the following:
+
+🔨 Long term maintenance of the project
+⚙️ maintain the website and continuous integration platform
+🛣  Progress on the road-map
+🐛 Quick responses to bug reports
+🚀 New features & enhancements
+⚖️ representing the node-opcua user community at the OPC Foundation
+
+
+**for community support**
+    - use [gitter](https://gitter.im/node-opcua/node-opcua)
+    - use [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
+    - access the "NodeOPCUA by example" book at https://leanpub.com/node-opcuabyexample
+-->
+
+
+**Context**
+
+- ( ) my request is related to node-opcua acting as an OPCUA CLIENT
+- ( ) my request is related to node-opcua acting as an OPCUA SERVER
 

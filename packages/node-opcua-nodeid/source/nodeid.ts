@@ -1,9 +1,6 @@
 /**
  * @module node-opcua-nodeid
  */
-// tslint:disable:no-conditional-assignment
-import * as chalk from "chalk";
-import { isEqual } from "lodash";
 import { assert } from "node-opcua-assert";
 import {
     DataTypeIds,
@@ -14,7 +11,7 @@ import {
     VariableIds,
     VariableTypeIds
 } from "node-opcua-constants";
-import { emptyGuid, Guid, isValidGuid } from "node-opcua-guid";
+import { emptyGuid, Guid, isValidGuid, normalizeGuid } from "node-opcua-guid";
 
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.
@@ -102,6 +99,9 @@ export class NodeId {
         assert(this.identifierType !== NodeIdType.NUMERIC || (this.value !== null && this.value >= 0 && this.value <= 0xffffffff));
         assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value as string));
         assert(this.identifierType !== NodeIdType.STRING || typeof this.value === "string");
+        if (this.identifierType === NodeIdType.GUID) {
+            this.value = normalizeGuid(value as string);
+        } 
     }
 
     /**
@@ -133,7 +133,7 @@ export class NodeId {
                 str = "ns=" + this.namespace + ";s=" + this.value;
                 break;
             case NodeIdType.GUID:
-                str = "ns=" + this.namespace + ";g=" + this.value;
+                str = "ns=" + this.namespace + ";g=" + normalizeGuid(this.value as string);
                 break;
             default:
                 assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
@@ -149,7 +149,7 @@ export class NodeId {
             if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
                 // find standard browse name
                 const name = reverse_map((this.value||0).toString()) || "<undefined>";
-                str += " " + chalk.green.bold(name);
+                str += " " + name;
             } else if (addressSpace.findNode) {
                 // let use the provided address space to figure out the browseNode of this node.
                 // to make the message a little bit more useful.
@@ -212,7 +212,7 @@ export type NodeIdLike = string | NodeId | number;
 const regexNamespaceI = /ns=([0-9]+);i=([0-9]+)/;
 const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
 const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
-const regexNamespaceG = /ns=([0-9]+);g=(.*)/;
+const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
 
 /**
  * Convert a value into a nodeId:
@@ -221,12 +221,14 @@ const regexNamespaceG = /ns=([0-9]+);g=(.*)/;
  * @static
  *
  * @description:
- *    - if nodeId is a string of form : "i=1234" => nodeId({value=1234, identifierType: NodeIdType.NUMERIC})
- *    - if nodeId is a string of form : "s=foo"  => nodeId({value="foo", identifierType: NodeIdType.STRING})
+ *    - if nodeId is a string of form : "i=1234"  => nodeId({value=1234, identifierType: NodeIdType.NUMERIC})
+ *    - if nodeId is a string of form : "s=foo"   => nodeId({value="foo", identifierType: NodeIdType.STRING})
+ *    - if nodeId is a string of form : "b=ABCD=" => nodeId({value=decodeBase64("ABCD="), identifierType: NodeIdType.BYTESTRING})
  *    - if nodeId is a {@link NodeId} :  coerceNodeId returns value
  * @param value
  * @param namespace {number}
  */
+// eslint-disable-next-line max-statements
 export function coerceNodeId(value: unknown, namespace?: number): NodeId {
     let matches;
     let twoFirst;
@@ -242,21 +244,23 @@ export function coerceNodeId(value: unknown, namespace?: number): NodeId {
     if (typeof value === "string") {
         identifierType = NodeIdType.STRING;
 
-        twoFirst = value.substr(0, 2);
+        twoFirst = value.substring(0, 2);
         if (twoFirst === "i=") {
             identifierType = NodeIdType.NUMERIC;
-            value = parseInt(value.substr(2), 10);
+            value = parseInt(value.substring(2), 10);
         } else if (twoFirst === "s=") {
             identifierType = NodeIdType.STRING;
-            value = value.substr(2);
+            value = value.substring(2);
         } else if (twoFirst === "b=") {
             identifierType = NodeIdType.BYTESTRING;
-            value = Buffer.from(value.substr(2), "base64");
+            value = Buffer.from(value.substring(2), "base64");
         } else if (twoFirst === "g=") {
             identifierType = NodeIdType.GUID;
-            value = value.substr(2);
+            value = normalizeGuid(value.substring(2));
+            assert(isValidGuid(value as string));
         } else if (isValidGuid(value)) {
             identifierType = NodeIdType.GUID;
+            value = normalizeGuid(value);
         } else if ((matches = regexNamespaceI.exec(value)) !== null) {
             identifierType = NodeIdType.NUMERIC;
             namespace = parseInt(matches[1], 10);
@@ -272,7 +276,7 @@ export function coerceNodeId(value: unknown, namespace?: number): NodeId {
         } else if ((matches = regexNamespaceG.exec(value)) !== null) {
             identifierType = NodeIdType.GUID;
             namespace = parseInt(matches[1], 10);
-            value = matches[2];
+            value =normalizeGuid(matches[2]);
         } else {
             throw new Error("String cannot be coerced to a nodeId : " + value);
         }
@@ -313,6 +317,7 @@ export function makeNodeId(value: string | Buffer | number, namespace?: number):
         // "72962B91-FA75-4AE6-8D28-B404DC7DAF63"
         if (isValidGuid(value)) {
             identifierType = NodeIdType.GUID;
+            value = normalizeGuid(value);
         } else {
             identifierType = NodeIdType.STRING;
         }
@@ -387,9 +392,12 @@ export function sameNodeId(n1: NodeId, n2: NodeId): boolean {
     switch (n1.identifierType) {
         case NodeIdType.NUMERIC:
         case NodeIdType.STRING:
+        case NodeIdType.GUID:
             return n1.value === n2.value;
+        case NodeIdType.BYTESTRING:
+            return (n1.value as Buffer).toString("hex") === (n2.value as Buffer).toString("hex");
         default:
-            return isEqual(n1.value, n2.value);
+            throw new Error("Invalid identifier type");
     }
 }
 NodeId.sameNodeId = sameNodeId;

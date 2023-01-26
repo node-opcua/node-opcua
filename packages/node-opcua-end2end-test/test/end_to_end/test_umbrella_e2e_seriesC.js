@@ -3,7 +3,7 @@
 /* global: describe, require */
 const should = require("should");
 
-const port = 1998;
+const port = 2522;
 const { beforeTest, afterTest, beforeEachTest, afterEachTest } = require("./_helper_umbrella");
 
 // eslint-disable-next-line import/order

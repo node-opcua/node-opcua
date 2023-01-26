@@ -8,7 +8,6 @@ import { UAStream, UAStream_Base } from "./ua_stream"
  * |typedDefinition |2:MNRDeviceStreamType ns=2;i=1035                 |
  * |isAbstract      |false                                             |
  */
-export interface UAMNRDeviceStream_Base extends UAStream_Base {
-}
+export type UAMNRDeviceStream_Base = UAStream_Base;
 export interface UAMNRDeviceStream extends UAStream, UAMNRDeviceStream_Base {
 }

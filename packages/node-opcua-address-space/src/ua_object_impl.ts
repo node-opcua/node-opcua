@@ -27,25 +27,40 @@ import {
     UAEventType,
     IEventData,
     defaultCloneFilter,
-    defaultCloneExtraInfo
+    defaultCloneExtraInfo,
+    EventNotifierFlags
 } from "node-opcua-address-space-base";
+import { make_errorLog } from "node-opcua-debug";
 
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone, ToStringBuilder, UAObject_toString } from "./base_node_private";
 import { apply_condition_refresh, ConditionRefreshCache } from "./apply_condition_refresh";
 
+const errorLog = make_errorLog(__filename);
+
 export class UAObjectImpl extends BaseNodeImpl implements UAObject {
+    private _eventNotifier: EventNotifierFlags;
     public readonly nodeClass = NodeClass.Object;
-    public readonly eventNotifier: number;
+    public get eventNotifier(): EventNotifierFlags {
+        return this._eventNotifier;
+    }
     public readonly symbolicName: string | null;
 
     get typeDefinitionObj(): UAObjectType {
+        // istanbul ignore next
+        if (super.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
+            const msg = `Invalid type definition node class , expecting a ObjectType got ${
+                NodeClass[super.typeDefinitionObj.nodeClass]
+            }\n${this.browseName.toString()} ${this.nodeId.toString()}`;
+            errorLog(msg);
+            throw new Error(msg);
+        }
         return super.typeDefinitionObj as UAObjectType;
     }
 
     constructor(options: InternalBaseNodeOptions & { eventNotifier?: number; symbolicName?: string | null }) {
         super(options);
-        this.eventNotifier = options.eventNotifier || 0;
+        this._eventNotifier = options.eventNotifier || EventNotifierFlags.None;
         assert(typeof this.eventNotifier === "number" && isValidByte(this.eventNotifier));
         this.symbolicName = options.symbolicName || null;
     }
@@ -75,7 +90,6 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     }
 
     public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAObject {
-        options = options || {};
         options = {
             ...options,
             eventNotifier: this.eventNotifier,
@@ -109,6 +123,10 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
 
     public getMethods(): UAMethod[] {
         return super.getMethods();
+    }
+
+    public setEventNotifier(eventNotifierFlags: EventNotifierFlags): void {
+        this._eventNotifier = eventNotifierFlags;
     }
 
     /**
@@ -148,7 +166,6 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
         // coerce EventType
         eventTypeNode = addressSpace.findEventType(eventType as UAEventType) as UAEventType;
         const baseEventType = addressSpace.findEventType("BaseEventType")!;
-        assert(eventTypeNode.isSupertypeOf(baseEventType));
 
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = data.sourceNode || { dataType: DataType.NodeId, value: this.nodeId };

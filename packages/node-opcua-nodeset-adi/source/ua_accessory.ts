@@ -20,12 +20,12 @@ export interface UAAccessory_Base extends UATopologyElement_Base {
      * True if this accessory can be inserted in the
      * accessory slot while it is powered
      */
-    isHotSwappable: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isHotSwappable: UAProperty<boolean, DataType.Boolean>;
     /**
      * isReady
      * True if this accessory is ready for use
      */
-    isReady: UAProperty<boolean, /*z*/DataType.Boolean>;
+    isReady: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAAccessory extends UATopologyElement, UAAccessory_Base {
 }

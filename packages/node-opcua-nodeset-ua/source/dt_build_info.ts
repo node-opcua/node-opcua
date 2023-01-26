@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -9,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |BuildInfo                                         |
  * | isAbstract|false                                             |
  */
-export interface DTBuildInfo extends DTStructure  {
+export interface DTBuildInfo extends DTStructure {
   productUri: UAString; // String ns=0;i=12
   manufacturerName: UAString; // String ns=0;i=12
   productName: UAString; // String ns=0;i=12
@@ -17,3 +18,4 @@ export interface DTBuildInfo extends DTStructure  {
   buildNumber: UAString; // String ns=0;i=12
   buildDate: Date; // DateTime ns=0;i=294
 }
+export interface UDTBuildInfo extends ExtensionObject, DTBuildInfo {};

@@ -1,9 +1,7 @@
 "use strict";
 
-const secure_channel_service = require("$node-opcua/services/secure_channel_service");
-const OpenSecureChannelRequest = secure_channel_service.OpenSecureChannelRequest;
+const { OpenSecureChannelRequest, MessageSecurityMode, SecurityTokenRequestType } = require("node-opcua-types");
 require("should");
-
 
 exports.fixture1 = (function () {
     // empty  GetEndpointsResponse
@@ -13,10 +11,9 @@ exports.fixture1 = (function () {
 
     return new OpenSecureChannelRequest({
         clientProtocolVersion: 0,
-        requestType: secure_channel_service.SecurityTokenRequestType.Issue,
-        securityMode: secure_channel_service.MessageSecurityMode.None,
+        requestType: SecurityTokenRequestType.Issue,
+        securityMode: MessageSecurityMode.None,
         clientNonce: zeroNonce,
         requestedLifetime: 300000
     });
-
 })();

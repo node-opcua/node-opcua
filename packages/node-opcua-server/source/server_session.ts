@@ -6,6 +6,7 @@
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
 
+import { assert } from "node-opcua-assert";
 import {
     addElement,
     AddressSpace,
@@ -19,14 +20,15 @@ import {
     UASessionDiagnosticsVariable,
     UASessionSecurityDiagnostics,
     DTSessionDiagnostics,
-    DTSessionSecurityDiagnostics
+    DTSessionSecurityDiagnostics,
+    SessionContext,
+    IUserManager
 } from "node-opcua-address-space";
-
-import { assert } from "node-opcua-assert";
+import { ISessionContext } from "node-opcua-address-space-base";
 import { minOPCUADate, randomGuid } from "node-opcua-basic-types";
 import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { QualifiedName, NodeClass } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { makeNodeId, NodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -43,17 +45,13 @@ import { SubscriptionState } from "./server_subscription";
 import { ServerEngine } from "./server_engine";
 
 const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+
 const theWatchDog = new WatchDog();
 
 const registeredNodeNameSpace = 9999;
 
-function compareSessionId(
-    sessionDiagnostics1: SessionDiagnosticsDataType | SessionSecurityDiagnosticsDataType,
-    sessionDiagnostics2: SessionDiagnosticsDataType | SessionSecurityDiagnosticsDataType
-) {
-    return sessionDiagnostics1.sessionId.toString() === sessionDiagnostics2.sessionId.toString();
-}
 
 function on_channel_abort(this: ServerSession) {
     debugLog("ON CHANNEL ABORT ON  SESSION!!!");
@@ -70,6 +68,7 @@ interface SessionSecurityDiagnosticsDataTypeEx extends SessionSecurityDiagnostic
     $session: any;
 }
 
+export type SessionStatus = "new" | "active" | "screwed" | "disposed" | "closed";
 /**
  *
  * A Server session object.
@@ -97,7 +96,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public static registry = new ObjectRegistry();
     public static maxPublishRequestInQueue = 100;
 
-    public __status = "";
+    public __status: SessionStatus = "new";
     public parent: ServerEngine;
     public authenticationToken: NodeId;
     public nodeId: NodeId;
@@ -116,6 +115,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public clientDescription?: ApplicationDescription;
     public channelId?: number | null;
     public continuationPointManager: ContinuationPointManager;
+    public sessionContext: ISessionContext;
 
     // ISubscriber
     public _watchDog?: WatchDog;
@@ -131,12 +131,17 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     private channel_abort_event_handler: any;
 
-    constructor(parent: ServerEngine, sessionTimeout: number) {
+    constructor(parent: ServerEngine, userManager: IUserManager, sessionTimeout: number) {
         super();
 
         this.parent = parent; // SessionEngine
 
         ServerSession.registry.register(this);
+
+        this.sessionContext = new SessionContext({
+            session: this,
+            server: { userManager }
+        });
 
         assert(isFinite(sessionTimeout));
         assert(sessionTimeout >= 0, " sessionTimeout");
@@ -224,17 +229,20 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * the first transaction is the creation of the session
      */
     public get clientLastContactTime(): number {
-        const lastSeen =  this._watchDogData ? this._watchDogData.lastSeen : minOPCUADate.getTime();
+        const lastSeen = this._watchDogData ? this._watchDogData.lastSeen : minOPCUADate.getTime();
         return WatchDog.lastSeenToDuration(lastSeen);
     }
 
-    public get status(): string {
+    public get status(): SessionStatus {
         return this.__status;
     }
 
-    public set status(value: string) {
+    public set status(value: SessionStatus) {
         if (value === "active") {
             this._createSessionObjectInAddressSpace();
+        }
+        if (this.__status !== value) {
+            this.emit("statusChanged", value);
         }
         this.__status = value;
     }
@@ -299,11 +307,11 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     public incrementRequestTotalCounter(counterName: string): void {
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
+            // istanbul ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
-                console.log(" cannot find", propName);
+                errorLog("incrementRequestTotalCounter: cannot find", propName);
                 // xx return;
             } else {
-                //   console.log(self._sessionDiagnostics.toString());
                 (this._sessionDiagnostics as any)[propName].totalCount += 1;
             }
         }
@@ -313,8 +321,9 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         this.parent?.incrementRejectedRequestsCount();
         if (this._sessionDiagnostics) {
             const propName = lowerFirstLetter(counterName + "Count");
+            // istanbul ignore next
             if (!Object.prototype.hasOwnProperty.call(this._sessionDiagnostics, propName)) {
-                console.log(" cannot find", propName);
+                errorLog("incrementRequestErrorCounter: cannot find", propName);
                 // xx  return;
             } else {
                 (this._sessionDiagnostics as any)[propName].errorCount += 1;
@@ -428,7 +437,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         if (!deleteSubscriptions && this.currentSubscriptionCount !== 0) {
             // I don't know what to do yet if deleteSubscriptions is false
-            console.log("TO DO : Closing session without deleting subscription not yet implemented");
+            errorLog("TO DO : Closing session without deleting subscription not yet implemented");
             // to do: Put subscriptions in safe place for future transfer if any
         }
 
@@ -440,7 +449,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.currentSubscriptionCount === 0);
 
         this.status = "closed";
-        
+
         this._detach_channel();
 
         /**
@@ -555,10 +564,10 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
     public _detach_channel(): void {
         const channel = this.channel;
-        
+
         // istanbul ignore next
         if (!channel) {
-            return; 
+            return;
             // already detached !
             // throw new Error("expecting a valid channel");
         }
@@ -593,9 +602,8 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         const subscriptionDiagnostics = subscription.subscriptionDiagnostics;
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
         if (subscriptionDiagnostics && subscriptionDiagnosticsArray) {
-            // console.log("GG => ServerSession **Unexposing** subscription diagnostics =>",
             // subscription.id,"on session", session.nodeId.toString());
-            removeElement(subscriptionDiagnosticsArray, subscriptionDiagnostics);
+            removeElement(subscriptionDiagnosticsArray, (a) => a.subscriptionId === subscription.id);
         }
         debugLog("ServerSession#_unexposeSubscriptionDiagnostics");
     }
@@ -679,13 +687,13 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionId", {
                     get(this: SessionDiagnosticsDataTypeEx) {
-                        return this.$session?.nodeId;
+                        return this.$session ? this.$session.nodeId : NodeId.nullNodeId;
                     }
                 });
 
                 Object.defineProperty(this._sessionDiagnostics, "sessionName", {
                     get(this: SessionDiagnosticsDataTypeEx) {
-                        return this.$session?.sessionName.toString();
+                        return this.$session ? this.$session.sessionName.toString() : "";
                     }
                 });
 
@@ -840,6 +848,12 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         return this.sessionObject;
     }
 
+    public async resendMonitoredItemInitialValues(): Promise<void> {
+        for (const subscription of this.publishEngine.subscriptions) {
+            await subscription.resendInitialValues();
+        }
+    }
+
     /**
      *
      * @private
@@ -852,8 +866,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         }
         if (this.sessionDiagnostics) {
             const sessionDiagnosticsArray = this.getSessionDiagnosticsArray()!;
-            removeElement(sessionDiagnosticsArray, this.sessionDiagnostics.$extensionObject);
-
+            removeElement(sessionDiagnosticsArray, (a) => sameNodeId(a.sessionId, this.getSessionId()));
             this.addressSpace.deleteNode(this.sessionDiagnostics);
 
             assert(this._sessionDiagnostics!.$session === this);
@@ -865,7 +878,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
 
         if (this.sessionSecurityDiagnostics) {
             const sessionSecurityDiagnosticsArray = this.getSessionSecurityDiagnosticsArray()!;
-            removeElement(sessionSecurityDiagnosticsArray, this.sessionSecurityDiagnostics.$extensionObject);
+            removeElement(sessionSecurityDiagnosticsArray, (a) => sameNodeId(a.sessionId, this.getSessionId()));
 
             this.addressSpace.deleteNode(this.sessionSecurityDiagnostics);
 
@@ -907,8 +920,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(this.nodeId instanceof NodeId);
 
         subscription.$session = this;
-
-        subscription.sessionId = this.nodeId;
+        assert(subscription.sessionId === this.nodeId);
 
         this._cumulatedSubscriptionCount += 1;
 

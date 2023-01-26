@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { Int64, UAString } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTEnumValue } from "./dt_enum_value"
 /**
  * |           |                                                  |
@@ -10,9 +11,10 @@ import { DTEnumValue } from "./dt_enum_value"
  * | name      |EnumField                                         |
  * | isAbstract|false                                             |
  */
-export interface DTEnumField extends DTEnumValue  {
+export interface DTEnumField extends DTEnumValue {
   value: Int64; // Int64 ns=0;i=8
   displayName: LocalizedText; // LocalizedText ns=0;i=21
   description: LocalizedText; // LocalizedText ns=0;i=21
   name: UAString; // String ns=0;i=12
 }
+export interface UDTEnumField extends ExtensionObject, DTEnumField {};

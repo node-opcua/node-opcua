@@ -31,7 +31,7 @@ import {
     defaultCloneFilter,
     defaultCloneExtraInfo
 } from "node-opcua-address-space-base";
-import { SessionContext } from "../source";
+import { SessionContext } from "../source/session_context";
 import { _clone } from "./base_node_private";
 import { _handle_hierarchy_parent } from "./namespace_impl";
 import { BaseNodeImpl } from "./base_node_impl";
@@ -85,7 +85,13 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         }
         return true;
     }
-
+    public getUserExecutableFlag(context: ISessionContext | null): boolean {
+        if (context && !context.checkPermission(this, PermissionType.Call)) {
+            return false;
+        }
+        if (!this.getExecutableFlag(context)) return false;
+        return true;
+    }
     /**
      *
      * @returns  true if the method is bound
@@ -107,7 +113,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                 options.statusCode = StatusCodes.Good;
                 break;
             case AttributeIds.UserExecutable:
-                options.value = { dataType: DataType.Boolean, value: this.getExecutableFlag(context) };
+                options.value = { dataType: DataType.Boolean, value: this.getUserExecutableFlag(context) };
                 options.statusCode = StatusCodes.Good;
                 break;
             default:

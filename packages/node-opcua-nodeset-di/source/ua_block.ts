@@ -22,30 +22,30 @@ export interface UABlock_Base extends UATopologyElement_Base {
      * times the static data within the Block has been
      * modified
      */
-    revisionCounter?: UAProperty<Int32, /*z*/DataType.Int32>;
+    revisionCounter?: UAProperty<Int32, DataType.Int32>;
     /**
      * actualMode
      * Current mode of operation the Block is able to
      * achieve
      */
-    actualMode?: UAProperty<LocalizedText, /*z*/DataType.LocalizedText>;
+    actualMode?: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * permittedMode
      * Modes of operation that are allowed for the Block
      * based on application requirements
      */
-    permittedMode?: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
+    permittedMode?: UAProperty<LocalizedText[], DataType.LocalizedText>;
     /**
      * normalMode
      * Mode the Block should be set to during normal
      * operating conditions
      */
-    normalMode?: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
+    normalMode?: UAProperty<LocalizedText[], DataType.LocalizedText>;
     /**
      * targetMode
      * Mode of operation that is desired for the Block
      */
-    targetMode?: UAProperty<LocalizedText[], /*z*/DataType.LocalizedText>;
+    targetMode?: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
 export interface UABlock extends UATopologyElement, UABlock_Base {
 }

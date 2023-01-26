@@ -1,5 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UInt32 } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
  * |           |                                                  |
@@ -9,7 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |ServerDiagnosticsSummaryDataType                  |
  * | isAbstract|false                                             |
  */
-export interface DTServerDiagnosticsSummary extends DTStructure  {
+export interface DTServerDiagnosticsSummary extends DTStructure {
   serverViewCount: UInt32; // UInt32 ns=0;i=7
   currentSessionCount: UInt32; // UInt32 ns=0;i=7
   cumulatedSessionCount: UInt32; // UInt32 ns=0;i=7
@@ -23,3 +24,4 @@ export interface DTServerDiagnosticsSummary extends DTStructure  {
   securityRejectedRequestsCount: UInt32; // UInt32 ns=0;i=7
   rejectedRequestsCount: UInt32; // UInt32 ns=0;i=7
 }
+export interface UDTServerDiagnosticsSummary extends ExtensionObject, DTServerDiagnosticsSummary {};

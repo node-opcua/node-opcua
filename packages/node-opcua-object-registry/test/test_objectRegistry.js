@@ -1,5 +1,5 @@
 const should = require("should");
-const ObjectRegistry = require("..").ObjectRegistry;
+const { ObjectRegistry } = require("..");
 
 describe("testing ObjectRegistry", function () {
     let oldValue = null;

@@ -7,6 +7,7 @@
 Error.stackTraceLimit = Infinity;
 const path = require("path");
 
+const { spawn } = require("child_process");
 const sinon = require("sinon");
 const should = require("should");
 const async = require("async");
@@ -25,7 +26,6 @@ const {
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const { createServerCertificateManager } = require("../test_helpers/createServerCertificateManager");
 
-
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -39,7 +39,7 @@ describe("testing Server resilience to DDOS attacks", function () {
     let server;
     let endpointUrl;
     const maxConnectionsPerEndpoint = 3;
-    const maxAllowedSessionNumber = 10000; // almost no limits
+    const maxSessions = 10000; // almost no limits
 
     let clients = [];
     let sessions = [];
@@ -60,8 +60,10 @@ describe("testing Server resilience to DDOS attacks", function () {
         server = new OPCUAServer({
             port,
             serverCertificateManager,
-            maxConnectionsPerEndpoint: maxConnectionsPerEndpoint,
-            maxAllowedSessionNumber: maxAllowedSessionNumber
+            maxConnectionsPerEndpoint,
+            serverCapabilities: {
+                maxSessions
+            }
             //xx nodeset_filename: empty_nodeset_filename
         });
 
@@ -418,7 +420,6 @@ describe("testing Server resilience to DDOS attacks", function () {
         function create_crashing_client(callback) {
             counter++;
             console.log(" ------------------------------------------------------------ > create_a_faulty_client");
-            const spawn = require("child_process").spawn;
             const server_script = path.join(__dirname, "../test_helpers/crashing_client");
             const options = {};
             const server_exec = spawn("node", [server_script, port], options);

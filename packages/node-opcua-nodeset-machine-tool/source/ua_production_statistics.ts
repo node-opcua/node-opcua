@@ -12,7 +12,7 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |isAbstract      |false                                             |
  */
 export interface UAProductionStatistics_Base {
-    partsProducedInLifetime?: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+    partsProducedInLifetime?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 export interface UAProductionStatistics extends UAObject, UAProductionStatistics_Base {
 }

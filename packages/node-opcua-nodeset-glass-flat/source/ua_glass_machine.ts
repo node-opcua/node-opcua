@@ -1,11 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAMachineComponents } from "node-opcua-nodeset-machinery/source/ua_machine_components"
+import { EnumCoordinateSystem } from "./enum_coordinate_system"
 import { DTUserProfile } from "./dt_user_profile"
 import { UAConfigurationRules } from "./ua_configuration_rules"
 import { UAGlassMachineIdentification } from "./ua_glass_machine_identification"

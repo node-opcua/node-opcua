@@ -8,7 +8,6 @@ import { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_ev
  * |typedDefinition |13:EmergencyButtonPressedEventType ns=13;i=1038   |
  * |isAbstract      |true                                              |
  */
-export interface UAEmergencyButtonPressedEvent_Base extends UAInterruptedEvent_Base {
-}
+export type UAEmergencyButtonPressedEvent_Base = UAInterruptedEvent_Base;
 export interface UAEmergencyButtonPressedEvent extends UAInterruptedEvent, UAEmergencyButtonPressedEvent_Base {
 }

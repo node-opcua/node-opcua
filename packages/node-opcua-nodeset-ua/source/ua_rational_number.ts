@@ -13,9 +13,9 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |DTRationalNumber ns=0;i=18806                     |
  * |isAbstract      |false                                             |
  */
-export interface UARationalNumber_Base<T extends DTRationalNumber/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    numerator: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
-    denominator: UABaseDataVariable<UInt32, /*z*/DataType.UInt32>;
+export interface UARationalNumber_Base<T extends DTRationalNumber>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    numerator: UABaseDataVariable<Int32, DataType.Int32>;
+    denominator: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
-export interface UARationalNumber<T extends DTRationalNumber/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UARationalNumber_Base<T /*B*/> {
+export interface UARationalNumber<T extends DTRationalNumber> extends UABaseDataVariable<T, DataType.ExtensionObject>, UARationalNumber_Base<T> {
 }

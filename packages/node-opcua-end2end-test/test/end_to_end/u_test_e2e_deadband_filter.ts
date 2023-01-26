@@ -1,5 +1,6 @@
 // tslint:disable: no-shadowed-variable
 // tslint:disable: no-console
+import "should";
 import {
     AddressSpace,
     assert,
@@ -106,13 +107,13 @@ async function writeValue(session: ClientSession, nodeId: NodeIdLike, value: num
 async function readVariableRange(session: ClientSession, nodeId: NodeIdLike): Promise<Range> {
     const browsePath = makeBrowsePath(nodeId, ".EURange");
     const result = await session.translateBrowsePath(browsePath);
-    if (!result.targets || result.statusCode !== StatusCodes.Good) {
+    if (!result.targets || result.statusCode.isNotGood()) {
         return defaultRange;
     }
     const euRangeNodeId = result.targets[0].targetId;
 
     const dataValue = await session.read({ nodeId: euRangeNodeId, attributeId: AttributeIds.Value });
-    if (dataValue.statusCode !== StatusCodes.Good) {
+    if (dataValue.statusCode.isNotGood()) {
         return defaultRange;
     }
     return dataValue.value.value as Range;
@@ -471,10 +472,10 @@ export function t(test: any) {
             notifiedValues1[3].value = values[4];
 
             // 4 in the queue => Oldest has been discarded !
-            notifiedValues1[0].statusCode.toString().should.eql("Good#InfoTypeDataValue|Overflow (0x0000480)");
-            notifiedValues1[1].statusCode.toString().should.eql("Good (0x00000)");
-            notifiedValues1[2].statusCode.toString().should.eql("Good (0x00000)");
-            notifiedValues1[3].statusCode.toString().should.eql("Good (0x00000)");
+            notifiedValues1[0].statusCode.toString().should.eql("Good#InfoTypeDataValue|Overflow (0x00000480)");
+            notifiedValues1[1].statusCode.toString().should.eql("Good (0x00000000)");
+            notifiedValues1[2].statusCode.toString().should.eql("Good (0x00000000)");
+            notifiedValues1[3].statusCode.toString().should.eql("Good (0x00000000)");
 
             // now send value that are within dead band
             const currentValue1 = await readCurrentValue(session, nodeId);

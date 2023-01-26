@@ -12,6 +12,7 @@
      { "path": "../node-opcua-address-space-base" },
      { "path": "../node-opcua-basic-types" },
      { "path": "../node-opcua-data-model" },
+     { "path": "../node-opcua-extension-object" },
      { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-nodeset-ua" },
      { "path": "../node-opcua-status-code" },

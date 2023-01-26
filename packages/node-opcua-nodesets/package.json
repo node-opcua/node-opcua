@@ -3,11 +3,11 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "browser": "./index_web.js",
-    "version": "2.64.1",
+    "version": "2.88.0",
     "description": "pure nodejs OPCUA SDK - module -nodesets",
     "scripts": {
         "build": "tsc -b",
-        "clean": "node -e \"require('rimraf').sync('dist');\"",
+        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "echo no test"
     },
     "author": "Etienne Rossignon",

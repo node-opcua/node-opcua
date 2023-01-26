@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UAUIElement } from "./ua_ui_element"
 /**
@@ -15,6 +15,7 @@ import { UAUIElement } from "./ua_ui_element"
  * |isAbstract      |false                                             |
  */
 export interface UAFunctionalGroup_Base extends UAFolder_Base {
+   // PlaceHolder for $GroupIdentifier$
     /**
      * uiElement
      * A user interface element assigned to this group.

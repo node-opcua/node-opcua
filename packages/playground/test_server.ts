@@ -9,8 +9,11 @@ import {
     RegisterServerMethod,
     Request,
     Response,
-    makeBoiler
 } from "node-opcua";
+import {
+    makeBoiler
+} from "../node-opcua-address-space/testHelpers";
+
 async function main() {
     try {
         const server = new OPCUAServer({

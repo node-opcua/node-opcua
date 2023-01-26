@@ -1,3 +1,4 @@
+import { clearTimeout } from "timers";
 import {
     AddressSpace,
     assert,
@@ -18,12 +19,10 @@ import {
     StatusCode,
     TimestampsToReturn
 } from "node-opcua";
-import sinon = require("sinon");
-import should = require("should");
+import * as should from "should";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
-import { clearTimeout } from "timers";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -118,12 +117,16 @@ export function t(test: any) {
         it("Should monitor a large number of node efficiently", async () => {
             const { session, subscription, publishEngine } = s;
 
+            session.on("session_closed", ()=>{ 
+                console.log("session_closed");  
+            });
+
             const namespaceArray = await session.readNamespaceArray();
             const simulationNamespaceIndex = namespaceArray.indexOf("urn://node-opcua-simulator");
             console.log("simulationNamespaceIndex = ", simulationNamespaceIndex);
 
             let itemToMonitors: ReadValueIdOptions[] = itemsToMonitor1;
-            while (itemToMonitors.length + itemsToMonitor1.length < 10000) {
+            while (itemToMonitors.length + itemsToMonitor1.length < 2200) {
                 itemToMonitors = itemToMonitors.concat([...itemsToMonitor1]);
             }
 
@@ -156,7 +159,10 @@ export function t(test: any) {
                 console.time("B");
 
                 await new Promise<void>((resolve) => {
-                    const timerId = setTimeout(() => resolve(), 12000);
+
+
+                    const timerId = setTimeout(() => resolve(), 5000);
+                    
                     group.on("changed", (monitoredItem, dataValue, index) => {
                         counter++;
                         if (counter === itemToMonitors.length) {

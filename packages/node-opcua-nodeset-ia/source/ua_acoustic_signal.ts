@@ -18,7 +18,7 @@ export interface UAAcousticSignal_Base {
      * Contains the audio data, e.g. for devices capable
      * of audio playback.
      */
-    audioSample?: UABaseDataVariable<Buffer, /*z*/DataType.ByteString>;
+    audioSample?: UABaseDataVariable<Buffer, DataType.ByteString>;
     /**
      * numberInList
      * Enumerate the acoustic signals. Instances of

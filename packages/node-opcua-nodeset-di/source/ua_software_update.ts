@@ -26,9 +26,9 @@ export interface UASoftwareUpdate_Base {
     powerCycle?: UAPowerCycleStateMachine;
     confirmation?: UAConfirmationStateMachine;
     parameters?: UATemporaryFileTransfer;
-    updateStatus?: UABaseDataVariable<LocalizedText, /*z*/DataType.LocalizedText>;
-    vendorErrorCode?: UABaseDataVariable<Int32, /*z*/DataType.Int32>;
-    defaultInstanceBrowseName: UAProperty<QualifiedName, /*z*/DataType.QualifiedName>;
+    updateStatus?: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    vendorErrorCode?: UABaseDataVariable<Int32, DataType.Int32>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
 }
 export interface UASoftwareUpdate extends UAObject, UASoftwareUpdate_Base {
 }

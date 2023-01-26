@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |FilterOperand                                     |
  * | isAbstract|false                                             |
  */
-export interface DTFilterOperand extends DTStructure  {
-}
+export type DTFilterOperand = DTStructure;

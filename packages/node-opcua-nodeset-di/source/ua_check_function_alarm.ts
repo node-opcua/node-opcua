@@ -8,7 +8,6 @@ import { UADeviceHealthDiagnosticAlarm, UADeviceHealthDiagnosticAlarm_Base } fro
  * |typedDefinition |1:CheckFunctionAlarmType ns=1;i=15441             |
  * |isAbstract      |false                                             |
  */
-export interface UACheckFunctionAlarm_Base extends UADeviceHealthDiagnosticAlarm_Base {
-}
+export type UACheckFunctionAlarm_Base = UADeviceHealthDiagnosticAlarm_Base;
 export interface UACheckFunctionAlarm extends UADeviceHealthDiagnosticAlarm, UACheckFunctionAlarm_Base {
 }

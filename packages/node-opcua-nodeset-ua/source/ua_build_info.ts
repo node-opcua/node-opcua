@@ -13,13 +13,13 @@ import { DTBuildInfo } from "./dt_build_info"
  * |dataType Name   |DTBuildInfo ns=0;i=338                            |
  * |isAbstract      |false                                             |
  */
-export interface UABuildInfo_Base<T extends DTBuildInfo/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    productUri: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    manufacturerName: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    productName: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    softwareVersion: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    buildNumber: UABaseDataVariable<UAString, /*z*/DataType.String>;
-    buildDate: UABaseDataVariable<Date, /*z*/DataType.DateTime>;
+export interface UABuildInfo_Base<T extends DTBuildInfo>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    productUri: UABaseDataVariable<UAString, DataType.String>;
+    manufacturerName: UABaseDataVariable<UAString, DataType.String>;
+    productName: UABaseDataVariable<UAString, DataType.String>;
+    softwareVersion: UABaseDataVariable<UAString, DataType.String>;
+    buildNumber: UABaseDataVariable<UAString, DataType.String>;
+    buildDate: UABaseDataVariable<Date, DataType.DateTime>;
 }
-export interface UABuildInfo<T extends DTBuildInfo/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UABuildInfo_Base<T /*B*/> {
+export interface UABuildInfo<T extends DTBuildInfo> extends UABaseDataVariable<T, DataType.ExtensionObject>, UABuildInfo_Base<T> {
 }

@@ -4,7 +4,7 @@
         "composite": true,
         "incremental": true,
         "rootDir": ".",
-        "outDir": "./dist",
+        "outDir": "./dist"
     },
     "references": [
         {
@@ -12,6 +12,58 @@
         },
         {
             "path": "./tsconfig_nodejs.json"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-client-dynamic-extension-object"
+        },
+        {
+            "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-constants"
+        },
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-nodesets"
+        },
+        {
+            "path": "../node-opcua-numeric-range"
+        },
+        {
+            "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
+        {
+            "path": "../node-opcua-variant"
+        },
+        {
+            "path": "../node-opcua-leak-detector"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+
+        {
+            "path": "../node-opcua-schemas"
+        },
+        {
+            "path": "../node-opcua-status-code"
         }
     ],
     "include": [],

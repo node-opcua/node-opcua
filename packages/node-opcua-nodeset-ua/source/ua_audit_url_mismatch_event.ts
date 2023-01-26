@@ -12,7 +12,7 @@ import { UAAuditCreateSessionEvent, UAAuditCreateSessionEvent_Base } from "./ua_
  * |isAbstract      |true                                              |
  */
 export interface UAAuditUrlMismatchEvent_Base extends UAAuditCreateSessionEvent_Base {
-    endpointUrl: UAProperty<UAString, /*z*/DataType.String>;
+    endpointUrl: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditUrlMismatchEvent extends UAAuditCreateSessionEvent, UAAuditUrlMismatchEvent_Base {
 }

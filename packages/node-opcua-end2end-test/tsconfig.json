@@ -87,6 +87,9 @@
         },
         {
             "path": "../node-opcua-variant"
+        },
+        {
+            "path": "../node-opcua-client-crawler"
         }
     ],
     "exclude": ["node_modules", "dist"]

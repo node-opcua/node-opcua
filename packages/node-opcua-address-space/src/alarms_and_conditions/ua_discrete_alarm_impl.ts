@@ -4,52 +4,11 @@
 import { assert } from "node-opcua-assert";
 import { NodeId } from "node-opcua-nodeid";
 import { UADiscreteAlarm, UADiscreteAlarm_Base } from "node-opcua-nodeset-ua";
-import { INamespace, UAEventType } from "../../source";
-import { UAAlarmConditionEx, UAAlarmConditionHelper, UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
-
-export interface UADiscreteAlarmHelper extends UAAlarmConditionHelper {
-    on(eventName: string, eventHandle: any): this;
-}
-export interface UADiscreteAlarmEx
-    extends UAAlarmConditionEx,
-        Omit<
-            UADiscreteAlarm_Base,
-            | "suppressedState"
-            | "silenceState"
-            | "shelvingState"
-            | "outOfServiceState"
-            | "latchedState"
-            | "confirmedState"
-            | "ackedState"
-            | "comfirmedState"
-            | "activeState"
-            | "enabledState"
-        >,
-        UADiscreteAlarmHelper {}
-/*=
- *      +----------------------+
- *      | UAAlarmCondition     |
- *      +----------------------+
- *               ^
- *               |
- *      +--------+---------+
- *      | UADiscreteAlarm  |
- *      +------------------+
- *               ^
- *               |
- *      +--------+---------+
- *      | UAOffNormalAlarm |
- *      +------------------+
- *               ^
- *               |
- *      +--------+---------+
- *      |   UATripAlarm    |
- *      +------------------+
- *
- *
- *
- */
-
+import { VariantOptions } from "node-opcua-variant";
+import { INamespace, UAEventType } from "node-opcua-address-space-base";
+import { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
+import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
+import { UAAlarmConditionImpl } from "./ua_alarm_condition_impl";
 /**
  * The DiscreteAlarmType is used to classify Types into Alarm Conditions where the input for the
  * Alarm may take on only a certain number of possible values (e.g. true/false,
@@ -59,8 +18,8 @@ export class UADiscreteAlarmImpl extends UAAlarmConditionImpl implements UADiscr
     public static instantiate(
         namespace: INamespace,
         discreteAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UADiscreteAlarmImpl {
         const addressSpace = namespace.addressSpace;
 

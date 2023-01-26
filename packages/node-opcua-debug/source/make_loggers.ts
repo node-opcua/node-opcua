@@ -43,7 +43,7 @@ function extractBasename(name: string): string {
 }
 
 function w(str: string, l: number): string {
-    return (str + "                                                                ").substr(0, l);
+    return str.padEnd(l," ").substring(0, l);
 }
 
 export function setDebugFlag(scriptFullPath: string, flag: boolean): void {
@@ -71,7 +71,7 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
  * @param callerLine
  */
 function file_line(mode: "E" | "D" | "W", filename: string, callerLine: number): string {
-    const d = new Date().toISOString().substr(11);
+    const d = new Date().toISOString().substring(11);
     if (mode === "W") {
         return chalk.bgCyan.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
     } else if (mode === "D") {

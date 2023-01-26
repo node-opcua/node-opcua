@@ -18,12 +18,12 @@ import { UAOrientation } from "./ua_orientation"
  * |dataType Name   |DTFrame ns=0;i=18813                              |
  * |isAbstract      |true                                              |
  */
-export interface UAFrame_Base<T extends DTFrame/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
+export interface UAFrame_Base<T extends DTFrame>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     cartesianCoordinates: UACartesianCoordinates<DTCartesianCoordinates>;
     orientation: UAOrientation<DTOrientation>;
-    constant?: UAProperty<boolean, /*z*/DataType.Boolean>;
-    baseFrame?: UABaseDataVariable<NodeId, /*z*/DataType.NodeId>;
-    fixedBase?: UAProperty<boolean, /*z*/DataType.Boolean>;
+    constant?: UAProperty<boolean, DataType.Boolean>;
+    baseFrame?: UABaseDataVariable<NodeId, DataType.NodeId>;
+    fixedBase?: UAProperty<boolean, DataType.Boolean>;
 }
-export interface UAFrame<T extends DTFrame/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAFrame_Base<T /*B*/> {
+export interface UAFrame<T extends DTFrame> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAFrame_Base<T> {
 }

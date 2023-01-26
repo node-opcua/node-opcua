@@ -50,7 +50,9 @@ async function startServer(): Promise<OPCUAServer> {
 
         serverCertificateManager,
 
-        maxAllowedSessionNumber: 10,
+        serverCapabilities: {
+            maxSessions: 10
+        },
 
         nodeset_filename: empty_nodeset_filename,
         port,

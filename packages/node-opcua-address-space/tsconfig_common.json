@@ -11,10 +11,7 @@
             "inlineSourceMap": true
         }
     },
-    "include": [
-        "source/**/*.ts",
-        "src/**/*.ts"
-],
+    "include": ["source/**/*.ts", "src/**/*.ts"],
     "references": [
         {
             "path": "../node-opcua-address-space-base"
@@ -140,8 +137,5 @@
             "path": "../node-opcua-test-fixtures"
         }
     ],
-    "exclude": [
-        "node_modules",
-        "dist"
-    ]
+    "exclude": ["node_modules", "dist"]
 }

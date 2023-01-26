@@ -7,14 +7,14 @@ import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 export interface UAGasMix_gas_1 extends Omit<UABaseMaterial, "identifier"|"location"|"materialIdentifier"> { // Object
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 export interface UAGasMix_gas_2 extends Omit<UABaseMaterial, "identifier"|"location"|"materialIdentifier"> { // Object
-      identifier: UAProperty<UAString, /*z*/DataType.String>;
-      location: UAProperty<UAString, /*z*/DataType.String>;
-      materialIdentifier: UAProperty<UAString, /*z*/DataType.String>;
+      identifier: UAProperty<UAString, DataType.String>;
+      location: UAProperty<UAString, DataType.String>;
+      materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 /**
  * |                |                                                  |

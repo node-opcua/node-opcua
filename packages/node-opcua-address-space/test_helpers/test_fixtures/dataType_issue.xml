@@ -14,14 +14,14 @@
     <Aliases>
     </Aliases>
 
-    <UADataType NodeId="ns=1;i=3011" BrowseName="1:DatagramConnectionTransport2DataType">
-        <DisplayName>DatagramConnectionTransport2DataType</DisplayName>
+    <UADataType NodeId="ns=1;i=3011" BrowseName="1:MyCustomDataType">
+        <DisplayName>MyCustomDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=17467</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5020</Reference>
         </References>
-        <Definition Name="1:DatagramConnectionTransport2DataType">
+        <Definition Name="1:MyCustomDataType">
             <Field DataType="UInt32" Name="DiscoveryAnnounceRate"/>
             <Field DataType="UInt32" Name="DiscoveryMaxMessageSize"/>
             <Field DataType="Structure" ValueRank="1" ArrayDimensions="0" Name="DatagramQoS"/>
@@ -46,27 +46,27 @@
         </References>
     </UAObject> 
     
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6023" BrowseName="1:DatagramConnectionTransport2DataType">
-        <DisplayName>DatagramConnectionTransport2DataType</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6023" BrowseName="1:MyCustomDataType">
+        <DisplayName>MyCustomDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
         </References>
         <Value>
-            <uax:String>DatagramConnectionTransport2DataType</uax:String>
+            <uax:String>MyCustomDataType</uax:String>
         </Value>
     </UAVariable>
     
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6024" BrowseName="1:DatagramConnectionTransport2DataType">
-        <DisplayName>DatagramConnectionTransport2DataType</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6024" BrowseName="1:MyCustomDataType">
+        <DisplayName>MyCustomDataType</DisplayName>
         <References>
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5020</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
         </References>
         <Value>
-            <uax:String>//xs:element[@name='DatagramConnectionTransport2DataType']</uax:String>
+            <uax:String>//xs:element[@name='MyCustomDataType']</uax:String>
         </Value>
     </UAVariable>
 

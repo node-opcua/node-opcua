@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet>
+    <NamespaceUris>
+        <Uri>uri://mynamespace</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="uri://mynamespace" PublicationDate="2022-04-21T00:00:00Z" Version="1.00">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2021-09-15T00:00:00Z" Version="1.04.10"/>
+        </Model>
+    </Models>
+    <Aliases>
+    </Aliases>
+    <UAObject BrowseName="Noël" NodeId="ns=1;i=1001"/>
+    <UAObject BrowseName="Strauß" NodeId="ns=1;i=1002"/>
+    <UAObject BrowseName="Bjørn Ødger Åse" NodeId="ns=1;i=1003"/>
+    <UAObject BrowseName="Günter Альберт" NodeId="ns=1;i=1004"/>
+    <UAObject BrowseName="Мир во всём ми́ре" NodeId="ns=1;i=1005"/>
+    <UAObject BrowseName="صلح در زمین" NodeId="ns=1;i=1006"/>
+    
+</UANodeSet>

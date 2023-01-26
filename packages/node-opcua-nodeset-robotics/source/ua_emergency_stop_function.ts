@@ -22,14 +22,14 @@ export interface UAEmergencyStopFunction_Base {
      * provides a manufacturer-specific emergency stop
      * function identifier within the safety system.
      */
-    name: UAProperty<UAString, /*z*/DataType.String>;
+    name: UAProperty<UAString, DataType.String>;
     /**
      * active
      * The Active variable is TRUE if this particular
      * emergency stop function is active, e.g. that the
      * emergency stop button is pressed, FALSE otherwise.
      */
-    active: UABaseDataVariable<boolean, /*z*/DataType.Boolean>;
+    active: UABaseDataVariable<boolean, DataType.Boolean>;
 }
 export interface UAEmergencyStopFunction extends UAObject, UAEmergencyStopFunction_Base {
 }

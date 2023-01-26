@@ -8,7 +8,6 @@ import { UAInterruptedEvent, UAInterruptedEvent_Base } from "./ua_interrupted_ev
  * |typedDefinition |13:MotorTemperatureTooHighEventType ns=13;i=1039  |
  * |isAbstract      |true                                              |
  */
-export interface UAMotorTemperatureTooHighEvent_Base extends UAInterruptedEvent_Base {
-}
+export type UAMotorTemperatureTooHighEvent_Base = UAInterruptedEvent_Base;
 export interface UAMotorTemperatureTooHighEvent extends UAInterruptedEvent, UAMotorTemperatureTooHighEvent_Base {
 }

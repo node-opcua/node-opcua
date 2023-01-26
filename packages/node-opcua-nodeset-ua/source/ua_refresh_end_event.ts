@@ -8,7 +8,6 @@ import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
  * |typedDefinition |RefreshEndEventType ns=0;i=2788                   |
  * |isAbstract      |true                                              |
  */
-export interface UARefreshEndEvent_Base extends UASystemEvent_Base {
-}
+export type UARefreshEndEvent_Base = UASystemEvent_Base;
 export interface UARefreshEndEvent extends UASystemEvent, UARefreshEndEvent_Base {
 }

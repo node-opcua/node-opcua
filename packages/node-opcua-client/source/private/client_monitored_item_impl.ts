@@ -8,7 +8,7 @@ import { assert } from "node-opcua-assert";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, coerceTimestampsToReturn } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { EventFilter } from "node-opcua-service-filter";
 import { ReadValueId, ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
@@ -29,6 +29,7 @@ import { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItem_create, ClientSubscriptionImpl } from "./client_subscription_impl";
 
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export type PrepareForMonitoringResult =
@@ -192,8 +193,11 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         try {
             this.emit("changed", value);
         } catch (err) {
-            debugLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            debugLog("Please verify the application using this node-opcua client");
+            warningLog(
+                "[NODE-OPCUA-W28] Exception raised inside the event handler called by ClientMonitoredItem.on('change')",
+                err
+            );
+            warningLog("                 Please verify the application using this node-opcua client");
         }
     }
 
@@ -216,8 +220,11 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         try {
             this.emit("changed", eventFields);
         } catch (err) {
-            debugLog("Exception raised inside the event handler called by ClientMonitoredItem.on('change')", err);
-            debugLog("Please verify the application using this node-opcua client");
+            warningLog(
+                "[NODE-OPCUA-W29] Exception raised inside the event handler called by ClientMonitoredItem.on('change')",
+                err
+            );
+            warningLog("                 Please verify the application using this node-opcua client");
         }
     }
 
@@ -303,7 +310,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         this.statusCode = monitoredItemResult.statusCode;
 
         /* istanbul ignore else */
-        if (monitoredItemResult.statusCode === StatusCodes.Good) {
+        if (monitoredItemResult.statusCode.isGood()) {
             this.result = monitoredItemResult;
             this.monitoredItemId = monitoredItemResult.monitoredItemId;
             this.monitoringParameters.samplingInterval = monitoredItemResult.revisedSamplingInterval;
@@ -341,7 +348,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public _after_create(monitoredItemResult: MonitoredItemCreateResult): void {
         this._applyResult(monitoredItemResult);
 
-        if (this.statusCode === StatusCodes.Good) {
+        if (this.statusCode.isGood()) {
             /**
              * Notify the observers that the monitored item is now fully initialized.
              * @event initialized
@@ -359,7 +366,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     }
 
     public _terminate_and_emit(err?: Error): void {
-        if (this.statusCode.value === StatusCodes.Bad.value) {
+        if ((this as any)._terminated) {
             return; // already terminated
         }
         if (err) {
@@ -373,8 +380,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
          */
         this.emit("terminated", err);
         this.removeAllListeners();
-        this.statusCode = StatusCodes.Bad;
-
+    
         // also remove from subscription
         const clientHandle = this.monitoringParameters.clientHandle;
         delete this.subscription.monitoredItems[clientHandle];

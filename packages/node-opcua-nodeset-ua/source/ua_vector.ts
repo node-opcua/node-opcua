@@ -14,8 +14,8 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |dataType Name   |DTVector ns=0;i=18807                             |
  * |isAbstract      |true                                              |
  */
-export interface UAVector_Base<T extends DTVector/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
-    vectorUnit?: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+export interface UAVector_Base<T extends DTVector>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
+    vectorUnit?: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
-export interface UAVector<T extends DTVector/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UAVector_Base<T /*B*/> {
+export interface UAVector<T extends DTVector> extends UABaseDataVariable<T, DataType.ExtensionObject>, UAVector_Base<T> {
 }

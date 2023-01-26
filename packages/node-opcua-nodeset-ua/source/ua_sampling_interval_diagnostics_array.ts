@@ -13,8 +13,8 @@ import { UASamplingIntervalDiagnostics } from "./ua_sampling_interval_diagnostic
  * |dataType Name   |DTSamplingIntervalDiagnostics[] ns=0;i=856        |
  * |isAbstract      |false                                             |
  */
-export interface UASamplingIntervalDiagnosticsArray_Base<T extends DTSamplingIntervalDiagnostics[]/*j*/>  extends UABaseDataVariable_Base<T, /*e*/DataType.ExtensionObject> {
+export interface UASamplingIntervalDiagnosticsArray_Base<T extends DTSamplingIntervalDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     samplingIntervalDiagnostics: UASamplingIntervalDiagnostics<DTSamplingIntervalDiagnostics>;
 }
-export interface UASamplingIntervalDiagnosticsArray<T extends DTSamplingIntervalDiagnostics[]/*j*/> extends UABaseDataVariable<T, /*n*/DataType.ExtensionObject>, UASamplingIntervalDiagnosticsArray_Base<T /*B*/> {
+export interface UASamplingIntervalDiagnosticsArray<T extends DTSamplingIntervalDiagnostics[]> extends UABaseDataVariable<T, DataType.ExtensionObject>, UASamplingIntervalDiagnosticsArray_Base<T> {
 }

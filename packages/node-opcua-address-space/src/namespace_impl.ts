@@ -10,7 +10,7 @@ import { AxisScaleEnumeration } from "node-opcua-data-access";
 import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
-import { LocalizedText, NodeClass } from "node-opcua-data-model";
+import { NodeClass } from "node-opcua-data-model";
 import { dumpIf, make_errorLog } from "node-opcua-debug";
 import { NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
@@ -28,7 +28,7 @@ import {
     RolePermissionTypeOptions
 } from "node-opcua-types";
 import * as utils from "node-opcua-utils";
-import { DataType, Variant, VariantArrayType, verifyRankAndDimensions } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType, VariantOptions, verifyRankAndDimensions } from "node-opcua-variant";
 import {
     AddBaseNodeOptions,
     AddEnumerationTypeOptions,
@@ -46,6 +46,7 @@ import {
     CreateNodeOptions,
     EnumerationItem,
     INamespace,
+    RequiredModel,
     UADataType,
     UAEventType,
     UAMethod,
@@ -67,30 +68,39 @@ import {
 } from "../source/address_space_ts";
 import { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_machine_type";
 import { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
-import { UAAlarmConditionEx, UAAlarmConditionImpl, UATwoStateDiscreteEx, UAYArrayItemEx } from "../source";
+import {
+    InstantiateAlarmConditionOptions,
+    InstantiateExclusiveLimitAlarmOptions,
+    InstantiateLimitAlarmOptions,
+    InstantiateOffNormalAlarmOptions,
+    UATwoStateDiscreteEx,
+    UAYArrayItemEx
+} from "../source";
 import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
 import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
+import { UAAlarmConditionEx } from "../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
+import { UADiscreteAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
+import { UAExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_deviation_alarm_ex";
+import { UAExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_exclusive_limit_alarm_ex";
+import { UALimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_limit_alarm_ex";
+import { UANonExclusiveDeviationAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
+import { UANonExclusiveLimitAlarmEx } from "../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
+import { UAConditionEx } from "../source/interfaces/alarms_and_conditions/ua_condition_ex";
+import { InstantiateExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_exclusive_deviation_alarm_options";
+import { InstantiateNonExclusiveLimitAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_limit_alarm_options";
+import { InstantiateNonExclusiveDeviationAlarmOptions } from "../source/interfaces/alarms_and_conditions/instantiate_non_exclusive_deviation_alarm_options";
 
 import { _handle_delete_node_model_change_event, _handle_model_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
-import { UAConditionEx, UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
-import { UADiscreteAlarmEx, UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
-import {
-    UAExclusiveDeviationAlarmEx,
-    UAExclusiveDeviationAlarmImpl
-} from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
-import { UAExclusiveLimitAlarmEx, UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
-import { UALimitAlarmEx, UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
-import {
-    UANonExclusiveDeviationAlarmEx,
-    UANonExclusiveDeviationAlarmImpl
-} from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
-import {
-    UANonExclusiveLimitAlarmEx,
-    UANonExclusiveLimitAlarmImpl
-} from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
-import { UAAcknowledgeableConditionImpl } from "./alarms_and_conditions";
+import { UAConditionImpl } from "./alarms_and_conditions/ua_condition_impl";
+import { UADiscreteAlarmImpl } from "./alarms_and_conditions/ua_discrete_alarm_impl";
+import { UAExclusiveDeviationAlarmImpl } from "./alarms_and_conditions/ua_exclusive_deviation_alarm_impl";
+import { UAExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_exclusive_limit_alarm_impl";
+import { UALimitAlarmImpl } from "./alarms_and_conditions/ua_limit_alarm_impl";
+import { UANonExclusiveDeviationAlarmImpl } from "./alarms_and_conditions/ua_non_exclusive_deviation_alarm_impl";
+import { UANonExclusiveLimitAlarmImpl } from "./alarms_and_conditions/ua_non_exclusive_limit_alarm_impl";
+import { UAAcknowledgeableConditionImpl, UAAlarmConditionImpl } from "./alarms_and_conditions";
 import { UAOffNormalAlarmEx, UAOffNormalAlarmImpl } from "./alarms_and_conditions/ua_off_normal_alarm_impl";
 import { add_dataItem_stuff } from "./data_access/add_dataItem_stuff";
 import { UAMultiStateDiscreteImpl, _addMultiStateDiscrete } from "./data_access/ua_multistate_discrete_impl";
@@ -103,7 +113,7 @@ import { BaseNodeImpl } from "./base_node_impl";
 import { UAVariableImpl } from "./ua_variable_impl";
 
 import { ConstructNodeIdOptions, NodeIdManager } from "./nodeid_manager";
-import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete";
+import { _addTwoStateDiscrete } from "./data_access/ua_two_state_discrete_impl";
 import { coerceRolePermissions } from "./role_permissions";
 import { UAObjectImpl } from "./ua_object_impl";
 import { UADataTypeImpl } from "./ua_data_type_impl";
@@ -113,7 +123,8 @@ import { UAVariableTypeImpl } from "./ua_variable_type_impl";
 import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { UAViewImpl } from "./ua_view_impl";
 import { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
-import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete";
+import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl";
+
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -209,10 +220,14 @@ export class NamespaceImpl implements NamespacePrivate {
     public readonly namespaceUri: string;
     public addressSpace: AddressSpacePrivate;
     public readonly index: number;
+    public emulateVersion103 = false;
 
     public version = "0.0.0";
     public publicationDate: Date = new Date(Date.UTC(1900, 0, 1));
 
+    public registerSymbolicNames = false;
+
+    private _requiredModels?: RequiredModel[];
     private _objectTypeMap: Map<string, UAObjectType>;
     private _variableTypeMap: Map<string, UAVariableType>;
     private _referenceTypeMap: Map<string, UAReferenceType>;
@@ -280,27 +295,35 @@ export class NamespaceImpl implements NamespacePrivate {
     public _objectTypeIterator(): IterableIterator<UAObjectType> {
         return this._objectTypeMap.values();
     }
+
     public _objectTypeCount(): number {
         return this._objectTypeMap.size;
     }
+
     public _variableTypeIterator(): IterableIterator<UAVariableType> {
         return this._variableTypeMap.values();
     }
+
     public _variableTypeCount(): number {
         return this._variableTypeMap.size;
     }
+
     public _dataTypeIterator(): IterableIterator<UADataType> {
         return this._dataTypeMap.values();
     }
+
     public _dataTypeCount(): number {
         return this._dataTypeMap.size;
     }
+
     public _referenceTypeIterator(): IterableIterator<UAReferenceType> {
         return this._referenceTypeMap.values();
     }
+
     public _referenceTypeCount(): number {
         return this._referenceTypeMap.size;
     }
+
     public _aliasCount(): number {
         return this._aliases.size;
     }
@@ -592,7 +615,7 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(!Object.prototype.hasOwnProperty.call(options, "nodeClass"));
         assert(Object.prototype.hasOwnProperty.call(options, "browseName"), "must provide a browseName");
 
-        const options1 = options as any;
+        const options1 = options as unknown as { nodeClass: NodeClass; references: AddReferenceOpts[]; subtypeOf: UADataType };
         options1.nodeClass = NodeClass.DataType;
         options1.references = options.references || [];
 
@@ -615,6 +638,9 @@ export class NamespaceImpl implements NamespacePrivate {
             });
         }
         const node = this.internalCreateNode(options) as UADataType;
+
+        node.propagate_back_references();
+
         return node;
     }
 
@@ -847,21 +873,7 @@ export class NamespaceImpl implements NamespacePrivate {
      *
      *   });
      *
-     * @param options
-     * @param options.browseName {String}
-     * @param options.definition {String}
-     * @param [options.valuePrecision {Double |null} =null]
-     * @param options.instrumentRange
-     * @param options.instrumentRange.low {Double}
-     * @param options.instrumentRange.high {Double}
-     * @param options.engineeringUnitsRange.low {Double}
-     * @param options.engineeringUnitsRange.high {Double}
-     * @param options.engineeringUnits {String}
-     * @param options.dataType {NodeId} // todo :check
-     * @param [options.accessLevel {AccessLevelFlag} = "CurrentRead | CurrentWrite"]
-     * @param [options.userAccessLevel {AccessLevelFlag} = "CurrentRead | CurrentWrite"]
-     * @param options.value
-     * @param [options.modellingRule]
+  
      * @return {UAVariable}
      */
     public addAnalogDataItem<T, DT extends DataType>(options: AddAnalogDataItemOptions): UAAnalogItem<T, DT> {
@@ -880,20 +892,6 @@ export class NamespaceImpl implements NamespacePrivate {
         const clone_options = { ...options, dataType, typeDefinition: analogItemType.nodeId } as AddVariableOptions;
 
         const variable = this.addVariable(clone_options) as UAVariableImpl;
-
-        // var variable = namespace.addVariable({
-        //    componentOf:     options.componentOf,
-        //    organizedBy:     options.organizedBy,
-        //    browseName:      options.browseName,
-        //    nodeId:          options.nodeId,
-        //    value:           options.value,
-        //    accessLevel:     options.accessLevel,
-        //    userAccessLevel: options.userAccessLevel,
-        //    modellingRule:   options.modellingRule
-        //
-        //    typeDefinition: analogItemType.nodeId,
-        //    dataType:       dataType,
-        // });
 
         add_dataItem_stuff(variable, options);
 
@@ -1423,7 +1421,13 @@ export class NamespaceImpl implements NamespacePrivate {
     // State and Transition
     // -------------------------------------------------------------------------
     public toNodeset2XML(): string {
-        return "";
+        return "<toNodeset2XML>has not be installed</toNodeset2XML>!";
+    }
+    public setRequiredModels(requiredModels: RequiredModel[]): void {
+        this._requiredModels = requiredModels;
+    }
+    public getRequiredModels(): RequiredModel[] | undefined {
+        return this._requiredModels;
     }
 
     // -------------------------------------------------------------------------
@@ -1564,52 +1568,69 @@ export class NamespaceImpl implements NamespacePrivate {
 
     public instantiateAcknowledgeableCondition(
         conditionTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAcknowledgeableConditionImpl {
         return UAAcknowledgeableConditionImpl.instantiate(this, conditionTypeId, options, data);
     }
 
     public instantiateAlarmCondition(
         alarmConditionTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
     ): UAAlarmConditionEx {
         return UAAlarmConditionImpl.instantiate(this, alarmConditionTypeId, options, data);
     }
 
-    public instantiateLimitAlarm(limitAlarmTypeId: UAEventType | NodeId | string, options: any, data: any): UALimitAlarmEx {
+    public instantiateLimitAlarm(
+        limitAlarmTypeId: UAEventType | NodeId | string,
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UALimitAlarmEx {
         return UALimitAlarmImpl.instantiate(this, limitAlarmTypeId, options, data);
     }
 
     public instantiateExclusiveLimitAlarm(
         exclusiveLimitAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UAExclusiveLimitAlarmEx {
         return UAExclusiveLimitAlarmImpl.instantiate(this, exclusiveLimitAlarmTypeId, options, data);
     }
 
-    public instantiateExclusiveDeviationAlarm(options: any, data: any): UAExclusiveDeviationAlarmEx {
+    public instantiateExclusiveDeviationAlarm(
+        options: InstantiateExclusiveDeviationAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UAExclusiveDeviationAlarmEx {
         return UAExclusiveDeviationAlarmImpl.instantiate(this, "ExclusiveDeviationAlarmType", options, data);
     }
 
     public instantiateNonExclusiveLimitAlarm(
         nonExclusiveLimitAlarmTypeId: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateNonExclusiveLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UANonExclusiveLimitAlarmEx {
         return UANonExclusiveLimitAlarmImpl.instantiate(this, nonExclusiveLimitAlarmTypeId, options, data);
     }
 
-    public instantiateNonExclusiveDeviationAlarm(options: any, data: any): UANonExclusiveDeviationAlarmEx {
+    public instantiateNonExclusiveDeviationAlarm(
+        options: InstantiateNonExclusiveDeviationAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UANonExclusiveDeviationAlarmEx {
         return UANonExclusiveDeviationAlarmImpl.instantiate(this, "NonExclusiveDeviationAlarmType", options, data);
     }
 
-    public instantiateDiscreteAlarm(discreteAlarmType: UAEventType | NodeId | string, options: any, data: any): UADiscreteAlarmEx {
+    public instantiateDiscreteAlarm(
+        discreteAlarmType: UAEventType | NodeId | string,
+        options: InstantiateAlarmConditionOptions,
+        data?: Record<string, VariantOptions>
+    ): UADiscreteAlarmEx {
         return UADiscreteAlarmImpl.instantiate(this, discreteAlarmType, options, data);
     }
-    public instantiateOffNormalAlarm(options: any, data: any): UAOffNormalAlarmEx {
+    public instantiateOffNormalAlarm(
+        options: InstantiateOffNormalAlarmOptions,
+        data?: Record<string, VariantOptions>
+    ): UAOffNormalAlarmEx {
         return UAOffNormalAlarmImpl.instantiate(this, "OffNormalAlarmType", options, data);
     }
 
@@ -1629,38 +1650,44 @@ export class NamespaceImpl implements NamespacePrivate {
 
     // --- internal stuff
     public constructNodeId(options: ConstructNodeIdOptions): NodeId {
-        return this._nodeIdManager.constructNodeId(options);
+        return this._nodeIdManager.constructNodeId({
+            registerSymbolicNames: this.registerSymbolicNames,
+            ...options
+        });
     }
 
     public _register(node: BaseNode): void {
         assert(node instanceof BaseNodeImpl, "Expecting a instance of BaseNode in _register");
         assert(node.nodeId instanceof NodeId, "Expecting a NodeId");
+        // istanbul ignore next
         if (node.nodeId.namespace !== this.index) {
             throw new Error("node must belongs to this namespace");
         }
         assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
         assert(Object.prototype.hasOwnProperty.call(node, "browseName"), "Node must have a browseName");
-        // assert(node.browseName.namespaceIndex === this.index,"browseName must belongs to this namespace");
 
         const hashKey = _makeHashKey(node.nodeId);
 
         // istanbul ignore next
         if (this._nodeid_index.has(hashKey)) {
+
+            const exstingNode = this.findNode(node.nodeId)!;
             throw new Error(
                 "node " +
-                    node.browseName.toString() +
-                    "nodeId = " +
-                    node.nodeId.displayText() +
-                    " already registered " +
-                    node.nodeId.toString() +
-                    "\n" +
-                    " in namespace " +
-                    this.namespaceUri +
-                    " index = " +
-                    this.index +
-                    "\n" +
-                    " browseName = " +
-                    node.browseName.toString()
+                node.browseName.toString() +
+                " nodeId = " +
+                node.nodeId.displayText() +
+                " already registered " +
+                node.nodeId.toString() +
+                "\n" +
+                " in namespace " +
+                this.namespaceUri +
+                " index = " +
+                this.index +
+                "\n" +
+                "existing node = " +
+                exstingNode.toString() +
+                "this parent : " + node.parentNodeId?.toString() 
             );
         }
 
@@ -1723,15 +1750,15 @@ export class NamespaceImpl implements NamespacePrivate {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                                indexVerif +
-                                " do not match the index of the current namespace (" +
-                                this.index +
-                                ")"
+                            indexVerif +
+                            " do not match the index of the current namespace (" +
+                            this.index +
+                            ")"
                         )
                     );
                     errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
-                            " please refer to the NodeOPCUA documentation"
+                        " please refer to the NodeOPCUA documentation"
                     );
                 }
             }
@@ -1883,7 +1910,9 @@ export class NamespaceImpl implements NamespacePrivate {
     private _registerObjectType(node: UAObjectType) {
         assert(this.index === node.nodeId.namespace);
         const key = node.browseName.name!;
-        assert(!this._objectTypeMap.has(key), " UAObjectType already declared");
+        if (this._objectTypeMap.has(key)) {
+            throw new Error(" UAObjectType already declared " + node.browseName.toString() + "  " + node.nodeId.toString());
+        }
         this._objectTypeMap.set(key, node);
     }
 
@@ -1945,6 +1974,14 @@ export class NamespaceImpl implements NamespacePrivate {
         }
         // ------------------------------------------ TypeDefinition
         let typeDefinition = options.typeDefinition || baseDataVariableTypeId;
+        if (typeDefinition instanceof BaseNodeImpl) {
+            // istanbul ignore next
+            if (typeDefinition.nodeClass !== NodeClass.VariableType) {
+                const message = `invalid typeDefinition expecting a VariableType got ${NodeClass[typeDefinition.nodeClass]}`;
+                errorLog(message);
+                throw new Error(message);
+            }
+        }
         typeDefinition = addressSpace._coerce_VariableTypeIds(typeDefinition);
         assert(typeDefinition instanceof NodeId);
 

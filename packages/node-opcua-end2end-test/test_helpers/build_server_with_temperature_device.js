@@ -1,7 +1,6 @@
 "use strict";
 
 const os = require("os");
-const { callbackify } = require("util");
 
 const { assert } = require("node-opcua-assert");
 require("should");

@@ -15,6 +15,7 @@ import { UALockingServices } from "./ua_locking_services"
  * |isAbstract      |false                                             |
  */
 export interface UANetwork_Base {
+   // PlaceHolder for $ProfileIdentifier$
     /**
      * lock
      * Used to lock the Network.

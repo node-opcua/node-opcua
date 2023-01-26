@@ -8,5 +8,4 @@ import { DTStructure } from "./dt_structure"
  * | name      |WriterGroupMessageDataType                        |
  * | isAbstract|true                                              |
  */
-export interface DTWriterGroupMessage extends DTStructure  {
-}
+export type DTWriterGroupMessage = DTStructure;

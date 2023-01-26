@@ -3,6 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { MonitoringMode } from "node-opcua-types";
 import { hrtime } from "node-opcua-utils";
 
 const debugLog = make_debugLog(__filename);
@@ -13,10 +14,18 @@ import { MonitoredItem } from "./monitored_item";
 const timers: any = {};
 const NS_PER_SEC = 1e9;
 
+interface MonitoredItemPriv {
+    _on_sampling_timer(): void;
+}
 function sampleMonitoredItem(monitoredItem: MonitoredItem) {
-    const _monitoredItem = monitoredItem;
+    const _monitoredItem = monitoredItem as unknown as MonitoredItemPriv;
+    
+    if (monitoredItem.monitoringMode === MonitoringMode.Disabled) {
+        return;
+    }
+
     setImmediate(() => {
-        (_monitoredItem as any)._on_sampling_timer();
+        _monitoredItem._on_sampling_timer();
     });
 }
 

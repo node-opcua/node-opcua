@@ -13,14 +13,14 @@ import { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device"
  * |isAbstract      |false                                             |
  */
 export interface UARtlsDevice_Base extends UAAutoIdDevice_Base {
-    geographicalUnit: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+    geographicalUnit: UAProperty<EUInformation, DataType.ExtensionObject>;
     getLocation?: UAMethod;
     getSupportedLocationTypes?: UAMethod;
     getUnits?: UAMethod;
-    lengthUnit: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
-    rotationalUnit: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+    lengthUnit: UAProperty<EUInformation, DataType.ExtensionObject>;
+    rotationalUnit: UAProperty<EUInformation, DataType.ExtensionObject>;
     scan?: UAMethod;
-    speedUnit: UAProperty<EUInformation, /*z*/DataType.ExtensionObject>;
+    speedUnit: UAProperty<EUInformation, DataType.ExtensionObject>;
 }
 export interface UARtlsDevice extends Omit<UAAutoIdDevice, "scan">, UARtlsDevice_Base {
 }

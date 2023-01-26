@@ -2,6 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32, Int32, UInt16, Byte, UAString, Guid } from "node-opcua-basic-types"
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
@@ -12,7 +13,7 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
  * | name      |FieldMetaData                                     |
  * | isAbstract|false                                             |
  */
-export interface DTFieldMetaData extends DTStructure  {
+export interface DTFieldMetaData extends DTStructure {
   name: UAString; // String ns=0;i=12
   description: LocalizedText; // LocalizedText ns=0;i=21
   fieldFlags: UInt16; // UInt16 ns=0;i=15904
@@ -24,3 +25,4 @@ export interface DTFieldMetaData extends DTStructure  {
   dataSetFieldId: Guid; // Guid ns=0;i=14
   properties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
 }
+export interface UDTFieldMetaData extends ExtensionObject, DTFieldMetaData {};

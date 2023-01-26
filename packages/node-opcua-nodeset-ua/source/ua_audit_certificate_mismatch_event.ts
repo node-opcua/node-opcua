@@ -8,7 +8,6 @@ import { UAAuditCertificateEvent, UAAuditCertificateEvent_Base } from "./ua_audi
  * |typedDefinition |AuditCertificateMismatchEventType ns=0;i=2089     |
  * |isAbstract      |true                                              |
  */
-export interface UAAuditCertificateMismatchEvent_Base extends UAAuditCertificateEvent_Base {
-}
+export type UAAuditCertificateMismatchEvent_Base = UAAuditCertificateEvent_Base;
 export interface UAAuditCertificateMismatchEvent extends UAAuditCertificateEvent, UAAuditCertificateMismatchEvent_Base {
 }

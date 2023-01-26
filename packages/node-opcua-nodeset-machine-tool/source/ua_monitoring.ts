@@ -11,6 +11,7 @@ import { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring"
  * |isAbstract      |false                                             |
  */
 export interface UAMonitoring_Base {
+   // PlaceHolder for $MonitoredElement$
     machineTool: UAMachineOperationMonitoring;
     stacklight?: UABasicStacklight;
 }

@@ -54,7 +54,7 @@ module.exports = function(test) {
 
                         session.read(nodeToRead, function(err, dataValue) {
                             if (err) return callback(err);
-                            if (dataValue.statusCode !== opcua.StatusCodes.Good) {
+                            if (dataValue.statusCode.isNotGood()) {
                                 return callback(new Error("Cannot read value" + dataValue.toString()))
                             }
                             //xx console.log(results[0].toString());

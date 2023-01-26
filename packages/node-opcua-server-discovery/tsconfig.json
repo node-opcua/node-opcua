@@ -46,6 +46,9 @@
     },
     {
       "path": "../node-opcua-status-code"
+    },
+    {
+      "path": "../node-opcua-object-registry"
     }
   ]
 }

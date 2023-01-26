@@ -3,6 +3,9 @@ import { assert } from "node-opcua-assert";
 import { setFakeTransport } from "../source";
 import { HalfComChannel } from "./half_com_channel";
 
+export interface DirectTransport {
+    on(eventName: "end", eventHandler:()=>void): this;
+}
 export class DirectTransport extends EventEmitter {
     public client: HalfComChannel;
     public server: HalfComChannel;
@@ -32,7 +35,7 @@ export class DirectTransport extends EventEmitter {
             this.server._hasEnded = true;
         });
 
-        this.server.on("end", (err: Error) => {
+        this.server.on("end", (err?: Error) => {
             this.emit("end", err);
         });
 

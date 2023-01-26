@@ -4,10 +4,10 @@
 // PLEASE use simple_client_ts.ts , simple_client_ts presents a more modern approach...*
 const fs = require("fs");
 const path = require("path");
+const util = require("util");
 const treeify = require("treeify");
 const chalk = require("chalk");
 const Table = require("easy-table");
-const util = require("util");
 const {
     ApplicationType,
     assert,
@@ -128,7 +128,7 @@ const doCrawling = !!argv.crawl;
 const doHistory = !!argv.history;
 
 function w(str, l) {
-    return (str + "                                      ").substr(0, l);
+    return str.padEnd(l).substring(0, l);  
 }
 
 async function enumerateAllConditionTypes(session) {

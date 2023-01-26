@@ -1,4 +1,4 @@
-image: node:latest
+image: node:16
 
 stages:
   - build
@@ -18,11 +18,13 @@ build_and_test:
      KUBERNETES_MEMORY_LIMIT: 4Gi
   stage: build
   before_script:
-    - curl -L https://unpkg.com/@pnpm/self-installer | node
+    - npm install -g pnpm@7
     - pnpm config set store-dir `pwd`/.pnpm-store
     - pnpm recursive install --frozen-lockfile=false
   script:
-    - pnpm run build --if-present
+    - pnpm run consistency
+    - pnpm run build
     - pnpm run pretest
     - node packages/parallel_test.js
+    # - node packages/run_all_mocha_tests.js DISCO3
  

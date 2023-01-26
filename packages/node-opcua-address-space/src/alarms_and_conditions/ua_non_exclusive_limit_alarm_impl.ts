@@ -3,39 +3,17 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { assert } from "node-opcua-assert";
-import { LocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { UANonExclusiveLimitAlarm_Base, UATwoStateVariable } from "node-opcua-nodeset-ua";
 import { StatusCodes } from "node-opcua-status-code";
-
-import { UAEventType } from "../../source";
-import { UATwoStateVariableEx } from "../../source/ua_two_state_variable_ex";
+import { VariantOptions } from "node-opcua-variant";
+import { UAEventType } from "node-opcua-address-space-base";
 import { NamespacePrivate } from "../namespace_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
-import { ConditionInfo } from "./condition_info";
-import { UALimitAlarmEx, UALimitAlarmImpl } from "./ua_limit_alarm_impl";
-
-export interface UANonExclusiveLimitAlarmEx
-    extends UALimitAlarmEx,
-        Omit<
-            UANonExclusiveLimitAlarm_Base,
-            | "ackedState"
-            | "activeState"
-            | "confirmedState"
-            | "enabledState"
-            | "latchedState"
-            | "limitState"
-            | "outOfServiceState"
-            | "shelvingState"
-            | "silenceState"
-            | "suppressedState"
-        > {
-    activeState: UATwoStateVariableEx;
-    highHighState?: UATwoStateVariableEx;
-    highState?: UATwoStateVariableEx;
-    lowState?: UATwoStateVariableEx;
-    lowLowState?: UATwoStateVariableEx;
-}
+import { UANonExclusiveLimitAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
+import { ConditionInfo } from "../../source/interfaces/alarms_and_conditions/condition_info_i";
+import { InstantiateLimitAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_limit_alarm_options";
+import { ConditionInfoImpl } from "./condition_info_impl";
+import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 export declare interface UANonExclusiveLimitAlarmImpl extends UANonExclusiveLimitAlarmEx, UALimitAlarmImpl {
     on(eventName: string, eventHandler: any): this;
@@ -44,8 +22,8 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
     public static instantiate(
         namespace: NamespacePrivate,
         type: UAEventType | NodeId | string,
-        options: any,
-        data: any
+        options: InstantiateLimitAlarmOptions,
+        data?: Record<string, VariantOptions>
     ): UANonExclusiveLimitAlarmImpl {
         const addressSpace = namespace.addressSpace;
 
@@ -128,21 +106,21 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
     }
 
     public _calculateConditionInfo(
-        states: string | null,
+        state: string | null,
         isActive: boolean,
         value: string,
         oldConditionInfo: ConditionInfo
     ): ConditionInfo {
         if (!isActive) {
-            return new ConditionInfo({
+            return new ConditionInfoImpl({
                 message: "Back to normal",
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 0
             });
         } else {
-            return new ConditionInfo({
-                message: "Condition value is " + value + " and state is " + states,
+            return new ConditionInfoImpl({
+                message: "Condition is " + value + " and state is " + state,
                 quality: StatusCodes.Good,
                 retain: true,
                 severity: 150
@@ -218,7 +196,7 @@ export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UA
         });
 
         if (count > 0) {
-            this._signalNewCondition2(states, isActive, value.toString());
+            this._signalNewCondition2(states, isActive, value.toFixed(3));
         }
     }
 }

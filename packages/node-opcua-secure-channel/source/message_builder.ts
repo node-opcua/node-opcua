@@ -4,6 +4,8 @@
 // tslint:disable:variable-name
 // tslint:disable:max-line-length
 
+
+import { createPrivateKey } from "crypto";
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -14,13 +16,13 @@ import {
     DerivedKeys,
     exploreCertificateInfo,
     makeSHA1Thumbprint,
-    PrivateKeyPEM,
+    PrivateKey,
     reduceLength,
     removePadding,
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseUAObject, constructObject, hasConstructor } from "node-opcua-factory";
+import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import {
@@ -29,12 +31,13 @@ import {
     MessageSecurityMode,
     CloseSecureChannelRequest
 } from "node-opcua-service-secure-channel";
-import { decodeStatusCode } from "node-opcua-status-code";
-import { MessageBuilderBase } from "node-opcua-transport";
+import { decodeStatusCode, coerceStatusCode, StatusCodes, StatusCode } from "node-opcua-status-code";
+import { MessageBuilderBase, MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
 import { SequenceHeader } from "node-opcua-chunkmanager";
+import { doTraceChunk } from "node-opcua-transport";
 
-import { chooseSecurityHeader, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
+import { chooseSecurityHeader, MessageChunker, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 
 import { SecurityHeader } from "./secure_message_chunk_manager";
 import {
@@ -51,8 +54,6 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
 
-const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
-
 export interface SecurityToken {
     tokenId: number;
     expired?: boolean;
@@ -60,18 +61,22 @@ export interface SecurityToken {
 }
 
 const defaultObjectFactory = {
-    constructObject,
-    hasConstructor
+    constructObject(binaryEncodingNodeId: NodeId): BaseUAObject {
+        return getStandardDataTypeFactory().constructObject(binaryEncodingNodeId);
+    },
+    hasConstructor(binaryEncodingNodeId: ExpandedNodeId): boolean {
+        return getStandardDataTypeFactory().hasConstructor(binaryEncodingNodeId);
+    }
 };
 
 export interface ObjectFactory {
-    constructObject: (expandedNodeId: ExpandedNodeId) => BaseUAObject;
-    hasConstructor: (expandedNodeId: ExpandedNodeId) => boolean;
+    constructObject: (binaryEncodingNodeId: ExpandedNodeId) => BaseUAObject;
+    hasConstructor: (binaryEncodingNodeId: ExpandedNodeId) => boolean;
 }
 
-export interface MessageBuilderOptions {
+export interface MessageBuilderOptions extends MessageBuilderBaseOptions {
     securityMode?: MessageSecurityMode;
-    privateKey?: PrivateKeyPEM;
+    privateKey?: PrivateKey;
     objectFactory?: ObjectFactory;
     signatureLength?: number;
     name?: string;
@@ -82,9 +87,38 @@ export interface SecurityTokenAndDerivedKeys {
     derivedKeys: DerivedKeys | null;
 }
 
-const invalidPrivateKey = "<invalid>";
+export const invalidPrivateKey = createPrivateKey(`-----BEGIN RSA PRIVATE KEY-----
+MB0CAQACAQ8CAwEAAQIBAQIBBQIBAwIBAQIBAQIBAg==
+-----END RSA PRIVATE KEY-----`);
 let counter = 0;
 
+type PacketInfo = any;
+
+export interface MessageBuilder extends MessageBuilderBase {
+    on(eventName: "startChunk", eventHandler: (info: PacketInfo, data: Buffer) => void): this;
+    on(eventName: "chunk", eventHandler: (chunk: Buffer) => void): this;
+    on(eventName: "error", eventHandler: (err: Error, statusCode: StatusCode, requestId: number | null) => void): this;
+    on(eventName: "full_message_body", eventHandler: (fullMessageBody: Buffer) => void): this;
+    on(
+        eventName: "message",
+        eventHandler: (obj: BaseUAObject, msgType: string, requestId: number, channelId: number) => void
+    ): this;
+    on(eventName: "abandon", eventHandler: (requestId: number) => void): this;
+
+    on(eventName: "invalid_message", eventHandler: (obj: BaseUAObject) => void): this;
+    on(eventName: "invalid_sequence_number", eventHandler: (expectedSequenceNumber: number, sequenceNumber: number) => void): this;
+    on(eventName: "new_token", eventHandler: (tokenId: number) => void): this;
+
+    emit(eventName: "startChunk", info: PacketInfo, data: Buffer): boolean;
+    emit(eventName: "chunk", chunk: Buffer): boolean;
+    emit(eventName: "error", err: Error, statusCode: StatusCode, requestId: number | null): boolean;
+    emit(eventName: "full_message_body", fullMessageBody: Buffer): boolean;
+    emit(eventName: "message", obj: BaseUAObject, msgType: string, requestId: number, channelId: number): boolean;
+    emit(eventName: "invalid_message", evobj: BaseUAObject): boolean;
+    emit(eventName: "invalid_sequence_number", expectedSequenceNumber: number, sequenceNumber: number): boolean;
+    emit(eventName: "new_token", tokenId: number): boolean;
+    emit(eventName: "abandon"): boolean;
+}
 /**
  * @class MessageBuilder
  * @extends MessageBuilderBase
@@ -104,7 +138,7 @@ export class MessageBuilder extends MessageBuilderBase {
     private readonly objectFactory: ObjectFactory;
     private _previousSequenceNumber: number;
     private _tokenStack: SecurityTokenAndDerivedKeys[];
-    private privateKey: PrivateKeyPEM;
+    private privateKey: PrivateKey;
 
     constructor(options: MessageBuilderOptions) {
         super(options);
@@ -227,8 +261,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     debugLog(" Sequence Header", this.sequenceHeader);
                 }
                 if (doTraceChunk) {
-                    warningLog(
-                        timestamp(),
+                    console.log(
+                        chalk.cyan(timestamp()),
                         chalk.green("   >$$ "),
                         chalk.green(this.messageHeader.msgType),
                         chalk.green("nbChunk = " + this.messageChunks.length.toString().padStart(3)),
@@ -245,6 +279,8 @@ export class MessageBuilder extends MessageBuilderBase {
             }
             return true;
         } catch (err) {
+            warningLog(chalk.red("Error"), (err as Error).message);
+            console.log("REMOVE ME", err);
             return false;
         }
     }
@@ -252,18 +288,14 @@ export class MessageBuilder extends MessageBuilderBase {
     protected _decodeMessageBody(fullMessageBody: Buffer): boolean {
         // istanbul ignore next
         if (!this.messageHeader || !this.securityHeader) {
-            return this._report_error("internal error");
+            return this._report_error(StatusCodes2.BadTcpInternalError, "internal error");
         }
 
         const msgType = this.messageHeader.msgType;
 
-        if (msgType === "ERR") {
+        if (msgType === "HEL" || msgType === "ACK" || msgType === "ERR") {
             // invalid message type
-            return this._report_error("ERROR RECEIVED");
-        }
-        if (msgType === "HEL" || msgType === "ACK") {
-            // invalid message type
-            return this._report_error("Invalid message type ( HEL/ACK )");
+            return this._report_error(StatusCodes2.BadTcpMessageTypeInvalid, "Invalid message type ( HEL/ACK/ERR )");
         }
 
         if (msgType === "CLO" && fullMessageBody.length === 0 && this.sequenceHeader) {
@@ -285,20 +317,20 @@ export class MessageBuilder extends MessageBuilderBase {
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
-            return this._report_error(err instanceof Error ? err.message : " err");
+            return this._report_error(StatusCodes2.BadTcpInternalError, err instanceof Error ? err.message : " err");
         }
 
         if (!this.objectFactory.hasConstructor(id)) {
             // the datatype NodeId is not supported by the server and unknown in the factory
             // we better off reporting an error and abort the communication
-            return this._report_error("cannot construct object with nodeID " + id.toString());
+            return this._report_error(StatusCodes.BadNotSupported, "cannot construct object with nodeID " + id.toString());
         }
 
         // construct the object
         const objMessage = this.objectFactory.constructObject(id);
 
         if (!objMessage) {
-            return this._report_error("cannot construct object with nodeID " + id);
+            return this._report_error(StatusCodes.BadNotSupported, "cannot construct object with nodeID " + id);
         } else {
             if (this._safe_decode_message_body(fullMessageBody, objMessage, binaryStream)) {
                 /* istanbul ignore next */
@@ -341,12 +373,23 @@ export class MessageBuilder extends MessageBuilderBase {
                     }
                     warningLog(chalk.red("MessageBuilder : ERROR DETECTED IN 'message' event handler"));
                     if (err instanceof Error) {
-                        debugLog(err.stack);
+                        warningLog(err.message);
+                        warningLog(err.stack);
                     }
                 }
             } else {
                 warningLog("cannot decode message  for valid object of type " + id.toString() + " " + objMessage.constructor.name);
                 this.emit("invalid_message", objMessage);
+                debugLog(
+                    this.id,
+                    "message size =",
+                    ("" + this.totalMessageSize).padEnd(8),
+                    " body size   =",
+                    ("" + this.totalBodySize).padEnd(8),
+                    objMessage.constructor.name
+                );
+                console.log(objMessage.toString());
+
                 // we don't report an error here, we just ignore the message
                 return false; // this._report_error(message);
             }
@@ -436,20 +479,25 @@ export class MessageBuilder extends MessageBuilderBase {
 
         // The message has been signed  with sender private key and has been encrypted with receiver public key.
         // We shall decrypt it with the receiver private key.
-        const buf = binaryStream.buffer.slice(binaryStream.length);
+        const buf = binaryStream.buffer.subarray(binaryStream.length);
 
         if (asymmetricAlgorithmSecurityHeader.receiverCertificateThumbprint) {
             // this mean that the message has been encrypted ....
 
             assert(this.privateKey !== invalidPrivateKey, "expecting a valid private key");
 
-            const decryptedBuffer = this.cryptoFactory.asymmetricDecrypt(buf, this.privateKey);
-
-            // replace decrypted buffer in initial buffer
-            decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
-
-            // adjust length
-            binaryStream.buffer = binaryStream.buffer.slice(0, binaryStream.length + decryptedBuffer.length);
+            try {
+                const decryptedBuffer = this.cryptoFactory.asymmetricDecrypt(buf, this.privateKey);
+                // replace decrypted buffer in initial buffer
+                decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
+                // adjust length
+                binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
+            } catch (err) {
+                warningLog("Cannot decrypt OPN package");
+                // Cannot asymetricaly decrypt, may be the certificate used by the other party to encrypt
+                // this package is wrong
+                return false;
+            }
 
             /* istanbul ignore next */
             if (doDebug) {
@@ -580,7 +628,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
 
         // We shall decrypt it with the receiver private key.
-        const buf = binaryStream.buffer.slice(binaryStream.length);
+        const buf = binaryStream.buffer.subarray(binaryStream.length);
 
         const derivedKeys = securityTokenData.derivedKeys;
 
@@ -596,7 +644,7 @@ export class MessageBuilder extends MessageBuilderBase {
             decryptedBuffer.copy(binaryStream.buffer, binaryStream.length);
 
             // adjust length
-            binaryStream.buffer = binaryStream.buffer.slice(0, binaryStream.length + decryptedBuffer.length);
+            binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
 
             /* istanbul ignore next */
             if (doDebug) {

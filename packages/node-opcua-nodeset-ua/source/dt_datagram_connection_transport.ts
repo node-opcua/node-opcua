@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
+import { ExtensionObject } from "node-opcua-extension-object"
 import { DTConnectionTransport } from "./dt_connection_transport"
-import { DTStructure } from "./dt_structure"
+import { DTNetworkAddress } from "./dt_network_address"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
@@ -9,6 +10,7 @@ import { DTStructure } from "./dt_structure"
  * | name      |DatagramConnectionTransportDataType               |
  * | isAbstract|false                                             |
  */
-export interface DTDatagramConnectionTransport extends DTConnectionTransport  {
-  discoveryAddress: DTStructure; // ExtensionObject ns=0;i=22
+export interface DTDatagramConnectionTransport extends DTConnectionTransport {
+  discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502
 }
+export interface UDTDatagramConnectionTransport extends ExtensionObject, DTDatagramConnectionTransport {};
