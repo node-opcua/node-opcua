@@ -1058,6 +1058,9 @@ export class MonitoredItem extends EventEmitter {
             // initiate first read
             if (recordInitialValue) {
                 this.__acquireInitialValue(sessionContext, (err: Error | null, dataValue?: DataValue) => {
+                    if(err) {
+                        warningLog(err.message);
+                    }
                     if (!err && dataValue) {
                         this.recordValue(dataValue, true);
                     }
@@ -1066,6 +1069,9 @@ export class MonitoredItem extends EventEmitter {
         } else {
             if (recordInitialValue) {
                 this.__acquireInitialValue(sessionContext, (err: Error | null, dataValue?: DataValue) => {
+                    if(err) {
+                        warningLog(err.message);
+                    }
                     if (!err && dataValue) {
                         this.recordValue(dataValue, true);
                     }
@@ -1274,12 +1280,12 @@ export class MonitoredItem extends EventEmitter {
 
     private _set_timer() {
 
-        if(!this.itemToMonitor) {
+        if (!this.itemToMonitor) {
             // item has already been deleted
             // so do not create the timer !
             return;
         }
-        
+
         assert(this.samplingInterval >= MonitoredItem.minimumSamplingInterval);
         assert(!this._samplingId);
 

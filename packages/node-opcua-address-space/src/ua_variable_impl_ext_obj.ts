@@ -104,12 +104,12 @@ export function _touchValue(property: UAVariableImpl, now: PreciseClock): void {
     property.$dataValue.serverTimestamp = now.timestamp;
     property.$dataValue.serverPicoseconds = now.picoseconds;
     property.$dataValue.statusCode = StatusCodes.Good;
-    if (property.minimumSamplingInterval === 0) {
-        if (property.listenerCount("value_changed") > 0) {
-            const clonedDataValue = property.readValue();
-            property.emit("value_changed", clonedDataValue);
-        }
+    // if (property.minimumSamplingInterval === 0) {
+    if (property.listenerCount("value_changed") > 0) {
+        const clonedDataValue = property.readValue();
+        property.emit("value_changed", clonedDataValue);
     }
+    // }
 }
 
 export function propagateTouchValueUpward(self: UAVariableImpl, now: PreciseClock, cache?: Set<UAVariable>): void {
@@ -126,7 +126,7 @@ export function propagateTouchValueUpward(self: UAVariableImpl, now: PreciseCloc
     }
 }
 
-function propagateTouchValueDownward(self: UAVariableImpl, now: PreciseClock, cache?: Set<UAVariable>): void {
+export function propagateTouchValueDownward(self: UAVariableImpl, now: PreciseClock, cache?: Set<UAVariable>): void {
     if (!self.isExtensionObject()) return;
     // also propagate changes to embeded variables
     const dataTypeNode = self.getDataTypeNode();
@@ -336,7 +336,7 @@ function _installFields2(uaVariable: UAVariableImpl, { get, set }: {
         propertyNode.$dataValue.serverPicoseconds = uaVariable.$dataValue.serverPicoseconds;
         propertyNode.$dataValue.value.dataType = propertyNode.dataTypeObj.basicDataType;
         propertyNode.$dataValue.value.arrayType = propertyNode.valueRank === -1 ? VariantArrayType.Scalar : (propertyNode.valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix)
-        propertyNode.$dataValue.value.dimensions =propertyNode.valueRank > 1 ?  propertyNode.arrayDimensions : null;
+        propertyNode.$dataValue.value.dimensions = propertyNode.valueRank > 1 ? propertyNode.arrayDimensions : null;
 
         const fieldName = field.name!;
         installDataValueGetter(propertyNode, () => get(fieldName));
@@ -398,7 +398,7 @@ function isVariableContainingExtensionObject(uaVariable: UAVariableImpl): boolea
 function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
     { get, set }: {
         get: () => ExtensionObject;
-        set: (value: ExtensionObject, sourceTimestamp: PreciseClock) => void;
+        set: (value: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
     },
     options?: BindExtensionObjectOptions
 ) {
@@ -417,7 +417,8 @@ function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
         /** */
         const ext = dataValue.value.value;
         const sourceTime = coerceClock(dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
-        set(ext, sourceTime);
+        const cache = new Set<UAVariableImpl>();
+        set(ext, sourceTime, cache);
     }
 
     _installFields2(uaVariable, {
@@ -607,6 +608,21 @@ export function _bindExtensionObjectArrayOrMatrix(
     uaVariable.$dataValue.value.dataType = DataType.ExtensionObject;
     uaVariable.$dataValue.value.value = uaVariable.$$extensionObjectArray;
 
+
+    // make sure uaVariable.$dataValue cannot be inadvertantly changed from this point onward
+    const $dataValue = uaVariable.$dataValue;
+    Object.defineProperty(uaVariable, "$dataValue", {
+        get(): DataValue {
+            return $dataValue;
+        },
+        set() {
+            throw new Error("$dataValue is now sealed , you should not change internal $dataValue!");
+        },
+        //    writable: true,
+        enumerable: true,
+        configurable: true,
+    });
+
     uaVariable.bindVariable({
         get: () => uaVariable.$dataValue.value
     }, true);
@@ -634,7 +650,6 @@ export function _bindExtensionObjectArrayOrMatrix(
             }) as UAVariableImpl;
         }
 
-        uaElement.$dataValue.value.dataType = DataType.ExtensionObject;
         uaElement.$dataValue.statusCode = StatusCodes.Good;
         uaElement.$dataValue.sourceTimestamp = uaVariable.$dataValue.sourceTimestamp;
         uaElement.$dataValue.sourcePicoseconds = uaVariable.$dataValue.sourcePicoseconds;
@@ -645,16 +660,21 @@ export function _bindExtensionObjectArrayOrMatrix(
 
         {
             const capturedIndex = i;
+            const capturedUaElement = uaElement as UAVariableImpl;
             _innerBindExtensionObjectScalar(uaElement,
                 {
                     get: () => uaVariable.$$extensionObjectArray[capturedIndex],
-                    set: (newValue: ExtensionObject, sourceTimestamp: PreciseClock) => {
-                        uaVariable.$$extensionObjectArray[capturedIndex] = newValue;
-                        uaVariable.touchValue();
-                        propagateTouchValueDownward(uaVariable, sourceTimestamp);
-                        propagateTouchValueUpward(uaVariable, sourceTimestamp);
-                    },
+                    set: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => {
 
+                        assert(!isProxy(uaVariable.$$extensionObjectArray[capturedIndex]));
+                        uaVariable.$$extensionObjectArray[capturedIndex] = newValue;
+                        if (uaVariable.$$extensionObjectArray !== uaVariable.$dataValue.value.value) {
+                            console.log("uaVariable", uaVariable.nodeId.toString());
+                            console.log("Houston! We have a problem ");
+                        }
+                        propagateTouchValueDownward(capturedUaElement, sourceTimestamp, cache);
+                        propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
+                    }
                 }, { ...options, force: true });
 
         }
@@ -716,4 +736,24 @@ export function extractPartialData(path: string | string[], extensionObject: Ext
     name = path[path.length - 1];
     c1[name] = c2[name];
     return partialData;
+}
+
+export function propagateTouchValueDownwardArray(uaVariable: UAVariableImpl, now: PreciseClock, cache: Set<UAVariable>) {
+
+    if (!uaVariable.$$extensionObjectArray) return;
+    const arrayDimensions = uaVariable.arrayDimensions || [];
+    const totalLength = uaVariable.$$extensionObjectArray.length;
+
+    const indexIterator = new IndexIterator(arrayDimensions);
+    for (let i = 0; i < totalLength; i++) {
+
+        const index = indexIterator.next();
+
+        const { browseName, nodeId } = composeBrowseNameAndNodeId(uaVariable, index);
+        const uaElement = uaVariable.getComponentByName(browseName) as UAVariableImpl | null;
+        if (uaElement?.nodeClass === NodeClass.Variable) {
+            uaElement.touchValue(now);
+            propagateTouchValueDownward(uaElement, now, cache);
+        }
+    }
 }

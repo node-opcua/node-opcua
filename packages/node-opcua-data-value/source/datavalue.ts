@@ -510,7 +510,12 @@ function _clone_with_array_replacement(dataValue: DataValue, result: any): DataV
     clonedDataValue.value.dataType = dataValue.value.dataType;
     clonedDataValue.value.arrayType = dataValue.value.arrayType;
     clonedDataValue.value.dimensions = result.dimensions;
-    clonedDataValue.value.value = result.array;
+
+    if (Array.isArray(result.array)) {
+        clonedDataValue.value.value = [...result.array];
+    } else {
+        clonedDataValue.value.value = result.array;
+    }
     return clonedDataValue;
 }
 

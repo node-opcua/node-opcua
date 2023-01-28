@@ -86,6 +86,8 @@ import { apply_condition_refresh, ConditionRefreshCache } from "./apply_conditio
 import {
     extractPartialData,
     incrementElement,
+    propagateTouchValueDownward,
+    propagateTouchValueDownwardArray,
     propagateTouchValueUpward,
     setExtensionObjectPartialValue,
     _bindExtensionObject,
@@ -524,6 +526,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     public isExtensionObject(): boolean {
         // DataType must be one of Structure
+        if (this.dataType.isEmpty()) return false;
         const dataTypeNode = this.addressSpace.findDataType(this.dataType) as UADataType;
         if (!dataTypeNode) {
             throw new Error(" Cannot find  DataType  " + this.dataType.toString() + " in standard address Space");
@@ -572,9 +575,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             dataValue.serverPicoseconds = 0;
             return callback(null, dataValue);
         }
-
         try {
             this.refreshFunc.call(this, (err: Error | null, dataValue?: DataValueLike) => {
+                // istanbul ignore next
                 if (err || !dataValue) {
                     errorLog(
                         "-------------- refresh call failed",
@@ -819,7 +822,6 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     errorLog(dataValue.toString());
                     this.checkExtensionObjectIsCorrect(dataValue.value.value);
                 }
-                this.$dataValue = dataValue;
                 // ----------------------------------
                 if (this.$extensionObject) {
                     // we have an extension object already bound to this node
@@ -827,6 +829,8 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                     // const ext = dataValue.value.value;
                     this._internal_set_dataValue(dataValue);
                     return;
+                } else {
+                    this.$dataValue = dataValue;
                 }
             } else {
                 this._internal_set_dataValue(dataValue);
@@ -1283,6 +1287,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             const n = callbacks.length;
             for (const callback1 of callbacks) {
                 callback1.call(this, err, dataValue);
+
             }
         };
 
@@ -1712,7 +1717,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 throw new Error("Invalid Extension Object on nodeId =" + this.nodeId.toString());
             }
         }
-   
+
         this.verifyVariantCompatibility(dataValue.value);
 
         this._inner_replace_dataValue(dataValue, indexRange);
@@ -1722,23 +1727,54 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
      * @private
      */
     public _inner_replace_dataValue(dataValue: DataValue, indexRange?: NumericRange | null) {
-        const old_dataValue = this.$dataValue;
 
-        this.$dataValue = dataValue;
-        this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
+        assert(this.$dataValue.value instanceof Variant);
+        const old_dataValue = this.$dataValue.clone();
 
+        if (this.$$extensionObjectArray && dataValue.value.arrayType !== VariantArrayType.Scalar) {
+            // we have a bounded array or matrix
+            assert(Array.isArray(dataValue.value.value));
+            if (this.$$extensionObjectArray !== this.$dataValue.value.value) {
+                throw new Error("internal error");
+            }
+            this.$$extensionObjectArray = dataValue.value.value;
+            this.$dataValue.value.value = dataValue.value.value;
+
+            this.$dataValue.statusCode = dataValue.statusCode || StatusCodes.Good;
+            this.$dataValue.serverTimestamp = dataValue.serverTimestamp;
+            this.$dataValue.serverPicoseconds = dataValue.serverPicoseconds;
+            this.$dataValue.sourceTimestamp = dataValue.sourceTimestamp;
+            this.$dataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
+
+        } else {
+            this.$dataValue = dataValue;
+            this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
+        }
         // repair missing timestamps
+        const now = new Date();
         if (!dataValue.serverTimestamp) {
-            this.$dataValue.serverTimestamp = old_dataValue.serverTimestamp;
-            this.$dataValue.serverPicoseconds = old_dataValue.serverPicoseconds;
+            this.$dataValue.serverTimestamp = old_dataValue.serverTimestamp || now;
+            this.$dataValue.serverPicoseconds = old_dataValue.serverPicoseconds || 0;
         }
         if (!dataValue.sourceTimestamp) {
-            this.$dataValue.sourceTimestamp = old_dataValue.sourceTimestamp;
-            this.$dataValue.sourcePicoseconds = old_dataValue.sourcePicoseconds;
+            this.$dataValue.sourceTimestamp = old_dataValue.sourceTimestamp || now;
+            this.$dataValue.sourcePicoseconds = old_dataValue.sourcePicoseconds || 0;
         }
 
         if (!sameDataValue(old_dataValue, dataValue)) {
-            this.emit("value_changed", this.$dataValue, indexRange);
+            if (this.getBasicDataType() === DataType.ExtensionObject) {
+                const preciseClock = coerceClock(this.$dataValue.sourceTimestamp, this.$dataValue.sourcePicoseconds);
+                const cache: Set<UAVariable> = new Set();
+                if (this.$$extensionObjectArray) {
+                    this.touchValue(preciseClock);
+                    propagateTouchValueDownwardArray(this, preciseClock, cache);
+                } else {
+                    this.touchValue(preciseClock);
+                    propagateTouchValueDownward(this, preciseClock, cache);
+                }
+            } else {
+                this.emit("value_changed", this.$dataValue, indexRange);
+            }
         }
     }
 
@@ -2067,7 +2103,7 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
     this._get_func = options.get;
 
     const timestamped_get_func_from__Variable_bind_with_simple_get = () => {
-        const value = this._get_func();
+        const value: Variant | StatusCode = this._get_func();
 
         /* istanbul ignore next */
         if (!is_Variant_or_StatusCode(value)) {
@@ -2081,10 +2117,10 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
             );
         }
         if (is_StatusCode(value)) {
-            return new DataValue({ statusCode: value });
+            return new DataValue({ statusCode: value as StatusCode });
         } else {
-            if (!this.$dataValue || !this.$dataValue.statusCode.isGoodish() || !sameVariant(this.$dataValue.value, value)) {
-                this.setValueFromSource(value, StatusCodes.Good);
+            if (!this.$dataValue || !this.$dataValue.statusCode.isGoodish() || !sameVariant(this.$dataValue.value, value as Variant)) {
+                this._inner_replace_dataValue(new DataValue({ value }));
             }
             return this.$dataValue;
         }

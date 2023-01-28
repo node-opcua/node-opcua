@@ -941,7 +941,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     private _deleteSubscriptions() {
-        assert(this.publishEngine);
+        if(!this.publishEngine) return;
         const subscriptions = this.publishEngine.subscriptions;
         for (const subscription of subscriptions) {
             this.deleteSubscription(subscription.id);
