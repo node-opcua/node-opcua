@@ -579,9 +579,9 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     //         MachineToolIdentificationType
     //
     //
-    // IMachineTagNameplateType            -subTypeOf-> ITagNameplateType
-    // IMachineVendorNamePlateType         -subTypeOf-> IMachineryItemVendorNamePlateType
-    // IMachineryItemVendorNamePlateType   -subTypeOf-> IVendorNameplateType
+    // IMachineTagNameplateType            -subtypeOf-> ITagNameplateType
+    // IMachineVendorNamePlateType         -subtypeOf-> IMachineryItemVendorNamePlateType
+    // IMachineryItemVendorNamePlateType   -subtypeOf-> IVendorNameplateType
     const interfacesRef = typeDefinitionNode.findReferencesEx("HasInterface", BrowseDirection.Forward);
     const interfaces = interfacesRef.map((r) => addressSpace.findNode(r.nodeId) as UAInterface);
 
@@ -662,9 +662,9 @@ function _crap_extractInterfaces(typeDefinitionNode: UAObjectType | UAVariableTy
     //         MachineToolIdentificationType
     //
     //
-    // IMachineTagNameplateType            -subTypeOf-> ITagNameplateType
-    // IMachineVendorNamePlateType         -subTypeOf-> IMachineryItemVendorNamePlateType
-    // IMachineryItemVendorNamePlateType   -subTypeOf-> IVendorNameplateType
+    // IMachineTagNameplateType            -subtypeOf-> ITagNameplateType
+    // IMachineVendorNamePlateType         -subtypeOf-> IMachineryItemVendorNamePlateType
+    // IMachineryItemVendorNamePlateType   -subtypeOf-> IVendorNameplateType
     const interfacesRef = typeDefinitionNode.findReferencesEx("HasInterface", BrowseDirection.Forward);
     const interfaces = interfacesRef.map((r) => r.node! as UAInterface);
     for (const iface of interfaces) {

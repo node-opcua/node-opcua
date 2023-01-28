@@ -579,10 +579,11 @@ export class NamespaceImpl implements NamespacePrivate {
     public addReferenceType(options: AddReferenceTypeOptions): UAReferenceType {
         const addressSpace = this.addressSpace;
 
-        const options1 = options as any;
+        const options1 = options as CreateNodeOptions;
         options1.nodeClass = NodeClass.ReferenceType;
-        options1.references = options1.references || [];
-
+        options1.references = options.references || [];
+        options1.nodeId = options.nodeId;
+        
         if (options.subtypeOf) {
             const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf, "References", NodeClass.ReferenceType);
 

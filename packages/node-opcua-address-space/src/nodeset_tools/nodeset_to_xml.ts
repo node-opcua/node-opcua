@@ -1273,9 +1273,14 @@ function dumpReferenceType(xw: XmlWriter, referenceType: UAReferenceType) {
 
     dumpCommonAttributes(xw, referenceType);
 
+    const isSymmetric = (!referenceType.inverseName || referenceType.inverseName?.text === referenceType.browseName?.name);
+    if (isSymmetric) {
+        xw.writeAttribute("Symmetric", "true");
+    }
+
     dumpCommonElements(xw, referenceType);
 
-    if (referenceType.inverseName /* LocalizedText*/) {
+    if (!isSymmetric) {
         xw.startElement("InverseName");
         xw.text(referenceType.inverseName!.text || "");
         xw.endElement();
@@ -1389,9 +1394,9 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.startElement("NamespaceUris");
 
     // let's sort the dependencies in the same order as the translation table
-    const sortedDependencies = dependency.sort((a,b)=> translationTable[a.index] > translationTable[b.index] ? 1: -1);
-    
-    doDebug && console.log(sortedDependencies.map((a)=>a.index + " + "+ a.namespaceUri).join("\n"));
+    const sortedDependencies = dependency.sort((a, b) => translationTable[a.index] > translationTable[b.index] ? 1 : -1);
+
+    doDebug && console.log(sortedDependencies.map((a) => a.index + " + " + a.namespaceUri).join("\n"));
     doDebug && console.log("translation table ", translationTable);
 
     for (const depend of sortedDependencies) {
