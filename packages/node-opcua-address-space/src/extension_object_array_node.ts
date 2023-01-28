@@ -43,6 +43,10 @@ function removeElementByIndex<T extends ExtensionObject>(uaArrayVariableNode: UA
 
     // remove element from global array (inefficient)
     uaArrayVariableNode.$$extensionObjectArray.splice(elementIndex, 1);
+    if(uaArrayVariableNode.$$extensionObjectArray !== uaArrayVariableNode.$dataValue.value.value) {
+    //    throw new Error("internal error");
+    }
+    uaArrayVariableNode.touchValue();
 
     // remove matching component
     const node = uaArrayVariableNode.getComponentByName(browseName);
@@ -170,12 +174,12 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     // verify that an object with same doesn't already exist
     dataType = addressSpace.findDataType(variableType.dataType)! as UADataType;
     assert(dataType!.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
-
+    assert(!uaArrayVariableNode.$$extensionObjectArray, "UAVariable ExtensionObject array already bounded");
     uaArrayVariableNode.$$dataType = dataType;
     uaArrayVariableNode.$$extensionObjectArray = [];
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
-
     uaArrayVariableNode.$$getElementBrowseName = _getElementBrowseName;
+    uaArrayVariableNode.$dataValue.value.value =  uaArrayVariableNode.$$extensionObjectArray;
 
     const bindOptions: any = {
         get: getExtObjArrayNodeValue,
@@ -246,8 +250,12 @@ export function addElement<T extends ExtensionObject>(
         elVar.bindExtensionObject(extensionObject, { force: true });
     }
 
+    if(uaArrayVariableNode.$$extensionObjectArray !== uaArrayVariableNode.$dataValue.value.value) {
+    //    throw new Error("internal error");
+    }
     // also add the value inside
     uaArrayVariableNode.$$extensionObjectArray.push(elVar.$extensionObject);
+    uaArrayVariableNode.touchValue();
 
     return elVar;
 }

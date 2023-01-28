@@ -418,7 +418,7 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         options.add(options.padding + chalk.yellow("          dataType            : ") + this.dataType + "  " + n);
     }
     if (this.nodeClass === NodeClass.Variable) {
-        const _dataValue = (<WithDataValue>this).$dataValue as DataValue | undefined;
+        const _dataValue = (<WithDataValue>this).$dataValue;
         if (_dataValue) {
             options.add(
                 options.padding +

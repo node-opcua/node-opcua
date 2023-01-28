@@ -65,70 +65,81 @@ export function utest_condition(test: any): void {
 
             it(
                 "should be possible to enable and disable a condition using the enable & disable methods" +
-                    " ( as a client would do)",
+                " ( as a client would do)",
                 async () => {
-                    const namespace = addressSpace.getOwnNamespace();
-                    const condition = namespace.instantiateCondition(myCustomConditionType, {
-                        browseName: "MyCustomCondition2",
-                        conditionSource: null,
-                        organizedBy: addressSpace.rootFolder.objects
-                    });
 
-                    (condition as any).evaluateConditionsAfterEnabled = () => {
-                        /* empty */
-                    };
+                    try {
+                        const namespace = addressSpace.getOwnNamespace();
+                        const condition = namespace.instantiateCondition(myCustomConditionType, {
+                            browseName: "MyCustomCondition2",
+                            conditionSource: null,
+                            organizedBy: addressSpace.rootFolder.objects,
+                        });
 
-                    condition.setEnabledState(true);
+                        (condition as any).evaluateConditionsAfterEnabled = () => {
+                            /* empty */
+                        };
 
-                    const dataValue = condition.enabledState.id.readValue();
-                    dataValue.value.value.should.eql(true);
-                    condition.browseName.toString().should.eql("1:MyCustomCondition2");
+                        condition.setEnabledState(true);
 
-                    const context = new SessionContext();
+                        const dataValue = condition.enabledState.id.readValue();
+                        dataValue.value.value.should.eql(true);
+                        condition.browseName.toString().should.eql("1:MyCustomCondition2");
 
-                    condition.setEnabledState(false);
-                    condition.getEnabledState().should.eql(false);
+                        const context = new SessionContext();
 
-                    condition.setEnabledState(true).should.eql(StatusCodes.Good);
-                    condition.getEnabledState().should.eql(true);
+                        condition.setEnabledState(false).should.eql(StatusCodes.Good);
+                        condition.enabledState.id.readValue().value.value.should.eql(false);
+                        condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
 
-                    condition.setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
+                        condition.getEnabledState().should.eql(false);
 
-                    condition.enabledState.id.readValue().value.value.should.eql(true);
-                    condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        condition.setEnabledState(true).should.eql(StatusCodes.Good);
+                        condition.getEnabledState().should.eql(true);
+                        condition.enabledState.id.readValue().value.value.should.eql(true);
+                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
 
-                    condition.setEnabledState(false).should.eql(StatusCodes.Good);
-                    condition.setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
-                    condition.enabledState.id.readValue().value.value.should.eql(false);
-                    condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
-                    condition.getEnabledState().should.eql(false);
+                        condition.setEnabledState(true).should.eql(StatusCodes.BadConditionAlreadyEnabled);
 
-                    //  calling disable when enable state is false should return BadConditionAlreadyDisabled
+                        condition.enabledState.id.readValue().value.value.should.eql(true);
+                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
 
-                    condition.getEnabledState().should.eql(false);
+                        condition.setEnabledState(false).should.eql(StatusCodes.Good);
+                        condition.setEnabledState(false).should.eql(StatusCodes.BadConditionAlreadyDisabled);
+                        condition.enabledState.id.readValue().value.value.should.eql(false);
+                        condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
+                        condition.getEnabledState().should.eql(false);
 
-                    const callMethodResult1 = await condition.disable.execute(null, [], context);
+                        //  calling disable when enable state is false should return BadConditionAlreadyDisabled
 
-                    callMethodResult1.statusCode!.should.eql(StatusCodes.BadConditionAlreadyDisabled);
+                        condition.getEnabledState().should.eql(false);
 
-                    condition.enabledState.id.readValue().value.value.should.eql(false);
-                    condition.getEnabledState().should.eql(false);
+                        const callMethodResult1 = await condition.disable.execute(null, [], context);
 
-                    condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
+                        callMethodResult1.statusCode!.should.eql(StatusCodes.BadConditionAlreadyDisabled);
 
-                    // calling enable when enable state is false should return Good
+                        condition.enabledState.id.readValue().value.value.should.eql(false);
+                        condition.getEnabledState().should.eql(false);
 
-                    const callMethodResult2 = await condition.enable.execute(null, [], context);
-                    callMethodResult2.statusCode!.should.eql(StatusCodes.Good);
-                    condition.enabledState.id.readValue().value.value.should.eql(true);
-                    condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        condition.enabledState.readValue().value.value.text!.should.eql("Disabled");
 
-                    //  calling enable when enable state is already true should return BadConditionAlreadyEnabled
-                    const callMethodResult3 = await condition.enable.execute(null, [], context);
+                        // calling enable when enable state is false should return Good
 
-                    callMethodResult3.statusCode!.should.eql(StatusCodes.BadConditionAlreadyEnabled);
-                    condition.enabledState.id.readValue().value.value.should.eql(true);
-                    condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                        const callMethodResult2 = await condition.enable.execute(null, [], context);
+                        callMethodResult2.statusCode!.should.eql(StatusCodes.Good);
+                        condition.enabledState.id.readValue().value.value.should.eql(true);
+                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+
+                        //  calling enable when enable state is already true should return BadConditionAlreadyEnabled
+                        const callMethodResult3 = await condition.enable.execute(null, [], context);
+
+                        callMethodResult3.statusCode!.should.eql(StatusCodes.BadConditionAlreadyEnabled);
+                        condition.enabledState.id.readValue().value.value.should.eql(true);
+                        condition.enabledState.readValue().value.value.text!.should.eql("Enabled");
+                    } catch (err) {
+                        console.log(err);
+                        throw err;
+                    }
                 }
             );
 
@@ -275,9 +286,9 @@ export function utest_condition(test: any): void {
 
                 // An event should have been raised to specify that the condition has entered a Disabled State
                 spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal Disabled State");
-                
+
                 // console.log( spyOnEvent.getCalls()[1].args[0]);
-                
+
                 spyOnEvent.getCalls()[1].args[0]["branchId"].value.should.eql(NodeId.nullNodeId);
                 spyOnEvent
                     .getCalls()[1]
