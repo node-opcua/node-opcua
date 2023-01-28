@@ -180,6 +180,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
     uaArrayVariableNode.$$indexPropertyName = indexPropertyName;
     uaArrayVariableNode.$$getElementBrowseName = _getElementBrowseName;
     uaArrayVariableNode.$dataValue.value.value =  uaArrayVariableNode.$$extensionObjectArray;
+    uaArrayVariableNode.$dataValue.value.arrayType = VariantArrayType.Array;
 
     const bindOptions: any = {
         get: getExtObjArrayNodeValue,

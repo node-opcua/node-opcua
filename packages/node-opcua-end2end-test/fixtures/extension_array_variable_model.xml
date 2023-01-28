@@ -1,0 +1,603 @@
+<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://sterfive.com/UA/Sample/Type.xsd">
+    <NamespaceUris>
+        <Uri>http://sterfive.com/UA/Sample/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://sterfive.com/UA/Sample/" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00.000Z"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="1:StuffDataType">ns=1;i=1008</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+    </Aliases>
+<!--ReferenceTypes-->
+<!--DataTypes-->
+    <UADataType NodeId="ns=1;i=1008" BrowseName="1:StuffDataType">
+        <DisplayName>StuffDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1009</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1010</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1011</Reference>
+        </References>
+        <Definition Name="1:StuffDataType">
+            <Field Name="field1" DataType="i=11"/>
+            <Field Name="field2" DataType="i=11"/>
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="ns=1;i=1009" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1010" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1011" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+<!--ObjectTypes-->
+<!--ObjectType - 1:MyObjectType {{{{ -->
+    <UAObjectType NodeId="ns=1;i=1012" BrowseName="1:MyObjectType">
+        <DisplayName>MyObjectType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1013</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1014</Reference>
+        </References>
+    </UAObjectType>
+    <UAVariable NodeId="ns=1;i=1013" BrowseName="1:ArrayOfStuff" ParentNodeId="ns=1;i=1012" AccessLevel="3" ValueRank="1" ArrayDimensions="10" DataType="1:StuffDataType">
+        <DisplayName>ArrayOfStuff</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1014" BrowseName="1:MatrixOfStuff" ParentNodeId="ns=1;i=1012" AccessLevel="3" ValueRank="2" ArrayDimensions="3,4" DataType="1:StuffDataType">
+        <DisplayName>MatrixOfStuff</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+<!--ObjectType - 1:MyObjectType }}}}-->
+<!--VariableTypes-->
+<!--Other Nodes-->
+<!--Object - 1:MyObject {{{{ -->
+    <UAObject NodeId="ns=1;i=1015" BrowseName="1:MyObject">
+        <DisplayName>MyObject</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;i=1012</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1016</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1017</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="ns=1;i=1016" BrowseName="1:ArrayOfStuff" ParentNodeId="ns=1;i=1015" AccessLevel="3" ValueRank="1" ArrayDimensions="10" DataType="1:StuffDataType">
+        <DisplayName>ArrayOfStuff</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1017" BrowseName="1:MatrixOfStuff" ParentNodeId="ns=1;i=1015" AccessLevel="3" ValueRank="2" ArrayDimensions="3,4" DataType="1:StuffDataType">
+        <DisplayName>MatrixOfStuff</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <Value>
+            <ListOfExtensionObject xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+                <ExtensionObject>
+                    <TypeId>
+                        <Identifier>ns=1;i=1010</Identifier>
+                    </TypeId>
+                    <Body>
+                        <StuffDataType xmlns="http://sterfive.com/UA/Sample/Types.xsd">
+                            <field1>0</field1>
+                            <field2>0</field2>
+                        </StuffDataType>
+                    </Body>
+                </ExtensionObject>
+            </ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+<!--Object - 1:MyObject }}}} -->
+</UANodeSet>
