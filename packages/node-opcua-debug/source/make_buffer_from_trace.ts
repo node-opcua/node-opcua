@@ -25,7 +25,9 @@ function hexString(str: string): string {
         lines = lines.splice(1);
     }
     // find prefix
-    const prefixLength = lines[0]!.match(/[0-9a-fA-F:]* +/)![0].length;
+    const m =  lines[0]!.match(/[0-9a-fA-F:]* +/);
+    if (!m)  return hexLine;
+    const prefixLength = m[0].length;
 
     for (let line of lines) {
         line = line.trim();
@@ -44,7 +46,7 @@ function hexString(str: string): string {
 }
 
 // tslint:disable:ban-types
-export function makeBufferFromTrace(func: string | (()=>void)): Buffer {
+export function makeBufferFromTrace(func: string): Buffer {
     if (typeof func === "string") {
         return makeBuffer(hexString(func as string));
     }
