@@ -128,14 +128,12 @@ describe("SecureMessageChunkManager", function () {
                 done(new Error("Unexpected error event received"));
             });
 
-        const packet = makeBufferFromTrace(function () {
-            /*
-             00000000: 4d 53 47 46 64 00 00 00 0c 00 00 00 01 00 00 00 04 00 00 00 03 00 00 00 01 00 8d 01 00 00 00 00    MSGFd...........................
+        const packet = makeBufferFromTrace(
+            `00000000: 4d 53 47 46 64 00 00 00 0c 00 00 00 01 00 00 00 04 00 00 00 03 00 00 00 01 00 8d 01 00 00 00 00    MSGFd...........................
              00000020: 00 00 00 00 00 00 00 00 00 00 82 80 24 00 00 00 00 00 00 00 80 01 00 00 00 24 00 00 00 55 6e 65    ............$............$...Une
              00000040: 78 70 65 63 74 65 64 20 65 72 72 6f 72 20 70 72 6f 63 65 73 73 69 6e 67 20 72 65 71 75 65 73 74    xpected.error.processing.request
              00000060: 2e 00 00 00                                                                                        ....
-             */
-        });
+             `);
         messageBuilder.feed(packet);
     });
     it("should test CloseSecureChannelResponse", function () {
