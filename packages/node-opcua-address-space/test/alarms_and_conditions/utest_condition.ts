@@ -211,20 +211,20 @@ export function utest_condition(test: any): void {
                 // in the following specific behaviour:
                 //
                 // RQ1
-                //  When the Condition instance enters the Disabled state, the Retain Property of this
+                // * When the Condition instance enters the Disabled state, the Retain Property of this
                 //   Condition shall be set to FALSE by the Server to indicate to the Client that the
                 //   Condition instance is currently not of interest to Clients.
                 // RQ2
-                //  When the Condition instance enters the enabled state, the Condition shall be
+                // * When the Condition instance enters the enabled state, the Condition shall be
                 //   evaluated and all of its Properties updated to reflect the current values. If this
                 //   evaluation causes the Retain Property to transition to TRUE for any ConditionBranch,
                 //   then an Event Notification shall be generated for that ConditionBranch.
                 // RQ3
-                //  The Server may choose to continue to test for a Condition instance while it is
+                // * The Server may choose to continue to test for a Condition instance while it is
                 //   Disabled. However, no Event Notifications will be generated while the Condition
                 //   instance is disabled.
                 // RQ4
-                //  For any Condition that exists in the AddressSpace the Attributes and the following
+                // * For any Condition that exists in the AddressSpace the Attributes and the following
                 //   Variables will continue to have valid values even in the Disabled state; EventId, Event
                 //   Type, Source Node, Source Name, Time, and EnabledState. Other properties may no
                 //   longer provide current valid values. All Variables that are no longer provided shall
