@@ -7,8 +7,8 @@ const { makeBufferFromTrace } = require("node-opcua-debug");
 exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
     `00000000: 4d 53 47 43 ff 1f 00 00 46 00 00 00 01 00 00 00 04 00 00 00 03 00 00 00 01 00 d0 01 5b 0f 55 a3    MSGC....F.................P.[.U#
      00000020: 3f 23 cf 01 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 06 00 fb 2e 1d 23 05 00 00 20 00    ?#O....................{..#.....
-     00000040: 00 00 6c 52 ff be 4b c7 25 6e a9 56 54 bf e9 87 81 46 bf be 78 da 25 d5 6e ec 5c cd 2d ac 68 28    ..lR.>KG%n)VT?i..F?>xZ%Unl\M-,h(
-     00000060: 67 12 00 00 00 00 80 4f 12 41 20 00 00 00 72 c3 24 40 7d 6a e9 55 ed 51 63 7a 47 29 dc fe 2b 9b    g......O.A....rC$@}jiUmQczG)\~+.
+     00000040: 00 00 6c 52 ff be 4b c7 25 6e a9 56 54 bf e9 87 81 46 bf be 78 da 25 d5 6e ec 5c cd 2d ac 68 28    ..lR.>KG%n)VT?i..F?>xZ%Unl\\M-,h(
+     00000060: 67 12 00 00 00 00 80 4f 12 41 20 00 00 00 72 c3 24 40 7d 6a e9 55 ed 51 63 7a 47 29 dc fe 2b 9b    g......O.A....rC$@}jiUmQczG)\\~+.
      00000080: 30 a1 da 07 47 ca fb ff a3 ad 0a 5b 47 ff 09 03 00 00 30 82 03 05 30 82 02 6e a0 03 02 01 02 02    0!Z.GJ{.#-.[G.....0...0..n......
      000000a0: 10 5d 1f 0d 78 84 6a 73 44 99 c7 65 30 0b e5 cf 3b 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00    .]..x.jsD.Ge0.eO;0...*.H.w......
      000000c0: 30 38 31 1b 30 19 06 0a 09 92 26 89 93 f2 2c 64 01 19 16 0b 58 4c 45 55 52 49 31 31 30 32 32 31    081.0.....&..r,d....XLEURI110221
@@ -31,9 +31,9 @@ exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
      000002e0: 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72 82 0b 58 4c 45    LEURI11022:UA.Sample.Server..XLE
      00000300: 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 03 81 81 00 41 39 84 1e 5f    URI110220...*.H.w..........A9.._
      00000320: 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68    .J.b_xe....R?p.D.b..."y&[Hlo_2lh
-     00000340: d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa    UL\[:.#P=\..d.;}.x.^hwL0*#.Uey?*
+     00000340: d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa    UL\\[:.#P=\\..d.;}.x.^hwL0*#.Uey?*
      00000360: d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd    Q2j..@&;.....0[rS=.G.3^x.TY\`0C.}
-     00000380: fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 09 00 00 00 29    |{..1cMGv..".D..pA.\y..;.]8....)
+     00000380: fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 09 00 00 00 29    |{..1cMGv..".D..pA.\\y..;.]8....)
      000003a0: 00 00 00 6f 70 63 2e 74 63 70 3a 2f 2f 6c 6f 63 61 6c 68 6f 73 74 3a 35 31 32 31 30 2f 55 41 2f    ...opc.tcp://localhost:51210/UA/
      000003c0: 53 61 6d 70 6c 65 53 65 72 76 65 72 20 00 00 00 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32 32 3a    SampleServer....urn:XLEURI11022:
      000003e0: 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72 28 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f    UA.Sample.Server(...http://opcfo
@@ -66,9 +66,9 @@ exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
      00000740: 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65    0/..urn:XLEURI11022:UA.Sample.Se
      00000760: 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00    rver..XLEURI110220...*.H.w......
      00000780: 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79    ....A9.._.J.b_xe....R?p.D.b..."y
-     000007a0: 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc    &[Hlo_2lhUL\[:.#P=\..d.;}.x.^hwL
+     000007a0: 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc    &[Hlo_2lhUL\\[:.#P=\\..d.;}.x.^hwL
      000007c0: 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de    0*#.Uey?*Q2j..@&;.....0[rS=.G.3^
-     000007e0: 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82    x.TY\`0C.}|{..1cMGv..".D..pA.\y..
+     000007e0: 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82    x.TY\`0C.}|{..1cMGv..".D..pA.\\y..
      00000800: 3b 9e 5d 38 03 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e    ;.]8....8...http://opcfoundation
      00000820: 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 42 61 73 69 63 31 32 38 52    .org/UA/SecurityPolicy#Basic128R
      00000840: 73 61 31 35 03 00 00 00 01 00 00 00 30 00 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 01 00 00    sa15........0...................
@@ -107,10 +107,10 @@ exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
      00000c60: 05 05 07 03 02 30 38 06 03 55 1d 11 04 31 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32    .....08..U...10/..urn:XLEURI1102
      00000c80: 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31 30 32 32 30    2:UA.Sample.Server..XLEURI110220
      00000ca0: 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10 85    ...*.H.w..........A9.._.J.b_xe..
-     00000cc0: 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d    ..R?p.D.b..."y&[Hlo_2lhUL\[:.#P=
-     00000ce0: 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00    \..d.;}.x.^hwL0*#.Uey?*Q2j..@&;.
+     00000cc0: 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d    ..R?p.D.b..."y&[Hlo_2lhUL\\[:.#P=
+     00000ce0: 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00    \\..d.;}.x.^hwL0*#.Uey?*Q2j..@&;.
      00000d00: 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76    ....0[rS=.G.3^x.TY\`0C.}|{..1cMGv
-     00000d20: 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 02 00 00 00 33 00 00 00 68 74 74 70 3a 2f    ..".D..pA.\y..;.]8....3...http:/
+     00000d20: 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 02 00 00 00 33 00 00 00 68 74 74 70 3a 2f    ..".D..pA.\\y..;.]8....3...http:/
      00000d40: 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f    /opcfoundation.org/UA/SecurityPo
      00000d60: 6c 69 63 79 23 42 61 73 69 63 32 35 36 03 00 00 00 01 00 00 00 30 00 00 00 00 ff ff ff ff ff ff    licy#Basic256........0..........
      00000d80: ff ff ff ff ff ff 01 00 00 00 31 01 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 01 00 00 00 32    ..........1....................2
@@ -149,9 +149,9 @@ exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
      000011a0: 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72 82 0b 58 4c 45    LEURI11022:UA.Sample.Server..XLE
      000011c0: 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 03 81 81 00 41 39 84 1e 5f    URI110220...*.H.w..........A9.._
      000011e0: 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68    .J.b_xe....R?p.D.b..."y&[Hlo_2lh
-     00001200: d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa    UL\[:.#P=\..d.;}.x.^hwL0*#.Uey?*
+     00001200: d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa    UL\\[:.#P=\\..d.;}.x.^hwL0*#.Uey?*
      00001220: d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd    Q2j..@&;.....0[rS=.G.3^x.TY\`0C.}
-     00001240: fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 01 00 00 00 2f    |{..1cMGv..".D..pA.\y..;.]8..../
+     00001240: fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 01 00 00 00 2f    |{..1cMGv..".D..pA.\\y..;.]8..../
      00001260: 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53    ...http://opcfoundation.org/UA/S
      00001280: 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 03 00 00 00 01 00 00 00 30 00 00 00 00 ff    ecurityPolicy#None........0.....
      000012a0: ff ff ff ff ff ff ff 33 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e    .......3...http://opcfoundation.
@@ -194,10 +194,10 @@ exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
      00001740: 08 2b 06 01 05 05 07 03 02 30 38 06 03 55 1d 11 04 31 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49    .+.......08..U...10/..urn:XLEURI
      00001760: 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31    11022:UA.Sample.Server..XLEURI11
      00001780: 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f    0220...*.H.w..........A9.._.J.b_
-     000017a0: 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a    xe....R?p.D.b..."y&[Hlo_2lhUL\[:
-     000017c0: 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d    .#P=\..d.;}.x.^hwL0*#.Uey?*Q2j..
+     000017a0: 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a    xe....R?p.D.b..."y&[Hlo_2lhUL\\[:
+     000017c0: 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d    .#P=\\..d.;}.x.^hwL0*#.Uey?*Q2j..
      000017e0: 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1    @&;.....0[rS=.G.3^x.TY\`0C.}|{..1
-     00001800: e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 03 00 00 00 38 00 00 00 68 74    cMGv..".D..pA.\y..;.]8....8...ht
+     00001800: e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 03 00 00 00 38 00 00 00 68 74    cMGv..".D..pA.\\y..;.]8....8...ht
      00001820: 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69    tp://opcfoundation.org/UA/Securi
      00001840: 74 79 50 6f 6c 69 63 79 23 42 61 73 69 63 31 32 38 52 73 61 31 35 03 00 00 00 01 00 00 00 30 00    tyPolicy#Basic128Rsa15........0.
      00001860: 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 01 00 00 00 31 01 00 00 00 ff ff ff ff ff ff ff ff    ...................1............
@@ -236,10 +236,10 @@ exports.packet_CreateSessionResponse_1 = makeBufferFromTrace(
      00001c80: 01 05 05 07 03 02 30 38 06 03 55 1d 11 04 31 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49 31 31 30    ......08..U...10/..urn:XLEURI110
      00001ca0: 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31 30 32 32    22:UA.Sample.Server..XLEURI11022
      00001cc0: 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10    0...*.H.w..........A9.._.J.b_xe.
-     00001ce0: 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0    ...R?p.D.b..."y&[Hlo_2lhUL\[:.#P
-     00001d00: 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb    =\..d.;}.x.^hwL0*#.Uey?*Q2j..@&;
+     00001ce0: 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0    ...R?p.D.b..."y&[Hlo_2lhUL\\[:.#P
+     00001d00: 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb    =\\..d.;}.x.^hwL0*#.Uey?*Q2j..@&;
      00001d20: 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7    .....0[rS=.G.3^x.TY\`0C.}|{..1cMG
-     00001d40: 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 02 00 00 00 33 00 00 00 68 74 74 70 3a    v..".D..pA.\y..;.]8....3...http:
+     00001d40: 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38 02 00 00 00 33 00 00 00 68 74 74 70 3a    v..".D..pA.\\y..;.]8....3...http:
      00001d60: 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50    //opcfoundation.org/UA/SecurityP
      00001d80: 6f 6c 69 63 79 23 42 61 73 69 63 32 35 36 03 00 00 00 01 00 00 00 30 00 00 00 00 ff ff ff ff ff    olicy#Basic256........0.........
      00001da0: ff ff ff ff ff ff ff 01 00 00 00 31 01 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff 01 00 00 00    ...........1....................
@@ -282,9 +282,9 @@ exports.packet_CreateSessionResponse_2 = makeBufferFromTrace(
      000001e0: 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20 53 65 72 76 65 72    urn:XLEURI11022:UA.Sample.Server
      00000200: 82 0b 58 4c 45 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 03 81 81 00    ..XLEURI110220...*.H.w..........
      00000220: 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85 a2 79 26 db c8 ec    A9.._.J.b_xe....R?p.D.b..."y&[Hl
-     00000240: 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e    o_2lhUL\[:.#P=\..d.;}.x.^hwL0*#.
+     00000240: 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68 f7 cc 30 2a 23 9e    o_2lhUL\\[:.#P=\\..d.;}.x.^hwL0*#.
      00000260: d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d b3 de 78 02 d4 59    Uey?*Q2j..@&;.....0[rS=.G.3^x.TY
-     00000280: 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38    \`0C.}|{..1cMGv..".D..pA.\y..;.]8
+     00000280: 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79 9e 82 3b 9e 5d 38    \`0C.}|{..1cMGv..".D..pA.\\y..;.]8
      000002a0: 01 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67    ..../...http://opcfoundation.org
      000002c0: 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 03 00 00 00 01 00 00 00 30    /UA/SecurityPolicy#None........0
      000002e0: 00 00 00 00 ff ff ff ff ff ff ff ff 33 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    ............3...http://opcfounda
@@ -328,9 +328,9 @@ exports.packet_CreateSessionResponse_2 = makeBufferFromTrace(
      000007a0: 04 31 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c 65 20    .10/..urn:XLEURI11022:UA.Sample.
      000007c0: 53 65 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01 01 05    Server..XLEURI110220...*.H.w....
      000007e0: 05 00 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19 89 85    ......A9.._.J.b_xe....R?p.D.b...
-     00000800: a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68    "y&[Hlo_2lhUL\[:.#P=\..d.;}.x.^h
+     00000800: a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d de 68    "y&[Hlo_2lhUL\\[:.#P=\\..d.;}.x.^h
      00000820: f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a 47 1d    wL0*#.Uey?*Q2j..@&;.....0[rS=.G.
-     00000840: b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79    3^x.TY\`0C.}|{..1cMGv..".D..pA.\y
+     00000840: b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f 5c 79    3^x.TY\`0C.}|{..1cMGv..".D..pA.\\y
      00000860: 9e 82 3b 9e 5d 38 01 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61 74 69    ..;.]8..../...http://opcfoundati
      00000880: 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 03 00 00    on.org/UA/SecurityPolicy#None...
      000008a0: 00 01 00 00 00 30 00 00 00 00 ff ff ff ff ff ff ff ff 33 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63    .....0............3...http://opc
@@ -374,10 +374,10 @@ exports.packet_CreateSessionResponse_2 = makeBufferFromTrace(
      00000d60: 1d 11 04 31 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70 6c    ...10/..urn:XLEURI11022:UA.Sampl
      00000d80: 65 20 53 65 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d 01    e.Server..XLEURI110220...*.H.w..
      00000da0: 01 05 05 00 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2 19    ........A9.._.J.b_xe....R?p.D.b.
-     00000dc0: 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d    .."y&[Hlo_2lhUL\[:.#P=\..d.;}.x.
+     00000dc0: 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8 0d    .."y&[Hlo_2lhUL\\[:.#P=\\..d.;}.x.
      00000de0: de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd 9a    ^hwL0*#.Uey?*Q2j..@&;.....0[rS=.
      00000e00: 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1 7f    G.3^x.TY\`0C.}|{..1cMGv..".D..pA.
-     00000e20: 5c 79 9e 82 3b 9e 5d 38 01 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    \y..;.]8..../...http://opcfounda
+     00000e20: 5c 79 9e 82 3b 9e 5d 38 01 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    \\y..;.]8..../...http://opcfounda
      00000e40: 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65 03    tion.org/UA/SecurityPolicy#None.
      00000e60: 00 00 00 01 00 00 00 30 00 00 00 00 ff ff ff ff ff ff ff ff 33 00 00 00 68 74 74 70 3a 2f 2f 6f    .......0............3...http://o
      00000e80: 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69    pcfoundation.org/UA/SecurityPoli
@@ -420,10 +420,10 @@ exports.packet_CreateSessionResponse_2 = makeBufferFromTrace(
      00001320: 55 1d 11 04 31 30 2f 86 20 75 72 6e 3a 58 4c 45 55 52 49 31 31 30 32 32 3a 55 41 20 53 61 6d 70    U...10/..urn:XLEURI11022:UA.Samp
      00001340: 6c 65 20 53 65 72 76 65 72 82 0b 58 4c 45 55 52 49 31 31 30 32 32 30 0d 06 09 2a 86 48 86 f7 0d    le.Server..XLEURI110220...*.H.w.
      00001360: 01 01 05 05 00 03 81 81 00 41 39 84 1e 5f 1c ca 1d 62 5f 78 e5 10 85 87 1e d2 3f 70 90 c4 16 e2    .........A9.._.J.b_xe....R?p.D.b
-     00001380: 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8    ..."y&[Hlo_2lhUL\[:.#P=\..d.;}.x
+     00001380: 19 89 85 a2 79 26 db c8 ec 6f df b2 6c 68 d5 4c 5c db 3a 20 23 d0 3d 5c 9a 83 64 84 bb fd 81 f8    ..."y&[Hlo_2lhUL\\[:.#P=\\..d.;}.x
      000013a0: 0d de 68 f7 cc 30 2a 23 9e d5 65 f9 3f aa d1 32 ea 15 8d 40 a6 bb 00 06 83 15 98 30 db 72 d3 bd    .^hwL0*#.Uey?*Q2j..@&;.....0[rS=
      000013c0: 9a 47 1d b3 de 78 02 d4 59 60 b0 43 16 fd fc 7b 84 04 b1 e3 cd c7 76 07 9c 22 04 c4 96 90 70 c1    .G.3^x.TY\`0C.}|{..1cMGv..".D..pA
-     000013e0: 7f 5c 79 9e 82 3b 9e 5d 38 01 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64    .\y..;.]8..../...http://opcfound
+     000013e0: 7f 5c 79 9e 82 3b 9e 5d 38 01 00 00 00 2f 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64    .\\y..;.]8..../...http://opcfound
      00001400: 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 4e 6f 6e 65    ation.org/UA/SecurityPolicy#None
      00001420: 03 00 00 00 01 00 00 00 30 00 00 00 00 ff ff ff ff ff ff ff ff 33 00 00 00 68 74 74 70 3a 2f 2f    ........0............3...http://
      00001440: 6f 70 63 66 6f 75 6e 64 61 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c    opcfoundation.org/UA/SecurityPol
@@ -476,7 +476,7 @@ exports.packet_CreateSessionResponse_3 = makeBufferFromTrace(
      01f0   0d 06 09 2a 86 48 86 f7 0d 01 01 01 05 00 03 81  ...*.H..........
      0200   8d 00 30 81 89 02 81 81 00 bd db 6a d6 cf b8 5f  ..0........j..._
      0210   45 3c 13 a7 74 e2 5a 6b 21 5e 9c 20 12 f2 91 41  E<..t.Zk!^. ...A
-     0220   5c ce 12 32 52 d8 68 e0 93 d2 0e 24 ac 8b 9b bc  \..2R.h....$....
+     0220   5c ce 12 32 52 d8 68 e0 93 d2 0e 24 ac 8b 9b bc  \\..2R.h....$....
      0230   22 5b 1c d9 53 57 7c c2 da 9e a3 b2 ec 47 d2 8e  "[..SW|......G..
      0240   a5 b7 9c 89 84 a8 04 17 e9 d2 bc 6d a0 a7 a5 58  ...........m...X
      0250   4c d2 1c cc 58 9e fd ca 07 34 8e 0d 81 80 be 6b  L...X....4.....k
@@ -567,7 +567,7 @@ exports.packet_CreateSessionResponse_3 = makeBufferFromTrace(
      07a0   9f 30 0d 06 09 2a 86 48 86 f7 0d 01 01 01 05 00  .0...*.H........
      07b0   03 81 8d 00 30 81 89 02 81 81 00 bd db 6a d6 cf  ....0........j..
      07c0   b8 5f 45 3c 13 a7 74 e2 5a 6b 21 5e 9c 20 12 f2  ._E<..t.Zk!^. ..
-     07d0   91 41 5c ce 12 32 52 d8 68 e0 93 d2 0e 24 ac 8b  .A\..2R.h....$..
+     07d0   91 41 5c ce 12 32 52 d8 68 e0 93 d2 0e 24 ac 8b  .A\\..2R.h....$..
      07e0   9b bc 22 5b 1c d9 53 57 7c c2 da 9e a3 b2 ec 47  .."[..SW|......G
      07f0   d2 8e a5 b7 9c 89 84 a8 04 17 e9 d2 bc 6d a0 a7  .............m..
      0800   a5 58 4c d2 1c cc 58 9e fd ca 07 34 8e 0d 81 80  .XL...X....4....
@@ -673,7 +673,7 @@ exports.packet_CreateSessionResponse_3 = makeBufferFromTrace(
      0e40   9f 30 0d 06 09 2a 86 48 86 f7 0d 01 01 01 05 00  .0...*.H........
      0e50   03 81 8d 00 30 81 89 02 81 81 00 bd db 6a d6 cf  ....0........j..
      0e60   b8 5f 45 3c 13 a7 74 e2 5a 6b 21 5e 9c 20 12 f2  ._E<..t.Zk!^. ..
-     0e70   91 41 5c ce 12 32 52 d8 68 e0 93 d2 0e 24 ac 8b  .A\..2R.h....$..
+     0e70   91 41 5c ce 12 32 52 d8 68 e0 93 d2 0e 24 ac 8b  .A\\..2R.h....$..
      0e80   9b bc 22 5b 1c d9 53 57 7c c2 da 9e a3 b2 ec 47  .."[..SW|......G
      0e90   d2 8e a5 b7 9c 89 84 a8 04 17 e9 d2 bc 6d a0 a7  .............m..
      0ea0   a5 58 4c d2 1c cc 58 9e fd ca 07 34 8e 0d 81 80  .XL...X....4....
