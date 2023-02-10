@@ -64,6 +64,12 @@ describe("string_utils", function () {
 
 describe("benchmark", () => {
     it("countUpperCase should be faster than countUpperCaseSlow", () => {
+
+        if (process.env.nyc_output_dir || process.env.__coverage__) {
+            console.log("SKIPPING while working in NYC or ISTANBUL");
+            return;
+        }
+
         let start = process.hrtime();
 
         function elapsed_time(note) {
