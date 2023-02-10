@@ -412,14 +412,7 @@ function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
     };
 
     installDataValueGetter(uaVariable, get);
-    assert(uaVariable._inner_replace_dataValue);
-    uaVariable._inner_replace_dataValue = (dataValue: DataValue, indexRange?: NumericRange | null) => {
-        /** */
-        const ext = dataValue.value.value;
-        const sourceTime = coerceClock(dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
-        const cache = new Set<UAVariableImpl>();
-        set(ext, sourceTime, cache);
-    }
+    uaVariable.$set_ExtensionObject = set;
 
     _installFields2(uaVariable, {
         get: (fieldName: string) => {

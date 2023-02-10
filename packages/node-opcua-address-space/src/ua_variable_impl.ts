@@ -288,6 +288,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     private _basicDataType?: DataType;
 
     public $extensionObject?: any;
+    public $set_ExtensionObject?: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
 
     public $historicalDataConfiguration?: UAHistoricalDataConfiguration;
     public varHistorian?: IVariableHistorian;
@@ -1746,6 +1747,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             this.$dataValue.sourceTimestamp = dataValue.sourceTimestamp;
             this.$dataValue.sourcePicoseconds = dataValue.sourcePicoseconds;
 
+        } else if (this._basicDataType === DataType.ExtensionObject && this.valueRank === -1 && this.$set_ExtensionObject && dataValue.value.arrayType === VariantArrayType.Scalar) {
+            // the entire extension object is changed. 
+            this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
+            const preciseClock = coerceClock(this.$dataValue.sourceTimestamp, this.$dataValue.sourcePicoseconds);
+            this.$set_ExtensionObject(dataValue.value.value, preciseClock, new Set())
         } else {
             this.$dataValue = dataValue;
             this.$dataValue.statusCode = this.$dataValue.statusCode || StatusCodes.Good;
