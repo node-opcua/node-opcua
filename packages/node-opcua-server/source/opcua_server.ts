@@ -2250,7 +2250,7 @@ export class OPCUAServer extends OPCUABaseServer {
             try {
                 assert(response1 instanceof ResponseClass || response1 instanceof ServiceFault);
                 if (message.session) {
-                    const counterName = ResponseClass.name.replace("Response", "");
+                    const counterName = ResponseClass.schema.name.replace("Response", "");
                     message.session.incrementRequestTotalCounter(counterName);
                 }
                 return channel.send_response("MSG", response1, message);
@@ -2273,7 +2273,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         function sendError(statusCode: StatusCode) {
             if (message.session) {
-                message.session.incrementRequestErrorCounter(ResponseClass.name.replace("Response", ""));
+                message.session.incrementRequestErrorCounter(ResponseClass.schema.name.replace("Response", ""));
             }
             return g_sendError(channel, message, ResponseClass, statusCode);
         }
