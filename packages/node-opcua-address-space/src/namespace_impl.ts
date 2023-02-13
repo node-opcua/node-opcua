@@ -512,8 +512,6 @@ export class NamespaceImpl implements NamespacePrivate {
             referenceType: "HasTypeDefinition"
         });
 
-        // xx assert(this.FolderTypeId && this.BaseObjectTypeId); // is default address space generated.?
-
         const createOptions = options as CreateNodeOptions;
         assert(!createOptions.nodeClass);
         createOptions.nodeClass = NodeClass.View;
@@ -1966,8 +1964,6 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(Object.prototype.hasOwnProperty.call(options, "dataType"), "options.dataType must be provided");
 
         options.historizing = !!options.historizing;
-
-        // xx assert(this.FolderTypeId && this.BaseObjectTypeId); // is default address space generated.?
 
         // istanbul ignore next
         if (Object.prototype.hasOwnProperty.call(options, "hasTypeDefinition")) {

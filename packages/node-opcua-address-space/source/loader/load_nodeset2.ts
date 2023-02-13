@@ -231,8 +231,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
-                    namespaceUri +
-                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
+                namespaceUri +
+                "\nplease make sure to initialize your address space with the corresponding nodeset files"
             );
         }
         found_namespace_in_uri[namespaceUri] = namespace;
@@ -257,7 +257,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             // check that required models exist already in the address space
             for (const requiredModel of model.requiredModels) {
                 const existingNamespace = addressSpace1.getNamespace(requiredModel.modelUri);
-                
+
                 // istanbul ignore next
                 if (!existingNamespace) {
                     errorLog(
@@ -279,7 +279,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     const requiredSemver = makeSemverCompatible(requiredVersion);
                     return semver.lt(existingSemver, requiredSemver);
                 };
-                
+
                 if (isLowerVersion(existingNamespace.version, requiredModel.version)) {
                     errorLog(
                         "Expecting ",
@@ -1299,11 +1299,10 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 debugLog("Cannot find node with nodeId " + nodeId + ". may be the node was marked as deprecated");
             } else if (node.nodeClass === NodeClass.Variable) {
                 const v = node as UAVariable;
-                v.setValueFromSource({
-                    dataType: DataType.ExtensionObject,
-                    value: listExtensionObject
-                });
+                assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");
+                v.bindExtensionObject(listExtensionObject as ExtensionObject[], { createMissingProp: false });
             } else if (node.nodeClass === NodeClass.VariableType) {
+                // no need to bind a variable type
                 const v = node as UAVariableType;
                 (v as any) /*fix me*/.value.value = listExtensionObject;
             }
@@ -1326,7 +1325,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             const node = addressSpace2.findNode(nodeId)!;
             if (node.nodeClass === NodeClass.Variable) {
                 const v = node as UAVariable;
-                v.setValueFromSource(variant);
+                assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");
+                v.bindExtensionObject(variant.value, { createMissingProp: false });
+
             } else if (node.nodeClass === NodeClass.VariableType) {
                 const v = node as UAVariableType;
                 (v as any) /*fix me*/.value.value = variant.value;
@@ -1688,7 +1689,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         doDebug &&
             debugLog(
                 chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                    chalk.green("DONE")
+                chalk.green("DONE")
             );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {

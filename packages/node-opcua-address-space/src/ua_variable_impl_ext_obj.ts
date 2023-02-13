@@ -430,6 +430,7 @@ function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
 }
 
 
+// eslint-disable-next-line complexity
 export function _bindExtensionObject(
     uaVariable: UAVariableImpl,
     optionalExtensionObject?: ExtensionObject,
@@ -437,10 +438,16 @@ export function _bindExtensionObject(
 ): ExtensionObject | null {
     options = options || { createMissingProp: false };
 
+    // istanbul ignore next
     if (!isVariableContainingExtensionObject(uaVariable)) {
         return null;
     }
 
+    // istanbul ignore next
+    if (optionalExtensionObject && uaVariable.valueRank === 0) {
+        warningLog(uaVariable.browseName.toString() + ": valueRank was zero but needed to be adjusted to -1 (Scalar) in bindExtensionObject");
+        uaVariable.valueRank = -1;
+    }
     const addressSpace = uaVariable.addressSpace;
     let extensionObject_;
 
@@ -561,12 +568,16 @@ const composeBrowseNameAndNodeId = (uaVariable: UAVariable, indexes: number[]) =
 }
 
 
-// eslint-disable-next-line max-statements
+// eslint-disable-next-line max-statements, complexity
 export function _bindExtensionObjectArrayOrMatrix(
     uaVariable: UAVariableImpl,
     optionalExtensionObjectArray?: ExtensionObject[],
     options?: BindExtensionObjectOptions
 ): ExtensionObject[] {
+
+    options = options || { createMissingProp: false};
+    options.createMissingProp = options.createMissingProp || false;
+
     // istanbul ignore next
     if (uaVariable.valueRank < 1) {
         throw new Error("Variable must be a MultiDimensional array");
@@ -576,6 +587,12 @@ export function _bindExtensionObjectArrayOrMatrix(
     if (!isVariableContainingExtensionObject(uaVariable)) {
         return [];
     }
+
+    if (!optionalExtensionObjectArray && uaVariable.$dataValue.value.value) {
+        assert(Array.isArray(uaVariable.$dataValue.value.value));
+        optionalExtensionObjectArray = uaVariable.$dataValue.value.value;
+    }
+    
     if ((arrayDimensions.length === 0 || arrayDimensions.length === 1 && arrayDimensions[0] === 0) && optionalExtensionObjectArray) {
         arrayDimensions[0] = optionalExtensionObjectArray.length;
     }
@@ -629,10 +646,13 @@ export function _bindExtensionObjectArrayOrMatrix(
 
         const { browseName, nodeId } = composeBrowseNameAndNodeId(uaVariable, index);
 
-
-
         let uaElement = uaVariable.getComponentByName(browseName) as UAVariableImpl | null;
         if (!uaElement) {
+
+            if (!options.createMissingProp) {
+                continue;
+            }
+            
             uaElement = namespace.addVariable({
                 browseName,
                 nodeId,

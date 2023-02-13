@@ -18,6 +18,7 @@
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="PropertyType">i=68</Alias>
         <Alias Alias="Int32">i=6</Alias>
         <Alias Alias="Range">i=884</Alias>
         <Alias Alias="String">i=12</Alias>
@@ -33,7 +34,7 @@
 
     <UAVariable NodeId="ns=1;i=1301" BrowseName="Range" AccessLevel="3" DataType="Range">
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=1317</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;i=1317</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
         </References>
         <Value>
@@ -54,7 +55,7 @@
     <UAVariableType NodeId="ns=1;i=1317" BrowseName="MyVariableType" AccessLevel="3" DataType="Range">
         <DisplayName>EURange</DisplayName>
         <References>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=68</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">PropertyType</Reference>
         </References>
         <Value>
             <ExtensionObject>

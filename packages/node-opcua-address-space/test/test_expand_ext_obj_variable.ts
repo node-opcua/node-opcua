@@ -596,8 +596,7 @@ describe("Extending extension object variables", function () {
         });
 
         uaVariable.bindExtensionObject([p1.clone(), p2.clone()], { createMissingProp: false });
-        should.exist(uaVariable.getComponentByName("0"));
-        should.not.exist(uaVariable.getComponentByName("0")!.getComponentByName("X"));
+        should.not.exist(uaVariable.getComponentByName("0"));
 
         uaVariable.bindExtensionObject([p1.clone(), p2.clone()], { createMissingProp: true });
         should.exist(uaVariable.getComponentByName("0"));
@@ -616,7 +615,7 @@ describe("Extending extension object variables", function () {
         });
 
         uaVariable.bindExtensionObject([p1.clone(), p2.clone()], { createMissingProp: false });
-        should.exist(uaVariable.getComponentByName("0"));
+        should.not.exist(uaVariable.getComponentByName("0"));
 
         uaVariable.installExtensionObjectVariables();
         uaVariable.installExtensionObjectVariables();
@@ -624,6 +623,98 @@ describe("Extending extension object variables", function () {
         const el0 = uaVariable.getComponentByName("0");
         should.exist(el0);
 
+    });
+    it("D5-1 edge case - instantiated - scalar", () => {
+
+        const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
+
+        const threeDCartesianCoordinatesDataType = addressSpace.findDataType("3DCartesianCoordinates")!;
+        should.exist(threeDCartesianCoordinatesDataType);
+
+        const extObj = new ThreeDCartesianCoordinates({ x: 0, y: 1, z: 2 });
+        const uaVariable = baseVariableType.instantiate({
+            browseName: "D5Scalar",
+            organizedBy: addressSpace.rootFolder.objects.server,
+            valueRank: -1,
+            dataType: threeDCartesianCoordinatesDataType.nodeId,
+            value: new Variant({ dataType: DataType.ExtensionObject, value: extObj })
+        });
+        {
+            const dataValue = uaVariable.readValue();
+            dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValue.value.value.x.should.eql(0);
+            dataValue.value.value.y.should.eql(1);
+            dataValue.value.value.z.should.eql(2);
+        }
+
+        // set value from source should work
+        const extObj2 = new ThreeDCartesianCoordinates({ x: 10, y: 11, z: 12 });
+        uaVariable.setValueFromSource(new Variant({ dataType: DataType.ExtensionObject, value: extObj2 }));
+
+        {
+            const dataValue = uaVariable.readValue();
+            dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValue.value.value.x.should.eql(10);
+            dataValue.value.value.y.should.eql(11);
+            dataValue.value.value.z.should.eql(12);
+        }
+    });
+    it("D5-2 edge case - instantiated - array", () => {
+
+        const baseVariableType = addressSpace.findVariableType("BaseVariableType")!;
+
+        const threeDCartesianCoordinatesDataType = addressSpace.findDataType("3DCartesianCoordinates")!;
+        should.exist(threeDCartesianCoordinatesDataType);
+
+        const extObj1 = new ThreeDCartesianCoordinates({ x: 0, y: 1, z: 2 });
+        const extObj2 = new ThreeDCartesianCoordinates({ x: 3, y: 4, z: 5 });
+        const uaVariable = baseVariableType.instantiate({
+            browseName: "D5Array",
+            organizedBy: addressSpace.rootFolder.objects.server,
+            valueRank: 1,
+            dataType: threeDCartesianCoordinatesDataType.nodeId,
+            value: new Variant({ dataType: DataType.ExtensionObject, value: [extObj1, extObj2] })
+        });
+        {
+            const dataValue = uaVariable.readValue();
+            dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValue.value.value.length.should.eql(2);
+            dataValue.value.value[0].x.should.eql(0);
+            dataValue.value.value[0].y.should.eql(1);
+            dataValue.value.value[0].z.should.eql(2);
+            dataValue.value.value[1].x.should.eql(3);
+            dataValue.value.value[1].y.should.eql(4);
+            dataValue.value.value[1].z.should.eql(5);
+        }
+
+        // set value from source should work
+        const extObj1_2 = new ThreeDCartesianCoordinates({ x: 10, y: 11, z: 12 });
+        const extObj2_2 = new ThreeDCartesianCoordinates({ x: 13, y: 14, z: 15 });
+        uaVariable.setValueFromSource(new Variant({ dataType: DataType.ExtensionObject, value: [ extObj1_2, extObj2_2 ] }));
+
+        {
+            const dataValue = uaVariable.readValue();
+            dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+            dataValue.value.value[0].x.should.eql(10);
+            dataValue.value.value[0].y.should.eql(11);
+            dataValue.value.value[0].z.should.eql(12);
+            dataValue.value.value[1].x.should.eql(13);
+            dataValue.value.value[1].y.should.eql(14);
+            dataValue.value.value[1].z.should.eql(15);
+
+            
+            //
+            const _uaVariable = (uaVariable as any) 
+            _uaVariable.$$extensionObjectArray.length.should.eql(2);
+            _uaVariable.$$extensionObjectArray[0].x.should.eql(10);
+            _uaVariable.$$extensionObjectArray[0].y.should.eql(11);
+            _uaVariable.$$extensionObjectArray[0].z.should.eql(12);
+            _uaVariable.$$extensionObjectArray[1].x.should.eql(13);
+            _uaVariable.$$extensionObjectArray[1].y.should.eql(14);
+            _uaVariable.$$extensionObjectArray[1].z.should.eql(15);
+
+            
+        }
     });
 
 });

@@ -27,12 +27,14 @@ describe("Testing EURange Issue", async function (this: any) {
 
     it("should instantiate a VariableType that has a  valid Range as a value, and the same value should appear in the instantiated variable", () => {
         const variableType = addressSpace.findVariableType("MyVariableType", 1)!;
+        
+        // console.log(variableType.toString());
 
         const dataValueFromType = variableType.readAttribute(null, AttributeIds.Value);
         console.log(dataValueFromType.toString());
 
         const variable = variableType.instantiate({
-            browseName: "Type",
+            browseName: "MyVariable",
             componentOf: addressSpace.rootFolder.objects.server
         });
         const dataValue = variable.readAttribute(null, AttributeIds.Value);
@@ -43,6 +45,8 @@ describe("Testing EURange Issue", async function (this: any) {
     it("should instantiate a Object that has a property containing valid Range as a value, and the same value should appear in the instantiated object", () => {
         const objectType = addressSpace.findObjectType("MyObjectType", 1)!;
 
+        console.log("objectType\n",objectType.toString());
+
         const dataValueFromType = objectType.getChildByName("Range", 1)!.readAttribute(null, AttributeIds.Value);
         console.log(dataValueFromType.toString());
 
@@ -51,7 +55,7 @@ describe("Testing EURange Issue", async function (this: any) {
             componentOf: addressSpace.rootFolder.objects.server
         });
         const dataValue = object.getChildByName("Range", 1)!.readAttribute(null, AttributeIds.Value);
-        console.log(dataValue.toString());
+        console.log("dataValue=\n",dataValue.toString());
 
         dataValue.value.toString().should.eql(dataValueFromType.value.toString());
     });
