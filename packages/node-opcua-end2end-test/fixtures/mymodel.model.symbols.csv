@@ -1,0 +1,11 @@
+MyStuffDataType,1000,DataType
+MyStuffDataType_Encoding_DefaultBinary,1001,Object
+MyStuffDataType_Encoding_DefaultXML,1002,Object
+MyStuffDataType_Encoding_DefaultJSON,1003,Object
+MyStuffType,1004,VariableType
+MyStuffType_Field1,1005,Variable
+MyStuffType_Field2,1006,Variable
+Server_MyObject,1007,Object
+MyObject_ScalarVariable,1008,Variable
+MyObject_ScalarVariable_Field1,1009,Variable
+MyObject_ScalarVariable_Field2,1010,Variable

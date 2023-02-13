@@ -701,8 +701,6 @@ describe("Extending extension object variables", function () {
             dataValue.value.value[1].x.should.eql(13);
             dataValue.value.value[1].y.should.eql(14);
             dataValue.value.value[1].z.should.eql(15);
-
-            
             //
             const _uaVariable = (uaVariable as any) 
             _uaVariable.$$extensionObjectArray.length.should.eql(2);
@@ -713,7 +711,6 @@ describe("Extending extension object variables", function () {
             _uaVariable.$$extensionObjectArray[1].y.should.eql(14);
             _uaVariable.$$extensionObjectArray[1].z.should.eql(15);
 
-            
         }
     });
 

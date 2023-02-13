@@ -1,0 +1,22 @@
+# yaml-language-server: $schema=/sterfive/NodeOPCUA/node-opcua-modeler-ex/schemas/nodeset2.schema.json
+namespaceUri: http://sterfive.com/UA/TemperatureSensor/
+version: 1.0.0
+publicationDate: 2023-01-01T12:00:00Z
+dataTypes:
+ - browseName: MyStuffDataType
+   hasVariableType: true
+
+   fields:
+     - name: Field1
+       dataType: ua:String
+     - name: Field2
+       dataType: ua:UInt32
+
+instances:
+  - browseName: MyObject
+    typeDefinition: ua:BaseObjectType
+    componentOf: /ua:Objects/ua:Server
+    components:
+      - browseName: ScalarVariable
+        typeDefinition: MyStuffType
+     

@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="http://sterfive.com/UA/TemperatureSensor/Type.xsd">
+    <NamespaceUris>
+        <Uri>http://sterfive.com/UA/TemperatureSensor/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://sterfive.com/UA/TemperatureSensor/" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00.000Z"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="1:MyStuffDataType">ns=1;i=1000</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+    </Aliases>
+<!--ReferenceTypes-->
+<!--DataTypes-->
+    <UADataType NodeId="ns=1;i=1000" BrowseName="1:MyStuffDataType">
+        <DisplayName>MyStuffDataType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1002</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1003</Reference>
+        </References>
+        <Definition Name="1:MyStuffDataType">
+            <Field Name="Field1" DataType="i=12"/>
+            <Field Name="Field2" DataType="i=7"/>
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="ns=1;i=1001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1003" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+<!--ObjectTypes-->
+<!--VariableTypes-->
+    <UAVariableType NodeId="ns=1;i=1004" BrowseName="1:MyStuffType" DataType="1:MyStuffDataType">
+        <DisplayName>MyStuffType</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=62</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1005</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1006</Reference>
+        </References>
+    </UAVariableType>
+    <UAVariable NodeId="ns=1;i=1005" BrowseName="1:Field1" ParentNodeId="ns=1;i=1004" AccessLevel="3" DataType="String">
+        <DisplayName>Field1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1006" BrowseName="1:Field2" ParentNodeId="ns=1;i=1004" AccessLevel="3" DataType="UInt32">
+        <DisplayName>Field2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+    </UAVariable>
+<!--Other Nodes-->
+<!--Object - 1:MyObject {{{{ -->
+    <UAObject NodeId="ns=1;i=1007" BrowseName="1:MyObject" ParentNodeId="i=2253">
+        <DisplayName>MyObject</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1008</Reference>
+        </References>
+    </UAObject>
+    <UAVariable NodeId="ns=1;i=1008" BrowseName="1:ScalarVariable" ParentNodeId="ns=1;i=1007" AccessLevel="3" DataType="UInt32">
+        <DisplayName>ScalarVariable</DisplayName>
+        <References>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;i=1004</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1009</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=1010</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1009" BrowseName="1:Field1" ParentNodeId="ns=1;i=1008" AccessLevel="3" DataType="String">
+        <DisplayName>Field1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable NodeId="ns=1;i=1010" BrowseName="1:Field2" ParentNodeId="ns=1;i=1008" AccessLevel="3" DataType="UInt32">
+        <DisplayName>Field2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=62</Reference>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+        </References>
+    </UAVariable>
+<!--Object - 1:MyObject }}}} -->
+</UANodeSet>
