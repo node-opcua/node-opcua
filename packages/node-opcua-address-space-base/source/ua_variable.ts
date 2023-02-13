@@ -1,4 +1,4 @@
-import { AttributeIds, CallbackT, PreciseClock, StatusCode, StatusCodeCallback, UInt32 } from "node-opcua-basic-types";
+import { AttributeIds, CallbackT, DataType, PreciseClock, StatusCode, StatusCodeCallback, UInt32 } from "node-opcua-basic-types";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { DataValue } from "node-opcua-data-value";
@@ -92,6 +92,12 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
     // variable attributes
     dataType: NodeId;
 
+    /**
+     * returns the basic type of the variable that correspond to the dataType,
+     * that will be used in the dataValue.value.dataType property.
+     */
+    getBasicDataType(): DataType;
+    
     /**
      * The **AccessLevel Attribute** is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current and/or historic data.

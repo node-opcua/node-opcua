@@ -40,6 +40,7 @@ import { _clone_children_references, ToStringBuilder, UAVariableType_toString } 
 import * as tools from "./tool_isSupertypeOf";
 import { get_subtypeOfObj } from "./tool_isSupertypeOf";
 import { get_subtypeOf } from "./tool_isSupertypeOf";
+import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -49,6 +50,7 @@ const errorLog = make_errorLog(__filename);
 // eslint-disable-next-line prefer-const
 let doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
+
 
 interface InstantiateS {
     propertyOf?: any;
@@ -83,7 +85,17 @@ export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpa
     return false;
 }
 export interface UAVariableTypeOptions extends InternalBaseNodeOptions {
-    /**  */
+    /**
+     * This attribute indicates whether the Value attribute of the Variableis an array and how many dimensions the array has.
+     * It may have the following values:
+     *   * n > 1: the Value is an array with the specified number of dimensions.
+     *   * OneDimension (1): The value is an array with one dimension.
+     *   * OneOrMoreDimensions (0): The value is an array with one or more dimensions.
+     *   * Scalar (−1): The value is not an array.
+     *   * Any (−2): The value can be a scalar or an array with any number of dimensions.
+     *   * ScalarOrOneDimension (−3): The value can be a scalar or a one dimensional array.
+     *   * All DataTypes are considered to be scalar, even if they have array-like semantics like ByteString and String.
+     */
     valueRank?: number;
     arrayDimensions?: number[] | null;
     historizing?: boolean;
@@ -227,6 +239,13 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         assert(dataType instanceof NodeId);
 
         const valueRank = options.valueRank !== undefined ? options.valueRank : this.valueRank;
+
+        const { result, errorMessage } = checkValueRankCompatibility(valueRank, this.valueRank);
+        if (!result) {
+            errorLog(errorMessage);
+            throw new Error(errorMessage);
+        }
+
         const arrayDimensions = options.arrayDimensions !== undefined ? options.arrayDimensions : this.arrayDimensions;
 
         // istanbul ignore next

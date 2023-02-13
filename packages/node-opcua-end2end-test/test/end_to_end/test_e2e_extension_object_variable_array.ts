@@ -1,7 +1,8 @@
 /* eslint-disable max-statements */
 import * as util from "node:util";
 import * as path from "node:path";
-import "should";
+
+import * as should from "should";
 import { AttributeIds, ClientSession, ClientSubscription, DataValue, IBasicSession, MonitoringMode, NodeClassMask, NodeId, nodesets, OPCUAClient, OPCUAServer, ReferenceDescription, ResultMask, TimestampsToReturn, Variant } from "node-opcua";
 import { BaseNode, NodeClass, UAVariable, DataType, BrowseDirection } from "node-opcua";
 
@@ -603,6 +604,46 @@ async function withClient(endpointUrl: string, f: (session: ClientSession, subsc
 }
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
+describe("testing extension object variable enrichment", function (this: any) {
+    let server: OPCUAServer;
+    beforeEach(async () => {
+
+        server = new OPCUAServer({
+            port,
+            nodeset_filename: [
+                nodesets.standard,
+                path.join(__dirname, "../../fixtures/_generated_mymodel.model.Nodeset2.xml")
+            ]
+        });
+        await server.initialize();
+        const addressSpace = server.engine.addressSpace!;
+        await server.start();
+
+    });
+    afterEach(async () => {
+        await server.shutdown();
+    });
+
+    it("should automatically enrich Extension object variable defined in nodeset2.xml file (without creating additional apps)", async () => {
+
+        const addressSpace = server.engine.addressSpace!;
+
+        const scalarVariable = addressSpace.findNode("ns=2;i=1008")! as UAVariable;
+        scalarVariable.browseName.toString().should.equal("2:ScalarVariable");
+
+        const value = scalarVariable.readValue().value;
+        console.log(value.toString());
+        console.log(scalarVariable.toString());
+
+        should.exist(scalarVariable.getComponentByName("Field1"));
+        should.exist(scalarVariable.getComponentByName("Field2"));
+        
+
+    });
+
+});
+
 describe("testing extension object with client residing on a different process than the server process", function (this: any) {
 
     this.timeout(Math.max(600000, this.timeout()));

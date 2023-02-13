@@ -20,7 +20,21 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
     nodeId?: NodeIdLike;
     minimumSamplingInterval?: number;
     propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
-    value?: BindVariableOptions;
+    value?: BindVariableOptions;    
+    /**
+     * This attribute indicates whether the Value attribute of the Variableis an array and how many dimensions the array has.
+     * It may have the following values:
+     *   * n > 1: the Value is an array with the specified number of dimensions.
+     *   * OneDimension (1): The value is an array with one dimension.
+     *   * OneOrMoreDimensions (0): The value is an array with one or more dimensions.
+     *   * Scalar (−1): The value is not an array.
+     *   * Any (−2): The value can be a scalar or an array with any number of dimensions.
+     *   * ScalarOrOneDimension (−3): The value can be a scalar or a one dimensional array.
+     *   * All DataTypes are considered to be scalar, even if they have array-like semantics like ByteString and String.
+     * 
+     * 
+     * Note: the valueRank of the instantiated variable must be compatible with the valueRank of the VariableType.
+     */
     valueRank?: number;
 }
 export declare class UAVariableType extends BaseNode implements VariableAttributes {
