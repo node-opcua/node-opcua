@@ -1505,13 +1505,20 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         optionalExtensionObject?: ExtensionObject | ExtensionObject[],
         options?: BindExtensionObjectOptions
     ): ExtensionObject | ExtensionObject[] | null {
+
+        // coerce to ExtensionObject[] when this.valueRank === 1
+        if (optionalExtensionObject && this.valueRank === 1 && !Array.isArray(optionalExtensionObject) && optionalExtensionObject instanceof ExtensionObject) {
+            warningLog("bindExtensionObject: coerce to ExtensionObject[] when this.valueRank === 1");
+            optionalExtensionObject = [optionalExtensionObject];
+        }
+
         if (optionalExtensionObject) {
             if (optionalExtensionObject instanceof Array) {
-                assert(this.valueRank >= 1, "expecting an Array of Matrix variable here");
+                assert(this.valueRank >= 1, "bindExtensionObject: expecting an Array of Matrix variable here");
                 return _bindExtensionObjectArrayOrMatrix(this, optionalExtensionObject, options);
             } else {
                 if (this.valueRank !== -1 && this.valueRank !== 0) {
-                    throw new Error("expecting an Scalar variable here but got value rank " + this.valueRank);
+                    throw new Error("bindExtensionObject: expecting an Scalar variable here but got value rank " + this.valueRank);
                 }
                 return _bindExtensionObject(this, optionalExtensionObject, options) as ExtensionObject;
             }

@@ -265,7 +265,7 @@ function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
                         return uaVariable.getComponentByName(field.name!) as UAVariable | null;
                     }));
                 } else {
-                    warningLog("extension object is null");
+                    doDebug && warningLog("extension object is null");
                 }
             }
         }
