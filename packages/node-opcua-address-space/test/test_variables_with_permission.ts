@@ -62,8 +62,8 @@ describe("AddressSpace : Variable.setPermissions", () => {
     });
 
     it("should adjust userAccessLevel based on session Context permission", () => {
-        variable.userAccessLevel.should.eql(0x3f);
-        accessLevelFlagToString(variable.userAccessLevel).should.eql(
+        variable.userAccessLevel!.should.eql(0x3f);
+        accessLevelFlagToString(variable.userAccessLevel!).should.eql(
             "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
         );
         const dataValue1 = variable.readAttribute(null, AttributeIds.UserAccessLevel);
@@ -130,8 +130,9 @@ describe("AddressSpace : Variable.setPermissions", () => {
 describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;
-    let variable: UAVariable;
-    let variable2: UAVariable;
+    let uaVariable: UAVariable;
+    let uaVariable2: UAVariable;
+    let uaDefaultVariable: UAVariable;
     let parentNode: UAObject;
     let restrictedVariableSign: UAVariable;
     let restrictedVariableSignAndEncrypt: UAVariable;
@@ -278,7 +279,18 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
 
         parentNode = namespace.addObject({ browseName: "Object", organizedBy: addressSpace.rootFolder.objects });
 
-        variable = namespace.addVariable({
+
+        uaDefaultVariable = namespace.addAnalogDataItem({
+            browseName: "DefaultVariable",
+            nodeId: "s=DefaultVariable",
+            dataType: "Double",
+            engineeringUnitsRange: { low: -100, high: 100 },    
+            componentOf: parentNode
+        });
+        uaDefaultVariable.setValueFromSource({dataType: "Double", value: 42});
+
+
+        uaVariable = namespace.addVariable({
             accessLevel: makeAccessLevelFlag(
                 "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
             ),
@@ -289,11 +301,11 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             dataType: "Double",
             componentOf: parentNode
         });
-        variable.setValueFromSource({ dataType: DataType.Double, value: 0 });
+        uaVariable.setValueFromSource({ dataType: DataType.Double, value: 0 });
 
-        variable.nodeId.namespace.should.eql(namespace.index);
+        uaVariable.nodeId.namespace.should.eql(namespace.index);
 
-        const adiNamespace = addressSpace.rootFolder.objects.server.namespaces.getChildByName(nodesets.adi);
+        const adiNamespace = addressSpace.rootFolder.objects.server.getComponentByName("Namespaces", 0)!.getChildByName(nodesets.adi);
 
         restrictedVariableSign = namespace.addVariable({
             accessLevel: makeAccessLevelFlag(
@@ -324,7 +336,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         restrictedVariableSignAndEncrypt.setValueFromSource({ dataType: DataType.Double, value: 0 });
 
         // will not inherit from name space
-        variable2 = namespace.addAnalogDataItem({
+        uaVariable2 = namespace.addAnalogDataItem({
             browseName: "A",
             dataType: DataType.Double,
             definition: "A",
@@ -342,10 +354,23 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
     after(() => {
         addressSpace.dispose();
     });
+
+
+    describe("KK-1 Testing variable that inherits from namespace defaults", () => {
+        it("it should inherit from namespace defaults", async () => {
+            const nodeId = uaDefaultVariable.nodeId;
+       
+            const sessionAnonymous= new PseudoSession(addressSpace, contextAnonymous);
+            const dataValue = await sessionAnonymous.read({nodeId, attributeId: AttributeIds.Value});
+            dataValue.statusCode.should.eql(StatusCodes.Good);
+
+        });
+    });
+
     it("should fall back to the namespace defaultUserRolePermission", () => {
-        contextAnonymous.checkPermission(variable, PermissionType.Write).should.eql(false);
-        contextAuthenticated.checkPermission(variable, PermissionType.Write).should.eql(true);
-        contextAdmin.checkPermission(variable, PermissionType.Write).should.eql(true);
+        contextAnonymous.checkPermission(uaVariable, PermissionType.Write).should.eql(false);
+        contextAuthenticated.checkPermission(uaVariable, PermissionType.Write).should.eql(true);
+        contextAdmin.checkPermission(uaVariable, PermissionType.Write).should.eql(true);
     });
     it("getAccessRestrictions: should not restrict read access to a variable if no encryption ", () => {
         contextSecurityNone.isAccessRestricted(restrictedVariableSign).should.eql(true);
@@ -371,18 +396,19 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
     });
 
     it("isBrowseAccessRestricted ", () => {
-        contextAdmin.isBrowseAccessRestricted(variable).should.eql(false);
-        contextAuthenticated.isBrowseAccessRestricted(variable).should.eql(false);
-        contextAnonymous.isBrowseAccessRestricted(variable).should.eql(true);
+        contextAdmin.isBrowseAccessRestricted(uaVariable).should.eql(false);
+        contextAuthenticated.isBrowseAccessRestricted(uaVariable).should.eql(false);
+        contextAnonymous.isBrowseAccessRestricted(uaVariable).should.eql(true);
     });
 
     it("isBrowseAccessRestricted: session should browse node with BrowsePermission", async () => {
         const session1 = new PseudoSession(addressSpace, contextAdmin);
         const browseResult1 = await session1.browse({
-            nodeId: variable2.nodeId,
+            nodeId: uaVariable2.nodeId,
             browseDirection: BrowseDirection.Forward,
             resultMask: 0xff
         });
+        browseResult1.references = browseResult1.references || [];
         console.log(browseResult1.statusCode.toString(), browseResult1.references.length);
         browseResult1.references.length.should.eql(3);
         const names = browseResult1.references.map((x) => x.browseName.toString()).sort();
@@ -392,9 +418,10 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
     it("isBrowseAccessRestricted: session should not browse node without BrowsePermission ", async () => {
         const session2 = new PseudoSession(addressSpace, contextAnonymous);
         const browseResult2 = await session2.browse({
-            nodeId: variable2.nodeId,
+            nodeId: uaVariable2.nodeId,
             browseDirection: BrowseDirection.Forward
         });
+        browseResult2.references = browseResult2.references || [];
         console.log(browseResult2.statusCode.toString(), browseResult2.references.length);
         browseResult2.references.length.should.eql(1);
     });
@@ -406,6 +433,8 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             browseDirection: BrowseDirection.Forward,
             resultMask: 0xff
         });
+        browseResult2.references = browseResult2.references || [];
+
         console.log(browseResult2.statusCode.toString(), browseResult2.references.length);
         const names = browseResult2.references.map((x) => x.browseName.toString()).sort();
         console.log("names", names);
@@ -419,11 +448,12 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             browseDirection: BrowseDirection.Forward,
             resultMask: 0xff
         });
+        browseResult2.references = browseResult2.references || [];
         console.log(browseResult2.statusCode.toString(), browseResult2.references.length);
 
         const names = browseResult2.references.map((x) => x.browseName.toString()).sort();
         console.log("names", names);
-        browseResult2.references.length.should.eql(5);
-        names.should.eql(["1:A", "1:SomeVar", "1:SomeVarS", "1:SomeVarS&E", "BaseObjectType"]);
+        browseResult2.references.length.should.eql(6);
+        names.should.eql(["1:A", "1:DefaultVariable", "1:SomeVar", "1:SomeVarS", "1:SomeVarS&E", "BaseObjectType"]);
     });
 });

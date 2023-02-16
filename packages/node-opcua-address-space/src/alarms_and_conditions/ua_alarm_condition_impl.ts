@@ -63,7 +63,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
             assert(isFinite(options.maxTimeShelved!));
         }
 
-        assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSupertypeOf(alarmConditionTypeBase));
+        assert(alarmConditionTypeBase === alarmConditionType || alarmConditionType.isSubtypeOf(alarmConditionTypeBase));
 
         const alarmNode = UAAcknowledgeableConditionImpl.instantiate(
             namespace,

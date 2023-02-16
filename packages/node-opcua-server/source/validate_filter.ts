@@ -34,7 +34,7 @@ function isNumberDataType(node: UAVariable): boolean {
     }
     const dataType = node.addressSpace.findDataType(node.dataType)!;
     const dataTypeNumber = node.addressSpace.findDataType("Number")!;
-    return dataType.isSupertypeOf(dataTypeNumber);
+    return dataType.isSubtypeOf(dataTypeNumber);
 }
 
 function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: ReadValueIdOptions, node: UAVariable): StatusCode {

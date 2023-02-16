@@ -28,6 +28,9 @@ export interface UADataType extends BaseNode {
     readonly basicDataType: DataType;
     readonly symbolicName: string;
 
+    isSubtypeOf(referenceType: NodeIdLike | UADataType): boolean;
+
+    /** @deprecated - use isSubtypeOf instead */
     isSupertypeOf(referenceType: NodeIdLike | UADataType): boolean;
 
     getEncodingNode(encodingName: string): BaseNode | null;

@@ -482,7 +482,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 
         const selfConditionType = this.typeDefinitionObj;
         const conditionType = addressSpace.findObjectType("ConditionType")!;
-        assert(selfConditionType.isSupertypeOf(conditionType));
+        assert(selfConditionType.isSubtypeOf(conditionType));
 
         const branch = this.currentBranch();
 
@@ -699,7 +699,7 @@ function UACondition_instantiate(
         throw new Error("cannot find  ConditionType");
     }
 
-    assert(conditionType.isSupertypeOf(baseConditionEventType));
+    assert(conditionType.isSubtypeOf(baseConditionEventType));
 
     // assert((typeof options.browseName === "string"));
     options.browseName = options.browseName || "??? instantiateCondition - missing browseName";

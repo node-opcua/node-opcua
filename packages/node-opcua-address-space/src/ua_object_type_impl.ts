@@ -21,8 +21,8 @@ import {
 import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl } from "./base_node_impl";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
-import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSupertypeOf";
-import * as tools from "./tool_isSupertypeOf";
+import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
+import * as tools from "./tool_isSubtypeOf";
 import {
     assertUnusedChildBrowseName,
     initialize_properties_and_components,
@@ -42,10 +42,16 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
     public get subtypeOf(): NodeId | null {
         return get_subtypeOf.call(this);
     }
+
+
     public get subtypeOfObj(): UAObjectType | null {
         return get_subtypeOfObj.call(this) as any as UAObjectType;
     }
-    public isSupertypeOf = tools.construct_isSupertypeOf<UAObjectType>(UAObjectTypeImpl);
+
+
+    public isSubtypeOf = tools.construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
+    /** @deprecated - use  isSubtypeOf instead */
+    public isSupertypeOf = tools.construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
 
     constructor(options: any) {
         super(options);

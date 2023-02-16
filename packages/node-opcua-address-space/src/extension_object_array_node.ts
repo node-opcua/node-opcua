@@ -105,7 +105,7 @@ export function createExtObjArrayNode<T extends ExtensionObject>(parentFolder: U
         throw new Error("cannot find Data Type");
     }
 
-    assert(dataType.isSupertypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
+    assert(dataType.isSubtypeOf(structure as any), "expecting a structure (= ExtensionObject) here ");
 
     const inner_options = {
         componentOf: parentFolder,
@@ -165,7 +165,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
         throw new Error("Cannot find DataType " + variableType.dataType.toString());
     }
 
-    assert(dataType.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
+    assert(dataType.isSubtypeOf(structure), "expecting a structure (= ExtensionObject) here ");
 
     assert(!uaArrayVariableNode.$$variableType, "uaArrayVariableNode has already been bound !");
 
@@ -173,7 +173,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
 
     // verify that an object with same doesn't already exist
     dataType = addressSpace.findDataType(variableType.dataType)! as UADataType;
-    assert(dataType!.isSupertypeOf(structure), "expecting a structure (= ExtensionObject) here ");
+    assert(dataType!.isSubtypeOf(structure), "expecting a structure (= ExtensionObject) here ");
     assert(!uaArrayVariableNode.$$extensionObjectArray, "UAVariable ExtensionObject array already bounded");
     uaArrayVariableNode.$$dataType = dataType;
     uaArrayVariableNode.$$extensionObjectArray = [];

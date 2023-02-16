@@ -487,7 +487,7 @@ export async function installPushCertificateManagement(
             continue;
         }
         const o = certificateGroup as UAObject;
-        if (!o.typeDefinitionObj.isSupertypeOf(certificateGroupType)) {
+        if (!o.typeDefinitionObj.isSubtypeOf(certificateGroupType)) {
             continue;
         }
         await promoteCertificateGroup(certificateGroup as UACertificateGroup);

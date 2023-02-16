@@ -97,63 +97,63 @@ describe("testing UADataype -  Attribute", () => {
             (typeof duration_dt).should.equal("object");
         });
 
-        it("Number should not be a super type of Double", () => {
-            number_dt.isSupertypeOf(double_dt).should.eql(false);
+        it("Number should not be a sub type of Double", () => {
+            number_dt.isSubtypeOf(double_dt).should.eql(false);
         });
 
-        it("Double should be a super type of Number", () => {
-            number_dt.isSupertypeOf(double_dt).should.eql(false);
+        it("Double should be a sub type of Number", () => {
+            number_dt.isSubtypeOf(double_dt).should.eql(false);
         });
 
-        it("Int16 should be a super type of Integer", () => {
-            int16_dt.isSupertypeOf(integer_dt).should.eql(true);
+        it("Int16 should be a sub type of Integer", () => {
+            int16_dt.isSubtypeOf(integer_dt).should.eql(true);
         });
-        it("Int16 should be a super type of Number", () => {
-            int16_dt.isSupertypeOf(number_dt).should.eql(true);
-        });
-
-        it("Int16 should not be a super type of Float", () => {
-            int16_dt.isSupertypeOf(float_dt).should.eql(false);
-        });
-        it("Int16 should be a super type of Int16", () => {
-            int16_dt.isSupertypeOf(int16_dt).should.eql(true);
-        });
-        it("Duration should be a super type of Double", () => {
-            duration_dt.isSupertypeOf(double_dt).should.eql(true);
+        it("Int16 should be a sub type of Number", () => {
+            int16_dt.isSubtypeOf(number_dt).should.eql(true);
         });
 
-        it("Double should *not* be a super type of Duration", () => {
-            double_dt.isSupertypeOf(duration_dt).should.eql(false);
+        it("Int16 should not be a sub type of Float", () => {
+            int16_dt.isSubtypeOf(float_dt).should.eql(false);
         });
-        it("Integer should *not* be a super type of UInt32", () => {
-            integer_dt.isSupertypeOf(uint32_dt).should.eql(false);
+        it("Int16 should be a sub type of Int16", () => {
+            int16_dt.isSubtypeOf(int16_dt).should.eql(true);
         });
-        it("UInteger should *not* be a super type of Integer", () => {
-            uinteger_dt.isSupertypeOf(integer_dt).should.eql(false);
-        });
-
-        it("UInt32 should be a super type of UInteger", () => {
-            uint32_dt.isSupertypeOf(uinteger_dt).should.eql(true);
-        });
-        it("UInt32 should *not* be a super type of Integer", () => {
-            uint32_dt.isSupertypeOf(integer_dt).should.eql(false);
-        });
-        it("UInt32 should be a super type of UInteger", () => {
-            uint32_dt.isSupertypeOf(uinteger_dt).should.eql(true);
+        it("Duration should be a sub type of Double", () => {
+            duration_dt.isSubtypeOf(double_dt).should.eql(true);
         });
 
-        it("UInt64 should be a super type of UInteger", () => {
-            uint64_dt.isSupertypeOf(uinteger_dt).should.eql(true);
+        it("Double should *not* be a sub type of Duration", () => {
+            double_dt.isSubtypeOf(duration_dt).should.eql(false);
         });
-        it("int64 should be a super type of Integer", () => {
-            int64_dt.isSupertypeOf(integer_dt).should.eql(true);
+        it("Integer should *not* be a sub type of UInt32", () => {
+            integer_dt.isSubtypeOf(uint32_dt).should.eql(false);
+        });
+        it("UInteger should *not* be a sub type of Integer", () => {
+            uinteger_dt.isSubtypeOf(integer_dt).should.eql(false);
         });
 
-        it("UInt64 should *not* be a super type of Integer", () => {
-            uint64_dt.isSupertypeOf(integer_dt).should.eql(false);
+        it("UInt32 should be a super sub of UInteger", () => {
+            uint32_dt.isSubtypeOf(uinteger_dt).should.eql(true);
         });
-        it("int64 should *not* be a super type of UInteger", () => {
-            int64_dt.isSupertypeOf(uinteger_dt).should.eql(false);
+        it("UInt32 should *not* be a sub type of Integer", () => {
+            uint32_dt.isSubtypeOf(integer_dt).should.eql(false);
+        });
+        it("UInt32 should be a super sub of UInteger", () => {
+            uint32_dt.isSubtypeOf(uinteger_dt).should.eql(true);
+        });
+
+        it("UInt64 should be a super sub of UInteger", () => {
+            uint64_dt.isSubtypeOf(uinteger_dt).should.eql(true);
+        });
+        it("int64 should be a super sub of Integer", () => {
+            int64_dt.isSubtypeOf(integer_dt).should.eql(true);
+        });
+
+        it("UInt64 should *not* be a sub type of Integer", () => {
+            uint64_dt.isSubtypeOf(integer_dt).should.eql(false);
+        });
+        it("int64 should *not* be a sub type of UInteger", () => {
+            int64_dt.isSubtypeOf(uinteger_dt).should.eql(false);
         });
     });
 });

@@ -200,6 +200,7 @@ export type TransitionSelector = (transitions: UATransitionEx[], fromState: UASt
  * cases, the parent machine will produce a single Event that reflects changes in multiple
  * SubStateMachines
  */
+
 export interface UAStateMachineHelper {
     // extra stuff
     readonly initialState: UAInitialState | null;
@@ -254,8 +255,25 @@ export interface UAStateMachineHelper {
 
 export interface UAStateMachineEx extends UAObject, UAStateMachineHelper, UAStateMachine_Base {}
 
-export interface UAStateMachineType extends UAObjectType, UAStateMachineHelper, UAStateMachine_Base {
+
+export interface UAStateMachineTypeHelper extends UAObjectType {
+    /**
+     * return all state nodes associated with this state machine
+     */
+    getStates(): UAState[];
+
+    /**
+     * return all state to state transition node associated with this state machine
+     */
+    getTransitions(): UATransitionEx[];
+
+    getStateByName(name: string): UAState | null;
+    
+}
+
+export interface UAStateMachineType extends UAObjectType, UAStateMachineTypeHelper, UAStateMachine_Base {
     instantiate(options: InstantiateObjectOptions): UAStateMachineEx;
 }
+export declare function promoteToStateMachineType(node: UAObjectType): UAStateMachineType;
 
 export declare function promoteToStateMachine(node: UAObject): UAStateMachineEx;

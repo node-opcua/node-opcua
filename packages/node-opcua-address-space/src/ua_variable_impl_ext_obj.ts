@@ -255,7 +255,7 @@ function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
         if (field.dataType) {
             const dataTypeNode = addressSpace.findDataType(field.dataType);
             // istanbul ignore next
-            if (dataTypeNode && dataTypeNode.isSupertypeOf(structure)) {
+            if (dataTypeNode && dataTypeNode.isSubtypeOf(structure)) {
                 // sub structure .. let make an handler too
                 const camelCaseName = lowerFirstLetter(field.name!);
 
@@ -389,7 +389,7 @@ function isVariableContainingExtensionObject(uaVariable: UAVariableImpl): boolea
     assert(structure.browseName.toString() === "Structure", "expecting DataType Structure to be in IAddressSpace");
 
     const dt = uaVariable.getDataTypeNode() as UADataTypeImpl;
-    if (!dt.isSupertypeOf(structure)) {
+    if (!dt.isSubtypeOf(structure)) {
         return false;
     }
     return true;
@@ -469,7 +469,7 @@ export function _bindExtensionObject(
         const dataTypeNode = addressSpace.findNode(parentDataType) as UADataType;
         const structure = addressSpace.findDataType("Structure")!;
         // istanbul ignore next
-        if (dataTypeNode && dataTypeNode.isSupertypeOf(structure)) {
+        if (dataTypeNode && dataTypeNode.isSubtypeOf(structure)) {
             // warningLog(
             //     "Ignoring bindExtensionObject on sub extension object",
             //     "child=",

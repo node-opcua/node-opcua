@@ -24,7 +24,7 @@ describe("AddIns", () => {
     it("Reference", () => {
         const hasAddIn = addressSpace.findNode("HasAddIn")! as UAReferenceType;
         const aggregates = addressSpace.findNode("Aggregates")! as UAReferenceType;
-        hasAddIn.isSupertypeOf(aggregates).should.eql(true);
+        hasAddIn.isSubtypeOf(aggregates).should.eql(true);
     });
     it("AddIns", () => {
         const nsMachinery = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Machinery/");

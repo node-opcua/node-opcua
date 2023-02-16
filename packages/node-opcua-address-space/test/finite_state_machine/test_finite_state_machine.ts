@@ -49,8 +49,8 @@ describe("Testing Finite State Machine", () => {
         stateMachineType.currentState.modellingRule!.should.eql("Mandatory");
         stateMachineType.currentState.id.modellingRule!.should.eql("Mandatory");
 
-        stateMachineType.lastTransition.modellingRule!.should.eql("Optional");
-        stateMachineType.lastTransition.id.modellingRule!.should.eql("Mandatory");
+        stateMachineType.lastTransition!.modellingRule!.should.eql("Optional");
+        stateMachineType.lastTransition!.id!.modellingRule!.should.eql("Mandatory");
 
         stateMachineType.currentState.dataTypeObj.browseName.toString().should.eql("LocalizedText");
 
@@ -58,7 +58,7 @@ describe("Testing Finite State Machine", () => {
         stateMachineType.currentState.id.dataType.isEmpty().should.eql(true);
         stateMachineType.isAbstract.should.eql(false);
         stateMachineType.currentState.typeDefinitionObj.browseName.toString().should.eql("StateVariableType");
-        stateMachineType.lastTransition.typeDefinitionObj.browseName.toString().should.eql("TransitionVariableType");
+        stateMachineType.lastTransition!.typeDefinitionObj.browseName.toString().should.eql("TransitionVariableType");
     });
 
     it("should instantiate a finite state machine", async () => {
@@ -119,8 +119,8 @@ describe("Testing Finite State Machine", () => {
         finiteStateMachineType.currentState.modellingRule!.should.eql("Mandatory");
         finiteStateMachineType.currentState.id.modellingRule!.should.eql("Mandatory");
 
-        finiteStateMachineType.lastTransition.modellingRule!.should.eql("Optional");
-        finiteStateMachineType.lastTransition.id.modellingRule!.should.eql("Mandatory");
+        finiteStateMachineType.lastTransition!.modellingRule!.should.eql("Optional");
+        finiteStateMachineType.lastTransition!.id!.modellingRule!.should.eql("Mandatory");
 
         finiteStateMachineType.isAbstract.should.eql(false);
 

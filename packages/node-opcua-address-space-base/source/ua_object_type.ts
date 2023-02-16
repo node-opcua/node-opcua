@@ -24,6 +24,9 @@ export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHol
     readonly isAbstract: boolean;
     readonly hasMethods: boolean;
 
+    isSubtypeOf(referenceType: NodeIdLike | UAObjectType): boolean;
+
+    /** @deprecated - use isSubtypeOf instead */
     isSupertypeOf(referenceType: NodeIdLike | UAObjectType): boolean;
 
     instantiate(options: InstantiateObjectOptions): UAObject;

@@ -5,12 +5,12 @@
 import { assert } from "node-opcua-assert";
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { sameNodeId } from "node-opcua-nodeid";
+import { NodeClass } from "node-opcua-data-model";
 import { BaseNode, UADataType, UAObjectType, UAReference, UAReferenceType, UAVariableType } from "node-opcua-address-space-base";
 
 import { BaseNode_getCache } from "./base_node_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl } from "./base_node_impl";
-import { NodeClass } from "node-opcua-data-model";
 
 const HasSubTypeNodeId = resolveNodeId("HasSubtype");
 
@@ -20,13 +20,13 @@ function _filterSubType(reference: UAReference) {
 
 export type BaseNodeConstructor<T extends BaseNode> = new () => T;
 
-function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl, baseType: T | NodeIdLike): boolean {
+function _slow_isSubtypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl, baseType: T | NodeIdLike): boolean {
     if (!(baseType instanceof Class)) {
         const node = this.addressSpace.findNode(baseType as NodeIdLike);
         if (!node || !(node instanceof Class)) {
             throw new Error("Invalid argument");
         }
-        return _slow_isSupertypeOf.call(this, Class, node as unknown as T);
+        return _slow_isSubtypeOf.call(this, Class, node as unknown as T);
     }
     assert(this instanceof Class);
     assert(baseType instanceof Class, " Object must have same type");
@@ -50,7 +50,7 @@ function _slow_isSupertypeOf<T extends UAType>(this: T, Class: typeof BaseNodeIm
         if (sameNodeId(subTypeNode.nodeId, baseType.nodeId)) {
             return true;
         } else {
-            if (_slow_isSupertypeOf.call(subTypeNode, Class, baseType)) {
+            if (_slow_isSubtypeOf.call(subTypeNode, Class, baseType)) {
                 return true;
             }
         }
@@ -96,11 +96,11 @@ function hashBaseNode(e: BaseNode): string {
     return e.nodeId.value.toString();
 }
 
-export type IsSupertypeOfFunc<T extends UAType> = (this: T, baseType: T) => boolean;
+export type IsSubtypeOfFunc<T extends UAType> = (this: T, baseType: T) => boolean;
 
 export type UAType = UAReferenceType | UADataType | UAObjectType | UAVariableType;
 
-export function construct_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSupertypeOfFunc<T> {
+export function construct_isSubtypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSubtypeOfFunc<T> {
     return wrap_memoize(function (this: T, baseType: T | NodeIdLike): boolean {
         if (!(baseType instanceof Class)) {
             throw new Error(
@@ -115,13 +115,13 @@ export function construct_isSupertypeOf<T extends UAType>(Class: typeof BaseNode
         if (!(this instanceof Class)) {
             throw new Error("expecting this to be " + Class.name + " but got " + baseType.constructor.name);
         }
-        return _slow_isSupertypeOf.call(this, Class, baseType as T);
+        return _slow_isSubtypeOf.call(this, Class, baseType as T);
     }, hashBaseNode);
 }
 
-export function construct_slow_isSupertypeOf<T extends UAType>(Class: typeof BaseNodeImpl) {
+export function construct_slow_isSubtypeOf<T extends UAType>(Class: typeof BaseNodeImpl) {
     return function (this: T, baseType: T | NodeIdLike): boolean {
-        return _slow_isSupertypeOf.call(this, Class, baseType);
+        return _slow_isSubtypeOf.call(this, Class, baseType);
     };
 }
 

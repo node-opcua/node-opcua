@@ -790,7 +790,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             }
             if (relativePathElement.includeSubtypes) {
                 const baseType = this.addressSpace.findReferenceType(relativePathElement.referenceTypeId)!;
-                if (baseType && referenceType.isSupertypeOf(baseType)) {
+                if (baseType && referenceType.isSubtypeOf(baseType)) {
                     return true;
                 }
             }
@@ -1564,7 +1564,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
     }
     // ------------------------------- EXPERIMENT
 
-    // xx if (!referenceType.isSupertypeOf(hierarchicalReferencesId)) { return; }
+    // xx if (!referenceType.isSubtypeOf(hierarchicalReferencesId)) { return; }
     const related_node = resolveReferenceNode(addressSpace, reference) as BaseNodeImpl;
     if (related_node) {
         // verify that reference doesn't point to object it this (see mantis 3099)
@@ -1666,7 +1666,7 @@ function _filter_by_referenceType(
                 return true;
             }
             if (browseDescription.includeSubtypes) {
-                return ref.isSupertypeOf(referenceType as UAReferenceType);
+                return ref.isSubtypeOf(referenceType);
             } else {
                 return false;
             }

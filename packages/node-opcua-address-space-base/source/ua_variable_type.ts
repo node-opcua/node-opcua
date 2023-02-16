@@ -50,6 +50,9 @@ export declare class UAVariableType extends BaseNode implements VariableAttribut
 
     public isAbstract: boolean;
 
+    public isSubtypeOf(type:  UAVariableType | NodeIdLike): boolean;
+
+    /** @deprecated - use isSubtypeOf instead */
     public isSupertypeOf(type:  UAVariableType | NodeIdLike): boolean;
 
     public instantiate(options: InstantiateVariableOptions): UAVariable;

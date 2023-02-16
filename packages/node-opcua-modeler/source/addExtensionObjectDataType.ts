@@ -126,7 +126,7 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
         if (!fType) {
             throw new Error("Cannot find dataType" + field.dataType.toString());
         }
-        if (fType.isSupertypeOf(structure)) {
+        if (fType.isSubtypeOf(structure)) {
             const name = fType.browseName.name!.replace("DataType", "Type");
             typeDefinition = addressSpace.findVariableType(name, field.dataType.namespace)!;
             const comp = typeDefinition.instantiate({

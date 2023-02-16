@@ -26,9 +26,9 @@ import { SessionContext } from "../source/session_context";
 import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
-import * as tools from "./tool_isSupertypeOf";
-import { get_subtypeOf } from "./tool_isSupertypeOf";
-import { get_subtypeOfObj } from "./tool_isSupertypeOf";
+import * as tools from "./tool_isSubtypeOf";
+import { get_subtypeOf } from "./tool_isSubtypeOf";
+import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { BaseNode_getCache } from "./base_node_private";
 
 export interface UADataTypeImpl {
@@ -62,8 +62,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
      *
      *    var dataTypeDouble = addressSpace.findDataType("Double");
      *    var dataTypeNumber = addressSpace.findDataType("Number");
-     *    assert(dataTypeDouble.isSupertypeOf(dataTypeNumber));
-     *    assert(!dataTypeNumber.isSupertypeOf(dataTypeDouble));
+     *    assert(dataTypeDouble.isSubtypeOf(dataTypeNumber));
+     *    assert(!dataTypeNumber.isSubtypeOf(dataTypeDouble));
      *
      */
     public get subtypeOf(): NodeId | null {
@@ -74,7 +74,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         return get_subtypeOfObj.call(this) as any as UADataType;
     }
 
-    public isSupertypeOf = tools.construct_isSupertypeOf<UADataType>(UADataTypeImpl);
+    /** @deprecated */
+    public isSupertypeOf = tools.construct_isSubtypeOf<UADataType>(UADataTypeImpl);
+    public isSubtypeOf = tools.construct_isSubtypeOf<UADataType>(UADataTypeImpl);
 
     public readonly isAbstract: boolean;
 
@@ -277,9 +279,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
         // we have a data type from a companion specification
         // let's see if this data type need to be registered
-        const isEnumeration = enumeration && this.isSupertypeOf(enumeration);
-        const isStructure = structure && this.isSupertypeOf(structure);
-        const isUnion = !!(structure && union && this.isSupertypeOf(union));
+        const isEnumeration = enumeration && this.isSubtypeOf(enumeration);
+        const isStructure = structure && this.isSubtypeOf(structure);
+        const isUnion = !!(structure && union && this.isSubtypeOf(union));
 
         const isRootDataType = (n: UADataType) => n.nodeId.namespace === 0 && n.nodeId.value === DataTypeIds.BaseDataType;
         // https://reference.opcfoundation.org/v104/Core/docs/Part3/8.49/#Table34
@@ -367,24 +369,24 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     options.add(
         options.padding +
-            chalk.yellow("          binaryEncodingNodeId: ") +
-            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          binaryEncodingNodeId: ") +
+        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          xmlEncodingNodeId   : ") +
-            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          xmlEncodingNodeId   : ") +
+        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          jsonEncodingNodeId  : ") +
-            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          jsonEncodingNodeId  : ") +
+        (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
     );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOfObj        : ") +
-                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+            chalk.yellow("          subtypeOfObj        : ") +
+            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references
@@ -418,8 +420,8 @@ function makeStructureDefinition(
     const structureType = isUnion
         ? StructureType.Union
         : hasOptionalFields
-        ? StructureType.StructureWithOptionalFields
-        : StructureType.Structure;
+            ? StructureType.StructureWithOptionalFields
+            : StructureType.Structure;
 
     const sd = new StructureDefinition({
         baseDataType,

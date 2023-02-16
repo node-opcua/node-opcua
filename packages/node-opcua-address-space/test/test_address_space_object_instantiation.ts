@@ -85,10 +85,10 @@ describe("testing add new ObjectType ", () => {
         sameNodeId(hasWeezbeReferenceType.subtypeOf!, aggregatesReference.nodeId).should.eql(true);
         hasWeezbeReferenceType.subtypeOfObj!.should.eql(aggregatesReference);
 
-        //xx console.log(hasWeezbeReferenceType.isSupertypeOf(aggregatesReference));
-        //xx console.log(aggregatesReference.isSupertypeOf(hasWeezbeReferenceType));
+        //xx console.log(hasWeezbeReferenceType.isSubtypeOf(aggregatesReference));
+        //xx console.log(aggregatesReference.isSubtypeOf(hasWeezbeReferenceType));
 
-        hasWeezbeReferenceType.isSupertypeOf(aggregatesReference).should.eql(true);
+        hasWeezbeReferenceType.isSubtypeOf(aggregatesReference).should.eql(true);
         const a: UAReferenceType[] = aggregatesReference.getAllSubtypes();
         //xx console.log(a.map(a => a.browseName.toString()));
 

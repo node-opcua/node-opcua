@@ -44,24 +44,24 @@ export class FilterContextOnAddressSpace implements FilterContext {
             return false;
         }
         if (node.nodeClass === NodeClass.ObjectType && baseTypeNode.nodeClass === NodeClass.ObjectType) {
-            return (node as UAObjectType).isSupertypeOf(baseTypeNode as UAObjectType);
+            return (node as UAObjectType).isSubtypeOf(baseTypeNode as UAObjectType);
         }
         if (node.nodeClass === NodeClass.VariableType && baseTypeNode.nodeClass === NodeClass.VariableType) {
-            return (node as UAVariableType).isSupertypeOf(baseTypeNode as UAVariableType);
+            return (node as UAVariableType).isSubtypeOf(baseTypeNode as UAVariableType);
         }
         if (node.nodeClass === NodeClass.ReferenceType && baseTypeNode.nodeClass === NodeClass.ReferenceType) {
-            return (node as UAReferenceType).isSupertypeOf(baseTypeNode as UAReferenceType);
+            return (node as UAReferenceType).isSubtypeOf(baseTypeNode as UAReferenceType);
         }
         if (node.nodeClass === NodeClass.DataType && baseTypeNode.nodeClass === NodeClass.DataType) {
-            return (node as UADataType).isSupertypeOf(baseTypeNode as UADataType);
+            return (node as UADataType).isSubtypeOf(baseTypeNode as UADataType);
         }
         if (node.nodeClass === NodeClass.Object && baseTypeNode.nodeClass === NodeClass.ObjectType) {
             const obj = node as UAObject;
-            return obj.typeDefinitionObj.isSupertypeOf(baseTypeNode as UAObjectType);
+            return obj.typeDefinitionObj.isSubtypeOf(baseTypeNode as UAObjectType);
         }
         if (node.nodeClass === NodeClass.Variable && baseTypeNode.nodeClass !== NodeClass.VariableType) {
             const obj = node as UAVariable;
-            return obj.typeDefinitionObj.isSupertypeOf(baseTypeNode as UAVariableType);
+            return obj.typeDefinitionObj.isSubtypeOf(baseTypeNode as UAVariableType);
         }
         return false;
     }

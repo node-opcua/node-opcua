@@ -34,7 +34,7 @@ export class UADiscreteAlarmImpl extends UAAlarmConditionImpl implements UADiscr
 
         /* eventTypeNode should be subtypeOf("DiscreteAlarmType"); */
         /* istanbul ignore next */
-        if (!discreteAlarmType.isSupertypeOf(discreteAlarmTypeBase as any)) {
+        if (!discreteAlarmType.isSubtypeOf(discreteAlarmTypeBase as any)) {
             throw new Error("UADiscreteAlarm.instantiate : event found is not subType of DiscreteAlarmType");
         }
 

@@ -623,9 +623,9 @@ export class AddressSpace implements AddressSpacePrivate {
         if (sameNodeId(eventType.nodeId, baseEventType.nodeId)) {
             return eventType as UAObjectType;
         }
-        /* eventTypeNode should be isSupertypeOf("BaseEventType"); */
+        /* eventTypeNode should be a sub type of "BaseEventType" */
         /* istanbul ignore next */
-        if (!eventType.isSupertypeOf(baseEventType)) {
+        if (!eventType.isSubtypeOf(baseEventType)) {
             throw new Error("findEventType: event found is not subType of BaseEventType");
         }
         return eventType as UAEventType;
@@ -1015,10 +1015,10 @@ export class AddressSpace implements AddressSpacePrivate {
 
         // to do verify that dataType is of type "Structure"
         /* istanbul ignore next */
-        if (!_dataType.isSupertypeOf(this.findDataType("Structure")!)) {
+        if (!_dataType.isSubtypeOf(this.findDataType("Structure")!)) {
             console.log(_dataType.toString());
         }
-        assert(_dataType.isSupertypeOf(this.findDataType("Structure")!));
+        assert(_dataType.isSubtypeOf(this.findDataType("Structure")!));
         if (!_dataType._extensionObjectConstructor) {
             const dataTypeManager = (this as any).$$extraDataTypeManager as ExtraDataTypeManager;
             _dataType._extensionObjectConstructor = dataTypeManager.getExtensionObjectConstructorFromDataType(
@@ -1452,11 +1452,11 @@ export class AddressSpace implements AddressSpacePrivate {
             throw new Error("Cannot find ObjectType or VariableType for " + baseType.toString());
         }
         /* istanbul ignore next */
-        if (!(baseTypeNode as any).isSupertypeOf) {
+        if (!(baseTypeNode as any).isSubtypeOf) {
             throw new Error("Cannot find ObjectType or VariableType for " + baseType.toString());
         }
         /* istanbul ignore next */
-        if (!(baseTypeNode as any).isSupertypeOf(topMostBaseTypeNode)) {
+        if (!(baseTypeNode as any).isSubtypeOf(topMostBaseTypeNode)) {
             throw new Error("wrong type ");
         }
         return baseTypeNode;
@@ -1487,7 +1487,7 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!enumerationNode) {
             throw new Error(" Cannot find 'Enumeration' DataType in standard address Space");
         }
-        return dataTypeNode.isSupertypeOf(enumerationNode);
+        return dataTypeNode.isSubtypeOf(enumerationNode);
     }
 
     private _coerce_Type(dataType: BaseNode | string | NodeId, typeMap: any, typeMapName: string, finderMethod: any): NodeId {
@@ -1562,7 +1562,7 @@ function _isFolder(addressSpace: AddressSpace, folder: UAObject): boolean {
     const folderType = addressSpace.findObjectType("FolderType")!;
     assert(folder instanceof BaseNodeImpl);
     assert(folder.typeDefinitionObj);
-    return folder.typeDefinitionObj.isSupertypeOf(folderType);
+    return folder.typeDefinitionObj.isSubtypeOf(folderType);
 }
 
 function _increase_version_number(node: BaseNode | null) {

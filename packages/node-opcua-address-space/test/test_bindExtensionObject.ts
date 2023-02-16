@@ -393,7 +393,7 @@ describe("Extension Object binding and sub  components\n", () => {
 
             dataTypeNode.browseName.toString().should.eql("SessionDiagnosticsDataType");
             const structure = addressSpace.findDataType("Structure");
-            dataTypeNode.isSupertypeOf(structure).should.eql(true);
+            dataTypeNode.isSubtypeOf(structure).should.eql(true);
 
             const definition = dataTypeNode.getStructureDefinition();
             definition.fields

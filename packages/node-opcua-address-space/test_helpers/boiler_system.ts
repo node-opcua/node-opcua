@@ -248,11 +248,11 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     }) as SignalToReference;
 
     const addressSpace = namespace.addressSpace;
-    flowTo.isSupertypeOf(addressSpace.findReferenceType("References")!);
-    flowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
-    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("References")!);
-    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
-    hotFlowTo.isSupertypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
+    flowTo.isSubtypeOf(addressSpace.findReferenceType("References")!);
+    flowTo.isSubtypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
+    hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("References")!);
+    hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("NonHierarchicalReferences")!);
+    hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
 
     const NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
 

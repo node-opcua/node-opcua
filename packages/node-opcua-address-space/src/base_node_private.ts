@@ -40,7 +40,7 @@ import { UANamespace_process_modelling_rule } from "./namespace_private";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
-import { wipeMemorizedStuff } from "./tool_isSupertypeOf";
+import { wipeMemorizedStuff } from "./tool_isSubtypeOf";
 
 // eslint-disable-next-line prefer-const
 const errorLog = make_errorLog(__filename);
@@ -859,7 +859,7 @@ export function _handle_HierarchicalReference(node: BaseNode, reference: UARefer
 
         if (referenceType) {
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
-            if (referenceType.isSupertypeOf(HierarchicalReferencesType!)) {
+            if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
                 assert(reference.isForward);
                 const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
                 _cache._childByNameMap[targetNode.browseName!.name!.toString()] = targetNode;
@@ -876,7 +876,7 @@ function _remove_HierarchicalReference(node: BaseNode, reference: UAReference) {
 
         if (referenceType) {
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
-            if (referenceType.isSupertypeOf(HierarchicalReferencesType!)) {
+            if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
                 assert(reference.isForward);
                 const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
                 // Xx dotrace && tracelog(" adding object to map");

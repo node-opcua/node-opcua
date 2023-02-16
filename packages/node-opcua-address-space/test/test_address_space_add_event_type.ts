@@ -59,8 +59,8 @@ describe("AddressSpace : add event type ", () => {
     it("should verify that AuditEventType is a superType of BaseEventType", () => {
         const baseEventType = addressSpace.findObjectType("BaseEventType")!;
         const auditEventType = addressSpace.findObjectType("AuditEventType")!;
-        auditEventType.isSupertypeOf(baseEventType).should.eql(true);
-        baseEventType.isSupertypeOf(auditEventType).should.eql(false);
+        auditEventType.isSubtypeOf(baseEventType).should.eql(true);
+        baseEventType.isSubtypeOf(auditEventType).should.eql(false);
     });
 
     it("should find a newly added EventType", () => {

@@ -134,7 +134,7 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
         }
 
         // get the direct backward reference to a external namespace
-        if (referenceType.isSupertypeOf(aggregateReferenceType) && !reference.isForward) {
+        if (referenceType.isSubtypeOf(aggregateReferenceType) && !reference.isForward) {
             if (reference.nodeId.namespace !== node.nodeId.namespace) {
                 // todo: may be check that reference.nodeId.namespace is one of the namespace
                 // on which our namespace is build and not a derived one !
@@ -142,23 +142,23 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
                 return true;
             }
         }
-        if (referenceType.isSupertypeOf(hasSubtypeReferenceType) && reference.isForward) {
+        if (referenceType.isSubtypeOf(hasSubtypeReferenceType) && reference.isForward) {
             // return false;
         }
         // only keep
-        if (referenceType.isSupertypeOf(aggregateReferenceType) && reference.isForward) {
+        if (referenceType.isSubtypeOf(aggregateReferenceType) && reference.isForward) {
             return true;
-        } else if (referenceType.isSupertypeOf(hasSubtypeReferenceType) && !reference.isForward) {
+        } else if (referenceType.isSubtypeOf(hasSubtypeReferenceType) && !reference.isForward) {
             return true;
-        } else if (referenceType.isSupertypeOf(hasTypeDefinitionReferenceType) && reference.isForward) {
+        } else if (referenceType.isSubtypeOf(hasTypeDefinitionReferenceType) && reference.isForward) {
             return true;
-        } else if (referenceType.isSupertypeOf(nonHierarchicalReferencesType) && reference.isForward) {
+        } else if (referenceType.isSubtypeOf(nonHierarchicalReferencesType) && reference.isForward) {
             return true;
-        } else if (referenceType.isSupertypeOf(organizesReferencesType) && !reference.isForward) {
+        } else if (referenceType.isSubtypeOf(organizesReferencesType) && !reference.isForward) {
             return true;
-        } else if (connectsToReferenceType && referenceType.isSupertypeOf(connectsToReferenceType) && reference.isForward) {
+        } else if (connectsToReferenceType && referenceType.isSubtypeOf(connectsToReferenceType) && reference.isForward) {
             return true;
-        } else if (referenceType.isSupertypeOf(hasEventSourceReferenceType) && reference.isForward) {
+        } else if (referenceType.isSubtypeOf(hasEventSourceReferenceType) && reference.isForward) {
             return true;
         }
         return false;

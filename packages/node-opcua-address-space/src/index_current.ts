@@ -29,7 +29,7 @@ export * from "../source/loader/register_node_promoter";
 
 export { ContinuationPointManager } from "../source/continuation_points/continuation_point_manager";
 
-export { promoteToStateMachine } from "./state_machine/finite_state_machine";
+export { promoteToStateMachine, promoteToStateMachineType } from "./state_machine/finite_state_machine";
 export * from "../source/interfaces/state_machine/ua_transition_ex";
 
 export * from "./namespace_impl";

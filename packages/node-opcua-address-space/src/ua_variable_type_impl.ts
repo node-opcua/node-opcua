@@ -37,9 +37,9 @@ import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone_children_references, ToStringBuilder, UAVariableType_toString } from "./base_node_private";
-import * as tools from "./tool_isSupertypeOf";
-import { get_subtypeOfObj } from "./tool_isSupertypeOf";
-import { get_subtypeOf } from "./tool_isSupertypeOf";
+import * as tools from "./tool_isSubtypeOf";
+import { get_subtypeOfObj } from "./tool_isSubtypeOf";
+import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
 
 const debugLog = make_debugLog(__filename);
@@ -103,6 +103,10 @@ export interface UAVariableTypeOptions extends InternalBaseNodeOptions {
     value?: any;
     dataType: NodeIdLike;
 }
+
+function deprecate<T>(func: T):T {
+    return func;
+}
 export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
     public readonly nodeClass = NodeClass.VariableType;
 
@@ -114,7 +118,10 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         return get_subtypeOfObj.call(this) as UAVariableType;
     }
 
-    public isSupertypeOf = tools.construct_isSupertypeOf<UAVariableType>(UAVariableTypeImpl);
+    public isSubtypeOf = tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl);
+
+     /** @deprecated - use  isSubtypeOf instead */
+     public isSupertypeOf = deprecate(tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl));
 
     public readonly isAbstract: boolean;
     public dataType: NodeId;
