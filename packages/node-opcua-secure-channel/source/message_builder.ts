@@ -87,7 +87,7 @@ export interface SecurityTokenAndDerivedKeys {
     derivedKeys: DerivedKeys | null;
 }
 
-export const { invalidPrivateKey, _} = generateKeyPairSync('rsa', {
+export const { privateKey: invalidPrivateKey } = generateKeyPairSync('rsa', {
     modulusLength: 2048,
     publicKeyEncoding: {
       type: 'spki',
