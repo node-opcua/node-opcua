@@ -185,7 +185,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
                 DataType.Byte,
                 DataType.SByte,
                 26 /*Number*/
-            ].indexOf(this.dataType.value as number) <= 0
+            ].indexOf(this.dataType.value as number) < 0
         ) {
             throw new Error("Invalid DataType in UAMultiStateValueDiscrete =>" + this.dataType.toString());
         }
