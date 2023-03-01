@@ -670,6 +670,7 @@ describe("testing Variable#bindVariable", () => {
                 dataType: "Double",
                 organizedBy: rootFolder,
                 typeDefinition: makeNodeId(68),
+                minimumSamplingInterval: 100, // minimumSamplingInterval needed when using a getter
                 value: value_options
             });
 
@@ -1235,7 +1236,7 @@ describe("testing UAVariable ", () => {
                     const sourceTimestamp = new Date();
                     // simulate a asynchronous behaviour
                     setTimeout(() => {
-                        callback(new Error("Something goes wrong here"));
+                        callback(new Error("Something goes wrong here  (intentional error for testing purpose)"));
                     }, 100);
                 }
             }
@@ -1259,12 +1260,12 @@ describe("testing UAVariable ", () => {
             organizedBy: rootFolder,
             value: {
                 refreshFunc(callback: CallbackT<DataValue>) {
-                    throw new Error("Something goes wrong here");
+                    throw new Error("Something goes wrong here! (intentional error for testing purpose)");
                 }
             }
         });
 
-        let _err: Error;
+        let _err: Error | undefined;
         try {
             await temperatureVar.readValueAsync(context);
         } catch (err) {

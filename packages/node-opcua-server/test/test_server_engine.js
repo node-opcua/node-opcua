@@ -67,6 +67,7 @@ describe("testing ServerEngine", () => {
                 browseName: "TestArray",
                 nodeId: "s=TestArray",
                 dataType: "Double",
+                minimumSamplingInterval: 100,
                 value: {
                     get: function () {
                         return new Variant({
@@ -85,6 +86,7 @@ describe("testing ServerEngine", () => {
                 browseName: "WriteableInt32",
                 nodeId: "s=WriteableInt32",
                 dataType: DataType.Int32,
+                minimumSamplingInterval: 100,
                 value: {
                     get: function () {
                         return new Variant({
@@ -107,6 +109,7 @@ describe("testing ServerEngine", () => {
                 browseName: "WriteableUInt32Async",
                 nodeId: "s=WriteableUInt32Async",
                 dataType: "UInt32",
+                minimumSamplingInterval: 100,
                 value: {
                     get: function () {
                         return new Variant({
@@ -279,6 +282,7 @@ describe("testing ServerEngine", () => {
             componentOf: newFolder,
             browseName: "Temperature",
             dataType: "Float",
+            minimumSamplingInterval: 100,
             value: {
                 get: function () {
                     return new Variant({ dataType: DataType.Float, value: 10.0 });
@@ -309,14 +313,7 @@ describe("testing ServerEngine", () => {
             nodeId: "b=01020304ffaa", // << fancy node id here !
             browseName: "Temperature",
             dataType: "Double",
-            value: {
-                get: function () {
-                    return new Variant({ dataType: DataType.Double, value: 10.0 });
-                },
-                set: function () {
-                    return StatusCodes.BadNotWritable;
-                }
-            }
+            value: new Variant({ dataType: DataType.Double, value: 10.0 })
         });
 
         newVariable.nodeId.toString().should.eql("ns=1;b=01020304ffaa");
@@ -335,6 +332,7 @@ describe("testing ServerEngine", () => {
             componentOf: newFolder,
             browseName: "TemperatureWithSourceTimestamps",
             dataType: "Double",
+            minimumSamplingInterval: 100,
             value: {
                 timestamped_get: function () {
                     return temperature;
@@ -368,6 +366,7 @@ describe("testing ServerEngine", () => {
             dataType: "Double",
             historizing: true,
             userAccessLevel: 7,
+            minimumSamplingInterval: 100,
             value: {
                 timestamped_get: function () {
                     return readValue;
@@ -989,15 +988,11 @@ describe("testing ServerEngine", () => {
                 dataType: "Double",
                 nodeId: nodeId,
                 organizedBy: engine.addressSpace.findNode("ObjectsFolder"),
-                value: {
-                    get: function () {
-                        return new Variant({
-                            dataType: DataType.Double,
-                            value: 0
-                        });
-                    },
-                    set: null // read only
-                }
+                value: new Variant({
+                    dataType: DataType.Double,
+                    value: 0
+                }),
+                accessLevel: "CurrentRead"
             });
         });
 
@@ -1917,6 +1912,7 @@ describe("testing ServerEngine", () => {
                 browseName: "FailingPLCValue",
                 nodeId: "ns=1;s=FailingPLCValue",
                 dataType: "Double",
+                minimumSamplingInterval: 100,
                 value: {
                     get: function () {
                         // we return a StatusCode here instead of a Variant

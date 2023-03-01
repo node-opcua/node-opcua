@@ -69,7 +69,7 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
         nodeId: "s=free_memory", // a string nodeID
         browseName: "FreeMemory",
         dataType: "Double",
-        minimumSamplingInterval: 1234,
+        minimumSamplingInterval: 1234, // we need to specify a minimumSamplingInterval when using a getter
         value: {
             get: () => new Variant({ dataType: DataType.Double, value: available_memory() })
         }

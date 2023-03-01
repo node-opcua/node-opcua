@@ -70,6 +70,7 @@ describe("Testing bug #635", () => {
             componentOf: device,
             dataType: "String",
             nodeId: "ns=1;s=MyVariable1",
+            minimumSamplingInterval: 100,
             value: {
                 timestamped_get: (callback: CallbackT<DataValue>) => {
                     setTimeout(() => {
@@ -92,6 +93,7 @@ describe("Testing bug #635", () => {
             componentOf: device,
             dataType: "UInt32",
             nodeId: "ns=1;s=MyVariable2",
+            minimumSamplingInterval: 100,
             value: {
                 timestamped_get: () => {
                     const myDataValue = new DataValue({

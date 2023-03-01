@@ -26,6 +26,7 @@ describe("testing github issue https://github.com/node-opcua/node-opcua/issues/4
         const counterVar: AddVariableOptions = {
             browseName: "TEST",
             dataType: "String",
+            minimumSamplingInterval: 100, // minimumSamplingInterval needed when using a getter
             value: {
                 get: function (this: UAVariable) {
                     // in get - this.browseName works great.

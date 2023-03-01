@@ -43,6 +43,8 @@ export function subtest_analog_item_type(maintest: any): void {
                 instrumentRange: { low: -100, high: +200 },
 
                 dataType: "Double",
+
+                minimumSamplingInterval: 100,
                 value: {
                     get: () => {
                         return new Variant({
@@ -62,7 +64,7 @@ export function subtest_analog_item_type(maintest: any): void {
             analogItem.valuePrecision!.browseName.toString().should.eql("ValuePrecision");
             analogItem.euRange.browseName.toString().should.eql("EURange");
             analogItem.instrumentRange!.browseName.toString().should.eql("InstrumentRange");
-            analogItem.engineeringUnits.browseName.toString().should.eql("EngineeringUnits");
+            analogItem.engineeringUnits?.browseName.toString().should.eql("EngineeringUnits");
 
             // xx console.log("xxxx = analogItem.euRange.readValue().value.value", analogItem.euRange.readValue().toString());
             analogItem.euRange.readValue().value.value.low.should.eql(100);
@@ -93,14 +95,14 @@ export function subtest_analog_item_type(maintest: any): void {
             const dataValue2 = await analogItem.readValueAsync(context);
             dataValue2.statusCode.should.eql(StatusCodes.Good);
             dataValue2.value.dataType.should.eql(DataType.Double);
-            dataValue2.value.value.should.eql(fakeValue);
+            dataValue2.value.value?.should.eql(fakeValue);
 
             fakeValue = 2.0;
 
             const dataValue3 = await analogItem.readValueAsync(context);
             dataValue3.statusCode.should.eql(StatusCodes.Good);
             dataValue3.value.dataType.should.eql(DataType.Double);
-            dataValue3.value.value.should.eql(fakeValue);
+            dataValue3.value.value?.should.eql(fakeValue);
         });
 
         it("Writing a value exceeding InstrumentRange shall return BadOutOfRange", async () => {

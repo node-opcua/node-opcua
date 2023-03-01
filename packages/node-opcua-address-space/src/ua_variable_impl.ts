@@ -1508,7 +1508,7 @@
 
             // coerce to ExtensionObject[] when this.valueRank === 1
             if (optionalExtensionObject && this.valueRank === 1 && !Array.isArray(optionalExtensionObject) && optionalExtensionObject instanceof ExtensionObject) {
-                warningLog("bindExtensionObject: coerce to ExtensionObject[] when this.valueRank === 1");
+                warningLog("bindExtensionObject: coerce to ExtensionObject[] when valueRank === 1 and value is a scalar extension object");
                 optionalExtensionObject = [optionalExtensionObject];
             }
 

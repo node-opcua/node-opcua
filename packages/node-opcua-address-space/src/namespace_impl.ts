@@ -11,7 +11,7 @@ import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
-import { dumpIf, make_errorLog } from "node-opcua-debug";
+import { dumpIf, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
@@ -143,6 +143,7 @@ function _makeHashKey(nodeId: NodeId): string | number {
 }
 const doDebug = false;
 const errorLog = make_errorLog("AddressSpace");
+const warningLog = make_warningLog("AddressSpace");
 
 const regExp1 = /^(s|i|b|g)=/;
 const regExpNamespaceDotBrowseName = /^[0-9]+:(.*)/;
@@ -469,16 +470,6 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      * add a variable as a component of the parent node
-     *
-     * @method addVariable
-     * @param options
-     * @param options.browseName       the variable name
-     * @param options.dataType        the variable datatype ( "Double", "UInt8" etc...)
-     * @param [options.typeDefinition="BaseDataVariableType"]
-     * @param [options.modellingRule=null] the Modelling rule : "Optional" , "Mandatory"
-     * @param [options.valueRank= -1]    the valueRank
-     * @param [options.arrayDimensions]
-     * @return UAVariable
      */
     public addVariable(options: AddVariableOptions): UAVariable {
         assert(arguments.length === 1, "Invalid arguments IAddressSpace#addVariable now takes only one argument.");
@@ -581,7 +572,7 @@ export class NamespaceImpl implements NamespacePrivate {
         options1.nodeClass = NodeClass.ReferenceType;
         options1.references = options.references || [];
         options1.nodeId = options.nodeId;
-        
+
         if (options.subtypeOf) {
             const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf, "References", NodeClass.ReferenceType);
 
@@ -1686,7 +1677,7 @@ export class NamespaceImpl implements NamespacePrivate {
                 "\n" +
                 "existing node = " +
                 exstingNode.toString() +
-                "this parent : " + node.parentNodeId?.toString() 
+                "this parent : " + node.parentNodeId?.toString()
             );
         }
 
@@ -1994,9 +1985,26 @@ export class NamespaceImpl implements NamespacePrivate {
 
         options.arrayDimensions = options.arrayDimensions || null;
         assert(Array.isArray(options.arrayDimensions) || options.arrayDimensions === null);
+
         // -----------------------------------------------------
+        const hasGetter = (options: AddVariableOptions2) => {
+            return typeof options.value?.get === "function" || typeof options.value?.timestamped_get === "function"
+        }
+ 
+        // istanbul ignore next
+        if (options.minimumSamplingInterval === undefined && hasGetter(options)) {
+            // a getter has been specified and no options.minimumSamplingInterval has been specified
+            warningLog("[NODE-OPCUA-W30", "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms");
+            options.minimumSamplingInterval = 1000;
+        }
 
         options.minimumSamplingInterval = options.minimumSamplingInterval !== undefined ? +options.minimumSamplingInterval : 0;
+        
+        // istanbul ignore next
+        if (options.minimumSamplingInterval === 0 && hasGetter(options)) {
+            warningLog("[NODE-OPCUA-W31", "namespace#addVariable a getter has been specified and minimumSamplingInterval is 0.\nThis may conduct to an unpredicable behavior.\nPlease specify a non zero minimum sampling interval")
+        }
+
         let references = options.references || ([] as AddReferenceOpts[]);
 
         references = ([] as AddReferenceOpts[]).concat(references, [

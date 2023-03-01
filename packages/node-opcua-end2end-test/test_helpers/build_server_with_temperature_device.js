@@ -49,6 +49,7 @@ function addTestUAAnalogItem(parentNode) {
         instrumentRange: { low: -100, high: +200 },
         engineeringUnits: standardUnits.degree_celsius,
         dataType: "Double",
+        minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
         value: {
             get: function () {
                 return new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 });
@@ -156,6 +157,7 @@ async function _build_server_with_temperature_device(server, options, done) {
             browseName: "SetPointTemperature",
             nodeId: setPointTemperatureId,
             dataType: "Double",
+            minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
             value: {
                 get: function () {
                     return new Variant({ dataType: DataType.Double, value: server.set_point_temperature });
@@ -176,6 +178,7 @@ async function _build_server_with_temperature_device(server, options, done) {
             browseName: "PumpSpeed",
             nodeId: pumpSpeedId,
             dataType: "Double",
+            minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
             value: {
                 get: function () {
                     const pump_speed = 200 + Math.random();
@@ -208,8 +211,8 @@ async function _build_server_with_temperature_device(server, options, done) {
             browseName: "AsynchronousVariable",
             nodeId: asyncWriteNodeId,
             dataType: "Double",
-
-            value: {
+            minimumSamplingInterval: 100,
+            value: {            
                 // asynchronous read
                 refreshFunc: function (callback) {
                     const dataValue = new DataValue({
@@ -244,7 +247,7 @@ async function _build_server_with_temperature_device(server, options, done) {
             browseName: "AsynchronousFullVariable",
             nodeId: asyncWriteFullNodeId,
             dataType: "Double",
-
+            minimumSamplingInterval: 100,
             value: {
                 // asynchronous read
                 timestamped_get: function (callback) {

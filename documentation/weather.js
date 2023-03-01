@@ -102,6 +102,7 @@ function construct_my_address_space(server) {
             browseName: "Temperature",
             nodeId: `s=${city_name}-Temperature`,
             dataType: "Double",
+            minimumSamplingInterval: 100,
             value: {  get: function () { return extract_value(opcua.DataType.Double, city_name,"temperature"); } }
         });
         namespace.addVariable({
@@ -109,6 +110,7 @@ function construct_my_address_space(server) {
             nodeId: `s=${city_name}-Humidity`,
             browseName: "Humidity",
             dataType: "Double",
+            minimumSamplingInterval: 100,
             value: {  get: function () { return extract_value(opcua.DataType.Double,city_name,"humidity"); } }
         });
         namespace.addVariable({
@@ -116,6 +118,7 @@ function construct_my_address_space(server) {
             nodeId: `s=${city_name}-Pressure`,
             browseName: "Pressure",
             dataType: "Double",
+            minimumSamplingInterval: 100,
             value: {  get: function () { return extract_value(opcua.DataType.Double,city_name,"pressure"); } }
         });
         namespace.addVariable({
@@ -123,6 +126,7 @@ function construct_my_address_space(server) {
             nodeId: `s=${city_name}-Weather`,
             browseName: "Weather",
             dataType: "String",
+            minimumSamplingInterval: 100,
             value: {  get: function () { return extract_value(opcua.DataType.String,city_name,"weather"); } }
         });
     }

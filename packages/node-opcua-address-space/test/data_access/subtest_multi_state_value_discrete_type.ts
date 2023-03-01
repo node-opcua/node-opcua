@@ -116,7 +116,7 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
                     { displayName: "Green", value: 0x00ff00 },
                     { displayName: "Blue", value: 0x0000ff }
                 ],
-
+                minimumSamplingInterval: 100,
                 value: {
                     timestamped_get,
                     timestamped_set

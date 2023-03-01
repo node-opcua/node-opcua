@@ -31,6 +31,7 @@ describe("Testing bug found in #337", () => {
             dataType: "Double",
             nodeId: "ns=1;s=Position",
             organizedBy: addressSpace.rootFolder.objects,
+            minimumSamplingInterval: 100,
             value: {
                 get: () => {
                     return new Variant({

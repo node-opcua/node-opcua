@@ -88,7 +88,7 @@ export function subtest_multi_state_discrete_type(mainTest: { addressSpace: Addr
                 browseName: "MultiStateDiscreteVariableWithGetterAndSetter",
                 organizedBy: addressSpace.rootFolder.objects,
                 enumStrings: ["Red", "Orange", "Green"],
-
+                minimumSamplingInterval: 1000,
                 value: {
                     timestamped_get,
                     timestamped_set

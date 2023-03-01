@@ -58,6 +58,8 @@ export function subtest_analog_item_semantic_changed(maintest: any): void {
                 engineeringUnitsRange: { low: 100, high: 200 },
                 instrumentRange: { low: -100, high: +200 },
 
+                minimumSamplingInterval: 100,
+
                 dataType: "Double",
                 value: {
                     get: () => {

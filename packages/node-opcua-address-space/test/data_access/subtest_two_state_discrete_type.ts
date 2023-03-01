@@ -184,6 +184,7 @@ export function subtest_two_state_discrete_type(mainTest: { addressSpace: Addres
                 componentOf: myObject,
                 falseState: "SomeFalseState",
                 trueState: "SomeTrueState",
+                minimumSamplingInterval: 100, // minimumSamplingInterval needed when using a getter
 
                 value: {
                     timestamped_get: timestamped_get as any,

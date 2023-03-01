@@ -14,10 +14,10 @@ const ClientSubscription = opcua.ClientSubscription;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-module.exports = function(test) {
+module.exports = function (test) {
 
 
-    describe("Testing bug #163 ", function() {
+    describe("Testing bug #163 ", function () {
 
         // Bug Report:
         // My data provider is setting opcua.StatusCodes.Bad when there is some problem getting a valid value for a
@@ -27,7 +27,7 @@ module.exports = function(test) {
         // function isSameVariant called in _Variable_bind_with_simple_get.
         // i was using 0.0.49 0.0.51 and it persists in 0.0.52
 
-        it("test", function(done) {
+        it("test", function (done) {
 
             const server = test.server;
 
@@ -42,8 +42,9 @@ module.exports = function(test) {
                 nodeId: "ns=1;b=1020FFAA",
                 browseName: "MyVariable2",
                 dataType: "Double",
+                minimumSamplingInterval: 100,
                 value: {
-                    get: function() {
+                    get: function () {
                         if (variable2 >= 20.0) {
                             variable2 = 10.0;
                             //xx  console.log("return bad");
@@ -53,7 +54,7 @@ module.exports = function(test) {
                         variable2++;
                         return new opcua.Variant({ dataType: opcua.DataType.Double, value: variable2 });
                     },
-                    set: function(variant) {
+                    set: function (variant) {
                         variable2 = parseFloat(variant.value);
                         return opcua.StatusCodes.Good;
                     }
@@ -68,13 +69,13 @@ module.exports = function(test) {
 
             async.series([
 
-                function(callback) {
+                function (callback) {
                     client1.connect(endpointUrl, callback);
                 },
 
                 // create a session using client1
-                function(callback) {
-                    client1.createSession(function(err, session) {
+                function (callback) {
+                    client1.createSession(function (err, session) {
                         if (err) {
                             return callback(err);
                         }
@@ -84,7 +85,7 @@ module.exports = function(test) {
                 },
 
 
-                function(callback) {
+                function (callback) {
 
                     const subscription = ClientSubscription.create(the_session, {
                         requestedPublishingInterval: 150,
@@ -95,10 +96,10 @@ module.exports = function(test) {
                         priority: 6
                     });
 
-                    subscription.once("terminated", function() {
+                    subscription.once("terminated", function () {
                         //xx console.log("subscription terminated");
                     });
-                    subscription.once("started", function() {
+                    subscription.once("started", function () {
                         //xx console.log("publishingInterval", subscription.publishingInterval);
                     });
 
@@ -110,23 +111,23 @@ module.exports = function(test) {
                             queueSize: 100
                         });
 
-                    monitoredItem.on("changed", function(dataValue) {
+                    monitoredItem.on("changed", function (dataValue) {
                         7
                         //xx console.log("DataValue = ", dataValue.toString());
                     });
 
 
-                    setTimeout(function() {
+                    setTimeout(function () {
                         subscription.terminate(callback);
                     }, 3000);
                 },
 
-                function(callback) {
+                function (callback) {
                     the_session.close(callback);
                 }
 
             ], function final(err) {
-                client1.disconnect(function() {
+                client1.disconnect(function () {
                     //xx console.log(" Client disconnected ", (err ? err.message : "null"));
                     done(err);
                 });

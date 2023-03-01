@@ -1384,12 +1384,8 @@ function add_enumeration_variable(namespaceDemo: Namespace, parentFolder: UAObje
         propertyOf: (addressSpace.rootFolder.objects.server as any).vendorServerInfos,
         dataType: myEnumType,
         browseName: "RunningState",
-        value: {
-            get() {
-                return new Variant({ dataType: DataType.Int32, value: 1 });
-            }
-        }
     });
+    e.writeEnumValue("RUNNING");
 }
 
 function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
