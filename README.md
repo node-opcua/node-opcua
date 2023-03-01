@@ -4,21 +4,12 @@ node-opcua
 node-opcua is an implementation of an OPC UA stack fully written in Typescript for NodeJS.
 
 [![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](https://www.npmtrends.com/node-opcua)
-[![NPM version](https://badge.fury.io/js/node-opcua.png)](https://badge.fury.io/js/node-opcua)
-
+[![NPM version](https://img.shields.io/npm/v/node-opcua)](https://img.shields.io/npm/v/node-opcua)
 [![Node.js CI](https://github.com/node-opcua/node-opcua/actions/workflows/workflow.yml/badge.svg)](https://github.com/node-opcua/node-opcua/actions/workflows/workflow.yml)
-
-[![Build status](https://ci.appveyor.com/api/projects/status/8sgtm3n15aii98oc/branch/master?svg=true)](https://ci.appveyor.com/project/erossignon/node-opcua/branch/master)
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
-
-<!-- [![Dependency Status](https://gemnasium.com/node-opcua/node-opcua.png)](https://gemnasium.com/node-opcua/node-opcua) -->
-[![Coverage Status](https://coveralls.io/repos/node-opcua/node-opcua/badge.png)](https://coveralls.io/r/node-opcua/node-opcua)
-[![Code Climate](https://codeclimate.com/github/node-opcua/node-opcua.png)](https://codeclimate.com/github/node-opcua/node-opcua)
-
-[![OPC UA](https://b.repl.ca/v1/OPC-UA-blue.png)](https://opcfoundation.org/)
-[![Gitter chat](https://badges.gitter.im/node-opcua/node-opcua.png)](https://gitter.im/node-opcua/node-opcua)
-
-
+[![Coverage Status](https://img.shields.io/coverallsCoverage/github/node-opcua/node-opcua)](https://coveralls.io/r/node-opcua/node-opcua)
+[![Gitter chat](https://img.shields.io/gitter/room/node-opcua/node-opcua
+)](https://gitter.im/node-opcua/node-opcua)
 [![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample)
 
 [Node-opcua](https://node-opcua.github.io/) is the OPC-UA stack running on NodeJS.
