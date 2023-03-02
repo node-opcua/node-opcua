@@ -23,7 +23,7 @@ Professional support ensures the following:
 - 🔐 confidentiality & privacy
 - 🔍 dedicated investigation for your issue
 - 🐛 prompt resolution of bugs or issues
-- 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample)
+- 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample-edition2022)
 
 
 You may also [contact Sterfive directly](https://www.sterfive.com) for dedicated professional support: mailto:contact@sterfive.com
@@ -46,7 +46,7 @@ Once you have evaluated node-opcua and prove it useful to your company, please c
                  
 Grants ensure the following:
 
-🔨 Long term maintenance of the project
+🔨 Long-term maintenance of the project
 ⚙️ maintain the website and continuous integration platform
 🛣  Progress on the road-map
 🐛 Quick responses to bug reports

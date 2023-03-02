@@ -10,14 +10,13 @@ node-opcua is an implementation of an OPC UA stack fully written in Typescript f
 [![Coverage Status](https://img.shields.io/coverallsCoverage/github/node-opcua/node-opcua)](https://coveralls.io/r/node-opcua/node-opcua)
 [![Gitter chat](https://img.shields.io/gitter/room/node-opcua/node-opcua
 )](https://gitter.im/node-opcua/node-opcua)
-[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample)
+[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2022)
 
 [Node-opcua](https://node-opcua.github.io/) is the OPC-UA stack running on NodeJS.
 
-
 Why NodeJS ?
 
-Because nodeJs is a great framework to design asynchronous applications.
+Because NodeJs is a great framework to design high-performing asynchronous applications.
 
 
 ## Getting started
@@ -61,19 +60,19 @@ $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcuademo.sterfive.com:26543"
 ## tutorials and guided examples
 
 
-[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample).  This book provides a large number of practical and ready-to-use and fully documented example. It's the best starting point to learn about node-opcua.
+[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2022).  This book provides a large number of practical and ready-to-use and fully documented examples. It's the best starting point to learn about node-opcua.
 
 ## Sponsors & Backers 
 
-The funding of node-opcua enterly relies on its users.  
-We appreciate that, once you have evaluated the software and you have decided to use it in one of your application, you consider supporting our effort by either financially contributing to one of our sponsor programs:
+The funding of node-opcua enterily relies on its users.  
+We appreciate that, once you have evaluated the software and you have decided to use it in one of your applications, you consider supporting our effort by either financially contributing to one of our sponsor programs:
 
   - https://github.com/sponsors/node-opcua
   - https://opencollective.com/node-opcua
 
 Grants ensure the following:
 
-- 🔨 Long term maintenance of the project
+- 🔨 Long-term maintenance of the project
 - ⚙️ maintain the website and continuous integration platform
 - 🛣  Progress on the road-map
 - 🐛 Quick responses to bug reports
@@ -86,9 +85,9 @@ To get professional support, consider subscribing to the node-opcua membership c
 
 [![Professional Support](https://img.shields.io/static/v1?style=for-the-badge&label=Professional&message=Support&labelColor=blue&color=green&logo=data:image/svg%2bxml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDQ5MS41MiA0OTEuNTIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDQ5MS41MiA0OTEuNTI7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4NCjxnPg0KCTxnPg0KCQk8cGF0aCBkPSJNNDg3Ljk4OSwzODkuNzU1bC05My4xMDktOTIuOTc2Yy00LjgxMy00LjgwNi0xMi42NDItNC42NzQtMTcuMjczLDAuMzA3Yy03LjE0OCw3LjY4OS0xNC42NCwxNS41NTQtMjEuNzMsMjIuNjM0ICAgIGMtMC4yNzEsMC4yNy0wLjUwMSwwLjQ5My0wLjc2MywwLjc1NUw0NjcuMyw0MzIuNTA0YzguOTEtMTAuNjE0LDE2LjY1Ny0yMC40MSwyMS43My0yNi45NyAgICBDNDkyLjcyLDQwMC43NjIsNDkyLjI1NywzOTQuMDE5LDQ4Ny45ODksMzg5Ljc1NXoiLz4NCgk8L2c+DQo8L2c+DQo8Zz4NCgk8Zz4NCgkJPHBhdGggZD0iTTMzNC4zLDMzNy42NjFjLTM0LjMwNCwxMS4zNzktNzcuNTYsMC40MTMtMTE0LjU1NC0yOS41NDJjLTQ5LjAyMS0zOS42OTMtNzUuOTcyLTEwMi42NDItNjUuODM4LTE1MC41OTNMMzcuNjM0LDQxLjQxOCAgICBDMTcuNjUzLDU5LjQyNCwwLDc4LjU0NSwwLDkwYzAsMTQxLjc1MSwyNjAuMzQ0LDQxNS44OTYsNDAxLjUwMyw0MDAuOTMxYzExLjI5Ni0xLjE5OCwzMC4xNzYtMTguNjUxLDQ4LjA2Mi0zOC4xNjdMMzM0LjMsMzM3LjY2MSAgICB6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQoJPGc+DQoJCTxwYXRoIGQ9Ik0xOTMuODU0LDk2LjA0MUwxMDEuMjEzLDMuNTNjLTQuMjI1LTQuMjItMTAuODgyLTQuNzI0LTE1LjY2NC0xLjE0NWMtNi42NTQsNC45ODMtMTYuNjQ4LDEyLjY1MS0yNy40NTMsMjEuNDk4ICAgIGwxMTEuOTQ1LDExMS43ODVjMC4wNjEtMC4wNiwwLjExMS0wLjExMywwLjE3Mi0wLjE3NGM3LjIzOC03LjIyOCwxNS4zNTUtMTQuODg1LDIzLjI5MS0yMi4xNjcgICAgQzE5OC41MzQsMTA4LjcxMywxOTguNjg0LDEwMC44NjMsMTkzLjg1NCw5Ni4wNDF6Ii8+DQoJPC9nPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPGc+DQo8L2c+DQo8Zz4NCjwvZz4NCjxnPg0KPC9nPg0KPC9zdmc+)](https://support.sterfive.com)
 
-Registered members have access to a extended set of online documentation. 
+Registered members have access to an extended set of online documentation. 
 
-Registered members can post and query sterfive for any question related to NodeOPCUA in a private chat room. 
+Registered members can post and query Sterfive for any question related to NodeOPCUA in a private chat room. 
 
 or contact [sterfive](https://www.sterfive.com) for dedicated consulting and more advanced support or for a certified version of node-opcua. (contact@sterfive.com).
 
@@ -103,7 +102,7 @@ Those are the items we would like to achieve in the next version of the API.
   * Compliance testing and certification (CTT) 
   * Pub-sub support 
   * support for redundancy
-  * session less transactions
+  * session-less transactions
   * WebSocket transport
   * JTokens and OAuth
   * reversed connection
@@ -138,7 +137,7 @@ Those are the items we would like to achieve in the next version of the API.
  * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  * [create a client in typescript](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client_typescript.md)
    
-  *  more tutorials are available in the book (https://leanpub.com/node-opcuabyexample)
+  *  more tutorials are available in the book (https://leanpub.com/node-opcuabyexample-edition2022)
   *  more advanced examples and training material are available for the NodeOPCUA Subscription members at (https://support.sterfive.com)
 
 ### API reference
@@ -291,6 +290,6 @@ You are strongly encourage to apply to our [NodeOPCUA Membership](https://suppor
 
 ## Copyright
 
-Copyright (c) 2022-2023 Sterfive   SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
+Copyright (c) 2022-2023 Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
 
 Copyright (c) 2014-2022 Etienne Rossignon

@@ -9,7 +9,7 @@ see http://node-opcua.github.io/
 
 # Documentation
 
-"NodeOPCUA by Example" (https://leanpub.com/node-opcuabyexample) provides a good starting point to understand and start using node-opcua.
+"NodeOPCUA by Example" (https://leanpub.com/node-opcuabyexample-edition2022) provides a good starting point to understand and start using node-opcua.
 
 More advanced interactive material & documentation is made available online for Registered members of the NodeOPCUA Subscription. Please visit https://support.sterfive.com to apply or contact Sterfive.
 
@@ -57,7 +57,7 @@ Contact Sterfive SAS (mailto:contact@sterfive.com) for additional companion modu
 
 # Copyright
 
-Copyright (c) 2022-2023 Sterfive   SAS
+Copyright (c) 2022-2023 Sterfive SAS - https://www.sterfive.com
 
 Copyright (c) 2014-2022 Etienne Rossignon
 

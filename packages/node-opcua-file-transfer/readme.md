@@ -253,7 +253,7 @@ Contact Sterfive SAS (mailto:contact@sterfive.com) for additional companion modu
 
 # Copyright
 
-Copyright (c) 2022-2023 Sterfive   SAS
+Copyright (c) 2022-2023 Sterfive SAS - https://www.sterfive.com
 
 Copyright (c) 2014-2022 Etienne Rossignon
 
