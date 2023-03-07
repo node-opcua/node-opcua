@@ -26,7 +26,7 @@ Professional support ensures the following:
 - 🔐 confidentiality & privacy
 - 🔍 dedicated investigation for your issue
 - 🐛 prompt resolution of bugs or issues
-- 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample)
+- 📖 free access to the most up to date and online version of [node-opcua by example](https://leanpub.com/node-opcuabyexample-edition2022)
 
 
 You may also [contact Sterfive](https://www.sterfive.com) for dedicated professional support: mailto:contact@sterfive.com
@@ -60,7 +60,7 @@ Grants ensure the following:
 **for community support**
     - use [gitter](https://gitter.im/node-opcua/node-opcua)
     - use [stackoverflow](https://stackoverflow.com/questions/tagged/node-opcua)
-    - access the "NodeOPCUA by example" book at https://leanpub.com/node-opcuabyexample
+    - access the "NodeOPCUA by example" book at https://leanpub.com/node-opcuabyexample-edition2022
 
 -->
 
@@ -146,3 +146,5 @@ gist:
 - **Node:**
 
   `node --version` =
+
+  
