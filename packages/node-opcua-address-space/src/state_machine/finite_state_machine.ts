@@ -25,14 +25,27 @@ const doDebug = false;
 export declare interface UATransitionImpl extends UATransition, UATransitionEx { }
 export class UATransitionImpl implements UATransition, UATransitionEx { }
 
-function getComponentFromTypeAndSubtype(typeDef: UAObjectType): UAObject[] {
-    const components_parts: BaseNode[][] = [];
-    components_parts.push(typeDef.getComponents());
-    while (typeDef.subtypeOfObj) {
+function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType): UAObject[] {
+
+    const get = (typeDef: UAObjectType) =>
+        typeDef.getComponents().filter((cc) => {
+            const c = cc as UAObject | UAVariable | UAMethod;
+            if (c.nodeClass !== NodeClass.Object) return false;
+            if (!c.typeDefinitionObj || c.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
+                return false;
+            }
+            return c.typeDefinitionObj.isSubtypeOf(typedefinition);
+        });
+
+    let components_parts: BaseNode[] = get(typeDef);
+
+    while (components_parts.length === 0 && typeDef.subtypeOfObj) {
+        // there is no element of that type available in the top level
         typeDef = typeDef.subtypeOfObj;
-        components_parts.push(typeDef.getComponents());
+        components_parts = get(typeDef);
     }
-    return Array.prototype.concat.apply([], components_parts).filter((x: BaseNode) => x.nodeClass === NodeClass.Object);
+    return components_parts as UAObject[];
+
 }
 
 export interface UAStateMachineImpl {
@@ -86,15 +99,7 @@ export function getFiniteStateMachineTypeStates(uaFiniteStateMachineType: UAObje
 
     assert(initialStateType.isSubtypeOf(stateType));
 
-
-    let comp = getComponentFromTypeAndSubtype(uaFiniteStateMachineType);
-
-    comp = comp.filter((c) => {
-        if (!c.typeDefinitionObj || c.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
-            return false;
-        }
-        return c.typeDefinitionObj.isSubtypeOf(stateType);
-    });
+    const comp = getComponentOfType(uaFiniteStateMachineType, stateType);
 
     return comp as UAState[];
 }
@@ -106,16 +111,7 @@ export function getFiniteStateMachineTypeTransitions(uaFiniteStateMachineType: U
     if (!transitionType) {
         throw new Error("cannot find TransitionType");
     }
-
-    let comp = getComponentFromTypeAndSubtype(uaFiniteStateMachineType);
-
-    comp = comp.filter((c) => {
-        if (!c.typeDefinitionObj || c.typeDefinitionObj.nodeClass !== NodeClass.ObjectType) {
-            return false;
-        }
-        return c.typeDefinitionObj.isSubtypeOf(transitionType);
-    });
-
+    const comp = getComponentOfType(uaFiniteStateMachineType, transitionType);
     return comp as UATransitionEx[];
 
 }
@@ -172,13 +168,10 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
     get initialState(): UAState | null {
         const addressSpace = this.addressSpace;
 
-        const initialStateType = addressSpace.findObjectType("InitialStateType");
+        const initialStateType = addressSpace.findObjectType("InitialStateType")!;
         const typeDef = this.typeDefinitionObj;
 
-        let comp = getComponentFromTypeAndSubtype(typeDef);
-
-        comp = comp.filter((c: any) => c.typeDefinitionObj === initialStateType);
-
+        const comp = getComponentOfType(typeDef, initialStateType);
         // istanbul ignore next
         if (comp.length > 1) {
             throw new Error(" More than 1 initial state in stateMachine");
@@ -444,7 +437,7 @@ registerNodePromoter(ObjectTypeIds.FiniteStateMachineType, promoteToStateMachine
 
 export class UAStateMachineTypeImpl extends UAObjectTypeImpl implements UAStateMachineTypeHelper {
     getStateByName(name: string): UAState | null {
-        return getFiniteStateMachineTypeStateByName(this,  name);
+        return getFiniteStateMachineTypeStateByName(this, name);
     }
     getStates(): UAState[] {
         return getFiniteStateMachineTypeStates(this);
