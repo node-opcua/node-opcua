@@ -292,11 +292,6 @@ export function removeElement<T extends ExtensionObject>(
         });
     } else {
         throw new Error("Unsupported anymore!!! please use a functor instead");
-        // // find element by inner extension object
-        // assert(_array[0].constructor.name === (element as any).constructor.name, "element must match");
-        // // let unproxyfy
-        // const elementTarget = getProxyTarget(element);
-        // elementIndex = _array.findIndex((x: any) => getProxyTarget(x) === elementTarget);
     }
 
     // istanbul ignore next
