@@ -138,7 +138,9 @@
         return (
             v &&
             v.constructor &&
-            (v.constructor.name === "ConstantStatusCode" ||
+            (
+                v instanceof StatusCode ||
+                v.constructor.name === "ConstantStatusCode" ||
                 v.constructor.name === "StatusCode" ||
                 v.constructor.name === "ModifiableStatusCode")
         );

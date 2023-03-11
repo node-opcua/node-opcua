@@ -474,9 +474,9 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!(dataTypeNode instanceof UADataTypeImpl)) {
             throw new Error(
                 "we are expecting an UADataType here :  " +
-                    _orig_dataTypeNode.toString() +
-                    " should not refer to a  " +
-                    dataTypeNode.constructor.name
+                _orig_dataTypeNode.toString() +
+                " should not refer to a  " +
+                (dataTypeNode as BaseNode).browseName.name
             );
         }
 
@@ -767,18 +767,18 @@ export class AddressSpace implements AddressSpacePrivate {
                         // tslint:disable:no-console
                         console.log(
                             chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
-                                self.browseName.toString() +
-                                " => " +
-                                chalk.cyan(lowerName)
+                            self.browseName.toString() +
+                            " => " +
+                            chalk.cyan(lowerName)
                         );
                     } else {
                         console.log(
                             chalk.yellow(
                                 "Warning : AddressSpace#constructEventData(eventType,options)" + " cannot find property "
                             ) +
-                                self.browseName.toString() +
-                                " => " +
-                                chalk.cyan(lowerName)
+                            self.browseName.toString() +
+                            " => " +
+                            chalk.cyan(lowerName)
                         );
                     }
                 }
@@ -795,11 +795,11 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (!alreadyVisited(k)) {
                     throw new Error(
                         " cannot find property '" +
-                            k +
-                            "' in [ " +
-                            Object.keys(visitedProperties).join(", ") +
-                            "] when filling " +
-                            eventTypeNode.browseName.toString()
+                        k +
+                        "' in [ " +
+                        Object.keys(visitedProperties).join(", ") +
+                        "] when filling " +
+                        eventTypeNode.browseName.toString()
                     );
                 }
             });
@@ -1045,7 +1045,7 @@ export class AddressSpace implements AddressSpacePrivate {
      *             serverStatusDataType.nodeClass.should.eql(NodeClass.DataType);
      *             serverStatusDataType.browseName.toString().should.eql("ServerStatusDataType");
      *             var serverStatus  = addressSpace.constructExtensionObject(serverStatusDataType);
-     *             serverStatus.constructor.name.should.eql("ServerStatusDataType");
+     *             serverStatus.should.be.instanceof(ServerStatusDataType);
      */
     public constructExtensionObject(dataType: UADataType | NodeId, options?: Record<string, unknown>): ExtensionObject {
         const Constructor = this.getExtensionObjectConstructor(dataType);

@@ -42,7 +42,7 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 
 function default_check_valid_argument(arg: unknown): boolean {
-    return (arg as any).constructor.name === "Argument";
+    return (arg as any) instanceof Argument;
 }
 
 export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
@@ -177,11 +177,11 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         if (object.nodeClass !== NodeClass.Object && object.nodeClass !== NodeClass.ObjectType) {
             warningLog(
                 "Method " +
-                    this.nodeId.toString() +
-                    " " +
-                    this.browseName.toString() +
-                    " called for a node that is not a Object/ObjectType but " +
-                    NodeClass[context.object!.nodeClass]
+                this.nodeId.toString() +
+                " " +
+                this.browseName.toString() +
+                " called for a node that is not a Object/ObjectType but " +
+                NodeClass[context.object!.nodeClass]
             );
             return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
         }

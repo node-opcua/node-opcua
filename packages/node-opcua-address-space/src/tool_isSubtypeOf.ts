@@ -107,13 +107,13 @@ export function construct_isSubtypeOf<T extends UAType>(Class: typeof BaseNodeIm
                 "expecting baseType to be " +
                     Class.name +
                     " but got " +
-                    baseType.constructor.name +
+                    baseType.toString() +
                     " " +
                     NodeClass[(baseType as BaseNode).nodeClass]
             );
         }
         if (!(this instanceof Class)) {
-            throw new Error("expecting this to be " + Class.name + " but got " + baseType.constructor.name);
+            throw new Error("expecting this to be " + Class.name + " but got " + baseType.toString());
         }
         return _slow_isSubtypeOf.call(this, Class, baseType as T);
     }, hashBaseNode);

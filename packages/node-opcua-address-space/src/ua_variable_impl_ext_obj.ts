@@ -497,7 +497,7 @@ export function _bindExtensionObject(
                 "bindExtensionObject: $extensionObject is incorrect: we are expecting a " +
                 uaVariable.dataType.toString({ addressSpace: uaVariable.addressSpace }) +
                 " but we got a " +
-                uaVariable.$extensionObject?.constructor.name
+                uaVariable.$extensionObject?.schema.name
             );
         }
         return uaVariable.$extensionObject;
