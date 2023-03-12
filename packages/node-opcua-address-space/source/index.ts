@@ -19,7 +19,6 @@ export * from "./interfaces/data_access/ua_two_state_discrete_ex";
 export * from "./interfaces/data_access/ua_y_array_item_ex";
 export * from "./interfaces/extension_object_constructor";
 
-
 export * from "./interfaces/alarms_and_conditions/condition_info_i";
 export * from "./interfaces/alarms_and_conditions/condition_snapshot";
 export * from "./interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
@@ -41,7 +40,7 @@ export * from "./interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_e
 export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_discrete_impl";
 export { promoteToMultiStateValueDiscrete } from "../src/data_access/ua_multistate_value_discrete_impl";
 export { promoteToTwoStateDiscrete } from "../src/data_access/ua_two_state_discrete_impl";
-
+export { validateDataType } from "../src/data_access/ua_multistate_value_discrete_impl";
 
 export * from "./ua_root_folder";
 export * from "./session_context";
