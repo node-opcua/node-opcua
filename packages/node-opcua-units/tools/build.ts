@@ -87,8 +87,9 @@ async function main() {
 
     {
         w("// Automatically generated file, do not modify");
+        w(`import { EUInformation } from "node-opcua-types";`);
         w(`import { makeEUInformation }  from "node-opcua-data-access";`);
-        w(`export const categorizedUnits =  { `);
+        w(`export const categorizedUnits = { `);
         for (const [keyS, sector] of Object.entries(units)) {
             w(' /**');
             w(`  * ${keyS}`);
@@ -155,7 +156,7 @@ async function main() {
             // there is a conflict with this unit denier tthat we intentionaly ignore here
             if (keyU === "denier") continue;
             const code = u["Common\r\nCode"];
-            const unit = makeU(keyU);            
+            const unit = makeU(keyU);
             const cf = u["Conversion Factor"] || "";
             const description = makeDescription(u);
             w(`       '${unit}': makeEUInformation("${code}","${a(u.Symbol || "")}","${description}"),`);

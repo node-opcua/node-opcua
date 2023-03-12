@@ -1,4 +1,5 @@
 // Automatically generated file, do not modify
+import { EUInformation } from "node-opcua-types";
 import { makeEUInformation } from "node-opcua-data-access";
 export const categorizedUnits = {
     /**
