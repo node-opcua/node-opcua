@@ -1434,7 +1434,7 @@ export class NamespaceImpl implements NamespacePrivate {
      */
     public addState(
         component: UAStateMachineEx,
-        stateName: string,
+        stateName: QualifiedNameLike,
         stateNumber: number,
         isInitialState: boolean
     ): UAState | UAInitialState {
@@ -1445,9 +1445,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const _component = component as UAStateMachineImpl;
 
         assert(_component.nodeClass === NodeClass.Object || _component.nodeClass === NodeClass.ObjectType);
-        assert(typeof stateName === "string");
-        assert(typeof isInitialState === "boolean");
-
+      
         const initialStateType = addressSpace.findObjectType("InitialStateType")!;
         const stateType = addressSpace.findObjectType("StateType")!;
 
@@ -1477,7 +1475,8 @@ export class NamespaceImpl implements NamespacePrivate {
         component: UAStateMachineEx,
         fromState: string,
         toState: string,
-        transitionNumber: number
+        transitionNumber: number,
+        browseName?: QualifiedNameLike
     ): UATransitionEx {
         const addressSpace = this.addressSpace;
 
@@ -1508,8 +1507,11 @@ export class NamespaceImpl implements NamespacePrivate {
         if (!transitionType) {
             throw new Error("Cannot find TransitionType");
         }
+
+        browseName = browseName || fromState + "To" + toState; //  "Transition";
+
         const transition = transitionType.instantiate({
-            browseName: fromState + "To" + toState + "Transition",
+            browseName,
             componentOf: _component
         }) as UATransitionImpl;
 
@@ -1990,7 +1992,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const hasGetter = (options: AddVariableOptions2) => {
             return typeof options.value?.get === "function" || typeof options.value?.timestamped_get === "function"
         }
- 
+
         // istanbul ignore next
         if (options.minimumSamplingInterval === undefined && hasGetter(options)) {
             // a getter has been specified and no options.minimumSamplingInterval has been specified
@@ -1999,7 +2001,7 @@ export class NamespaceImpl implements NamespacePrivate {
         }
 
         options.minimumSamplingInterval = options.minimumSamplingInterval !== undefined ? +options.minimumSamplingInterval : 0;
-        
+
         // istanbul ignore next
         if (options.minimumSamplingInterval === 0 && hasGetter(options)) {
             warningLog("[NODE-OPCUA-W31", "namespace#addVariable a getter has been specified and minimumSamplingInterval is 0.\nThis may conduct to an unpredicable behavior.\nPlease specify a non zero minimum sampling interval")
