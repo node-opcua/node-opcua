@@ -262,9 +262,10 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
 
 
 }
-async function checMatrixVariable(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId) {
+async function checMatrixVariable(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId, level: "TopVariable" | "IndexedVariable" | "InnerProperty") {
+    /** */
 }
-async function checkArrayVariable(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId) {
+async function checkArrayVariable(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId, level: "TopVariable" | "IndexedVariable" | "InnerProperty") {
 
     const info = await subscribeToNodeAt3Level(session, subscription, nodeId);
     doDebug && console.log(util.inspect(dumpInfo(info)));
@@ -347,7 +348,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
 
     }
 
-    if (true) {
+    if (level === "TopVariable") {
 
         await modifyTopElement();
 
@@ -373,7 +374,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
             info.element1.$props!.field1.counter.should.eql(0);
             info.element1.$props!.field2.counter.should.eql(0);
 
-
+            // modify top element
             await modifyTopElement();
 
             await waitSubcriptionUpdate(subscription);
@@ -389,8 +390,8 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         }
     }
 
-    {
-        console.log("> modify top element should cause all elements below to be changed in monitored item");
+    if (level == "IndexedVariable") {
+        console.log("> modify one array element should cause all elements below to be changed in monitored item");
         await waitSubcriptionUpdate(subscription);
         resetCounter(info);
 
@@ -399,19 +400,17 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         info.element0.counter.should.eql(0);
         info.element0.$props!.field1.counter.should.eql(0);
         info.element0.$props!.field2.counter.should.eql(0);
-
         info.element1.counter.should.eql(0);
         info.element1.$props!.field1.counter.should.eql(0);
         info.element1.$props!.field2.counter.should.eql(0);
 
 
         doDebug && console.log("before", util.inspect(dumpInfo(info)));
-
         const valueAll = await read(session, nodeId);
         doDebug && console.log("Value[0]", valueAll[0].toString());
 
+        // 
         const el0Modified = incr(valueAll[0]);
-
         doDebug && console.log("Value[0]", el0Modified.toString());
         await write(session, el0NodeId, el0Modified);
         await verify();
@@ -443,6 +442,68 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         info.element1.counter.should.eql(0);
         info.element1.$props!.field1.counter.should.eql(0);
         info.element1.$props!.field2.counter.should.eql(0);
+
+    }
+
+    if (level === "InnerProperty") {
+
+        console.log("> modify one array element's property: should cause all elements below to be changed in monitored item");
+
+        await waitSubcriptionUpdate(subscription);
+        resetCounter(info);
+
+        info.main.counter.should.eql(0);
+        info.element0.counter.should.eql(0);
+        info.element0.$props!.field1.counter.should.eql(0);
+        info.element0.$props!.field2.counter.should.eql(0);
+        info.element1.counter.should.eql(0);
+        info.element1.$props!.field1.counter.should.eql(0);
+        info.element1.$props!.field2.counter.should.eql(0);
+
+
+        const valueAll = await read(session, nodeId);
+
+        const [property, propValue] = Object.entries(valueAll[0])[1];
+        const nodeIdProp = await getMember(session, el0NodeId, property);
+        property.should.equal("field2");
+        
+        // 
+        const propModified = incr(propValue);
+        await write(session, nodeIdProp, propModified);
+        await verify();
+
+        await waitSubcriptionUpdate(subscription);
+        doDebug && console.log(util.inspect(info,{depth: 3}));
+
+        info.main.counter.should.eql(1);
+
+        info.element0.counter.should.eql(1);
+        info.element0.$props!.field1.counter.should.eql(0);
+        info.element0.$props!.field2.counter.should.eql(1);
+
+        info.element1.counter.should.eql(0);
+        info.element1.$props!.field1.counter.should.eql(0);
+        info.element1.$props!.field2.counter.should.eql(0);
+
+        // do it again
+        const propModified1 = incr(propModified);
+        await write(session, nodeIdProp, propModified1);
+        await verify();
+
+
+        await waitSubcriptionUpdate(subscription);
+        doDebug && console.log("after", util.inspect(dumpInfo(info)));
+
+        info.main.counter.should.eql(2);
+
+        info.element0.counter.should.eql(2);
+        info.element0.$props!.field1.counter.should.eql(0);
+        info.element0.$props!.field2.counter.should.eql(2);
+
+        info.element1.counter.should.eql(0);
+        info.element1.$props!.field1.counter.should.eql(0);
+        info.element1.$props!.field2.counter.should.eql(0);
+
 
     }
 
@@ -638,7 +699,7 @@ describe("testing extension object variable enrichment", function (this: any) {
 
         should.exist(scalarVariable.getComponentByName("Field1"));
         should.exist(scalarVariable.getComponentByName("Field2"));
-        
+
 
     });
 
@@ -671,21 +732,35 @@ describe("testing extension object with client residing on a different process t
         await server.shutdown();
     });
 
-    it("should bind complex extension object scalar,array,matrice", async () => {
+    it("should bind complex extension object - " + "Scalar", async () => {
 
         const endpointUrl = server.getEndpointUrl();
         await withClient(endpointUrl, async (session, subscription, nodeId, valueRank) => {
-
             if (valueRank === -1) {
                 await checkScalarVariable(session, subscription, nodeId);
-            } else if (valueRank === 1) {
-                await checkArrayVariable(session, subscription, nodeId);
-            } else if (valueRank === 2) {
-                await checMatrixVariable(session, subscription, nodeId);
-
             }
-        })
-        console.log("Done !")
+        });
+        console.log("Done !");
+    });
+
+    [["Array", 1], ["Matrix", 2]].forEach(([valueRankName, selectedValueRank]) => {
+
+        ["TopVariable", "IndexedVariable", "InnerProperty"].forEach((level: any) => {
+
+            it("should bind complex extension object - " + valueRankName + "-" + level, async () => {
+
+                const endpointUrl = server.getEndpointUrl();
+                await withClient(endpointUrl, async (session, subscription, nodeId, valueRank) => {
+                    if (selectedValueRank !== valueRank) return;
+                    if (valueRank === 1) {
+                        await checkArrayVariable(session, subscription, nodeId, level);
+                    } else if (valueRank === 2) {
+                        await checMatrixVariable(session, subscription, nodeId, level);
+                    }
+                });
+                console.log("Done !");
+            });
+        });
     });
 
 

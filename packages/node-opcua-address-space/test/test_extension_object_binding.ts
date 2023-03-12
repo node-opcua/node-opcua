@@ -27,7 +27,7 @@ describe("testing extension object binding", function () {
             organizedBy: addressSpace.rootFolder.objects
         });
         const cncPositionDataType = addressSpace.findDataType("CncPositionDataType", nsCNC)!;
-        const posTcpBcsX = channel.getComponentByName("PosTcpBcsX")! as UAVariable;
+        const posTcpBcsX = channel.getComponentByName("PosTcpBcsX")! as UAVariable; 
 
         posTcpBcsX.readValue().value.value.actPos.should.eql(0);
         posTcpBcsX.readValue().value.value.cmdPos.should.eql(0);
@@ -74,7 +74,9 @@ describe("testing extension object binding", function () {
         const remDist = posTcpBcsX.getComponentByName("RemDist")! as UAVariable;
 
         const changeSpyActPos = sinon.spy();
-        actPos.on("value_changed", changeSpyActPos);
+        actPos.on("value_changed", ()=>{ 
+            changeSpyActPos()
+        });
 
         const changeSpyCmdPos = sinon.spy();
         cmdPos.on("value_changed", changeSpyCmdPos);
