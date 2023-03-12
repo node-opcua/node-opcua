@@ -36,7 +36,7 @@
         "node-opcua-status-code": "2.90.1",
         "node-opcua-types": "2.90.1",
         "node-opcua-variant": "2.90.1",
-        "rimraf": "^3.0.2"
+        "rimraf": "3.0.2"
     },
     "devDependencies": {
         "node-opcua-data-value": "2.90.1",

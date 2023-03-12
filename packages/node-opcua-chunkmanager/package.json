@@ -19,7 +19,7 @@
         "node-opcua-packet-assembler": "2.90.1"
     },
     "devDependencies": {
-        "@types/node": "18.11.18",
+        "@types/node": "18.15.0",
         "node-opcua-debug": "2.90.1",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21"
