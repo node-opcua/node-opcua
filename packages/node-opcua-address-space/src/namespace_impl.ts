@@ -1487,7 +1487,7 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(typeof toState === "string");
         assert(isFinite(transitionNumber));
 
-        const fromStateNode = _component.getComponentByName(fromState, _component.nodeId.namespace);
+        const fromStateNode = _component.getComponentByName(fromState);
 
         // istanbul ignore next
         if (!fromStateNode) {
