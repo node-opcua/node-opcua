@@ -147,7 +147,7 @@ describe("DataValue", () => {
 
         dataValue1.statusCode.should.eql(StatusCodes.BadAlreadyExists);
     });
-    
+
     it("DataValue - extractRange on a String with StatusCode != Good and invalid range - issue #635", () => {
         const dataValue = new DataValue({
             statusCode: StatusCodes.BadAlreadyExists,
@@ -264,10 +264,14 @@ describe("DataValue", () => {
     });
 
     describe("Cloning a DataValue", () => {
-        function SomeExtensionObject(options) {
-            this.a = options.a;
+
+        class SomeExtensionObject extends ExtensionObject {
+            constructor(options) {
+                super();
+                this.a = options.a;
+            }
+            toString() { return `a=${this.a}`}
         }
-        util.inherits(SomeExtensionObject, ExtensionObject);
 
         function copy_construct(v) {
             return new DataValue(v);
@@ -385,10 +389,37 @@ describe("DataValue", () => {
                 dv.value.value[0].a.should.eql(1000);
                 dv.value.value[1].a.should.eql(1001);
             });
+            it("should " + copy_construct_or_clone + " a DataValue with a variant containing a extension object array , Extension Object should be diffderence", () => {
+                const extObj1 = new SomeExtensionObject({ a: 36 });
+                const extObj2 = new SomeExtensionObject({ a: 37 });
+                const dv = new DataValue({
+                    value: {
+                        dataType: DataType.ExtensionObject,
+                        arrayType: VariantArrayType.Array,
+                        value: [extObj1, extObj2]
+                    }
+                });
+
+                // copy construct;,
+                const cloned = copy_construct_or_clone_func(dv);
+                cloned.value.dataType.should.eql(dv.value.dataType);
+                cloned.value.value.length.should.eql(dv.value.value.length);
+
+
+                cloned.value.value[0].should.not.equal(dv.value.value[0], "extension object in array must not have the same identity");
+                cloned.value.value[1].should.not.equal(dv.value.value[1], "extension object in array must not have the same identity");
+                cloned.value.value[0].toString().should.equal(dv.value.value[0].toString(), "extension object in array must be similar");
+                cloned.value.value[1].toString().should.equal(dv.value.value[1].toString(), "extension object in array must be similar");
+
+                //
+            });
+
         }
 
         install_test("copy construct", copy_construct);
         install_test("clone", clone);
+
+
     });
 
     it("toJSON issue#1074", () => {
