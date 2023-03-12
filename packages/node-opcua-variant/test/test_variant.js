@@ -1361,6 +1361,7 @@ class SomeExtensionObject extends ExtensionObject {
         super();
         this.a = options.a;
     }
+    toString() { return `a=${this.a}`; }
 }
 
 describe("testing variant Clone & Copy Construct", () => {
@@ -1447,6 +1448,26 @@ describe("testing variant Clone & Copy Construct", () => {
             v.value[0].a.should.eql(1000);
             v.value[1].a.should.eql(1001);
         });
+        it("should " + copy_construct_or_clone + " a variant containing a extension object array - Extension Ojbect must be cloned too !", () => {
+            const extObj1 = new SomeExtensionObject({ a: 36 });
+            const extObj2 = new SomeExtensionObject({ a: 37 });
+            const v = new Variant({
+                dataType: DataType.ExtensionObject,
+                arrayType: VariantArrayType.Array,
+                value: [extObj1, extObj2]
+            });
+
+            // copy construct;,
+            const cloned = copy_construct_or_clone_func(v);
+
+            cloned.value[0].toString().should.equal(v.value[0].toString(), " same value 0");
+            cloned.value[1].toString().should.equal(v.value[1].toString(), " same value 0");
+
+            cloned.value[0].should.not.equal(v.value[0].toString(), "Extension object 0 must be cloned too");
+            cloned.value[1].should.not.equal(v.value[1].toString(), "Extension object 1 must be cloned too");
+    
+        });
+        
     }
 
     install_test("copy construct", copy_construct);
