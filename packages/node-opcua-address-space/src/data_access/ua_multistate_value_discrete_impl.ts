@@ -172,23 +172,8 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
         // this includes signed and unsigned integers from 8 to 64 Bit length.
 
         // istanbul ignore next
-        if (
-            typeof this.dataType.value !== "number" ||
-            [
-                DataType.UInt64,
-                DataType.Int64,
-                DataType.UInt32,
-                DataType.Int32,
-                DataType.UInt16,
-                DataType.Int16,
-                DataType.Byte,
-                DataType.Byte,
-                DataType.SByte,
-                26 /*Number*/
-            ].indexOf(this.dataType.value as number) <= 0
-        ) {
-            throw new Error("Invalid DataType in UAMultiStateValueDiscrete =>" + this.dataType.toString());
-        }
+        validateDataType(this.dataType.value);
+
         // find the enum value type
         install_synchronization(this);
     }
@@ -297,4 +282,23 @@ export function _addMultiStateValueDiscrete<T, DT extends DataType>(
     assert(variable.enumValues.browseName.toString() === "EnumValues");
     assert(variable.valueAsText.browseName.toString() === "ValueAsText");
     return variable;
+}
+
+export function validateDataType(dataTypeValue: any): void {
+    const validTypes = [
+        DataType.UInt64,
+        DataType.Int64,
+        DataType.UInt32,
+        DataType.Int32,
+        DataType.UInt16,
+        DataType.Int16,
+        DataType.Byte,
+        DataType.Byte,
+        DataType.SByte,
+        26 /*Number*/
+    ];
+
+    if (typeof dataTypeValue !== "number" || validTypes.indexOf(dataTypeValue) < 0) {
+        throw new Error(`Invalid DataType in UAMultiStateValueDiscrete => ${dataTypeValue.toString()}`);
+    }
 }
