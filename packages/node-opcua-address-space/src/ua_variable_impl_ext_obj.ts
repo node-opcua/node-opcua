@@ -104,12 +104,9 @@ export function _touchValue(property: UAVariableImpl, now: PreciseClock): void {
     property.$dataValue.serverTimestamp = now.timestamp;
     property.$dataValue.serverPicoseconds = now.picoseconds;
     property.$dataValue.statusCode = StatusCodes.Good;
-    // if (property.minimumSamplingInterval === 0) {
     if (property.listenerCount("value_changed") > 0) {
-        const clonedDataValue = property.readValue();
-        property.emit("value_changed", clonedDataValue);
+        property.emit("value_changed", property.$dataValue.clone());
     }
-    // }
 }
 
 export function propagateTouchValueUpward(self: UAVariableImpl, now: PreciseClock, cache?: Set<UAVariable>): void {
@@ -346,6 +343,7 @@ function _installFields2(uaVariable: UAVariableImpl, { get, set }: {
             const sourceTime = coerceClock(dataValue.sourceTimestamp, dataValue.sourcePicoseconds);
             const value = dataValue.value.value;
             set(field.name!, value, sourceTime);
+            propertyNode.touchValue(sourceTime);
         }
 
         if (propertyNode.dataTypeObj.basicDataType === DataType.ExtensionObject) {
@@ -396,9 +394,10 @@ function isVariableContainingExtensionObject(uaVariable: UAVariableImpl): boolea
 }
 
 function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
-    { get, set }: {
+    { get, set, setField }: {
         get: () => ExtensionObject;
         set: (value: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
+        setField: (fieldName: string, value: any, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => void;
     },
     options?: BindExtensionObjectOptions
 ) {
@@ -420,10 +419,7 @@ function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
             return extObj[lowerFirstLetter(fieldName)];
         },
         set: (fieldName: string, value: any, sourceTime: PreciseClock) => {
-            const extObj = get() as any;
-            extObj[lowerFirstLetter(fieldName)] = value;
-            //1 propagateTouchValueDownward(uaVariable, sourceTime);
-            //1 propagateTouchValueUpward(uaVariable, sourceTime);
+            setField(fieldName, value, sourceTime);
         }
     }, options);
 
@@ -530,7 +526,12 @@ export function _bindExtensionObject(
                 _innerBindExtensionObjectScalar(uaVariable,
                     {
                         get: () => uaVariable.$extensionObject,
-                        set: (value: ExtensionObject) => installExt(uaVariable, value)
+                        set: (value: ExtensionObject) => installExt(uaVariable, value),
+                        setField: (fieldName: string, value: any) => {
+                            const extObj = uaVariable.$extensionObject;
+                            getProxyTarget(extObj)[lowerFirstLetter(fieldName)] = value;
+                        }
+
                     }, options);
                 return;
             } else if (uaVariable.valueRank === 1 /** Array */) {
@@ -546,7 +547,11 @@ export function _bindExtensionObject(
             _innerBindExtensionObjectScalar(uaVariable,
                 {
                     get: () => uaVariable.$extensionObject,
-                    set: (value: ExtensionObject) => installExt(uaVariable, value)
+                    set: (value: ExtensionObject) => installExt(uaVariable, value),
+                    setField: (fieldName: string, value: any) => {
+                        const extObj = uaVariable.$extensionObject;
+                        getProxyTarget(extObj)[lowerFirstLetter(fieldName)] = value;
+                    }
                 }, options);
         }
     }
@@ -575,7 +580,7 @@ export function _bindExtensionObjectArrayOrMatrix(
     options?: BindExtensionObjectOptions
 ): ExtensionObject[] {
 
-    options = options || { createMissingProp: false};
+    options = options || { createMissingProp: false };
     options.createMissingProp = options.createMissingProp || false;
 
     // istanbul ignore next
@@ -592,7 +597,7 @@ export function _bindExtensionObjectArrayOrMatrix(
         assert(Array.isArray(uaVariable.$dataValue.value.value));
         optionalExtensionObjectArray = uaVariable.$dataValue.value.value;
     }
-    
+
     if ((arrayDimensions.length === 0 || arrayDimensions.length === 1 && arrayDimensions[0] === 0) && optionalExtensionObjectArray) {
         arrayDimensions[0] = optionalExtensionObjectArray.length;
     }
@@ -652,7 +657,7 @@ export function _bindExtensionObjectArrayOrMatrix(
             if (!options.createMissingProp) {
                 continue;
             }
-            
+
             uaElement = namespace.addVariable({
                 browseName,
                 nodeId,
@@ -678,7 +683,6 @@ export function _bindExtensionObjectArrayOrMatrix(
                 {
                     get: () => uaVariable.$$extensionObjectArray[capturedIndex],
                     set: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => {
-
                         assert(!isProxy(uaVariable.$$extensionObjectArray[capturedIndex]));
                         uaVariable.$$extensionObjectArray[capturedIndex] = newValue;
                         if (uaVariable.$$extensionObjectArray !== uaVariable.$dataValue.value.value) {
@@ -686,6 +690,12 @@ export function _bindExtensionObjectArrayOrMatrix(
                             console.log("Houston! We have a problem ");
                         }
                         propagateTouchValueDownward(capturedUaElement, sourceTimestamp, cache);
+                        propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
+                    },
+                    setField: (fieldName: string, newValue: any, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => {
+                        // istanbul ignore next doDebug && debugLog("setField", fieldName, newValue, sourceTimestamp, cache);
+                        const extObj = uaVariable.$$extensionObjectArray[capturedIndex];
+                        (isProxy(extObj) ? getProxyTarget(extObj) : extObj)[lowerFirstLetter(fieldName)] = newValue;
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
                     }
                 }, { ...options, force: true });

@@ -14,6 +14,8 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { AddressSpace, BaseNode, INamespace, PseudoSession, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
+const nextYear = (new Date()).getUTCFullYear()+1;
+
 async function simulateExternalWriteEx(node: BaseNode, value: ExtensionObject, sourceTimestamp: DateTime) {
     const addressSpace = node.addressSpace;
     const session = new PseudoSession(addressSpace);
@@ -93,8 +95,8 @@ describe("Extending extension object variables", function () {
             value: p1.clone(),
             arrayType: VariantArrayType.Scalar,
             dataType: DataType.ExtensionObject
-        }, StatusCodes.Good, new Date(Date.UTC(2022, 0, 1, 0, 0, 0)));
-        uaVariable.readValue().sourceTimestamp?.toISOString().should.eql("2022-01-01T00:00:00.000Z");
+        }, StatusCodes.Good, new Date(Date.UTC(nextYear, 0, 1, 0, 0, 0)));
+        uaVariable.readValue().sourceTimestamp?.toISOString().should.eql( `${nextYear}-01-01T00:00:00.000Z`);
 
         uaVariable.installExtensionObjectVariables();
         return uaVariable;
@@ -124,7 +126,7 @@ describe("Extending extension object variables", function () {
             value: [p1.clone(), p2.clone()],
             arrayType: VariantArrayType.Array,
             dataType: DataType.ExtensionObject
-        }, StatusCodes.Good, new Date(Date.UTC(2022, 0, 1)));
+        }, StatusCodes.Good, new Date(Date.UTC(nextYear, 0, 1)));
 
         uaVariable.installExtensionObjectVariables();
         return uaVariable;
@@ -186,19 +188,20 @@ describe("Extending extension object variables", function () {
                     zDataValue.value.value.should.eql(z);
 
                     //s dataValue.sourceTimestamp?.toISOString().should.eql("2023-01-02T06:47:55.065Z");
-                    xDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
+                    xDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime(), "x " + xDataValue.sourceTimestamp.toISOString() + " ext =" + dataValue.sourceTimestamp?.toISOString());
                     yDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
                     zDataValue.sourceTimestamp?.getTime().should.lessThanOrEqual(dataValue.sourceTimestamp!.getTime());
 
                 }
                 verify({ x: 1, y: 2, z: 3 });
+
                 // 
                 //
-                await simulateExternalWrite(uaZ, 33, new Date(Date.UTC(2022, 0, 2, 0, 0, 0)));
+                await simulateExternalWrite(uaZ, 33, new Date(Date.UTC(nextYear, 0, 2, 0, 0, 0)));
                 verify({ x: 1, y: 2, z: 33 });
                 // 
 
-                await simulateExternalWriteEx(uaVariable, p2.clone(), new Date(Date.UTC(2022, 0, 3, 0, 0, 0)));
+                await simulateExternalWriteEx(uaVariable, p2.clone(), new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
 
                 verify({ x: 4, y: 5, z: 6 });
 
@@ -344,14 +347,15 @@ describe("Extending extension object variables", function () {
                 // now write  a leaf property and verify that the value cascade upward
                 const x = el1.getComponentByName("X")!;
 
-
-                await simulateExternalWrite(x, 44, new Date(Date.UTC(2022, 0, 2)));
+                const nextYear = (new Date()).getUTCFullYear()+1;
+   
+                await simulateExternalWrite(x, 44, new Date(Date.UTC(nextYear, 0, 2)));
                 verify([{ x: 1, y: 2, z: 3 }, { x: 44, y: 5, z: 6 }]);
 
-                await simulateExternalWriteEx(el1, p3.clone(), new Date(Date.UTC(2022, 0, 3)));
+                await simulateExternalWriteEx(el1, p3.clone(), new Date(Date.UTC(nextYear, 0, 3)));
                 verify([{ x: 1, y: 2, z: 3 }, { x: 7, y: 8, z: 9 }]);
 
-                await simulateExternalWrite(x, 22, new Date(Date.UTC(2022, 0, 4)));
+                await simulateExternalWrite(x, 22, new Date(Date.UTC(nextYear, 0, 4)));
                 verify([{ x: 1, y: 2, z: 3 }, { x: 22, y: 8, z: 9 }]);
 
 
@@ -506,8 +510,9 @@ describe("Extending extension object variables", function () {
             ]);
 
 
+
             {
-                await simulateExternalWrite(el11.getComponentByName("X")!, 33, new Date(Date.UTC(2022, 0, 3, 0, 0, 0)));
+                await simulateExternalWrite(el11.getComponentByName("X")!, 33, new Date(Date.UTC(nextYear, 0, 3, 0, 0, 0)));
 
 
                 verify([
@@ -518,7 +523,7 @@ describe("Extending extension object variables", function () {
             }
             {
 
-                await simulateExternalWriteEx(el11, p4.clone(), new Date(Date.UTC(2022, 0, 4, 0, 0, 0)));
+                await simulateExternalWriteEx(el11, p4.clone(), new Date(Date.UTC(nextYear, 0, 4, 0, 0, 0)));
 
                 const dataValue = el11.readValue();
                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);
@@ -534,7 +539,7 @@ describe("Extending extension object variables", function () {
             // now change again some of the individual property
             {
 
-                await simulateExternalWrite(el11.getComponentByName("X")!, 100, new Date(Date.UTC(2022, 0, 5, 0, 0, 0)));
+                await simulateExternalWrite(el11.getComponentByName("X")!, 100, new Date(Date.UTC(nextYear, 0, 5, 0, 0, 0)));
 
                 const dataValue = el11.readValue();
                 dataValue.value.dataType.should.eql(DataType.ExtensionObject);

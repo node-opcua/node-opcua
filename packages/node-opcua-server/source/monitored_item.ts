@@ -50,7 +50,7 @@ import {
     SimpleAttributeOperand,
     SubscriptionDiagnosticsDataType
 } from "node-opcua-types";
-import { sameVariant, Variant } from "node-opcua-variant";
+import { sameVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
@@ -250,10 +250,26 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
     }
 }
 
+function safeGuardRegiter(monitoredItem: any) {
+    (monitoredItem as any)._$safeGuard = monitoredItem.oldDataValue.toString();
+}
+function safeGuardVerify(monitoredItem: MonitoredItem) {
+    if ((monitoredItem as any)._$safeGuard) {
+        const verif = monitoredItem.oldDataValue?.toString() || "";
+        if (verif !== (monitoredItem as any)._$safeGuard) {
+            console.log(verif, (monitoredItem as any)._$safeGuard);
+            throw new Error("Internal error: DataValue has been altereed !!!");
+        }
+    }
+}
 function apply_filter(this: MonitoredItem, newDataValue: DataValue) {
     if (!this.oldDataValue) {
         return true; // keep
     }
+    
+    // istanbul ignore next 
+    doDebug && safeGuardVerify(this);
+
     if (this.filter instanceof DataChangeFilter) {
         return apply_dataChange_filter.call(this, newDataValue, this.oldDataValue);
     } else {
@@ -547,12 +563,21 @@ export class MonitoredItem extends EventEmitter {
      *    therefore recordValue must clone the dataValue to make sure it retains a snapshot
      *    of the contain at the time recordValue was called.
      *
+     * return true if the value has been recorded, false if not.
+     * 
+     * Value will not be recorded : 
+     *   * if the range do not overlap
+     *   * is !skipChangeTest and value is equal to previous value
+     * 
      */
-    public recordValue(dataValue: DataValue, skipChangeTest: boolean, indexRange?: NumericRange): void {
+    // eslint-disable-next-line complexity, max-statements
+    public recordValue(dataValue: DataValue, skipChangeTest: boolean, indexRange?: NumericRange): boolean {
 
         if (!this.itemToMonitor) {
             // we must have a valid itemToMonitor(have this monitoredItem been disposed already ?)
-            return;
+            // istanbul ignore next 
+            doDebug && debugLog("recordValue => Rejected", this.node?.browseName.toString(), " because no itemToMonitor");
+            return false;
         }
 
         assert(dataValue !== this.oldDataValue, "recordValue expects different dataValue to be provided");
@@ -576,7 +601,9 @@ export class MonitoredItem extends EventEmitter {
             // we just ignore changes that do not fall within our range
             // ( unless semantic bit has changed )
             if (!NumericRange.overlap(indexRange as NumericalRange0, this.itemToMonitor.indexRange)) {
-                return; // no overlap !
+                // istanbul ignore next 
+                doDebug && debugLog("recordValue => Rejected", this.node?.browseName.toString(), " because no range not overlap");
+                return false; // no overlap !
             }
         }
 
@@ -603,7 +630,10 @@ export class MonitoredItem extends EventEmitter {
             debugLog("_enqueue_value => because hasSemanticChanged");
             setSemanticChangeBit(dataValue);
             this._semantic_version = (this.node as UAVariable).semantic_version;
-            return this._enqueue_value(dataValue);
+            this._enqueue_value(dataValue);
+            // istanbul ignore next 
+            doDebug && debugLog("recordValue => OK ", this.node?.browseName.toString(), " because hasSemanticChanged");
+            return true;
         }
 
         const useIndexRange = this.itemToMonitor.indexRange && !this.itemToMonitor.indexRange.isEmpty();
@@ -611,12 +641,21 @@ export class MonitoredItem extends EventEmitter {
         if (!skipChangeTest) {
             const hasChanged = !sameDataValue(dataValue, this.oldDataValue!);
             if (!hasChanged) {
-                return;
+                // istanbul ignore next 
+                doDebug && debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because !skipChangeTest && sameDataValue");
+                return false;
             }
         }
 
         if (!apply_filter.call(this, dataValue)) {
-            return;
+            // istanbul ignore next 
+            if (doDebug) {
+                debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because apply_filter");
+                debugLog("current Value =>", this.oldDataValue?.toString());
+                debugLog("propoped Value =>", dataValue?.toString());
+                debugLog("propoped Value =>", dataValue == this.oldDataValue, dataValue.value === this.oldDataValue?.value);
+            }
+            return false;
         }
 
         if (useIndexRange) {
@@ -631,18 +670,20 @@ export class MonitoredItem extends EventEmitter {
             }
 
             if (sameVariant(dataValue.value, this.oldDataValue!.value)) {
-                return;
+                // istanbul ignore next 
+                doDebug && debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because useIndexRange && sameVariant");
+                return false;
             }
         }
 
         // processTriggerItems
         this.triggerLinkedItems();
 
-        if (doDebug) {
-            debugLog("RECORD VALUE ", this.node?.nodeId.toString());
-        }
         // store last value
         this._enqueue_value(dataValue);
+        // istanbul ignore next 
+        doDebug && debugLog("recordValue => OK ", this.node?.browseName.toString());
+        return true;
     }
 
     public hasLinkItem(linkedMonitoredItemId: number): boolean {
@@ -995,6 +1036,8 @@ export class MonitoredItem extends EventEmitter {
         } else {
             const o = this.oldDataValue;
             this.oldDataValue = new DataValue({ statusCode: StatusCodes.BadDataUnavailable });
+            // istanbul ignore next
+            if (doDebug) { safeGuardRegiter(this); }
             callback(null, o);
         }
 
@@ -1058,18 +1101,18 @@ export class MonitoredItem extends EventEmitter {
             // initiate first read
             if (recordInitialValue) {
                 this.__acquireInitialValue(sessionContext, (err: Error | null, dataValue?: DataValue) => {
-                    if(err) {
+                    if (err) {
                         warningLog(err.message);
                     }
                     if (!err && dataValue) {
-                        this.recordValue(dataValue, true);
+                        this.recordValue(dataValue.clone(), true);
                     }
                 });
             }
         } else {
             if (recordInitialValue) {
                 this.__acquireInitialValue(sessionContext, (err: Error | null, dataValue?: DataValue) => {
-                    if(err) {
+                    if (err) {
                         warningLog(err.message);
                     }
                     if (!err && dataValue) {
@@ -1239,10 +1282,16 @@ export class MonitoredItem extends EventEmitter {
         // istanbul ignore next
         if (doDebug) {
             debugLog("MonitoredItem#_enqueue_value", this.node!.nodeId.toString());
+            safeGuardVerify(this);
         }
         this.oldDataValue = dataValue;
+
+        // istanbul ignore next
+        if (doDebug) { safeGuardRegiter(this); }
+
         const notification = this._makeDataChangeNotification(dataValue);
         this._enqueue_notification(notification);
+
     }
 
     private _makeEventFieldList(eventFields: any[]): EventFieldList {

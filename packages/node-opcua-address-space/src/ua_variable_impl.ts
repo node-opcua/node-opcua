@@ -539,6 +539,10 @@
             return this.addressSpacePrivate.isEnumeration(this.dataType);
         }
 
+        /**
+         * return true if the DataType is of type Extension object
+         * this is not taking into account the valueRank of the variable 
+         */
         public isExtensionObject(): boolean {
             // DataType must be one of Structure
             if (this.dataType.isEmpty()) return false;
@@ -1802,7 +1806,7 @@
                         propagateTouchValueDownward(this, preciseClock, cache);
                     }
                 } else {
-                    this.emit("value_changed", this.$dataValue, indexRange);
+                    this.emit("value_changed", this.$dataValue.clone(), indexRange);
                 }
             }
         }
