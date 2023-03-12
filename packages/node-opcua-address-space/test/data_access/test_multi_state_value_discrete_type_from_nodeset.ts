@@ -12,7 +12,8 @@ import {
     UAMultiStateValueDiscrete,
     UAMultiStateDiscrete,
     UAMultiStateValueDiscreteEx,
-    UAMultiStateDiscreteEx
+    UAMultiStateDiscreteEx,
+    validateDataType
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
@@ -126,5 +127,62 @@ describe("MultiStateValueDiscreteType - 2", () => {
             multiStateDiscreteVar.setValue(42);
         }).throw();
         multiStateDiscreteVar.getValue().should.eql(1);
+    });
+});
+
+describe("validateDataType used in ua_multistate_value_discrete_impl.ts", () => {
+    it("should throw an error when dataTypeValue is not a number", () => {
+        const fn = () => validateDataType("not a number");
+        fn.should.throw(Error, /Invalid DataType in UAMultiStateValueDiscrete =>/);
+    });
+
+    it("should throw an error when dataTypeValue is not a valid data type", () => {
+        const fn = () => validateDataType(100);
+        fn.should.throw(Error, /Invalid DataType in UAMultiStateValueDiscrete =>/);
+    });
+
+    it("should not throw an error when dataTypeValue is UInt64", () => {
+        const fn = () => validateDataType(DataType.UInt64);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is Int64", () => {
+        const fn = () => validateDataType(DataType.Int64);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is UInt32", () => {
+        const fn = () => validateDataType(DataType.UInt32);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is Int32", () => {
+        const fn = () => validateDataType(DataType.Int32);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is UInt16", () => {
+        const fn = () => validateDataType(DataType.UInt16);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is Int16", () => {
+        const fn = () => validateDataType(DataType.Int16);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is Byte", () => {
+        const fn = () => validateDataType(DataType.Byte);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is SByte", () => {
+        const fn = () => validateDataType(DataType.SByte);
+        fn.should.not.throw();
+    });
+
+    it("should not throw an error when dataTypeValue is Number", () => {
+        const fn = () => validateDataType(26);
+        fn.should.not.throw();
     });
 });
