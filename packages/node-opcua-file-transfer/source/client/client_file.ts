@@ -20,11 +20,36 @@ const doDebug = checkDebugFlag("FileType");
 import { OpenFileMode } from "../open_mode";
 export { OpenFileMode } from "../open_mode";
 
+
+export interface IClientFile {
+    fileHandle: number;
+    open(mode: OpenFileMode): Promise<number>;
+    close(): Promise<void>;
+    getPosition(): Promise<UInt64>;
+    setPosition(position: UInt64 | UInt32): Promise<void>;
+    read(bytesToRead: UInt32 | Int32 | Int64 | UInt64): Promise<Buffer>;
+    write(data: Buffer): Promise<void>;
+    openCount(): Promise<UInt16>;
+    size(): Promise<UInt64>;
+}
+export interface IClientFilePriv extends IClientFile {
+    readonly fileNodeId: NodeId;
+    openMethodNodeId?: NodeId;
+    closeMethodNodeId?: NodeId;
+    setPositionNodeId?: NodeId;
+    getPositionNodeId?: NodeId;
+    readNodeId?: NodeId;
+    writeNodeId?: NodeId;
+    openCountNodeId?: NodeId;
+    sizeNodeId?: NodeId;
+    ensureInitialized(): Promise<void>;
+}
+
 /**
  *
  *
  */
-export class ClientFile {
+export class ClientFile implements IClientFile {
     public static useGlobalMethod = false;
 
     public fileHandle = 0;
@@ -281,18 +306,35 @@ export class ClientFile {
     }
 }
 
-export async function readFile(clientFile: ClientFile): Promise<Buffer> {
+
+export async function readFile(clientFile: IClientFile): Promise<Buffer> {
     await clientFile.open(OpenFileMode.Read);
     try {
-        const fileSize = await clientFile.size();
+        const fileSize = coerceInt32(await clientFile.size());
+        /**
+         *  Read file 
+         */
         const data = await clientFile.read(fileSize);
-        return data;
+        if (data.length >= fileSize) {
+            // everything has been read
+            return data;
+        }
+
+        // wee need to loop to complete the read
+        const chunks = [data];
+        let remaining = fileSize - data.length;
+        while (remaining > 0) {
+            const buf = await clientFile.read(remaining);
+            chunks.push(buf);
+            remaining -= buf.length;
+        }
+        return Buffer.concat(chunks);
     } finally {
         await clientFile.close();
     }
 }
 
-export async function readOPCUAFile(clientFile: ClientFile): Promise<Buffer> {
+export async function readOPCUAFile(clientFile: IClientFile): Promise<Buffer> {
     return await readFile(clientFile);
 }
 
