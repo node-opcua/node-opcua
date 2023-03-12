@@ -4,6 +4,8 @@ import * as fsOrigin from "fs";
 import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
+import * as crypto from "crypto";
+import * as sinon from "sinon";
 
 import { fs as fsMemory } from "memfs";
 
@@ -12,11 +14,12 @@ import * as should from "should";
 import { AddressSpace, PseudoSession, SessionContext, UAFile } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { UInt64, coerceUInt64, coerceNodeId } from "node-opcua-basic-types";
-import { MethodIds } from "node-opcua-client";
+import { CallMethodRequestOptions, MethodIds } from "node-opcua-client";
+import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 
-import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs, readFile } from "..";
+import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs, readFile, IClientFilePriv } from "..";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -314,16 +317,83 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             size2.should.eql(coerceUInt64(2));
         });
 
+
         it(m + "readFile", async () => {
             const fileData = getFileData(opcuaFile2);
             await promisify(fileSystem.writeFile)(fileData.filename, "1234567890", "utf-8");
             await fileData.refresh();
 
             const session = new PseudoSession(addressSpace);
-            const clientFile = new ClientFile(session, opcuaFile2.nodeId);
+            const clientFile = (new ClientFile(session, opcuaFile2.nodeId)) as unknown as IClientFilePriv;
+            await (clientFile as any).ensureInitialized();
+
+
+            const callSpy = sinon.spy(session, "call");
             const buf = await readFile(clientFile);
+            callSpy.callCount.should.equal(3);
+
+            const openMethod = clientFile.openMethodNodeId!;
+            const readMethod = clientFile.readNodeId!
+            const closeMethod = clientFile.closeMethodNodeId!;
+            const getMethod = (n: number)=> callSpy.getCall(n).args[0] as CallMethodRequestOptions;
+
+            getMethod(0).methodId?.should.eql(openMethod);
+            getMethod(1).methodId?.should.eql(readMethod);
+            getMethod(2).methodId?.should.eql(closeMethod);
+
             buf.toString("utf-8").should.eql("1234567890");
         });
+
+        it(m + "readFile with large file", async () => {
+
+
+            const randomData = crypto.randomBytes(3 * 1024).toString("hex");
+            
+            randomData.length.should.equal(6*1024);
+
+            const fileData = getFileData(opcuaFile2);
+
+            const oldMaxSize = fileData.maxChunkSizeBytes;
+
+            fileData.maxChunkSizeBytes = 1024;
+
+            await promisify(fileSystem.writeFile)(fileData.filename, randomData, "utf-8");
+            await fileData.refresh();
+
+
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId) as unknown as IClientFilePriv;
+            await clientFile.ensureInitialized();
+
+
+            const callSpy = sinon.spy(session, "call");
+
+            const buf = await readFile(clientFile);
+
+
+            const openMethod = clientFile.openMethodNodeId!;
+            const readMethod = clientFile.readNodeId!
+            const closeMethod = clientFile.closeMethodNodeId!;
+            const getMethod = (n: number)=> callSpy.getCall(n).args[0] as CallMethodRequestOptions;
+
+            getMethod(0).methodId?.should.eql(openMethod);
+            getMethod(1).methodId?.should.eql(readMethod);
+            getMethod(2).methodId?.should.eql(readMethod);
+            getMethod(3).methodId?.should.eql(readMethod);
+            getMethod(4).methodId?.should.eql(readMethod);
+            getMethod(5).methodId?.should.eql(readMethod);
+            getMethod(6).methodId?.should.eql(readMethod);
+            getMethod(7).methodId?.should.eql(closeMethod);
+
+            callSpy.callCount.should.equal(8);
+
+            buf.toString("utf-8").should.eql(randomData);
+
+            fileData.maxChunkSizeBytes = oldMaxSize;
+
+        });
+
+
 
         function swapHandle(c1: ClientFile, c2: ClientFile) {
             const b = (c2 as any).fileHandle;

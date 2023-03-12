@@ -17,6 +17,7 @@ import {
     UAObjectType
 } from "node-opcua-address-space";
 import { Byte, Int32, UInt32, UInt64 } from "node-opcua-basic-types";
+import { BinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { CallMethodResultOptions } from "node-opcua-service-call";
@@ -93,10 +94,17 @@ export interface FileOptions {
 
     nodeId?: NodeIdLike;
 
+    /**
+     * the maximum number of bytes that can be read from the file 
+     * in a single read call
+     * - if not specified or 0, we assume Int32 limit
+     */
+    maxChunkSize?: number;
+
     refreshFileContentFunc?: () => Promise<void>;
 }
 
-export interface UAFileType extends UAObjectType, UAFile_Base {}
+export interface UAFileType extends UAObjectType, UAFile_Base { }
 /**
  *
  */
@@ -105,10 +113,13 @@ export class FileTypeData {
     public filename = "";
     public maxSize = 0;
     public mimeType = "";
+    public maxChunkSizeBytes = 0;
 
     private file: UAFile;
     private _openCount = 0;
     private _fileSize = 0;
+
+    public static maxChunkSize = 16 * 1024 * 1024; // 16 MB
 
     public refreshFileContentFunc?: () => Promise<void>;
 
@@ -120,6 +131,8 @@ export class FileTypeData {
         this.filename = options.filename;
         this.maxSize = options.maxSize!;
         this.mimeType = options.mimeType || "";
+        this.maxChunkSizeBytes = options.maxChunkSize || FileTypeData.maxChunkSize;
+
         // openCount indicates the number of currently valid file handles on the file.
         this._openCount = 0;
         file.openCount.bindVariable(
@@ -234,6 +247,10 @@ export function getFileData(opcuaFile2: UAFile): FileTypeData {
     return (opcuaFile2 as UAFileEx).$fileData;
 }
 
+function getFileDataFromContext(context: ISessionContext): FileTypeData {
+    return getFileData(context.object as UAFile);
+}
+
 interface FileAccessData {
     handle: number;
     fd: number; // nodejs handler
@@ -248,7 +265,7 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
-interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
+interface AddressSpacePriv extends IAddressSpace, FileTypeM { }
 function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
@@ -391,7 +408,7 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
-    const fileData = (context.object as UAFileEx).$fileData;
+    const fileData = getFileDataFromContext(context);
 
     const filename = fileData.filename;
 
@@ -443,7 +460,7 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
 }
 
 function _getFileSystem(context: ISessionContext): AbstractFs {
-    const fs: AbstractFs = (context.object as UAFileEx).$fileData._fs;
+    const fs: AbstractFs = getFileDataFromContext(context)._fs;
     return fs;
 }
 
@@ -467,13 +484,13 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: IS
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
-    const data = (context.object as UAFileEx).$fileData as FileTypeData;
-
-    debugLog("Closing file handle ", fileHandle, "filename: ", data.filename, "openCount: ", data.openCount);
+    const fileData = getFileDataFromContext(context);
+    
+    debugLog("Closing file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
     await promisify(abstractFs.close)(_fileInfo.fd);
     _close(addressSpace, context, _fileInfo);
-    data.openCount -= 1;
+    fileData.openCount -= 1;
 
     return {
         statusCode: StatusCodes.Good
@@ -507,6 +524,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
+
     const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
     if (!_fileInfo) {
         return { statusCode: StatusCodes.BadInvalidState };
@@ -517,6 +535,19 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidState };
     }
 
+    // length cannot exceed maxChunkSizeBytes
+    const fileData = getFileDataFromContext(context);
+    
+    const maxChunkSizeBytes = fileData.maxChunkSizeBytes;
+    if (length > maxChunkSizeBytes) {
+        length = maxChunkSizeBytes;
+    }
+    // length cannot either exceed ByteStream.maxChunkSizeBytes
+    if (length > BinaryStream.maxByteStringLength) {
+        length = BinaryStream.maxByteStringLength;
+    }
+
+    // length cannot either exceed remaining buffer size from current position
     length = Math.min(_fileInfo.size - _fileInfo.position[1], length);
 
     const data = Buffer.alloc(length);
@@ -584,10 +615,10 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         _fileInfo.position[1] += ret.bytesWritten;
         _fileInfo.size = Math.max(_fileInfo.size, _fileInfo.position[1]);
 
-        const fileTypeData = (context.object as UAFileEx).$fileData as FileTypeData;
-        debugLog(fileTypeData.fileSize);
-        fileTypeData.fileSize = Math.max(fileTypeData.fileSize, _fileInfo.position[1]);
-        debugLog(fileTypeData.fileSize);
+        const fileData = getFileDataFromContext(context);
+        debugLog(fileData.fileSize);
+        fileData.fileSize = Math.max(fileData.fileSize, _fileInfo.position[1]);
+        debugLog(fileData.fileSize);
     } catch (err) {
         if (err instanceof Error) {
             errorLog("Write error : ", err.message);
