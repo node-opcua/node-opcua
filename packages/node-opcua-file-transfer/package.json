@@ -10,6 +10,10 @@
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
+    "devEngines": {
+        "node": ">=16.x",
+        "npm": ">=8.x"
+    },
     "dependencies": {
         "node-opcua-address-space": "2.92.0",
         "node-opcua-assert": "2.88.0",
