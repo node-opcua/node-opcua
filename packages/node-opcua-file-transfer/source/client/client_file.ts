@@ -7,7 +7,6 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { MethodIds } from "node-opcua-constants";
 
@@ -31,6 +30,7 @@ export interface IClientFile {
     write(data: Buffer): Promise<void>;
     openCount(): Promise<UInt16>;
     size(): Promise<UInt64>;
+    session: IBasicSession;
 }
 export interface IClientFilePriv extends IClientFile {
     readonly fileNodeId: NodeId;
@@ -53,7 +53,7 @@ export class ClientFile implements IClientFile {
     public static useGlobalMethod = false;
 
     public fileHandle = 0;
-    protected session: IBasicSession;
+    public session: IBasicSession;
     protected readonly fileNodeId: NodeId;
 
     private openMethodNodeId?: NodeId;
@@ -307,36 +307,6 @@ export class ClientFile implements IClientFile {
 }
 
 
-export async function readFile(clientFile: IClientFile): Promise<Buffer> {
-    await clientFile.open(OpenFileMode.Read);
-    try {
-        const fileSize = coerceInt32(await clientFile.size());
-        /**
-         *  Read file 
-         */
-        const data = await clientFile.read(fileSize);
-        if (data.length >= fileSize) {
-            // everything has been read
-            return data;
-        }
-
-        // wee need to loop to complete the read
-        const chunks = [data];
-        let remaining = fileSize - data.length;
-        while (remaining > 0) {
-            const buf = await clientFile.read(remaining);
-            chunks.push(buf);
-            remaining -= buf.length;
-        }
-        return Buffer.concat(chunks);
-    } finally {
-        await clientFile.close();
-    }
-}
-
-export async function readOPCUAFile(clientFile: IClientFile): Promise<Buffer> {
-    return await readFile(clientFile);
-}
 
 
 /**

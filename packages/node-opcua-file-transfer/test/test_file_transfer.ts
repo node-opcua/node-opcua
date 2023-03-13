@@ -19,7 +19,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 
-import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs, readFile, IClientFilePriv } from "..";
+import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs, readFile, IClientFilePriv, writeOPCUAFile, readOPCUAFile } from "..";
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -29,14 +29,20 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     const m1 = useGlobalMethod ? "Global" : "Local";
     const m2 = withMemFS ? "MemFS" : "FileFS";
     const m = m1 + "-" + m2 + "-";
-    describe("FileTransfer " + message, () => {
+    describe("FileTransfer " + message, function (this: Mocha.Suite) {
+
+        this.timeout(6 * 60 * 1000);
+
         let addressSpace: AddressSpace;
 
-        before(() => {
+        before(async () => {
             if (useGlobalMethod) {
                 ClientFile.useGlobalMethod = true;
             }
+
         });
+
+
         after(() => {
             if (useGlobalMethod) {
                 ClientFile.useGlobalMethod = false;
@@ -55,6 +61,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
         let opcuaFile: UAFile;
         let opcuaFile2: UAFile;
         let fileSystem: AbstractFs;
+        let tempFolder: string;
+        let filename2: string;
 
         before(async () => {
             const namespace = addressSpace.getOwnNamespace();
@@ -68,12 +76,14 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
                 organizedBy: addressSpace.rootFolder.objects.server
             }) as UAFile;
 
+            tempFolder = withMemFS ? "/" : await promisify(fsOrigin.mkdtemp)(path.join(os.tmpdir(), "test-"));
+
             fileSystem = withMemFS ? (fsMemory as any as AbstractFs) : fsOrigin;
 
-            const tempFolder = withMemFS ? "/" : await promisify(fsOrigin.mkdtemp)(path.join(os.tmpdir(), "test-"));
 
             const filename = path.join(tempFolder, "tempFile1.txt");
-            await promisify(fileSystem.writeFile)(filename, "content", "utf8");
+            console.log("filename=", filename);
+            await promisify(fileSystem.writeFile)(filename, "content", {});
 
             installFileType(opcuaFile, { filename, fileSystem: withMemFS ? fileSystem : undefined });
 
@@ -82,11 +92,24 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
                 browseName: "FileTransferObj2",
                 organizedBy: addressSpace.rootFolder.objects.server
             }) as UAFile;
-            const filename2 = path.join(tempFolder, "tempFile2.txt");
+
+            filename2 = path.join(tempFolder, "tempFile2.txt");
             installFileType(opcuaFile2, { filename: filename2, fileSystem: withMemFS ? fileSystem : undefined });
         });
+        async function readFile2(): Promise<Buffer> {
+            const ret = await promisify(fileSystem.readFile)(filename2, "binary") as unknown as Buffer;
+            return ret;
+        }
+        async function resetFile2() {
+            await promisify(fileSystem.writeFile)(filename2, "HelloWorld", "ascii");
+
+        }
         after(() => {
             /* empty */
+        });
+        beforeEach(async () => {
+            if (filename2)
+                await resetFile2();
         });
 
         it(m + "should expose a File Transfer node and open/close", async () => {
@@ -150,7 +173,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             const countAfter2 = await clientFile.openCount();
             countAfter2.should.eql(countBefore);
         });
-        it("should expose the size of the current file", async () => {
+        it(m + "should expose the size of the current file", async () => {
             const session = new PseudoSession(addressSpace);
             const clientFile = new ClientFile(session, opcuaFile.nodeId);
 
@@ -335,7 +358,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
             const openMethod = clientFile.openMethodNodeId!;
             const readMethod = clientFile.readNodeId!
             const closeMethod = clientFile.closeMethodNodeId!;
-            const getMethod = (n: number)=> callSpy.getCall(n).args[0] as CallMethodRequestOptions;
+            const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
 
             getMethod(0).methodId?.should.eql(openMethod);
             getMethod(1).methodId?.should.eql(readMethod);
@@ -348,8 +371,8 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 
             const randomData = crypto.randomBytes(3 * 1024).toString("hex");
-            
-            randomData.length.should.equal(6*1024);
+
+            randomData.length.should.equal(6 * 1024);
 
             const fileData = getFileData(opcuaFile2);
 
@@ -368,13 +391,14 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
             const callSpy = sinon.spy(session, "call");
 
+            console.log("--start reading");
             const buf = await readFile(clientFile);
 
 
             const openMethod = clientFile.openMethodNodeId!;
             const readMethod = clientFile.readNodeId!
             const closeMethod = clientFile.closeMethodNodeId!;
-            const getMethod = (n: number)=> callSpy.getCall(n).args[0] as CallMethodRequestOptions;
+            const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
 
             getMethod(0).methodId?.should.eql(openMethod);
             getMethod(1).methodId?.should.eql(readMethod);
@@ -393,6 +417,41 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
         });
 
+        it(m + "writeOPCUAFile with large file", async () => {
+
+            console.log("writeOPCUAFile");
+            const session = new PseudoSession(addressSpace);
+            const clientFile = new ClientFile(session, opcuaFile2.nodeId) as unknown as IClientFilePriv;
+            await clientFile.ensureInitialized();
+
+            const filepath = path.join(__dirname, "foo.txt");
+
+            const callSpy = sinon.spy(session, "call");
+            await writeOPCUAFile(clientFile, filepath, { chunkSize: 102 });
+
+            const openMethod = clientFile.openMethodNodeId!;
+            const writeMethod = clientFile.writeNodeId!
+            const setPosition = clientFile.setPositionNodeId!;
+            const closeMethod = clientFile.closeMethodNodeId!;
+            const getMethod = (n: number) => callSpy.getCall(n).args[0] as CallMethodRequestOptions;
+            getMethod(0).methodId?.should.eql(openMethod);
+            getMethod(1).methodId?.should.eql(setPosition);
+            getMethod(2).methodId?.should.eql(writeMethod);
+            getMethod(3).methodId?.should.eql(writeMethod);
+            getMethod(4).methodId?.should.eql(writeMethod);
+            getMethod(5).methodId?.should.eql(writeMethod);
+            getMethod(6).methodId?.should.eql(closeMethod);
+
+            const content = await fsOrigin.promises.readFile(filepath);
+
+            const content2 = await readFile2();
+            content.toString("ascii").should.eql(content2.toString("ascii"));
+
+            const buffer = await readOPCUAFile(clientFile);
+
+            content.toString("ascii").should.eql(buffer.toString("ascii"));
+
+        });
 
 
         function swapHandle(c1: ClientFile, c2: ClientFile) {

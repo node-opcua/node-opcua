@@ -1,10 +1,9 @@
 /**
  * @module node-opcua-file-transfer
  */
-import * as fsOrig from "fs";
-import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs";
 
 import { callbackify, promisify } from "util";
+import * as fsOrig from "fs";
 
 import { assert } from "node-opcua-assert";
 import {
@@ -25,53 +24,12 @@ import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { OpenFileMode, OpenFileModeMask } from "../open_mode";
+import { AbstractFs } from "../common/abstract_fs";
 
 const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const warningLog = make_warningLog("FileType");
 const doDebug = checkDebugFlag("FileType");
-
-export interface AbstractFs {
-    stat(path: PathLike, callback: (err: NodeJS.ErrnoException | null, stats: Stats) => void): void;
-
-    open(path: PathLike, flags: OpenMode, callback: (err: NodeJS.ErrnoException | null, fd: number) => void): void;
-
-    write<TBuffer extends NodeJS.ArrayBufferView>(
-        fd: number,
-        buffer: TBuffer,
-        offset: number | undefined | null,
-        length: number | undefined | null,
-        position: number | undefined | null,
-        callback: (err: NodeJS.ErrnoException | null, bytesWritten: number, buffer: TBuffer) => void
-    ): void;
-
-    read<TBuffer extends NodeJS.ArrayBufferView>(
-        fd: number,
-        buffer: TBuffer,
-        offset: number,
-        length: number,
-        position: number | null,
-        callback: (err: NodeJS.ErrnoException | null, bytesRead: number, buffer: TBuffer) => void
-    ): void;
-
-    close(fd: number, callback: NoParamCallback): void;
-
-    writeFile(
-        path: PathLike | number,
-        data: string | NodeJS.ArrayBufferView,
-        options: WriteFileOptions,
-        callback: NoParamCallback
-    ): void;
-
-    readFile(
-        path: PathLike | number,
-        options: { encoding: BufferEncoding; flag?: string } | string,
-        callback: (err: NodeJS.ErrnoException | null, data: string) => void
-    ): void;
-    // readFile(path: PathLike | number, options: { encoding?: null; flag?: string; } | undefined | null, callback: (err: NodeJS.ErrnoException | null, data: Buffer) => void): void;
-
-    existsSync(filename: string): boolean;
-}
 
 /**
  *
