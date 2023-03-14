@@ -446,7 +446,7 @@
 
         /**
          *
-         *
+         * 
          * from OPC.UA.Spec 1.02 part 4
          *  5.10.2.4 StatusCodes
          *  Table 51 defines values for the operation level statusCode contained in the DataValue structure of
@@ -454,22 +454,22 @@
          *
          * Table 51 Read Operation Level Result Codes
          *
-         *  Symbolic Id                 Description
-         *
-         *  BadNodeIdInvalid            The syntax of the node id is not valid.
-         *  BadNodeIdUnknown            The node id refers to a node that does not exist in the server address space.
-         *  BadAttributeIdInvalid       BadAttributeIdInvalid The attribute is not supported for the specified node.
-         *  BadIndexRangeInvalid        The syntax of the index range parameter is invalid.
-         *  BadIndexRangeNoData         No data exists within the range of indexes specified.
-         *  BadDataEncodingInvalid      The data encoding is invalid.
-         *                              This result is used if no dataEncoding can be applied because an Attribute other
-         *                              than Value was requested or the DataType of the Value Attribute is not a subtype
-         *                              of the Structure DataType.
-         *  BadDataEncodingUnsupported  The server does not support the requested data encoding for the node.
-         *                              This result is used if a dataEncoding can be applied but the passed data encoding
-         *                              is not known to the Server.
-         *  BadNotReadable              The access level does not allow reading or subscribing to the Node.
-         *  BadUserAccessDenied         User does not have permission to perform the requested operation. (table 165)
+         * | Symbolic Id                 | Description
+         * |-----------------------------|---------------------------------------------------------------------------------------------|
+         * |BadNodeIdInvalid             | The syntax of the node id is not valid.|
+         * |BadNodeIdUnknown            |The node id refers to a node that does not exist in the server address space.|
+         * |BadAttributeIdInvalid      | BadAttributeIdInvalid The attribute is not supported for the specified node.|
+         * |BadIndexRangeInvalid       | The syntax of the index range parameter is invalid.|
+         * |BadIndexRangeNoData        | No data exists within the range of indexes specified.|
+         * |BadDataEncodingInvalid     | The data encoding is invalid.|
+         * |                           | This result is used if no dataEncoding can be applied because an Attribute other|
+         * |                           | than Value was requested or the DataType of the Value Attribute is not a subtype|
+         * |                           | of the Structure DataType.|
+         * |BadDataEncodingUnsupported | The server does not support the requested data encoding for the node. |
+         * |                           | This result is used if a dataEncoding can be applied but the passed data encoding |
+         * |                           | is not known to the Server. |
+         * |BadNotReadable             | The access level does not allow reading or subscribing to the Node.|
+         * |BadUserAccessDenied        | User does not have permission to perform the requested operation. (table 165)|
          */
         public readValue(
             context?: ISessionContext | null,
@@ -589,7 +589,7 @@
             }
 
             if (this.$dataValue.serverTimestamp && oldestDate.getTime() <= this.$dataValue.serverTimestamp!.getTime()) {
-                const dataValue = this.readValue();
+                const dataValue = this.readValue().clone();
                 dataValue.serverTimestamp = oldestDate;
                 dataValue.serverPicoseconds = 0;
                 return callback(null, dataValue);
@@ -606,7 +606,7 @@
                         );
                         dataValue = { statusCode: StatusCodes.BadNoDataAvailable };
                     }
-                    if (dataValue !== this.$dataValue) {
+                    if (dataValue && dataValue !== this.$dataValue) {
                         this._internal_set_dataValue(coerceDataValue(dataValue), null);
                     }
                     callback(err, this.$dataValue);

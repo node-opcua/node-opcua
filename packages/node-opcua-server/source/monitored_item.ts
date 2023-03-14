@@ -66,6 +66,7 @@ const defaultItemToMonitor: ReadValueIdOptions = new ReadValueId({
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const doDebug2 = doDebug && false;
 const warningLog = make_warningLog(__filename);
 
 function _adjust_sampling_interval(samplingInterval: number, node_minimumSamplingInterval: number): number {
@@ -250,12 +251,16 @@ function apply_dataChange_filter(this: MonitoredItem, newDataValue: DataValue, o
     }
 }
 
-function safeGuardRegiter(monitoredItem: any) {
-    (monitoredItem as any)._$safeGuard = monitoredItem.oldDataValue.toString();
+const s = (a: any) => JSON.stringify(a, null, "  ");
+
+function safeGuardRegiter(monitoredItem: MonitoredItem) {
+
+    (monitoredItem.oldDataValue as any)._$monitoredItem = monitoredItem.node?.nodeId?.toString();
+    (monitoredItem as any)._$safeGuard = s((monitoredItem as any).oldDataValue);
 }
 function safeGuardVerify(monitoredItem: MonitoredItem) {
     if ((monitoredItem as any)._$safeGuard) {
-        const verif = monitoredItem.oldDataValue?.toString() || "";
+        const verif = s(monitoredItem.oldDataValue|| "");
         if (verif !== (monitoredItem as any)._$safeGuard) {
             console.log(verif, (monitoredItem as any)._$safeGuard);
             throw new Error("Internal error: DataValue has been altereed !!!");
@@ -266,8 +271,8 @@ function apply_filter(this: MonitoredItem, newDataValue: DataValue) {
     if (!this.oldDataValue) {
         return true; // keep
     }
-    
-    // istanbul ignore next 
+
+    // istanbul ignore next
     doDebug && safeGuardVerify(this);
 
     if (this.filter instanceof DataChangeFilter) {
@@ -564,18 +569,17 @@ export class MonitoredItem extends EventEmitter {
      *    of the contain at the time recordValue was called.
      *
      * return true if the value has been recorded, false if not.
-     * 
-     * Value will not be recorded : 
+     *
+     * Value will not be recorded :
      *   * if the range do not overlap
      *   * is !skipChangeTest and value is equal to previous value
-     * 
+     *
      */
     // eslint-disable-next-line complexity, max-statements
     public recordValue(dataValue: DataValue, skipChangeTest: boolean, indexRange?: NumericRange): boolean {
-
         if (!this.itemToMonitor) {
             // we must have a valid itemToMonitor(have this monitoredItem been disposed already ?)
-            // istanbul ignore next 
+            // istanbul ignore next
             doDebug && debugLog("recordValue => Rejected", this.node?.browseName.toString(), " because no itemToMonitor");
             return false;
         }
@@ -601,7 +605,7 @@ export class MonitoredItem extends EventEmitter {
             // we just ignore changes that do not fall within our range
             // ( unless semantic bit has changed )
             if (!NumericRange.overlap(indexRange as NumericalRange0, this.itemToMonitor.indexRange)) {
-                // istanbul ignore next 
+                // istanbul ignore next
                 doDebug && debugLog("recordValue => Rejected", this.node?.browseName.toString(), " because no range not overlap");
                 return false; // no overlap !
             }
@@ -611,7 +615,7 @@ export class MonitoredItem extends EventEmitter {
         dataValue = extractRange(dataValue, this.itemToMonitor.indexRange);
 
         // istanbul ignore next
-        if (doDebug) {
+        if (doDebug2) {
             debugLog(
                 "MonitoredItem#recordValue",
                 this.node!.nodeId.toString(),
@@ -631,7 +635,7 @@ export class MonitoredItem extends EventEmitter {
             setSemanticChangeBit(dataValue);
             this._semantic_version = (this.node as UAVariable).semantic_version;
             this._enqueue_value(dataValue);
-            // istanbul ignore next 
+            // istanbul ignore next
             doDebug && debugLog("recordValue => OK ", this.node?.browseName.toString(), " because hasSemanticChanged");
             return true;
         }
@@ -641,14 +645,19 @@ export class MonitoredItem extends EventEmitter {
         if (!skipChangeTest) {
             const hasChanged = !sameDataValue(dataValue, this.oldDataValue!);
             if (!hasChanged) {
-                // istanbul ignore next 
-                doDebug && debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because !skipChangeTest && sameDataValue");
+                // istanbul ignore next
+                doDebug2 &&
+                    debugLog(
+                        "recordValue => Rejected ",
+                        this.node?.browseName.toString(),
+                        " because !skipChangeTest && sameDataValue"
+                    );
                 return false;
             }
         }
 
         if (!apply_filter.call(this, dataValue)) {
-            // istanbul ignore next 
+            // istanbul ignore next
             if (doDebug) {
                 debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because apply_filter");
                 debugLog("current Value =>", this.oldDataValue?.toString());
@@ -670,8 +679,9 @@ export class MonitoredItem extends EventEmitter {
             }
 
             if (sameVariant(dataValue.value, this.oldDataValue!.value)) {
-                // istanbul ignore next 
-                doDebug && debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because useIndexRange && sameVariant");
+                // istanbul ignore next
+                doDebug &&
+                    debugLog("recordValue => Rejected ", this.node?.browseName.toString(), " because useIndexRange && sameVariant");
                 return false;
             }
         }
@@ -681,7 +691,7 @@ export class MonitoredItem extends EventEmitter {
 
         // store last value
         this._enqueue_value(dataValue);
-        // istanbul ignore next 
+        // istanbul ignore next
         doDebug && debugLog("recordValue => OK ", this.node?.browseName.toString());
         return true;
     }
@@ -844,7 +854,6 @@ export class MonitoredItem extends EventEmitter {
      * @private
      */
     private _on_sampling_timer() {
-
         if (this.monitoringMode === MonitoringMode.Disabled) {
             return;
         }
@@ -854,7 +863,7 @@ export class MonitoredItem extends EventEmitter {
             return;
         }
         // istanbul ignore next
-        if (doDebug) {
+        if (doDebug2) {
             debugLog(
                 "MonitoredItem#_on_sampling_timer",
                 this.node ? this.node.nodeId.toString() : "null",
@@ -1021,14 +1030,14 @@ export class MonitoredItem extends EventEmitter {
     }
 
     private __acquireInitialValue(sessionContext: ISessionContext, callback: CallbackT<DataValue>): void {
-        // aquire initial value from the variable/object not itself or from the last known value if we have 
+        // aquire initial value from the variable/object not itself or from the last known value if we have
         // one already
         assert(this.itemToMonitor.attributeId === AttributeIds.Value);
         assert(this.node);
         if (this.node?.nodeClass !== NodeClass.Variable) {
             return callback(new Error("Invalid "));
         }
-        const variable = (this.node as UAVariable);
+        const variable = this.node as UAVariable;
         if (!this.oldDataValue || this.oldDataValue.statusCode.value == StatusCodes.BadDataUnavailable.value) {
             variable.readValueAsync(sessionContext, (err: Error | null, dataValue?: DataValue) => {
                 callback(err, dataValue);
@@ -1037,10 +1046,11 @@ export class MonitoredItem extends EventEmitter {
             const o = this.oldDataValue;
             this.oldDataValue = new DataValue({ statusCode: StatusCodes.BadDataUnavailable });
             // istanbul ignore next
-            if (doDebug) { safeGuardRegiter(this); }
+            if (doDebug) {
+                safeGuardRegiter(this);
+            }
             callback(null, o);
         }
-
     }
     private __start_sampling(recordInitialValue?: boolean): void {
         // istanbul ignore next
@@ -1138,7 +1148,7 @@ export class MonitoredItem extends EventEmitter {
         // that the data item is exception-based rather than being sampled at some period. An exception-based
         // model means that the underlying system does not require sampling and reports data changes.
         if (this.node && this.node.nodeClass === NodeClass.Variable) {
-            const variable = (this.node as UAVariable);
+            const variable = this.node as UAVariable;
             this.samplingInterval = _adjust_sampling_interval(
                 monitoredParameters.samplingInterval,
                 variable.minimumSamplingInterval || 0
@@ -1271,11 +1281,11 @@ export class MonitoredItem extends EventEmitter {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                this.node!.browseName.toString() +
-                " " +
-                dataValue.toString() +
-                "  " +
-                chalk.cyan(this.oldDataValue.toString())
+                    this.node!.browseName.toString() +
+                    " " +
+                    dataValue.toString() +
+                    "  " +
+                    chalk.cyan(this.oldDataValue.toString())
             );
         }
 
@@ -1284,14 +1294,14 @@ export class MonitoredItem extends EventEmitter {
             debugLog("MonitoredItem#_enqueue_value", this.node!.nodeId.toString());
             safeGuardVerify(this);
         }
-        this.oldDataValue = dataValue;
-
+        this.oldDataValue = dataValue.clone();
         // istanbul ignore next
-        if (doDebug) { safeGuardRegiter(this); }
+        if (doDebug) {
+            safeGuardRegiter(this);
+        }
 
-        const notification = this._makeDataChangeNotification(dataValue);
+        const notification = this._makeDataChangeNotification(this.oldDataValue);
         this._enqueue_notification(notification);
-
     }
 
     private _makeEventFieldList(eventFields: any[]): EventFieldList {
@@ -1328,7 +1338,6 @@ export class MonitoredItem extends EventEmitter {
     }
 
     private _set_timer() {
-
         if (!this.itemToMonitor) {
             // item has already been deleted
             // so do not create the timer !
