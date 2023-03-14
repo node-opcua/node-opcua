@@ -670,7 +670,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
             node.install_extra_properties();
 
-            _handle_node_version(node, options);
+            _create_node_version_if_needed(node, options);
 
             _handle_model_change_event(node as BaseNodeImpl);
         });
@@ -2209,12 +2209,16 @@ export function isNonEmptyQualifiedName(browseName?: null | string | QualifiedNa
     return browseName.name!.length > 0;
 }
 
-function _handle_node_version(node: BaseNode, options: any) {
+function _create_node_version_if_needed(node: BaseNode, options: {nodeVersion: boolean}) {
     assert(options);
     if (options.nodeVersion) {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
-
-        const nodeVersion = node.addressSpace.getOwnNamespace().addVariable({
+        // istanbul ignore next
+        if (node.getChildByName("NodeVersion"))  {
+            return; // already exists
+        }
+        const namespace  = node.addressSpace.getOwnNamespace();
+        const nodeVersion = namespace.addVariable({
             browseName: "NodeVersion",
             dataType: "String",
             propertyOf: node

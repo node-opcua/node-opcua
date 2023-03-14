@@ -3,7 +3,7 @@
  */
 import * as chalk from "chalk";
 
-import { UAReference, BaseNode, UAObject, UAVariable } from "node-opcua-address-space-base";
+import { UAReference, BaseNode, UAObject, UAVariable, UAObjectType, UAVariableType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { Enum, EnumItem } from "node-opcua-enum";
@@ -101,40 +101,42 @@ try {
 export function _handle_model_change_event(node: BaseNodeImpl): void {
     const addressSpace = node.addressSpace as AddressSpacePrivate;
     //
-    const parent = node.parent!;
+    const parents = node.parent ? [node.parent] : [];
 
-    if (parent && (parent as BaseNode).nodeVersion) {
-        addressSpace.modelChangeTransaction(() => {
-            let typeDefinitionNodeId = null;
+    const containingFolders = node.findReferencesExAsObject("Organizes", BrowseDirection.Inverse);
 
-            if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
-                typeDefinitionNodeId = node.typeDefinitionObj.nodeId;
-            }
-
-            const modelChange1 = new ModelChangeStructureDataType({
-                affected: node.nodeId,
-                affectedType: typeDefinitionNodeId,
-                verb: makeVerb("NodeAdded")
-            });
-            addressSpace._collectModelChange(null, modelChange1);
-
-            const modelChangeSrc = new ModelChangeStructureDataType({
-                affected: parent.nodeId,
-                affectedType: null,
-                verb: makeVerb("ReferenceAdded")
-            });
-            addressSpace._collectModelChange(null, modelChangeSrc);
-
-            // bidirectional
-            if ((node as BaseNode).nodeVersion) {
-                const modelChangeTgt = new ModelChangeStructureDataType({
+    let typeDefinitionNodeId: NodeId  | null = null;
+    if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
+        typeDefinitionNodeId = node.typeDefinitionObj.nodeId;
+    }
+    for (const parent of [...parents, ...containingFolders]) {
+        if (parent && (parent as BaseNode).nodeVersion) {
+            addressSpace.modelChangeTransaction(() => {
+                const modelChange1 = new ModelChangeStructureDataType({
                     affected: node.nodeId,
                     affectedType: typeDefinitionNodeId,
+                    verb: makeVerb("NodeAdded")
+                });
+                addressSpace._collectModelChange(null, modelChange1);
+
+                const modelChangeSrc = new ModelChangeStructureDataType({
+                    affected: parent.nodeId,
+                    affectedType: null,
                     verb: makeVerb("ReferenceAdded")
                 });
-                addressSpace._collectModelChange(null, modelChangeTgt);
-            }
-        });
+                addressSpace._collectModelChange(null, modelChangeSrc);
+
+                // bidirectional
+                if ((node as BaseNode).nodeVersion) {
+                    const modelChangeTgt = new ModelChangeStructureDataType({
+                        affected: node.nodeId,
+                        affectedType: typeDefinitionNodeId,
+                        verb: makeVerb("ReferenceAdded")
+                    });
+                    addressSpace._collectModelChange(null, modelChangeTgt);
+                }
+            });
+        }
     }
 }
 
