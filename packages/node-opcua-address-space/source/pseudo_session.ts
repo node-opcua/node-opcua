@@ -122,6 +122,9 @@ export function innerBrowseNext(
         );
     callback!(null, results);
 }
+
+const $addressSpace = Symbol("addressSpace");
+const $context = Symbol("context");
 /**
  * Pseudo session is an helper object that exposes the same async methods
  * than the ClientSession. It can be used on a server address space.
@@ -136,13 +139,13 @@ export class PseudoSession implements IBasicSession {
     public requestedMaxReferencesPerNode = 0;
     public maxBrowseContinuationPoints = 0; // 0=no limits
     private _sessionId: NodeId = new NodeId(NodeIdType.GUID, randomGuid());
-    private readonly addressSpace: IAddressSpace;
+    private readonly [$addressSpace]: IAddressSpace;
     private readonly continuationPointManager: ContinuationPointManager;
-    private readonly context: ISessionContext;
+    private readonly [$context]: ISessionContext;
 
     constructor(addressSpace: IAddressSpace, context?: ISessionContext) {
-        this.addressSpace = addressSpace;
-        this.context = context || SessionContext.defaultContext;
+        this[$addressSpace] = addressSpace;
+        this[$context] = context || SessionContext.defaultContext;
         this.continuationPointManager = new ContinuationPointManager();
     }
 
@@ -166,7 +169,7 @@ export class PseudoSession implements IBasicSession {
                 browseDescription.referenceTypeId = resolveNodeId(browseDescription.referenceTypeId!);
                 const _browseDescription = coerceBrowseDescription(browseDescription);
                 const nodeId = resolveNodeId(_browseDescription.nodeId);
-                const r = this.addressSpace.browseSingleNode(nodeId, _browseDescription, this.context);
+                const r = this[$addressSpace].browseSingleNode(nodeId, _browseDescription, this[$context]);
                 results.push(r);
             }
             callack(null, results);
@@ -176,7 +179,7 @@ export class PseudoSession implements IBasicSession {
             innerBrowse(
                 {
                     browseAll,
-                    context: this.context,
+                    context: this[$context],
                     continuationPointManager: this.continuationPointManager,
                     requestedMaxReferencesPerNode: this.requestedMaxReferencesPerNode,
                     maxBrowseContinuationPoints: this.maxBrowseContinuationPoints
@@ -197,13 +200,13 @@ export class PseudoSession implements IBasicSession {
             nodesToRead = [nodesToRead as ReadValueIdOptions];
         }
         const _nodesToRead = nodesToRead as ReadValueIdOptions[];
-        const context = this.context;
+        const context = this[$context];
 
         setImmediate(() => {
             async.map(
                 _nodesToRead,
                 (nodeToRead: ReadValueIdOptions, innerCallback: any) => {
-                    const obj = this.addressSpace.findNode(nodeToRead.nodeId!);
+                    const obj = this[$addressSpace].findNode(nodeToRead.nodeId!);
                     if (!obj || obj.nodeClass !== NodeClass.Variable || nodeToRead.attributeId !== AttributeIds.Value) {
                         return innerCallback();
                     }
@@ -218,11 +221,11 @@ export class PseudoSession implements IBasicSession {
                         const attributeId = nodeToRead.attributeId!;
                         const indexRange = nodeToRead.indexRange;
                         const dataEncoding = nodeToRead.dataEncoding;
-                        const obj = this.addressSpace.findNode(nodeId);
+                        const obj = this[$addressSpace].findNode(nodeId);
                         if (!obj) {
                             return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
                         }
-                        const context = this.context;
+                        const context = this[$context];
                         const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
                         return dataValue;
                     });
@@ -288,8 +291,8 @@ export class PseudoSession implements IBasicSession {
                 const callMethodRequest = new CallMethodRequest(methodToCall);
 
                 callMethodHelper(
-                    this.context,
-                    this.addressSpace,
+                    this[$context],
+                    this[$addressSpace],
                     callMethodRequest,
                     (err: Error | null, result?: CallMethodResultOptions) => {
                         let callMethodResult: CallMethodResult;
@@ -327,7 +330,7 @@ export class PseudoSession implements IBasicSession {
             browsePaths = [browsePaths as BrowsePath];
         }
         const browsePathResults = (browsePaths as BrowsePath[]).map((browsePath: BrowsePath) => {
-            return this.addressSpace.browsePath(browsePath);
+            return this[$addressSpace].browsePath(browsePath);
         });
         callback!(null, isArray ? browsePathResults : browsePathResults[0]);
     }
@@ -338,14 +341,14 @@ export class PseudoSession implements IBasicSession {
     public write(nodesToWrite: WriteValueOptions[] | WriteValueOptions, callback?: ResponseCallback<any>): any {
         const isArray = nodesToWrite instanceof Array;
         const _nodesToWrite: WriteValueOptions[] = !isArray ? [nodesToWrite] : nodesToWrite;
-        const context = this.context;
+        const context = this[$context];
         setImmediate(() => {
             const statusCodesPromises = _nodesToWrite.map((nodeToWrite: WriteValueOptions) => {
                 assert(!!nodeToWrite.nodeId, "expecting a nodeId");
                 assert(!!nodeToWrite.attributeId, "expecting a attributeId");
 
                 const nodeId = nodeToWrite.nodeId!;
-                const obj = this.addressSpace.findNode(nodeId);
+                const obj = this[$addressSpace].findNode(nodeId);
                 if (!obj) {
                     return StatusCodes.BadNodeIdUnknown;
                 }
