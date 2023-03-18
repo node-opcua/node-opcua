@@ -7,6 +7,9 @@ import * as fsOrig from "fs";
 
 import { assert } from "node-opcua-assert";
 import {
+    getContextMaxMessageSize,
+}  from "node-opcua-address-space-base";
+import {
     AddressSpace,
     IAddressSpace,
     ISessionContext,
@@ -474,7 +477,8 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
 
     // Length Defines the length in bytes that should be returned in data, starting from the current
     // position of the file handle. If the end of file is reached all data until the end of the file is
-    // returned. The Server is allowed to return less data than specified length.
+    // returned. 
+    
     let length: Int32 = inputArguments[1].value as Int32;
 
     // Only positive values are allowed.
@@ -482,6 +486,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
 
+    
 
     const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
     if (!_fileInfo) {
@@ -493,6 +498,10 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
         return { statusCode: StatusCodes.BadInvalidState };
     }
 
+    // Spec says that the the Server is allowed to return less data than specified length.
+    //
+    // In particular, we have to make sure that the number og bytes returned is not greater than
+    // the maxChunkSizeBytes specified in the server configuration.
     // length cannot exceed maxChunkSizeBytes
     const fileData = getFileDataFromContext(context);
     
@@ -505,6 +514,12 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
         length = BinaryStream.maxByteStringLength;
     }
 
+    // length cannot either exceed transport OPCUA maxMessageLength - some margin.
+    const maxMessageSize = getContextMaxMessageSize(context) - 1024;
+    if (maxMessageSize>0  && length > maxMessageSize) { 
+        length = maxMessageSize;
+    }
+  
     // length cannot either exceed remaining buffer size from current position
     length = Math.min(_fileInfo.size - _fileInfo.position[1], length);
 
