@@ -20,7 +20,7 @@ import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession } from "node-opcua-pseudo-session";
+import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession, IBasicTransportSettings } from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 import { requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
@@ -293,6 +293,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this.timeout = 0;
     }
 
+
+    getTransportSettings(): IBasicTransportSettings {
+        return this._client!.getTransportSettings();
+    }
     /**
      * the endpoint on which this session is operating
      * @property endpoint

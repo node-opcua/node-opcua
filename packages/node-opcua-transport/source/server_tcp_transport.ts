@@ -153,19 +153,28 @@ export class ServerTCP_transport extends TCP_transport {
         const defaultReceiveBufferSize = 64 * 1024;
         const defaultSendBufferSize = 64 * 1024;
 
-        if (!helloMessage.maxChunkCount && helloMessage.sendBufferSize) {
-            helloMessage.maxChunkCount = helloMessage.maxMessageSize / helloMessage.sendBufferSize;
+        const receiveBufferSize = clamp_value(
+            helloMessage.receiveBufferSize || defaultReceiveBufferSize,
+            minBufferSize,
+            maxBufferSize
+        );
+        const sendBufferSize = clamp_value(helloMessage.sendBufferSize || defaultSendBufferSize, minBufferSize, maxBufferSize);
+        const maxMessageSize = clamp_value(
+            helloMessage.maxMessageSize || defaultMaxMessageSize,
+            minMaxMessageSize,
+            maxMaxMessageSize
+        );
+
+        if (!helloMessage.maxChunkCount && sendBufferSize) {
+            helloMessage.maxChunkCount = Math.ceil(helloMessage.maxMessageSize / Math.min(sendBufferSize, receiveBufferSize));
         }
+        const maxChunkCount = clamp_value(helloMessage.maxChunkCount || defaultMaxChunkCount, minMaxChunkCount, maxMaxChunkCount);
 
         this.setLimits({
-            receiveBufferSize: clamp_value(
-                helloMessage.receiveBufferSize || defaultReceiveBufferSize,
-                minBufferSize,
-                maxBufferSize
-            ),
-            sendBufferSize: clamp_value(helloMessage.sendBufferSize || defaultSendBufferSize, minBufferSize, maxBufferSize),
-            maxMessageSize: clamp_value(helloMessage.maxMessageSize || defaultMaxMessageSize, minMaxMessageSize, maxMaxMessageSize),
-            maxChunkCount: clamp_value(helloMessage.maxChunkCount || defaultMaxChunkCount, minMaxChunkCount, maxMaxChunkCount)
+            receiveBufferSize,
+            sendBufferSize,
+            maxMessageSize,
+            maxChunkCount
         });
 
         // istanbul ignore next

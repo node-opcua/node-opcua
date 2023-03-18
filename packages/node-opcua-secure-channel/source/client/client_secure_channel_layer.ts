@@ -13,7 +13,7 @@ import {
     Certificate,
     extractPublicKeyFromCertificate,
     PrivateKey,
-        PublicKey,
+    PublicKey,
     PublicKeyPEM,
     rsaLengthPrivateKey,
     rsaLengthPublicKey
@@ -443,6 +443,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this.connectionStrategy = coerceConnectionStrategy(options.connectionStrategy);
     }
 
+    public getTransportSettings() {
+        const { maxMessageSize} = this.transportSettings;
+        return { maxMessageSize: maxMessageSize || 1024 };
+    }
+
     private _install_message_builder() {
         // istanbul ignore next
         if (!this._transport || !this._transport.parameters) {
@@ -555,6 +560,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n   maxMessageSize (to send) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
         str += "\n   maxChunkCount  (to send) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
         str += "\n   receiveBufferSize(server): " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
+        str += "\n   sendBufferSize (to send) : " + (this._transport?.parameters?.sendBufferSize || "<not set>");
         str += "\n";
         return str;
     }
@@ -1357,7 +1363,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (!this.isValid()) {
             // this may happen if the communication has been closed by the client or the sever
             warningLog("Invalid socket => Communication has been lost, cannot renew token");
-            return;
         }
 
         const isInitial = false;

@@ -391,6 +391,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // xx #422 self.setMaxListeners(200); // increase the number of max listener
     }
 
+    public getTransportSettings() {
+        return { maxMessageSize: this.transport.maxMessageSize };
+    }
+
     private _build_message_builder() {
         this.messageBuilder = new MessageBuilder({
             name: "server",

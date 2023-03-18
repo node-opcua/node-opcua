@@ -232,7 +232,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         // istanbul ignore next
         if (!s.typedEnum) {
             // tslint:disable:no-console
-            console.log("xxxx cannot find typeEnum", s);
+            errorLog("xxxx cannot find typeEnum", s);
         }
         const convert = (value: number) => {
             // istanbul ignore next

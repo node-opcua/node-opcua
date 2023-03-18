@@ -10,11 +10,21 @@ import { BaseNode } from "./base_node";
 import { UAObject } from "./ua_object";
 import { UAObjectType } from ".";
 
+export function getContextMaxMessageSize(context: ISessionContext): number {
+    if (!context.session?.channel?.getTransportSettings) return 0;
+    const f = context.session?.channel?.getTransportSettings();
+    return f ? f.maxMessageSize : 0;
+}
+
+export interface ITransportSettings {
+    maxMessageSize: number;
+}
 export interface IChannelBase {
     clientCertificate: Certificate | null;
     // clientNonce: Buffer | null;
     securityMode: MessageSecurityMode;
     securityPolicy: string;
+    getTransportSettings(): ITransportSettings;
 }
 
 export interface IContinuationPointInfo<T> {

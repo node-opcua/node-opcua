@@ -41,8 +41,7 @@ export class SecureMessageChunkManager extends EventEmitter {
     private sequenceHeader: SequenceHeader;
     private readonly headerSize: number;
     private readonly chunkManager: ChunkManager;
-    private readonly sequenceHeaderSize: number;
-
+   
     constructor(
         msgType: string,
         options: SecureMessageChunkManagerOptions,
@@ -51,7 +50,6 @@ export class SecureMessageChunkManager extends EventEmitter {
     ) {
         super();
         this.aborted = false;
-        this.sequenceHeaderSize = 0;
         msgType = msgType || "OPN";
 
         this.securityHeader = securityHeader || chooseSecurityHeader(msgType);
@@ -79,7 +77,6 @@ export class SecureMessageChunkManager extends EventEmitter {
         const sequenceHeaderSize = this.sequenceHeader.binaryStoreSize();
         assert(sequenceHeaderSize === 8);
 
-        this.sequenceHeaderSize = sequenceHeaderSize;
         this.headerSize = 12 + securityHeaderSize;
 
         const params: IChunkManagerOptions = {
@@ -94,7 +91,6 @@ export class SecureMessageChunkManager extends EventEmitter {
 
             sequenceHeaderSize,
             writeSequenceHeaderFunc: (buffer: Buffer) => {
-                // assert(buffer.length === this.sequenceHeaderSize);
                 this.writeSequenceHeader(buffer);
             },
 

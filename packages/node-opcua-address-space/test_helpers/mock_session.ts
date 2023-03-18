@@ -1,4 +1,4 @@
-import { ContinuationData, IContinuationPointInfo, IContinuationPointManager } from "node-opcua-address-space-base";
+import { ContinuationData, IContinuationPointInfo, IContinuationPointManager, ISessionBase } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { ReferenceDescription } from "node-opcua-service-browse";
@@ -26,7 +26,7 @@ export class MockContinuationPointManager implements IContinuationPointManager {
     }
 }
 
-export const mockSession = {
+export const mockSession: ISessionBase = {
     getSessionId() {
         return new NodeId();
     },

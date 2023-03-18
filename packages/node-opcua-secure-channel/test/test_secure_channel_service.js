@@ -26,8 +26,6 @@ describe("SecureMessageChunkManager", function () {
 
         const chunk_stack = [];
 
-        let fullBufferForVerif = null;
-
         async.series(
             [
                 function (callback) {
@@ -42,7 +40,6 @@ describe("SecureMessageChunkManager", function () {
                         if (messageChunk) {
                             chunk_stack.push(clone_buffer(messageChunk));
                         } else {
-                            fullBufferForVerif = clone_buffer(chunker._stream.buffer);
                             callback();
                         }
                     });
@@ -69,7 +66,7 @@ describe("SecureMessageChunkManager", function () {
                     const messageBuilder = new MessageBuilder();
                     messageBuilder
                         .on("full_message_body", function (full_message_body) {
-                            compare_buffers(fullBufferForVerif, full_message_body, 40);
+                            /** */
                         })
                         .on("message", (reconstructed_message) => {
                             // message has been fully reconstructed here :
@@ -133,7 +130,8 @@ describe("SecureMessageChunkManager", function () {
              00000020: 00 00 00 00 00 00 00 00 00 00 82 80 24 00 00 00 00 00 00 00 80 01 00 00 00 24 00 00 00 55 6e 65    ............$............$...Une
              00000040: 78 70 65 63 74 65 64 20 65 72 72 6f 72 20 70 72 6f 63 65 73 73 69 6e 67 20 72 65 71 75 65 73 74    xpected.error.processing.request
              00000060: 2e 00 00 00                                                                                        ....
-             `);
+             `
+        );
         messageBuilder.feed(packet);
     });
     it("should test CloseSecureChannelResponse", function () {

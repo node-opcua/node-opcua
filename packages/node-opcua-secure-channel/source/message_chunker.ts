@@ -47,8 +47,6 @@ export class MessageChunker {
     public securityHeader?: AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader | null;
 
     private readonly sequenceNumberGenerator: SequenceNumberGenerator;
-    private _stream?: BinaryStream;
-    private derivedKeys?: DerivedKeys | null;
     public maxMessageSize: number;
     public maxChunkCount: number;
 
@@ -62,8 +60,6 @@ export class MessageChunker {
 
     public dispose(): void {
         this.securityHeader = null;
-        this.derivedKeys = undefined;
-        this._stream = undefined;
     }
 
     /***
@@ -81,7 +77,6 @@ export class MessageChunker {
         assert(options.securityHeader !== null && typeof options.securityHeader === "object");
 
         this.securityHeader = options.securityHeader;
-        this.derivedKeys = options.derivedKeys || undefined;
     }
 
     public chunkSecureMessage(
@@ -146,7 +141,6 @@ export class MessageChunker {
         // calculate message size ( with its  encodingDefaultBinary)
         const binSize = message.binaryStoreSize() + 4;
         const stream = new BinaryStream(binSize);
-        this._stream = stream;
 
         encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
         message.encode(stream);
@@ -165,6 +159,8 @@ export class MessageChunker {
             errorLog(
                 `[NODE-OPCUA-E10] message chunkCount ${chunkCount} exceeds the negotiated maximum chunk count ${this.maxChunkCount}, message current size is ${totalLength}`
             );
+            errorLog(
+                `[NODE-OPCUA-E10] ${stream.buffer.length} totalLength = ${totalLength} chunkManager.maxBodySize = ${this.maxMessageSize}`);
             return messageChunkCallback(
                 new Error("message chunkCount exceeds the negotiated maximum message count"),
                 makeAbandonChunk()
@@ -201,7 +197,8 @@ export class MessageChunker {
                         "nbChunk = " + nbChunks.toString().padStart(3),
                         "totalLength = " + totalSize.toString().padStart(8),
                         "l=",
-                        binSize.toString().padStart(6)
+                        binSize.toString().padStart(6),
+                        "maxChunkCount=", this.maxChunkCount, "maxMessageSize=", this.maxMessageSize
                     );
                 }
 

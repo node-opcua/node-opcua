@@ -16,7 +16,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 
 import { makeApplicationUrn } from "node-opcua-common";
 import { getHostname } from "node-opcua-hostname";
-
+import { IBasicTransportSettings } from "node-opcua-pseudo-session";
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -1334,6 +1334,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     public getSessions(): ClientSessionImpl[] {
         return this._sessions;
+    }
+
+    public getTransportSettings(): IBasicTransportSettings {
+        return this._secureChannel!.getTransportSettings();
     }
 
     protected _addSession(session: ClientSessionImpl): void {

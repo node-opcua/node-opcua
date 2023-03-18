@@ -15,6 +15,7 @@
         "npm": ">=8.x"
     },
     "dependencies": {
+        "node-opcua-address-space-base": "2.92.0",
         "node-opcua-address-space": "2.94.0",
         "node-opcua-assert": "2.88.0",
         "node-opcua-basic-types": "2.92.0",
@@ -32,6 +33,7 @@
     },
     "devDependencies": {
         "memfs": "^3.4.13",
+        "node-opcua": "2.94.0",
         "node-opcua-client": "2.94.0",
         "node-opcua-leak-detector": "2.90.1",
         "node-opcua-nodesets": "2.88.0",

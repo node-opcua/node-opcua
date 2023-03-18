@@ -163,6 +163,12 @@ export class TCP_transport extends EventEmitter {
         this.maxMessageSize = maxMessageSize;
         this.maxChunkCount = maxChunkCount;
 
+        if(maxMessageSize / sendBufferSize > maxChunkCount || maxMessageSize / receiveBufferSize > maxChunkCount) 
+        {
+            warningLog(`Warning : maxMessageSize / sendBufferSize ${maxMessageSize / sendBufferSize}> maxChunkCount ${maxChunkCount}
+                             || maxMessageSize / receiveBufferSize ${maxMessageSize / receiveBufferSize} < maxChunkCount `);
+        }
+        
         // reinstall packetAssembler with correct limits
         this._install_packetAssembler();
     }

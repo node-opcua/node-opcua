@@ -17,7 +17,6 @@ import {
 } from "node-opcua-types";
 import { ISessionContext, UAObject, UAObjectType, UAVariable, BaseNode, ISessionBase } from "node-opcua-address-space-base";
 import { ObjectIds } from "node-opcua-constants";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { NamespacePrivate } from "../src/namespace_private";
 
 export { RolePermissionType, RolePermissionTypeOptions, PermissionType } from "node-opcua-types";

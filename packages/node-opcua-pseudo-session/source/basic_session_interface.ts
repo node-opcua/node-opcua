@@ -21,6 +21,15 @@ export type CallMethodRequestLike = CallMethodRequestOptions;
 
 export type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
+
+export interface IBasicTransportSettings {
+    maxMessageSize: number;
+}
+
+export interface IBasicSession {
+    getTransportSettings?: ()=> IBasicTransportSettings;
+}
+
 export interface IBasicSession {
     browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
 
