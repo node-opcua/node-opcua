@@ -1199,7 +1199,9 @@ importers:
   packages/node-opcua-file-transfer:
     specifiers:
       memfs: ^3.4.13
+      node-opcua: 2.94.0
       node-opcua-address-space: 2.94.0
+      node-opcua-address-space-base: 2.92.0
       node-opcua-assert: 2.88.0
       node-opcua-basic-types: 2.92.0
       node-opcua-binary-stream: 2.90.1
@@ -1219,6 +1221,7 @@ importers:
       should: ^13.2.3
     dependencies:
       node-opcua-address-space: link:../node-opcua-address-space
+      node-opcua-address-space-base: link:../node-opcua-address-space-base
       node-opcua-assert: link:../node-opcua-assert
       node-opcua-basic-types: link:../node-opcua-basic-types
       node-opcua-binary-stream: link:../node-opcua-binary-stream
@@ -1234,6 +1237,7 @@ importers:
       node-opcua-variant: link:../node-opcua-variant
     devDependencies:
       memfs: 3.4.13
+      node-opcua: link:../node-opcua
       node-opcua-client: link:../node-opcua-client
       node-opcua-leak-detector: link:../node-opcua-leak-detector
       node-opcua-nodesets: link:../node-opcua-nodesets
