@@ -142,8 +142,12 @@ describe("extractConditionFields", () => {
             // "AckedState.TransitionTime",
             // "AckedState.TrueState",
             "ActiveState",
+            "ActiveState.EffectiveDisplayName",
+            "ActiveState.EffectiveTransitionTime",
+            "ActiveState.FalseState",
             "ActiveState.Id",
-
+            "ActiveState.TransitionTime",
+            "ActiveState.TrueState",
             "BranchId",
             "ClientUserId",
             "Comment",
@@ -231,6 +235,6 @@ describe("extractConditionFields", () => {
         const json = fieldsToJson(fields, values);
         doDebug && console.log(json);
 
-        json.conditionId.toString().should.eql("Variant(Scalar<Double>, value: 40)");
+        json.conditionId.toString().should.eql("Variant(Scalar<Double>, value: 45)");
     });
 });
