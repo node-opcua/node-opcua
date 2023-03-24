@@ -2,13 +2,10 @@
  * @module node-opcua-server-configuration
  */
 
-import { callbackify } from "util";
 import { fs as MemFs } from "memfs";
 
 import {
-    AddressSpace,
     MethodFunctor,
-    SessionContext,
     UAMethod,
     UATrustList,
     UAObject,

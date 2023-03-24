@@ -39,7 +39,6 @@ export async function writeOPCUAFile(clientFile: IClientFile, filePath: string, 
     try {
         const outStream = new Writable({
             write(chunk, encoding, callback) {
-                console.log("chunk ==chunkSize = ", chunk.length);
                 doDebug && debugLog("writing chunk", chunk.length);
                 clientFile
                     .write(chunk)

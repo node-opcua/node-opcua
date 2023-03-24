@@ -13,9 +13,6 @@ const doDebug = checkDebugFlag("TEST");
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-
-
-
 describe("Test object instantiate multi", () => {
     let addressSpace: AddressSpace;
 
@@ -24,11 +21,7 @@ describe("Test object instantiate multi", () => {
 
         const n = addressSpace.registerNamespace("Private");
 
-        await generateAddressSpace(addressSpace, [
-            nodesets.standard,
-            nodesets.di,
-            nodesets.commercialKitchenEquipment
-        ]);
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.commercialKitchenEquipment]);
         return addressSpace;
     }
     beforeEach(async () => {
@@ -53,16 +46,12 @@ describe("Test object instantiate multi", () => {
     }
 
     it("should be possible to instantiate 2 objects - registerSymbolicNames = false", () => {
-
         const { coffeeManicheDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
         const coffeeMachine1 = coffeeManicheDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
         const coffeeMachine2 = coffeeManicheDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
-
     });
 
-
     it("should be possible to instantiate 2 objects - registerSymbolicNames = true", async () => {
-
         const ns = addressSpace.getOwnNamespace();
 
         setSymbols(ns, []);
@@ -91,7 +80,5 @@ describe("Test object instantiate multi", () => {
 
             addressSpace2.dispose();
         }
-
     });
-
 });
