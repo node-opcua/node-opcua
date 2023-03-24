@@ -190,8 +190,8 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption): void
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(
         options.padding +
-        chalk.yellow("          displayName         : ") +
-        this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+            chalk.yellow("          displayName         : ") +
+            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
     );
 
     options.add(
@@ -210,9 +210,9 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-        chalk.yellow("    references                : ") +
-        "  length =" +
-        Object.keys(_private._referenceIdx).length
+            chalk.yellow("    references                : ") +
+            "  length =" +
+            Object.keys(_private._referenceIdx).length
     );
 
     function dump_reference(follow: boolean, reference: UAReference | null) {
@@ -251,12 +251,12 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
             })();
         options.add(
             options.padding +
-            chalk.yellow("      +-> ") +
-            reference.toString(displayOptions) +
-            " " +
-            chalk.cyan(name.padEnd(25, " ")) +
-            " " +
-            chalk.magentaBright(extra)
+                chalk.yellow("      +-> ") +
+                reference.toString(displayOptions) +
+                " " +
+                chalk.cyan(name.padEnd(25, " ")) +
+                " " +
+                chalk.magentaBright(extra)
         );
 
         // ignore HasTypeDefinition as it has been already handled
@@ -285,10 +285,10 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-        chalk.yellow("    back_references                 : ") +
-        chalk.cyan("  length =") +
-        br.length +
-        chalk.grey(" ( references held by other nodes involving this node)")
+            chalk.yellow("    back_references                 : ") +
+            chalk.cyan("  length =") +
+            br.length +
+            chalk.grey(" ( references held by other nodes involving this node)")
     );
     // backward reference
     br.forEach(dump_reference.bind(null, false));
@@ -298,11 +298,11 @@ function _UAType_toString(this: UAReferenceType | UADataType | UAObjectType | UA
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-            chalk.yellow("          subtypeOf           : ") +
-            this.subtypeOfObj.browseName.toString() +
-            " (" +
-            this.subtypeOfObj.nodeId.toString() +
-            ")"
+                chalk.yellow("          subtypeOf           : ") +
+                this.subtypeOfObj.browseName.toString() +
+                " (" +
+                this.subtypeOfObj.nodeId.toString() +
+                ")"
         );
     }
 }
@@ -311,11 +311,11 @@ function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: T
     if (this.typeDefinitionObj) {
         options.add(
             options.padding +
-            chalk.yellow("          typeDefinition      : ") +
-            this.typeDefinitionObj.browseName.toString() +
-            " (" +
-            this.typeDefinitionObj.nodeId.toString() +
-            ")"
+                chalk.yellow("          typeDefinition      : ") +
+                this.typeDefinitionObj.browseName.toString() +
+                " (" +
+                this.typeDefinitionObj.nodeId.toString() +
+                ")"
         );
     }
 }
@@ -422,9 +422,9 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         if (_dataValue) {
             options.add(
                 options.padding +
-                chalk.yellow("          value               : ") +
-                "\n" +
-                options.indent(_dataValue.toString(), options.padding + "                        | ")
+                    chalk.yellow("          value               : ") +
+                    "\n" +
+                    options.indent(_dataValue.toString(), options.padding + "                        | ")
             );
         }
     }
@@ -441,19 +441,19 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     if (this.minimumSamplingInterval !== undefined) {
         options.add(
             options.padding +
-            chalk.yellow(" minimumSamplingInterval      : ") +
-            " " +
-            this.minimumSamplingInterval.toString() +
-            " ms"
+                chalk.yellow(" minimumSamplingInterval      : ") +
+                " " +
+                this.minimumSamplingInterval.toString() +
+                " ms"
         );
     }
     if (this.arrayDimensions) {
         options.add(
             options.padding +
-            chalk.yellow(" arrayDimension               : ") +
-            " [" +
-            this.arrayDimensions.join(",").toString() +
-            " ]"
+                chalk.yellow(" arrayDimension               : ") +
+                " [" +
+                this.arrayDimensions.join(",").toString() +
+                " ]"
         );
     }
 }
@@ -469,10 +469,130 @@ const defaultExtraInfo = {
 };
 
 /**
+ *
+ *
+ *    MyDeriveType  ------------------- -> MyBaseType    --------------> TopologyElementType
+ *        |                                   |                                   |
+ *        +- ParamaterSet                     +-> ParameterSet                    +-> ParamaterSet
+ *                 |                                   |
+ *                  +- Foo1                            |
+ *                                                     +- Bar
+ *
+ *    Instance
+ *
+ * @param newParent
+ * @param node
+ * @param copyAlsoModellingRules
+ * @param optionalFilter
+ * @param extraInfo
+ * @param browseNameMap
+ * @returns
+ */
+function _clone_children_on_template(
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
+    newParent: BaseNode,
+    node: BaseNode,
+    copyAlsoModellingRules: boolean,
+    optionalFilter: CloneFilter,
+    extraInfo: CloneExtraInfo,
+    browseNameMap: Set<string>
+) {
+    /**
+     * the type definition node of the node to clone
+     */
+    const nodeToCloneTypeDefinition =
+        nodeToClone.nodeClass === NodeClass.ObjectType || nodeToClone.nodeClass === NodeClass.VariableType
+            ? nodeToClone.subtypeOfObj
+            : null;
+    if (!nodeToCloneTypeDefinition) return;
+
+    doTrace &&
+        traceLog(
+            extraInfo?.pad(),
+            chalk.green(
+                "-------------------- now cloning children on template ",
+                node.browseName.toString(),
+                node.nodeId.toString(),
+                nodeToCloneTypeDefinition.browseName.toString()
+            )
+        );
+
+    const namespace = newParent.namespace;
+
+    /**
+     * the child node of the new parent that match the node to clone or enrich
+     */
+    const newParentChild = newParent.getChildByName(node.browseName);
+    if (!newParentChild) {
+        return;
+    }
+    // we have found a matching child on the new parent.
+    // the mission is to enrich this child node with compoents and property that
+    // exists also in the template
+
+    let typeDefinitionNode: UAVariableType | UAObjectType | null = nodeToCloneTypeDefinition;
+    while (typeDefinitionNode) {
+        doTrace &&
+            traceLog(
+                extraInfo?.pad(),
+                chalk.green(
+                    "-------------------- now cloning children on ",
+                    newParentChild.browseName.toString(),
+                    newParentChild.nodeId.toString(),
+                    " (child of ",
+                    node.browseName.toString(),
+                    node.nodeId.toString(),
+                    ") from ",
+                    typeDefinitionNode.browseName.toString()
+                )
+            );
+
+        const typeDefinitionChild = typeDefinitionNode.getChildByName(node.browseName);
+        if (typeDefinitionChild) {
+            const references = typeDefinitionChild.findReferencesEx("Aggregates", BrowseDirection.Forward);
+
+            for (const ref of references) {
+                const grandChild = ref.node as UAVariable | UAObject | UAMethod;
+                if (grandChild.modellingRule === "MandatoryPlaceholder" || grandChild.modellingRule === "OptionalPlaceholder")
+                    continue;
+                // if not already node present in new Parent => just ignore
+                const hasAlready = newParentChild.getChildByName(grandChild.browseName) !== null;
+                if (!hasAlready) {
+                    if (optionalFilter && node && !optionalFilter.shouldKeep(node)) {
+                        doTrace &&
+                            traceLog(
+                                extraInfo.pad(),
+                                "skipping optional ",
+                                node.browseName.toString(),
+                                "that doesn't appear in the filter"
+                            );
+                        continue; // skip this node
+                    }
+
+                    const options = {
+                        namespace,
+                        references: [
+                            new ReferenceImpl({
+                                referenceType: ref.referenceType,
+                                isForward: false,
+                                nodeId: newParentChild.nodeId
+                            })
+                        ],
+                        copyAlsoModellingRules
+                    };
+                    const a = grandChild.clone(options, optionalFilter, extraInfo);
+                }
+            }
+        }
+        typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
+    }
+}
+/**
  * clone properties and methods
  * @private
  */
 function _clone_collection_new(
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: BaseNode,
     collectionRef: UAReference[],
     copyAlsoModellingRules: boolean,
@@ -495,11 +615,11 @@ function _clone_collection_new(
             // tslint:disable-next-line:no-console
             warningLog(
                 chalk.red("Warning : cannot clone node ") +
-                node.browseName.toString() +
-                " of class " +
-                NodeClass[node.nodeClass].toString() +
-                " while cloning " +
-                newParent.browseName.toString()
+                    node.browseName.toString() +
+                    " of class " +
+                    NodeClass[node.nodeClass].toString() +
+                    " while cloning " +
+                    newParent.browseName.toString()
             );
             continue;
         }
@@ -511,6 +631,16 @@ function _clone_collection_new(
         }
         const key = node.browseName.toString();
         if (browseNameMap?.has(key)) {
+            _clone_children_on_template(
+                nodeToClone,
+                newParent,
+                node,
+                copyAlsoModellingRules,
+                optionalFilter,
+                extraInfo,
+                browseNameMap
+            );
+
             continue; // skipping node with same browseName
         }
         browseNameMap?.add(key);
@@ -534,17 +664,17 @@ function _clone_collection_new(
             );
 
         extraInfo.level += 4;
-        const clone = (node as UAVariable | UAMethod | UAObject).clone(options, optionalFilter, extraInfo);
+        const clone = node.clone(options, optionalFilter, extraInfo);
         extraInfo.level -= 4;
-        doTrace &&
-            traceLog(
-                extraInfo.pad(),
-                "cloning => ", node.browseName.toString(), "nodeId", clone.nodeId.toString()
-            );
+        doTrace && traceLog(extraInfo.pad(), "cloning => ", node.browseName.toString(), "nodeId", clone.nodeId.toString());
+
+        extraInfo.level++;
+        _clone_children_on_template(nodeToClone, newParent, node, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+        extraInfo.level--;
 
         // also clone or instantiate interface members that may be required in the optionals
         extraInfo.level++;
-        _cloneInterface(newParent, node, optionalFilter, extraInfo, browseNameMap);
+        _cloneInterface(nodeToClone, newParent, node, optionalFilter, extraInfo, browseNameMap);
         extraInfo.level--;
 
         if (extraInfo) {
@@ -616,7 +746,8 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     }
     const dedupedInterfaces = [...new Set(interfaces)];
 
-    doTrace && dedupedInterfaces.length &&
+    doTrace &&
+        dedupedInterfaces.length &&
         traceLog(
             extraInfo.pad(),
             chalk.yellow("Interface for ", typeDefinitionNode.browseName.toString()),
@@ -675,6 +806,7 @@ function _crap_extractInterfaces(typeDefinitionNode: UAObjectType | UAVariableTy
 }
 
 function _cloneInterface(
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: BaseNode,
     node: UAObject | UAVariable | UAMethod,
     optionalFilter: CloneFilter,
@@ -699,7 +831,9 @@ function _cloneInterface(
     }
     const interfaces = _extractInterfaces2(typeDefinitionNode, extraInfo);
     if (interfaces.length === 0) {
-        doTrace && false && traceLog(extraInfo.pad(), chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString()));
+        doTrace &&
+            false &&
+            traceLog(extraInfo.pad(), chalk.yellow("No interface for ", node.browseName.toString(), node.nodeId.toString()));
         return;
     }
     doTrace && traceLog(extraInfo?.pad(), chalk.green("-------------------- interfaces are  ", interfaces.length));
@@ -715,7 +849,7 @@ function _cloneInterface(
                 "\n" + extraInfo?.pad(),
                 aggregates.map((r) => r.toString({ addressSpace })).join("\n" + extraInfo?.pad())
             );
-        _clone_collection_new(node, aggregates, false, localFilter, extraInfo, browseNameMap);
+        _clone_collection_new(nodeToClone, node, aggregates, false, localFilter, extraInfo, browseNameMap);
     }
 }
 export function _clone_children_references(
@@ -728,11 +862,11 @@ export function _clone_children_references(
 ): void {
     // find all reference that derives from the Aggregates
     const aggregatesRef = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
-    _clone_collection_new(newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    _clone_collection_new(node, newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
 export function _clone_non_hierarchical_references(
-    node: BaseNode,
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: BaseNode,
     copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
@@ -745,8 +879,8 @@ export function _clone_non_hierarchical_references(
     //   (may be other as well later ... to do )
     assert(newParent instanceof BaseNodeImpl);
     // find all reference that derives from the HasSubStateMachine
-    const references = node.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
-    _clone_collection_new(newParent, references, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    const references = nodeToClone.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
+    _clone_collection_new(nodeToClone, newParent, references, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
 /**
@@ -842,7 +976,14 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
                 typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
             }
         }
-        _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
+        _clone_non_hierarchical_references(
+            this,
+            cloneObj,
+            options.copyAlsoModellingRules,
+            newFilter,
+            extraInfo,
+            browseNameMap
+        );
     }
     cloneObj.propagate_back_references();
     cloneObj.install_extra_properties();
