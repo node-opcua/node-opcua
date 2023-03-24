@@ -285,6 +285,8 @@ fetch_from_github(version, "DI/Opc.Ua.Di.Types.xsd");
 fetch_from_github(version, "GDS/Opc.Ua.Gds.NodeSet2.xml");
 fetch_from_github(version, "Glass/Flat/Opc.Ua.Glass.NodeSet2.xml");
 fetch_from_github(version, "IA/Opc.Ua.IA.NodeSet2.xml");
+fetch_from_github(version, "IOLink/Opc.Ua.IOLink.NodeSet2.xml");
+fetch_from_github(version, "IOLink/Opc.Ua.IOLinkIODD.NodeSet2.xml");
 fetch_from_github(version, "ISA-95/Opc.ISA95.NodeSet2.xml");
 fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
 fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");

@@ -53,6 +53,8 @@ const woodWorkingNodeSetFilename = constructNodesetFilename("Opc.Ua.Woodworking.
 const eumaboisNodeSetFilename = constructNodesetFilename("Opc.Ua.Eumabois.NodeSet2.xml");
 const glassNodeSetFilename = constructNodesetFilename("Opc.Ua.Glass.NodeSet2.xml");
 const tighteningNodeSetFilename = constructNodesetFilename("Opc.Ua.Ijt.Tightening.NodeSet2.xml")
+const iolinkNodeSetFilename = constructNodesetFilename("Opc.Ua.IoLink.NodeSet2.xml");
+const iolinkIODDNodeSetFilename = constructNodesetFilename("Opc.Ua.IoLinkIODD.NodeSet2.xml");
 
 export const nodesets = {
     adi: adiNodeSetFilename,
@@ -87,7 +89,10 @@ export const nodesets = {
 
     glass: glassNodeSetFilename,
 
-    tightening: tighteningNodeSetFilename
+    tightening: tighteningNodeSetFilename,
+
+    iolink: iolinkNodeSetFilename, 
+    iolinkIODD: iolinkIODDNodeSetFilename
 };
 
 function makeDeprecated(id: string, newName: keyof typeof nodesets) {
