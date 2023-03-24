@@ -209,7 +209,10 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             channel: {
                 securityMode: MessageSecurityMode.None,
                 securityPolicy: "",
-                clientCertificate: null
+                clientCertificate: null,
+                getTransportSettings() {
+                    return { maxMessageSize: 0 };
+                }
             }
         }
     });
@@ -226,7 +229,10 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             channel: {
                 securityMode: MessageSecurityMode.Sign,
                 securityPolicy: "",
-                clientCertificate: null
+                clientCertificate: null,
+                getTransportSettings() {
+                    return { maxMessageSize: 0 };
+                }
             }
         }
     });
@@ -243,7 +249,10 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
             channel: {
                 securityMode: MessageSecurityMode.SignAndEncrypt,
                 securityPolicy: "",
-                clientCertificate: null
+                clientCertificate: null,
+                getTransportSettings() {
+                    return { maxMessageSize: 0 };
+                }
             }
         }
     });
@@ -279,16 +288,14 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
 
         parentNode = namespace.addObject({ browseName: "Object", organizedBy: addressSpace.rootFolder.objects });
 
-
         uaDefaultVariable = namespace.addAnalogDataItem({
             browseName: "DefaultVariable",
             nodeId: "s=DefaultVariable",
             dataType: "Double",
-            engineeringUnitsRange: { low: -100, high: 100 },    
+            engineeringUnitsRange: { low: -100, high: 100 },
             componentOf: parentNode
         });
-        uaDefaultVariable.setValueFromSource({dataType: "Double", value: 42});
-
+        uaDefaultVariable.setValueFromSource({ dataType: "Double", value: 42 });
 
         uaVariable = namespace.addVariable({
             accessLevel: makeAccessLevelFlag(
@@ -305,7 +312,9 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
 
         uaVariable.nodeId.namespace.should.eql(namespace.index);
 
-        const adiNamespace = addressSpace.rootFolder.objects.server.getComponentByName("Namespaces", 0)!.getChildByName(nodesets.adi);
+        const adiNamespace = addressSpace.rootFolder.objects.server
+            .getComponentByName("Namespaces", 0)!
+            .getChildByName(nodesets.adi);
 
         restrictedVariableSign = namespace.addVariable({
             accessLevel: makeAccessLevelFlag(
@@ -355,15 +364,13 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
         addressSpace.dispose();
     });
 
-
     describe("KK-1 Testing variable that inherits from namespace defaults", () => {
         it("it should inherit from namespace defaults", async () => {
             const nodeId = uaDefaultVariable.nodeId;
-       
-            const sessionAnonymous= new PseudoSession(addressSpace, contextAnonymous);
-            const dataValue = await sessionAnonymous.read({nodeId, attributeId: AttributeIds.Value});
-            dataValue.statusCode.should.eql(StatusCodes.Good);
 
+            const sessionAnonymous = new PseudoSession(addressSpace, contextAnonymous);
+            const dataValue = await sessionAnonymous.read({ nodeId, attributeId: AttributeIds.Value });
+            dataValue.statusCode.should.eql(StatusCodes.Good);
         });
     });
 

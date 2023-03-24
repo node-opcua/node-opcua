@@ -163,6 +163,10 @@ export class ClientTCP_transport extends TCP_transport {
         };
     }
 
+    public getTransportSettings(): TransportSettingsOptions {
+        return this._helloSettings;
+    }
+
     public dispose(): void {
         /* istanbul ignore next */
         if (doDebug) {
