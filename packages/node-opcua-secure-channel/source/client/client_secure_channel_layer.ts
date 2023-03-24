@@ -339,7 +339,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     public static defaultTransportTimeout = 60 * 1000; // 1 minute
-    private transportSettings: TransportSettingsOptions;
+    private requestedTransportSettings: TransportSettingsOptions;
 
     public protocolVersion: number;
     public readonly securityMode: MessageSecurityMode;
@@ -436,16 +436,16 @@ export class ClientSecureChannelLayer extends EventEmitter {
         this._securityTokenTimeoutId = null;
 
         this.transportTimeout = options.transportTimeout || ClientSecureChannelLayer.defaultTransportTimeout;
-        this.transportSettings = options.transportSettings || {};
+        this.requestedTransportSettings = options.transportSettings || {};
 
         this.channelId = 0;
 
         this.connectionStrategy = coerceConnectionStrategy(options.connectionStrategy);
     }
 
-    public getTransportSettings() {
-        const { maxMessageSize} = this.transportSettings;
-        return { maxMessageSize: maxMessageSize || 1024 };
+    public getTransportSettings(): { maxMessageSize: number } {
+        const { maxMessageSize } = this._transport ? this._transport.getTransportSettings() : { maxMessageSize: 2048 };
+        return { maxMessageSize: maxMessageSize || 0 };
     }
 
     private _install_message_builder() {
@@ -636,7 +636,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.endpointUrl = endpointUrl;
 
-        const transport = new ClientTCP_transport(this.transportSettings);
+        const transport = new ClientTCP_transport(this.requestedTransportSettings);
         transport.timeout = this.transportTimeout;
 
         doDebug &&
@@ -1363,6 +1363,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (!this.isValid()) {
             // this may happen if the communication has been closed by the client or the sever
             warningLog("Invalid socket => Communication has been lost, cannot renew token");
+            return;
         }
 
         const isInitial = false;
