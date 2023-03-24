@@ -57,6 +57,7 @@ import { ClientMonitoredItemGroupImpl } from "./client_monitored_item_group_impl
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSessionImpl } from "./client_session_impl";
+import { detectLongOperation } from "./performance";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -754,7 +755,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             this.lifetimeCount = response.revisedLifetimeCount;
             this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
 
-            this.timeoutHint = Math.min(((this.maxKeepAliveCount + 10) * this.publishingInterval) * 2, 0x7FFFF);
+            this.timeoutHint = Math.min((this.maxKeepAliveCount + 10) * this.publishingInterval * 2, 0x7ffff);
 
             displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
             ClientSubscription.ignoreNextWarning = false;
@@ -898,29 +899,49 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             // let publish a global event
 
             promoteOpaqueStructureInNotificationData(this.session, notificationData).then(() => {
-                // now process all notifications
-                for (const notification of notificationData) {
-                    // istanbul ignore next
-                    if (!notification) {
-                        continue;
-                    }
+                detectLongOperation(
+                    () => {
+                        // now process all notifications
+                        for (const notification of notificationData) {
+                            // istanbul ignore next
+                            if (!notification) {
+                                continue;
+                            }
 
-                    // DataChangeNotification / StatusChangeNotification / EventNotification
-                    switch (notification.schema.name) {
-                        case "DataChangeNotification":
-                            // now inform each individual monitored item
-                            this.__on_publish_response_DataChangeNotification(notification as DataChangeNotification);
-                            break;
-                        case "StatusChangeNotification":
-                            this.__on_publish_response_StatusChangeNotification(notification as StatusChangeNotification);
-                            break;
-                        case "EventNotificationList":
-                            this.__on_publish_response_EventNotificationList(notification as EventNotificationList);
-                            break;
-                        default:
-                            warningLog(" Invalid notification :", notification.toString());
+                            // DataChangeNotification / StatusChangeNotification / EventNotification
+                            switch (notification.schema.name) {
+                                case "DataChangeNotification":
+                                    // now inform each individual monitored item
+                                    this.__on_publish_response_DataChangeNotification(notification as DataChangeNotification);
+                                    break;
+                                case "StatusChangeNotification":
+                                    this.__on_publish_response_StatusChangeNotification(notification as StatusChangeNotification);
+                                    break;
+                                case "EventNotificationList":
+                                    this.__on_publish_response_EventNotificationList(notification as EventNotificationList);
+                                    break;
+                                default:
+                                    warningLog(" Invalid notification :", notification.toString());
+                            }
+                        }
+                    },
+                    (duration: number) => {
+                        const s = (a: unknown) => {
+                            const b = a as { $_slowNotifCount: number; $_maxDuration: number };
+                            b.$_slowNotifCount = b.$_slowNotifCount || 0;
+                            b.$_maxDuration = b.$_maxDuration || 0;
+                            return b;
+                        };
+                        s(this).$_maxDuration = Math.max(s(this).$_maxDuration, duration);
+                        if (s(this).$_slowNotifCount > 0 && s(this).$_slowNotifCount % 1000 !== 0) return;
+                        s(this).$_slowNotifCount++;
+                        warningLog(
+                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${
+                                s(this).$_slowNotifCount
+                            } times]\n         please ensure that your monitoreItem event handler is not blocking the event loop.`
+                        );
                     }
-                }
+                );
             });
         }
     }

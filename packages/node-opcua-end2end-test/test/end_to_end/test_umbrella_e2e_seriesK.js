@@ -26,5 +26,5 @@ describe("testing Client - Umbrella-K", function () {
     after(async () => await afterTest(test));
 
     require("./u_test_e2e_SubscriptionUseCase_ResendData").t(test);
-  
+    require("./u_test_e2e_monitored_item_long_processing").t(test);
 });
