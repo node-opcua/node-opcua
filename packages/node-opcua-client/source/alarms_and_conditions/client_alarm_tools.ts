@@ -24,7 +24,7 @@ function r(_key: string, o: { dataType?: unknown; value?: unknown }) {
     }
     return o;
 }
-interface ClientSessionPriv extends ClientSession {
+export interface ClientSessionPriv extends ClientSession {
     $clientAlarmList: ClientAlarmList | null;
     $monitoredItemForAlarmList: ClientMonitoredItem | null;
     $subscriptionforAlarmList: ClientSubscription | null;
@@ -32,7 +32,7 @@ interface ClientSessionPriv extends ClientSession {
 // ------------------------------------------------------------------------------------------------------------------------------
 export async function uninstallAlarmMonitoring(session: ClientSession): Promise<void> {
     const _sessionPriv = session as ClientSessionPriv;
-    if (!_sessionPriv.$clientAlarmList) {
+    if (!areClientSessionPrivFieldsValid(_sessionPriv)) {
         return;
     }
 
@@ -45,6 +45,18 @@ export async function uninstallAlarmMonitoring(session: ClientSession): Promise<
     return;
 }
 
+/**
+ * Checks if all fields in the `ClientSessionPriv` interface are valid.
+ * @param session - The `ClientSessionPriv` object to check.
+ * @returns `true` if all fields are valid, `false` otherwise.
+ */
+export function areClientSessionPrivFieldsValid(session: ClientSessionPriv): boolean {
+    return (
+        session.$clientAlarmList !== null &&
+        session.$monitoredItemForAlarmList !== null &&
+        session.$subscriptionforAlarmList !== null
+    );
+}
 // Release 1.04 8 OPC Unified Architecture, Part 9
 // 4.5 Condition state synchronization
 //
@@ -110,7 +122,6 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     let inInit = true;
     eventMonitoringItem.on("changed", (eventFields: Variant[]) => {
-        
         const pojo = fieldsToJson(fields, eventFields);
         const { eventType, eventId, conditionId, conditionName } = pojo;
 
