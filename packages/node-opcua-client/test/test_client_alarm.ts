@@ -1,5 +1,18 @@
 import * as should from "should";
-import { ClientAlarm, ClientAlarmList, DataType, EventStuff, NodeId, resolveNodeId, TVariant, Variant } from "../source/index";
+import {
+    ClientAlarm,
+    ClientAlarmList,
+    DataType,
+    EventStuff,
+    NodeId,
+    resolveNodeId,
+    TVariant,
+    Variant,
+    ClientSessionPriv,
+    ClientMonitoredItem,
+    ClientSubscription,
+    areClientSessionPrivFieldsValid
+} from "../source/index";
 
 class VariantId extends Variant {
     public id: TVariant<boolean>;
@@ -75,5 +88,57 @@ describe("Testing client alarm", () => {
         alarmCreatedCount.should.eql(2);
 
         alarmList.length.should.eql(2);
+    });
+});
+
+describe("Ensure that all fields in the ClientSessionPriv interface are valid", () => {
+    it("should return true when all fields are not null", () => {
+        const session: Partial<ClientSessionPriv> = {
+            $clientAlarmList: new ClientAlarmList(),
+            $monitoredItemForAlarmList: new ClientMonitoredItem(),
+            $subscriptionforAlarmList: new ClientSubscription()
+        };
+        const result: boolean = areClientSessionPrivFieldsValid(session as ClientSessionPriv);
+        result.should.be.true;
+    });
+
+    it("should return false when $clientAlarmList is null", () => {
+        const session: Partial<ClientSessionPriv> = {
+            $clientAlarmList: null,
+            $monitoredItemForAlarmList: new ClientMonitoredItem(),
+            $subscriptionforAlarmList: new ClientSubscription()
+        };
+        const result: boolean = areClientSessionPrivFieldsValid(session as ClientSessionPriv);
+        result.should.be.false;
+    });
+
+    it("should return false when $monitoredItemForAlarmList is null", () => {
+        const session: Partial<ClientSessionPriv> = {
+            $clientAlarmList: new ClientAlarmList(),
+            $monitoredItemForAlarmList: null,
+            $subscriptionforAlarmList: new ClientSubscription()
+        };
+        const result: boolean = areClientSessionPrivFieldsValid(session as ClientSessionPriv);
+        result.should.be.false;
+    });
+
+    it("should return false when $subscriptionforAlarmList is null", () => {
+        const session: Partial<ClientSessionPriv> = {
+            $clientAlarmList: new ClientAlarmList(),
+            $monitoredItemForAlarmList: new ClientMonitoredItem(),
+            $subscriptionforAlarmList: null
+        };
+        const result: boolean = areClientSessionPrivFieldsValid(session as ClientSessionPriv);
+        result.should.be.false;
+    });
+
+    it("should return false when all fields are set to null", () => {
+        const session: Partial<ClientSessionPriv> = {
+            $clientAlarmList: null,
+            $monitoredItemForAlarmList: null,
+            $subscriptionforAlarmList: null
+        };
+        const result: boolean = areClientSessionPrivFieldsValid(session as ClientSessionPriv);
+        result.should.be.false;
     });
 });
