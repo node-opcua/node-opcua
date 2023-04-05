@@ -100,6 +100,8 @@ export declare class BaseNode extends EventEmitter {
     public get namespaceUri(): string;
     public get namespace(): INamespace;
 
+    public isDisposed(): boolean;
+
     public onFirstBrowseAction?: (this: BaseNode) => Promise<void>;
 
     /**

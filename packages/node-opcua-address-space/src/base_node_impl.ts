@@ -1159,6 +1159,10 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         BaseNode_removePrivate(this);
     }
 
+    public isDisposed(): boolean {
+        return !this.addressSpacePrivate;
+    }
+
     // istanbul ignore next
     public dumpXML(xmlWriter: XmlWriter): void {
         console.error(" This ", (NodeClass as any)[this.nodeClass]);
@@ -1504,8 +1508,8 @@ function _asObject<T extends BaseNode>(references: UAReference[], addressSpace: 
             // tslint:disable-next-line:no-console
             console.log(
                 chalk.red(" Warning :  object with nodeId ") +
-                    chalk.cyan(reference.nodeId.toString()) +
-                    chalk.red(" cannot be found in the address space !")
+                chalk.cyan(reference.nodeId.toString()) +
+                chalk.red(" cannot be found in the address space !")
             );
         }
         return obj as any as T;
