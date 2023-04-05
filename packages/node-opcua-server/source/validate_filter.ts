@@ -7,7 +7,7 @@ import { BaseNode, UAVariable } from "node-opcua-address-space";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId, NodeIdType } from "node-opcua-nodeid";
+import { INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { DataChangeFilter, EventFilter } from "node-opcua-service-filter";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -15,8 +15,10 @@ import { ReadValueIdOptions } from "node-opcua-types";
 import { DataType } from "node-opcua-basic-types";
 
 function isNumberDataType(node: UAVariable): boolean {
-    if (node.dataType.namespace === 0 && node.dataType.identifierType === NodeIdType.NUMERIC && node.dataType.value < 22) {
-        switch (node.dataType.identifierType === NodeIdType.NUMERIC && node.dataType.value) {
+
+    const n = node.dataType as INodeId;
+    if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value < 22) {
+        switch (n.value) {
             case DataType.Float:
             case DataType.Double:
             case DataType.Byte:

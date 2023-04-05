@@ -1,7 +1,7 @@
 import { IAddressSpace, INamespace, UADataType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { StructureDefinition, EnumDefinition } from "node-opcua-types";
-import { NodeId } from "node-opcua-nodeid";
+import { INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { AddressSpacePrivate } from "../address_space_private";
 import { XmlWriter } from "../../source/xml_writer";
 import { NamespacePrivate } from "../namespace_private";
@@ -33,7 +33,9 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: s
         throw new Error("Cannot find Node for" + nodeId?.toString());
     }
     const typeName = node.browseName.name!;
-    const prefix = node.nodeId.namespace === 0 ? (node.nodeId.value<= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
+
+    const n = node.nodeId as INodeId;
+    const prefix = (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0) ? (n.value <= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
     return prefix + ":" + (typeName === "Structure" && prefix === "ua" ? "ExtensionObject" : typeName);
 }
 
@@ -162,7 +164,7 @@ export function dumpToBSD(namespace: NamespacePrivate): string {
     xw.writeAttribute("xmlns:tns", namespace.namespaceUri);
 
     const map: { [key: number]: string } = {};
-    
+
     map[namespace.index] = "tns";
 
     for (const dependantNamespace of dependency) {
@@ -190,7 +192,7 @@ export function dumpToBSD(namespace: NamespacePrivate): string {
         dumpDataTypeToBSD(xw, dataType, map);
     }
     xw.endElement();
-//    xw.endDocument();
+    //    xw.endDocument();
 
     return xw.toString();
 }

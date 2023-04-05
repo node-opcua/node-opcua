@@ -2,7 +2,7 @@ import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { sameNodeId } from "node-opcua-nodeid";
+import { INodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 //import { DataTypeIds } from "node-opcua-constant";
 import {
     BitField,
@@ -80,9 +80,10 @@ async function findDataTypeCategory(
         return cache[key].category;
     }
     let category: FieldCategory;
-    if (subTypeNodeId.namespace === 0 && subTypeNodeId.value <= 29) {
+    const n = subTypeNodeId as INodeId;
+    if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value <= 29) {
         // well known node ID !
-        switch (subTypeNodeId.value) {
+        switch (n.value) {
             case 22 /* Structure */:
                 category = FieldCategory.complex;
                 break;
@@ -112,8 +113,9 @@ async function findDataTypeBasicType(
     if (cache[key]) {
         return cache[key].schema;
     }
-    if (subTypeNodeId.namespace === 0 && subTypeNodeId.value < 29) {
-        switch (subTypeNodeId.value) {
+    const n = subTypeNodeId as INodeId;
+    if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value < 29) {
+        switch (n.value) {
             case 22: /* Structure */
             case 29 /* Enumeration */:
                 throw new Error("Not expecting Structure or Enumeration");
@@ -224,11 +226,15 @@ const isExtensionObject = async (session: IBasicSession, dataTypeNodeId: NodeId)
         return true;
     }
     const baseDataType = await findSuperType(session, dataTypeNodeId);
-    if (baseDataType.namespace === 0 && baseDataType.value === DataType.ExtensionObject) {
-        return true;
-    }
-    if (baseDataType.namespace === 0 && baseDataType.value < DataType.ExtensionObject) {
-        return false;
+
+    const bn = baseDataType as INodeId;
+    if (bn.identifierType === NodeIdType.NUMERIC) {
+        if (bn.namespace === 0 && bn.value === DataType.ExtensionObject) {
+            return true;
+        }
+        if (bn.namespace === 0 && bn.value < DataType.ExtensionObject) {
+            return false;
+        }
     }
     return await isExtensionObject(session, baseDataType);
 };

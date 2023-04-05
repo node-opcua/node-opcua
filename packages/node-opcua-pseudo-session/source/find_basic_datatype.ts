@@ -40,7 +40,7 @@ export function findSuperType(
             return callback!(new Error("Internal Error"));
         }
 
-        browseResult.references = browseResult.references || /* istanbul ignore next */ [];
+        browseResult.references = browseResult.references || /* istanbul ignore next */[];
         const baseDataType = browseResult.references[0].nodeId;
         callback!(null, baseDataType);
     });
@@ -62,7 +62,7 @@ export function findBasicDataType(
         return callback!(null, DataType.Int32);
     }
 
-    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value <= DataType.DiagnosticInfo) {
+    if (dataTypeId.identifierType === NodeIdType.NUMERIC && dataTypeId.value as number <= DataType.DiagnosticInfo) {
         // we have a well-known DataType
         const dataTypeName = DataType[dataTypeId.value as number];
         callback!(null, dataTypeId.value as DataType);

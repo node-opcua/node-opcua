@@ -10,7 +10,7 @@ import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { coerceExpandedNodeId, coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceExpandedNodeId, coerceNodeId, INodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -483,18 +483,19 @@ export class AddressSpace implements AddressSpacePrivate {
         if (sameNodeId(enumerationTypeNodeId, dataTypeNode!.nodeId)) {
             return DataType.Int32;
         }
+        const n = dataTypeNode.nodeId as INodeId;
 
-        if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value === 29) {
+        if (n.namespace === 0 && n.value === 29) {
             // Number
             return DataType.Null; //which one ?
         }
 
-        if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value === 0) {
+        if (n.namespace === 0 && n.value === 0) {
             return DataType.Null;
         }
 
-        if (dataTypeNode.nodeId.namespace === 0 && dataTypeNode.nodeId.value <= 25) {
-            return dataTypeNode.nodeId.value as DataType;
+        if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value <= 25) {
+            return n.value as DataType;
         }
 
         const result = this.findCorrespondingBasicDataType(dataTypeNode.subtypeOfObj as UADataType);

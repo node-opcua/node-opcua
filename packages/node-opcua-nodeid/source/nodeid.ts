@@ -47,21 +47,42 @@ function defaultValue(identifierType: NodeIdType.STRING): null;
 function defaultValue(identifierType: NodeIdType.NUMERIC): 0;
 function defaultValue(identifierType: NodeIdType.GUID): null;
 */
-function defaultValue(identifierType: NodeIdType): string | number| Buffer {
-    switch(identifierType) {
-        case NodeIdType.GUID : return emptyGuid;
-        case NodeIdType.BYTESTRING : return null as any as Buffer;// Buffer.alloc(0);
-        case NodeIdType.STRING : return "";
-        case NodeIdType.NUMERIC : return 0;
+function defaultValue(identifierType: NodeIdType): string | number | Buffer {
+    switch (identifierType) {
+        case NodeIdType.GUID: return emptyGuid;
+        case NodeIdType.BYTESTRING: return null as any as Buffer;// Buffer.alloc(0);
+        case NodeIdType.STRING: return "";
+        case NodeIdType.NUMERIC: return 0;
     }
 }
+
+export interface INodeIdNumeric extends NodeId {
+    identifierType: NodeIdType.NUMERIC;
+    value: number;
+}
+export interface INodeIdGuid extends NodeId {
+    identifierType: NodeIdType.GUID;
+    value: string;
+}
+export interface INodeIdByteString extends NodeId {
+    identifierType: NodeIdType.BYTESTRING;
+    value: Buffer;
+}
+export interface INodeIdString extends NodeId {
+    identifierType: NodeIdType.STRING;
+    value: string;
+}
+export type INodeId = INodeIdNumeric | INodeIdGuid | INodeIdString | INodeIdByteString;
+
+
+const doDebug = false;
 /**
  * Construct a node ID
  *
  * @class NodeId
  * @example
  *
- *    ``` javascript
+ * ``` javascript
  *    const nodeId = new NodeId(NodeIdType.NUMERIC,123,1);
  *    ```
  * @constructor
@@ -82,6 +103,8 @@ export class NodeId {
      * @param namespace        - the index of the related namespace (optional , default value = 0 )
      */
     constructor(identifierType?: NodeIdType | null, value?: number | string | Buffer | Guid, namespace?: number) {
+
+
         if (identifierType === null || identifierType === undefined) {
             this.identifierType = NodeIdType.NUMERIC;
             this.value = 0;
@@ -94,14 +117,13 @@ export class NodeId {
         this.namespace = namespace || 0;
 
         // namespace shall be a UInt16
-        assert(this.namespace >= 0 && this.namespace <= 0xffff);
-
-        assert(this.identifierType !== NodeIdType.NUMERIC || (this.value !== null && this.value >= 0 && this.value <= 0xffffffff));
-        assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value as string));
-        assert(this.identifierType !== NodeIdType.STRING || typeof this.value === "string");
+        assert(this.namespace >= 0 && this.namespace <= 0xffff, "NodeId: invalid namespace value");
+        assert(this.identifierType !== NodeIdType.NUMERIC || (this.value !== null && this.value as number >= 0 && this.value as number <= 0xffffffff));
+        assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value as string), "NodeId: Guid is invalid");
+        assert(this.identifierType !== NodeIdType.STRING || typeof this.value === "string", "cannot  empty string");
         if (this.identifierType === NodeIdType.GUID) {
             this.value = normalizeGuid(value as string);
-        } 
+        }
     }
 
     /**
@@ -125,15 +147,16 @@ export class NodeId {
     public toString(options?: { addressSpace?: any }): string {
         const addressSpace = options ? options.addressSpace : null;
         let str;
-        switch (this.identifierType) {
+        const _this = this as INodeId;
+        switch (_this.identifierType) {
             case NodeIdType.NUMERIC:
-                str = "ns=" + this.namespace + ";i=" + this.value;
+                str = "ns=" + this.namespace + ";i=" + _this.value;
                 break;
             case NodeIdType.STRING:
-                str = "ns=" + this.namespace + ";s=" + this.value;
+                str = "ns=" + this.namespace + ";s=" + _this.value;
                 break;
             case NodeIdType.GUID:
-                str = "ns=" + this.namespace + ";g=" + normalizeGuid(this.value as string);
+                str = "ns=" + this.namespace + ";g=" + normalizeGuid(_this.value);
                 break;
             default:
                 assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
@@ -146,9 +169,9 @@ export class NodeId {
         }
 
         if (addressSpace) {
-            if (this.namespace === 0 && this.identifierType === NodeIdType.NUMERIC) {
+            if (this.namespace === 0 && _this.identifierType === NodeIdType.NUMERIC) {
                 // find standard browse name
-                const name = reverse_map((this.value||0).toString()) || "<undefined>";
+                const name = reverse_map((this.value || 0).toString()) || "<undefined>";
                 str += " " + name;
             } else if (addressSpace.findNode) {
                 // let use the provided address space to figure out the browseNode of this node.
@@ -181,16 +204,16 @@ export class NodeId {
      * returns true if the NodeId is null or empty
      */
     public isEmpty(): boolean {
-        switch (this.identifierType) {
+        const _this = this as INodeId;
+        switch (_this.identifierType) {
             case NodeIdType.NUMERIC:
-                return this.value === 0;
+                return _this.value === 0;
             case NodeIdType.STRING:
-                return !this.value || (this.value as string).length === 0;
+                return !_this.value;
             case NodeIdType.GUID:
-                return !this.value || this.value === emptyGuid;
+                return !_this.value || _this.value === emptyGuid;
             default:
-                assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
-                return !this.value || (this.value as Buffer).length === 0;
+                return !_this.value || (_this.value as Buffer).length === 0;
         }
     }
 }
@@ -202,7 +225,7 @@ NodeId.nullNodeId = new Proxy(
             return (target as any)[prop];
         },
         set: () => {
-            throw new Error("Cannot assign a value to  constant NodeId.nullNodeId");
+            throw new Error("Cannot assign a value to constant NodeId.nullNodeId");
         }
     });
 
@@ -276,7 +299,7 @@ export function coerceNodeId(value: unknown, namespace?: number): NodeId {
         } else if ((matches = regexNamespaceG.exec(value)) !== null) {
             identifierType = NodeIdType.GUID;
             namespace = parseInt(matches[1], 10);
-            value =normalizeGuid(matches[2]);
+            value = normalizeGuid(matches[2]);
         } else {
             throw new Error("String cannot be coerced to a nodeId : " + value);
         }

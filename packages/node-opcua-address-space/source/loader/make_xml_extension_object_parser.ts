@@ -1,7 +1,7 @@
 import { Byte, coerceInt64, coerceUInt64, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { LocalizedTextOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { coerceNodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
+import { coerceNodeId, INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
@@ -82,7 +82,7 @@ const localizedTextReader: ReaderStateParserLike = {
 };
 
 function clamp(value: number, minValue: number, maxValue: number) {
-    if (value< minValue) {
+    if (value < minValue) {
         warningLog(`invalid value range : ${value} < ${minValue} but should be [${minValue} , ${maxValue}]`);
         return minValue;
     }
@@ -257,25 +257,26 @@ function _clone(a: any): any {
 }
 
 function _makeTypeReader(
-    dataTypeNodeId: NodeId,
+    dataTypeNodeId1: NodeId,
     definitionMap: DefinitionMap2,
     readerMap: Record<string, ReaderStateParserLike>
 ): { name: string; parser: ReaderStateParserLike } {
-    if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === 0) {
+    const n = dataTypeNodeId1 as INodeId;
+    if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value === 0) {
         // a generic Extension Object
         return { name: "Variant", parser: partials["Variant"] };
     }
     if (
-        dataTypeNodeId.namespace === 0 &&
-        dataTypeNodeId.identifierType === NodeIdType.NUMERIC &&
-        dataTypeNodeId.value < DataType.ExtensionObject
+        n.namespace === 0 &&
+        n.identifierType === NodeIdType.NUMERIC &&
+        n.value < DataType.ExtensionObject
     ) {
-        const name = DataType[dataTypeNodeId.value as number] as string;
+        const name = DataType[n.value as number] as string;
         const parser = partials[name];
         return { name, parser };
     }
 
-    const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
+    const { name, definition } = definitionMap.findDefinition(n);
     const dataTypeName = name;
 
     // console.log("NAME = ", dataTypeNodeId.toString(), name, definition);

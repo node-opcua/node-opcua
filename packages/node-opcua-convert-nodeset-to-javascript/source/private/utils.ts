@@ -1,5 +1,5 @@
 import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { INodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { DataTypeIds } from "node-opcua-constants";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { BrowseResult, DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
@@ -75,10 +75,12 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
     return browseResult.references[0].browseName.name! as ModellingRuleType;
 }
 export async function isExtensionObject(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
-    if (nodeId.namespace === 0 && nodeId.value === DataTypeIds.Structure) {
+
+    const n = nodeId as INodeId;
+    if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value === DataTypeIds.Structure) {
         return true;
     }
-    if (nodeId.namespace === 0 && nodeId.value <= DataTypeIds.DiagnosticInfo) {
+    if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value <= DataTypeIds.DiagnosticInfo) {
         return false;
     }
     const r = await getSubtypeNodeIdIfAny(session, nodeId);
@@ -86,10 +88,11 @@ export async function isExtensionObject(session: IBasicSession, nodeId: NodeId):
 }
 
 export async function isEnumeration(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
-    if (nodeId.namespace === 0 && nodeId.value === DataTypeIds.Enumeration) {
+    const n = nodeId as INodeId;
+    if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value === DataTypeIds.Enumeration) {
         return true;
     }
-    if (nodeId.namespace === 0 && nodeId.value <= DataTypeIds.DiagnosticInfo) {
+    if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value <= DataTypeIds.DiagnosticInfo) {
         return false;
     }
     const r = await getSubtypeNodeIdIfAny(session, nodeId);
@@ -97,7 +100,8 @@ export async function isEnumeration(session: IBasicSession, nodeId: NodeId): Pro
 }
 
 export async function extractBasicDataType(session: IBasicSession, dataTypeNodeId: NodeId): Promise<DataType> {
-    if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value <= 25) {
+    const n = dataTypeNodeId as INodeId;
+    if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value <= DataTypeIds.DiagnosticInfo) {
         return dataTypeNodeId.value as DataType;
     }
     const r = await getSubtypeNodeIdIfAny(session, dataTypeNodeId);
