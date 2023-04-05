@@ -7,6 +7,7 @@ import { NodeId, OPCUAClient, OPCUAServer, TransportSettings, UAFile } from "nod
 
 import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("FileType: Testing with very large file end-to-end", function () {
     this.timeout(100000);
 
@@ -51,14 +52,14 @@ describe("FileType: Testing with very large file end-to-end", function () {
         const transportSettings: TransportSettings = {
             maxMessageSize: 1024 * 1024 * 8,
         };
-        const client = OPCUAClient.create({ transportSettings});
+        const client = OPCUAClient.create({ transportSettings });
 
         await client.withSessionAsync(endpointUrl, async (session) => {
             console.log(client.toString());
             console.log("transport setting: ", session.toString());
 
             const clientFile = new ClientFile(session, nodeId);
-            await writeOPCUAFile(clientFile, filename, { chunkSize: 4294967295});
+            await writeOPCUAFile(clientFile, filename, { chunkSize: 4294967295 });
             const bufferBack = await readOPCUAFile(clientFile);
 
             bufferBack.length.should.eql(veryLargeBuffer.length);
