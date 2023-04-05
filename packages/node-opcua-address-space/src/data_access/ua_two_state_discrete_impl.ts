@@ -130,7 +130,9 @@ export function _addTwoStateDiscrete(namespace: INamespace, options: AddTwoState
     const variable = namespace.addVariable({
         accessLevel: options.accessLevel,
         browseName: options.browseName,
+        displayName: options.displayName,
         componentOf: options.componentOf,
+        propertyOf: options.propertyOf,
         dataType: DataType.Boolean,
         nodeId: options.nodeId,
         typeDefinition: twoStateDiscreteType.nodeId,
