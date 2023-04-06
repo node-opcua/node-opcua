@@ -19,6 +19,10 @@
         "node-opcua-status-code": "2.98.1",
         "node-opcua-variant": "2.98.1"
     },
+    "files": [
+        "dist",
+        "source"
+    ],
     "repository": {
         "type": "git",
         "url": "git://github.com/node-opcua/node-opcua.git"
@@ -31,9 +35,5 @@
         "opc ua",
         "internet of things"
     ],
-    "homepage": "http://node-opcua.github.io/",
-    "files": [
-        "dist",
-        "source"
-    ]
+    "homepage": "http://node-opcua.github.io/"
 }

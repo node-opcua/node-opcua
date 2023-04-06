@@ -140,9 +140,12 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
             .map((d) => `        "${d}": "${versions[d]}"`)
             .join(",\n")
     );
+    content2.push(`    },`);
 
-    content2.push(`    }`);
-
+    content2.push(`    "files": [`);
+    content2.push(`        "dist",`);
+    content2.push(`        "source"`);
+    content2.push(`    ]`);
     content2.push(`}`);
     content2.push(``);
 
