@@ -21,9 +21,16 @@ async function main() {
         nodesets.cnc,
         nodesets.woodWorking,
         nodesets.glass,
-        nodesets.tightening
+        nodesets.tightening,
+        nodesets.packML,
+        nodesets.eumabois,
+        nodesets.iolink,
+        nodesets.iolinkIODD,
+        nodesets.irdi,
+        nodesets.padim,
+        nodesets.machineryProcessValues,
+        nodesets.machineryResult,
     ]);
-
     const nsUA = 0;
     const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
     const nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
@@ -39,6 +46,14 @@ async function main() {
     const nsWW = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Woodworking/");
     const nsGlass = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Glass/Flat/");
     const nsTightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/");
+    const nsPackML = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/PackML/");
+    const nsEumabois = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Eumabois/");
+    const nsIOLink = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IOLink/");
+    const nsIOLinkIODD = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IOLink/IODD/");
+    const nsIRDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Dictionary/IRDI");
+    const nsPADIM = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/PADIM/");
+    const nsMachineryProcessValues = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Machinery/ProcessValues/");
+    const nsMachineryResult = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Machinery/Result/");
 
     const session = new PseudoSession(addressSpace);
     const options = {
@@ -46,7 +61,7 @@ async function main() {
         prefix: "node-opcua-nodeset-"
     };
 
-    const promises = [
+    const promises: Promise<void>[] = [
         convertNamespaceTypeToTypescript(session, nsUA, options),
         convertNamespaceTypeToTypescript(session, nsDI, options),
         convertNamespaceTypeToTypescript(session, nsADI, options),
@@ -61,8 +76,16 @@ async function main() {
         convertNamespaceTypeToTypescript(session, nsCommercialKitchenEquipment, options),
         convertNamespaceTypeToTypescript(session, nsWW, options),
         convertNamespaceTypeToTypescript(session, nsGlass, options),
-        convertNamespaceTypeToTypescript(session, nsTightening, options)
+        convertNamespaceTypeToTypescript(session, nsTightening, options),
+        convertNamespaceTypeToTypescript(session, nsPackML, options),
+        convertNamespaceTypeToTypescript(session, nsEumabois, options),
+        convertNamespaceTypeToTypescript(session, nsIOLink, options),
+        convertNamespaceTypeToTypescript(session, nsIOLinkIODD, options),
+        convertNamespaceTypeToTypescript(session, nsIRDI, options),
+        convertNamespaceTypeToTypescript(session, nsPADIM, options),
+        convertNamespaceTypeToTypescript(session, nsMachineryProcessValues, options),
+        convertNamespaceTypeToTypescript(session, nsMachineryResult, options),
     ];
     await Promise.all(promises);
 }
-main();
+void main();

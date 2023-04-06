@@ -8,9 +8,20 @@ module.exports = {
         robotics: "nodeset:robotics",
         machineVision: "nodeset:machineVision",
         packML: "nodeset:packML",
-        cnc: "nodeset:CNC",
         machinery: "nodeset:machinery",
+        cnc: "nodeset:CNC",
         commercialKitchenEquipment: "nodeset:commercialKitchenEquipment",
-        machineTool: "nodeset:machineTool"
+        ia: "nodeset:ia",
+        machineTool: "nodeset:machineTool",
+        woodWorking: "nodeset:woodWorking",
+        eumabois: "nodset:eumabois",
+        glass: "nodeset:glass",
+        tightening: "nodeset:tightening",
+        iolink: "nodeset:iolink",
+        iolinkIODD: "nodeset:iolinkIODD",
+        irdi: "nodeset:irdi",
+        padim: "nodeset:padim",
+        machineryProcessValues: "nodeset:machineryProcessValues",
+        machineryResult: "nodeset:machineryResult",
     }
 };
