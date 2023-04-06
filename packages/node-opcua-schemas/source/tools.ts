@@ -70,9 +70,9 @@ export function getOrCreateStructuredTypeSchema(
         const baseSchema = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
 
         // remove redundant fields
-        // Note :some file do no thave SourceType property and may be replicated here ..
-        //       but they belongs to the base class and shall be remove/
-        //       For instance DataTypeSchemaHeader => UABinaryFileDataType
+        // Note: Some file do not have SourceType property and may be replicated here,
+        //       but they belong to the base class and shall be removed.
+        //       For instance, DataTypeSchemaHeader => UABinaryFileDataType
         if (baseSchema && baseSchema.fields && baseSchema.name !== "ExtensionObject") {
             structuredType.fields = structuredType.fields.filter((field) => {
                 const name = field.name;
@@ -99,9 +99,9 @@ export function getOrCreateStructuredTypeSchema(
         });
         const ids = idProvider.getDataTypeAndEncodingId(schema.name);
         if (!ids) {
-            // this may happen if the type is abstract or if the type referes to a internal ExtnsionObject
-            // that can only exists inside an other extension object.this Type of extension object cannot
-            // instantiated as standalone object and do not have encoding nodeIds...
+            // This may happen if the type is abstract or if the type refers to an internal ExtensionObject
+            // that can only exist inside another extension object. This Type of extension object cannot
+            // be instantiated as a standalone object and does not have encoding nodeIds...
             const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
             return schema;
         }

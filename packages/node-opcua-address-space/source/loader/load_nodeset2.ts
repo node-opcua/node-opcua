@@ -261,9 +261,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 // istanbul ignore next
                 if (!existingNamespace) {
                     errorLog(
-                        "Please ensure that the required namespace ",
+                        "Please ensure that the required namespace",
                         requiredModel.modelUri,
-                        "is loaded firs when loading ",
+                        "is loaded first when loading",
                         model.modelUri
                     );
                     throw new Error("LoadNodeSet : Cannot find namespace for " + requiredModel.modelUri);
@@ -271,8 +271,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 /**
                  *  from https://reference.opcfoundation.org/Core/docs/Part6/F.2/
                  *  The version of the model defined in the UANodeSet.
-                 *  This is a human readable string and not intended for programmatic comparisons.
-                 *
+                 *  This is a human-readable string and not intended for programmatic comparisons.
                  */
                 const isLowerVersion = (existingVersion: string, requiredVersion: string): boolean => {
                     const existingSemver = makeSemverCompatible(existingVersion);
@@ -294,7 +293,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     errorLog(
                         "Expecting ",
                         requiredModel.modelUri,
-                        " with publicationDatea at least ",
+                        " with publicationDate at least ",
                         requiredModel.publicationDate.toUTCString(),
                         " but namespace publicationDate is ",
                         existingNamespace.publicationDate.toUTCString()

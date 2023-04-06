@@ -38,7 +38,7 @@ async function main() {
     const nsCommercialKitchenEquipment = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");
     const nsWW = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Woodworking/");
     const nsGlass = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Glass/Flat/");
-    const nsThightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/");
+    const nsTightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/");
 
     const session = new PseudoSession(addressSpace);
     const options = {
@@ -61,7 +61,7 @@ async function main() {
         convertNamespaceTypeToTypescript(session, nsCommercialKitchenEquipment, options),
         convertNamespaceTypeToTypescript(session, nsWW, options),
         convertNamespaceTypeToTypescript(session, nsGlass, options),
-        convertNamespaceTypeToTypescript(session, nsThightening, options)
+        convertNamespaceTypeToTypescript(session, nsTightening, options)
     ];
     await Promise.all(promises);
 }
