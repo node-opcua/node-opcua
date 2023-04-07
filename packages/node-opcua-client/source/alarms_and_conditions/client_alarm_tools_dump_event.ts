@@ -24,7 +24,7 @@ export async function dumpEvent(session: IBasicSession, fields: string[], eventF
         }
     }
     function w(str: string, l: number): string {
-        return str.padEnd(l, " ").substring(0, l);
+        return (str || "").toString().padEnd(l, " ").substring(0, l);
     }
     async function __dumpEvent1(_session: IBasicSession, _fields: any, variant: VariantLike, index: number) {
         if (variant.dataType === DataType.Null) {
