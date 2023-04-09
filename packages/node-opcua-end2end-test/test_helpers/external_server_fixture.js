@@ -48,6 +48,7 @@ async function start_simple_server(options) {
 
     if (process.env.DEBUG2 || process.env.DEBUG) {
         console.log(" node ", serverScript);
+        console.log(server_exec.spawnargs.join(" "));
     }
 
     return await new Promise((resolve, reject) => {
@@ -62,6 +63,8 @@ async function start_simple_server(options) {
         let pid_collected = 0;
 
         function detect_ready_message(data) {
+            console.log("data", data);
+            
             if (!callback_called) {
                 if (/server PID/.test(data)) {
                     // note : on windows , when using nodist, the process.id might not correspond to the
@@ -130,6 +133,7 @@ async function crash_simple_server(serverHandle) {
             resolve();
         });
         serverHandle.process.kill("SIGTERM");
+        serverHandle.process.kill("SIGKILL");
         serverHandle = null;
     });
 }

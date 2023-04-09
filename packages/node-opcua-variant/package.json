@@ -22,7 +22,7 @@
         "node-opcua-utils": "2.90.1"
     },
     "devDependencies": {
-        "@types/lodash": "4.14.191",
+        "@types/lodash": "4.14.192",
         "@types/underscore": "^1.11.4",
         "lodash": "4.17.21",
         "node-opcua-benchmarker": "2.90.1",
