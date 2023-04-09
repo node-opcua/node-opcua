@@ -36,7 +36,7 @@ import { makeOptionalsMap, OptionalMap } from "../source/helpers/make_optionals_
 
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { _clone_children_references, ToStringBuilder, UAVariableType_toString } from "./base_node_private";
+import { _clone_hierarchical_references, ToStringBuilder, UAVariableType_toString } from "./base_node_private";
 import * as tools from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
@@ -50,7 +50,6 @@ const errorLog = make_errorLog(__filename);
 // eslint-disable-next-line prefer-const
 let doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
-
 
 interface InstantiateS {
     propertyOf?: any;
@@ -104,7 +103,7 @@ export interface UAVariableTypeOptions extends InternalBaseNodeOptions {
     dataType: NodeIdLike;
 }
 
-function deprecate<T>(func: T):T {
+function deprecate<T>(func: T): T {
     return func;
 }
 export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
@@ -120,8 +119,8 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
     public isSubtypeOf = tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl);
 
-     /** @deprecated - use  isSubtypeOf instead */
-     public isSupertypeOf = deprecate(tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl));
+    /** @deprecated - use  isSubtypeOf instead */
+    public isSupertypeOf = deprecate(tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl));
 
     public readonly isAbstract: boolean;
     public dataType: NodeId;
@@ -492,6 +491,13 @@ class CloneHelper {
         }
         // find subTypeOf
     }
+    public getCloned(original: UAVariableType | UAObjectType): UAObject | UAVariable | UAMethod | null {
+        const info = this.mapOrgToClone.get(original.nodeId.toString());
+        if (info) {
+            return info.cloned;
+        }
+        return null;
+    }
 }
 // install properties and components on a instantiated Object
 //
@@ -508,12 +514,13 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
     typeDefinitionNode: T,
     copyAlsoModellingRules: boolean,
     optionalsMap: OptionalMap,
-    extraInfo: CloneHelper
+    extraInfo: CloneHelper, 
+    browseNameMap: Set<string>
 ) {
     if (doDebug) {
         debugLog("instance browseName =", instance.browseName.toString());
-        debugLog("typeNode         =", typeDefinitionNode.browseName.toString());
-        debugLog("optionalsMap     =", Object.keys(optionalsMap).join(" "));
+        debugLog("typeNode            =", typeDefinitionNode.browseName.toString());
+        debugLog("optionalsMap        =", Object.keys(optionalsMap).join(" "));
 
         const c = typeDefinitionNode.findReferencesEx("Aggregates");
         debugLog("typeDefinition aggregates      =", c.map((x) => x.node!.browseName.toString()).join(" "));
@@ -532,9 +539,8 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
             typeDefinitionNode.browseName.toString()
         );
 
-    const browseNameMap = new Set<string>();
-
-    _clone_children_references(typeDefinitionNode, instance, copyAlsoModellingRules, filter, extraInfo, browseNameMap);
+  
+    _clone_hierarchical_references(typeDefinitionNode, instance, copyAlsoModellingRules, filter, extraInfo, browseNameMap);
 
     // now apply recursion on baseTypeDefinition  to get properties and components from base class
 
@@ -561,7 +567,8 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         baseTypeDefinition,
         copyAlsoModellingRules,
         optionalsMap,
-        extraInfo
+        extraInfo,
+        browseNameMap
     );
     extraInfo.level--;
 }
@@ -616,9 +623,9 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
     if (parent && hasChildWithBrowseName(parent, coerceQualifiedName(options.browseName))) {
         throw new Error(
             "object " +
-            parent.browseName.name!.toString() +
-            " have already a child with browseName " +
-            options.browseName.toString()
+                parent.browseName.name!.toString() +
+                " have already a child with browseName " +
+                options.browseName.toString()
         );
     }
 }
@@ -773,13 +780,22 @@ function reconstructFunctionalGroupType(extraInfo: any) {
             if (!info) continue;
 
             const folder = info.original;
+            if (folder.nodeClass !== NodeClass.Object) continue;
+
+            if (!folder.typeDefinitionObj) continue;
 
             assert(folder.typeDefinitionObj.browseName.name.toString() === "FunctionalGroupType");
 
             // now create the same reference with the instantiated function group
-            const destFolder = info.cloned;
+            const destFolder = info.cloned as BaseNode;
 
             assert(ref.referenceType);
+
+            // may be we should check that the referenceType is a subtype of Organizes
+            const alreadyExist = destFolder.findReferences(ref.referenceType,  !ref.isForward).find((r) => r.nodeId === cloned.nodeId);
+            if (alreadyExist) {
+                continue;
+            }
 
             destFolder.addReference({
                 isForward: !ref.isForward,
@@ -800,7 +816,9 @@ export function initialize_properties_and_components<
 
     const optionalsMap = makeOptionalsMap(optionals);
 
-    _initialize_properties_and_components(instance, topMostType, nodeType, copyAlsoModellingRules, optionalsMap, extraInfo);
+    const browseNameMap = new Set<string>();
+
+    _initialize_properties_and_components(instance, topMostType, nodeType, copyAlsoModellingRules, optionalsMap, extraInfo, browseNameMap);
 
     reconstructFunctionalGroupType(extraInfo);
 

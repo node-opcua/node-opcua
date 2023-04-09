@@ -26,14 +26,23 @@ export interface CloneExtraInfo {
     level: number;
     pad(): string;
     registerClonedObject(clonedObject: BaseNode, originalObject: BaseNode): void;
+    getCloned(node: BaseNode): BaseNode | null;
 }
-export const defaultCloneExtraInfo: CloneExtraInfo = {
+interface CloneExtraInfoEx extends CloneExtraInfo {
+    _cloned: Map<BaseNode, BaseNode>;
+}
+export const defaultCloneExtraInfo: CloneExtraInfoEx = {
     level: 0,
+    _cloned: new Map<BaseNode, BaseNode>(),
     pad(this: CloneExtraInfo) {
         return " ".padEnd(this.level * 2);
     },
     registerClonedObject(_clonedObject: BaseNode, _originalObject: BaseNode): void {
-        // nothing to do
+        if(this.getCloned(_originalObject)) throw new Error("cloned object is already registered.");
+        this._cloned.set(_originalObject, _clonedObject);
+    },
+    getCloned(node: BaseNode): BaseNode | null {
+        return this._cloned.get(node) || null;
     }
 };
 
