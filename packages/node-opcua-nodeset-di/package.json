@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-di",
-    "version": "2.98.0",
+    "version": "2.98.1",
     "description": "pure nodejs OPCUA SDK - module nodeset-di",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,15 +10,15 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.98.0",
-        "node-opcua-basic-types": "2.98.0",
-        "node-opcua-data-access": "2.98.0",
-        "node-opcua-data-model": "2.98.0",
-        "node-opcua-extension-object": "2.98.0",
-        "node-opcua-nodeid": "2.98.0",
-        "node-opcua-nodeset-ua": "2.98.0",
-        "node-opcua-status-code": "2.98.0",
-        "node-opcua-variant": "2.98.0"
+        "node-opcua-address-space-base": "2.98.1",
+        "node-opcua-basic-types": "2.98.1",
+        "node-opcua-data-access": "2.98.1",
+        "node-opcua-data-model": "2.98.1",
+        "node-opcua-extension-object": "2.98.1",
+        "node-opcua-nodeid": "2.98.1",
+        "node-opcua-nodeset-ua": "2.98.1",
+        "node-opcua-status-code": "2.98.1",
+        "node-opcua-variant": "2.98.1"
     },
     "repository": {
         "type": "git",
