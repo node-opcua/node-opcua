@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-file-transfer",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -server",
+    "description": "pure nodejs OPCUA SDK - module file-transfer",
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
@@ -54,5 +54,9 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c",
+    "files": [
+        "dist",
+        "source"
+    ]
 }

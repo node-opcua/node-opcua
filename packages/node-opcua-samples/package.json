@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-samples",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -samples",
+    "description": "pure nodejs OPCUA SDK - module samples",
     "bin": {
         "simple_client": "./dist/simple_client_ts.js",
         "interactive_client": "./bin/interactive_client.js",
@@ -52,5 +52,8 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c",
+    "files": [
+        "dist"
+    ]
 }

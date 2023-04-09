@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-data-model",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -data-model",
+    "description": "pure nodejs OPCUA SDK - module data-model",
     "scripts": {
         "build": "tsc -b",
         "test": "mocha",
@@ -40,5 +40,9 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c",
+    "files": [
+        "dist",
+        "source"
+    ]
 }

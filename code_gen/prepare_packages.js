@@ -4,80 +4,61 @@ const path = require("path");
 const async = require("async");
 const child_process = require("child_process");
 
+const packages_folder = path.join(__dirname, "../packages");
+const licence_file = path.join(__dirname, "../LICENSE");
+const main_packagejson = path.join(__dirname, "../package.json");
+let licence_text = "";
+let main_package = {};
 
-const packages_folder = path.join(__dirname,"../packages");
-const licence_file = path.join(__dirname,"../LICENSE");
-const main_packagejson = path.join(__dirname,"../package.json");
-const licence_text = "";
-const main_package = {};
+async function do_on_folder2(folder, packagejson) {
+    const moduleFolder = path.join(packages_folder, folder);
+    const local_license_file = path.resolve(path.join(moduleFolder, "LICENSE"));
+    console.log("package", packagejson);
 
-function do_on_folder2(folder,packagejson,callback) {
+    let local_package = JSON.parse(await fs.promises.readFile(packagejson, "utf-8"));
+    local_package.description = main_package.description + " - module " + folder.replace("node-opcua-", "");
+    local_package.author = main_package.author;
+    local_package.license = main_package.license;
+    local_package.repository = main_package.repository;
+    local_package.keywords = main_package.keywords;
+    local_package.homepage = main_package.homepage;
 
-    const local_license_file = path.resolve(path.join(packages_folder,folder,"LICENSE"));
-    console.log("package",packagejson);
+    console.log(" local_package.description= ", local_package.description);
 
-    const local_package ={};
-    async.series([
+    const f = [];
+    ["dist", "distHelpers", "distNodeJS", "source", "src", "nodeJS.d.ts", "nodeJS.js", "testHelpers.js", "testHelpers.d.ts"].forEach((a) => {
+        if (fs.existsSync(path.join(moduleFolder, a))) {
+            f.push(a);
+        }
+    });
 
-      function(callback) {
-          fs.readFile(packagejson,"utf-8",function(err,data){
-              local_package = JSON.parse(data);
-              callback(err);
-          });
-      },
-      function(callback) {
-          local_package.description = main_package.description + " - module " + folder.replace("node-opcua-","");
-          local_package.author = main_package.author;
-          local_package.license = main_package.license;
-          local_package.repository = main_package.repository;
-          local_package.keywords = main_package.keywords;
-          local_package.homepage = main_package.homepage;
+    local_package.files = [...new Set([...(local_package.files || []), ...f])];
+    console.log(local_package.files);
 
-          console.log(" local_package.description= ",local_package.description);
-          fs.writeFile(packagejson,JSON.stringify(local_package,null," "),"utf-8",function(err){
-              callback(err);
-          });
-      },
-      function write_local_licence(callback) {
-          fs.writeFile(local_license_file,licence_text,"utf-8",function(err){
-              callback(err);
-          });
-      }
-    ],callback);
+    await fs.promises.writeFile(packagejson,JSON.stringify(local_package,null,"    "),"utf-8");
+    // await fs.promises.writeFile(local_license_file,licence_text,"utf-8");
 }
-function do_on_folder(folder,callback) {
 
-    const package_file = path.resolve(path.join(packages_folder,folder,"package.json"));
+async function do_on_folder(folder) {
+    const package_file = path.resolve(path.join(packages_folder, folder, "package.json"));
+
     if (fs.existsSync(package_file)) {
-        return do_on_folder2(folder,package_file,callback);
+        return await do_on_folder2(folder, package_file);
     }
-    callback();
-  
 }
-async.series([
 
-  function readLicenceTxt(callback) {
-    console.log("licence_file = ",licence_file);
-      fs.readFile(licence_file,"utf-8",function(err,data){
-          licence_text = data;
-          callback(err);
-      });
-  },
-    function read_main_packagejson(callback) {
-        console.log("main_packagejson = ",main_packagejson);
-        fs.readFile(main_packagejson,"utf-8",function(err,data){
-            main_package = JSON.parse(data);
-            callback(err);
-        });
-    },
+async function main() {
+    console.log("licence_file = ", licence_file);
+    licence_text = await fs.promises.readFile(licence_file, "utf-8");
 
-  function (callback) {
-      fs.readdir(packages_folder,{},function(err,files) {
-          async.map(files,do_on_folder,function done(){
-              callback();
-          });
-      });
-  }
-],function() {
+    console.log("main_packagejson = ", main_packagejson);
+    main_package = JSON.parse(await fs.promises.readFile(main_packagejson, "utf-8"));
+
+    const files = await fs.promises.readdir(packages_folder, {});
+
+    for (const file of files) {
+        await do_on_folder(file);
+    }
     console.log("done");
-});
+}
+main();

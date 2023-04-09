@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-end2end-test",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -end2end-test",
+    "description": "pure nodejs OPCUA SDK - module end2end-test",
     "private": true,
     "scripts": {
         "clean": "npx rimraf node_modules dist *.tsbuildinfo",
@@ -63,5 +63,6 @@
         "opc ua",
         "internet of things"
     ],
-    "homepage": "http://node-opcua.github.io/"
+    "homepage": "http://node-opcua.github.io/",
+    "files": []
 }

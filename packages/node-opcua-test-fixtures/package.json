@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-test-fixtures",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -test-fixtures",
+    "description": "pure nodejs OPCUA SDK - module test-fixtures",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "private": true,
@@ -30,5 +30,9 @@
         "node-opcua-service-secure-channel": "2.98.0",
         "node-opcua-types": "2.98.0",
         "should": "^13.2.3"
-    }
+    },
+    "files": [
+        "dist",
+        "source"
+    ]
 }

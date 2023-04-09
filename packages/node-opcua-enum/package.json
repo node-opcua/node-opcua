@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-enum",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -enum",
+    "description": "pure nodejs OPCUA SDK - module enum",
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
@@ -30,5 +30,9 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c"
+    "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c",
+    "files": [
+        "dist",
+        "source"
+    ]
 }

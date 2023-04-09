@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-certificate-manager",
     "version": "2.98.0",
-    "description": "pure nodejs OPCUA SDK - module -client",
+    "description": "pure nodejs OPCUA SDK - module certificate-manager",
     "scripts": {
         "clean": "npx rimraf node_modules dist *.tsbuildinfo certificates",
         "test": "mocha",
@@ -49,5 +49,9 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c"
+    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c",
+    "files": [
+        "dist",
+        "source"
+    ]
 }

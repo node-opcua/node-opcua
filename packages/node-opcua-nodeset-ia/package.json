@@ -1,13 +1,13 @@
 {
     "name": "node-opcua-nodeset-ia",
     "version": "2.98.0",
-    "description": "",
+    "description": "pure nodejs OPCUA SDK - module nodeset-ia",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc -b"
     },
-    "author": "etienne.rossignon@sterfive.com",
+    "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
         "node-opcua-address-space-base": "2.98.0",
@@ -17,5 +17,22 @@
         "node-opcua-nodeset-di": "2.98.0",
         "node-opcua-nodeset-ua": "2.98.0",
         "node-opcua-variant": "2.98.0"
-    }
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source"
+    ]
 }

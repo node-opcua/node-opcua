@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-test-helpers",
     "version": "2.88.0",
-    "description": "pure nodejs OPCUA SDK - module -test-helpers",
+    "description": "pure nodejs OPCUA SDK - module test-helpers",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "private": true,
@@ -27,5 +27,9 @@
         "opc ua",
         "internet of things"
     ],
-    "homepage": "http://node-opcua.github.io/"
+    "homepage": "http://node-opcua.github.io/",
+    "files": [
+        "dist",
+        "source"
+    ]
 }

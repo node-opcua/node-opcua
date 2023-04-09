@@ -1,7 +1,7 @@
 {
     "name": "playground",
     "version": "2.98.0",
-    "description": "",
+    "description": "pure nodejs OPCUA SDK - module playground",
     "main": "sample1.js",
     "private": true,
     "scripts": {
@@ -16,5 +16,19 @@
         "winston": "*"
     },
     "author": "Etienne Rossignon",
-    "license": "MIT"
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/",
+    "files": []
 }
