@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.97.0",
+    "version": "2.98.0",
     "description": "pure nodejs OPCUA SDK - module -generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,18 +15,18 @@
         "chalk": "4.1.2",
         "node-opcua-assert": "2.88.0",
         "node-opcua-constants": "2.88.0",
-        "node-opcua-debug": "2.90.1",
-        "node-opcua-factory": "2.97.0",
-        "node-opcua-nodeid": "2.97.0",
-        "node-opcua-schemas": "2.97.0",
-        "node-opcua-utils": "2.90.1"
+        "node-opcua-debug": "2.98.0",
+        "node-opcua-factory": "2.98.0",
+        "node-opcua-nodeid": "2.98.0",
+        "node-opcua-schemas": "2.98.0",
+        "node-opcua-utils": "2.98.0"
     },
     "devDependencies": {
-        "node-opcua-basic-types": "2.97.0",
-        "node-opcua-binary-stream": "2.90.1",
-        "node-opcua-extension-object": "2.97.0",
-        "node-opcua-packet-analyzer": "2.97.0",
-        "node-opcua-status-code": "2.90.1",
+        "node-opcua-basic-types": "2.98.0",
+        "node-opcua-binary-stream": "2.98.0",
+        "node-opcua-extension-object": "2.98.0",
+        "node-opcua-packet-analyzer": "2.98.0",
+        "node-opcua-status-code": "2.98.0",
         "prettier": "^2.8.7",
         "should": "^13.2.3",
         "underscore": "^1.13.6"
