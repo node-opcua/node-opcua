@@ -24,7 +24,7 @@ export interface UADialogCondition_Base extends UACondition_Base {
     cancelResponse: UAProperty<Int32, DataType.Int32>;
     lastResponse: UAProperty<Int32, DataType.Int32>;
     respond: UAMethod;
-    respond2: UAMethod;
+    respond2?: UAMethod;
 }
 export interface UADialogCondition extends Omit<UACondition, "enabledState">, UADialogCondition_Base {
 }

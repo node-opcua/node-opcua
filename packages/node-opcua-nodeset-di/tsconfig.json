@@ -11,6 +11,7 @@
    "references": [
      { "path": "../node-opcua-address-space-base" },
      { "path": "../node-opcua-basic-types" },
+     { "path": "../node-opcua-data-access" },
      { "path": "../node-opcua-data-model" },
      { "path": "../node-opcua-extension-object" },
      { "path": "../node-opcua-nodeid" },

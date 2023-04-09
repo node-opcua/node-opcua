@@ -38,6 +38,7 @@ export interface UAServerCapabilities_Base {
     maxMonitoredItemsPerSubscription?: UAProperty<UInt32, DataType.UInt32>;
     maxSelectClauseParameters?: UAProperty<UInt32, DataType.UInt32>;
     maxWhereClauseParameters?: UAProperty<UInt32, DataType.UInt32>;
+    maxMonitoredItemsQueueSize?: UAProperty<UInt32, DataType.UInt32>;
     conformanceUnits?: UAProperty<QualifiedName[], DataType.QualifiedName>;
 }
 export interface UAServerCapabilities extends UAObject, UAServerCapabilities_Base {

@@ -23,8 +23,10 @@ export interface UACertificateDirectory_Base extends UADirectory_Base {
     finishRequest: UAMethod;
     revokeCertificate?: UAMethod;
     getCertificateGroups: UAMethod;
+    getCertificates?: UAMethod;
     getTrustList: UAMethod;
     getCertificateStatus: UAMethod;
+    checkRevocationStatus?: UAMethod;
     certificateGroups: UACertificateGroupFolder;
 }
 export interface UACertificateDirectory extends UADirectory, UACertificateDirectory_Base {

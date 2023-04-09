@@ -31,7 +31,8 @@ import {
     UAEventType,
     BaseNode,
     UAObject,
-    InstantiateObjectOptions
+    InstantiateObjectOptions,
+    UAProperty
 } from "node-opcua-address-space-base";
 import { UAConditionVariable } from "node-opcua-nodeset-ua";
 
@@ -48,7 +49,6 @@ import { UAConditionType } from "../ua_condition_type";
 import { UABaseEventImpl } from "./ua_base_event_impl";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 
-
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -56,6 +56,8 @@ const warningLog = make_warningLog(__filename);
 
 export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl {
     on(eventName: string, eventHandler: any): this;
+    conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
+    conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
 }
 /**
  *
@@ -452,7 +454,11 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
                 }
             }
         } else {
-            warningLog("Condition ", this.nodeId.toString(), "is not linked to a Object with a IsConditionOf(reversed(HasCondition))");
+            warningLog(
+                "Condition ",
+                this.nodeId.toString(),
+                "is not linked to a Object with a IsConditionOf(reversed(HasCondition))"
+            );
         }
         // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
@@ -646,7 +652,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         throw new Error("Unimplemented , please override");
     }
 }
-
 
 /**
  * instantiate a Condition.
@@ -1126,11 +1131,11 @@ function _add_comment_method(
     callback: CallbackT<CallMethodResultOptions>
 ) {
     //
-    // The AddComment Method is used to apply a comment to a specific state of a Condition 
-    // instance. Normally, the NodeId of the Object instance is passed as the ObjectId to the Call 
-    // Service. However, some Servers do not expose Condition instances in the AddressSpace. 
-    // Therefore, all Servers shall also allow Clients to call the AddComment Method by specifying 
-    // ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the 
+    // The AddComment Method is used to apply a comment to a specific state of a Condition
+    // instance. Normally, the NodeId of the Object instance is passed as the ObjectId to the Call
+    // Service. However, some Servers do not expose Condition instances in the AddressSpace.
+    // Therefore, all Servers shall also allow Clients to call the AddComment Method by specifying
+    // ConditionId as the ObjectId. The Method cannot be called with an ObjectId of the
     // ConditionType Node.
     // Signature
     //   - EventId EventId identifying a particular Event Notification where a state was reported for a

@@ -2087,6 +2087,9 @@ importers:
       node-opcua-basic-types:
         specifier: 2.97.0
         version: link:../node-opcua-basic-types
+      node-opcua-data-access:
+        specifier: 2.97.0
+        version: link:../node-opcua-data-access
       node-opcua-data-model:
         specifier: 2.97.0
         version: link:../node-opcua-data-model

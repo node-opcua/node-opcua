@@ -23,6 +23,10 @@ export interface UABaseEvent_Base {
     localTime?: UAProperty<DTTimeZone, DataType.ExtensionObject>;
     message: UAProperty<LocalizedText, DataType.LocalizedText>;
     severity: UAProperty<UInt16, DataType.UInt16>;
+    conditionClassId?: UAProperty<NodeId, DataType.NodeId>;
+    conditionClassName?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
 export interface UABaseEvent extends UAObject, UABaseEvent_Base {
 }

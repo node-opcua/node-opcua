@@ -1,5 +1,8 @@
 // ----- this file has been automatically generated - do not edit
-import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_audit_update_method_event"
+import { UAProperty } from "node-opcua-address-space-base"
+import { DataType } from "node-opcua-variant"
+import { NodeId } from "node-opcua-nodeid"
+import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 /**
  * |                |                                                  |
  * |----------------|--------------------------------------------------|
@@ -8,6 +11,8 @@ import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_au
  * |typedDefinition |TrustListUpdatedAuditEventType ns=0;i=12561       |
  * |isAbstract      |true                                              |
  */
-export type UATrustListUpdatedAuditEvent_Base = UAAuditUpdateMethodEvent_Base;
-export interface UATrustListUpdatedAuditEvent extends UAAuditUpdateMethodEvent, UATrustListUpdatedAuditEvent_Base {
+export interface UATrustListUpdatedAuditEvent_Base extends UAAuditEvent_Base {
+    trustListId: UAProperty<NodeId, DataType.NodeId>;
+}
+export interface UATrustListUpdatedAuditEvent extends UAAuditEvent, UATrustListUpdatedAuditEvent_Base {
 }

@@ -43,6 +43,8 @@ export interface UAPublishSubscribe_Base extends UAPubSubKeyService_Base {
     supportedTransportProfiles: UAProperty<UAString[], DataType.String>;
     defaultDatagramPublisherId?: UAProperty<UInt64, DataType.UInt64>;
     configurationVersion?: UAProperty<UInt32, DataType.UInt32>;
+    defaultSecurityKeyServices?: UAProperty<DTEndpointDescription[], DataType.ExtensionObject>;
+    configurationProperties?: UAProperty<DTKeyValuePair[], DataType.ExtensionObject>;
 }
 export interface UAPublishSubscribe extends UAPubSubKeyService, UAPublishSubscribe_Base {
 }

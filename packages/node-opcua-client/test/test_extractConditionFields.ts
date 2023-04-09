@@ -66,6 +66,7 @@ describe("extractConditionFields", () => {
                 "Severity",
                 "SourceName",
                 "SourceNode",
+                "SupportsFilteredRetain",
                 "Time"
             ]);
     });
@@ -126,6 +127,7 @@ describe("extractConditionFields", () => {
                 "Severity",
                 "SourceName",
                 "SourceNode",
+                "SupportsFilteredRetain",
                 "Time"
             ]);
     });

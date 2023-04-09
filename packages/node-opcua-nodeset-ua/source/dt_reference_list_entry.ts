@@ -1,18 +1,18 @@
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
+import { NodeId, ExpandedNodeId } from "node-opcua-nodeid"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
-import { EnumIdentityCriteria } from "./enum_identity_criteria"
 /**
  * |           |                                                  |
  * |-----------|--------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/                      |
  * | nodeClass |DataType                                          |
- * | name      |IdentityMappingRuleType                           |
+ * | name      |ReferenceListEntryDataType                        |
  * | isAbstract|false                                             |
  */
-export interface DTIdentityMappingRule extends DTStructure {
-  criteriaType: EnumIdentityCriteria; // Int32 ns=0;i=15632
-  criteria: UAString; // String ns=0;i=12
+export interface DTReferenceListEntry extends DTStructure {
+  referenceType: NodeId; // NodeId ns=0;i=17
+  isForward: boolean; // Boolean ns=0;i=1
+  targetNode: ExpandedNodeId; // ExpandedNodeId ns=0;i=18
 }
-export interface UDTIdentityMappingRule extends ExtensionObject, DTIdentityMappingRule {};
+export interface UDTReferenceListEntry extends ExtensionObject, DTReferenceListEntry {};
