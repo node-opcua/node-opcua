@@ -28,6 +28,7 @@
     "gitHead": "e4d73afdfcccb3491423149d9b9785888f4ebb3c",
     "files": [
         "dist",
-        "source"
+        "source",
+        "nodesets"
     ]
 }

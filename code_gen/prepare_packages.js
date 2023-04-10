@@ -26,7 +26,18 @@ async function do_on_folder2(folder, packagejson) {
     console.log(" local_package.description= ", local_package.description);
 
     const f = [];
-    ["dist", "distHelpers", "distNodeJS", "source", "src", "nodeJS.d.ts", "nodeJS.js", "testHelpers.js", "testHelpers.d.ts"].forEach((a) => {
+    [
+        "dist",
+        "distHelpers",
+        "distNodeJS",
+        "source",
+        "src",
+        "nodeJS.d.ts",
+        "nodeJS.js",
+        "testHelpers.js",
+        "testHelpers.d.ts",
+        "nodesets"
+    ].forEach((a) => {
         if (fs.existsSync(path.join(moduleFolder, a))) {
             f.push(a);
         }
@@ -35,7 +46,7 @@ async function do_on_folder2(folder, packagejson) {
     local_package.files = [...new Set([...(local_package.files || []), ...f])];
     console.log(local_package.files);
 
-    await fs.promises.writeFile(packagejson,JSON.stringify(local_package,null,"    "),"utf-8");
+    await fs.promises.writeFile(packagejson, JSON.stringify(local_package, null, "    ")+"\n", "utf-8");
     // await fs.promises.writeFile(local_license_file,licence_text,"utf-8");
 }
 
