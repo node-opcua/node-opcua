@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-base",
-    "version": "2.98.1",
+    "version": "2.98.2",
     "description": "pure nodejs OPCUA SDK - module address-space-base",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -25,9 +25,9 @@
         "node-opcua-extension-object": "2.98.1",
         "node-opcua-nodeid": "2.98.1",
         "node-opcua-numeric-range": "2.98.1",
-        "node-opcua-schemas": "2.98.1",
+        "node-opcua-schemas": "2.98.2",
         "node-opcua-status-code": "2.98.1",
-        "node-opcua-types": "2.98.1",
+        "node-opcua-types": "2.98.2",
         "node-opcua-variant": "2.98.1"
     },
     "author": "Etienne Rossignon",
