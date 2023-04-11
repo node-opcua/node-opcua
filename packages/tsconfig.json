@@ -42,15 +42,21 @@
         { "path": "node-opcua-nodeset-gds" },
         { "path": "node-opcua-nodeset-glass-flat" },
         { "path": "node-opcua-nodeset-ia" },
+        { "path": "node-opcua-nodeset-ijt" },
+        { "path": "node-opcua-nodeset-io-link" },
         { "path": "node-opcua-nodeset-machine-tool" },
         { "path": "node-opcua-nodeset-machine-vision" },
         { "path": "node-opcua-nodeset-machinery" },
+        { "path": "node-opcua-nodeset-machinery-process-values" },
+        { "path": "node-opcua-nodeset-machinery-result" },
+        { "path": "node-opcua-nodeset-pack-ml" },
+        { "path": "node-opcua-nodeset-padim" },
         { "path": "node-opcua-nodeset-robotics" },
         { "path": "node-opcua-nodeset-ua" },
+        { "path": "node-opcua-nodeset-woodworking" },
+        { "path": "node-opcua-nodesets" },
         { "path": "node-opcua-service-secure-channel" },
         { "path": "node-opcua-types" },
-        { "path": "node-opcua-nodeset-woodworking" },
-        { "path": "node-opcua-nodeset-ijt" },
         { "path": "node-opcua-units" }
     ]
 }
