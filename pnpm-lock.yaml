@@ -2223,6 +2223,33 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-variant
 
+  packages/node-opcua-nodeset-io-link:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.98.2
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.98.1
+        version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.98.1
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.98.1
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-di:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.98.1
+        version: link:../node-opcua-status-code
+      node-opcua-variant:
+        specifier: 2.98.1
+        version: link:../node-opcua-variant
+
   packages/node-opcua-nodeset-machine-tool:
     dependencies:
       node-opcua-address-space-base:
@@ -2291,6 +2318,114 @@ importers:
       node-opcua-basic-types:
         specifier: 2.98.1
         version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.98.1
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.98.1
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-di:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ua:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-variant:
+        specifier: 2.98.1
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-machinery-process-values:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.98.2
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.98.1
+        version: link:../node-opcua-basic-types
+      node-opcua-data-access:
+        specifier: 2.98.2
+        version: link:../node-opcua-data-access
+      node-opcua-data-model:
+        specifier: 2.98.1
+        version: link:../node-opcua-data-model
+      node-opcua-nodeid:
+        specifier: 2.98.1
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-padim:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-padim
+      node-opcua-nodeset-ua:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.98.1
+        version: link:../node-opcua-status-code
+      node-opcua-variant:
+        specifier: 2.98.1
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-machinery-result:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.98.2
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.98.1
+        version: link:../node-opcua-basic-types
+      node-opcua-data-model:
+        specifier: 2.98.1
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.98.1
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeid:
+        specifier: 2.98.1
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-variant:
+        specifier: 2.98.1
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-pack-ml:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.98.2
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.98.1
+        version: link:../node-opcua-basic-types
+      node-opcua-data-access:
+        specifier: 2.98.2
+        version: link:../node-opcua-data-access
+      node-opcua-data-model:
+        specifier: 2.98.1
+        version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.98.1
+        version: link:../node-opcua-extension-object
+      node-opcua-nodeid:
+        specifier: 2.98.1
+        version: link:../node-opcua-nodeid
+      node-opcua-nodeset-ua:
+        specifier: 2.98.2
+        version: link:../node-opcua-nodeset-ua
+      node-opcua-variant:
+        specifier: 2.98.1
+        version: link:../node-opcua-variant
+
+  packages/node-opcua-nodeset-padim:
+    dependencies:
+      node-opcua-address-space-base:
+        specifier: 2.98.2
+        version: link:../node-opcua-address-space-base
+      node-opcua-basic-types:
+        specifier: 2.98.1
+        version: link:../node-opcua-basic-types
+      node-opcua-data-access:
+        specifier: 2.98.2
+        version: link:../node-opcua-data-access
       node-opcua-data-model:
         specifier: 2.98.1
         version: link:../node-opcua-data-model
@@ -3750,7 +3885,7 @@ packages:
       '@babel/traverse': 7.20.1
       '@babel/types': 7.20.2
       convert-source-map: 1.9.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       gensync: 1.0.0-beta.2
       json5: 2.2.1
       semver: 6.3.0
@@ -3899,7 +4034,7 @@ packages:
       '@babel/helper-split-export-declaration': 7.18.6
       '@babel/parser': 7.20.3
       '@babel/types': 7.20.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -3951,7 +4086,7 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       espree: 9.5.1
       globals: 13.19.0
       ignore: 5.2.0
@@ -3975,7 +4110,7 @@ packages:
     engines: {node: '>=10.10.0'}
     dependencies:
       '@humanwhocodes/object-schema': 1.2.1
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -4815,7 +4950,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.57.1
       '@typescript-eslint/type-utils': 5.57.1(eslint@8.38.0)(typescript@5.0.4)
       '@typescript-eslint/utils': 5.57.1(eslint@8.38.0)(typescript@5.0.4)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       eslint: 8.38.0
       grapheme-splitter: 1.0.4
       ignore: 5.2.0
@@ -4840,7 +4975,7 @@ packages:
       '@typescript-eslint/scope-manager': 5.57.1
       '@typescript-eslint/types': 5.57.1
       '@typescript-eslint/typescript-estree': 5.57.1(typescript@5.0.4)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       eslint: 8.38.0
       typescript: 5.0.4
     transitivePeerDependencies:
@@ -4867,7 +5002,7 @@ packages:
     dependencies:
       '@typescript-eslint/typescript-estree': 5.57.1(typescript@5.0.4)
       '@typescript-eslint/utils': 5.57.1(eslint@8.38.0)(typescript@5.0.4)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       eslint: 8.38.0
       tsutils: 3.21.0(typescript@5.0.4)
       typescript: 5.0.4
@@ -4891,7 +5026,7 @@ packages:
     dependencies:
       '@typescript-eslint/types': 5.57.1
       '@typescript-eslint/visitor-keys': 5.57.1
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.3.8
@@ -5006,7 +5141,7 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -5015,7 +5150,7 @@ packages:
     resolution: {integrity: sha512-Zn4cw2NEqd+9fiSVWMscnjyQ1a8Yfoc5oBajLeo5w+YBHgDUcEBY2hS4YpTz6iN5f/2zQiktcuM6tS8x1p9dpA==}
     engines: {node: '>= 8.0.0'}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       depd: 1.1.2
       humanize-ms: 1.2.1
     transitivePeerDependencies:
@@ -6197,6 +6332,17 @@ packages:
       ms: 2.1.3
     dev: true
 
+  /debug@4.3.4:
+    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+
   /debug@4.3.4(supports-color@8.1.1):
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -6208,6 +6354,7 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 8.1.1
+    dev: true
 
   /decamelize-keys@1.1.1:
     resolution: {integrity: sha512-WiPxgEirIV0/eIOMcnFBA3/IJZAZqKnwAwWyvvdi4lsr1WCN22nhdf/3db3DoZcUjTV2SqfzIwNyp6y2xs3nmg==}
@@ -6739,7 +6886,7 @@ packages:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.1.1
@@ -7559,7 +7706,7 @@ packages:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -7578,7 +7725,7 @@ packages:
     engines: {node: '>= 6'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: false
@@ -8057,7 +8204,7 @@ packages:
     resolution: {integrity: sha512-n3s8EwkdFIJCG3BPKBYvskgXGoy88ARzvegkitk60NxRdwltLOTaH7CUiMRXvwYorl0Q712iEjcWB+fK/MrWVw==}
     engines: {node: '>=10'}
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       istanbul-lib-coverage: 3.2.0
       source-map: 0.6.1
     transitivePeerDependencies:
@@ -10702,7 +10849,7 @@ packages:
     engines: {node: '>= 10'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.4
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
@@ -10986,6 +11133,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       has-flag: 4.0.0
+    dev: true
 
   /supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}

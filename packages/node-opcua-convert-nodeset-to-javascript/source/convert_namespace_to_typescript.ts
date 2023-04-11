@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 import * as path from "path";
 import * as fs from "fs";
 
@@ -118,13 +119,13 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
     content2.push(`{`);
     content2.push(`    "name": "${info.module}",`);
     content2.push(`    "version": "${version}",`);
-    content2.push(`    "description": "",`);
+    content2.push(`    "description": "pure nodejs OPCUA SDK - module ${info.module}",`);
     content2.push(`    "main": "dist/index.js",`);
     content2.push(`    "types": "dist/index.d.ts",`);
     content2.push(`    "scripts": {`);
     content2.push(`        "build": "tsc -b"`);
     content2.push(`    },`);
-    content2.push(`    "author": "etienne.rossignon@sterfive.com",`);
+    content2.push(`    "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",`);
     content2.push(`    "license": "MIT",`);
 
     content2.push(`    "dependencies": {`);
@@ -141,11 +142,24 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
             .join(",\n")
     );
     content2.push(`    },`);
-
     content2.push(`    "files": [`);
     content2.push(`        "dist",`);
     content2.push(`        "source"`);
-    content2.push(`    ]`);
+    content2.push(`    ],`);
+
+    content2.push(`    "repository": {`);
+    content2.push(`        "type": "git",`);
+    content2.push(`        "url": "git://github.com/node-opcua/node-opcua.git"`);
+    content2.push(`    },`);
+    content2.push(`    "keywords": [`);
+    content2.push(`        "OPCUA",`);
+    content2.push(`        "opcua",`);
+    content2.push(`        "m2m",`);
+    content2.push(`        "iot",`);
+    content2.push(`        "opc ua",`);
+    content2.push(`        "internet of things"`);
+    content2.push(`    ],`);
+    content2.push(`    "homepage": "http://node-opcua.github.io/"`);
     content2.push(`}`);
     content2.push(``);
 

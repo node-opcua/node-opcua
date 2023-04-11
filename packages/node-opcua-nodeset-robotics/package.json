@@ -1,13 +1,13 @@
 {
     "name": "node-opcua-nodeset-robotics",
     "version": "2.98.2",
-    "description": "pure nodejs OPCUA SDK - module nodeset-robotics",
+    "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-robotics",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
         "build": "tsc -b"
     },
-    "author": "Etienne Rossignon",
+    "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
         "node-opcua-address-space-base": "2.98.2",

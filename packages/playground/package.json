@@ -30,5 +30,7 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "files": []
+    "files": [
+        "dist"
+    ]
 }

@@ -31,6 +31,7 @@ async function do_on_folder2(folder, packagejson) {
         "distHelpers",
         "distNodeJS",
         "source",
+        "source_nodejs",
         "src",
         "nodeJS.d.ts",
         "nodeJS.js",

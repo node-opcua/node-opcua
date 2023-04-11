@@ -94,6 +94,7 @@
         "nodeJS.d.ts",
         "nodeJS.js",
         "testHelpers.js",
-        "testHelpers.d.ts"
+        "testHelpers.d.ts",
+        "source_nodejs"
     ]
 }

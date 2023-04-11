@@ -39,6 +39,7 @@
         "distNodeJS",
         "source",
         "nodeJS.d.ts",
-        "nodeJS.js"
+        "nodeJS.js",
+        "source_nodejs"
     ]
 }
