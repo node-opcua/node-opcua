@@ -497,7 +497,7 @@ importers:
         version: 4.17.21
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
@@ -1288,7 +1288,7 @@ importers:
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
@@ -1563,8 +1563,8 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-nodeid
       node-opcua-nodeset-ijt:
-        specifier: 2.99.0
-        version: 2.99.0
+        specifier: 2.99.1
+        version: 2.99.1
       node-opcua-packet-analyzer:
         specifier: 2.99.0
         version: link:../node-opcua-packet-analyzer
@@ -1688,7 +1688,7 @@ importers:
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
@@ -1972,7 +1972,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -1999,7 +1999,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2029,7 +2029,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2059,7 +2059,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2083,7 +2083,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2113,7 +2113,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2140,7 +2140,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2173,7 +2173,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2197,7 +2197,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2227,7 +2227,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2254,7 +2254,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2287,7 +2287,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2314,7 +2314,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2338,7 +2338,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2353,7 +2353,7 @@ importers:
         version: link:../node-opcua-nodeid
       node-opcua-nodeset-padim:
         specifier: 2.99.0
-        version: 2.99.0
+        version: link:../node-opcua-nodeset-padim
       node-opcua-nodeset-ua:
         specifier: 2.99.0
         version: link:../node-opcua-nodeset-ua
@@ -2368,7 +2368,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2392,7 +2392,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2419,7 +2419,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2446,7 +2446,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2473,7 +2473,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2503,7 +2503,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-basic-types:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
@@ -2904,7 +2904,7 @@ importers:
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
@@ -3064,7 +3064,7 @@ importers:
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
@@ -3288,7 +3288,7 @@ importers:
     dependencies:
       node-opcua-address-space-base:
         specifier: 2.99.0
-        version: link:../node-opcua-address-space-base
+        version: 2.99.0
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
@@ -9307,6 +9307,7 @@ packages:
     dependencies:
       node-opcua-data-model: 2.99.0
       node-opcua-types: 2.99.0
+    dev: true
 
   /node-opcua-data-model@2.99.0:
     resolution: {integrity: sha512-S6tt0hZPVkM15vNkNb6mcKsoypJcNtmUleUoqRVrm5hDxgHvQBe8cMGO0EwcabaBW2MjQ0VflNBUhcNB69dRsA==}
@@ -9410,9 +9411,10 @@ packages:
       node-opcua-nodeset-ua: 2.99.0
       node-opcua-status-code: 2.98.1
       node-opcua-variant: 2.99.0
+    dev: true
 
-  /node-opcua-nodeset-ijt@2.99.0:
-    resolution: {integrity: sha512-UH+SLrvepfAGyfk1p5QqPeq+FPw6uvv/Izcy1dl5tNCOFtBU/2NjjKP6YSxa5NZgFF81l//BbUnpHS8XkE5bYA==}
+  /node-opcua-nodeset-ijt@2.99.1:
+    resolution: {integrity: sha512-E70S1QAFAMwRJvzfcs3GlpFyGUPwpHa6QeI3mbNilzQjjx1/IPNyEUgtEEnG+1SifVCkIIirDCsdla6PPK6KBw==}
     dependencies:
       node-opcua-address-space-base: 2.99.0
       node-opcua-basic-types: 2.99.0
@@ -9437,19 +9439,6 @@ packages:
       node-opcua-variant: 2.99.0
     dev: true
 
-  /node-opcua-nodeset-padim@2.99.0:
-    resolution: {integrity: sha512-H1XtASZgstfGNYHPwkZwlM5oTDcO9q59+dNsz7t5yJ9jFZfyQ8jW7qinsIwrCLthwBTTR6A/ZmPRVFgc6rXN7Q==}
-    dependencies:
-      node-opcua-address-space-base: 2.99.0
-      node-opcua-basic-types: 2.99.0
-      node-opcua-data-access: 2.99.0
-      node-opcua-data-model: 2.99.0
-      node-opcua-nodeid: 2.99.0
-      node-opcua-nodeset-di: 2.99.0
-      node-opcua-nodeset-ua: 2.99.0
-      node-opcua-variant: 2.99.0
-    dev: false
-
   /node-opcua-nodeset-ua@2.99.0:
     resolution: {integrity: sha512-QTM4zeF0VMf3tz4LzZvH5wtVDgOTBO2CXnNxvOw8PIK3bvZngGgzp+pv4DBgVTfR4j/Pk75CuipC9T7nPSm4Lw==}
     dependencies:
@@ -9462,6 +9451,7 @@ packages:
       node-opcua-nodeid: 2.99.0
       node-opcua-status-code: 2.98.1
       node-opcua-variant: 2.99.0
+    dev: true
 
   /node-opcua-numeric-range@2.99.0:
     resolution: {integrity: sha512-MUE3pudHwAoy5ENQ7NXmbKAMRHgrfAadm9yOFy5TAXV5eaPEyD/MOPiNIqWaE/gDia7uhMovuMtK7pU4+kP2Ww==}

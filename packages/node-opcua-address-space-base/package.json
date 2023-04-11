@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-base",
-    "version": "2.99.0",
+    "version": "2.99.1",
     "description": "pure nodejs OPCUA SDK - module address-space-base",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
         "lint": "eslint source",
         "format": "prettier --write source",
         "clean": "npx rimraf node_modules dist *.tsbuildinfo",
-        "c": "mocha --version"
+        "mocha:version": "mocha --version"
     },
     "dependencies": {
         "node-opcua-basic-types": "2.99.0",

@@ -33,7 +33,7 @@
         "node-opcua-hostname": "2.98.1",
         "node-opcua-leak-detector": "2.99.0",
         "node-opcua-nodeid": "2.99.0",
-        "node-opcua-nodeset-ijt": "2.99.0",
+        "node-opcua-nodeset-ijt": "2.99.1",
         "node-opcua-packet-analyzer": "2.99.0",
         "node-opcua-pki": "^3.0.2",
         "node-opcua-server": "2.99.0",
