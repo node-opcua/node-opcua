@@ -10,7 +10,7 @@ import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { isArgumentValid } from "../source/helpers/argument_list";
 
-const nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
 interface TestCase {
     name: string;

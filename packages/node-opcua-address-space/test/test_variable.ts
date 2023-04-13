@@ -12,7 +12,7 @@ import { WriteValue, WriteValueOptions } from "node-opcua-types";
 import { StatusCodeCallback } from "node-opcua-status-code";
 import { VariableTypeIds } from "node-opcua-constants";
 
-const nodeset_filename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+const nodeset_filename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
 import {
     AddressSpace,
@@ -26,6 +26,7 @@ import {
 import { generateAddressSpace } from "../nodeJS";
 
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
+import { getCurrentClock } from "node-opcua-date-time";
 
 const context = SessionContext.defaultContext;
 
@@ -490,7 +491,7 @@ describe("testing Variable#bindVariable", () => {
         dataValueCheck1.statusCode.should.eql(StatusCodes.UncertainInitialValue);
 
         // call_refresh
-        await variable.asyncRefresh(new Date());
+        await variable.asyncRefresh(getCurrentClock());
 
         // read_simple_value_after_refresh
         const dataValueCheck2 = variable.readValue();
@@ -1410,3 +1411,7 @@ describe("testing UAVariable ", () => {
         statusCode1.should.eql(StatusCodes.Good);
     });
 });
+function geCurrentClock(): import("node-opcua-date-time").PreciseClock {
+    throw new Error("Function not implemented.");
+}
+

@@ -8,7 +8,7 @@ import { generateAddressSpace } from "../nodeJS";
 
 import { getAddressSpaceFixture } from "./get_address_space_fixture";
 
-export const mini_nodeset = "mini.Node.Set2.xml";
+export const mini_nodeset = "mini.Nodeset2.xml";
 export const empty_nodeset = "fixture_empty_nodeset2.xml";
 
 export const get_mini_nodeset_filename = (): string => getAddressSpaceFixture(mini_nodeset);
