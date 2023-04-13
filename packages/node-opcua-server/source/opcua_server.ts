@@ -781,7 +781,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * the maximum number of simultaneous sessions allowed.
      * @default 10
      * @deprecated use serverCapabilities: { maxSessions: } instead
-    
+
      */
     maxAllowedSessionNumber?: number;
 
@@ -798,8 +798,16 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      *
      * example:
      *
-     * ``` javascript
-     *
+     * ```javascript
+     * import { nodesets } from "node-opcua-nodesets";
+     * const server = new OPCUAServer({
+     *     nodeset_filename: [
+     *         nodesets.standard,
+     *         nodesets.di,
+     *         nodesets.adi,
+     *         nodesets.machinery,
+     *     ],
+     * });
      * ```
      */
     nodeset_filename?: string[] | string;
