@@ -42,7 +42,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("should load a nodeset xml file", async () => {
-        const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
         fs.existsSync(xml_file).should.be.eql(true);
 
@@ -162,7 +162,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("Q1 should read a VariableType with a default value", async () => {
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file1 = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
         const xml_file2 = getFixture("fixture_variable_type_with_default_value.xml");
 
         const xml_files = [xml_file1, xml_file2];
@@ -228,7 +228,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     });
 
     it("VV3 should load a nodeset from UAModeler", async () => {
-        const xml_file1 = nodesets.standard; // path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file1 = nodesets.standard; // path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
         const xml_file2 = path.join(__dirname, "../../../modeling/my_data_type.xml");
         const xml_files = [xml_file1, xml_file2];
         await generateAddressSpace(addressSpace, xml_files);
@@ -617,7 +617,7 @@ describe("Testing variables loading ", function (this: any) {
         namespace0._dataTypeCount().should.equal(0);
         namespace0._objectTypeCount().should.equal(0);
 
-        const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file1 = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
         const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/mini.nodeset.withVariousVariables.xml");
         fs.existsSync(xml_file).should.be.eql(true);

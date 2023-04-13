@@ -22,7 +22,7 @@ describe("Issue 132", function (this: any) {
     });
 
     it("#312 - should load a nodeset xml file containing MandatoryPlaceHolder f", async () => {
-        const xml_file0 = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+        const xml_file0 = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
         const xml_file1 = getFixture("fixture_issue_312_nodeset2.xml");
 
         fs.existsSync(xml_file0).should.be.eql(true);

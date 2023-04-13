@@ -33,7 +33,7 @@ describe("testing  address space namespace loading", function (this: any) {
     it("should process namespaces and translate namespace index when loading node set xml files", async () => {
         const addressSpace = AddressSpace.create();
         const xml_files = [
-            path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml"),
+            path.join(__dirname, "../nodesets/mini.Nodeset2.xml"),
             getFixture("fixture_custom_nodeset.xml")
         ];
         fs.existsSync(xml_files[0]).should.be.eql(true);
@@ -72,7 +72,7 @@ describe("testing  address space namespace loading", function (this: any) {
     it("should process multiple xml files that reference each other", async () => {
         const addressSpace = AddressSpace.create();
         const xml_files = [
-            path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml"),
+            path.join(__dirname, "../nodesets/mini.Nodeset2.xml"),
             getFixture("fixture_custom_nodeset.xml"),
             getFixture("fixture_custom_nodeset_extension.xml")
         ];

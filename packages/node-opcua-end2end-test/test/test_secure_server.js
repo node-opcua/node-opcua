@@ -2,13 +2,7 @@
 const should = require("should");
 const async = require("async");
 
-const opcua = require("node-opcua");
-const OPCUAServer = opcua.OPCUAServer;
-const OPCUAClient = opcua.OPCUAClient;
-const SecurityPolicy = opcua.SecurityPolicy;
-const MessageSecurityMode = opcua.MessageSecurityMode;
-
-const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
+const { EndpointDescription, OPCUAServer, OPCUAClient, SecurityPolicy, MessageSecurityMode, get_empty_nodeset_filename } = require("node-opcua");
 /*
 Discovery Endpoints shall not require any message security, but it may require transport layer
 security. In production systems, Administrators may disable discovery for security reasons and
@@ -38,6 +32,7 @@ describe("testing behavior of secure Server ( server that only accept Sign or Si
 
     this.timeout(Math.max(20000, this.timeout()));
 
+    const empty_nodeset_filename = get_empty_nodeset_filename();
     const port = 2241;
     before(async () => {
         const serverCertificateManager = await createServerCertificateManager(port);
@@ -87,7 +82,7 @@ describe("testing behavior of secure Server ( server that only accept Sign or Si
                     // establishing a session. Let's inject a fake unsecure endpoint so we can
                     // skip the internal client test for invalid endpoint and get to the server
 
-                    const unsecureEndpoint = new opcua.EndpointDescription(client._serverEndpoints[0]);
+                    const unsecureEndpoint = new EndpointDescription(client._serverEndpoints[0]);
                     unsecureEndpoint.securityMode = MessageSecurityMode.None;
                     unsecureEndpoint.securityPolicyUri = SecurityPolicy.None;
 

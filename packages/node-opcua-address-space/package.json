@@ -93,6 +93,7 @@
         "src",
         "nodeJS.d.ts",
         "nodeJS.js",
+        "nodesets",
         "testHelpers.js",
         "testHelpers.d.ts",
         "source_nodejs"

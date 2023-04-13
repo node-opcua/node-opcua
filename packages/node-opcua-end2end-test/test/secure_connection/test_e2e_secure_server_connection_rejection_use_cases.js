@@ -4,19 +4,23 @@ const should = require("should");
 const async = require("async");
 const sinon = require("sinon");
 
-const opcua = require("node-opcua");
+const { 
+    OPCUAServer,
+    OPCUAClientBase,
+    OPCUAClient,
+    StatusCodes,
+    MessageSecurityMode,
+    SecurityPolicy,
+    CreateSessionRequest,
+    get_empty_nodeset_filename
+}= require("node-opcua");
 
-const OPCUAServer = opcua.OPCUAServer;
-const OPCUAClient = opcua.OPCUAClient;
-const OPCUAClientBase = opcua.OPCUAClientBase;
-
-const StatusCodes = opcua.StatusCodes;
 
 const { SignatureData  } = require("node-opcua-service-secure-channel");
 
 const port = 2237;
 
-const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
+const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const crypto_utils = require("node-opcua-crypto");
 
@@ -36,8 +40,8 @@ describe("testing the server ability to deny client session request (server with
         const serverCertificate = server.getCertificateChain();
 
         options = {
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic256,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000
         };
@@ -199,7 +203,7 @@ describe("testing the server ability to deny client session request (server with
 
             function(callback) {
 
-                const createSessionRequest = new opcua.CreateSessionRequest({
+                const createSessionRequest = new CreateSessionRequest({
                     requestHeader: {},
                     clientNonce: Buffer.alloc(31)
                 });
@@ -225,8 +229,8 @@ describe("testing the server ability to deny client session request (server with
 
         // in this case, server certificate will be extracted from the getPoint Information
         const options = {
-            securityMode: opcua.MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: opcua.SecurityPolicy.Basic256,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: null, // NOT KNOWN
             defaultSecureTokenLifetime: 2000
         };

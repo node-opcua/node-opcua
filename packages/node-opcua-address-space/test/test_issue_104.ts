@@ -10,7 +10,7 @@ import { AddressSpace, Namespace } from "..";
 import { assertHasMatchingReference } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
 
-const nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/mini.Node.Set2.xml");
+const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
