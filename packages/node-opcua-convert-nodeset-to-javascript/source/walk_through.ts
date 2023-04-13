@@ -59,15 +59,16 @@ export async function walkThroughDataTypes(session: IBasicSession, nodeVisitor?:
     const baseDataTypeTypeNodeId = resolveNodeId("BaseDataType");
     await _walkThroughTypes(session, baseDataTypeTypeNodeId, nodeVisitor);
 }
+
 export async function walkThroughInterfaceTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
     const baseInterfaceTypeNodeId = resolveNodeId("BaseInterfaceType");
     await _walkThroughTypes(session, baseInterfaceTypeNodeId, nodeVisitor);
 }
 export async function walkThroughObjectTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
-    const baseObjectType = resolveNodeId("BaseObjectType");
-    await _walkThroughTypes(session, baseObjectType, nodeVisitor);
+    const baseObjectTypeNodeId = resolveNodeId("BaseObjectType");
+    await _walkThroughTypes(session, baseObjectTypeNodeId, nodeVisitor);
 }
 export async function walkThroughVariableTypes(session: IBasicSession, nodeVisitor?: NodeVisitor): Promise<void> {
-    const baseObjectType = resolveNodeId("BaseVariableType");
-    await _walkThroughTypes(session, baseObjectType, nodeVisitor);
+    const baseObjectTypeNodeId = resolveNodeId("BaseVariableType");
+    await _walkThroughTypes(session, baseObjectTypeNodeId, nodeVisitor);
 }

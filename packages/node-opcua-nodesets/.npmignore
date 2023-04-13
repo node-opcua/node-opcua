@@ -16,4 +16,3 @@ tsconfig.json
 pnpm-lock.yaml
 tslint.*
 .mocharc.*
-

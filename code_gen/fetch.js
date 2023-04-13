@@ -293,7 +293,7 @@ fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
 fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
 fetch_from_github(version, "PackML/Opc.Ua.PackML.NodeSet2.xml");
 fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
-fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml");
+fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml"); // lowercase 's' correct though inconsistent
 fetch_from_github(version, "Woodworking/Opc.Ua.Woodworking.NodeSet2.xml");
 /*
 fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
