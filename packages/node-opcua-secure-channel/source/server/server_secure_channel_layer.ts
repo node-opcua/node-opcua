@@ -572,6 +572,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
             debugLog("transport has send socket_closed event " + (err ? err.message : "null"));
             this._abort();
         };
+        this.transport.on("close", (err: Error|null)=>{
+            console.log("XXXXXX is it redundant with socket_closed ?");
+        })
+        this.transport.on("socket_closed", (err: Error|null)=>{
+            console.log("XXXXXX is it redundant with close ?");
+        })
         this.transport.on("socket_closed", this._transport_socket_close_listener);
     }
 

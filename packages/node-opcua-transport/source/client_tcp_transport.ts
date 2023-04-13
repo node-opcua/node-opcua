@@ -25,21 +25,25 @@ const warningLog = debug.make_warningLog(__filename);
 const errorLog = debug.make_errorLog(__filename);
 const gHostname = os.hostname();
 
+const socketSettings = {
+    timeout: 5000,
+    closeSocketOnTimeout: true
+};
+
 function createClientSocket(endpointUrl: string): Socket {
     // create a socket based on Url
     const ep = parseEndpointUrl(endpointUrl);
     const port = parseInt(ep.port!, 10);
     const hostname = ep.hostname!;
+
+    const timeout = socketSettings.timeout;
+
     let socket: Socket;
     switch (ep.protocol) {
         case "opc.tcp:":
-            socket = createConnection({ host: hostname, port });
-
-            socket.setKeepAlive(true);
-
-            // Setting true for noDelay will immediately fire off data each time socket.write() is called.
-            socket.setNoDelay(true);
-
+            socket = createConnection({ host: hostname, port, timeout }, () => {
+                 doDebug && debugLog(`connected to server! ${hostname}:${port} timeout:${timeout} `);
+            });
             return socket;
         case "fake:":
             socket = getFakeTransport();
@@ -49,7 +53,7 @@ function createClientSocket(endpointUrl: string): Socket {
 
         case "websocket:":
         case "http:":
-        case "https:FF":
+        case "https:":
         default: {
             const msg = "[NODE-OPCUA-E05] this transport protocol is not supported :" + ep.protocol;
             errorLog(msg);
@@ -95,11 +99,11 @@ export interface TransportSettingsOptions {
  * @example
  *
  *    ```javascript
- *    const transport = ClientTCP_transport(url);
+                *    const transport = ClientTCP_transport(url);
  *
- *    transport.timeout = 10000;
+ * transport.timeout = 10000;
  *
- *    transport.connect(function(err)) {
+ * transport.connect(function (err)) {
  *         if (err) {
  *            // cannot connect
  *         } else {
@@ -109,16 +113,16 @@ export interface TransportSettingsOptions {
  *    });
  *    ....
  *
- *    transport.write(message_chunk,'F');
+ * transport.write(message_chunk, 'F');
  *
  *    ....
  *
- *    transport.on("chunk",function(message_chunk) {
+ * transport.on("chunk", function (message_chunk) {
  *        // do something with chunk from server...
  *    });
  *
  *
- *    ```
+ * ```
  *
  *
  */
@@ -127,6 +131,7 @@ export class ClientTCP_transport extends TCP_transport {
     public static defaultMaxMessageSize = 0; // 0 - no limits
     public static defaultReceiveBufferSize = 1024 * 64 * 10;
     public static defaultSendBufferSize = 1024 * 64 * 10; // 8192 min,
+    public static socketSettings = socketSettings;
 
     public endpointUrl: string;
     public serverUri: string;
@@ -198,6 +203,9 @@ export class ClientTCP_transport extends TCP_transport {
             return callback(err as Error);
         }
 
+        /**
+         * 
+         */
         const _on_socket_error_after_connection = (err: Error) => {
             /* istanbul ignore next */
             if (doDebug) {
@@ -210,7 +218,11 @@ export class ClientTCP_transport extends TCP_transport {
             // ECONNRESET (Connection reset by peer): A connection was forcibly closed by a peer. This normally results
             // from a loss of the connection on the remote socket due to a timeout or reboot. Commonly encountered
             // via the http and net module
-            if (err.message.match(/ECONNRESET|EPIPE/)) {
+
+            //  socket termination could happen:
+            //   * when the socket times out (lost of connection, network outage, etc...)
+            //   * or, when the server abruptly disconnects the socket ( in case of invalid communication for instance)
+            if (err.message.match(/ECONNRESET|EPIPE|premature socket termination/)) {
                 /**
                  * @event connection_break
                  *
@@ -361,7 +373,7 @@ export class ClientTCP_transport extends TCP_transport {
         });
         // istanbul ignore next
         if (doTraceHelloAck) {
-            warningLog(`sending Hello\n ${helloMessage.toString()}`);
+            warningLog(`sending Hello\n ${helloMessage.toString()} `);
         }
 
         const messageChunk = packTcpMessage("HEL", helloMessage);

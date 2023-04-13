@@ -452,9 +452,8 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
 }
 
 export function repair_client_sessions(client: IClientBase, callback: (err?: Error) => void): void {
-    const self = client;
     // repair session
-    const sessions = self.getSessions();
+    const sessions = client.getSessions();
     doDebug && debugLog(chalk.red.bgWhite(" Starting sessions reactivation", sessions.length));
     async.map(
         sessions,
