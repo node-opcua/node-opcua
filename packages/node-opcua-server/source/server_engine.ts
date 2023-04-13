@@ -207,7 +207,7 @@ function _getSubscription(
     this: ServerEngine,
     inputArguments: Variant[],
     context: ISessionContext
-): { subscription: Subscription, statusCode?: never } | { statusCode: StatusCode, subscription?: never } {
+): { subscription: Subscription; statusCode?: never } | { statusCode: StatusCode; subscription?: never } {
     assert(Array.isArray(inputArguments));
     assert(Object.prototype.hasOwnProperty.call(context, "session"), " expecting a session id in the context object");
     const session = context.session as ServerSession;
@@ -225,7 +225,6 @@ function _getSubscription(
         return { statusCode: StatusCodes.BadSubscriptionIdInvalid };
     }
     return { subscription };
-
 }
 function resendData(
     this: ServerEngine,
@@ -239,12 +238,13 @@ function resendData(
     if (data.statusCode) return callback(null, { statusCode: data.statusCode });
     const { subscription } = data;
 
-    subscription.resendInitialValues().then(() => {
-        callback(null, { statusCode: StatusCodes.Good });
-    }).catch((err) => callback(err));
-
+    subscription
+        .resendInitialValues()
+        .then(() => {
+            callback(null, { statusCode: StatusCodes.Good });
+        })
+        .catch((err) => callback(err));
 }
-
 
 // binding methods
 function getMonitoredItemsId(
@@ -1450,7 +1450,7 @@ export class ServerEngine extends EventEmitter {
                 (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
             ) {
                 dataValue.serverTimestamp = context.currentTime.timestamp;
-                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds; 
+                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds;
             }
             dataValues.push(dataValue);
         }
@@ -1990,11 +1990,12 @@ export class ServerEngine extends EventEmitter {
      * performs a call to ```asyncRefresh``` on all variable nodes that provide an async refresh func.
      *
      * @method refreshValues
-     * @param nodesToRefresh {Array<Object>}  an array containing the node to consider
+     * @param nodesToRefresh {Array<ReadValueId|HistoryReadValueId>}  an array containing the node to consider
      * Each element of the array shall be of the form { nodeId: <xxx>, attributeIds: <value> }.
+     * @param maxAge {number}  the maximum age of the value to be read, in milliseconds.
      * @param callback
-     * @param callback.err
-     * @param callback.data  an array containing value read
+     * @param callback.err       {Error}
+     * @param callback.dataValue {DataValue}  an array containing value read
      * The array length matches the number of  nodeIds that are candidate for an async refresh (i.e: nodes that
      * are of type Variable with asyncRefresh func }
      *
@@ -2005,10 +2006,12 @@ export class ServerEngine extends EventEmitter {
         maxAge: number,
         callback: (err: Error | null, dataValues?: DataValue[]) => void
     ): void {
-        const referenceTime = new Date(Date.now() - maxAge);
+        const referenceTime = getCurrentClock();
+        maxAge && referenceTime.timestamp.setTime(referenceTime.timestamp.getTime() - maxAge);
 
         assert(typeof callback === "function");
-        const objectMap: Record<string, BaseNode> = {};
+
+        const nodeMap: Record<string, UAVariable> = {};
         for (const nodeToRefresh of nodesToRefresh) {
             // only consider node  for which the caller wants to read the Value attribute
             // assuming that Value is requested if attributeId is missing,
@@ -2016,51 +2019,38 @@ export class ServerEngine extends EventEmitter {
                 continue;
             }
             // ... and that are valid object and instances of Variables ...
-            const obj = this.addressSpace!.findNode(nodeToRefresh.nodeId);
-            if (!obj || !(obj.nodeClass === NodeClass.Variable)) {
+            const uaNode = this.addressSpace!.findNode(nodeToRefresh.nodeId);
+            if (!uaNode || !(uaNode.nodeClass === NodeClass.Variable)) {
                 continue;
             }
             // ... and that have been declared as asynchronously updating
-            if (typeof (obj as any).refreshFunc !== "function") {
+            if (typeof (uaNode as any).refreshFunc !== "function") {
                 continue;
             }
-            const key = obj.nodeId.toString();
-            if (objectMap[key]) {
+            const key = uaNode.nodeId.toString();
+            if (nodeMap[key]) {
                 continue;
             }
-
-            objectMap[key] = obj;
+            nodeMap[key] = uaNode as UAVariable;
         }
 
-        const objectArray = Object.values(objectMap);
-        if (objectArray.length === 0) {
+        const uaVariableArray = Object.values(nodeMap);
+        if (uaVariableArray.length === 0) {
             // nothing to do
             return callback(null, []);
         }
         // perform all asyncRefresh in parallel
         async.map(
-            objectArray,
-            (obj: BaseNode, inner_callback: CallbackT<DataValue>) => {
-                if (obj.nodeClass !== NodeClass.Variable) {
-                    inner_callback(
-                        null,
-                        new DataValue({
-                            statusCode: StatusCodes.BadNodeClassInvalid
-                        })
-                    );
-                    return;
-                }
+            uaVariableArray,
+            (uaVariable: UAVariable, inner_callback: CallbackT<DataValue>) => {
                 try {
-                    (obj as UAVariable).asyncRefresh(referenceTime, (err, dataValue) => {
+                    uaVariable.asyncRefresh(referenceTime, (err, dataValue) => {
                         inner_callback(err, dataValue);
                     });
                 } catch (err) {
-                    // istanbul ignore next
-                    if (!(err instanceof Error)) {
-                        throw new Error("internal error");
-                    }
-                    errorLog("asyncRefresh internal error", err);
-                    inner_callback(err);
+                    const _err = err as Error;
+                    errorLog("asyncRefresh internal error", _err.message);
+                    inner_callback(_err);
                 }
             },
             (err?: Error | null, arrResult?: (DataValue | undefined)[]) => {
@@ -2091,7 +2081,7 @@ export class ServerEngine extends EventEmitter {
         assert(subscriptionDiagnostics instanceof SubscriptionDiagnosticsDataType);
         if (subscriptionDiagnostics && serverSubscriptionDiagnosticsArray) {
             const node = (serverSubscriptionDiagnosticsArray as any)[subscription.id];
-            removeElement(serverSubscriptionDiagnosticsArray, (a)=> a.subscriptionId === subscription.id);
+            removeElement(serverSubscriptionDiagnosticsArray, (a) => a.subscriptionId === subscription.id);
             /*assert(
                 !(subscriptionDiagnosticsArray as any)[subscription.id],
                 " subscription node must have been removed from subscriptionDiagnosticsArray"
@@ -2281,8 +2271,8 @@ export class ServerEngine extends EventEmitter {
         } else {
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                chalk.cyan(nodeId.toString()) +
-                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                    chalk.cyan(nodeId.toString()) +
+                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }

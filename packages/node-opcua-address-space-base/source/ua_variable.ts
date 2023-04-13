@@ -281,9 +281,9 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
 
     writeValue(context: ISessionContext, dataValue: DataValue, indexRange?: string | NumericRange | null): Promise<StatusCode>;
 
-    asyncRefresh(oldestDate: Date, callback: CallbackT<DataValue>): void;
+    asyncRefresh(oldestDate: PreciseClock, callback: CallbackT<DataValue>): void;
 
-    asyncRefresh(oldestDate: Date): Promise<DataValue>;
+    asyncRefresh(oldestDate: PreciseClock): Promise<DataValue>;
 
     /**
      * write a variable attribute (callback version)
