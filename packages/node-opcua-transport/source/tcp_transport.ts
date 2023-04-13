@@ -17,16 +17,20 @@ import { doTraceIncomingChunk } from "./utils";
 import { TCPErrorMessage } from "./TCPErrorMessage";
 import { packTcpMessage } from "./tools";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("TRANSPORT");
+const doDebug = checkDebugFlag("TRANSPORT");
+const errorLog = make_errorLog("TRANSPORT");
+const warningLog = make_warningLog("TRANSPORT");
 
 export interface MockSocket {
     invalid?: boolean;
     [key: string]: any;
     destroy(): void;
     end(): void;
+
+    setKeepAlive(enable?: boolean, initialDelay?: number): this;
+    setNoDelay(noDelay?: boolean): this;
+    setTimeout(timeout: number, callback?: () => void): this;
 }
 let fakeSocket: MockSocket = {
     invalid: true,
@@ -37,6 +41,16 @@ let fakeSocket: MockSocket = {
 
     end() {
         errorLog("MockSocket.end");
+    },
+
+    setKeepAlive(enable?: boolean, initialDelay?: number) {
+        return this;
+    },
+    setNoDelay(noDelay?: boolean) {
+        return this;
+    },
+    setTimeout(timeout: number, callback?: () => void) {
+        return this;
     }
 };
 
@@ -123,7 +137,7 @@ export class TCP_transport extends EventEmitter {
         counter += 1;
 
         this._timerId = null;
-        this._timeout = 30000; // 30 seconds timeout
+        this._timeout = 5000; // 5  seconds timeout
         this._socket = null;
         this.headerSize = 8;
 
@@ -163,12 +177,11 @@ export class TCP_transport extends EventEmitter {
         this.maxMessageSize = maxMessageSize;
         this.maxChunkCount = maxChunkCount;
 
-        if(maxMessageSize / sendBufferSize > maxChunkCount || maxMessageSize / receiveBufferSize > maxChunkCount) 
-        {
+        if (maxMessageSize / sendBufferSize > maxChunkCount || maxMessageSize / receiveBufferSize > maxChunkCount) {
             warningLog(`Warning : maxMessageSize / sendBufferSize ${maxMessageSize / sendBufferSize}> maxChunkCount ${maxChunkCount}
                              || maxMessageSize / receiveBufferSize ${maxMessageSize / receiveBufferSize} < maxChunkCount `);
         }
-        
+
         // reinstall packetAssembler with correct limits
         this._install_packetAssembler();
     }
@@ -306,6 +319,15 @@ export class TCP_transport extends EventEmitter {
     protected _install_socket(socket: Socket): void {
         assert(socket);
         this._socket = socket;
+
+        this._socket.setKeepAlive(true);
+        // Setting true for noDelay will immediately fire off data each time socket.write() is called.
+        this._socket.setNoDelay(true);
+        // set socket timeout
+        debugLog("  TCP_transport#install => setting " + this.name + " _socket.setTimeout to ", this.timeout);
+        // let use a large timeout here to make sure that we not conflict with our internal timeout
+        this._socket.setTimeout(this.timeout);
+
         if (doDebug) {
             debugLog("  TCP_transport#_install_socket ", this.name);
         }
@@ -316,22 +338,16 @@ export class TCP_transport extends EventEmitter {
             .on("data", (data: Buffer) => this._on_socket_data(data))
             .on("close", (hadError) => this._on_socket_close(hadError))
             .on("end", (err: Error) => this._on_socket_end(err))
-            .on("error", (err: Error) => this._on_socket_error(err));
-
-        // set socket timeout
-        debugLog("  TCP_transport#install => setting " + this.name + " _socket.setTimeout to ", this.timeout);
-
-        // let use a large timeout here to make sure that we not conflict with our internal timeout
-        this._socket.setTimeout(this.timeout + 2000, () => {
-            debugLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
-            this.prematureTerminate(new Error("socket timeout : timeout=" + this.timeout), StatusCodes2.BadTimeout);
-        });
+            .on("error", (err: Error) => this._on_socket_error(err))
+            .on("timeout", () => {
+                errorLog(` _socket ${this.name} has timed out (timeout = ${this.timeout})`);
+                this.prematureTerminate(new Error(`socket timeout : timeout=${this.timeout}`), StatusCodes2.BadTimeout);
+            });
     }
 
     public sendErrorMessage(statusCode: StatusCode, extraErrorDescription: string | null): void {
         // When the Client receives an Error Message it reports the error to the application and closes the TransportConnection gracefully.
         // If a Client encounters a fatal error, it shall report the error to the application and send a CloseSecureChannel Message.
-
         /* istanbul ignore next*/
         if (doDebug) {
             debugLog(chalk.red(" sendErrorMessage        ") + chalk.cyan(statusCode.toString()));
@@ -357,8 +373,7 @@ export class TCP_transport extends EventEmitter {
             // we consider this as an error
             const _s = this._socket;
             _s.end();
-            _s.destroy(); // new Error("Socket has timed out"));
-            _s.emit("error", err);
+            _s.destroy(err); 
             this._socket = null;
             this.dispose();
         }
@@ -468,14 +483,7 @@ export class TCP_transport extends EventEmitter {
             debugLog(chalk.red(" SOCKET CLOSE : "), chalk.yellow("had_error ="), chalk.cyan(hadError.toString()), this.name);
         }
         if (this._socket) {
-            debugLog(
-                "  remote address = ",
-                this._socket.remoteAddress,
-                " ",
-                this._socket.remoteFamily,
-                " ",
-                this._socket.remotePort
-            );
+            debugLog("  remote address = ", this._socket.remoteAddress, this._socket.remoteFamily, this._socket.remotePort);
         }
         if (hadError) {
             if (this._socket) {

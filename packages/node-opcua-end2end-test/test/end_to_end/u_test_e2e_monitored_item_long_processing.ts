@@ -6,12 +6,12 @@ import { OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 const doDebug =false;
 export function t(test: any) {
     describe("testing long operation detection", function () {
-        it("should warning the user about long operation", async () => {
+        it("should warning the user about long operations in monitoredItem.on('change', eventHandler)", async () => {
             const endpointUrl = test.endpointUrl;
             const client = OPCUAClient.create({});
 
-            const spyFunc = sinon.spy();
-            messageLogger.on("warningMessage", spyFunc);
+            const warningMessageSpyFunc = sinon.spy();
+            messageLogger.on("warningMessage", warningMessageSpyFunc);
             let notificationCount = 0;
 
             await client.withSubscriptionAsync(
@@ -48,7 +48,7 @@ export function t(test: any) {
                 }
             );
 
-            const msg = spyFunc
+            const msg = warningMessageSpyFunc
                 .getCalls()
                 .map((x) => x.args[0])
                 .join(" ");
@@ -56,7 +56,7 @@ export function t(test: any) {
             msg.should.match(/.*\[NODE-OPCUA-W32\]/);
 
             notificationCount.should.be.greaterThan(3);
-            spyFunc.callCount.should.eql(1, "should only display one notification");
+            warningMessageSpyFunc.callCount.should.eql(1, "warningLog: should only display one notification");
         });
     });
 }

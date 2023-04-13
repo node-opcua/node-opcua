@@ -26,4 +26,6 @@ export interface IClientBase {
     _sessions: ClientSessionImpl[];
 
     getTransportSettings(): IBasicTransportSettings;
+
+    requestReconnection(): void;
 }

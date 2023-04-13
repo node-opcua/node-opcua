@@ -1,4 +1,4 @@
-const path = require("path");
+import * as path from "path";
 
 const { start_simple_server, stop_simple_server, crash_simple_server } = require("../test_helpers/external_server_fixture");
 

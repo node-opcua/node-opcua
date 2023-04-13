@@ -15,9 +15,7 @@
     "dependencies": {
         "@ster5/global-mutex": "^1.2.0",
         "@types/async": "^3.2.18",
-        "@types/once": "^1.4.0",
         "async": "^3.2.4",
-        "callbackify": "^1.1.0",
         "chalk": "4.1.2",
         "node-opcua-assert": "2.98.1",
         "node-opcua-basic-types": "2.99.0",
@@ -57,7 +55,6 @@
         "node-opcua-types": "2.99.0",
         "node-opcua-utils": "2.98.1",
         "node-opcua-variant": "2.99.0",
-        "once": "^1.4.0",
         "thenify": "^3.3.1"
     },
     "devDependencies": {

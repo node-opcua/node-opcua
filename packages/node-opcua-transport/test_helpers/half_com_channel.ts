@@ -3,11 +3,10 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 
 export interface HalfComChannel {
-    on(eventName: "data", eventHandler:(data: Buffer)=>void): this;
-    on(eventName: "send_data", eventHandler:(data: Buffer)=>void): this;
-    on(eventName: "ending", eventHandler:()=>void): this;
-    on(eventName: "end", eventHandler:(err?: Error)=>void): this;
-
+    on(eventName: "data", eventHandler: (data: Buffer) => void): this;
+    on(eventName: "send_data", eventHandler: (data: Buffer) => void): this;
+    on(eventName: "ending", eventHandler: () => void): this;
+    on(eventName: "end", eventHandler: (err?: Error) => void): this;
 }
 export class HalfComChannel extends EventEmitter {
     public _hasEnded: boolean;
@@ -37,5 +36,13 @@ export class HalfComChannel extends EventEmitter {
 
     public destroy(): void {}
 
-    public setTimeout(): void {}
+    public setKeepAlive(enable?: boolean, initialDelay?: number) {
+        return this;
+    }
+    public setNoDelay(noDelay?: boolean) {
+        return this;
+    }
+    public setTimeout(timeout: number, callback?: () => void) {
+        return this;
+    }
 }

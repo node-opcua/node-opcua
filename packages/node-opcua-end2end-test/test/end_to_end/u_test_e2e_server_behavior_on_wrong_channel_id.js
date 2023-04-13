@@ -18,6 +18,8 @@ module.exports = function(test) {
 
         it("server should abruptly stops the connection if client uses wrong channel Id", async () => {
 
+            // testing BadCommunicationError (0x80050000):A low level communication error occurred.
+
             const client = opcua.OPCUAClient.create({});
             const endpointUrl = test.endpointUrl;
 
@@ -26,12 +28,13 @@ module.exports = function(test) {
             const result1 = await client.getEndpoints({});
 
 
-            (client)._secureChannel.channelId.should.be.above(0);
+            client._secureChannel.channelId.should.be.above(0);
 
-            const oldChannelId = (client)._secureChannel.channelId;
+            const oldChannelId = client._secureChannel.channelId;
 
             // lets alter channelId
-            (client)._secureChannel.channelId = 0;
+            const secureChannel = client._secureChannel;
+            secureChannel.channelId = 0;
 
 
             let errorHasBeenCaught = false;
@@ -39,15 +42,17 @@ module.exports = function(test) {
 
                 const result2 = await client.getEndpoints({});
             } catch (err) {
+                console.log("err = ", err.message);
                 errorHasBeenCaught = true;
             }
 
-            errorHasBeenCaught.should.eql(true, " server must raise an error if channel is invalid");
-
             // lets restore channelId
-            (client)._secureChannel.channelId = oldChannelId;
-            await client.disconnect();
+            secureChannel.channelId = oldChannelId;
 
+            await client.disconnect();
+  
+            errorHasBeenCaught.should.eql(true, " server must raise an error if channel is invalid");
+  
         });
     });
 };

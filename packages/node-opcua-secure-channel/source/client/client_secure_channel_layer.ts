@@ -29,7 +29,6 @@ import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog 
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport, TransportSettingsOptions } from "node-opcua-transport";
-import { StatusCodes2 } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BaseUAObject } from "node-opcua-factory";
 import { doTraceChunk } from "node-opcua-transport";
@@ -217,9 +216,9 @@ export interface ClientSecureChannelLayerOptions {
 
     parent: ClientSecureChannelParent;
 
-    /* OPCUAClientBase */
     /**
-     *   the transport timeout interval in ms ( default = 10 seconds)
+     *   the transport timeout in ms ( default = 15 seconds) sue for the Net.Socket timeout detection
+     *   if 0 or not specify, the transport timeout will default  to ClientSecureChannelLayer.defaultTransportTimeout
      */
     transportTimeout?: number;
     /**
@@ -338,7 +337,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         return this._timeout_request_count;
     }
 
-    public static defaultTransportTimeout = 60 * 1000; // 1 minute
+    public static defaultTransportTimeout = 15 * 1000; // 15 seconds
     private requestedTransportSettings: TransportSettingsOptions;
 
     public protocolVersion: number;
@@ -655,6 +654,21 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
     }
 
+    private _dispose_transports() {
+        if (this._transport) {
+            this._bytesRead += this._transport.bytesRead || 0;
+            this._bytesWritten += this._transport.bytesWritten || 0;
+            this._transport.dispose();
+            this._transport = undefined;
+        }
+        if (this._pending_transport) {
+            this._bytesRead += this._pending_transport.bytesRead || 0;
+            this._bytesWritten += this._pending_transport.bytesWritten || 0;
+            this._pending_transport.dispose();
+            this._pending_transport = undefined;
+        }
+    }
+
     public dispose(): void {
         this._isDisconnecting = true;
         this.abortConnection(() => {
@@ -665,14 +679,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.__call.abort();
             this.__call = null;
         }
-        if (this._transport) {
-            this._transport.dispose();
-            this._transport = undefined;
-        }
-        if (this._pending_transport) {
-            this._pending_transport.dispose();
-            this._pending_transport = undefined;
-        }
+        this._dispose_transports();
     }
 
     public abortConnection(callback: ErrorCallback): void {
@@ -832,7 +839,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _closeWithError(err: Error, statusCode: StatusCode): void {
         if (this._transport) {
             this._transport.prematureTerminate(err, statusCode);
-            this._transport = undefined;
         }
         this.dispose();
     }
@@ -999,18 +1005,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     private _on_transport_closed(err?: Error | null) {
         doDebug && debugLog(" =>ClientSecureChannelLayer#_on_transport_closed  err=", err ? err.message : "null");
-
         if (this.__in_normal_close_operation) {
             err = undefined;
         }
         this.emit("close", err);
-
-        //
-        this._bytesRead += this._transport?.bytesRead || 0;
-        this._bytesWritten += this._transport?.bytesWritten || 0;
-
-        this._transport?.dispose();
-        this._transport = undefined;
+        this._dispose_transports();
         this._cancel_pending_transactions(err);
         this._cancel_security_token_watchdog();
         this.dispose();
@@ -1270,7 +1269,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (err.message.match(/BadTcpMessageTooLarge/)) {
                     should_abort = true;
                 }
-                if (err.message.match(/BadTcpEndpointUriInvlid/)) {
+                if (err.message.match(/BadTcpEndpointUriInvalid/)) {
                     should_abort = true;
                 }
                 if (err.message.match(/BadTcpMessageTypeInvalid/)) {
@@ -1373,14 +1372,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 doDebug && debugLog(" token renewed");
                 this.emit("security_token_renewed");
             } else {
-                if (doDebug) {
-                    debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
-                }
-                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
-                this._closeWithError(
-                    new Error("Restarting because Request has timed out during OpenSecureChannel"),
-                    StatusCodes2.BadRequestTimeout
-                );
+                //if (doDebug) {
+                errorLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", (err as Error).message);
+                // //}
+                // // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
+                // this._closeWithError(
+                //     new Error("Restarting because Request has timed out during OpenSecureChannel"),
+                //     StatusCodes2.BadRequestTimeout
+                // );
             }
         });
     }
