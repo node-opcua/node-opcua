@@ -5,20 +5,20 @@ import { Import, referenceEnumeration, referenceExtensionObject } from "./cache"
 import { getValueRank, _convertNodeIdToDataTypeAsync } from "./utils";
 import { Cache } from "./cache";
 
-export async function getCorrepondingJavascriptType2(
+export async function getCorrespondingJavascriptType2(
     session: IBasicSession,
     nodeId: NodeId,
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void
 ): Promise<{ dataType: DataType; jtype: string }> {
-    const q = await getCorrepondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
+    const q = await getCorrespondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
     const valueRank = await getValueRank(session, nodeId);
     return { dataType: q.dataType, jtype: q.jtype + (valueRank >= 1 ? "[]" : "") };
 }
 
 // eslint-disable-next-line complexity
-export async function getCorrepondingJavascriptType(
+export async function getCorrespondingJavascriptType(
     session: IBasicSession,
     dataTypeNodeId: NodeId,
     cache: Cache,

@@ -46,7 +46,7 @@ import { Options } from "./options";
 import { toFilename } from "./private/to_filename";
 import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
 import { _exportDataTypeToTypescript } from "./_dataType";
-import { getCorrepondingJavascriptType2 } from "./private/get_corresponding_data_type";
+import { getCorrespondingJavascriptType2 } from "./private/get_corresponding_data_type";
 const warningLog = make_warningLog("typescript");
 const doDebug = false;
 const baseExtension = "_Base";
@@ -137,7 +137,7 @@ export async function extractClassDefinition(session: IBasicSession, nodeId: Nod
             extraImports.push(i);
             cache.ensureImported(i);
         };
-        const { jtype } = await getCorrepondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
+        const { jtype } = await getCorrespondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
         dataTypeName = jtype; // with decoration
         if (!dataTypeNodeId?.isEmpty()) {
             // "DT" + (await getBrowseName(session, dataTypeNodeId!))?.name! || "";
@@ -445,7 +445,7 @@ async function extractVariableExtra(session: IBasicSession, nodeId: NodeId, cach
     if (nodeClass === NodeClass.Variable) {
         const dataTypeNodeId = await getDataTypeNodeId(session, nodeId);
 
-        const { dataType, jtype } = await getCorrepondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
+        const { dataType, jtype } = await getCorrespondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
 
         cache && cache.referenceBasicType("DataType");
         importCollector({ name: "DataType", namespace: -1, module: "BasicType" });

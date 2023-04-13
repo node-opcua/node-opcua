@@ -15,7 +15,7 @@ import {
     getSubtypeNodeId
 } from "./private-stuff";
 import { Cache, makeName2 } from "./private/cache";
-import { getCorrepondingJavascriptType } from "./private/get_corresponding_data_type";
+import { getCorrespondingJavascriptType } from "./private/get_corresponding_data_type";
 import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "./utils2";
 
 // eslint-disable-next-line max-statements, complexity
@@ -154,7 +154,7 @@ export async function _exportDataTypeToTypescript(
         }
         const opt = field.isOptional ? "?" : "";
         const arrayMarker = field.valueRank >= 1 ? "[]" : "";
-        const { dataType, jtype } = await getCorrepondingJavascriptType(session, field.dataType, cache, importCollector);
+        const { dataType, jtype } = await getCorrespondingJavascriptType(session, field.dataType, cache, importCollector);
         f.write(
             `  ${quotifyIfNecessary(fieldName)}${opt}: ${jtype}${arrayMarker}; // ${
                 DataType[dataType]
