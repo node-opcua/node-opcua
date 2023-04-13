@@ -13,29 +13,28 @@
         "noStrictGenericChecks": false,
         "noImplicitThis": true,
         "skipLibCheck": false,
-        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disappear */,
+        "removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */,
         "outDir": "dist",
         "incremental": true,
         "composite": true
     },
-    "exclude": ["**/node_modules/*", "node_modules", "**/dist/*", "packages/*", "tmp/*"],
+    "exclude": [
+        "**/node_modulesdist/*",
+        "packages/*",
+        "tmp/*"
+    ],
     "include": [],
     "references": [
         { "path": "node-opcua" },
-        {
-            "path": "node-opcua-address-space"
-        },
-        { "path": "node-opcua-test-fixtures" },
-        { "path": "node-opcua-address-space-base" },
         { "path": "node-opcua-address-space" },
+        { "path": "node-opcua-address-space-base" },
         { "path": "node-opcua-aggregates" },
-        { "path": "node-opcua-file-transfer" },
         { "path": "node-opcua-benchmarker" },
-        { "path": "node-opcua-modeler" },
-        { "path": "node-opcua-local-discovery-server" },
-        { "path": "node-opcua-samples" },
         { "path": "node-opcua-convert-nodeset-to-javascript" },
+        { "path": "node-opcua-file-transfer" },
+        { "path": "node-opcua-local-discovery-server" },
         { "path": "node-opcua-model" },
+        { "path": "node-opcua-modeler" },
         { "path": "node-opcua-nodeset-ua" },
         { "path": "node-opcua-nodeset-adi" },
         { "path": "node-opcua-nodeset-auto-id" },
@@ -57,7 +56,9 @@
         { "path": "node-opcua-nodeset-robotics" },
         { "path": "node-opcua-nodeset-woodworking" },
         { "path": "node-opcua-nodesets" },
+        { "path": "node-opcua-samples" },
         { "path": "node-opcua-service-secure-channel" },
+        { "path": "node-opcua-test-fixtures" },
         { "path": "node-opcua-types" },
         { "path": "node-opcua-units" }
     ]
