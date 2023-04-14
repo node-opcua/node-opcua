@@ -12,7 +12,7 @@ import {
     BindExtensionObjectOptions,
     CloneExtraInfo,
     ContinuationData,
-    defaultCloneExtraInfo,
+    makeDefaultCloneExtraInfo,
     defaultCloneFilter,
     GetFunc,
     SetFunc,
@@ -1353,12 +1353,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             valueRank: this.valueRank
         };
 
-        const newVariable = _clone.call(
+        const newVariable = _clone(
             this,
             UAVariableImpl,
             options,
             optionalFilter || defaultCloneFilter,
-            extraInfo || defaultCloneExtraInfo
+            extraInfo || makeDefaultCloneExtraInfo()
         ) as UAVariableImpl;
 
         newVariable.bindVariable();

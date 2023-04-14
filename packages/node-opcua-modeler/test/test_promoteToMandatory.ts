@@ -9,7 +9,8 @@ import {
     NodeClass,
     nodesets,
     promoteChild,
-    promoteToMandatory
+    promoteToMandatory,
+    UAObject
 } from "..";
 
 import { removeDecoration } from "./test_helpers";
@@ -44,7 +45,7 @@ describe("promoteToMandatory", () => {
         addressSpace.dispose();
     });
 
-    it("when creating a sub type it should be possible to promote a component or property to mandatory", async () => {
+    it("PRMT-1 when creating a sub type it should be possible to promote a component or property to mandatory", async () => {
         const deviceType = addressSpace.findObjectType("DeviceType", nsDI);
         if (!deviceType) {
             throw new Error("Cannot find DeviceType");
@@ -73,7 +74,7 @@ describe("promoteToMandatory", () => {
         // a[13 * 2 + 1].should.eql(`│ HasComponent Ⓥ         │ ns=2;i=6208  │ 2:DeviceHealth         │ Optional            │ BaseDataVariableType  │ 2:DeviceHealthEnumeration(Variant) │ null  │`);
     });
 
-    it("when creating a sub type it should be possible to promote a component or property to mandatory, and child node shall not be duplicated", async () => {
+    it("PRMT-2 when creating a sub type it should be possible to promote a component or property to mandatory, and child node shall not be duplicated", async () => {
         const deviceType = addressSpace.findObjectType("DeviceType", nsDI);
         if (!deviceType) {
             throw new Error("Cannot find DeviceType");
@@ -116,8 +117,111 @@ describe("promoteToMandatory", () => {
 
             const param3 = parameterSet3.getChildByName("Parameter1", ns.index)!;
             should.exist(param3);
-            should.not.exist(param3.modellingRule," instance property should not have a modelling rule");
+            should.not.exist(param3.modellingRule, " instance property should not have a modelling rule");
+        }
+    });
 
+    it("PRMT-3 should clone the organized nodes", () => {
+        // MyObjectType   <|<|---------- MyObjectType
+        //   Folder1                        Folder1
+        //      Variable1                       Variable1
+        //                                         EURange
+        //   Folder2
+        //      Variable1
+
+        const functionalGroupType = addressSpace.findObjectType("FunctionalGroupType", 2)!;
+
+        const namespace = addressSpace.getOwnNamespace();
+        const objectType = namespace.addObjectType({
+            browseName: "MyObjectType",
+            subtypeOf: "BaseObjectType"
+        });
+
+        const folder1 = namespace.addObject({
+            browseName: "Folder1",
+            componentOf: objectType,
+            typeDefinition: functionalGroupType,
+            modellingRule: "Mandatory"
+        });
+        const folder2 = namespace.addObject({
+            browseName: "Folder2",
+            componentOf: objectType,
+            typeDefinition: functionalGroupType,
+            modellingRule: "Mandatory"
+        });
+
+        const variable1 = namespace.addVariable({
+            browseName: "Variable1",
+            componentOf: folder1,
+            dataType: "Double",
+            modellingRule: "Mandatory"
+        });
+        folder2.addReference({
+            referenceType: "Organizes",
+            nodeId: variable1.nodeId,
+            isForward: true
+        });
+
+        {
+            const objInstance = objectType.instantiate({
+                browseName: "MyInstance",
+                organizedBy: addressSpace.rootFolder.objects
+            });
+            objInstance.typeDefinitionObj.browseName.name!.should.eql("MyObjectType");
+            const folder1InInstance = objInstance.getComponentByName("Folder1")! as UAObject;
+            const folder2InInstance = objInstance.getComponentByName("Folder2")! as UAObject;
+
+            const variable1_in_Folder1 = folder1InInstance.getComponentByName("Variable1")!;
+            const variable1_in_Folder2 = folder2InInstance.getFolderElementByName("Variable1")!;
+
+            variable1_in_Folder1.nodeId.toString().should.eql(variable1_in_Folder2.nodeId.toString());
+        }
+
+        // now create a derived type
+        const derivedObjectType = namespace.addObjectType({
+            browseName: "DerivedObjectType",
+            subtypeOf: objectType
+        });
+
+        /** 
+        const folder1_bis = namespace.addObject({
+            componentOf: derivedObjectType,
+            modellingRule: "Mandatory",
+            browseName: folder1.browseName,
+            displayName: folder1.displayName,
+            description: folder1.description
+        });
+        const variable1_bis = variable1.clone({
+            componentOf: folder1_bis,
+            namespace: folder1_bis.namespace,
+            copyAlsoModellingRules: true
+        });
+        */
+        console.log("A-!!!!!!!!!!!!!!!!");
+        const folder1_bis = promoteChild(derivedObjectType, "Folder1", 1) as UAObject;
+        const variable1_bis = folder1_bis.getComponentByName("Variable1")!;
+        const euRange = namespace.addVariable({
+            browseName: "EURange",
+            componentOf: variable1_bis,
+            dataType: "Double",
+            modellingRule: "Mandatory"
+        });
+
+        {
+            console.log("B-!!!!!!!!!!!!!!!!");
+            const objInstance = derivedObjectType.instantiate({
+                browseName: "MyInstance2",
+                organizedBy: addressSpace.rootFolder.objects
+            });
+            objInstance.typeDefinitionObj.browseName.name!.should.eql("DerivedObjectType");
+            objInstance.typeDefinitionObj.subtypeOfObj!.browseName.name!.should.eql("MyObjectType");
+            const folder1InInstance = objInstance.getComponentByName("Folder1")! as UAObject;
+            const folder2InInstance = objInstance.getComponentByName("Folder2")! as UAObject;
+
+            const variable1_in_Folder1 = folder1InInstance.getComponentByName("Variable1")!;
+            const variable1_in_Folder2 = folder2InInstance.getFolderElementByName("Variable1")!;
+
+            variable1_in_Folder1.nodeId.toString().should.eql(variable1_in_Folder2.nodeId.toString());
         }
     });
 });

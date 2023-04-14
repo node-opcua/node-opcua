@@ -9,6 +9,7 @@ import { UAObject } from "./ua_object";
 import { UAObjectType } from "./ua_object_type";
 import { UAReference } from "./ua_reference";
 import { UAVariable } from "./ua_variable";
+import { CloneHelper } from "./clone_helper";
 
 export interface CloneFilter {
     shouldKeep(node: BaseNode): boolean;
@@ -25,26 +26,11 @@ export interface CloneExtraInfo {
     /* */
     level: number;
     pad(): string;
-    registerClonedObject(clonedObject: BaseNode, originalObject: BaseNode): void;
-    getCloned(node: BaseNode): BaseNode | null;
+    registerClonedObject(clonedNode: BaseNode, originalNode: BaseNode): void;
+    getCloned(originalObject: BaseNode): BaseNode | null;
 }
-interface CloneExtraInfoEx extends CloneExtraInfo {
-    _cloned: Map<BaseNode, BaseNode>;
-}
-export const defaultCloneExtraInfo: CloneExtraInfoEx = {
-    level: 0,
-    _cloned: new Map<BaseNode, BaseNode>(),
-    pad(this: CloneExtraInfo) {
-        return " ".padEnd(this.level * 2);
-    },
-    registerClonedObject(_clonedObject: BaseNode, _originalObject: BaseNode): void {
-        if(this.getCloned(_originalObject)) throw new Error("cloned object is already registered.");
-        this._cloned.set(_originalObject, _clonedObject);
-    },
-    getCloned(node: BaseNode): BaseNode | null {
-        return this._cloned.get(node) || null;
-    }
-};
+
+export const makeDefaultCloneExtraInfo = (): CloneExtraInfo =>   new CloneHelper();
 
 export interface CloneOptions /* extends ConstructNodeIdOptions */ {
     namespace: INamespace;

@@ -21,3 +21,4 @@ export * from "./ua_variable_t";
 export * from "./ua_variable_type";
 export * from "./ua_variable";
 export * from "./ua_view";
+export * from "./clone_helper";

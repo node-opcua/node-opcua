@@ -16,12 +16,14 @@
         "mocha:version": "mocha --version"
     },
     "dependencies": {
+        "node-opcua-assert": "2.98.1",
         "node-opcua-basic-types": "2.99.0",
         "node-opcua-constants": "2.98.1",
         "node-opcua-crypto": "^2.1.2",
         "node-opcua-data-model": "2.99.0",
         "node-opcua-data-value": "2.99.0",
         "node-opcua-date-time": "2.99.0",
+        "node-opcua-debug": "2.99.0",
         "node-opcua-extension-object": "2.99.0",
         "node-opcua-nodeid": "2.99.0",
         "node-opcua-numeric-range": "2.99.0",

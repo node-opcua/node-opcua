@@ -2,8 +2,8 @@ import * as should from "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 
-import { AddressSpace, getSymbols, IAddressSpace, SessionContext, setSymbols } from "..";
-import { generateAddressSpace } from "../distNodeJS";
+import { AddressSpace, getSymbols, IAddressSpace, SessionContext, setSymbols, UAObject } from "..";
+import { generateAddressSpace } from "../nodeJS";
 import { BrowseDirection } from "node-opcua-data-model";
 
 const context = SessionContext.defaultContext;
@@ -174,8 +174,9 @@ describe("Test object instantiate when organizes references exists", () => {
         const parameter1InInstanceAsStoredInFolder1 = folder1InInstance?.findReferencesExAsObject("Organizes", BrowseDirection.Forward)[0]! ;
         parameter1InInstanceAsStoredInFolder1.browseName.toString().should.eql(parameter1InInstanceAsStoredInParamaterSet.browseName.toString());
  
-        parameter1InInstanceAsStoredInFolder1.nodeId.should.eql(parameter1InInstanceAsStoredInParamaterSet.nodeId);
+        parameter1InInstanceAsStoredInFolder1.nodeId.toString().should.eql(parameter1InInstanceAsStoredInParamaterSet.nodeId.toString());
         
         console.log(folder1InInstance?.toString());
     });
+
 });
