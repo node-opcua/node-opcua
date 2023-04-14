@@ -31,7 +31,8 @@ import {
     UAVariableType,
     ISessionContext,
     UAReference,
-    CloneOptions
+    CloneOptions,
+    CloneHelper
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
 import { ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
@@ -458,16 +459,6 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     }
 }
 
-const defaultExtraInfo = {
-    level: 0,
-    pad(): string {
-        return "";
-    },
-    registerClonedObject(node: BaseNode, node1: BaseNode): void {
-        /** */
-    }
-};
-
 /**
  *
  *
@@ -589,8 +580,8 @@ function _clone_children_on_template(
                             nodeId: newParentChild.nodeId
                         });
                     } else {
-                        const a = grandChild.clone(options, optionalFilter, extraInfo);
-                        extraInfo.registerClonedObject(a,grandChild);
+                        const clonedGrandChild = grandChild.clone(options, optionalFilter, extraInfo);
+                        extraInfo.registerClonedObject(clonedGrandChild, grandChild);
                     }
                 }
             }
@@ -612,7 +603,7 @@ function _clone_collection_new(
     browseNameMap: Set<string>
 ): void {
     const namespace = newParent.namespace;
-    extraInfo = extraInfo || defaultExtraInfo;
+    extraInfo = extraInfo || new CloneHelper();
     const addressSpace = newParent.addressSpace;
     assert(!optionalFilter || (typeof optionalFilter.shouldKeep === "function" && typeof optionalFilter.filterFor === "function"));
 
@@ -664,30 +655,71 @@ function _clone_collection_new(
             copyAlsoModellingRules
         };
 
-        doTrace &&
-            traceLog(
-                extraInfo.pad(),
-                "cloning => ",
-                reference.referenceType.toString({ addressSpace }),
-                "=>",
-                node.browseName.toString(),
-                chalk.magentaBright(node.typeDefinitionObj?.browseName.toString())
-            );
-
-        extraInfo.level += 4;
-
         const alreadyCloned = extraInfo.getCloned(node);
         if (alreadyCloned) {
-            alreadyCloned.addReference({
-                referenceType: reference.referenceType,
-                isForward: false,
-                nodeId: newParent.nodeId
-            });
-        } else {
-            const clone = node.clone(options, optionalFilter, extraInfo);
+            // instabul ignore next
+            doTrace &&
+                traceLog(
+                    extraInfo.pad(),
+                    "node ",
+                    node.browseName.toString(),
+                    node.nodeId.toString(),
+                    "already cloned as",
+                    alreadyCloned.nodeId.toString()
+                );
 
-            extraInfo.level -= 4;
-            doTrace && traceLog(extraInfo.pad(), "cloning => ", node.browseName.toString(), "nodeId", clone.nodeId.toString());
+            const hasReference =
+                alreadyCloned.findReferencesExAsObject(reference.referenceType, BrowseDirection.Inverse).length > 0;
+            if (!hasReference) {
+                alreadyCloned.addReference({
+                    referenceType: reference.referenceType,
+                    isForward: false,
+                    nodeId: newParent.nodeId
+                });
+            } else {
+                doTrace &&
+                    traceLog(
+                        extraInfo.pad(),
+                        "reference to node  ",
+                        alreadyCloned.browseName.toString(),
+                        alreadyCloned.nodeId.toString(),
+                        " already exists !"
+                    );
+            }
+        } else {
+            doTrace &&
+                traceLog(
+                    extraInfo.pad(),
+                    "cloning => ",
+                    reference.referenceType.toString({ addressSpace }),
+                    "=>",
+                    node.browseName.toString(),
+                    node.nodeId.toString(),
+                    chalk.magentaBright(node.typeDefinitionObj?.browseName.toString())
+                );
+
+            extraInfo.level += 1;
+            const clonedNode = node.clone(options, optionalFilter, extraInfo);
+            assert(extraInfo.getCloned(node));
+
+            extraInfo.level -= 1;
+
+            // instabul ignore next
+            doTrace &&
+                traceLog(
+                    extraInfo.pad(),
+                    "cloned => ",
+                    node.browseName.toString(),
+                    "",
+                    extraInfo.pad(),
+                    "    original nodeId",
+                    node.nodeId.toString(),
+                    "",
+                    extraInfo.pad(),
+                    "    cloned   nodeId",
+                    clonedNode.nodeId.toString(),
+                    ""
+                );
 
             extraInfo.level++;
             _clone_children_on_template(
@@ -705,7 +737,8 @@ function _clone_collection_new(
             extraInfo.level++;
             _cloneInterface(nodeToClone, newParent, node, optionalFilter, extraInfo, browseNameMap);
             extraInfo.level--;
-            extraInfo.registerClonedObject(node, clone);
+            // === clone);
+            // extraInfo.registerClonedObject(clone, node);
         }
     }
 }
@@ -846,7 +879,7 @@ function _cloneInterface(
             chalk.green("-------------------- now cloning interfaces of ", node.browseName.toString(), node.nodeId.toString())
         );
 
-    extraInfo = extraInfo || defaultExtraInfo;
+    extraInfo = extraInfo || new CloneHelper();
     const addressSpace = node.addressSpace;
 
     if (node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Variable) {
@@ -940,7 +973,7 @@ export function _clone_non_hierarchical_references(
  * @private
  */
 export function _clone<T extends UAObject | UAVariable | UAMethod>(
-    this: T,
+    originalNode: T,
     Constructor: new (options: any) => T,
     options: CloneOptions,
     optionalFilter: CloneFilter,
@@ -951,21 +984,21 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     assert(
         !extraInfo || (extraInfo !== null && typeof extraInfo === "object" && typeof extraInfo.registerClonedObject === "function")
     );
-    assert(!(this as any).subtypeOf, "We do not do cloning of Type yet");
-    assert(!extraInfo.getCloned(this), "object has already been cloned");
+    assert(!(originalNode as any).subtypeOf, "We do not do cloning of Type yet");
+    assert(!extraInfo.getCloned(originalNode), "object has already been cloned");
     const namespace = options.namespace;
     const constructorOptions: any = {
         ...options,
         addressSpace: namespace.addressSpace,
-        browseName: this.browseName,
-        description: this.description,
-        displayName: this.displayName,
-        nodeClass: this.nodeClass
+        browseName: originalNode.browseName,
+        description: originalNode.description,
+        displayName: originalNode.displayName,
+        nodeClass: originalNode.nodeClass
     };
     constructorOptions.references = options.references || [];
 
-    if (this.nodeClass === NodeClass.Variable || this.nodeClass === NodeClass.Object) {
-        const voThis = this as UAObject | UAVariable;
+    if (originalNode.nodeClass === NodeClass.Variable || originalNode.nodeClass === NodeClass.Object) {
+        const voThis = originalNode as UAObject | UAVariable;
         if (voThis.typeDefinition) {
             constructorOptions.references.push(
                 new ReferenceImpl({
@@ -978,8 +1011,8 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     }
 
     if (!constructorOptions.modellingRule) {
-        if (this.modellingRule && options.copyAlsoModellingRules) {
-            const modellingRuleNode = this.findReferencesAsObject("HasModellingRule", true)[0];
+        if (originalNode.modellingRule && options.copyAlsoModellingRules) {
+            const modellingRuleNode = originalNode.findReferencesAsObject("HasModellingRule", true)[0];
             assert(modellingRuleNode);
             constructorOptions.references.push(
                 new ReferenceImpl({
@@ -997,29 +1030,41 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
 
     assert(constructorOptions.nodeId instanceof NodeId);
 
-    const cloneObj = new Constructor(constructorOptions);
-    (this.addressSpace as AddressSpacePrivate)._register(cloneObj);
+    const clonedNode = new Constructor(constructorOptions);
+    (originalNode.addressSpace as AddressSpacePrivate)._register(clonedNode);
+    extraInfo.registerClonedObject(clonedNode, originalNode);
 
     if (!options.ignoreChildren) {
         // clone children and the rest ....
         options.copyAlsoModellingRules = options.copyAlsoModellingRules || false;
 
-        const newFilter = optionalFilter.filterFor(cloneObj);
+        const newFilter = optionalFilter.filterFor(clonedNode);
 
         const browseNameMap = new Set<string>();
-        _clone_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter!, extraInfo, browseNameMap);
+        _clone_hierarchical_references(
+            originalNode,
+            clonedNode,
+            options.copyAlsoModellingRules,
+            newFilter!,
+            extraInfo,
+            browseNameMap
+        );
 
-        if (this.nodeClass === NodeClass.Object || this.nodeClass === NodeClass.Variable) {
-            let typeDefinitionNode: UAVariableType | UAObjectType | null = this.typeDefinitionObj;
+        if (originalNode.nodeClass === NodeClass.Object || originalNode.nodeClass === NodeClass.Variable) {
+            let typeDefinitionNode: UAVariableType | UAObjectType | null = originalNode.typeDefinitionObj;
             while (typeDefinitionNode) {
                 doTrace &&
                     traceLog(
                         extraInfo?.pad(),
-                        chalk.blueBright("---------------------- Exploring ", typeDefinitionNode.browseName.toString())
+                        chalk.blueBright(
+                            originalNode.browseName.toString(),
+                            "-----> Exploring ",
+                            typeDefinitionNode.browseName.toString()
+                        )
                     );
                 _clone_hierarchical_references(
                     typeDefinitionNode,
-                    cloneObj,
+                    clonedNode,
                     options.copyAlsoModellingRules,
                     newFilter,
                     extraInfo,
@@ -1028,12 +1073,19 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
                 typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
             }
         }
-        _clone_non_hierarchical_references(this, cloneObj, options.copyAlsoModellingRules, newFilter, extraInfo, browseNameMap);
+        _clone_non_hierarchical_references(
+            originalNode,
+            clonedNode,
+            options.copyAlsoModellingRules,
+            newFilter,
+            extraInfo,
+            browseNameMap
+        );
     }
-    cloneObj.propagate_back_references();
-    cloneObj.install_extra_properties();
+    clonedNode.propagate_back_references();
+    clonedNode.install_extra_properties();
 
-    return cloneObj;
+    return clonedNode;
 }
 
 export function _handle_HierarchicalReference(node: BaseNode, reference: UAReference): void {

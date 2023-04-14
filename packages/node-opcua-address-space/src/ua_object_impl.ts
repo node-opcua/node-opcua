@@ -27,7 +27,7 @@ import {
     UAEventType,
     IEventData,
     defaultCloneFilter,
-    defaultCloneExtraInfo,
+    makeDefaultCloneExtraInfo,
     EventNotifierFlags
 } from "node-opcua-address-space-base";
 import { make_errorLog } from "node-opcua-debug";
@@ -91,17 +91,17 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
 
     public clone(options: CloneOptions, optionalFilter?: CloneFilter, extraInfo?: CloneExtraInfo): UAObject {
         options = {
-            ...options,
             eventNotifier: this.eventNotifier,
-            symbolicName: this.symbolicName || undefined
+            symbolicName: this.symbolicName || undefined,
+            ...options,
         };
 
-        const cloneObject = _clone.call(
+        const cloneObject = _clone(
             this,
             UAObjectImpl,
             options,
             optionalFilter || defaultCloneFilter,
-            extraInfo || defaultCloneExtraInfo
+            extraInfo || makeDefaultCloneExtraInfo()
         ) as UAObject;
         // xx  newObject.propagate_back_references();
         // xx newObject.install_extra_properties();
