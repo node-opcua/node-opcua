@@ -127,7 +127,7 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
             browseName: options.browseName,
             componentOf: options.componentOf,
             displayName: options.displayName || "",
-            description: options.description || this.description,
+            description: options.description === undefined ? this.description?.clone() : options.description,
             encodingOf: options.encodingOf,
             eventSourceOf: options.eventSourceOf,
             notifierOf: options.notifierOf,
