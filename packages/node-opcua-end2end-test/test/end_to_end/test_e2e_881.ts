@@ -83,15 +83,24 @@ describe("building server with an AlternateName", () => {
 
         await client.connect(endpointUri);
 
+        console.log("connected");
+
         try {
+            console.log("creating session");
             const session = await client.createSession({
                 type: UserTokenType.UserName,
                 password: "test",
                 userName: "test"
             });
+            console.log("session created");
+            
+            console.log("session closing");
             await session.close();
+            console.log("session closed");
         } finally {
+            console.log("disconnecting");
             await client.disconnect();
+            console.log ("disconnected");
         }
     });
 });
