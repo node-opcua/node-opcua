@@ -50,7 +50,10 @@ describe("ServerConfiguration", () => {
         channel: {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientCertificate: Buffer.from("dummy", "utf-8")
+            clientCertificate: Buffer.from("dummy", "utf-8"),
+            getTransportSettings() {
+                return { maxMessageSize: 0 };
+            }
         },
         getSessionId() {
             return NodeId.nullNodeId;
