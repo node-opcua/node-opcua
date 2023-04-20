@@ -13,8 +13,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { ExtraDataTypeManager, resolveOpaqueStructureInExtentionObject } from "node-opcua-client-dynamic-extension-object";
 import { IBasicSession } from "node-opcua-pseudo-session";
+import { ExtraDataTypeManager, resolveOpaqueStructureInExtentionObject } from "node-opcua-client-dynamic-extension-object";
 
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
