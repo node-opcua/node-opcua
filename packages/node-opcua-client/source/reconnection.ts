@@ -433,9 +433,14 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                 session.sessionId.toString(),
                 " => Let's retry"
             );
-            setTimeout(() => {
-                _repair_client_session(client, session, callback);
-            }, 2000);
+            if (!session.hasBeenClosed()) {
+                setTimeout(() => {
+                    _repair_client_session(client, session, callback);
+                }, 2000);
+            } else {
+                // session does not need to be repaired anymore
+                callback();
+            }
             return;
         }
         doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
