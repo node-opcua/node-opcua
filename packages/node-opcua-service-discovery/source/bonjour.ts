@@ -67,6 +67,7 @@ export interface Announcement {
     port: number;
     path: string;
     name: string;
+    host: string;
     capabilities: string[];
 }
 
@@ -75,6 +76,7 @@ export function announcementToServiceConfig(announcement: Announcement): Service
         name: announcement.name,
         port: announcement.port,
         protocol: "tcp",
+        host: announcement.host,
         txt: {
             caps: announcement.capabilities.sort().join(","),
             path: announcement.path

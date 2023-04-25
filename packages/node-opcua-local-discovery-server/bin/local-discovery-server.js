@@ -17,7 +17,6 @@ const Vorpal = require("vorpal");
 const vorpal_repl = require("vorpal-repl");
 const envPaths = require("env-paths");
 
-
 const paths = envPaths("node-opcua-local-discovery-server");
 const configFolder = paths.config;
 const pkiFolder = path.join(configFolder, "PKI");
@@ -28,20 +27,19 @@ const serverCertificateManager = new OPCUACertificateManager({
 });
 
 async function getIpAddresses() {
-
     const ipAddresses = [];
     const interfaces = os.networkInterfaces();
-    Object.keys(interfaces).forEach(function(interfaceName) {
+    Object.keys(interfaces).forEach(function (interfaceName) {
         let alias = 0;
 
         interfaces[interfaceName].forEach((iFace) => {
-            if ('IPv4' !== iFace.family || iFace.internal !== false) {
+            if ("IPv4" !== iFace.family || iFace.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
                 return;
             }
             if (alias >= 1) {
                 // this single interface has multiple ipv4 addresses
-                console.log(interfaceName + ':' + alias, iFace.address);
+                console.log(interfaceName + ":" + alias, iFace.address);
                 ipAddresses.push(iFace.address);
             } else {
                 // this interface has only one ipv4 address
@@ -55,10 +53,8 @@ async function getIpAddresses() {
 }
 const applicationUri = "";
 
-
 const argv = yargs(process.argv)
     .wrap(132)
-
 
     .number("port")
     .describe("port", "port to listen to (default: 4840)")
@@ -72,23 +68,23 @@ const argv = yargs(process.argv)
     .describe("force", "force recreation of LDS self-signed certification (taking into account alternateHostname) ")
     .default("force", false)
 
-
     .string("alternateHostname")
     .describe("alternateHostname ")
+    .string("hostname")
+    .describe("hostname", "the hostname")
 
     .string("applicationName")
     .describe("applicationName", "the application name")
     .default("applicationName", "NodeOPCUA-DiscoveryServer")
 
-
     .alias("a", "alternateHostname")
     .alias("n", "applicationName")
     .alias("p", "port")
+    .alias("h", "hostname")
     .alias("f", "force")
     .alias("t", "tolerant")
 
-    .help(true)
-    .argv;
+    .help(true).argv;
 
 const port = argv.port;
 const automaticallyAcceptUnknownCertificate = argv.tolerant;
@@ -100,10 +96,13 @@ console.log("applicationName                         ", applicationName);
 
 (async () => {
     try {
-
-        const fqdn = process.env.HOSTNAME || await extractFullyQualifiedDomainName();
+        const fqdn = process.env.HOSTNAME || argv.hostname || (await extractFullyQualifiedDomainName());
+        const hostname = argv.hostname || fqdn;
+        const alternateHostname = argv.alternateHostname || undefined;
 
         console.log("fqdn                                ", fqdn);
+        console.log("hostname                            ", hostname);
+        console.log("alternateHostname                   ", alternateHostname);
         const applicationUri = makeApplicationUrn(fqdn, argv.applicationName);
 
         await serverCertificateManager.initialize();
@@ -113,7 +112,6 @@ console.log("applicationName                         ", applicationName);
         assert(fs.existsSync(privateKeyFile), "expecting private key");
 
         if (!fs.existsSync(certificateFile) || force) {
-
             console.log("Creating self-signed certificate", certificateFile);
 
             await serverCertificateManager.createSelfSignedCertificate({
@@ -123,11 +121,10 @@ console.log("applicationName                         ", applicationName);
                 outputFile: certificateFile,
                 subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer",
                 startDate: new Date(),
-                validity: 365 * 10,
-            })
+                validity: 365 * 10
+            });
         }
         assert(fs.existsSync(certificateFile));
-
 
         const discoveryServer = new OPCUADiscoveryServer({
             // register
@@ -138,7 +135,10 @@ console.log("applicationName                         ", applicationName);
             automaticallyAcceptUnknownCertificate,
             serverInfo: {
                 applicationUri
-            }
+            },
+            hostname,
+            alternateHostname,
+            noUserIdentityTokens: true
         });
 
         try {
@@ -154,13 +154,11 @@ console.log("applicationName                         ", applicationName);
         console.log("rejected Folder ", discoveryServer.serverCertificateManager.rejectedFolder);
         console.log("trusted  Folder ", discoveryServer.serverCertificateManager.trustedFolder);
 
-
         const vorpal = new Vorpal();
         vorpal
             .command("info")
             .description("display list of registered servers.")
-            .action(function(args, callback) {
-
+            .action(function (args, callback) {
                 this.log(discoveryServer.serverInfo.toString());
                 // xx this.log(discoveryServer.endpoints[0]);
 
@@ -187,11 +185,8 @@ console.log("applicationName                         ", applicationName);
                 callback();
             });
         vorpal.delimiter("local-discovery-server$").use(vorpal_repl).show();
-
-    }
-    catch (err) {
+    } catch (err) {
         console.log(err.message);
         console.log(err);
     }
 })();
-
