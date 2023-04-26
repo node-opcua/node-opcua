@@ -1,4 +1,5 @@
 import "should";
+import { types } from "util";
 import * as chalk from "chalk";
 
 import { ClientSession, CreateSessionResponse, OPCUAClient, OPCUAServer, OPCUAServerOptions } from "node-opcua";
@@ -26,7 +27,7 @@ async function startServer() {
     try {
         await server.start();
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog(" Server failed to start ... exiting => err:", err.message);
         }
         return;

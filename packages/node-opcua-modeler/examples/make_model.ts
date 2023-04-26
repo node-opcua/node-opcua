@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import * as fs from "fs";
-import { promisify } from "util";
+import { promisify, types } from "util";
 
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -144,7 +144,7 @@ async function testNamespace() {
         // now test the nodeset
         await testNamespace();
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log("err", err.message);
         }
         console.log(err);

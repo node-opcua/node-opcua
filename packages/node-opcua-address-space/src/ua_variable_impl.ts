@@ -6,6 +6,7 @@
 // tslint:disable:no-bitwise
 // tslint:disable:no-console
 // tslint:disable:max-line-length
+import { types } from "util";
 import * as chalk from "chalk";
 
 import {
@@ -1003,7 +1004,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 try {
                     this._internal_set_dataValue(dataValue, indexRange);
                 } catch (err) {
-                    if (err instanceof Error) {
+                    if (types.isNativeError(err)) {
                         warningLog(err.message);
                     }
                     return callback!(null, StatusCodes.BadInternalError);
@@ -1322,7 +1323,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.red("func readValueAsync has failed "));
-                if (err instanceof Error) {
+                if (types.isNativeError(err)) {
                     debugLog(" stack", err.stack);
                 }
             }

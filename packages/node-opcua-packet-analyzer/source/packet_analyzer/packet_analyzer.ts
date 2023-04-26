@@ -1,4 +1,4 @@
-import { inspect } from "util";
+import { inspect, types } from "util";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
@@ -216,7 +216,7 @@ function _internalAnalyzePacket(
         }
     } catch (err) {
         console.log(" Error in ", err);
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log(" Error in ", err.stack);
         }
         console.log(" objMessage ", inspect(objMessage, { colors: true }));

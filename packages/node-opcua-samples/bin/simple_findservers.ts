@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 // tslint:disable:no-console
 // this script queries the discovery server and display the discovery urls
+import { types } from "util";
 import * as chalk from "chalk";
 import { MessageSecurityMode, ApplicationType, findServers } from "node-opcua";
 
@@ -35,7 +36,7 @@ async function main() {
             );
         }
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log("err ", err.message);
         }
         process.exit(-2);

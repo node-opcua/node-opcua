@@ -8,7 +8,7 @@
 
 import * as crypto from "crypto";
 import { EventEmitter } from "events";
-import { callbackify } from "util";
+import { callbackify, types } from "util";
 
 import * as async from "async";
 import * as chalk from "chalk";
@@ -2257,7 +2257,7 @@ export class OPCUAServer extends OPCUABaseServer {
             } catch (err) {
                 warningLog(err);
                 // istanbul ignore next
-                if (err instanceof Error) {
+                if (types.isNativeError(err)) {
                     // istanbul ignore next
                     errorLog(
                         "Internal error in issuing response\nplease contact support@sterfive.com",

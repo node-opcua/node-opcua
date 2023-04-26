@@ -3,6 +3,7 @@
  */
 import * as os from "os";
 import { createConnection } from "net";
+import { types } from "util";
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -246,8 +247,7 @@ export class ClientTCP_transport extends TCP_transport {
             // this handler will catch attempt to connect to an inaccessible address.
             /* istanbul ignore next */
             doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect - _on_socket_error_for_connect"), err.message);
-
-            assert(err instanceof Error);
+            assert(types.isNativeError(err));
             _remove_connect_listeners();
             callback(err);
         };

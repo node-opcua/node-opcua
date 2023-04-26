@@ -1,3 +1,4 @@
+import { types } from "util";
 import { IUserManager, UARoleSet } from "node-opcua-address-space";
 import { NodeId } from "node-opcua-nodeid";
 import { IdentityMappingRuleType } from "node-opcua-types";
@@ -52,7 +53,7 @@ export class UAUserManager1 extends UAUserManagerBase {
         try {
             return this.options.getUserRoles(user);
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 errorLog(
                     "[NODE-OPCUA-E27] userManager provided getUserRoles method has thrown an exception, please fix your code! "
                 );
@@ -75,7 +76,7 @@ export class UAUserManager1 extends UAUserManagerBase {
                 const authorized = this.options.isValidUser!.call(session, username, password);
                 return authorized;
             } catch (err) {
-                if (err instanceof Error) {
+                if (types.isNativeError(err)) {
                     errorLog(
                         "[NODE-OPCUA-E26] userManager provided isValidUser method has thrown an exception, please fix your code!"
                     );

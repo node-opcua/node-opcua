@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { types } from "util";
 import { Parser, parse } from "csv-parse";
 
 import { Symbols } from "..";
@@ -41,7 +42,7 @@ export async function getPresetSymbolsFromCSV(csvFilename: string): Promise<Symb
         });
         return records as Symbols;
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             // tslint:disable-next-line: no-console
             console.log("getPresetSymbols err = ", err.message);
         }

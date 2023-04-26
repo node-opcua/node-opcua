@@ -3,6 +3,7 @@
  * @module node-opcua-address-space
  */
 // produce nodeset xml files
+import { types } from "util";
 import { assert } from "node-opcua-assert";
 import { ObjectIds, VariableIds } from "node-opcua-constants";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -368,7 +369,7 @@ function _dumpVariantInnerExtensionObject(
                 }
             } catch (err) {
                 // eslint-disable-next-line max-depth
-                if (err instanceof Error) {
+                if (types.isNativeError(err)) {
                     errorLog("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
                 }
                 console.log(name);

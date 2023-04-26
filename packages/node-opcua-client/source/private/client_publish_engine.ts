@@ -1,6 +1,7 @@
 /**
  * @module node-opcua-client-private
  */
+import { types } from "util";
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
@@ -471,7 +472,7 @@ export class ClientSidePublishEngine {
         debugLog("__repairSubscription  for SubscriptionId ", subscriptionId);
 
         this._republish(subscription, subscriptionId, (err?: Error) => {
-            assert(!err || err instanceof Error);
+            assert(!err || types.isNativeError(err));
 
             debugLog("__repairSubscription--------------------- err =", err ? err.message : null);
 

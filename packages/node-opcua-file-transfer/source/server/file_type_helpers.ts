@@ -2,7 +2,7 @@
  * @module node-opcua-file-transfer
  */
 
-import { callbackify, promisify } from "util";
+import { callbackify, promisify, types } from "util";
 import * as fsOrig from "fs";
 
 import { assert } from "node-opcua-assert";
@@ -155,7 +155,7 @@ export class FileTypeData {
                 debugLog("original file size ", self.filename, " size = ", self._fileSize);
             } catch (err) {
                 self._fileSize = 0;
-                if (err instanceof Error) {
+                if (types.isNativeError(err)) {
                     warningLog("Cannot access file ", self.filename, err.message);
                 }
             }
@@ -399,7 +399,7 @@ async function _openFile(this: UAMethod, inputArguments: Variant[], context: ISe
 
         fileData.openCount += 1;
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog(err.message);
             errorLog(err.stack);
         }
@@ -538,7 +538,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
         );
         _fileInfo.position[1] += ret.bytesRead;
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog("Read error : ", err.message);
         }
         return { statusCode: StatusCodes.BadUnexpectedError };
@@ -593,7 +593,7 @@ async function _writeFile(this: UAMethod, inputArguments: Variant[], context: IS
         fileData.fileSize = Math.max(fileData.fileSize, _fileInfo.position[1]);
         debugLog(fileData.fileSize);
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog("Write error : ", err.message);
         }
         return { statusCode: StatusCodes.BadUnexpectedError };

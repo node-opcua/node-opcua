@@ -2,6 +2,7 @@
 // tslint:disable:no-console
 import * as os from "os";
 
+import { types } from "util";
 import {
     BrowseDescriptionLike,
     BrowseResult,
@@ -80,7 +81,7 @@ async function main() {
             console.log("BrowseResult = ", browseResult.statusCode.toString());
         }
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log("err", err.message);
         }
         console.log(err);

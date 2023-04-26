@@ -77,6 +77,7 @@ import {
     traceClientResponseMessage,
     _dump_client_transaction_statistics
 } from "../utils";
+import { types } from "util";
 // import * as backoff from "backoff";
 // tslint:disable-next-line: no-var-requires
 const backoff = require("backoff");
@@ -1479,7 +1480,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             if (!err && response) {
                 this.emit("receive_response", response);
             }
-            assert(!err || err instanceof Error);
+            assert(!err || types.isNativeError(err));
 
             delete this._requests[request.requestHeader.requestHandle];
             // invoke user callback if it has not been intercepted first ( by a abrupt disconnection for instance )

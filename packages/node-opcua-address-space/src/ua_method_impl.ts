@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import { callbackify } from "util";
+import { callbackify, types } from "util";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
@@ -243,7 +243,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
                 }
             );
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 warningLog(chalk.red("ERR in method  handler"), err.message);
                 warningLog(err.stack);
             }

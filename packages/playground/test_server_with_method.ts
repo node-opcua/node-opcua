@@ -1,4 +1,5 @@
 // tslint:disable:no-console
+import { types } from "util";
 import {
     AddressSpace,
     DataType,
@@ -114,7 +115,7 @@ async function main() {
         await server.start();
         console.log(" Server started ", server.getEndpointUrl());
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log(" Error: ", err.message);
             console.log(err.stack);
         }

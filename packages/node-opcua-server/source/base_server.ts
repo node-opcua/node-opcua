@@ -5,6 +5,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
+import { types } from "util";
 import * as async from "async";
 import * as chalk from "chalk";
 import { withLock } from "@ster5/global-mutex";
@@ -400,7 +401,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
             let additional_messages = [];
             additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 additional_messages.push(err.message);
                 if (err.stack) {
                     additional_messages = additional_messages.concat(err.stack.split("\n"));

@@ -2,6 +2,7 @@
  * @module node-opcua-server
  */
 import { EventEmitter } from "events";
+import { types } from "util";
 import * as async from "async";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
@@ -1353,7 +1354,7 @@ export class ServerEngine extends EventEmitter {
                         await node.onFirstBrowseAction();
                         node.onFirstBrowseAction = undefined;
                     } catch (err) {
-                        if (err instanceof Error) {
+                        if (types.isNativeError(err)) {
                             errorLog("onFirstBrowseAction method has failed", err.message);
                         }
                         errorLog(err);
