@@ -5,6 +5,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
+import { types } from "util";
 import * as yargs from "yargs";
 import * as chalk from "chalk";
 
@@ -191,7 +192,7 @@ async function monitorAlarm(subscription: ClientSubscription, alarmNodeId: NodeI
     try {
         await callConditionRefresh(subscription);
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
         }
     }
@@ -323,7 +324,7 @@ async function main() {
         console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log(" Error = ", err.message);
         }
         return;
@@ -586,7 +587,7 @@ async function main() {
             " -----------------------------------------------------------------------------------------------------------------"
         );
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log(" Server is not supporting queryFirst err=", err.message);
         }
     }
@@ -665,7 +666,7 @@ async function main() {
         console.log("MonitoredItems clientHandles", results1.clientHandles);
         console.log("MonitoredItems serverHandles", results1.serverHandles);
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log("Server doesn't seems to implement getMonitoredItems method ", err.message);
         }
     }

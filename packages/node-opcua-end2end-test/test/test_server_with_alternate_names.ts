@@ -3,6 +3,7 @@ import * as path from "path";
 import * as os from "os";
 
 import "should";
+import { types } from "util";
 import * as chalk from "chalk";
 
 import {
@@ -58,7 +59,7 @@ async function startServer() {
     try {
         await server.start();
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog(" Server failed to start ... exiting => err:", err.message);
         }
         return;
@@ -93,7 +94,7 @@ async function extractEndpoints(endpointUrl: string): Promise<EndpointDescriptio
         await client.disconnect();
         return endpoints;
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog("Client error ", err.message);
         }
         errorLog(err);
@@ -141,7 +142,7 @@ async function startMultiHeadServer() {
     try {
         await server.start();
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             errorLog(" Server failed to start ... exiting => err:", err.message);
         }
         return;

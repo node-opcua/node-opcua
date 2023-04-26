@@ -2,6 +2,7 @@
 // tslint:disable:no-console
 import * as os from "os";
 
+import { types } from "util";
 import { Namespace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { ObjectIds } from "node-opcua-constants";
@@ -57,7 +58,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         const usage_module = "usage"; // we use a variable here to prevent error in webpack
         usage = require(usage_module); // a warning will be generated here with webpack as the module name is not a litteral
     } catch (err) {
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log("err", err.message);
         }
         usage = null;

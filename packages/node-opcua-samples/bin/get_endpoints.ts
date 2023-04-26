@@ -3,6 +3,7 @@
 import * as chalk from "chalk";
 import * as fs from "fs";
 import * as path from "path";
+import { types } from "util";
 import * as yargs from "yargs";
 
 import {
@@ -96,7 +97,7 @@ async function main() {
         await client.connect(endpointUrl);
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
-        if (err instanceof Error) {
+        if (types.isNativeError(err)) {
             console.log(" Error = ", err.message);
         }
         return;

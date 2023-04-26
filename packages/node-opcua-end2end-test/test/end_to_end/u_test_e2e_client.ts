@@ -1,3 +1,4 @@
+import { types } from "util";
 import * as should from "should";
 import * as sinon from "sinon";
 import { AttributeIds, DataType, DataValue, OPCUAClient, ReadValueIdOptions, WriteValueOptions } from "node-opcua";
@@ -128,7 +129,7 @@ export function t(test: any) {
                     requestedPublishingInterval: 1000
                 });
             } catch (err) {
-                if (err instanceof Error) {
+                if (types.isNativeError(err)) {
                     // [NODE-OPCUA-W09] The subscription parameters are not compatible with the session timeout
                     err.message.should.match(/\[NODE-OPCUA-W09\]/);
                     console.log(err.message);

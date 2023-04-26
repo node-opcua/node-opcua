@@ -1,4 +1,5 @@
 // tslint:disable:no-console
+import { types } from "util";
 import { OPCUAClient } from "node-opcua";
 
 const endpointUrl = "opc.tcp://localhost:26543";
@@ -16,7 +17,7 @@ async function main() {
             await session.close();
             await client.disconnect();
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 console.log("err", err.message);
             }
         }

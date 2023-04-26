@@ -1,7 +1,7 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import * as chalk from "chalk";
 import * as os from "os";
+import { types } from "util";
 
 import {
     AttributeIds,
@@ -83,7 +83,7 @@ async function main() {
             console.log(dataValue.statusCode.toString(), dataValue.value.toString());
             console.log(" now un-plug and re-plug the network cable to test node-opcua automatic reconnection");
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 console.log(" Error while reading value", err.message);
             }
         }

@@ -1,3 +1,4 @@
+import { types } from "util";
 import {
     CreateSessionResponse,
     get_mini_nodeset_filename,
@@ -123,7 +124,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
             await func();
         } catch (err) {
             // we are expecting this exception here!
-            if (doDebug && err instanceof Error) {
+            if (doDebug && types.isNativeError(err)) {
                 console.log(err.message);
             }
             exceptionCaught = true;

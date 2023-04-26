@@ -6,6 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import { createPrivateKey } from "crypto";
 
+import { types } from "util";
 import * as chalk from "chalk";
 
 import { UAServerConfiguration, AddressSpace } from "node-opcua-address-space";
@@ -193,7 +194,7 @@ async function onCertificateChange(server: OPCUAServer) {
 
             debugLog(chalk.yellow("channels have been closed -> client should reconnect "));
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 errorLog("Error in CertificateChanged handler ", err.message);
             }
             debugLog("err = ", err);

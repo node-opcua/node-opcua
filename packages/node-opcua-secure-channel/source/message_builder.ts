@@ -6,6 +6,7 @@
 
 
 import { createPrivateKey } from "crypto";
+import { types } from "util";
 import * as chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -329,7 +330,7 @@ export class MessageBuilder extends MessageBuilderBase {
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
-            return this._report_error(StatusCodes2.BadTcpInternalError, err instanceof Error ? err.message : " err");
+            return this._report_error(StatusCodes2.BadTcpInternalError, types.isNativeError(err)? err.message : " err");
         }
 
         if (!this.objectFactory.hasConstructor(id)) {
@@ -384,7 +385,7 @@ export class MessageBuilder extends MessageBuilderBase {
                         debugLog(err);
                     }
                     warningLog(chalk.red("MessageBuilder : ERROR DETECTED IN 'message' event handler"));
-                    if (err instanceof Error) {
+                    if (types.isNativeError(err)) {
                         warningLog(err.message);
                         warningLog(err.stack);
                     }
@@ -721,7 +722,7 @@ export class MessageBuilder extends MessageBuilderBase {
             const options = this.objectFactory;
             objMessage.decode(binaryStream, options);
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 warningLog("Decode message error : ", err.message);
 
                 // istanbul ignore next

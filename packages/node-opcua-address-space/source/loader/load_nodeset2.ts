@@ -2,7 +2,7 @@
 /**
  * @module node-opcua-address-space
  */
-import { promisify } from "util";
+import { promisify, types } from "util";
 import * as chalk from "chalk";
 
 import * as ec from "node-opcua-basic-types";
@@ -1698,7 +1698,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 } catch (err) {
                     // istanbul ignore next
                     // tslint:disable:no-console
-                    if (err instanceof Error) {
+                    if (types.isNativeError(err)) {
                         console.log(" performPostLoadingTasks Err  => ", err.message, "\n", err);
                     }
                     await task(addressSpace1);

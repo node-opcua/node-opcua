@@ -4,6 +4,7 @@ import { randomBytes } from "crypto";
 import * as path from "path";
 import * as fs from "fs";
 import { hostname } from "os";
+import { types } from "util";
 import * as chalk from "chalk";
 import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -433,7 +434,7 @@ describe("Testing server configured with push certificate management", () => {
 
             await session.close();
         } catch (err) {
-            if (err instanceof Error) {
+            if (types.isNativeError(err)) {
                 errorLog("Cannot reconnect a client !!!! ", err.message, "\n", err);
             }
         } finally {
