@@ -428,7 +428,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         async function _stop_announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration): Promise<void> {
             const b = (conf as any).bonjourHolder as BonjourHolder;
-            await b.stopAnnnouncedOnMulticastSubnet();
+            await b.stopAnnouncedOnMulticastSubnet();
             (conf as any).bonjourHolder = undefined;
         }
 
@@ -475,13 +475,13 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
             const endpointUrl = serverInfo.discoveryUrls[0]!;
             const parsedUrl = url.parse(endpointUrl);
-            const host = parsedUrl.hostname || "<unknown host>";
-
+       
+            
             discoveryConfiguration.serverCapabilities = discoveryConfiguration.serverCapabilities || [];
             const announcement = {
                 capabilities: discoveryConfiguration.serverCapabilities.map((x: UAString) => x!) || ["DA"],
                 name: discoveryConfiguration.mdnsServerName!,
-                host,
+                host: parsedUrl.hostname || "",
                 path: parsedUrl.pathname || "/",
                 port: parseInt(parsedUrl.port!, 10)
             };

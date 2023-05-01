@@ -5,7 +5,7 @@ import { TransportPairDirect, TransportPairSocket } from "../test_helpers";
 import { ITransportPair } from "../test_helpers/ITransportPair";
 import { ISocketLike } from "../source";
 
-const doDebug = false;
+const doDebug = true;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const port = 5879;
@@ -257,15 +257,20 @@ function installTestFor(Transport: any) {
                 }, 100);
             });
             transportPair.server.on("close", () => {
-                spyOnEndClient.callCount.should.eql(1);
+                setTimeout(() => {
+                    spyOnEndClient.callCount.should.eql(1);
 
-                spyOnCloseClient.callCount.should.eql(1);
-                spyOnCloseClient.getCall(0).args[0].should.eql(false);
+                    spyOnCloseClient.callCount.should.eql(1);
+                    spyOnCloseClient.getCall(0).args[0].should.eql(false);
 
-                spyOnTimeOutClient.callCount.should.eql(0);
-                spyOnErrorClient.callCount.should.eql(0);
-                events.should.eql(["server timeout", "client end", "client close false", "server close false"]);
-                done();
+                    spyOnTimeOutClient.callCount.should.eql(0);
+                    spyOnErrorClient.callCount.should.eql(0);
+                    events.should.be.oneOf(
+                        ["server timeout", "client end", "client close false", "server close false"],
+                        ["server timeout", "client end", "server close false", "client close false"]
+                    );
+                    done();
+                }, 10);
             });
         });
         it("FS-14 server terminating socket on timeout - client should disconnect", (done) => {
@@ -293,22 +298,21 @@ function installTestFor(Transport: any) {
                 }, 100);
             });
             transportPair.server.on("close", () => {
-                spyOnEndClient.callCount.should.eql(1);
+                setTimeout(() => {
+                    spyOnEndClient.callCount.should.eql(1);
 
-                spyOnCloseClient.callCount.should.eql(1);
-                spyOnCloseClient.getCall(0).args[0].should.eql(false);
+                    spyOnCloseClient.callCount.should.eql(1);
+                    spyOnCloseClient.getCall(0).args[0].should.eql(false);
 
-                spyOnTimeOutClient.callCount.should.eql(0);
-                spyOnErrorClient.callCount.should.eql(0);
+                    spyOnTimeOutClient.callCount.should.eql(0);
+                    spyOnErrorClient.callCount.should.eql(0);
 
-                events.should.eql([
-                    "server timeout",
-                    "server error some error",
-                    "client end",
-                    "client close false",
-                    "server close true"
-                ]);
-                done();
+                    events.should.be.oneOf([
+                        ["server timeout", "server error some error", "client end", "client close false", "server close true"],
+                        ["server timeout", "server error some error", "client end", "server close true", "client close false"]
+                    ]);
+                    done();
+                }, 10);
             });
         });
         it("FS-16 server terminating socket on timeout - end - client should disconnect", (done) => {

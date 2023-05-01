@@ -1,16 +1,21 @@
 #!/usr/bin/env node
+/* eslint-disable max-statements */
 "use strict";
 const path = require("path");
 const os = require("os");
 const chalk = require("chalk");
-const { OPCUAServer, Variant, DataType, makeApplicationUrn, nodesets, RegisterServerMethod } = require("node-opcua");
+const {
+    OPCUAServer,
+    Variant,
+    OPCUACertificateManager,
+    DataType,
+    makeApplicationUrn,
+    nodesets,
+    RegisterServerMethod
+} = require("node-opcua");
 const { makeBoiler, createBoilerType } = require("node-opcua-address-space/testHelpers");
 
 Error.stackTraceLimit = Infinity;
-
-function constructFilename(filename) {
-    return path.join(__dirname, "../", filename);
-}
 
 const { assert } = require("node-opcua-assert");
 const argv = require("yargs")
@@ -30,11 +35,29 @@ const argv = require("yargs")
     .alias("k", "keySize")
 
     .string("discoveryServerEndpointUrl")
-    .describe("discoveryServerEndpointUrl", " end point of the discovery server to regiser to")
+    .describe("discoveryServerEndpointUrl", " end point of the discovery server to register to")
     .default("discoveryServerEndpointUrl", "opc.tcp://localhost:4840")
     .alias("d", "discoveryServerEndpointUrl").argv;
 
 const port = parseInt(argv.port) || 26543;
+
+function wn(s, w) {
+    return s.toString().padStart(w, "0");
+}
+function t(d) {
+    return wn(d.getHours(), 2) + ":" + wn(d.getMinutes(), 2) + ":" + wn(d.getSeconds(), 2) + ":" + wn(d.getMilliseconds(), 3);
+}
+function w(str, width) {
+    return (str || "").toString().padEnd(width).substring(0, width);
+}
+
+const envPaths = require("env-paths");
+const config = envPaths("NodeOPCUA-DI-Server").config;
+const pkiFolder = path.join(config, "PKI");
+
+const serverCertificateManager = new OPCUACertificateManager({
+    rootFolder: pkiFolder
+});
 
 const userManager = {
     isValidUser: function (userName, password) {
@@ -48,53 +71,8 @@ const userManager = {
     }
 };
 
-const keySize = argv.keySize;
-const server_certificate_file = constructFilename("certificates/server_selfsigned_cert_" + keySize + ".pem");
-const server_certificate_privatekey_file = constructFilename("certificates/server_key_" + keySize + ".pem");
-
-const server = new OPCUAServer({
-    alternateHostname: argv.alternateHostname,
-
-    certificateFile: server_certificate_file,
-    privateKeyFile: server_certificate_privatekey_file,
-
-    port,
-    resourcePath: "/UA/Server",
-
-    nodeset_filename: [nodesets.standard, nodesets.di, nodesets.adi],
-
-    serverInfo: {
-        applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SimpleADIDemoServer"),
-        productUri: "urn:NodeOPCUA-SimpleADIDemoServer",
-        applicationName: { text: "NodeOPCUA-SimpleADIDemoServer" },
-        gatewayServerUri: null,
-        discoveryProfileUri: null,
-        discoveryUrls: []
-    },
-    buildInfo: {
-        buildNumber: "1234"
-    },
-    serverCapabilities: {
-        maxSessions: 1500,
-        operationLimits: {
-            maxNodesPerRead: 1000,
-            maxNodesPerBrowse: 2000
-        }
-    },
-    maxConnectionsPerEndpoint: 1500,
-
-    userManager: userManager,
-    registerServerMethod: RegisterServerMethod.LDS,
-    discoveryServerEndpointUrl: argv.discoveryServerEndpointUrl || "opc.tcp://" + hostname() + ":4840"
-});
-
-process.title = "Node OPCUA Server on port : " + port;
-
-const hostname = os.hostname();
-
-server.on("post_initialize", function () {
+function buildAddressSpace(server) {
     const addressSpace = server.engine.addressSpace;
-
     const namespace = addressSpace.getOwnNamespace();
 
     const rootFolder = addressSpace.findNode("RootFolder");
@@ -125,7 +103,6 @@ server.on("post_initialize", function () {
     console.log("discoveryServerEndpointUrl  ", server.discoveryServerEndpointUrl);
 
     const mySpectrometer = spectrometerDeviceType.instantiate({ browseName: "MySpectrometer", organizedBy: deviceSet });
-    // create a spectro meter
 
     function createChannel(options) {
         assert(typeof options.browseName === "string");
@@ -176,24 +153,115 @@ server.on("post_initialize", function () {
     makeBoiler(addressSpace, {
         browseName: "Boiler#1"
     });
-});
-
+}
 function dumpNode(node) {
-    function w(str, width) {
-        return str.padEnd(width).substring(0, width);
-    }
     return Object.entries(node)
         .map((key, value) => "      " + w(key, 30) + "  : " + (value === null ? null : value.toString()))
         .join("\n");
 }
 
-console.log(chalk.yellow("  server PID          :"), process.pid);
+(async () => {
+    const server = new OPCUAServer({
+        alternateHostname: argv.alternateHostname,
+        port,
+        resourcePath: "/UA/Server",
 
-server.start(function (err) {
-    if (err) {
-        console.log(" Server failed to start ... exiting");
-        process.exit(-3);
-    }
+        serverCertificateManager,
+
+        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.adi],
+
+        serverInfo: {
+            applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-SimpleADIDemoServer"),
+            productUri: "urn:NodeOPCUA-SimpleADIDemoServer",
+            applicationName: { text: "NodeOPCUA-SimpleADIDemoServer" },
+            gatewayServerUri: null,
+            discoveryProfileUri: null,
+            discoveryUrls: []
+        },
+        buildInfo: {
+            buildNumber: "1234"
+        },
+        serverCapabilities: {
+            maxSessions: 1500,
+            operationLimits: {
+                maxNodesPerRead: 1000,
+                maxNodesPerBrowse: 2000
+            }
+        },
+        maxConnectionsPerEndpoint: 1500,
+
+        userManager,
+        registerServerMethod: RegisterServerMethod.LDS,
+        discoveryServerEndpointUrl: argv.discoveryServerEndpointUrl || "opc.tcp://" + hostname() + ":4840"
+    });
+    process.title = "Node OPCUA Server on port : " + port;
+
+    server.on("create_session", function (session) {
+        console.log(" SESSION CREATED");
+        console.log(chalk.cyan("    client application URI: "), session.clientDescription.applicationUri);
+        console.log(chalk.cyan("        client product URI: "), session.clientDescription.productUri);
+        console.log(chalk.cyan("   client application name: "), session.clientDescription.applicationName.toString());
+        console.log(chalk.cyan("   client application type: "), session.clientDescription.applicationType.toString());
+        console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
+        console.log(chalk.cyan("           session timeout: "), session.sessionTimeout);
+        console.log(chalk.cyan("                session id: "), session.sessionId);
+    });
+
+    server.on("session_closed", function (session, reason) {
+        console.log(" SESSION CLOSED :", reason);
+        console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
+    });
+
+    server.on("response", function (response) {
+        console.log(
+            t(response.responseHeader.timestamp),
+            response.responseHeader.requestHandle,
+            response.schema.name,
+            " status = ",
+            response.responseHeader.serviceResult.toString()
+        );
+        switch (response.schema.name) {
+            case "ModifySubscriptionResponse":
+            case "CreateMonitoredItemsResponse":
+            case "RepublishResponse":
+            case "WriteResponse":
+                //xx console.log(response.toString());
+                break;
+        }
+    });
+
+    server.on("request", function (request, channel) {
+        console.log(
+            t(request.requestHeader.timestamp),
+            request.requestHeader.requestHandle,
+            request.schema.name,
+            " ID =",
+            channel.channelId.toString()
+        );
+        switch (request.schema.name) {
+            case "ModifySubscriptionRequest":
+            case "CreateMonitoredItemsRequest":
+            case "RepublishRequest":
+                //xx console.log(request.toString());
+                break;
+            case "ReadRequest":
+                break;
+            case "WriteRequest":
+                break;
+            case "TranslateBrowsePathsToNodeIdsRequest":
+                break;
+        }
+    });
+
+    const hostname = os.hostname();
+
+    await server.initialize();
+
+    buildAddressSpace(server);
+
+    console.log(chalk.yellow("  server PID          :"), process.pid);
+
+    await server.start();
 
     const endpointUrl = server.getEndpointUrl();
 
@@ -209,89 +277,14 @@ server.start(function (err) {
     console.log(chalk.yellow("\n  server now waiting for connections. CTRL+C to stop"));
 
     console.log(server.buildInfo.toString());
-});
 
-server.on("create_session", function (session) {
-    console.log(" SESSION CREATED");
-    console.log(chalk.cyan("    client application URI: "), session.clientDescription.applicationUri);
-    console.log(chalk.cyan("        client product URI: "), session.clientDescription.productUri);
-    console.log(chalk.cyan("   client application name: "), session.clientDescription.applicationName.toString());
-    console.log(chalk.cyan("   client application type: "), session.clientDescription.applicationType.toString());
-    console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
-    console.log(chalk.cyan("           session timeout: "), session.sessionTimeout);
-    console.log(chalk.cyan("                session id: "), session.sessionId);
-});
-
-server.on("session_closed", function (session, reason) {
-    console.log(" SESSION CLOSED :", reason);
-    console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
-});
-
-function w(s, w) {
-    return s.toString().padStart(w, "0");
-}
-function t(d) {
-    return w(d.getHours(), 2) + ":" + w(d.getMinutes(), 2) + ":" + w(d.getSeconds(), 2) + ":" + w(d.getMilliseconds(), 3);
-}
-
-server.on("response", function (response) {
-    console.log(
-        t(response.responseHeader.timestamp),
-        response.responseHeader.requestHandle,
-        response.schema.name,
-        " status = ",
-        response.responseHeader.serviceResult.toString()
-    );
-    switch (response.schema.name) {
-        case "ModifySubscriptionResponse":
-        case "CreateMonitoredItemsResponse":
-        case "RepublishResponse":
-        case "WriteResponse":
-            //xx console.log(response.toString());
-            break;
-    }
-});
-
-function indent(str, nb) {
-    const spacer = "                                             ".slice(0, nb);
-    return str
-        .split("\n")
-        .map(function (s) {
-            return spacer + s;
-        })
-        .join("\n");
-}
-server.on("request", function (request, channel) {
-    console.log(
-        t(request.requestHeader.timestamp),
-        request.requestHeader.requestHandle,
-        request.schema.name,
-        " ID =",
-        channel.channelId.toString()
-    );
-    switch (request.schema.name) {
-        case "ModifySubscriptionRequest":
-        case "CreateMonitoredItemsRequest":
-        case "RepublishRequest":
-            //xx console.log(request.toString());
-            break;
-        case "ReadRequest":
-            break;
-        case "WriteRequest":
-            break;
-        case "TranslateBrowsePathsToNodeIdsRequest":
-            break;
-    }
-});
-
-process.on("SIGINT", function () {
+    await new Promise((resolve) => process.once("SIGINT", resolve));
     // only work on linux apparently
     console.log(chalk.red.bold(" Received server interruption from user "));
     console.log(chalk.red.bold(" shutting down ..."));
-    server.shutdown(1000, function () {
-        console.log(chalk.red.bold(" shutting down completed "));
-        console.log(chalk.red.bold(" done "));
-        console.log("");
-        process.exit(-1);
-    });
-});
+    await server.shutdown(1000);
+    console.log(chalk.red.bold(" shutting down completed "));
+    console.log(chalk.red.bold(" done "));
+    console.log("");
+    process.exit(-1);
+})();
