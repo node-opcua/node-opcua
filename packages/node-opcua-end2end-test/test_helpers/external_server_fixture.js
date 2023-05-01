@@ -62,9 +62,7 @@ async function start_simple_server(options) {
         let callback_called = false;
         let pid_collected = 0;
 
-        function detect_ready_message(data) {
-            console.log("data", data);
-            
+        function detect_ready_message(data) {       
             if (!callback_called) {
                 if (/server PID/.test(data)) {
                     // note : on windows , when using nodist, the process.id might not correspond to the

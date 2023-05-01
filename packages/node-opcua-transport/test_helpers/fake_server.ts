@@ -1,6 +1,7 @@
 import { EventEmitter } from "events";
 import * as net from "net";
 import { assert } from "node-opcua-assert";
+import { ISocketLike } from "../source";
 
 
 export class FakeServer extends EventEmitter {
@@ -41,6 +42,10 @@ export class FakeServer extends EventEmitter {
                 this.emit("end", err);
             });
         });
+    }
+
+    public getSocket(): ISocketLike {
+        return this._serverSocket!;
     }
 
     public initialize(done: () => void): void {

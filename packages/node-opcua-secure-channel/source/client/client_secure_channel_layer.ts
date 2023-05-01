@@ -217,7 +217,7 @@ export interface ClientSecureChannelLayerOptions {
     parent: ClientSecureChannelParent;
 
     /**
-     *   the transport timeout in ms ( default = 15 seconds) sue for the Net.Socket timeout detection
+     *   the transport timeout in ms ( default = 60  seconds) sue for the Net.Socket timeout detection
      *   if 0 or not specify, the transport timeout will default  to ClientSecureChannelLayer.defaultTransportTimeout
      */
     transportTimeout?: number;
@@ -337,7 +337,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         return this._timeout_request_count;
     }
 
-    public static defaultTransportTimeout = 15 * 1000; // 15 seconds
+    public static defaultTransportTimeout = 60 * 1000; // 60 seconds
     private requestedTransportSettings: TransportSettingsOptions;
 
     public protocolVersion: number;
@@ -405,7 +405,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.messageChunker = new MessageChunker({
             derivedKeys: null
-            // note maxMessageSize cannot be set at this stage, transport is not kown
+            // note maxMessageSize cannot be set at this stage, transport is not known
         });
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 30000;
@@ -464,7 +464,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (doTraceChunk) {
             console.log(
                 chalk.cyan(timestamp()),
-                "   MESSGAE BUILDER LIMITS",
+                "   MESSAGE BUILDER LIMITS",
                 "maxMessageSize = ",
                 this.messageBuilder.maxMessageSize,
                 "maxChunkCount = ",
@@ -825,7 +825,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
             this.__in_normal_close_operation = true;
 
-            if (!this._transport || this._transport.isDisconnecting) {
+            if (!this._transport || this._transport.isDisconnecting()) {
                 this.dispose();
                 return callback(new Error("Transport disconnected"));
             }
@@ -1244,7 +1244,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             return;
         }
 
-        const on_connect = (err?: Error) => {
+        const on_connect = (err?: Error | null) => {
             doDebug && debugLog("Connection => err", err ? err.message : "null");
             // force Backoff to fail if err is not ECONNRESET or ECONNREFUSED
             // this mean that the connection to the server has succeeded but for some reason
@@ -1288,7 +1288,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     }
                 }
             }
-            _i_callback(err);
+            _i_callback(err!);
         };
 
         transport.connect(endpointUrl, on_connect);
@@ -1591,7 +1591,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         /* istanbul ignore next */
         if (doPerfMonitoring) {
             const stats = requestData;
-            // record tick0 : befoe request is being sent to server
+            // record tick0 : before request is being sent to server
             stats._tick0 = get_clock_tick();
         }
         // check that limits are OK

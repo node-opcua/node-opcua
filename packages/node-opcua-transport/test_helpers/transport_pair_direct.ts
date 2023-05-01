@@ -1,42 +1,32 @@
-import { EventEmitter } from "events";
-import { assert } from "node-opcua-assert";
 import { setFakeTransport } from "../source";
 import { HalfComChannel } from "./half_com_channel";
+import { ITransportPair } from "./ITransportPair";
 
-export interface DirectTransport {
-    on(eventName: "end", eventHandler:()=>void): this;
-}
-export class DirectTransport extends EventEmitter {
+export class TransportPairDirect implements ITransportPair {
     public client: HalfComChannel;
     public server: HalfComChannel;
     public url: string;
 
     private _responses?: ((socket: HalfComChannel, data: Buffer) => void)[];
     constructor() {
-        super();
-
         this.client = new HalfComChannel();
         this.server = new HalfComChannel();
 
         this.client.on("send_data", (data) => {
-            assert(data instanceof Buffer);
-            this.server.emit("data", data);
+            this.server.onReceiveData(data);
         });
         this.server.on("send_data", (data) => {
-            assert(data instanceof Buffer);
-            this.client.emit("data", data);
+            this.client.onReceiveData(data);
         });
         this.server.on("ending", () => {
-            this.client.emit("end");
-            this.client._hasEnded = true;
+            this.client.onReceiveEnd();
         });
         this.client.on("ending", () => {
-            this.server.emit("end");
-            this.server._hasEnded = true;
+            this.server.onReceiveEnd();
         });
 
         this.server.on("end", (err?: Error) => {
-            this.emit("end", err);
+            //
         });
 
         this.server.on("data", (data: Buffer) => {
@@ -55,8 +45,8 @@ export class DirectTransport extends EventEmitter {
     }
 
     public shutdown(done: () => void): void {
-        this.client.end();
-        this.server.end();
+        // this.client.end();
+        // this.server.end();
         if (done) {
             setImmediate(done);
         }

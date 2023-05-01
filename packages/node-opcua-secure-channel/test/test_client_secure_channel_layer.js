@@ -1,6 +1,5 @@
 const should = require("should");
 const sinon = require("sinon");
-const { assert } = require("node-opcua-assert");
 const { make_debugLog } = require("node-opcua-debug");
 const { packTcpMessage } = require("node-opcua-transport");
 const { GetEndpointsRequest } = require("node-opcua-service-endpoints");

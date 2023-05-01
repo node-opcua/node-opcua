@@ -139,7 +139,7 @@ function create_session_and_repeat_if_failed(
     callback: CallbackT<ClientSessionImpl>
 ) {
     if (session.hasBeenClosed()) {
-        doDebug && debugLog("Cannot complete subscription republish due to session terminatio");
+        doDebug && debugLog("Cannot complete subscription republish due to session termination");
         return callback(new Error("Cannot complete subscription republish due to session termination"));
     }
     doDebug && debugLog(chalk.bgWhite.red("    => creating a new session ...."));
@@ -147,7 +147,7 @@ function create_session_and_repeat_if_failed(
     // so we can reuse subscriptions data
     client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
         if (err && session.hasBeenClosed()) {
-            doDebug && debugLog("Cannot complete subscription republish due to session terminatio");
+            doDebug && debugLog("Cannot complete subscription republish due to session termination");
             return callback(new Error("Cannot complete subscription republish due to session termination"));
         }
         if (!err && session1) {

@@ -1,23 +1,21 @@
 const should = require("should");
 
-const { StatusCodes } = require("node-opcua-status-code");
 const { HelloMessage } = require("node-opcua-transport");
 const { OpenSecureChannelRequest, SecurityTokenRequestType, ReadRequest } = require("node-opcua-types");
 const { hexDump } = require("node-opcua-crypto");
 
 const { make_debugLog } = require("node-opcua-debug");
-const { DirectTransport } = require("node-opcua-transport/dist/test_helpers");
+const { TransportPairDirect } = require("node-opcua-transport/dist/test_helpers");
 const { GetEndpointsResponse } = require("node-opcua-service-endpoints");
 const fixtures = require("node-opcua-transport/dist/test-fixtures");
 const { BinaryStream } = require("node-opcua-binary-stream");
-const { pause } = require("../../node-opcua-end2end-test/test/discovery/_helper");
 const { ServerSecureChannelLayer, MessageSecurityMode, SecurityPolicy, MessageChunker } = require("..");
 const debugLog = make_debugLog(__filename);
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerSecureChannelLayer ", function () {
-    this.timeout(10000);
+    this.timeout(Math.max(10000, this.timeout()));
 
     it("KK1 should create a ServerSecureChannelLayer", () => {
         let serverSecureChannel = new ServerSecureChannelLayer({});
@@ -28,17 +26,16 @@ describe("testing ServerSecureChannelLayer ", function () {
     });
 
     it("KK2 should end with a timeout if no message is received from client", function (done) {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
         const serverSecureChannel = new ServerSecureChannelLayer({
             timeout: 50
         });
 
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
-        serverSecureChannel.timeout = 50;
+        serverSecureChannel.timeout.should.eql(50);
 
-        serverSecureChannel.init(node.server, (err) => {
-            err.message.should.match(/Timeout/);
-
+        serverSecureChannel.init(transportPair.server, (err) => {
+            err.message.should.match(/timeout/);
             serverSecureChannel.dispose();
             done();
         });
@@ -49,7 +46,7 @@ describe("testing ServerSecureChannelLayer ", function () {
     });
 
     it("KK3 should end with a timeout if HEL/ACK is OK but no further message is received from client", function (done) {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
 
         let server_has_emitted_the_abort_message = false;
 
@@ -57,7 +54,7 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
 
-        serverSecureChannel.init(node.server, (err) => {
+        serverSecureChannel.init(transportPair.server, (err) => {
             err.message.should.match(/Timeout waiting for OpenChannelRequest/);
             server_has_emitted_the_abort_message.should.eql(true);
 
@@ -71,11 +68,11 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         // now
         const { helloMessage1 } = require("node-opcua-transport/dist/test-fixtures"); // HEL
-        node.client.write(helloMessage1);
+        transportPair.client.write(helloMessage1);
     });
 
     it("KK4 should return an error and shutdown if first message is not OpenSecureChannelRequest ", function (done) {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
 
         let server_has_emitted_the_abort_message = false;
         let serverSecureChannel = new ServerSecureChannelLayer({});
@@ -83,7 +80,7 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         serverSecureChannel.timeout = 1000;
 
-        serverSecureChannel.init(node.server, (err) => {
+        serverSecureChannel.init(transportPair.server, (err) => {
             err.message.should.match(/Expecting OpenSecureChannelRequest/);
 
             serverSecureChannel.close(() => {
@@ -99,19 +96,20 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         const { helloMessage1 } = fixtures; // HEL
-        node.client.write(helloMessage1);
+        transportPair.client.write(helloMessage1);
 
+        // send a invalid TCP message
         const { getEndpointsRequest1 } = fixtures; // GetEndpointsRequest
-        node.client.write(getEndpointsRequest1);
+        transportPair.client.write(getEndpointsRequest1);
     });
 
     it("KK5 should handle a OpenSecureChannelRequest and pass no err in the init callback ", function (done) {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
 
         let serverSecureChannel = new ServerSecureChannelLayer({});
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50; // milliseconds !
-        serverSecureChannel.init(node.server, (err) => {
+        serverSecureChannel.init(transportPair.server, (err) => {
             should.not.exist(err);
             serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
@@ -120,10 +118,10 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         const { helloMessage1 } = fixtures; // HEL
-        node.client.write(helloMessage1);
+        transportPair.client.write(helloMessage1);
 
         const { openChannelRequest1 } = fixtures; // OPN
-        node.client.write(openChannelRequest1);
+        transportPair.client.write(openChannelRequest1);
 
         ///     serverSecureChannel.close(() => {
         ///            serverSecureChannel.dispose();
@@ -132,7 +130,7 @@ describe("testing ServerSecureChannelLayer ", function () {
     });
 
     it("KK6 should handle a OpenSecureChannelRequest start emitting subsequent messages ", function (done) {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
 
         const serverSecureChannel = new ServerSecureChannelLayer({});
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
@@ -140,13 +138,13 @@ describe("testing ServerSecureChannelLayer ", function () {
 
         serverSecureChannel.channelId = 8;
 
-        serverSecureChannel.init(node.server, (err) => {
+        serverSecureChannel.init(transportPair.server, (err) => {
             should.not.exist(err);
 
             setImmediate(() => {
                 const { getEndpointsRequest1 } = fixtures; // GetEndPoints
                 getEndpointsRequest1.writeInt16LE(serverSecureChannel.channelId, 8);
-                node.client.write(getEndpointsRequest1);
+                transportPair.client.write(getEndpointsRequest1);
             });
         });
         serverSecureChannel.on("message", (message) => {
@@ -160,10 +158,10 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         const { helloMessage1 } = fixtures; // HEL
-        node.client.write(helloMessage1);
+        transportPair.client.write(helloMessage1);
 
         const { openChannelRequest1 } = fixtures; // OPN
-        node.client.write(openChannelRequest1);
+        transportPair.client.write(openChannelRequest1);
 
         // serverSecureChannel.close(function() {
         //     serverSecureChannel.dispose();
@@ -173,12 +171,12 @@ describe("testing ServerSecureChannelLayer ", function () {
     });
 
     it("KK7 should handle a CloseSecureChannelRequest directly and emit a abort event", async () => {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
 
         let serverSecureChannel = new ServerSecureChannelLayer({});
         serverSecureChannel.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
         serverSecureChannel.timeout = 50;
-        serverSecureChannel.init(node.server, (err) => {
+        serverSecureChannel.init(transportPair.server, (err) => {
             should.not.exist(err);
         });
 
@@ -200,14 +198,14 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
         async function send(message) {
             await new Promise((resolve) => {
-                node.client.once("data", resolve);
-                node.client.write(message);
+                transportPair.client.once("data", resolve);
+                transportPair.client.write(message);
             });
         }
         async function send2(message) {
             await new Promise((resolve) => {
                 serverSecureChannel.once("abort", resolve);
-                node.client.write(message);
+                transportPair.client.write(message);
             });
         }
         console.log("writing Hello");
@@ -232,13 +230,13 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.dispose();
         serverSecureChannel = null;
 
-        node.shutdown(() => {
+        transportPair.shutdown(() => {
             /** */
         });
     });
 
-    function fuzzTest(messages, done) {
-        const node = new DirectTransport();
+    function testCorruptedOpenSecureChannel(messages, done) {
+        const transportPair = new TransportPairDirect();
 
         let server_has_emitted_the_abort_message = false;
         let serverSecureChannel = new ServerSecureChannelLayer({});
@@ -248,9 +246,9 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.timeout = 1000;
 
         let err;
-        serverSecureChannel.init(node.server, (_err) => {
+        serverSecureChannel.init(transportPair.server, (_err) => {
             err = _err;
-
+            
             serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 serverSecureChannel = null;
@@ -265,27 +263,27 @@ describe("testing ServerSecureChannelLayer ", function () {
         });
 
         for (const m of messages) {
-            node.client.write(m);
+            transportPair.client.write(m);
         }
     }
     it("FUZZ4- should not crash with a corrupted openChannelRequest message", (done) => {
         const { helloMessage1, getEndpointsRequest1 } = fixtures;
-        fuzzTest([helloMessage1, getEndpointsRequest1], done);
+        testCorruptedOpenSecureChannel([helloMessage1, getEndpointsRequest1], done);
     });
 
     it("FUZZ5- should not crash with a corrupted openChannelRequest message", (done) => {
         const { helloMessage1, altered_openChannelRequest1 } = fixtures; // HEL
-        fuzzTest([helloMessage1, altered_openChannelRequest1], done);
+        testCorruptedOpenSecureChannel([helloMessage1, altered_openChannelRequest1], done);
     });
 
     it("FUZZ6- should not crash with a corrupted openChannelRequest message", (done) => {
         const { helloMessage1, altered_openChannelRequest2 } = fixtures; // HEL
-        fuzzTest([helloMessage1, altered_openChannelRequest2], done);
+        testCorruptedOpenSecureChannel([helloMessage1, altered_openChannelRequest2], done);
     });
 
     it("FUZZ7- should not crash with a corrupted request message", (done) => {
         function test(messages, done) {
-            const node = new DirectTransport();
+            const transportPair = new TransportPairDirect();
 
             let server_has_emitted_the_abort_message = false;
             let server_has_emitted_the_message_event = false;
@@ -308,7 +306,7 @@ describe("testing ServerSecureChannelLayer ", function () {
                     done();
                 });
             }
-            serverSecureChannel.init(node.server, (_err) => {
+            serverSecureChannel.init(transportPair.server, (_err) => {
                 err = _err;
             });
 
@@ -322,7 +320,7 @@ describe("testing ServerSecureChannelLayer ", function () {
             });
 
             for (const m of messages) {
-                node.client.write(m);
+                transportPair.client.write(m);
             }
             setImmediate(() => terminate());
         }
@@ -332,7 +330,7 @@ describe("testing ServerSecureChannelLayer ", function () {
     });
 
     it("KK8 should not accept message with too large chunk", async () => {
-        const node = new DirectTransport();
+        const transportPair = new TransportPairDirect();
 
         let serverSecureChannel = new ServerSecureChannelLayer({});
 
@@ -340,17 +338,17 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.timeout = 100000;
 
         let initialized = false;
-        serverSecureChannel.init(node.server, (err) => {
+        serverSecureChannel.init(transportPair.server, (err) => {
             initialized = true;
             should.not.exist(err);
         });
 
         async function send(chunk) {
             return await new Promise((resolve) => {
-                node.client.once("data", (data) => {
+                transportPair.client.once("data", (data) => {
                     resolve(data);
                 });
-                node.client.write(chunk);
+                transportPair.client.write(chunk);
             });
         }
 
@@ -391,13 +389,13 @@ describe("testing ServerSecureChannelLayer ", function () {
             const messageChunker = new MessageChunker();
 
             return await new Promise((resolve, reject) => {
-                node.client.once("data", (chunk) => {
+                transportPair.client.once("data", (chunk) => {
                     requestId += 1;
                     console.log(`receiving\n${hexDump(chunk)}`);
                     resolve(chunk);
                     resolve();
                 });
-                node.client.once("error", (err) => {
+                transportPair.client.once("error", (err) => {
                     reject(err);
                 });
                 messageChunker.chunkSecureMessage(
@@ -413,7 +411,7 @@ describe("testing ServerSecureChannelLayer ", function () {
                                 chunk = tweakerFunc(chunk);
                             }
                             console.log(`sending\n${hexDump(chunk)}`);
-                            node.client.write(chunk);
+                            transportPair.client.write(chunk);
                         } else {
                             console.log("done.");
                         }
@@ -453,7 +451,7 @@ describe("testing ServerSecureChannelLayer ", function () {
                 resolve();
             });
         });
-        node.shutdown(() => {
+        transportPair.shutdown(() => {
             /** */
         });
     });

@@ -17,16 +17,15 @@ import { ErrorCallback } from "node-opcua-status-code";
 // this package requires
 import { AcknowledgeMessage } from "./AcknowledgeMessage";
 import { HelloMessage } from "./HelloMessage";
-import { TCP_transport } from "./tcp_transport";
+import { ISocketLike, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
 
 const hexDump = debug.hexDump;
-const debugLog = debug.make_debugLog(__filename);
-const errorLog = debug.make_errorLog(__filename);
-const doDebug = debug.checkDebugFlag(__filename);
-
-type CallbackFunc = (err: null | Error) => void;
+const debugLog = debug.make_debugLog("TRANSPORT");
+const errorLog = debug.make_errorLog("TRANSPORT");
+const warningLog = debug.make_warningLog("TRANSPORT");
+const doDebug = debug.checkDebugFlag("TRANSPORT");
 
 function clamp_value(value: number, minVal: number, maxVal: number): number {
     assert(minVal < maxVal);
@@ -45,12 +44,6 @@ function clamp_value(value: number, minVal: number, maxVal: number): number {
 
 const minimumBufferSize = 8192;
 
-/**
- * @class ServerTCP_transport
- * @extends TCP_transport
- * @constructor
- *
- */
 export class ServerTCP_transport extends TCP_transport {
     public static throttleTime = 1000;
 
@@ -68,6 +61,13 @@ export class ServerTCP_transport extends TCP_transport {
         this.receiveBufferSize = 4 * 1024;
     }
 
+    public toString() {
+        let str = super.toString();
+        str += "helloReceived...... = " + this._helloReceived + "\n";
+        str += "aborted............ = " + this._aborted + "\n";
+        return str;
+    }
+
     protected _write_chunk(messageChunk: Buffer): void {
         // istanbul ignore next
         if (this.sendBufferSize > 0 && messageChunk.length > this.sendBufferSize) {
@@ -78,9 +78,9 @@ export class ServerTCP_transport extends TCP_transport {
                 this.sendBufferSize
             );
         }
-
         super._write_chunk(messageChunk);
     }
+
     /**
      * Initialize the server transport.
      *
@@ -97,10 +97,11 @@ export class ServerTCP_transport extends TCP_transport {
      *
      *
      */
-    public init(socket: Socket, callback: ErrorCallback): void {
-        if (debugLog) {
-            debugLog(chalk.cyan("init socket"));
-        }
+    public init(socket: ISocketLike, callback: ErrorCallback): void {
+        assert(socket, "missing called!");
+        // istanbul ignore next
+        debugLog && debugLog(chalk.cyan("init socket"));
+
         assert(!this._socket, "init already called!");
         assert(typeof callback === "function", "expecting a valid callback ");
 
@@ -108,30 +109,28 @@ export class ServerTCP_transport extends TCP_transport {
         this._install_HEL_message_receiver(callback);
     }
 
-    public abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void {
-        return this._abortWithError(statusCode, extraErrorDescription, callback);
-    }
-
     private _abortWithError(statusCode: StatusCode, extraErrorDescription: string, callback: ErrorCallback): void {
         // When a fatal error occurs, the Server shall send an Error Message to the Client and
         // closes the TransportConnection gracefully.
-        doDebug && debugLog(chalk.cyan("_abortWithError"));
+        doDebug && debugLog(this.name, chalk.cyan("_abortWithError", statusCode.toString(), extraErrorDescription));
 
         /* istanbul ignore next */
         if (this._aborted) {
+            errorLog("Internal Er!ror: _abortWithError already called! Should not happen here");
             // already called
             return callback(new Error(statusCode.name));
         }
         this._aborted = 1;
 
+        this._socket?.setTimeout(0);
+        const err = new Error(extraErrorDescription + " StatusCode = " + statusCode.name);
+        this._theCloseError = err;
         setTimeout(() => {
             // send the error message and close the connection
             this.sendErrorMessage(statusCode, statusCode.description);
-
-            this.disconnect(() => {
-                this._aborted = 2;
-                callback(new Error(extraErrorDescription + " StatusCode = " + statusCode.name));
-            });
+            this.prematureTerminate(err, statusCode);
+            this._emitClose(err);
+            callback(err);
         }, ServerTCP_transport.throttleTime);
     }
 
@@ -179,11 +178,12 @@ export class ServerTCP_transport extends TCP_transport {
 
         // istanbul ignore next
         if (doTraceHelloAck) {
-            console.log(`received Hello \n${helloMessage.toString()}`);
-            console.log("Client accepts only message of size => ", this.maxMessageSize);
+            warningLog(`received Hello \n${helloMessage.toString()}`);
+            warningLog("Client accepts only message of size => ", this.maxMessageSize);
         }
 
-        debugLog("Client accepts only message of size => ", this.maxMessageSize);
+        // istanbul ignore next
+        doDebug && debugLog("Client accepts only message of size => ", this.maxMessageSize);
 
         const acknowledgeMessage = new AcknowledgeMessage({
             maxChunkCount: this.maxChunkCount,
@@ -194,9 +194,7 @@ export class ServerTCP_transport extends TCP_transport {
         });
 
         // istanbul ignore next
-        if (doTraceHelloAck) {
-            console.log(`sending Ack \n${acknowledgeMessage.toString()}`);
-        }
+        doTraceHelloAck && warningLog(`sending Ack \n${acknowledgeMessage.toString()}`);
 
         const messageChunk = packTcpMessage("ACK", acknowledgeMessage);
 
@@ -213,12 +211,12 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     private _install_HEL_message_receiver(callback: ErrorCallback): void {
-        if (debugLog) {
-            debugLog(chalk.cyan("_install_HEL_message_receiver "));
-        }
+        // istanbul ignore next
+        doDebug && debugLog(chalk.cyan("_install_HEL_message_receiver "));
+
         this._install_one_time_message_receiver((err?: Error | null, data?: Buffer) => {
             if (err) {
-                this._abortWithError(StatusCodes.BadConnectionRejected, err.message, callback);
+                callback(err);
             } else {
                 // handle the HEL message
                 this._on_HEL_message(data!, callback);
@@ -227,9 +225,9 @@ export class ServerTCP_transport extends TCP_transport {
     }
 
     private _on_HEL_message(data: Buffer, callback: ErrorCallback): void {
-        if (debugLog) {
-            debugLog(chalk.cyan("_on_HEL_message"));
-        }
+        // istanbul ignore next
+        doDebug && debugLog(chalk.cyan("_on_HEL_message"));
+
         assert(!this._helloReceived);
         const stream = new BinaryStream(data);
         const msgType = data.subarray(0, 3).toString("utf-8");
@@ -244,16 +242,17 @@ export class ServerTCP_transport extends TCP_transport {
             try {
                 assert(data.length >= 24);
                 const helloMessage = decodeMessage(stream, HelloMessage) as HelloMessage;
-                assert(isFinite(this.protocolVersion));
 
                 // OPCUA Spec 1.03 part 6 - page 41
                 // The Server shall always accept versions greater than what it supports.
                 if (helloMessage.protocolVersion !== this.protocolVersion) {
-                    debugLog(
-                        `warning ! client sent helloMessage.protocolVersion = ` +
-                            ` 0x${helloMessage.protocolVersion.toString(16)} ` +
-                            `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`
-                    );
+                    // istanbul ignore next
+                    doDebug &&
+                        debugLog(
+                            `warning ! client sent helloMessage.protocolVersion = ` +
+                                ` 0x${helloMessage.protocolVersion.toString(16)} ` +
+                                `whereas server protocolVersion is 0x${this.protocolVersion.toString(16)}`
+                        );
                 }
 
                 if (helloMessage.protocolVersion === 0xdeadbeef || helloMessage.protocolVersion < this.protocolVersion) {
@@ -289,9 +288,7 @@ export class ServerTCP_transport extends TCP_transport {
         } else {
             // invalid packet , expecting HEL
             /* istanbul ignore next*/
-            if (doDebug) {
-                debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
-            }
+            doDebug && debugLog(chalk.red("BadCommunicationError ") + "Expecting 'HEL' message to initiate communication");
             this._abortWithError(StatusCodes.BadCommunicationError, "Expecting 'HEL' message to initiate communication", callback);
         }
     }
