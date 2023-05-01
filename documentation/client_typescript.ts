@@ -1,4 +1,3 @@
-
 import { OPCUAClient } from "../packages/node-opcua-client";
 
 async function main() {

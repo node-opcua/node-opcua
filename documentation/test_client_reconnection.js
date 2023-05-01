@@ -20,7 +20,9 @@ const {
 
 const port = 26540;
 
-async function sleep(duration) { await new Promise((resolve) => setTimeout(resolve, duration)); }
+async function sleep(duration) {
+    await new Promise((resolve) => setTimeout(resolve, duration));
+}
 
 const duration1 = 4000;
 const duration2 = 30000;
@@ -63,7 +65,6 @@ async function runServer() {
         });
     }
 
-
     await startServer();
     await sleep(duration2);
     await stopServer();
@@ -80,7 +81,6 @@ async function runServer() {
     await startServer();
     await sleep(duration2);
     await stopServer();
-
 }
 
 function getTick() {
@@ -93,7 +93,6 @@ const privateKeyFile = path.join(certificateFolder, "client_key_2048.pem");
 const doDebug = true;
 
 async function runClient() {
-
     const client = OPCUAClient.create({
         endpointMustExist: false,
         keepSessionAlive: true,
@@ -115,7 +114,6 @@ async function runClient() {
 
     client.on("lifetime_75", () => {
         console.log(chalk.bgWhite.red(" >>>> ned to renew token"));
-
     });
 
     const endpointUrl = `opc.tcp://${hostname()}:${port}`;
@@ -128,13 +126,12 @@ async function runClient() {
         console.log(chalk.bgWhite.yellow("backoff  attempt #"), number, " retrying in ", delay / 1000.0, " seconds");
     });
 
-
-
     await client.connect(endpointUrl);
     console.log("connected !");
 
     const session = await client.createSession();
     console.log("session timeout = ", session.timeout);
+
     session.on("session_closed", function (statusCode) {
         console.log(chalk.yellow("Session has closed : statusCode = "), statusCode ? statusCode.toString() : "????");
     });
@@ -165,8 +162,6 @@ async function runClient() {
             );
         });
 
-
-
         const t = getTick();
 
         console.log("started subscription :", subscription.subscriptionId);
@@ -192,16 +187,18 @@ async function runClient() {
         );
         console.log("  suggested timeout hint     ", subscription.publishEngine.timeoutHint);
 
-        subscription.on("keepalive", function () {
-            const t1 = getTick();
-            console.log(
-                chalk.cyan("keepalive "),
-                chalk.cyan(" pending request on server = "),
-                subscription.publishEngine.nbPendingPublishRequests
-            );
-        }).on("terminated", function (err) {
-            /** */
-        });
+        subscription
+            .on("keepalive", function () {
+                const t1 = getTick();
+                console.log(
+                    chalk.cyan("keepalive "),
+                    chalk.cyan(" pending request on server = "),
+                    subscription.publishEngine.nbPendingPublishRequests
+                );
+            })
+            .on("terminated", function (err) {
+                /** */
+            });
 
         const result = [];
         const requestedParameters = {
@@ -211,26 +208,24 @@ async function runClient() {
         };
         const item = { nodeId: nodeId, attributeId: AttributeIds.Value };
 
-        const monitoredItem = await subscription.monitor(
-            item,
-            requestedParameters,
-            TimestampsToReturn.Both,
-        );
+        const monitoredItem = await subscription.monitor(item, requestedParameters, TimestampsToReturn.Both);
         monitoredItem.on("changed", function (dataValue) {
-            doDebug && console.log(
-                chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"),
-                dataValue.statusCode.toString(),
-                dataValue.value.toString()
-            );
+            doDebug &&
+                console.log(
+                    chalk.cyan(" ||||||||||| VALUE CHANGED !!!!"),
+                    dataValue.statusCode.toString(),
+                    dataValue.value.toString()
+                );
             result.push(dataValue);
         });
     }
     let counter = 0;
     const intervalId = setInterval(() => {
         console.log(
-            " Sessionchannel is valid  ? = ",
+            " Session channel is valid  ? = ",
             session.isChannelValid(),
-            " reconnecting ? = ", session.isReconnecting,
+            " reconnecting ? = ",
+            session.isReconnecting,
 
             "session will expired in ",
             session.evaluateRemainingLifetime() / 1000,

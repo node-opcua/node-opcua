@@ -44,7 +44,7 @@ _"declaration"
 (async ()=>{
 
     _"server instantiation"
-    _"server initialisation"
+    _"server initialization"
 
 })();
 
@@ -57,7 +57,6 @@ Let visit each step in order:
 The node-opcua sdk is made available to the application by this 'require' statement:
 
 ```javascript
-/*global require,setInterval,console */
 const { OPCUAServer, Variant, DataType, StatusCodes} = require("node-opcua");
 ```
 
@@ -95,9 +94,9 @@ buildInfo : {
 }
 ```
 
-### server initialisation
+### server initialization
 
-Once created the server shall be initialised.
+Once created the server shall be initialized.
 During initialisation, the server will load its default **nodeset** and prepare the binding of all standard OPCUA variables.
 The **initialize** method is a asynchronous operation that requires a 'callback' function that will get executed
 when the initialization process is completed. the *callback* is function that contains the post_initialisation
@@ -106,12 +105,12 @@ steps that we want to execute.
 ```javascript
 await server.initialize();
 console.log("initialized");
-_"post initialisation"
+_"post initialization"
 
 _"start the server"
 ```
 
-#### post initialisation
+#### post initialization
 
 Once the server has been initialized, it is a good idea to extend the default server namespace with our variables.
 
@@ -174,15 +173,11 @@ Let's create a more comprehensive Read-Write variable with a fancy nodeId
 let variable2 = 10.0;
 
 namespace.addVariable({
-
     componentOf: device,
-
     nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
-
     browseName: "MyVariable2",
-
     dataType: "Double",    
-
+    minimumSamplingInterval: 1234, // we need to specify a minimumSamplingInterval when using a getter
     value: {
         get: () => new Variant({dataType: DataType.Double, value: variable2 }),
         set: (variant) => {

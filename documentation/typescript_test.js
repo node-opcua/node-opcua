@@ -6,7 +6,7 @@ async function main0() {
     await client.withSessionAsync(endpointUrl, async (session) => {
         const dataValue = await session.read({
             attributeId: AttributeIds.BrowseName,
-            nodeId: "i=84",
+            nodeId: "i=84"
         });
         console.log(dataValue.toString());
     });
@@ -23,8 +23,7 @@ async function main1() {
             const dataValue = await session.read({ nodeId: "ns=1;s=Temperature", attributeId: AttributeIds.BrowseName });
             console.log("Temperature = ", dataValue.toString());
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log("Error = ", err);
     }
 }
@@ -36,8 +35,7 @@ async function main3() {
             const dataValue = await session.read({ nodeId: session.sessionId, attributeId: AttributeIds.Value });
             console.log("value = ", dataValue.toString());
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log("Error = ", err);
     }
 }
@@ -51,7 +49,7 @@ async function main2() {
             publishingEnabled: true,
             requestedLifetimeCount: 1000,
             requestedMaxKeepAliveCount: 12,
-            requestedPublishingInterval: 100,
+            requestedPublishingInterval: 100
         };
         await client.withSubscriptionAsync(endpointUrl, subscriptionParameters, async (session, subscription) => {
             const nodeId = coerceNodeId("ns=1;s=Temperature");
@@ -66,8 +64,7 @@ async function main2() {
             monitoredItem.on("err", (err) => console.log(err));
             await new Promise((resolve) => setTimeout(resolve, 5000));
         });
-    }
-    catch (err) {
+    } catch (err) {
         console.log("Main 2", err);
     }
 }

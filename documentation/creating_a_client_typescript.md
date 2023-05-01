@@ -124,7 +124,7 @@ async function main() {
     // disconnecting
     _"disconnecting"
   } catch(err) {
-    console.log("An error has occured : ",err);
+    console.log("An error has occurred : ",err);
   }
 }
 main();

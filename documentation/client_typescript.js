@@ -9,8 +9,7 @@ async function main() {
         const session = await client.createSession();
         await session.close();
         await client.disconnect();
-    }
-    catch (err) {
+    } catch (err) {
         if (err instanceof Error) {
             console.log(err.message);
         }

@@ -7,8 +7,7 @@ function walk(dir, pattern) {
     let results = [];
     const list = fs.readdirSync(dir);
     for (let file of list) {
-
-        file = dir + '/' + file;
+        file = dir + "/" + file;
         const stat = fs.statSync(file);
         if (stat && stat.isDirectory()) {
             /* Recurse into a subdirectory */
@@ -27,10 +26,9 @@ function walk(dir, pattern) {
 }
 
 function r(arr) {
-
     let result = [];
     for (let a of arr) {
-        result = result.concat(walk(path.join("../packages", a, "source"), /\.ts/))
+        result = result.concat(walk(path.join("../packages", a, "source"), /\.ts/));
     }
     return result;
 }
@@ -46,7 +44,7 @@ module.exports = {
         "node-opcua-service-read",
         "node-opcua-service-write",
         "node-opcua-service-subscription",
-        "node-opcua-client-crawler",
+        "node-opcua-client-crawler"
     ]),
     out: "./out1/",
 
@@ -62,4 +60,3 @@ module.exports = {
     theme: "default",
     logger: "console"
 };
-
