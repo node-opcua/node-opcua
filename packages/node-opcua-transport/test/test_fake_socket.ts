@@ -265,6 +265,7 @@ function installTestFor(Transport: any) {
 
                     spyOnTimeOutClient.callCount.should.eql(0);
                     spyOnErrorClient.callCount.should.eql(0);
+                    // note that sequence of event may vary depending on nodeJS version
                     events.should.be.oneOf(
                         ["server timeout", "client end", "client close false", "server close false"],
                         ["server timeout", "client end", "server close false", "client close false"]
@@ -307,6 +308,7 @@ function installTestFor(Transport: any) {
                     spyOnTimeOutClient.callCount.should.eql(0);
                     spyOnErrorClient.callCount.should.eql(0);
 
+                    // note that sequence of event may vary depending on nodeJS version
                     events.should.be.oneOf([
                         ["server timeout", "server error some error", "client end", "client close false", "server close true"],
                         ["server timeout", "server error some error", "client end", "server close true", "client close false"]

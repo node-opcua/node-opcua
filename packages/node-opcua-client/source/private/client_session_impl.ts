@@ -23,7 +23,7 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession, IBasicTransportSettings } from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
-import { requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
+import { ClientSecureChannelLayer, requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
 import { EndpointDescription } from "node-opcua-service-endpoints";
@@ -546,13 +546,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * ```javascript
      *     const dataValues = await session.readVariableValue(["ns=1;s=Temperature","ns=1;s=Pressure"]);
      * ```
+     * 
+     * @deprecated
      */
     public readVariableValue(nodeId: NodeIdLike, callback: ResponseCallback<DataValue>): void;
-
     public readVariableValue(nodeIds: NodeIdLike[], callback: ResponseCallback<DataValue[]>): void;
-
     public async readVariableValue(nodeId: NodeIdLike): Promise<DataValue>;
-
     public async readVariableValue(nodeIds: NodeIdLike[]): Promise<DataValue[]>;
     /**
      * @internal
@@ -2074,6 +2073,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 str += "\n reviseTokenLifetime...... " + this._client._secureChannel.securityToken.revisedLifetime;
             }
         }
+        str += "\n keepAlive ................ " + this._keepAliveManager ? true:  false;
+        if (this._keepAliveManager) {
+            str += "\n keepAlive checkInterval.. " + this._keepAliveManager.checkInterval;
+            str += "\n defaultTransportTimeout.. " + ClientSecureChannelLayer.defaultTransportTimeout;
+
+        } 
         return str;
     }
 

@@ -309,8 +309,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _bytesRead = 0;
     private _bytesWritten = 0;
 
-    public static minTransactionTimeout = 10 * 1000; // 10 sec
-    public static defaultTransactionTimeout = 60 * 1000; // 1 minute
+    public static minTransactionTimeout = 5 * 1000; // 10 sec
+    public static defaultTransactionTimeout = 15 * 1000; // 15 minute
+    public static defaultTransportTimeout = 60 * 1000; // 60 seconds
 
     /**
      * true if the secure channel is trying to establish the connection with the server. In this case, the client
@@ -337,7 +338,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         return this._timeout_request_count;
     }
 
-    public static defaultTransportTimeout = 60 * 1000; // 60 seconds
     private requestedTransportSettings: TransportSettingsOptions;
 
     public protocolVersion: number;
@@ -585,7 +585,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
      *
      *    ```javascript
      *
-     *    var secureChannel  = new ClientSecureChannelLayer({});
+     *    const secureChannel  = new ClientSecureChannelLayer({});
      *
      *    secureChannel.on("end", function(err) {
      *         console.log("secure channel has ended",err);
