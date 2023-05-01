@@ -315,13 +315,13 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space-for-conformance-testing
       node-opcua-aggregates:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-aggregates
       node-opcua-assert:
         specifier: 2.98.1
@@ -336,13 +336,13 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-certificate-manager
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-client-crawler:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-crawler
       node-opcua-client-proxy:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-proxy
       node-opcua-common:
         specifier: 2.99.0
@@ -387,13 +387,13 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-secure-channel:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-secure-channel
       node-opcua-server:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server
       node-opcua-server-discovery:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server-discovery
       node-opcua-service-browse:
         specifier: 2.99.0
@@ -402,7 +402,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-call
       node-opcua-service-discovery:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-discovery
       node-opcua-service-endpoints:
         specifier: 2.99.0
@@ -432,7 +432,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-session
       node-opcua-service-subscription:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-subscription
       node-opcua-service-translate-browse-path:
         specifier: 2.99.0
@@ -444,7 +444,7 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-status-code
       node-opcua-transport:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-transport
       node-opcua-types:
         specifier: 2.99.0
@@ -456,7 +456,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-variant
       node-opcua-vendor-diagnostic:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-vendor-diagnostic
       semver:
         specifier: ^7.3.8
@@ -499,7 +499,7 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-binary-stream
       node-opcua-client-dynamic-extension-object:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-dynamic-extension-object
       node-opcua-constants:
         specifier: 2.98.1
@@ -544,7 +544,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-object-registry
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-service-browse:
         specifier: 2.99.0
@@ -671,7 +671,7 @@ importers:
   packages/node-opcua-address-space-for-conformance-testing:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.98.1
@@ -704,7 +704,7 @@ importers:
   packages/node-opcua-aggregates:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.98.1
@@ -725,7 +725,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-numeric-range
       node-opcua-server:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server
       node-opcua-service-history:
         specifier: 2.99.0
@@ -931,7 +931,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-certificate-manager
       node-opcua-client-dynamic-extension-object:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-dynamic-extension-object
       node-opcua-common:
         specifier: 2.99.0
@@ -970,13 +970,13 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-schemas:
         specifier: 2.99.0
         version: link:../node-opcua-schemas
       node-opcua-secure-channel:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-secure-channel
       node-opcua-service-browse:
         specifier: 2.99.0
@@ -985,7 +985,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-call
       node-opcua-service-discovery:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-discovery
       node-opcua-service-endpoints:
         specifier: 2.99.0
@@ -1012,7 +1012,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-session
       node-opcua-service-subscription:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-subscription
       node-opcua-service-translate-browse-path:
         specifier: 2.99.0
@@ -1046,7 +1046,7 @@ importers:
         specifier: ^10.2.0
         version: 10.2.0
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-binary-stream:
         specifier: 2.98.1
@@ -1079,13 +1079,13 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-constants:
         specifier: 2.98.1
@@ -1122,7 +1122,7 @@ importers:
         version: 3.3.1
     devDependencies:
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       should:
         specifier: ^13.2.3
@@ -1164,7 +1164,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-nodeid
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-schemas:
         specifier: 2.99.0
@@ -1209,7 +1209,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-nodeid
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-service-browse:
         specifier: 2.99.0
@@ -1221,7 +1221,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-read
       node-opcua-service-subscription:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-subscription
       node-opcua-service-write:
         specifier: 2.99.0
@@ -1272,7 +1272,7 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.100.0
@@ -1299,7 +1299,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-nodesets
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-status-code:
         specifier: 2.98.1
@@ -1494,16 +1494,16 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       node-opcua:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space-for-conformance-testing
       node-opcua-aggregates:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-aggregates
       node-opcua-assert:
         specifier: 2.98.1
@@ -1518,13 +1518,13 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-buffer-utils
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-client-crawler:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-crawler
       node-opcua-client-proxy:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-proxy
       node-opcua-constants:
         specifier: 2.98.1
@@ -1560,10 +1560,10 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       node-opcua-server:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server
       node-opcua-server-discovery:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server-discovery
       node-opcua-service-browse:
         specifier: 2.99.0
@@ -1672,7 +1672,7 @@ importers:
   packages/node-opcua-file-transfer:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.100.0
@@ -1699,7 +1699,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-nodeid
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-service-call:
         specifier: 2.99.0
@@ -1721,10 +1721,10 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       node-opcua:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-leak-detector:
         specifier: 2.99.0
@@ -1821,7 +1821,7 @@ importers:
         specifier: 2.2.1
         version: 2.2.1
       node-opcua:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua
       vorpal:
         specifier: ^1.12.0
@@ -1836,19 +1836,19 @@ importers:
   packages/node-opcua-model:
     dependencies:
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-client-dynamic-extension-object:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-dynamic-extension-object
       node-opcua-nodesets:
         specifier: 2.99.0
         version: link:../node-opcua-nodesets
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       yargs:
         specifier: 15.4.1
@@ -1873,7 +1873,7 @@ importers:
         specifier: 5.3.6
         version: 5.3.6
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.98.1
@@ -1882,7 +1882,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-basic-types
       node-opcua-client-dynamic-extension-object:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-dynamic-extension-object
       node-opcua-constants:
         specifier: 2.98.1
@@ -2646,7 +2646,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-read
       node-opcua-service-subscription:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-subscription
       node-opcua-service-translate-browse-path:
         specifier: 2.99.0
@@ -2688,19 +2688,19 @@ importers:
         specifier: ^0.1.2
         version: 0.1.2
       node-opcua:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-for-conformance-testing:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space-for-conformance-testing
       node-opcua-assert:
         specifier: 2.98.1
         version: link:../node-opcua-assert
       node-opcua-client-crawler:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-crawler
       node-opcua-crypto:
         specifier: ^2.1.2
@@ -2709,13 +2709,13 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       node-opcua-server-configuration:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server-configuration
       node-opcua-utils:
         specifier: 2.98.1
         version: link:../node-opcua-utils
       node-opcua-vendor-diagnostic:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-vendor-diagnostic
       sprintf-js:
         specifier: ^1.1.2
@@ -2833,7 +2833,7 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-status-code
       node-opcua-transport:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-transport
       node-opcua-types:
         specifier: 2.99.0
@@ -2888,7 +2888,7 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.100.0
@@ -2906,10 +2906,10 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-certificate-manager
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-client-dynamic-extension-object:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-client-dynamic-extension-object
       node-opcua-common:
         specifier: 2.99.0
@@ -2954,7 +2954,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-object-registry
       node-opcua-secure-channel:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-secure-channel
       node-opcua-service-browse:
         specifier: 2.99.0
@@ -2963,7 +2963,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-call
       node-opcua-service-discovery:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-discovery
       node-opcua-service-endpoints:
         specifier: 2.99.0
@@ -2993,7 +2993,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-service-session
       node-opcua-service-subscription:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-subscription
       node-opcua-service-translate-browse-path:
         specifier: 2.99.0
@@ -3048,7 +3048,7 @@ importers:
         specifier: ^3.5.0
         version: 3.5.0
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.100.0
@@ -3066,7 +3066,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-certificate-manager
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-common:
         specifier: 2.99.0
@@ -3084,7 +3084,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-debug
       node-opcua-file-transfer:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-file-transfer
       node-opcua-hostname:
         specifier: 2.98.1
@@ -3096,13 +3096,13 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       node-opcua-pseudo-session:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-pseudo-session
       node-opcua-secure-channel:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-secure-channel
       node-opcua-server:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server
       node-opcua-service-translate-browse-path:
         specifier: 2.99.0
@@ -3163,13 +3163,13 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-object-registry
       node-opcua-secure-channel:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-secure-channel
       node-opcua-server:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server
       node-opcua-service-discovery:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-service-discovery
       node-opcua-service-endpoints:
         specifier: 2.99.0
@@ -3464,7 +3464,7 @@ importers:
         specifier: 2.99.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-secure-channel:
-        specifier: 2.99.0
+        specifier: 2.101.0
         version: link:../node-opcua-secure-channel
       node-opcua-service-read:
         specifier: 2.99.0
@@ -3596,6 +3596,9 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-utils
     devDependencies:
+      node-opcua-leak-detector:
+        specifier: 2.99.0
+        version: link:../node-opcua-leak-detector
       should:
         specifier: ^13.2.3
         version: 13.2.3
@@ -3757,7 +3760,7 @@ importers:
         specifier: 0.0.9
         version: 0.0.9
       node-opcua-address-space:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.98.1
@@ -3766,7 +3769,7 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-server:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-server
       node-opcua-status-code:
         specifier: 2.98.1
@@ -3812,13 +3815,13 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       node-opcua:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua
       node-opcua-client:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-client
       node-opcua-modeler:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../node-opcua-modeler
       readline:
         specifier: '*'
@@ -3830,7 +3833,7 @@ importers:
   packages_extra/node-opcua-example:
     dependencies:
       node-opcua:
-        specifier: 2.100.0
+        specifier: 2.101.0
         version: link:../../packages/node-opcua
     devDependencies:
       should:
