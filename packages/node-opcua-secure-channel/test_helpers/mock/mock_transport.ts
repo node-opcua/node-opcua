@@ -8,7 +8,7 @@ import { GetEndpointsResponse } from "node-opcua-service-endpoints";
 import { CloseSecureChannelResponse, OpenSecureChannelResponse } from "node-opcua-service-secure-channel";
 import { ActivateSessionResponse, CreateSessionResponse } from "node-opcua-service-session";
 import { AcknowledgeMessage } from "node-opcua-transport";
-import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
+import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 
 const debugLog = make_debugLog(__filename);
 
@@ -47,7 +47,7 @@ export const fakeActivateSessionResponse = new ActivateSessionResponse({});
 
 export class MockServerTransport extends EventEmitter {
     private _replies: any;
-    private _mockTransport: DirectTransport;
+    private _mockTransport: TransportPairDirect;
     private _counter: number;
 
     constructor(expectedReplies: any) {
@@ -56,7 +56,7 @@ export class MockServerTransport extends EventEmitter {
         this._replies = expectedReplies;
         this._counter = 0;
 
-        this._mockTransport = new DirectTransport();
+        this._mockTransport = new TransportPairDirect();
         this._mockTransport.initialize(() => {
             debugLog("mock transport initialized");
         });

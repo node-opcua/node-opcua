@@ -292,7 +292,6 @@ export class MessageBuilder extends MessageBuilderBase {
             return true;
         } catch (err) {
             warningLog(chalk.red("Error"), (err as Error).message);
-            console.log("REMOVE ME", err);
             return false;
         }
     }

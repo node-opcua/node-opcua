@@ -239,7 +239,7 @@ export function t(test: any) {
 
         async function addServerCertificateToTrustedCertificateInDiscoveryServer(server: OPCUAServer) {
             const filename = server.certificateFile;
-            fs.existsSync(filename).should.eql(true, " the server certficate file " + filename + " should exist");
+            fs.existsSync(filename).should.eql(true, " the server certificate file " + filename + " should exist");
             const certificate = readCertificate(filename);
             await discoveryServer.serverCertificateManager.trustCertificate(certificate);
         }
@@ -352,7 +352,7 @@ export function t(test: any) {
 
         let registeredServerCount = 0;
 
-        async function checkServerCertificateAgainsLDS(server: OPCUAServer) {
+        async function checkServerCertificateAgainstLDS(server: OPCUAServer) {
             const certificate = await server.getCertificate();
             const certificateInfo = await exploreCertificate(certificate);
             if (doDebug) {
@@ -448,10 +448,10 @@ export function t(test: any) {
         const stop_all_serversAsync = promisify(stop_all_servers);
 
         it("DISCO3-1 checking certificates", async () => {
-            await checkServerCertificateAgainsLDS(server1);
-            await checkServerCertificateAgainsLDS(server2);
-            await checkServerCertificateAgainsLDS(server3);
-            await checkServerCertificateAgainsLDS(server4);
+            await checkServerCertificateAgainstLDS(server1);
+            await checkServerCertificateAgainstLDS(server2);
+            await checkServerCertificateAgainstLDS(server3);
+            await checkServerCertificateAgainstLDS(server4);
             console.log("done");
         });
 
@@ -476,10 +476,17 @@ export function t(test: any) {
 
             discoveryServer.registeredServerCount.should.equal(5);
 
-            await pause(1000);
+            await pause(3000);
 
             const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
             if (doDebug) {
+                console.log(
+                    "------- findServersOnNetwork on ",
+                    discoveryServerEndpointUrl,
+                    "returned ",
+                    servers.length,
+                    "servers: here they are:"
+                );
                 for (const s of servers) {
                     debugLog(s.applicationUri, s.productUri, ApplicationType[s.applicationType], s.discoveryUrls![0]);
                 }
@@ -487,10 +494,17 @@ export function t(test: any) {
             servers.length.should.eql(6); // 5 server + 1 discovery server
 
             // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
-            await pause(1000);
+            await pause(3000);
             {
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl);
                 if (servers!.length !== 6) {
+                    console.log(
+                        "------- findServersOnNetwork on ",
+                        discoveryServerEndpointUrl,
+                        "returned ",
+                        servers.length,
+                        "servers: here they are:"
+                    );
                     for (const s of servers!) {
                         console.log(s.toString());
                     }

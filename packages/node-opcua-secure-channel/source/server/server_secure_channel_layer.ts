@@ -33,7 +33,7 @@ import {
     SymmetricAlgorithmSecurityHeader
 } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ServerTCP_transport, StatusCodes2 } from "node-opcua-transport";
+import { ISocketLike, ServerTCP_transport, StatusCodes2 } from "node-opcua-transport";
 import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
@@ -285,6 +285,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private readonly messageChunker: MessageChunker;
 
     private timeoutId: NodeJS.Timer | null;
+    private _open_secure_channel_onceClose: ErrorCallback | null = null;
     private _securityTokenTimeout: NodeJS.Timer | null;
     private _transactionsCount: number;
     private revisedLifetime: number;
@@ -425,10 +426,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     public dispose(): void {
         debugLog("ServerSecureChannelLayer#dispose");
-        if (this.timeoutId) {
-            clearTimeout(this.timeoutId);
-            this.timeoutId = null;
-        }
+        this._stop_open_channel_watch_dog();
         assert(!this.timeoutId, "timeout must have been cleared");
         assert(!this._securityTokenTimeout, "_securityTokenTimeout must have been cleared");
 
@@ -534,11 +532,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param socket
      * @param callback
      */
-    public init(socket: Socket, callback: ErrorCallback): void {
+    public init(socket: ISocketLike, callback: ErrorCallback): void {
         this.transport.timeout = this.timeout;
         debugLog("Setting socket timeout to ", this.transport.timeout);
 
-        this.transport.init(socket, (err?: Error) => {
+        this.transport.init(socket, (err?: Error | null) => {
             if (err) {
                 callback(err);
             } else {
@@ -569,16 +567,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // detect transport closure
         this._transport_socket_close_listener = (err?: Error) => {
-            debugLog("transport has send socket_closed event " + (err ? err.message : "null"));
+            debugLog("transport has send 'close' event " + (err ? err.message : "null"));
             this._abort();
         };
-        this.transport.on("close", (err: Error|null)=>{
-            console.log("XXXXXX is it redundant with socket_closed ?");
-        })
-        this.transport.on("socket_closed", (err: Error|null)=>{
-            console.log("XXXXXX is it redundant with close ?");
-        })
-        this.transport.on("socket_closed", this._transport_socket_close_listener);
+        this.transport.on("close", this._transport_socket_close_listener);
     }
 
     /**
@@ -685,7 +677,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _sendFatalErrorAndAbort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback): void {
-        this.transport.abortWithError(statusCode, description, () => {
+        this.transport.disconnect(() => {
             this.close(() => {
                 callback(new Error(description + " statusCode = " + statusCode.toString()));
             });
@@ -820,6 +812,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
+        if (this._open_secure_channel_onceClose) {
+            this.transport.removeListener("close", this._open_secure_channel_onceClose!);
+            this._open_secure_channel_onceClose = null;
+        }
     }
 
     private _cleanup_pending_timers() {
@@ -836,9 +832,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
         assert(isFinite(timeout));
         assert(typeof callback === "function");
 
+        this._open_secure_channel_onceClose = (err?: Error) => {
+            this._open_secure_channel_onceClose = null;
+            this._stop_open_channel_watch_dog();
+            this.close(() => {
+                const err = new Error("Timeout waiting for OpenChannelRequest (A) (timeout was " + timeout + " ms)");
+                callback(err);
+            });
+        };
+        this.transport.prependOnceListener("close", this._open_secure_channel_onceClose);
         this.timeoutId = setTimeout(() => {
             this.timeoutId = null;
-            const err = new Error("Timeout waiting for OpenChannelRequest (timeout was " + timeout + " ms)");
+            this._stop_open_channel_watch_dog();
+            const err = new Error("Timeout waiting for OpenChannelRequest (B) (timeout was " + timeout + " ms)");
             debugLog(err.message);
             this.close(() => {
                 callback(err);
@@ -979,17 +985,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const errorHandler = (err: Error) => {
             this._cancel_wait_for_open_secure_channel_request_timeout();
 
-            this.messageBuilder!.removeListener("message", messageHandler);
-            this.close(() => {
-                callback(new Error("/Expecting OpenSecureChannelRequest to be valid " + err.message));
-            });
+            if (this.messageBuilder) {
+                this.messageBuilder.removeListener("message", messageHandler);
+                this.close(() => {
+                    callback(new Error("/Expecting OpenSecureChannelRequest to be valid " + err.message));
+                });
+            }
         };
         const messageHandler = (request: Request, msgType: string, requestId: number, channelId: number) => {
             this._cancel_wait_for_open_secure_channel_request_timeout();
             this.messageBuilder!.removeListener("error", errorHandler);
             this._on_initial_open_secure_channel_request(callback, request, msgType, requestId, channelId);
         };
-        this.messageBuilder!.once("error", errorHandler);
+        this.messageBuilder!.prependOnceListener("error", errorHandler);
         this.messageBuilder!.once("message", messageHandler);
     }
 

@@ -17,7 +17,7 @@ import {
     readPrivateKey
 } from "node-opcua-crypto";
 import { EndpointDescription } from "node-opcua-service-endpoints";
-import { DirectTransport } from "node-opcua-transport/dist/test_helpers";
+import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import { hexDump } from "node-opcua-debug";
 
@@ -71,13 +71,13 @@ describe("Testing secure client and server connection", () => {
         certificateManager.dispose();
     });
 
-    let directTransport: DirectTransport;
+    let transportPair: TransportPairDirect;
     beforeEach((done) => {
-        directTransport = new DirectTransport();
-        directTransport.initialize(done);
+        transportPair = new TransportPairDirect();
+        transportPair.initialize(done);
     });
     afterEach((done) => {
-        directTransport.shutdown(done);
+        transportPair.shutdown(done);
     });
 
     function performTest(param: TestParam, done: (err?: Error) => void) {
@@ -159,7 +159,7 @@ describe("Testing secure client and server connection", () => {
             });
         }
 
-        const transportServer = directTransport.server as any as Socket;
+        const serverSocket = transportPair.server ;
 
         const parentC: ClientSecureChannelParent = {
             // tslint:disable-next-line:object-literal-shorthand
@@ -215,7 +215,7 @@ describe("Testing secure client and server connection", () => {
         async.series(
             [
                 (callback: SimpleCallback) => {
-                    serverSChannel.init(transportServer, (err?: Error) => {
+                    serverSChannel.init(serverSocket, (err?: Error) => {
                         /* */
                         /// callback(err);
                         doDebug && console.log("server secure channel initialized");

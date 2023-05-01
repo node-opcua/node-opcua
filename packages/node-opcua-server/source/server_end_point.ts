@@ -29,7 +29,6 @@ import { ApplicationDescription } from "node-opcua-service-endpoints";
 import { UserTokenPolicyOptions } from "node-opcua-types";
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
-import { hostname } from "os";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);

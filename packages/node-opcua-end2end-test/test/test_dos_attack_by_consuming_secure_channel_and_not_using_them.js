@@ -431,7 +431,7 @@ describe("testing Server resilience to DDOS attacks", function () {
             server_exec.stdout.on("data", function (data) {
                 data = data.toString();
                 data.split("\n").forEach(function (data) {
-                    process.stdout.write("stdout:               " + chalk.yellow(data) + "\n");
+                    process.stdout.write("                 " + chalk.yellow(data) + "\n");
                 });
             });
         }
@@ -453,7 +453,7 @@ describe("testing Server resilience to DDOS attacks", function () {
                 spyNewChannel.callCount.should.eql(counter, "expecting spyNewChannel to have been called");
                 spyCloseChannel.callCount.should.eql(counter, "expecting spyCloseChannel to have been called");
                 callback();
-            }, 250);
+            }, 350);
         }
 
         async.series(

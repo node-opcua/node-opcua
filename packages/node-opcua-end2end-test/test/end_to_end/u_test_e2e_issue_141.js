@@ -78,10 +78,10 @@ module.exports = function (test) {
                 }
 
                 the_subscription.on("started", function () {
-                    //xx debugLog("revised publishingInterval :", the_subscription.publishingInterval);
-                    //xx debugLog("revised lifetimeCount      :", the_subscription.lifetimeCount);
-                    //xx debugLog("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
-                    //xx debugLog("started subscription       :", the_subscription.subscriptionId);
+                    debugLog("revised publishingInterval :", the_subscription.publishingInterval);
+                    debugLog("revised lifetimeCount      :", the_subscription.lifetimeCount);
+                    debugLog("revised maxKeepAliveCount  :", the_subscription.maxKeepAliveCount);
+                    debugLog("started subscription       :", the_subscription.subscriptionId);
 
                 }).on("internal_error", function (err) {
                     debugLog(" received internal error", err.message);

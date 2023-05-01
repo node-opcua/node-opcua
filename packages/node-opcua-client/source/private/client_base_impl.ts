@@ -525,7 +525,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         };
 
         const _when_reconnectionIsCanceled = (callback: ErrorCallback) => {
-            warningLog("attempt to recreate a new secure channel : suspended becasue reconnection is canceled !");
+            warningLog("attempt to recreate a new secure channel : suspended because reconnection is canceled !");
             this.emit("reconnection_canceled");
             return callback(new Error("Reconnection has been canceled - " + this.clientName));
         };
@@ -577,7 +577,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
                     if (
                         err!.message.match("BadCertificateInvalid") ||
-                        err!.message.match(/_socket has been disconnected by third party/)
+                        err!.message.match(/socket has been disconnected by third party/)
                     ) {
                         warningLog(
                             "the server certificate has changed,  we need to retrieve server certificate again: ",

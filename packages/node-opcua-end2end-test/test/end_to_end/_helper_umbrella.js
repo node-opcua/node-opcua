@@ -1,8 +1,7 @@
-const async = require("async");
 const chalk = require("chalk");
 const { assert } = require("node-opcua-assert");
 
-const { OPCUAClient, StatusCodes, nodesets, AddressSpace, makeBrowsePath, periodicClockAdjustment } = require("node-opcua");
+const { OPCUAClient, nodesets, AddressSpace, makeBrowsePath, periodicClockAdjustment, AttributeIds } = require("node-opcua");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
@@ -42,46 +41,28 @@ async function start_internal_server(test, options) {
     });
 }
 
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
-function dumpStatistics(endpointUrl, done) {
+async function dumpStatistics(endpointUrl) {
     const client = OPCUAClient.create();
-    perform_operation_on_client_session(
-        client,
-        endpointUrl,
-        function (session, inner_done) {
-            const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
-            const browsePath = [makeBrowsePath("RootFolder", relativePath)];
 
-            let sessionDiagnosticsSummaryNodeId;
-            async.series(
-                [
-                    function (callback) {
-                        session.translateBrowsePath(browsePath, function (err, result) {
-                            if (!err) {
-                                if (result[0].statusCode.isGood()) {
-                                    //xx console.log(result[0].toString());
-                                    sessionDiagnosticsSummaryNodeId = result[0].targets[0].targetId;
-                                } else {
-                                    err = new Error("Cannot find ServerDiagnosticsSummary");
-                                }
-                            }
-                            callback(err);
-                        });
-                    },
-                    function (callback) {
-                        session.readVariableValue(sessionDiagnosticsSummaryNodeId, function (err, dataValue) {
-                            //xx console.log("\n\n-----------------------------------------------------------------------------------------------------------");
-                            //xx console.log(dataValue.value.value.toString());
-                            //xx console.log("-----------------------------------------------------------------------------------------------------------");
-                            callback(err);
-                        });
-                    }
-                ],
-                inner_done
-            );
-        },
-        done
-    );
+    await client.withSessionAsync(endpointUrl, async (session) => {
+        const relativePath = "/Objects/Server.ServerDiagnostics.ServerDiagnosticsSummary";
+        const browsePath = [makeBrowsePath("RootFolder", relativePath)];
+
+        let sessionDiagnosticsSummaryNodeId;
+        const result = await session.translateBrowsePath(browsePath);
+        if (result[0].statusCode.isGood()) {
+            //xx console.log(result[0].toString());
+            sessionDiagnosticsSummaryNodeId = result[0].targets[0].targetId;
+        } else {
+            throw new Error("Cannot find ServerDiagnosticsSummary");
+        }
+        const dataValue = await session.read({ nodeId: sessionDiagnosticsSummaryNodeId, attributeId: AttributeIds.Value });
+        console.log(
+            "\n\n-----------------------------------------------------------------------------------------------------------"
+        );
+        console.log(dataValue.value.value.toString());
+        console.log("-----------------------------------------------------------------------------------------------------------");
+    });
 }
 
 exports.afterTest = async function afterTest(test) {
@@ -97,8 +78,8 @@ exports.afterTest = async function afterTest(test) {
 };
 
 exports.beforeTest = async function beforeTest(test) {
-    test.nb_backgroundsession = 0;
-    test.nb_backgroundsubscription = 0;
+    test.backgroundSessionCount = 0;
+    test.backgroundSubscriptionCount = 0;
 
     const options = {
         port: test.port,
@@ -126,25 +107,26 @@ exports.beforeTest = async function beforeTest(test) {
 exports.beforeEachTest = async function beforeEachTest(test) {
     // make sure that test has closed all sessions
     if (test.server) {
-        // test.nb_backgroundsession = test.server.engine.currentSessionCount;
         test.server.engine.currentSessionCount.should.eql(
-            test.nb_backgroundsession,
+            test.backgroundSessionCount,
             " expecting ZERO session on server when test is starting ! got " + test.server.engine.currentSessionCount
         );
 
         test.server.engine.currentSubscriptionCount.should.eql(
-            test.nb_backgroundsubscription,
+            test.backgroundSubscriptionCount,
             " expecting ZERO subscription on server when test is starting ! got " + test.server.engine.currentSubscriptionCount
         );
     }
 };
 
 exports.afterEachTest = async function afterEachTest(test) {
-    const extraSessionCount = test.server.engine.currentSessionCount !== test.nb_backgroundsession;
-    
-    const extraSubscriptionCount = test.server.engine.currentSubscriptionCount !== test.nb_backgroundsubscription;
+    const extraSessionCount = test.server.engine.currentSessionCount !== test.backgroundSessionCount;
 
-    if ((extraSessionCount || extraSubscriptionCount )&& test.server) {
+    const extraSubscriptionCount = test.server.engine.currentSubscriptionCount !== test.backgroundSubscriptionCount;
+
+    if ((extraSessionCount || extraSubscriptionCount) && test.server) {
+        await dumpStatistics(test.endpointUrl);
+
         console.log(" currentChannelCount          = ", test.server.currentChannelCount);
         console.log(" bytesWritten                 = ", test.server.bytesWritten);
         console.log(" bytesRead                    = ", test.server.bytesRead);
@@ -157,17 +139,18 @@ exports.afterEachTest = async function afterEachTest(test) {
 
         test.server.currentSubscriptionCount.should.eql(0, " verify test clean up : dangling  subscriptions found");
         test.server.currentSessionCount.should.eql(0, " verify test clean up : dangling  session found on server");
-        // test must not add exta nodes in root => "organizes" ref count => 3
+        // test must not add  some extra nodes in root => "organizes" ref count => 3
         const addressSpace = test.server.engine.addressSpace;
         const rootFolder = addressSpace.findNode("RootFolder");
         rootFolder
             .getFolderElements()
             .length.should.eql(3, "Test should not pollute the root folder: expecting 3 folders in RootFolder only");
-
-        await dumpStatistics(test.endpointUrl);
     }
 
     // make sure that test has closed all sessions
-    test.server.engine.currentSessionCount.should.eql(test.nb_backgroundsession, " Test must have deleted all created session");
-    test.server.engine.currentSubscriptionCount.should.eql(test.nb_backgroundsubscription, " Test must have deleted all created subscriptions");
+    test.server.engine.currentSessionCount.should.eql(test.backgroundSessionCount, " Test must have deleted all created session");
+    test.server.engine.currentSubscriptionCount.should.eql(
+        test.backgroundSubscriptionCount,
+        " Test must have deleted all created subscriptions"
+    );
 };

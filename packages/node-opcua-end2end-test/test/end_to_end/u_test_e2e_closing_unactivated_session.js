@@ -8,10 +8,10 @@ const { assert } = require("node-opcua-assert");
 const { OPCUAClient } = require("node-opcua");
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-// bug : server reported to many datavalue changed when client monitored a UAVariable consructed with variation 1");
+// bug : server reported to many datavalue changed when client monitored a UAVariable constructed with variation 1");
 module.exports = function (test) {
-    describe("Closing an unactivated session ", function () {
-        it("AKQ server shall return BadSessionNotActivated if client attempts to close an unactivated session", async () => {
+    describe("Closing an non activated session ", function () {
+        it("AKQ server shall return BadSessionNotActivated if client attempts to close an non activated session", async () => {
             const endpointUrl = test.endpointUrl;
 
             const client1 = OPCUAClient.create({
@@ -33,7 +33,7 @@ module.exports = function (test) {
         });
     });
 
-    it("QQQQ a server shall close any unactivated sessions before reaching the maximum number of session", function (done) {
+    it("QQQQ a server shall close any de-activate sessions before reaching the maximum number of session", function (done) {
         const maxSessionsForTest = 3;
         const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
         test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
@@ -49,7 +49,7 @@ module.exports = function (test) {
         const clients = [];
 
         const sessions = [];
-        function create_unactivated_session(callback) {
+        function create_non_activated_session(callback) {
             const endpointUrl = test.endpointUrl;
             const client1 = OPCUAClient.create({
                 connectionStrategy: fail_fast_connectionStrategy
@@ -90,21 +90,21 @@ module.exports = function (test) {
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(1);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(2);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(3);
@@ -112,63 +112,63 @@ module.exports = function (test) {
                 },
 
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
                     callback();
                 },
                 function (callback) {
-                    create_unactivated_session(callback);
+                    create_non_activated_session(callback);
                 },
                 function (callback) {
                     test.server.engine.currentSessionCount.should.eql(maxSessionsForTest);
