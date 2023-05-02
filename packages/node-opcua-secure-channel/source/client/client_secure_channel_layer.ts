@@ -63,7 +63,7 @@ const checkChunks = doDebug && false;
 const doDebug1 = false;
 
 // set checkTimeout to true to enable timeout trace checking
-const checkTimeout = false;
+const checkTimeout = !!process.env.NODEOPCUACHECKTIMEOUT || false;
 
 import { extractFirstCertificateInChain, getThumbprint, ICertificateKeyPairProvider, Request, Response } from "../common";
 import {
@@ -554,8 +554,15 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n securityToken ............ : " + (this.securityToken ? this.securityToken!.toString() : "null");
         str += "\n serverNonce  ............. : " + (this.serverNonce ? this.serverNonce.toString("hex") : "null");
         str += "\n clientNonce  ............. : " + (this.clientNonce ? this.clientNonce.toString("hex") : "null");
+        str += "\n timedOutRequestCount.....  : " + this.timedOutRequestCount;
         str += "\n transportTimeout ......... : " + this.transportTimeout;
-        str += "\n transportParameters: ..... : " + this.transportTimeout;
+        str += "\n is transaction in progress : " + this.isTransactionInProgress();
+        str += "\n is connecting ............ : " + this.isConnecting;
+        str += "\n is disconnecting ......... : " + this._isDisconnecting;
+        str += "\n is opened ................ : " + this.isOpened();
+        str += "\n is valid ................. : " + this.isValid();
+        str += "\n channelId ................ : " + this.channelId;
+        str += "\n transportParameters: ..... : " ;
         str += "\n   maxMessageSize (to send) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
         str += "\n   maxChunkCount  (to send) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
         str += "\n   receiveBufferSize(server): " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
@@ -670,19 +677,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     public dispose(): void {
-        this._isDisconnecting = true;
+        this._dispose_transports();
         this.abortConnection(() => {
             /* empty */
         });
         this._cancel_security_token_watchdog();
-        if (this.__call) {
-            this.__call.abort();
-            this.__call = null;
-        }
-        this._dispose_transports();
     }
 
     public abortConnection(callback: ErrorCallback): void {
+        if (this._isDisconnecting) {
+            doDebug && debugLog("abortConnection already aborting!");
+            return callback();
+        }
         this._isDisconnecting = true;
         doDebug && debugLog("abortConnection ", !!this.__call);
         assert(typeof callback === "function");
@@ -1240,9 +1246,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     private _connect(transport: ClientTCP_transport, endpointUrl: string, _i_callback: ErrorCallback) {
-        if (this.__call && this.__call._cancelBackoff) {
-            return;
-        }
 
         const on_connect = (err?: Error | null) => {
             doDebug && debugLog("Connection => err", err ? err.message : "null");

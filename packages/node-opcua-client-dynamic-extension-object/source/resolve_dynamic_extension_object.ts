@@ -17,6 +17,7 @@ async function getOrExtractConstructor(
     binaryEncodingNodeId: NodeId,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<ConstructorFunc> {
+
     const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(binaryEncodingNodeId.namespace);
 
 
