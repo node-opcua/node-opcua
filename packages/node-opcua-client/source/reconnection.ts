@@ -11,6 +11,7 @@ import { TransferSubscriptionsRequest, TransferSubscriptionsResponse } from "nod
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 import { CloseSessionRequest } from "node-opcua-types";
+import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 
 import { SubscriptionId } from "./client_session";
 import { ClientSessionImpl, Reconnectable } from "./private/client_session_impl";
@@ -166,6 +167,11 @@ function repair_client_session_by_recreating_a_new_session(
     session: ClientSessionImpl,
     callback: (err?: Error) => void
 ) {
+
+    // As we don"t know if server has been rebooted or not,
+    // and may be upgraded in between, we have to invalidate the extra data type manager
+    invalidateExtraDataTypeManager(session);
+
     if (doDebug) {
         doDebug && debugLog(" repairing client session by_recreating a new session for old session ", session.sessionId.toString());
     }
@@ -210,13 +216,17 @@ function repair_client_session_by_recreating_a_new_session(
                     newSession,
                     newSession.userIdentityInfo!,
                     (err: Error | null, session1?: ClientSessionImpl) => {
-                        doDebug && debugLog(chalk.bgWhite.cyan("    =>  activating a new session .... Done err=", err ? err.message : "null"));
-                        if (err) {
-                            doDebug && debugLog(
-                                chalk.bgWhite.cyan(
-                                    "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
-                                )
+                        doDebug &&
+                            debugLog(
+                                chalk.bgWhite.cyan("    =>  activating a new session .... Done err=", err ? err.message : "null")
                             );
+                        if (err) {
+                            doDebug &&
+                                debugLog(
+                                    chalk.bgWhite.cyan(
+                                        "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
+                                    )
+                                );
                             // but just on the server side, not on the client side
                             const closeSessionRequest = new CloseSessionRequest({
                                 deleteSubscriptions: true
@@ -277,10 +287,11 @@ function repair_client_session_by_recreating_a_new_session(
 
                         // istanbul ignore next
                         if (doDebug) {
-                            doDebug && debugLog(
-                                chalk.cyan("    =>  transfer subscriptions  done"),
-                                results.map((x: any) => x.statusCode.toString()).join(" ")
-                            );
+                            doDebug &&
+                                debugLog(
+                                    chalk.cyan("    =>  transfer subscriptions  done"),
+                                    results.map((x: any) => x.statusCode.toString()).join(" ")
+                                );
                         }
 
                         const subscriptionsToRecreate = [];
@@ -291,22 +302,24 @@ function repair_client_session_by_recreating_a_new_session(
                             const statusCode = results[i].statusCode;
                             if (statusCode.equals(StatusCodes.BadSubscriptionIdInvalid)) {
                                 // repair subscription
-                                doDebug && debugLog(
-                                    chalk.red("         WARNING SUBSCRIPTION  "),
-                                    subscriptionsIds[i],
-                                    chalk.red(" SHOULD BE RECREATED")
-                                );
+                                doDebug &&
+                                    debugLog(
+                                        chalk.red("         WARNING SUBSCRIPTION  "),
+                                        subscriptionsIds[i],
+                                        chalk.red(" SHOULD BE RECREATED")
+                                    );
 
                                 subscriptionsToRecreate.push(subscriptionsIds[i]);
                             } else {
                                 const availableSequenceNumbers = results[i].availableSequenceNumbers;
 
-                                doDebug && debugLog(
-                                    chalk.green("         SUBSCRIPTION "),
-                                    subscriptionsIds[i],
-                                    chalk.green(" CAN BE REPAIRED AND AVAILABLE "),
-                                    availableSequenceNumbers
-                                );
+                                doDebug &&
+                                    debugLog(
+                                        chalk.green("         SUBSCRIPTION "),
+                                        subscriptionsIds[i],
+                                        chalk.green(" CAN BE REPAIRED AND AVAILABLE "),
+                                        availableSequenceNumbers
+                                    );
                                 // should be Good.
                             }
                         }
@@ -329,10 +342,11 @@ function repair_client_session_by_recreating_a_new_session(
                                         doDebug && debugLog("_recreateSubscription failed !" + err1.message);
                                     }
 
-                                    doDebug && debugLog(
-                                        chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "),
-                                        subscriptionId
-                                    );
+                                    doDebug &&
+                                        debugLog(
+                                            chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "),
+                                            subscriptionId
+                                        );
 
                                     next();
                                 });
@@ -379,7 +393,8 @@ function repair_client_session_by_recreating_a_new_session(
 
 function _repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: (err?: Error) => void): void {
     const callback2 = (err2?: Error) => {
-        doDebug && debugLog("Session repair completed with err: ", err2 ? err2.message : "<no error>", session.sessionId.toString());
+        doDebug &&
+            debugLog("Session repair completed with err: ", err2 ? err2.message : "<no error>", session.sessionId.toString());
         session.emit("session_repaired");
         callback(err2);
     };
