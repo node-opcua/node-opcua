@@ -156,6 +156,7 @@ export class TCP_transport extends EventEmitter {
     public name: string;
 
     public _socket: ISocketLike | null;
+    private _closedEmitted: Error | string | undefined = undefined;
 
     /**
      * the size of the header in bytes
@@ -209,6 +210,7 @@ export class TCP_transport extends EventEmitter {
         str += " bytesWritten...... = " + this.bytesWritten + "\n";
         str += " chunkWrittenCount. = " + this.chunkWrittenCount + "\n";
         str += " chunkReadCount.... = " + this.chunkReadCount + "\n";
+        str += " closeEmitted ? ....= " + this._closedEmitted + "\n";
         return str;
     }
 
@@ -355,9 +357,13 @@ export class TCP_transport extends EventEmitter {
     }
 
     protected _install_socket(socket: ISocketLike): void {
+        // note: it is possible that a transport may be recycled and re-used again after a connection break
         assert(socket);
         assert(!this._socket, "already have a socket");
         this._socket = socket;
+        this._closedEmitted = undefined;
+        this._theCloseError = null;
+        assert(this._closedEmitted === undefined, "TCP Transport has already been closed !");
 
         this._socket.setKeepAlive(true);
         // Setting true for noDelay will immediately fire off data each time socket.write() is called.
@@ -522,12 +528,7 @@ export class TCP_transport extends EventEmitter {
     private _on_socket_close(hadError: boolean) {
         // istanbul ignore next
         if (doDebug) {
-            debugLog(
-                chalk.red(` SOCKET CLOSE ${this.name}: `),
-                chalk.yellow("had_error ="),
-                chalk.cyan(hadError.toString()),
-                this.name
-            );
+            debugLog(chalk.red(` SOCKET CLOSE ${this.name}: `), chalk.yellow("had_error ="), chalk.cyan(hadError.toString()));
         }
         this.dispose();
         if (this._theCallback) return;
@@ -543,9 +544,8 @@ export class TCP_transport extends EventEmitter {
         err = err || this._theCloseError;
         doDebugFlow && console.log("_emitClose ", err?.message || "", "from", new Error().stack);
 
-        const pThis = this as unknown as { _closedEmitted: Error | string };
-        if (!pThis._closedEmitted) {
-            pThis._closedEmitted = err || "noError";
+        if (!this._closedEmitted) {
+            this._closedEmitted = err || "noError";
             this.emit("close", err || null);
             // if (this._theCallback) {
             //     const callback = this._theCallback;
@@ -553,17 +553,17 @@ export class TCP_transport extends EventEmitter {
             //     callback(err || null);
             // }
         } else {
-            debugLog("Already emitted close event", (pThis._closedEmitted as any).message);
+            debugLog("Already emitted close event", (this._closedEmitted as any).message);
             debugLog("err = ", err?.message);
             debugLog("");
-            debugLog("Already emitted close event", pThis._closedEmitted);
+            debugLog("Already emitted close event", this._closedEmitted);
             debugLog("err = ", err?.message, err);
         }
     }
 
     private _on_socket_end() {
         // istanbul ignore next
-        doDebug && debugLog(chalk.red(` SOCKET END : ${this.name}`));
+        doDebug && debugLog(chalk.red(` SOCKET END : ${this.name}`), "is disconnecting  ", this.isDisconnecting());
         if (this.isDisconnecting()) {
             return;
         }
