@@ -1,9 +1,8 @@
-const { hostname } = require("os");
-const async = require("async");
 const { OPCUAClient, makeBrowsePath, AttributeIds, resolveNodeId, TimestampsToReturn } = require("node-opcua");
+const async = require("async");
 
 // const endpointUrl = "opc.tcp://<hostname>:4334/UA/MyLittleServer";
-const endpointUrl = "opc.tcp://" + hostname() + ":4334/UA/MyLittleServer";
+const endpointUrl = "opc.tcp://" + require("os").hostname() + ":4334/UA/MyLittleServer";
 const client = OPCUAClient.create({
     endpointMustExist: false
 });

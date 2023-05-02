@@ -56,10 +56,13 @@ _"adding a method on the device object"
 _"binding the method with your own function"
 
 await server.start();
-console.log("Server is now listening ... ( press CTRL+C to stop)");
-const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+const endpointUrl = server.getEndpointUrl();
 console.log(" the primary server endpoint url is ", endpointUrl );
 
+console.log("Server is now listening ... ( press CTRL+C to stop)");
+await new Promise((resolve) => process.once("SIGINT", resolve));
+await server.shutdown();
+console.log("Server has shut down");
 ```
 
 ### adding a method on the device object

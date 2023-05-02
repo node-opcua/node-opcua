@@ -43,10 +43,12 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         }
         assert(this.server instanceof OPCUABaseServer);
 
+        const host = "TODO-find how to extract hostname";
         this.bonjour.announcedOnMulticastSubnetWithCallback({
             capabilities: this.server.capabilitiesForMDNS,
             name: this.server.serverInfo.applicationUri!,
             path: "/", // <- to do
+            host,
             port: this.server.endpoints[0].port
         }, ()=>{
             this.emit("serverRegistered");

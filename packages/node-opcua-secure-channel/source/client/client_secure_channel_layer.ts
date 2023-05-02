@@ -29,7 +29,6 @@ import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog 
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport, TransportSettingsOptions } from "node-opcua-transport";
-import { StatusCodes2 } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BaseUAObject } from "node-opcua-factory";
 import { doTraceChunk } from "node-opcua-transport";
@@ -64,7 +63,7 @@ const checkChunks = doDebug && false;
 const doDebug1 = false;
 
 // set checkTimeout to true to enable timeout trace checking
-const checkTimeout = false;
+const checkTimeout = !!process.env.NODEOPCUACHECKTIMEOUT || false;
 
 import { extractFirstCertificateInChain, getThumbprint, ICertificateKeyPairProvider, Request, Response } from "../common";
 import {
@@ -218,9 +217,9 @@ export interface ClientSecureChannelLayerOptions {
 
     parent: ClientSecureChannelParent;
 
-    /* OPCUAClientBase */
     /**
-     *   the transport timeout interval in ms ( default = 10 seconds)
+     *   the transport timeout in ms ( default = 60  seconds) sue for the Net.Socket timeout detection
+     *   if 0 or not specify, the transport timeout will default  to ClientSecureChannelLayer.defaultTransportTimeout
      */
     transportTimeout?: number;
     /**
@@ -311,8 +310,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _bytesRead = 0;
     private _bytesWritten = 0;
 
-    public static minTransactionTimeout = 10 * 1000; // 10 sec
-    public static defaultTransactionTimeout = 60 * 1000; // 1 minute
+    public static minTransactionTimeout = 5 * 1000; // 10 sec
+    public static defaultTransactionTimeout = 15 * 1000; // 15 minute
+    public static defaultTransportTimeout = 60 * 1000; // 60 seconds
 
     /**
      * true if the secure channel is trying to establish the connection with the server. In this case, the client
@@ -339,7 +339,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
         return this._timeout_request_count;
     }
 
-    public static defaultTransportTimeout = 60 * 1000; // 1 minute
     private requestedTransportSettings: TransportSettingsOptions;
 
     public protocolVersion: number;
@@ -407,7 +406,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.messageChunker = new MessageChunker({
             derivedKeys: null
-            // note maxMessageSize cannot be set at this stage, transport is not kown
+            // note maxMessageSize cannot be set at this stage, transport is not known
         });
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 30000;
@@ -466,7 +465,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (doTraceChunk) {
             console.log(
                 chalk.cyan(timestamp()),
-                "   MESSGAE BUILDER LIMITS",
+                "   MESSAGE BUILDER LIMITS",
                 "maxMessageSize = ",
                 this.messageBuilder.maxMessageSize,
                 "maxChunkCount = ",
@@ -556,8 +555,15 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n securityToken ............ : " + (this.securityToken ? this.securityToken!.toString() : "null");
         str += "\n serverNonce  ............. : " + (this.serverNonce ? this.serverNonce.toString("hex") : "null");
         str += "\n clientNonce  ............. : " + (this.clientNonce ? this.clientNonce.toString("hex") : "null");
+        str += "\n timedOutRequestCount.....  : " + this.timedOutRequestCount;
         str += "\n transportTimeout ......... : " + this.transportTimeout;
-        str += "\n transportParameters: ..... : " + this.transportTimeout;
+        str += "\n is transaction in progress : " + this.isTransactionInProgress();
+        str += "\n is connecting ............ : " + this.isConnecting;
+        str += "\n is disconnecting ......... : " + this._isDisconnecting;
+        str += "\n is opened ................ : " + this.isOpened();
+        str += "\n is valid ................. : " + this.isValid();
+        str += "\n channelId ................ : " + this.channelId;
+        str += "\n transportParameters: ..... : " ;
         str += "\n   maxMessageSize (to send) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
         str += "\n   maxChunkCount  (to send) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
         str += "\n   receiveBufferSize(server): " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
@@ -587,7 +593,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
      *
      *    ```javascript
      *
-     *    var secureChannel  = new ClientSecureChannelLayer({});
+     *    const secureChannel  = new ClientSecureChannelLayer({});
      *
      *    secureChannel.on("end", function(err) {
      *         console.log("secure channel has ended",err);
@@ -656,27 +662,34 @@ export class ClientSecureChannelLayer extends EventEmitter {
         });
     }
 
-    public dispose(): void {
-        this._isDisconnecting = true;
-        this.abortConnection(() => {
-            /* empty */
-        });
-        this._cancel_security_token_watchdog();
-        if (this.__call) {
-            this.__call.abort();
-            this.__call = null;
-        }
+    private _dispose_transports() {
         if (this._transport) {
+            this._bytesRead += this._transport.bytesRead || 0;
+            this._bytesWritten += this._transport.bytesWritten || 0;
             this._transport.dispose();
             this._transport = undefined;
         }
         if (this._pending_transport) {
+            this._bytesRead += this._pending_transport.bytesRead || 0;
+            this._bytesWritten += this._pending_transport.bytesWritten || 0;
             this._pending_transport.dispose();
             this._pending_transport = undefined;
         }
     }
 
+    public dispose(): void {
+        this._dispose_transports();
+        this.abortConnection(() => {
+            /* empty */
+        });
+        this._cancel_security_token_watchdog();
+    }
+
     public abortConnection(callback: ErrorCallback): void {
+        if (this._isDisconnecting) {
+            doDebug && debugLog("abortConnection already aborting!");
+            return callback();
+        }
         this._isDisconnecting = true;
         doDebug && debugLog("abortConnection ", !!this.__call);
         assert(typeof callback === "function");
@@ -819,7 +832,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
             this.__in_normal_close_operation = true;
 
-            if (!this._transport || this._transport.isDisconnecting) {
+            if (!this._transport || this._transport.isDisconnecting()) {
                 this.dispose();
                 return callback(new Error("Transport disconnected"));
             }
@@ -833,7 +846,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _closeWithError(err: Error, statusCode: StatusCode): void {
         if (this._transport) {
             this._transport.prematureTerminate(err, statusCode);
-            this._transport = undefined;
         }
         this.dispose();
     }
@@ -1000,18 +1012,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     private _on_transport_closed(err?: Error | null) {
         doDebug && debugLog(" =>ClientSecureChannelLayer#_on_transport_closed  err=", err ? err.message : "null");
-
         if (this.__in_normal_close_operation) {
             err = undefined;
         }
         this.emit("close", err);
-
-        //
-        this._bytesRead += this._transport?.bytesRead || 0;
-        this._bytesWritten += this._transport?.bytesWritten || 0;
-
-        this._transport?.dispose();
-        this._transport = undefined;
+        this._dispose_transports();
         this._cancel_pending_transactions(err);
         this._cancel_security_token_watchdog();
         this.dispose();
@@ -1242,11 +1247,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     private _connect(transport: ClientTCP_transport, endpointUrl: string, _i_callback: ErrorCallback) {
-        if (this.__call && this.__call._cancelBackoff) {
-            return;
-        }
 
-        const on_connect = (err?: Error) => {
+        const on_connect = (err?: Error | null) => {
             doDebug && debugLog("Connection => err", err ? err.message : "null");
             // force Backoff to fail if err is not ECONNRESET or ECONNREFUSED
             // this mean that the connection to the server has succeeded but for some reason
@@ -1271,7 +1273,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (err.message.match(/BadTcpMessageTooLarge/)) {
                     should_abort = true;
                 }
-                if (err.message.match(/BadTcpEndpointUriInvlid/)) {
+                if (err.message.match(/BadTcpEndpointUriInvalid/)) {
                     should_abort = true;
                 }
                 if (err.message.match(/BadTcpMessageTypeInvalid/)) {
@@ -1290,7 +1292,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     }
                 }
             }
-            _i_callback(err);
+            _i_callback(err!);
         };
 
         transport.connect(endpointUrl, on_connect);
@@ -1374,14 +1376,14 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 doDebug && debugLog(" token renewed");
                 this.emit("security_token_renewed");
             } else {
-                if (doDebug) {
-                    debugLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", err);
-                }
-                // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
-                this._closeWithError(
-                    new Error("Restarting because Request has timed out during OpenSecureChannel"),
-                    StatusCodes2.BadRequestTimeout
-                );
+                //if (doDebug) {
+                errorLog("ClientSecureChannelLayer: Warning: securityToken hasn't been renewed -> err ", (err as Error).message);
+                // //}
+                // // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX CHECK ME !!!
+                // this._closeWithError(
+                //     new Error("Restarting because Request has timed out during OpenSecureChannel"),
+                //     StatusCodes2.BadRequestTimeout
+                // );
             }
         });
     }
@@ -1593,7 +1595,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         /* istanbul ignore next */
         if (doPerfMonitoring) {
             const stats = requestData;
-            // record tick0 : befoe request is being sent to server
+            // record tick0 : before request is being sent to server
             stats._tick0 = get_clock_tick();
         }
         // check that limits are OK

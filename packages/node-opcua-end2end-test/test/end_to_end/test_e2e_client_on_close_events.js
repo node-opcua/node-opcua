@@ -4,7 +4,7 @@ const should = require("should");
 const async = require("async");
 const sinon = require("sinon");
 
-const { OPCUAClient, OPCUAServer, get_empty_nodeset_filename } = require("node-opcua");
+const { OPCUAClient, OPCUAServer, get_empty_nodeset_filename, nodesets } = require("node-opcua");
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
@@ -23,7 +23,7 @@ describe("testing Client-Server - Event", function () {
     function start_server(done) {
         server = new OPCUAServer({
             port,
-            nodeset_filename: empty_nodeset_filename,
+            nodeset_filename: nodesets.ua,
             serverCapabilities: { maxSessions: 10 }
         });
 
@@ -111,7 +111,6 @@ describe("testing Client-Server - Event", function () {
                 },
                 function (callback) {
                     _client_received_close_event.callCount.should.eql(0);
-
                     debugLog(" --> Stopping server");
                     end_server(function () {
                         callback();
@@ -125,6 +124,8 @@ describe("testing Client-Server - Event", function () {
 
                 function (callback) {
                     _client_received_close_event.callCount.should.eql(1);
+                    _client_received_close_event.getCall(0).args.length.should.eql(1);
+                    should(_client_received_close_event.getCall(0).args[0]).not.eql(null);
                     _client_received_close_event.getCall(0).args[0].message.should.match(/disconnected by third party/);
                     callback();
                 },

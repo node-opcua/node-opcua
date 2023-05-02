@@ -15,7 +15,8 @@ const chalk = require("chalk");
 
 // const endpointUri = "opc.tcp://DESKTOP-S6DI4HV:49320";
 // const endpointUri = "opc.tcp://opcuademo.sterfive.com:26544";
-const endpointUri = "opc.tcp://localhost:48010";
+// const endpointUri = "opc.tcp://localhost:48010";
+const endpointUri = "opc.tcp://172.17.0.1:26543";
 (async () => {
 
     try {
@@ -25,7 +26,7 @@ const endpointUri = "opc.tcp://localhost:48010";
             applicationName: "ClientBrowseNextDemo",
 
             endpointMustExist: false,
-            keepSessionAlive: true,
+            // keepSessionAlive: true,
             requestedSessionTimeout: 60 * 1000,
             //            securityMode: MessageSecurityMode.SignAndEncrypt,
             //            securityPolicy: SecurityPolicy.Basic256,

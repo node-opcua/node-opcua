@@ -9,8 +9,8 @@ import * as chalk from "chalk";
 import * as async from "async";
 
 import { assert } from "node-opcua-assert";
-import { ICertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKey, PrivateKeyPEM, split_der } from "node-opcua-crypto";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { Certificate, makeSHA1Thumbprint, PrivateKey, split_der } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
@@ -20,7 +20,6 @@ import {
     ServerSecureChannelLayer,
     ServerSecureChannelParent,
     toURI,
-    AsymmetricAlgorithmSecurityHeader,
     IServerSessionBase,
     Message
 } from "node-opcua-secure-channel";
@@ -83,9 +82,8 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
 
 function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     function d(s: IServerSessionBase) {
-        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${
-            s.sessionTimeout
-        } ]`;
+        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${s.sessionTimeout
+            } ]`;
     }
     function dumpChannel(channel: ServerSecureChannelLayer): void {
         console.log("------------------------------------------------------");
@@ -381,7 +379,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
         //
 
-        const port = this.port;
 
         // resource Path is a string added at the end of the url such as "/UA/Server"
         const resourcePath = (options.resourcePath || "").replace(/\\/g, "/");
@@ -389,7 +386,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         assert(resourcePath.length === 0 || resourcePath.charAt(0) === "/", "resourcePath should start with /");
 
         const hostname = options.hostname || getFullyQualifiedDomainName();
-        const endpointUrl = `opc.tcp://${hostname}:${port}${resourcePath}`;
+        const endpointUrl = `opc.tcp://${hostname}:${this.port}${resourcePath}`;
 
         const endpoint_desc = this.getEndpointDescription(securityMode, securityPolicy, endpointUrl);
 
@@ -404,10 +401,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._endpoints.push(
             _makeEndpointDescription({
                 collection: this._policy_deduplicator,
-                endpointUrl,
                 hostname,
-                port,
-
                 server: this.serverInfo,
                 serverCertificateChain: this.getCertificateChain(),
 
@@ -421,7 +415,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 securityPolicies: options.securityPolicies || [],
 
                 userTokenTypes
-            })
+            }, this)
         );
     }
 
@@ -511,16 +505,23 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         this._server!.on("listening", () => {
             debugLog("server is listening");
         });
+
         this._server!.listen(
             this.port,
-            /*"::",*/ (err?: Error) => {
+            /*"::",*/(err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
                 this._started = true;
+                if (!this.port) {
+                    const add = this._server!.address()!;
+                    this.port = typeof add !== "string" ? add.port : this.port;
+
+                }
                 this._end_listen();
             }
         );
+
     }
 
     public killClientSockets(callback: (err?: Error) => void): void {
@@ -691,7 +692,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -701,7 +702,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             console.log(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                        "The maximum number of connection has been reached - Connection is refused"
+                    "The maximum number of connection has been reached - Connection is refused"
                 )
             );
             const reason = "maxConnections reached (" + this.maxConnections + ")";
@@ -937,19 +938,11 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 }
 
 interface MakeEndpointDescriptionOptions {
-    /**
-     * port number s
-     */
-    port: number;
 
     /**
      * @default  default hostname (default value will be full qualified domain name)
      */
     hostname: string;
-    /**
-     *
-     */
-    endpointUrl: string;
 
     serverCertificateChain: Certificate;
     /**
@@ -1000,7 +993,8 @@ interface MakeEndpointDescriptionOptions {
     noUserIdentityTokens?: boolean;
 }
 
-interface EndpointDescriptionEx extends EndpointDescription {
+export interface EndpointDescriptionEx extends EndpointDescription {
+    _parent: OPCUAServerEndPoint;
     restricted: boolean;
 }
 
@@ -1038,8 +1032,7 @@ function estimateSecurityLevel(securityMode: MessageSecurityMode, securityPolicy
 /**
  * @private
  */
-function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): EndpointDescriptionEx {
-    assert(isFinite(options.port), "expecting a valid port number");
+function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, parent: OPCUAServerEndPoint): EndpointDescriptionEx {
     assert(Object.prototype.hasOwnProperty.call(options, "serverCertificateChain"));
     assert(!Object.prototype.hasOwnProperty.call(options, "serverCertificate"));
     assert(!!options.securityMode); // s.MessageSecurityMode
@@ -1146,7 +1139,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
     }
     // return the endpoint object
     const endpoint = new EndpointDescription({
-        endpointUrl: options.endpointUrl,
+        endpointUrl: '<to be evaluated at run time>',// options.endpointUrl,
 
         server: undefined, // options.server,
         serverCertificate: options.serverCertificateChain,
@@ -1158,9 +1151,16 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions): Endp
         securityLevel: options.securityLevel,
         transportProfileUri: default_transportProfileUri
     }) as EndpointDescriptionEx;
-
+    endpoint._parent = parent;
+   
+    // endpointUrl is dynamic as port number may be adjusted
+    // when the tcp socker start listening
     (endpoint as any).__defineGetter__("endpointUrl", () => {
-        return resolveFullyQualifiedDomainName(options.endpointUrl);
+        const port = endpoint._parent.port;
+        const resourcePath = options.resourcePath || "";
+        const hostname = options.hostname;
+        const endpointUrl = `opc.tcp://${hostname}:${port}${resourcePath}`;
+        return resolveFullyQualifiedDomainName(endpointUrl);
     });
 
     endpoint.server = options.server;

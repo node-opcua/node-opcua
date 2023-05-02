@@ -5,7 +5,9 @@ In this example, we want to create a OPCUA Client to monitor a variable on the s
 
 ### Note
 
-This tutorial is using the legacy callback method which has been superceeded by the async/await method that provides a nicer and cleaner technique.
+**IMPORTANT**
+
+This tutorial is using the legacy callback method which has been superseded by the async/await method that provides a nicer and cleaner technique.
 
 Please refer to the typescript version here [create a client typescript](creating_a_client_typescript.md)
 
@@ -25,7 +27,7 @@ $ npm install node-opcua --save
 $ npm install async --save
 ```
 
-Now create and edit the sample file [sample_client.js](#overview-of-the-client-script "save:")
+Now create and edit the sample file [sample_client_with_callback.js](#overview-of-the-client-script "save:")
 
 
 
@@ -339,6 +341,6 @@ the_subscription.terminate(callback);
 ## Run the Client
 
 ```sh
-$ node sample_client
+$ node sample_client_with_callback
 ```
 

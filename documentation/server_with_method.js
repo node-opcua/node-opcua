@@ -46,7 +46,7 @@ const { OPCUAServer, DataType, Variant, VariantArrayType, StatusCodes, makeAcces
         method.outputArguments.userAccessLevel = makeAccessLevelFlag("CurrentRead");
         method.inputArguments.userAccessLevel = makeAccessLevelFlag("CurrentRead");
 
-        method.bindMethod((inputArguments, context) => {
+        method.bindMethod((inputArguments, context, callback) => {
             const nbBarks = inputArguments[0].value;
             const volume = inputArguments[1].value;
 
@@ -69,13 +69,17 @@ const { OPCUAServer, DataType, Variant, VariantArrayType, StatusCodes, makeAcces
                     }
                 ]
             };
-            return callMethodResult;
+            callback(null, callMethodResult);
         });
 
         await server.start();
-        console.log("Server is now listening ... ( press CTRL+C to stop)");
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.getEndpointUrl();
         console.log(" the primary server endpoint url is ", endpointUrl);
+
+        console.log("Server is now listening ... ( press CTRL+C to stop)");
+        await new Promise((resolve) => process.once("SIGINT", resolve));
+        await server.shutdown();
+        console.log("Server has shut down");
     } catch (err) {
         console.log(err);
     }

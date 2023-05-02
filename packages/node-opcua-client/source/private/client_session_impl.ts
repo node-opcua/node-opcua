@@ -2,6 +2,7 @@
  * @module node-opcua-client-private
  */
 import { EventEmitter } from "events";
+import { callbackify } from "util";
 import * as chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { AggregateFunction } from "node-opcua-constants";
@@ -22,7 +23,7 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession, IBasicTransportSettings } from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
-import { requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
+import { ClientSecureChannelLayer, requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult, CallRequest, CallResponse } from "node-opcua-service-call";
 import { EndpointDescription } from "node-opcua-service-endpoints";
@@ -293,7 +294,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this.timeout = 0;
     }
 
-
     getTransportSettings(): IBasicTransportSettings {
         return this._client!.getTransportSettings();
     }
@@ -546,13 +546,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * ```javascript
      *     const dataValues = await session.readVariableValue(["ns=1;s=Temperature","ns=1;s=Pressure"]);
      * ```
+     * 
+     * @deprecated
      */
     public readVariableValue(nodeId: NodeIdLike, callback: ResponseCallback<DataValue>): void;
-
     public readVariableValue(nodeIds: NodeIdLike[], callback: ResponseCallback<DataValue[]>): void;
-
     public async readVariableValue(nodeId: NodeIdLike): Promise<DataValue>;
-
     public async readVariableValue(nodeIds: NodeIdLike[]): Promise<DataValue[]>;
     /**
      * @internal
@@ -1556,19 +1555,27 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         return this._client !== null && this._client._secureChannel !== null && this._client._secureChannel.isOpened();
     }
 
+    private requestReconnection() {
+        if (this._client) {
+            this._client.requestReconnection();
+            assert(this._client.isReconnecting === true, "expecting client to be reconnecting now");
+        }
+    }
+
     public performMessageTransaction(request: Request, callback: (err: Error | null, response?: Response) => void): void {
         if (!this._client) {
             // session may have been closed by user ... but is still in used !!
             return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
         }
 
-        if (!this.isChannelValid()) {
-            // the secure channel is broken, may be the server has crashed or the network cable has been disconnected
-            // for a long time
-            // we may need to queue this transaction, as a secure token may be being reprocessed
-            debugLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.constructor.name));
-            return callback(new Error("Invalid Channel after performing transaction on " + request.constructor.name));
-        }
+        // if (!this.isChannelValid()) {
+        //     // the secure channel is broken, may be the server has crashed or the network cable has been disconnected
+        //     // for a long time
+        //     // we may need to queue this transaction, as a secure token may be being reprocessed
+        //     errorLog(chalk.bgWhite.red("!!! Performing transaction on invalid channel !!! ", request.schema.name));
+        //     // this.requestReconnection();
+        //     return callback(new Error("!!! Performing transaction on invalid channel with " + request.schema.name + ": starting reconnection process"));
+        // }
 
         this._reconnecting.pendingTransactions = this._reconnecting.pendingTransactions || [];
         this._reconnecting.pendingTransactionsCount = this._reconnecting.pendingTransactionsCount || 0;
@@ -2014,7 +2021,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
         this._keepAliveManager.start();
     }
-    
+
     public stopKeepAliveManager(): void {
         if (this._keepAliveManager) {
             this._keepAliveManager.stop();
@@ -2066,6 +2073,12 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
                 str += "\n reviseTokenLifetime...... " + this._client._secureChannel.securityToken.revisedLifetime;
             }
         }
+        str += "\n keepAlive ................ " + this._keepAliveManager ? true:  false;
+        if (this._keepAliveManager) {
+            str += "\n keepAlive checkInterval.. " + this._keepAliveManager.checkInterval;
+            str += "\n defaultTransportTimeout.. " + ClientSecureChannelLayer.defaultTransportTimeout;
+
+        } 
         return str;
     }
 
@@ -2300,19 +2313,18 @@ async function promoteOpaqueStructure2(session: IBasicSession, callMethodResult:
 function countOpaqueStructures(callMethodResults: CallMethodResult[]): number {
     const x = (a: Variant[] | null): PseudoDataValue[] => {
         if (a === null) return [] as PseudoDataValue[];
-        return a.map((value) => { return { value: value } });
-    }
-    const opaqueStructureCount = callMethodResults.reduce(
-        (prev, callMethodResult) => {
-            return prev + extractDataValueToPromote(x(callMethodResult.outputArguments)).length;
-        }, 0);
+        return a.map((value) => {
+            return { value: value };
+        });
+    };
+    const opaqueStructureCount = callMethodResults.reduce((prev, callMethodResult) => {
+        return prev + extractDataValueToPromote(x(callMethodResult.outputArguments)).length;
+    }, 0);
     return opaqueStructureCount;
 }
 async function promoteOpaqueStructure3(session: IBasicSession, callMethodResults: CallMethodResult[]): Promise<void> {
-
     const opaqueStructureCount = countOpaqueStructures(callMethodResults);
-    if (0 === opaqueStructureCount)
-        return;
+    if (0 === opaqueStructureCount) return;
 
     // construct dataTypeManager if not already present
     await getExtraDataTypeManager(session);
@@ -2324,11 +2336,11 @@ async function promoteOpaqueStructure3(session: IBasicSession, callMethodResults
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
 const thenify = require("thenify");
-const callbackify = require("callbackify");
 const opts = { multiArgs: false };
 
 const promoteOpaqueStructureWithCallback = callbackify(promoteOpaqueStructure);
 const promoteOpaqueStructure3WithCallback = callbackify(promoteOpaqueStructure3) as promoteOpaqueStructure3WithCallbackFunc;
+// ClientSessionImpl.prototype.constructExtensionObject = callbackify(ClientSessionImpl.prototype.constructExtensionObject) as any;
 
 ClientSessionImpl.prototype.browse = thenify.withCallback(ClientSessionImpl.prototype.browse, opts);
 ClientSessionImpl.prototype.browseNext = thenify.withCallback(ClientSessionImpl.prototype.browseNext, opts);
@@ -2367,5 +2379,4 @@ ClientSessionImpl.prototype.registerNodes = thenify.withCallback(ClientSessionIm
 ClientSessionImpl.prototype.unregisterNodes = thenify.withCallback(ClientSessionImpl.prototype.unregisterNodes, opts);
 ClientSessionImpl.prototype.readNamespaceArray = thenify.withCallback(ClientSessionImpl.prototype.readNamespaceArray, opts);
 ClientSessionImpl.prototype.getBuiltInDataType = thenify.withCallback(ClientSessionImpl.prototype.getBuiltInDataType, opts);
-ClientSessionImpl.prototype.constructExtensionObject = callbackify(ClientSessionImpl.prototype.constructExtensionObject);
 ClientSessionImpl.prototype.changeUser = thenify.withCallback(ClientSessionImpl.prototype.changeUser, opts);

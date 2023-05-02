@@ -96,8 +96,8 @@ module.exports = function (test) {
             if (test.server) {
                 previous_isAuditing = test.server.engine.isAuditing;
                 test.server.engine.isAuditing = true;
-                test.nb_backgroundsession += 1;
-                test.nb_backgroundsubscription += 1;
+                test.backgroundSessionCount += 1;
+                test.backgroundSubscriptionCount += 1;
             }
 
             const endpointUrl = test.endpointUrl;
@@ -168,8 +168,8 @@ module.exports = function (test) {
             // restore server as we found it.
             if (test.server) {
                 test.server.engine.isAuditing = previous_isAuditing;
-                test.nb_backgroundsession -= 1;
-                test.nb_backgroundsubscription -= 1;
+                test.backgroundSessionCount -= 1;
+                test.backgroundSubscriptionCount -= 1;
             }
             should.exist(auditing_client);
             should.exist(auditing_session);
@@ -199,9 +199,11 @@ module.exports = function (test) {
             // set a very short sessionTimeout
             client1.requestedSessionTimeout = 1000;
 
-            //xx console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
-
             const session = await client1.createSession();
+            
+            console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
+            console.log("actualSessionTimeout = ", session.timeout);
+
             await new Promise((resolve) => setTimeout(resolve, 2000));
             await session.close();
             // // session must have timed out on server side

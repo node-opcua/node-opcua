@@ -105,6 +105,7 @@ export function ep(server: OPCUABaseServer) {
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
 
+    assert(typeof port === "number", "expecting a port number");
     const serverCertificateManager = await createServerCertificateManager(port)
 
     const privateKeyFile = serverCertificateManager.privateKey;

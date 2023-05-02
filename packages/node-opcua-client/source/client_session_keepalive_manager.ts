@@ -7,8 +7,10 @@ import { assert } from "node-opcua-assert";
 import { ServerState } from "node-opcua-common";
 import { VariableIds } from "node-opcua-constants";
 import { DataValue } from "node-opcua-data-value";
+import { AttributeIds } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
+import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
 import { StatusCodes } from "node-opcua-status-code";
 import { ClientSessionImpl } from "./private/client_session_impl";
 
@@ -28,9 +30,9 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
     private timerId?: NodeJS.Timer;
     private pingTimeout: number;
     private lastKnownState?: ServerState;
-    private checkInterval: number;
     private transactionInProgress = false;
     public count = 0;
+    public checkInterval: number;
 
     constructor(session: ClientSessionImpl) {
         super();
@@ -56,8 +58,10 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
             );
         }
 
-        this.pingTimeout = Math.min(this.session.timeout / 3, 20000);
-        this.checkInterval = Math.max(50, Math.min((this.session.timeout * 2) / 3, 20000));
+        const v = Math.min(this.session.timeout, ClientSecureChannelLayer.defaultTransportTimeout);
+
+        this.pingTimeout = Math.floor(Math.min(this.session.timeout / 3, 20000));
+        this.checkInterval = Math.floor(Math.max(50, Math.min((this.session.timeout * 2) / 3, 20000)));
 
         // make sure first one is almost immediate
         this.timerId = setTimeout(() => this.ping_server(), this.pingTimeout);
@@ -103,7 +107,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         if (!this.timerId) {
             return 0; // keep-alive has been canceled ....
         }
-        const now = Date.now(); 
+        const now = Date.now();
 
         const timeSinceLastServerContact = now - session.lastResponseReceivedTime.getTime();
         if (timeSinceLastServerContact < this.pingTimeout) {
@@ -141,41 +145,50 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         // Server_ServerStatus_State
 
         return new Promise((resolve) => {
-            session.readVariableValue(serverStatusStateNodeId, (err: Error | null, dataValue?: DataValue) => {
-                this.transactionInProgress = false;
+            session.read(
+                {
+                    nodeId: serverStatusStateNodeId,
+                    attributeId: AttributeIds.Value
+                },
+                (err: Error | null, dataValue?: DataValue) => {
+                    this.transactionInProgress = false;
 
-                if (err || !dataValue || !dataValue.value) {
-                    if (err) {
-                        warningLog(chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "), chalk.yellow(err.message));
+                    if (err || !dataValue || !dataValue.value) {
+                        if (err) {
+                            warningLog(
+                                chalk.cyan(" warning : ClientSessionKeepAliveManager#ping_server "),
+                                chalk.yellow(err.message)
+                            );
+                        }
+                        /**
+                         * @event failure
+                         * raised when the server is not responding or is responding with en error to
+                         * the keep alive read Variable value transaction
+                         */
+                        this.emit("failure");
+                        resolve(0);
+                        return;
                     }
-                    /**
-                     * @event failure
-                     * raised when the server is not responding or is responding with en error to
-                     * the keep alive read Variable value transaction
-                     */
-                    this.emit("failure");
+
+                    if (dataValue.statusCode.isGood()) {
+                        const newState = dataValue.value.value as ServerState;
+                        // istanbul ignore next
+                        if (newState !== this.lastKnownState && this.lastKnownState) {
+                            warningLog(
+                                "ClientSessionKeepAliveManager#Server state has changed = ",
+                                ServerState[newState],
+                                " was ",
+                                ServerState[this.lastKnownState]
+                            );
+                        }
+                        this.lastKnownState = newState;
+                        this.count++; // increase successful counter
+                    }
+                    debugLog("emit keepalive");
+                    this.emit("keepalive", this.lastKnownState, this.count);
                     resolve(0);
-                    return;
                 }
-
-                if (dataValue.statusCode.isGood()) {
-                    const newState = dataValue.value.value as ServerState;
-                    // istanbul ignore next
-                    if (newState !== this.lastKnownState && this.lastKnownState) {
-                        warningLog(
-                            "ClientSessionKeepAliveManager#Server state has changed = ",
-                            ServerState[newState],
-                            " was ",
-                            ServerState[this.lastKnownState]
-                        );
-                    }
-                    this.lastKnownState = newState;
-                    this.count++; // increase successful counter
-                }
-                debugLog("emit keepalive");
-                this.emit("keepalive", this.lastKnownState, this.count);
-                resolve(0);
-            });
+            );
         });
     }
 }

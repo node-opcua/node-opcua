@@ -755,10 +755,10 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         }
         // istanbul ignore next
         if (!this.__resolveEndPoint() || !this.endpoint) {
-            return callback!(            
+            return callback!(
                 new Error(
-                    " End point must exist " + this._secureChannel!.endpointUrl + 
-                    "  securityMode = " + MessageSecurityMode[this.securityMode] + 
+                    " End point must exist " + this._secureChannel!.endpointUrl +
+                    "  securityMode = " + MessageSecurityMode[this.securityMode] +
                     "  securityPolicy = " + this.securityPolicy));
         }
 
@@ -805,10 +805,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @private
      */
     public _on_connection_reestablished(callback: (err?: Error) => void): void {
-        assert(typeof callback === "function");
-
-        // call base class implementation first
-        ClientBaseImpl.prototype._on_connection_reestablished.call(this, (/*err?: Error*/) => {
+        super._on_connection_reestablished((/*err?: Error*/) => {
             repair_client_sessions(this, callback);
         });
     }
@@ -849,7 +846,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.clientNonce = crypto.randomBytes(32);
 
         // recycle session name if already exists
-        const sessionName =  session.name 
+        const sessionName = session.name
 
         const request = new CreateSessionRequest({
             clientCertificate: this.getCertificate(),
@@ -1163,15 +1160,15 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     this._serverEndpoints.map(
                         (endpoint) =>
                             endpoint.endpointUrl + " "
-                             + MessageSecurityMode[endpoint.securityMode] + " " 
-                             + endpoint.securityPolicyUri + " " 
-                             + endpoint.userIdentityTokens?.map((u)=> UserTokenType[u.tokenType]).join(",")
+                            + MessageSecurityMode[endpoint.securityMode] + " "
+                            + endpoint.securityPolicyUri + " "
+                            + endpoint.userIdentityTokens?.map((u) => UserTokenType[u.tokenType]).join(",")
                     ).join('\n')
                 );
             }
             return callback(new Error(
-                " End point must exist " + this._secureChannel!.endpointUrl + 
-                "  securityMode = " + MessageSecurityMode[this.securityMode] + 
+                " End point must exist " + this._secureChannel!.endpointUrl +
+                "  securityMode = " + MessageSecurityMode[this.securityMode] +
                 "  securityPolicy = " + this.securityPolicy));
         }
         this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";

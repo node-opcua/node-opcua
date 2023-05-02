@@ -14,8 +14,20 @@ import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
 import { makeApplicationUrn } from "node-opcua-common";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { Message, MessageSecurityMode, Response, SecurityPolicy, ServerSecureChannelLayer, ServiceFault } from "node-opcua-secure-channel";
-import { AddStandardEndpointDescriptionsParam, OPCUABaseServer, OPCUABaseServerOptions, OPCUAServerEndPoint } from "node-opcua-server";
+import {
+    Message,
+    MessageSecurityMode,
+    Response,
+    SecurityPolicy,
+    ServerSecureChannelLayer,
+    ServiceFault
+} from "node-opcua-secure-channel";
+import {
+    AddStandardEndpointDescriptionsParam,
+    OPCUABaseServer,
+    OPCUABaseServerOptions,
+    OPCUAServerEndPoint
+} from "node-opcua-server";
 
 import {
     Announcement,
@@ -142,10 +154,10 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 allowAnonymous: true,
                 securityModes: options.securityModes,
                 securityPolicies: options.securityPolicies,
-                userTokenTypes: [], // << intentionaly empty (discovery server without session)
+                userTokenTypes: [], // << intentionally empty (discovery server without session)
                 hostname: options.hostname,
                 alternateHostname: options.alternateHostname,
-                disableDiscovery: true,
+                disableDiscovery: true
             };
 
             endPoint.addStandardEndpointDescriptions(options1);
@@ -172,6 +184,9 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             if (err) {
                 return callback!(err);
             }
+            const endpointUri = this.getEndpointUrl();
+            const { hostname } = url.parse(endpointUri) ;
+
             this.mDnsResponder = new MDNSResponder();
             // declare discovery server in bonjour
             this.bonjourHolder.announcedOnMulticastSubnetWithCallback(
@@ -179,6 +194,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                     capabilities: this.capabilitiesForMDNS,
                     name: this.serverInfo.applicationUri!,
                     path: "/DiscoveryServer",
+                    host: hostname || "",
                     port: this.endpoints[0].port
                 },
                 (err2: Error | null) => {
@@ -207,9 +223,9 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             debugLog("Shutting down Discovery Server");
 
             super.shutdown(() => {
-                setTimeout(()=>{
+                setTimeout(() => {
                     callback!();
-                },100);
+                }, 100);
             });
         });
     }
@@ -412,7 +428,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         async function _stop_announcedOnMulticastSubnet(conf: MdnsDiscoveryConfiguration): Promise<void> {
             const b = (conf as any).bonjourHolder as BonjourHolder;
-            await b.stopAnnnouncedOnMulticastSubnet();
+            await b.stopAnnouncedOnMulticastSubnet();
             (conf as any).bonjourHolder = undefined;
         }
 
@@ -459,11 +475,13 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
             const endpointUrl = serverInfo.discoveryUrls[0]!;
             const parsedUrl = url.parse(endpointUrl);
-
+       
+            
             discoveryConfiguration.serverCapabilities = discoveryConfiguration.serverCapabilities || [];
             const announcement = {
                 capabilities: discoveryConfiguration.serverCapabilities.map((x: UAString) => x!) || ["DA"],
                 name: discoveryConfiguration.mdnsServerName!,
+                host: parsedUrl.hostname || "",
                 path: parsedUrl.pathname || "/",
                 port: parseInt(parsedUrl.port!, 10)
             };

@@ -6,7 +6,6 @@ import { IBasicSession } from "node-opcua-pseudo-session";
 import { NodeId } from "node-opcua-nodeid";
 import { ConstructorFunc, StructuredTypeField } from "node-opcua-factory";
 import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
-import { StatusCodes } from "node-opcua-status-code";
 //
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type_manager_104";
@@ -18,9 +17,10 @@ async function getOrExtractConstructor(
     binaryEncodingNodeId: NodeId,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<ConstructorFunc> {
+
     const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(binaryEncodingNodeId.namespace);
-    
-    
+
+
     const Constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
     if (Constructor) {
         return Constructor;
@@ -48,7 +48,7 @@ async function getOrExtractConstructor(
     }
     await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, {});
 
-    const structureInfo  = dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)!;
+    const structureInfo = dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)!;
     if (!structureInfo.constructor) {
         throw new Error("Cannot find constructor for abstract DataType");
     }
@@ -59,7 +59,7 @@ export async function resolveOpaqueStructureInExtentionObject(
     session: IBasicSession,
     dataTypeManager: ExtraDataTypeManager,
     object: ExtensionObject
-) {
+): Promise<void> {
     const schema = object.schema;
     interface D {
         dataTypeManager: ExtraDataTypeManager;
@@ -83,10 +83,10 @@ export async function resolveOpaqueStructureInExtentionObject(
         return variant.value as unknown;
     }
     function fixOpaqueStructure(object: any, field: StructuredTypeField, data: D, args?: any) {
-         if (field.category === "complex"  && !field.allowSubType) {
-             return;
+        if (field.category === "complex" && !field.allowSubType) {
+            return;
         }
-        if (field.category === "basic"  && field.fieldType !== "Variant") {
+        if (field.category === "basic" && field.fieldType !== "Variant") {
             return;
         }
         console.log("field", field.name, field.category, field.fieldType);
@@ -152,7 +152,7 @@ async function resolveDynamicExtensionObjectV(
         } catch (err) {
             warningLog("Constructor = ", Constructor.name);
             warningLog("opaqueStructure = ", opaque?.nodeId?.toString());
-            warningLog("opaqueStructure = ", hexDump(opaque.buffer,132,100));
+            warningLog("opaqueStructure = ", hexDump(opaque.buffer, 132, 100));
             warningLog(hexDump(opaque.buffer));
             warningLog("resolveDynamicExtensionObjectV err = ", err);
             // try again for debugging
@@ -162,7 +162,7 @@ async function resolveDynamicExtensionObjectV(
     } catch (err) {
         warningLog("err", err);
         warningLog("opaqueStructure = ", opaque.nodeId.toString());
-        warningLog("opaqueStructure = ", "0x" + hexDump(opaque.buffer,132,100));
+        warningLog("opaqueStructure = ", "0x" + hexDump(opaque.buffer, 132, 100));
         warningLog(hexDump(opaque.buffer));
         warningLog(dataTypeManager.toString());
         throw err;

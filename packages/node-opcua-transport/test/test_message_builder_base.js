@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 "use strict";
 const sinon = require("sinon");
 
@@ -14,7 +15,7 @@ function wrap_message_in_chunk(slice, isFinal) {
     slice.copy(buf, 12);
     return buf;
 }
-
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("MessageBuilderBase", function () {
     it("should assemble a message body composed of a single chunk ", function (done) {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");

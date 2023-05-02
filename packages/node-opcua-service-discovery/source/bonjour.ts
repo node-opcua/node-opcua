@@ -67,6 +67,7 @@ export interface Announcement {
     port: number;
     path: string;
     name: string;
+    host: string;
     capabilities: string[];
 }
 
@@ -75,6 +76,7 @@ export function announcementToServiceConfig(announcement: Announcement): Service
         name: announcement.name,
         port: announcement.port,
         protocol: "tcp",
+        host: announcement.host,
         txt: {
             caps: announcement.capabilities.sort().join(","),
             path: announcement.path
@@ -96,7 +98,7 @@ export function isSameService(a?: ServiceConfig, b?: ServiceConfig): boolean {
 }
 
 export const serviceToString = (service: ServiceConfig) => {
-    return "type=" + service.type + service.name + " on port " + service.port + " txt " + JSON.stringify(service.txt);
+    return "host" + service.host + " type=" + service.type + service.name + " on port " + service.port + " txt " + JSON.stringify(service.txt);
 };
 
 // function waitServiceUp(serviceConfig: ServiceConfig, callback: () => void) {
@@ -220,12 +222,12 @@ export class BonjourHolder {
     /**
      * @private
      */
-    public async stopAnnnouncedOnMulticastSubnet(): Promise<void> {
+    public async stopAnnouncedOnMulticastSubnet(): Promise<void> {
         if (this.pendingAnnouncement) {
             debugLog(chalk.bgWhite.redBright("stopAnnnouncedOnMulticastSubnet is pending : let's wait a little bit and try again"));
             // wait until announcement is done
             await new Promise((resolve) => setTimeout(resolve, 500));
-            return this.stopAnnnouncedOnMulticastSubnet();
+            return this.stopAnnouncedOnMulticastSubnet();
         }
 
         debugLog(
@@ -279,5 +281,5 @@ export class BonjourHolder {
 
 BonjourHolder.prototype.announcedOnMulticastSubnetWithCallback = callbackify(BonjourHolder.prototype.announcedOnMulticastSubnet);
 BonjourHolder.prototype.stopAnnouncedOnMulticastSubnetWithCallback = callbackify(
-    BonjourHolder.prototype.stopAnnnouncedOnMulticastSubnet
+    BonjourHolder.prototype.stopAnnouncedOnMulticastSubnet
 );

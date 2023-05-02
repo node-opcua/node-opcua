@@ -1,4 +1,3 @@
-const os = require("os");
 const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
 
 (async () => {
@@ -13,6 +12,7 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
         }
     });
     await server.initialize();
+    console.log("initialized");
 
     const addressSpace = server.engine.addressSpace;
     const namespace = addressSpace.getOwnNamespace();
@@ -25,35 +25,40 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
 
     // add some variables
     // add a variable named MyVariable1 to the newly created folder "MyDevice"
+    let variable1 = 1;
 
-    const variable1 = namespace.addVariable({
+    // emulate variable1 changing every 500 ms
+    setInterval(() => {
+        variable1 += 1;
+    }, 500);
+
+    namespace.addVariable({
         componentOf: device,
         browseName: "MyVariable1",
         dataType: "Double",
-        minimumSamplingInterval: 100
-    });
-
-    let counter = 0;
-    // emulate variable1 changing every 500 ms
-    const timerId = setInterval(() => {
-        counter += 1;
-        variable1.setValueFromSource({ dataType: DataType.Double, value: counter });
-    }, 500);
-
-    addressSpace.registerShutdownTask(() => {
-        clearInterval(timerId);
+        value: {
+            get: () => new Variant({ dataType: DataType.Double, value: variable1 })
+        }
     });
 
     // add a variable named MyVariable2 to the newly created folder "MyDevice"
+    let variable2 = 10.0;
 
     namespace.addVariable({
         componentOf: device,
         nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
         browseName: "MyVariable2",
         dataType: "Double",
-        minimumSamplingInterval: 0 // this variable will be event driven
+        minimumSamplingInterval: 1234, // we need to specify a minimumSamplingInterval when using a getter
+        value: {
+            get: () => new Variant({ dataType: DataType.Double, value: variable2 }),
+            set: (variant) => {
+                variable2 = parseFloat(variant.value);
+                return StatusCodes.Good;
+            }
+        }
     });
-
+    const os = require("os");
     /**
      * returns the percentage of free memory on the running machine
      * @return {double}
@@ -69,19 +74,15 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
         nodeId: "s=free_memory", // a string nodeID
         browseName: "FreeMemory",
         dataType: "Double",
-        minimumSamplingInterval: 1234, // we need to specify a minimumSamplingInterval when using a getter
         value: {
             get: () => new Variant({ dataType: DataType.Double, value: available_memory() })
         }
     });
 
-    await server.start();
-    console.log("Server is now listening ... ( press CTRL+C to stop)");
-    console.log("port ", server.endpoints[0].port);
-    console.log(" the primary server endpoint url is ", server.getEndpointUrl());
-
-    process.once("SIGINT", async () => {
-        console.log("shuting down");
-        await server.shutdown();
+    server.start(function () {
+        console.log("Server is now listening ... ( press CTRL+C to stop)");
+        console.log("port ", server.endpoints[0].port);
+        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        console.log(" the primary server endpoint url is ", endpointUrl);
     });
 })();

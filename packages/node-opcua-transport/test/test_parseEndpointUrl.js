@@ -16,7 +16,7 @@ describe("testing parseEndpointUrl", function () {
         const ep = parseEndpointUrl("opc.tcp://ABCD12354:51210/UA/SampleServer");
 
         ep.protocol.should.equal("opc.tcp:");
-        ep.hostname.should.equal("abcd12354");
+        ep.hostname.should.equal("abcd12354"); /// note that the hostname is now lowercased
         ep.port.should.eql("51210");
         ep.pathname.should.equal("/UA/SampleServer");
     });
