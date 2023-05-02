@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-glass-flat",
-    "version": "2.100.0",
+    "version": "2.102.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-glass-flat",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,16 +10,16 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.100.0",
+        "node-opcua-address-space-base": "2.102.0",
         "node-opcua-basic-types": "2.99.0",
-        "node-opcua-data-access": "2.99.0",
-        "node-opcua-data-model": "2.99.0",
+        "node-opcua-data-access": "2.102.0",
+        "node-opcua-data-model": "2.102.0",
         "node-opcua-extension-object": "2.99.0",
         "node-opcua-nodeid": "2.99.0",
-        "node-opcua-nodeset-di": "2.100.0",
-        "node-opcua-nodeset-machinery": "2.100.0",
-        "node-opcua-nodeset-ua": "2.100.0",
-        "node-opcua-variant": "2.99.0"
+        "node-opcua-nodeset-di": "2.102.0",
+        "node-opcua-nodeset-machinery": "2.102.0",
+        "node-opcua-nodeset-ua": "2.102.0",
+        "node-opcua-variant": "2.102.0"
     },
     "files": [
         "dist",

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-data-model",
-    "version": "2.99.0",
+    "version": "2.102.0",
     "description": "pure nodejs OPCUA SDK - module data-model",
     "scripts": {
         "build": "tsc -b",
@@ -22,7 +22,7 @@
         "node-opcua-status-code": "2.98.1"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.99.0",
+        "node-opcua-packet-analyzer": "2.102.0",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
