@@ -8,7 +8,9 @@ import { QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "./imports";
 
-const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
+// const hierarchicalReferencesId = makeNodeId(ReferenceTypeIds.HierarchicalReferences);
+const aggregatesReferencesId = makeNodeId(ReferenceTypeIds.Aggregates);
+
 export { stringToQualifiedName } from "node-opcua-data-model";
 
 /**
@@ -18,10 +20,9 @@ export { stringToQualifiedName } from "node-opcua-data-model";
  * @return {BrowsePath}
  */
 export function constructBrowsePathFromQualifiedName(
-  startingNode: { nodeId: NodeId },
-  targetNames: QualifiedName[] |  null
+    startingNode: { nodeId: NodeId },
+    targetNames: QualifiedName[] | null
 ): BrowsePath {
-
     targetNames = targetNames || [];
 
     const elements = targetNames.map((targetName) => {
@@ -30,14 +31,14 @@ export function constructBrowsePathFromQualifiedName(
 
             includeSubtypes: true,
 
-            referenceTypeId: hierarchicalReferencesId,
+            referenceTypeId: aggregatesReferencesId,
             targetName
         };
     });
 
     const browsePath = new BrowsePath({
         relativePath: { elements },
-        startingNode: startingNode.nodeId, // ROOT
+        startingNode: startingNode.nodeId // ROOT
     });
     return browsePath;
 }
