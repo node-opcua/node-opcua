@@ -5,12 +5,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 /**
  * Represents an acoustic signal.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:AcousticSignalType ns=9;i=1009                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AcousticSignalType i=1009                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAcousticSignal_Base {
     /**

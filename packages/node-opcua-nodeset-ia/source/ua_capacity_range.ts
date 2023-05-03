@@ -10,14 +10,14 @@ import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
  * value), and the resolution property the size of
  * each step.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |9:CapacityRangeType ns=9;i=2003                   |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTRange ns=0;i=884                                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |CapacityRangeType i=2003                                    |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTRange i=884                                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UACapacityRange_Base<T extends DTRange>  extends UADataItem_Base<T, DataType.ExtensionObject> {
     engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;

@@ -8,12 +8,12 @@ import { UInt32, UInt16, Int16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAAlarmCondition, UAAlarmCondition_Base } from "node-opcua-nodeset-ua/source/ua_alarm_condition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:AlertType ns=10;i=39                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AlertType i=39                                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAlert_Base extends UAAlarmCondition_Base {
     errorCode: UAProperty<UAString, DataType.String>;

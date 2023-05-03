@@ -34,12 +34,12 @@ export interface UAFryingAndGrillingParameter_setProcessTime<T, DT extends DataT
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:FryingAndGrillingParameterType ns=5;i=1031      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FryingAndGrillingParameterType i=1031                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFryingAndGrillingParameter_Base extends UAKitchenDeviceParameter_Base {
    // PlaceHolder for actualGrillTemperature_$No_$

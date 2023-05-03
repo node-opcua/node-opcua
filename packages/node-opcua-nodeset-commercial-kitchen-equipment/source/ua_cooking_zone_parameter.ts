@@ -33,12 +33,12 @@ export interface UACookingZoneParameter_setTemperature<T, DT extends DataType> e
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CookingZoneParameterType ns=5;i=1029            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CookingZoneParameterType i=1029                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UACookingZoneParameter_Base extends UAKitchenDeviceParameter_Base {
     actualPower?: UACookingZoneParameter_actualPower<number, DataType.Float>;

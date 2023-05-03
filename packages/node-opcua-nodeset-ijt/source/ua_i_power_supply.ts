@@ -27,12 +27,12 @@ export interface UAIPowerSupply_parameters extends UAFolder { // Object
       nominalPower?: UAJoiningDataVariable<number, DataType.Double>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IPowerSupplyType ns=14;i=1009                  |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IPowerSupplyType i=1009                                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIPowerSupply_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIPowerSupply_parameters;

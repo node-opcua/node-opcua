@@ -13,12 +13,12 @@ export interface UACookingZoneDevice_nominalVoltage<T, DT extends DataType> exte
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CookingZoneDeviceType ns=5;i=1030               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CookingZoneDeviceType i=1030                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UACookingZoneDevice_Base extends UACommercialKitchenDevice_Base {
    // PlaceHolder for cookingZone_$No_$

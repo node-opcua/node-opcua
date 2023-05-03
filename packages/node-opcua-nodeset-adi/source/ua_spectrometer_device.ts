@@ -9,12 +9,12 @@ export interface UASpectrometerDevice_parameterSet extends UAAnalyserDevice_para
       spectralRange?: UADataItem<DTRange[], DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:SpectrometerDeviceType ns=2;i=1011              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SpectrometerDeviceType i=1011                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UASpectrometerDevice_Base extends UAAnalyserDevice_Base {
     /**

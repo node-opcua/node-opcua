@@ -5,12 +5,12 @@ import { NodeId } from "node-opcua-nodeid"
 import { EnumPubSubState } from "./enum_pub_sub_state"
 import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubStatusEventType ns=0;i=15535                |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubStatusEventType i=15535                               |
+ * |isAbstract      |true                                                        |
  */
 export interface UAPubSubStatusEvent_Base extends UASystemEvent_Base {
     connectionId: UAProperty<NodeId, DataType.NodeId>;

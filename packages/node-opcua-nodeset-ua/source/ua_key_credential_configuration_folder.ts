@@ -6,12 +6,12 @@ import { UAString } from "node-opcua-basic-types"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |KeyCredentialConfigurationFolderType ns=0;i=17496 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |KeyCredentialConfigurationFolderType i=17496                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAKeyCredentialConfigurationFolder_Base extends UAFolder_Base {
    // PlaceHolder for $ServiceName$

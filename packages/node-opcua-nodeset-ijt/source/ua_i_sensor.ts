@@ -65,12 +65,12 @@ export interface UAISensor_parameters extends UAFolder { // Object
       type?: UAMultiStateDiscrete<Byte, DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:ISensorType ns=14;i=1011                       |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ISensorType i=1011                                          |
+ * |isAbstract      |true                                                        |
  */
 export interface UAISensor_Base extends UAITighteningSystemAsset_Base {
     /**

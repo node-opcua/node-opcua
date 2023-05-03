@@ -13,12 +13,12 @@ export interface UAIController_parameters extends UAFolder { // Object
       type?: UAMultiStateDiscrete<Byte, DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IControllerType ns=14;i=1003                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IControllerType i=1003                                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIController_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIController_parameters;

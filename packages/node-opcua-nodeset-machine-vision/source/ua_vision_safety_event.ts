@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_base_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:VisionSafetyEventType ns=4;i=1030               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |VisionSafetyEventType i=1030                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAVisionSafetyEvent_Base extends UABaseEvent_Base {
     visionSafetyInformation: UAProperty<UAString, DataType.String>;

@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * | nodeClass |DataType                                          |
- * | name      |5:OperationModeEnumeration                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * | nodeClass |DataType                                                    |
+ * | name      |5:OperationModeEnumeration                                  |
+ * | isAbstract|false                                                       |
  */
 export enum EnumOperationMode  {
   Init = 0,

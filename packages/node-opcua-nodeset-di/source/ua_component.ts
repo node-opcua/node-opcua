@@ -5,12 +5,12 @@ import { LocalizedText } from "node-opcua-data-model"
 import { Int32, UAString } from "node-opcua-basic-types"
 import { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:ComponentType ns=1;i=15063                      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ComponentType i=15063                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAComponent_Base extends UATopologyElement_Base {
     manufacturer?: UAProperty<LocalizedText, DataType.LocalizedText>;

@@ -8,12 +8,12 @@ import { UAITagNameplate, UAITagNameplate_Base } from "node-opcua-nodeset-di/sou
  * Interface containing information of the
  * identification of a machine set by the customer
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:IMachineTagNameplateType ns=8;i=1011            |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IMachineTagNameplateType i=1011                             |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIMachineTagNameplate_Base extends UAITagNameplate_Base {
     /**

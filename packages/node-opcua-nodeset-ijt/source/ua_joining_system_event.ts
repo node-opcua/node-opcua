@@ -10,12 +10,12 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * This is a general event defined to send any type
  * of errors, alerts, system specific information.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:JoiningSystemEventType ns=14;i=1006            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |JoiningSystemEventType i=1006                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAJoiningSystemEvent_Base extends UABaseEvent_Base {
     /**

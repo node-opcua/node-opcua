@@ -9,14 +9,14 @@ import { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/source/ua
 /**
  * Remaining lifetime
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |1:LifetimeVariableType ns=1;i=468                 |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |LifetimeVariableType i=468                                  |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UALifetimeVariable_Base<T, DT extends DataType>  extends UAAnalogUnit_Base<T, DT> {
     /**

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32, UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionPartSetType ns=10;i=34               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionPartSetType i=34                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionPartSet_Base {
     containsMixedParts: UAProperty<boolean, DataType.Boolean>;

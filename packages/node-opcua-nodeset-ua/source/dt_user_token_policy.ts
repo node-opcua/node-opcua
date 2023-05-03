@@ -4,12 +4,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumUserToken } from "./enum_user_token"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |UserTokenPolicy                                   |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |UserTokenPolicy                                             |
+ * | isAbstract|false                                                       |
  */
 export interface DTUserTokenPolicy extends DTStructure {
   policyId: UAString; // String ns=0;i=12

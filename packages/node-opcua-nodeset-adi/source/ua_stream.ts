@@ -341,12 +341,12 @@ export interface UAStream_context extends UAFunctionalGroup { // Object
       sampleId?: UADataItem<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:StreamType ns=2;i=1010                          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StreamType i=1010                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStream_Base extends UATopologyElement_Base {
     /**

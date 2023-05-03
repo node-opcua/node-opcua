@@ -6,12 +6,12 @@ import { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate"
 import { DTUserIdentityToken } from "./dt_user_identity_token"
 import { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_session_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditActivateSessionEventType ns=0;i=2075         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditActivateSessionEventType i=2075                        |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditActivateSessionEvent_Base extends UAAuditSessionEvent_Base {
     clientSoftwareCertificates: UAProperty<DTSignedSoftwareCertificate[], DataType.ExtensionObject>;

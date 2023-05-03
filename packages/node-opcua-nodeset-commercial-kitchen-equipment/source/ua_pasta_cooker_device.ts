@@ -10,12 +10,12 @@ import { EnumSignalMode } from "./enum_signal_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UAPastaCookerParameter } from "./ua_pasta_cooker_parameter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:PastaCookerDeviceType ns=5;i=1021               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PastaCookerDeviceType i=1021                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPastaCookerDevice_Base extends UACommercialKitchenDevice_Base {
     energySource: UAProperty<EnumEnergySource, DataType.Int32>;

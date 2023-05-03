@@ -33,12 +33,12 @@ export interface UAIFeeder_parameters extends UAFolder { // Object
       type?: UAMultiStateDiscrete<Byte, DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IFeederType ns=14;i=1012                       |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IFeederType i=1012                                          |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIFeeder_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIFeeder_parameters;

@@ -3,12 +3,12 @@
 /**
  * Modes of operation.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CNC                   |
- * | nodeClass |DataType                                          |
- * | name      |11:CncOperationMode                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CNC                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |11:CncOperationMode                                         |
+ * | isAbstract|false                                                       |
  */
 export enum EnumCncOperationMode  {
   Manual = 0,

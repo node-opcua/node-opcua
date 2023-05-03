@@ -4,14 +4,14 @@ import { DataType, Variant } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |MultiStateDiscreteType ns=0;i=2376                |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=28                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |MultiStateDiscreteType i=2376                               |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=28                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMultiStateDiscrete_Base<T, DT extends DataType>  extends UADiscreteItem_Base<T, DT> {
     enumStrings: UAProperty<LocalizedText[], DataType.LocalizedText>;

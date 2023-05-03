@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_base_event"
 import { DTJobId } from "./dt_job_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:ReadyEventType ns=4;i=1023                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ReadyEventType i=1023                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAReadyEvent_Base extends UABaseEvent_Base {
     jobId: UAProperty<DTJobId, DataType.ExtensionObject>;

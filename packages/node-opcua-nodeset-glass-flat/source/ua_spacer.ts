@@ -11,12 +11,12 @@ export interface UASpacer_filling<T, DT extends DataType> extends UABaseDataVari
       fillLevel: UAAnalogUnit<number, DataType.Double>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:SpacerType ns=13;i=1016                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SpacerType i=1016                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UASpacer_Base extends UABaseMaterial_Base {
     filling?: UASpacer_filling<UAString, DataType.String>;

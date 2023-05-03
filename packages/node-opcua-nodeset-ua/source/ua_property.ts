@@ -2,14 +2,14 @@
 import { UAVariableT } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |PropertyType ns=0;i=68                            |
- * |dataType        |Null                                              |
- * |dataType Name   |VariantOptions ns=0;i=0                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |PropertyType i=68                                           |
+ * |dataType        |Null                                                        |
+ * |dataType Name   |VariantOptions i=0                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProperty_Base<T, DT extends DataType>  {
 }

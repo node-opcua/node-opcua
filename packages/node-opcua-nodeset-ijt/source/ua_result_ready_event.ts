@@ -13,12 +13,12 @@ import { UAResult } from "./ua_result"
  * the tightening system has a complete or partial
  * result available for the client.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:ResultReadyEventType ns=14;i=1007              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultReadyEventType i=1007                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResultReadyEvent_Base extends UABaseEvent_Base {
     /**

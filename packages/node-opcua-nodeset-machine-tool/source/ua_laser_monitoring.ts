@@ -4,12 +4,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { EnumLaserState } from "./enum_laser_state"
 import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:LaserMonitoringType ns=10;i=36                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |LaserMonitoringType i=36                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UALaserMonitoring_Base extends UAWorkingUnitMonitoring_Base {
     controllerIsOn: UABaseDataVariable<boolean, DataType.Boolean>;

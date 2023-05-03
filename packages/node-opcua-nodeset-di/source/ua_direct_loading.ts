@@ -5,12 +5,12 @@ import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:DirectLoadingType ns=1;i=153                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DirectLoadingType i=153                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UADirectLoading_Base extends UAPackageLoading_Base {
     updateBehavior: UABaseDataVariable<UInt32, DataType.UInt32>;

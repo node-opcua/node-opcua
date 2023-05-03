@@ -22,12 +22,12 @@ export interface UAMachineTool_machineryBuildingBlocks extends UAFolder { // Obj
       machineryOperationMode?: UAMachineOperationModeStateMachine;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:MachineToolType ns=10;i=13                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineToolType i=13                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineTool_Base {
     components?: UAMachineComponents;

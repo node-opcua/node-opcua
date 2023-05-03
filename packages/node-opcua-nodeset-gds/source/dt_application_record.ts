@@ -6,12 +6,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { EnumApplication } from "node-opcua-nodeset-ua/source/enum_application"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/GDS/                  |
- * | nodeClass |DataType                                          |
- * | name      |6:ApplicationRecordDataType                       |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/GDS/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |6:ApplicationRecordDataType                                 |
+ * | isAbstract|false                                                       |
  */
 export interface DTApplicationRecord extends DTStructure {
   applicationId: NodeId; // NodeId ns=0;i=17

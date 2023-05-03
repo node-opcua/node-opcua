@@ -8,12 +8,12 @@ import { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_au
  * Data of the access on one or more AutoID
  * Identifier.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:AutoIdAccessEventType ns=3;i=1015               |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AutoIdAccessEventType i=1015                                |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAutoIdAccessEvent_Base extends UAAutoIdDiagnosticsEvent_Base {
     /**

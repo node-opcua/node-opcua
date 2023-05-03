@@ -7,12 +7,12 @@ import { UAInitialState } from "./ua_initial_state"
 import { UAState } from "./ua_state"
 import { UATransition } from "./ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |FileTransferStateMachineType ns=0;i=15803         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FileTransferStateMachineType i=15803                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFileTransferStateMachine_Base extends UAFiniteStateMachine_Base {
     idle: UAInitialState;

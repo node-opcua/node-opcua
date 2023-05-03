@@ -10,12 +10,12 @@ export interface UATool_locked<T, DT extends DataType> extends UABaseDataVariabl
       reasonForLocking: UAProperty<EnumToolLocked, DataType.Int32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ToolType ns=10;i=50                            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ToolType i=50                                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UATool_Base extends UABaseTool_Base {
     controlIdentifier1: UABaseDataVariable<UInt32, DataType.UInt32>;

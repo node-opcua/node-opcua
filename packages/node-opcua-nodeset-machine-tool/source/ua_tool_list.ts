@@ -3,12 +3,12 @@ import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ToolListType ns=10;i=44                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ToolListType i=44                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAToolList_Base {
    // PlaceHolder for $Tool$

@@ -15,12 +15,12 @@ export interface UAProductionJob_state extends Omit<UAProductionStateMachine, "c
       initializedState: UAInitializingSubStateMachine;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:ProductionJobType ns=13;i=1004                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionJobType i=1004                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionJob_Base {
     abortJob?: UAMethod;

@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * | nodeClass |DataType                                          |
- * | name      |5:OperatingModeEnumeration                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * | nodeClass |DataType                                                    |
+ * | name      |5:OperatingModeEnumeration                                  |
+ * | isAbstract|false                                                       |
  */
 export enum EnumOperatingMode  {
   Preheat = 0,

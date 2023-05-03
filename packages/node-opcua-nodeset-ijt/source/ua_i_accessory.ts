@@ -14,12 +14,12 @@ export interface UAIAccessory_parameters extends UAFolder { // Object
       type?: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IAccessoryType ns=14;i=1015                    |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IAccessoryType i=1015                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIAccessory_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIAccessory_parameters;

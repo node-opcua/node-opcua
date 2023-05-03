@@ -8,12 +8,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * Tags attribute defined in ResultType and
  * ResultDataType.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:TagDataType                                    |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:TagDataType                                              |
+ * | isAbstract|false                                                       |
  */
 export interface DTTag extends DTStructure {
   /** The mandatory Name is the type of the identifier. It can be empty if a system could not determine the identifier. If it is empty, it is the application responsibility to handle the received Tag.*/

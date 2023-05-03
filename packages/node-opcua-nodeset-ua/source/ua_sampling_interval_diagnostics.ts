@@ -4,14 +4,14 @@ import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 import { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |SamplingIntervalDiagnosticsType ns=0;i=2165       |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTSamplingIntervalDiagnostics ns=0;i=856          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |SamplingIntervalDiagnosticsType i=2165                      |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTSamplingIntervalDiagnostics i=856                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UASamplingIntervalDiagnostics_Base<T extends DTSamplingIntervalDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     samplingInterval: UABaseDataVariable<number, DataType.Double>;

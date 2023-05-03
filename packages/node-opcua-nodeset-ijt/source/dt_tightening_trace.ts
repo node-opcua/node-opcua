@@ -9,12 +9,12 @@ import { DTStepTrace } from "./dt_step_trace"
  * in TighteningResultDataType and which is
  * represented as TighteningTraceType variable.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:TighteningTraceDataType                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:TighteningTraceDataType                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTTighteningTrace extends DTTrace {
   /** The mandatory TraceId is the system-wide unique identifier of the Trace.*/

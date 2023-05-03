@@ -6,12 +6,12 @@ import { DTReceiveQos } from "./dt_receive_qos"
 import { UADataSetReaderTransport, UADataSetReaderTransport_Base } from "./ua_data_set_reader_transport"
 import { UANetworkAddress } from "./ua_network_address"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DatagramDataSetReaderTransportType ns=0;i=24016   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DatagramDataSetReaderTransportType i=24016                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UADatagramDataSetReaderTransport_Base extends UADataSetReaderTransport_Base {
     address?: UANetworkAddress;

@@ -11,12 +11,12 @@ export interface UAPubSubDiagnosticsRoot_liveValues extends UAObject { // Object
       operationalDataSetReaders: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsRootType ns=0;i=19732            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsRootType i=19732                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsRoot_Base extends UAPubSubDiagnostics_Base {
     liveValues: UAPubSubDiagnosticsRoot_liveValues;

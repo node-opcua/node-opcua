@@ -4,12 +4,12 @@ import { DataType, VariantOptions } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |OperationLimitsType ns=0;i=11564                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |OperationLimitsType i=11564                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAOperationLimits_Base extends UAFolder_Base {
     maxNodesPerRead?: UAProperty<UInt32, DataType.UInt32>;

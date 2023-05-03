@@ -6,12 +6,12 @@ import { DTDataSetMeta } from "./dt_data_set_meta"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 import { DTPublishedDataSetSource } from "./dt_published_data_set_source"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |PublishedDataSetDataType                          |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |PublishedDataSetDataType                                    |
+ * | isAbstract|false                                                       |
  */
 export interface DTPublishedDataSet extends DTStructure {
   name: UAString; // String ns=0;i=12

@@ -8,12 +8,12 @@ import { EnumWwUnitState } from "./enum_ww_unit_state"
  * The IWwUnitOverviewType represents the
  * generalized state of a unit
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwUnitOverviewType ns=12;i=5                  |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwUnitOverviewType i=5                                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIWwUnitOverview_Base extends UABaseInterface_Base {
     /**

@@ -190,12 +190,12 @@ export interface UAWwMachine_state extends UAObject { // Object
 /**
  * The WwMachineType represents a woodworking machine
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:WwMachineType ns=12;i=2                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |WwMachineType i=2                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAWwMachine_Base {
     /**

@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * | nodeClass |DataType                                          |
- * | name      |5:CookingKettleModeEnumeration                    |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * | nodeClass |DataType                                                    |
+ * | name      |5:CookingKettleModeEnumeration                              |
+ * | isAbstract|false                                                       |
  */
 export enum EnumCookingKettleMode  {
   Off = 0,

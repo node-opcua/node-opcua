@@ -50,12 +50,12 @@ export interface UASpectrometerDeviceStream_acquisitionData extends UAStream_acq
       pendingBackground1?: UAYArrayItem<number, DataType.Float>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:SpectrometerDeviceStreamType ns=2;i=1030        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SpectrometerDeviceStreamType i=1030                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UASpectrometerDeviceStream_Base extends UAStream_Base {
     /**

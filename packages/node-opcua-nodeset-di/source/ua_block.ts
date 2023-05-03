@@ -8,12 +8,12 @@ import { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element
  * Adds the concept of Blocks needed for
  * block-oriented FieldDevices
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:BlockType ns=1;i=1003                           |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BlockType i=1003                                            |
+ * |isAbstract      |true                                                        |
  */
 export interface UABlock_Base extends UATopologyElement_Base {
     /**

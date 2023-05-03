@@ -3,12 +3,12 @@ import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Glass/Flat/           |
- * | nodeClass |DataType                                          |
- * | name      |13:UserProfileType                                |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * | nodeClass |DataType                                                    |
+ * | name      |13:UserProfileType                                          |
+ * | isAbstract|false                                                       |
  */
 export interface DTUserProfile extends DTStructure {
   name: UAString; // String ns=0;i=12

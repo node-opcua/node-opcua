@@ -10,14 +10,14 @@ import { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_mo
  * and associated information to convert scaled data
  * into one or more process values.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |2:MVAModelType ns=2;i=2009                        |
- * |dataType        |ByteString                                        |
- * |dataType Name   |Buffer ns=0;i=15                                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |MVAModelType i=2009                                         |
+ * |dataType        |ByteString                                                  |
+ * |dataType Name   |Buffer i=15                                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMVAModel_Base<T extends Buffer>  extends UAChemometricModel_Base<T> {
    // PlaceHolder for $User_defined_Output_$

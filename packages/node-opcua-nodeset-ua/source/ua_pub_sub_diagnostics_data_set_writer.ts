@@ -16,12 +16,12 @@ export interface UAPubSubDiagnosticsDataSetWriter_liveValues extends UAObject { 
       minorVersion?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsDataSetWriterType ns=0;i=19968   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsDataSetWriterType i=19968                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsDataSetWriter_Base extends UAPubSubDiagnostics_Base {
     counters: UAPubSubDiagnosticsDataSetWriter_counters;

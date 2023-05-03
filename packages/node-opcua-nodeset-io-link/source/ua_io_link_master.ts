@@ -43,12 +43,12 @@ export interface UAIOLinkMaster_statistics extends UAFunctionalGroup { // Object
       numberOfIOLinkMasterStarts?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IOLink/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |17:IOLinkMasterType ns=17;i=1014                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IOLink/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOLinkMasterType i=1014                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAIOLinkMaster_Base extends UATopologyElement_Base {
     alarms?: UAFolder;

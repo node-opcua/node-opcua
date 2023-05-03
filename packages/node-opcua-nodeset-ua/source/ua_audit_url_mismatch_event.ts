@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UAAuditCreateSessionEvent, UAAuditCreateSessionEvent_Base } from "./ua_audit_create_session_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditUrlMismatchEventType ns=0;i=2748             |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditUrlMismatchEventType i=2748                            |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditUrlMismatchEvent_Base extends UAAuditCreateSessionEvent_Base {
     endpointUrl: UAProperty<UAString, DataType.String>;

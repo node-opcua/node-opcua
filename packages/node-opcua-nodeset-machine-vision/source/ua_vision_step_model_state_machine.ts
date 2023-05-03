@@ -5,12 +5,12 @@ import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:VisionStepModelStateMachineType ns=4;i=1026     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |VisionStepModelStateMachineType i=1026                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAVisionStepModelStateMachine_Base extends UAFiniteStateMachine_Base {
     entry: UAInitialState;

@@ -3,12 +3,12 @@ import { DataType } from "node-opcua-variant"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IBaseEthernetCapabilitiesType ns=0;i=24167        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IBaseEthernetCapabilitiesType i=24167                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIBaseEthernetCapabilities_Base extends UABaseInterface_Base {
     vlanTagCapable: UABaseDataVariable<boolean, DataType.Boolean>;

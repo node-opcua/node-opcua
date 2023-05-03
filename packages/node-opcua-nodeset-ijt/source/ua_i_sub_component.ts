@@ -14,12 +14,12 @@ export interface UAISubComponent_parameters extends UAFolder { // Object
       type?: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:ISubComponentType ns=14;i=1016                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ISubComponentType i=1016                                    |
+ * |isAbstract      |true                                                        |
  */
 export interface UAISubComponent_Base extends UAITighteningSystemAsset_Base {
     parameters: UAISubComponent_parameters;

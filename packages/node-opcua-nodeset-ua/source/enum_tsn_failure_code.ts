@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |TsnFailureCode                                    |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |TsnFailureCode                                              |
+ * | isAbstract|false                                                       |
  */
 export enum EnumTsnFailureCode  {
   /**

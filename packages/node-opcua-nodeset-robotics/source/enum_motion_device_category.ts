@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Robotics/             |
- * | nodeClass |DataType                                          |
- * | name      |7:MotionDeviceCategoryEnumeration                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Robotics/                       |
+ * | nodeClass |DataType                                                    |
+ * | name      |7:MotionDeviceCategoryEnumeration                           |
+ * | isAbstract|false                                                       |
  */
 export enum EnumMotionDeviceCategory  {
   /**

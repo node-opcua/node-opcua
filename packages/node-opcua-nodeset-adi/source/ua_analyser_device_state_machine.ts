@@ -8,12 +8,12 @@ import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AnalyserDeviceStateMachineType ns=2;i=1002      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalyserDeviceStateMachineType i=1002                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalyserDeviceStateMachine_Base extends UAFiniteStateMachine_Base {
     /**

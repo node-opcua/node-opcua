@@ -4,14 +4,14 @@ import { DataType, Variant } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UAMultiStateDictionaryEntryDiscreteBase, UAMultiStateDictionaryEntryDiscreteBase_Base } from "./ua_multi_state_dictionary_entry_discrete_base"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |MultiStateDictionaryEntryDiscreteType ns=0;i=19084|
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |MultiStateDictionaryEntryDiscreteType i=19084               |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMultiStateDictionaryEntryDiscrete_Base<T, DT extends DataType>  extends UAMultiStateDictionaryEntryDiscreteBase_Base<T, DT> {
     valueAsDictionaryEntries: UAProperty<NodeId[], DataType.NodeId>;

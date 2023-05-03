@@ -5,31 +5,29 @@
 import * as fs from "fs";
 import * as path from "path";
 
-export enum NodesetName {
-    standard = "standard",
-    di = "di",
-    adi = "adi",
-    autoId = "autoId",
-    commercialKitchenEquipment = "commercialKitchenEquipment",
-    cnc = "cnc",
-    eumabois = "eumabois",
-    gds = "gds",
-    glass = "glass",
-    ia = "ia",
-    iolink = "iolink",
-    iolinkIODD = "iolinkIODD",
-    irdi = "irdi",
-    machinery = "machinery",
-    machineryProcessValues = "machineryProcessValues",
-    machineryResult = "machineryResult",
-    machineTool = "machineTool",
-    machineVision = "machineVision",
-    packML = "packML",
-    padim = "padim",
-    robotics = "robotics",
-    tightening = "tightening",
-    woodWorking = "woodWorking",
-}
+export type NodesetName =
+    | "standard"
+    | "di"
+    | "adi"
+    | "autoId"
+    | "commercialKitchenEquipment"
+    | "cnc"
+    | "gds"
+    | "glass"
+    | "ia"
+    | "iolink"
+    | "iolinkIODD"
+    | "irdi"
+    | "machinery"
+    | "machineryProcessValues"
+    | "machineryResult"
+    | "machineTool"
+    | "machineVision"
+    | "packML"
+    | "padim"
+    | "robotics"
+    | "tightening"
+    | "woodWorking";
 
 export type NodesetMeta = {
     /// used as key in exported nodesets object as well as in index_web.js
@@ -41,7 +39,6 @@ export type NodesetMeta = {
     /// path to local NodeSet2 XML file
     xmlFile: string;
 };
-
 
 export function constructNodesetFilename(filename: string) {
     const dirname = __dirname;
@@ -76,62 +73,69 @@ export function constructNodesetFilename(filename: string) {
 //       By ensuring that dependencies are listed first, one can safely pass a mapping of this entire array
 //       as OPCUAServerOptions.nodeset_filename (e.g. when constructing `new OPCUAServer(...)`) without
 //       causing an error due to ordering.
-export const allNodesetMeta: NodesetMeta[] =
-    (<[NodesetName, string, string, string, NodesetName[], boolean?][]>[
-        [NodesetName.standard, "ua", "http://opcfoundation.org/UA/", "Opc.Ua.NodeSet2.xml", []],
-        [NodesetName.di, "di", "http://opcfoundation.org/UA/DI/", "Opc.Ua.Di.NodeSet2.xml", []],
-        [NodesetName.adi, "adi", "http://opcfoundation.org/UA/ADI/", "Opc.Ua.Adi.NodeSet2.xml", [NodesetName.di]],
-        [NodesetName.autoId, "auto-id", "http://opcfoundation.org/UA/AutoID/", "Opc.Ua.AutoID.NodeSet2.xml", [NodesetName.di]],
-        [NodesetName.machineVision, "machine-vision", "http://opcfoundation.org/UA/MachineVision", "Opc.Ua.MachineVision.NodeSet2.xml", []],
-        [NodesetName.commercialKitchenEquipment, "commercial-kitchen-equipment", "http://opcfoundation.org/UA/CommercialKitchenEquipment/", "Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml", [NodesetName.di]],
-        [NodesetName.gds, "gds", "http://opcfoundation.org/UA/GDS/", "Opc.Ua.Gds.NodeSet2.xml", []],
-        [NodesetName.robotics, "robotics", "http://opcfoundation.org/UA/Robotics/", "Opc.Ua.Robotics.NodeSet2.xml", [NodesetName.di]],
-        [NodesetName.machinery, "machinery", "http://opcfoundation.org/UA/Machinery/", "Opc.Ua.Machinery.NodeSet2.xml", []],
-        [NodesetName.ia, "ia", "http://opcfoundation.org/UA/IA/", "Opc.Ua.IA.NodeSet2.xml", [NodesetName.di]],
-        [NodesetName.machineTool, "machine-tool", "http://opcfoundation.org/UA/MachineTool/", "Opc.Ua.MachineTool.NodeSet2.xml", [NodesetName.di, NodesetName.machinery, NodesetName.ia]],
-        [NodesetName.cnc, "cnc", "http://opcfoundation.org/UA/CNC", "Opc.Ua.CNC.NodeSet.xml", []],
-        [NodesetName.woodWorking, "woodworking", "http://opcfoundation.org/UA/Woodworking/", "Opc.Ua.Woodworking.NodeSet2.xml", [NodesetName.di, NodesetName.machinery]],
-        [NodesetName.glass, "glass-flat", "http://opcfoundation.org/UA/Glass/Flat/", "Opc.Ua.Glass.NodeSet2.xml", [NodesetName.di, NodesetName.machinery]],
-        [NodesetName.tightening, "ijt", "http://opcfoundation.org/UA/IJT/", "Opc.Ua.Ijt.Tightening.NodeSet2.xml", [NodesetName.di, NodesetName.machinery]],
-        [NodesetName.packML, "pack-ml", "http://opcfoundation.org/UA/PackML/", "Opc.Ua.PackML.NodeSet2.xml", []],
-        [NodesetName.eumabois, "eumabois", "http://opcfoundation.org/UA/Eumabois/", "Opc.Ua.Eumabois.NodeSet2.xml", [NodesetName.di, NodesetName.machinery, NodesetName.woodWorking]],
-        [NodesetName.iolink, "io-link", "http://opcfoundation.org/UA/IOLink/", "Opc.Ua.IOLink.NodeSet2.xml", [NodesetName.di]],
-        [NodesetName.iolinkIODD, "io-link-iodd", "http://opcfoundation.org/UA/IOLink/IODD/", "Opc.Ua.IOLinkIODD.NodeSet2.xml", []],
-        [NodesetName.irdi, "irdi", "http://opcfoundation.org/UA/Dictionary/IRDI", "Opc.Ua.IRDI.NodeSet2.xml", []],
-        [NodesetName.padim, "padim", "http://opcfoundation.org/UA/PADIM/", "Opc.Ua.PADIM.NodeSet2.xml", [NodesetName.irdi, NodesetName.di]],
-        [NodesetName.machineryProcessValues, "machinery-process-values", "http://opcfoundation.org/UA/Machinery/ProcessValues/", "Opc.Ua.Machinery.ProcessValues.NodeSet2.xml", [NodesetName.di, NodesetName.irdi, NodesetName.padim]],
-        [NodesetName.machineryResult, "machinery-result", "http://opcfoundation.org/UA/Machinery/Result/", "Opc.Ua.Machinery.Result.NodeSet2.xml", []],
-    ])
-    .map(([name, packageSuffix, uri, xmlFileName, _requiredModels]) =>
-        ({
-            name,
-            packageName: `node-opcua-nodeset-${packageSuffix}`,
-            uri,
-            xmlFile: constructNodesetFilename(xmlFileName),
-        })
-    );
+export const allNodesetMeta: NodesetMeta[] = (<[NodesetName, string, string, string, NodesetName[], boolean?][]>[
+    ["standard", "ua", "http://opcfoundation.org/UA/", "Opc.Ua.NodeSet2.xml", []],
+    ["di", "di", "http://opcfoundation.org/UA/DI/", "Opc.Ua.Di.NodeSet2.xml", []],
+    ["adi", "adi", "http://opcfoundation.org/UA/ADI/", "Opc.Ua.Adi.NodeSet2.xml", ["di"]],
+    ["autoId", "auto-id", "http://opcfoundation.org/UA/AutoID/", "Opc.Ua.AutoID.NodeSet2.xml", ["di"]],
+    ["machineVision", "machine-vision", "http://opcfoundation.org/UA/MachineVision", "Opc.Ua.MachineVision.NodeSet2.xml", []],
+    [
+        "commercialKitchenEquipment",
+        "commercial-kitchen-equipment",
+        "http://opcfoundation.org/UA/CommercialKitchenEquipment/",
+        "Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml",
+        ["di"]
+    ],
+    ["gds", "gds", "http://opcfoundation.org/UA/GDS/", "Opc.Ua.Gds.NodeSet2.xml", []],
+    ["robotics", "robotics", "http://opcfoundation.org/UA/Robotics/", "Opc.Ua.Robotics.NodeSet2.xml", ["di"]],
+    ["machinery", "machinery", "http://opcfoundation.org/UA/Machinery/", "Opc.Ua.Machinery.NodeSet2.xml", []],
+    ["ia", "ia", "http://opcfoundation.org/UA/IA/", "Opc.Ua.IA.NodeSet2.xml", ["di"]],
+    [
+        "machineTool",
+        "machine-tool",
+        "http://opcfoundation.org/UA/MachineTool/",
+        "Opc.Ua.MachineTool.NodeSet2.xml",
+        ["di", "machinery", "ia"]
+    ],
+    ["cnc", "cnc", "http://opcfoundation.org/UA/CNC", "Opc.Ua.CNC.NodeSet.xml", []],
+    [
+        "woodWorking",
+        "woodworking",
+        "http://opcfoundation.org/UA/Woodworking/",
+        "Opc.Ua.Woodworking.NodeSet2.xml",
+        ["di", "machinery"]
+    ],
+    ["glass", "glass-flat", "http://opcfoundation.org/UA/Glass/Flat/", "Opc.Ua.Glass.NodeSet2.xml", ["di", "machinery"]],
+    ["tightening", "ijt", "http://opcfoundation.org/UA/IJT/", "Opc.Ua.Ijt.Tightening.NodeSet2.xml", ["di", "machinery"]],
+    ["packML", "pack-ml", "http://opcfoundation.org/UA/PackML/", "Opc.Ua.PackML.NodeSet2.xml", []],
 
-export const nodesets = allNodesetMeta.reduce(
-    (nodesetMap, meta) => {
-        nodesetMap[meta.name] = meta.xmlFile;
-        return nodesetMap;
-    }, <Record<NodesetName, string>>{}
-);
+    ["iolink", "io-link", "http://opcfoundation.org/UA/IOLink/", "Opc.Ua.IOLink.NodeSet2.xml", ["di"]],
+    ["iolinkIODD", "io-link-iodd", "http://opcfoundation.org/UA/IOLink/IODD/", "Opc.Ua.IOLinkIODD.NodeSet2.xml", []],
+    ["irdi", "irdi", "http://opcfoundation.org/UA/Dictionary/IRDI", "Opc.Ua.IRDI.NodeSet2.xml", []],
+    ["padim", "padim", "http://opcfoundation.org/UA/PADIM/", "Opc.Ua.PADIM.NodeSet2.xml", ["irdi", "di"]],
+    [
+        "machineryProcessValues",
+        "machinery-process-values",
+        "http://opcfoundation.org/UA/Machinery/ProcessValues/",
+        "Opc.Ua.Machinery.ProcessValues.NodeSet2.xml",
+        ["di", "irdi", "padim"]
+    ],
+    [
+        "machineryResult",
+        "machinery-result",
+        "http://opcfoundation.org/UA/Machinery/Result/",
+        "Opc.Ua.Machinery.Result.NodeSet2.xml",
+        []
+    ]
+]).map(([name, packageSuffix, uri, xmlFileName, _requiredModels]) => ({
+    name,
+    packageName: `node-opcua-nodeset-${packageSuffix}`,
+    uri,
+    xmlFile: constructNodesetFilename(xmlFileName)
+}));
 
-function makeDeprecated(id: string, newName: keyof typeof nodesets) {
-    Object.defineProperty(nodesets, id, {
-        get: () => {
-            console.log(`nodeset.${id} is deprecated , please use nodeset.${newName} instead`);
-            return nodesets[newName];
-        }
-    });
-}
-
-makeDeprecated("adiNodeSetFilename", NodesetName.adi);
-makeDeprecated("adi_nodeset_filename", NodesetName.adi);
-makeDeprecated("diNodeSetFilename", NodesetName.di);
-makeDeprecated("di_nodeset_filename", NodesetName.di);
-makeDeprecated("standardNodeSetFilename", NodesetName.standard);
-makeDeprecated("standard_nodeset_file", NodesetName.standard);
-makeDeprecated("gdsNodeSetFilename", NodesetName.gds);
-makeDeprecated("gds_nodeset_filename", NodesetName.gds);
+export const nodesets = allNodesetMeta.reduce((nodesetMap, meta) => {
+    nodesetMap[meta.name] = meta.xmlFile;
+    return nodesetMap;
+}, <Record<NodesetName, string>>{});
+ 

@@ -5,12 +5,12 @@ import { UAString } from "node-opcua-basic-types"
 import { EnumBrokerTransportQualityOfService } from "./enum_broker_transport_quality_of_service"
 import { UADataSetWriterTransport, UADataSetWriterTransport_Base } from "./ua_data_set_writer_transport"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |BrokerDataSetWriterTransportType ns=0;i=21138     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BrokerDataSetWriterTransportType i=21138                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UABrokerDataSetWriterTransport_Base extends UADataSetWriterTransport_Base {
     queueName: UAProperty<UAString, DataType.String>;

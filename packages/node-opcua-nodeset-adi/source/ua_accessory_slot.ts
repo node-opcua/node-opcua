@@ -9,12 +9,12 @@ import { UAAccessorySlotStateMachine } from "./ua_accessory_slot_state_machine"
  * represent Accessories currently being used on
  * that AccessorySlot.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AccessorySlotType ns=2;i=1017                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AccessorySlotType i=1017                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAccessorySlot_Base extends UAConfigurableObject_Base {
     /**

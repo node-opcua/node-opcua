@@ -30,12 +30,12 @@ export interface UAAxis_parameterSet extends UAObject { // Object
 /**
  * The AxisType describes an axis of a motion device.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:AxisType ns=7;i=16601                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AxisType i=16601                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAxis_Base extends UAComponent_Base {
     /**

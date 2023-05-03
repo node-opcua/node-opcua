@@ -19,12 +19,12 @@ export interface UAPubSubDiagnosticsDataSetReader_liveValues extends UAObject { 
       timeToNextTokenID?: UABaseDataVariable<number, DataType.Double>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsDataSetReaderType ns=0;i=20027   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsDataSetReaderType i=20027                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsDataSetReader_Base extends UAPubSubDiagnostics_Base {
     counters: UAPubSubDiagnosticsDataSetReader_counters;

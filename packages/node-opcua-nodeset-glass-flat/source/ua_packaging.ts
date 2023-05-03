@@ -4,12 +4,12 @@ import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:PackagingType ns=13;i=1017                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackagingType i=1017                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackaging_Base extends UABaseMaterial_Base {
     cornerProtection: UABaseDataVariable<UAString, DataType.String>;

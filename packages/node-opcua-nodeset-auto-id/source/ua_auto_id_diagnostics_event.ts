@@ -9,12 +9,12 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
 /**
  * AutoID diagnostic data
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:AutoIdDiagnosticsEventType ns=3;i=1010          |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AutoIdDiagnosticsEventType i=1010                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAutoIdDiagnosticsEvent_Base extends UABaseEvent_Base {
     /**

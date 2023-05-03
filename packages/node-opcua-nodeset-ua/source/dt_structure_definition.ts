@@ -5,12 +5,12 @@ import { DTDataTypeDefinition } from "./dt_data_type_definition"
 import { EnumStructure } from "./enum_structure"
 import { DTStructureField } from "./dt_structure_field"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |StructureDefinition                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |StructureDefinition                                         |
+ * | isAbstract|false                                                       |
  */
 export interface DTStructureDefinition extends DTDataTypeDefinition {
   defaultEncodingId: NodeId; // NodeId ns=0;i=17

@@ -7,12 +7,12 @@ import { EnumStatus } from "./enum_status"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UAIceMachineParameter } from "./ua_ice_machine_parameter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:IceMachineDeviceType ns=5;i=1036                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IceMachineDeviceType i=1036                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAIceMachineDevice_Base extends UACommercialKitchenDevice_Base {
     iceMachine: UAIceMachineParameter;

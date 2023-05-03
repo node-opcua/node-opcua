@@ -448,12 +448,12 @@ export interface UAIWwBaseState_values extends UAObject { // Object
  * unit. An unit can be a machine of part of a
  * machine.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwBaseStateType ns=12;i=6                     |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwBaseStateType i=6                                        |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIWwBaseState_Base extends UABaseInterface_Base {
     /**

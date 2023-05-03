@@ -11,12 +11,12 @@ import { UADiscreteAlarm, UADiscreteAlarm_Base } from "node-opcua-nodeset-ua/sou
 /**
  * Event transmitting Alarms within a CNC system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncAlarmType ns=11;i=1006                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncAlarmType i=1006                                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncAlarm_Base extends UADiscreteAlarm_Base {
     /**

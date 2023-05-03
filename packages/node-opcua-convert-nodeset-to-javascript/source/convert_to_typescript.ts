@@ -749,7 +749,6 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
     return f.toString();
 }
 
-
 export type Type = "enum" | "basic" | "structure" | "ua";
 
 function calculateChevrons(classDef: ClassDefinition, classDefDerived?: { dataType: DataType }) {
@@ -868,6 +867,7 @@ export async function _convertTypeToTypescript(
 
     await preDumpChildren("    ", classDef, f, cache);
 
+    const n =(n?: NodeId |null)=> n?.toString().replace(/ns=([0-9]+);/, "");
     //  f.write(superType.toString());
     f.write(`/**`);
     if (description.text) {
@@ -878,10 +878,10 @@ export async function _convertTypeToTypescript(
     f.write(` * |----------------|${f2("-")}|`);
     f.write(` * |namespace       |${f1(cache.namespace[nodeId.namespace].namespaceUri)}|`);
     f.write(` * |nodeClass       |${f1(NodeClass[nodeClass])}|`);
-    f.write(` * |typedDefinition |${f1(browseName.toString() + " " + nodeId.toString())}|`);
+    f.write(` * |typedDefinition |${f1(browseName.name!.toString() + " " + n(nodeId))}|`);
     if (nodeClass === NodeClass.VariableType) {
         f.write(` * |dataType        |${f1(DataType[dataType])}|`);
-        f.write(` * |dataType Name   |${f1(dataTypeName + " " + dataTypeNodeId?.toString())}|`);
+        f.write(` * |dataType Name   |${f1(dataTypeName + " " + n(dataTypeNodeId))}|`);
     }
     f.write(` * |isAbstract      |${f1(isAbstract.toString())}|`);
     f.write(` */`);
@@ -914,7 +914,7 @@ export async function _convertTypeToTypescript(
                 //
                 const baseName = `${baseInterfaceName?.name}${baseExtension}${chevronsBase.chevronsExtend}`;
                 f.write(`export type ${classBaseName} = ${baseName};`);
-            }  else {
+            } else {
                 if (baseInterfaceName?.name === "UAVariableT") {
                     f.write(`export interface ${classBaseName}  {`);
                 } else {

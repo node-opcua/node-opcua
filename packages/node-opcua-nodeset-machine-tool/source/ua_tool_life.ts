@@ -5,14 +5,14 @@ import { EUInformation } from "node-opcua-data-access"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { EnumToolLifeIndication } from "./enum_tool_life_indication"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |10:ToolLifeType ns=10;i=61                        |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ToolLifeType i=61                                           |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAToolLife_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
     engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;

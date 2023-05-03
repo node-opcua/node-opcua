@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TrustListUpdatedAuditEventType ns=0;i=12561       |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TrustListUpdatedAuditEventType i=12561                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UATrustListUpdatedAuditEvent_Base extends UAAuditEvent_Base {
     trustListId: UAProperty<NodeId, DataType.NodeId>;

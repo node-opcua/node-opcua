@@ -11,12 +11,12 @@ import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UASignal, UASignal_Base } from "./ua_signal"
 import { UAControlVariable } from "./ua_control_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PADIM/                |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |20:ControlSignalType ns=20;i=1023                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PADIM/                          |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ControlSignalType i=1023                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAControlSignal_Base extends UASignal_Base {
     autoAdjustPositioner?: UAMethod;

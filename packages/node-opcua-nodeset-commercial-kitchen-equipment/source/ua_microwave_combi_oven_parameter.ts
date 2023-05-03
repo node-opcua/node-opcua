@@ -37,12 +37,12 @@ export interface UAMicrowaveCombiOvenParameter_setTemperature<T, DT extends Data
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:MicrowaveCombiOvenParameterType ns=5;i=1033     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MicrowaveCombiOvenParameterType i=1033                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMicrowaveCombiOvenParameter_Base extends UAKitchenDeviceParameter_Base {
     actualTemperatureChamber: UAMicrowaveCombiOvenParameter_actualTemperatureChamber<number, DataType.Float>;

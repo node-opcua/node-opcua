@@ -20,12 +20,12 @@ export interface UACombiSteamerDevice_combiSteamer extends Omit<UACombiSteamerPa
       timeRemainingProgram: UACombiSteamerParameter_timeRemainingProgram<Int32, DataType.Int32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CombiSteamerDeviceType ns=5;i=1011              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CombiSteamerDeviceType i=1011                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UACombiSteamerDevice_Base extends UACommercialKitchenDevice_Base {
     combiSteamer: UACombiSteamerDevice_combiSteamer;

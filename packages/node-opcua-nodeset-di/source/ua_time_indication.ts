@@ -4,12 +4,12 @@ import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_ba
  * Indicates the time the entity has been in use or
  * can still be used
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:TimeIndicationType ns=1;i=474                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TimeIndicationType i=474                                    |
+ * |isAbstract      |true                                                        |
  */
 export type UATimeIndication_Base = UABaseLifetimeIndication_Base;
 export interface UATimeIndication extends UABaseLifetimeIndication, UATimeIndication_Base {

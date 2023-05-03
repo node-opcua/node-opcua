@@ -8,12 +8,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading"
 import { UASoftwareVersion } from "./ua_software_version"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:PackageLoadingType ns=1;i=137                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackageLoadingType i=137                                    |
+ * |isAbstract      |true                                                        |
  */
 export interface UAPackageLoading_Base extends UASoftwareLoading_Base {
     currentVersion: UASoftwareVersion;

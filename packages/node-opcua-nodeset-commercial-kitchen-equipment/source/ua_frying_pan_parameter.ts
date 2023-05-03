@@ -38,12 +38,12 @@ export interface UAFryingPanParameter_timeRemaining<T, DT extends DataType> exte
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:FryingPanParameterType ns=5;i=1008              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FryingPanParameterType i=1008                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFryingPanParameter_Base extends UAKitchenDeviceParameter_Base {
     actualCoreTemperature: UAFryingPanParameter_actualCoreTemperature<number, DataType.Float>;

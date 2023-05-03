@@ -9,12 +9,12 @@ import { EnumFryerMode } from "./enum_fryer_mode"
 import { EnumSignalMode } from "./enum_signal_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:FryerDeviceType ns=5;i=1007                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FryerDeviceType i=1007                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFryerDevice_Base extends UACommercialKitchenDevice_Base {
     energySource: UAProperty<EnumEnergySource, DataType.Int32>;

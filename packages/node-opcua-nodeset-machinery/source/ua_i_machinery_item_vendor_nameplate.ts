@@ -9,12 +9,12 @@ import { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-
  * information for a MachineryItem provided by the
  * vendor
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:IMachineryItemVendorNameplateType ns=8;i=1003   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IMachineryItemVendorNameplateType i=1003                    |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIMachineryItemVendorNameplate_Base extends UAIVendorNameplate_Base {
     /**

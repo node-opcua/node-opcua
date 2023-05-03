@@ -5,12 +5,12 @@ import { UInt32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "./dt_argument"
 import { EnumApplication } from "./enum_application"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ProvisionableDeviceType ns=0;i=26871              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProvisionableDeviceType i=26871                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProvisionableDevice_Base {
     isSingleton: UAProperty<boolean, DataType.Boolean>;

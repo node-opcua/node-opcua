@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32, UInt16 } from "node-opcua-basic-types"
 import { UADataSetWriterMessage, UADataSetWriterMessage_Base } from "./ua_data_set_writer_message"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |UadpDataSetWriterMessageType ns=0;i=21111         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |UadpDataSetWriterMessageType i=21111                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAUadpDataSetWriterMessage_Base extends UADataSetWriterMessage_Base {
     dataSetMessageContentMask: UAProperty<UInt32, DataType.UInt32>;

@@ -23,12 +23,12 @@ export interface UAProductionPart_state extends Omit<UAProductionPartStateMachin
       runningToRunning: UATransition;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionPartType ns=10;i=56                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionPartType i=56                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionPart_Base {
     customerOrderIdentifier?: UAProperty<UAString, DataType.String>;

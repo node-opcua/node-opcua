@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UAAuditSecurityEvent, UAAuditSecurityEvent_Base } from "./ua_audit_security_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditSessionEventType ns=0;i=2069                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditSessionEventType i=2069                                |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditSessionEvent_Base extends UAAuditSecurityEvent_Base {
     sessionId: UAProperty<NodeId, DataType.NodeId>;

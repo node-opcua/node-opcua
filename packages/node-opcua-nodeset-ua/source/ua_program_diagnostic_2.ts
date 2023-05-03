@@ -8,14 +8,14 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 import { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2"
 import { DTArgument } from "./dt_argument"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |ProgramDiagnostic2Type ns=0;i=15383               |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTProgramDiagnostic2 ns=0;i=24033                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ProgramDiagnostic2Type i=15383                              |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTProgramDiagnostic2 i=24033                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProgramDiagnostic2_Base<T extends DTProgramDiagnostic2>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     createSessionId: UABaseDataVariable<NodeId, DataType.NodeId>;

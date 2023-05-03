@@ -3,12 +3,12 @@ import { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_au
 /**
  * One entry written to the log of the device.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:AutoIdLogEntryEventType ns=3;i=1017             |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AutoIdLogEntryEventType i=1017                              |
+ * |isAbstract      |true                                                        |
  */
 export type UAAutoIdLogEntryEvent_Base = UAAutoIdDiagnosticsEvent_Base;
 export interface UAAutoIdLogEntryEvent extends UAAutoIdDiagnosticsEvent, UAAutoIdLogEntryEvent_Base {

@@ -41,12 +41,12 @@ export interface UACuttingJob_$OutputMaterial$ extends Omit<UAGlass, "absorption
       z?: UAAnalogUnit<number, DataType.Double>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:CuttingJobType ns=13;i=1007                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CuttingJobType i=1007                                       |
+ * |isAbstract      |false                                                       |
  */
 export type UACuttingJob_Base = UAProductionJob_Base;
 export interface UACuttingJob extends UAProductionJob, UACuttingJob_Base {

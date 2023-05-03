@@ -13,12 +13,12 @@ import { UAGlassMachineIdentification } from "./ua_glass_machine_identification"
 import { UAManualFolder } from "./ua_manual_folder"
 import { UAProduction } from "./ua_production"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:GlassMachineType ns=13;i=1015                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |GlassMachineType i=1015                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAGlassMachine_Base {
     components?: UAMachineComponents;

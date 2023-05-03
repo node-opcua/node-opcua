@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * | nodeClass |DataType                                          |
- * | name      |5:HygieneModeEnumeration                          |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * | nodeClass |DataType                                                    |
+ * | name      |5:HygieneModeEnumeration                                    |
+ * | isAbstract|false                                                       |
  */
 export enum EnumHygieneMode  {
   HygieneOperationOFF = 0,

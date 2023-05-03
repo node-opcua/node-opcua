@@ -8,12 +8,12 @@ import { DTTimeZone } from "./dt_time_zone"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AlarmGroupType ns=0;i=16405                       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AlarmGroupType i=16405                                      |
+ * |isAbstract      |false                                                       |
  */
 export type UAAlarmGroup_Base = UAFolder_Base;
 export interface UAAlarmGroup extends UAFolder, UAAlarmGroup_Base {

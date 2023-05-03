@@ -4,12 +4,12 @@ import { DataType, VariantOptions } from "node-opcua-variant"
 import { UInt16 } from "node-opcua-basic-types"
 import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ProgressEventType ns=0;i=11436                    |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProgressEventType i=11436                                   |
+ * |isAbstract      |true                                                        |
  */
 export interface UAProgressEvent_Base extends UABaseEvent_Base {
     context: UAProperty<any, any>;

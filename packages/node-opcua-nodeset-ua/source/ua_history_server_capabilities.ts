@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAFolder } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |HistoryServerCapabilitiesType ns=0;i=2330         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |HistoryServerCapabilitiesType i=2330                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAHistoryServerCapabilities_Base {
     accessHistoryDataCapability: UAProperty<boolean, DataType.Boolean>;

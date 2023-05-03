@@ -6,12 +6,12 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UAProductionStateMachine, UAProductionStateMachine_Base } from "./ua_production_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionPartStateMachineType ns=10;i=40      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionPartStateMachineType i=40                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionPartStateMachine_Base extends UAProductionStateMachine_Base {
     aborted: UAState;

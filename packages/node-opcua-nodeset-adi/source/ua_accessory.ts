@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/source/ua_topology_element"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AccessoryType ns=2;i=1019                       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AccessoryType i=1019                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAccessory_Base extends UATopologyElement_Base {
     configuration: UAFunctionalGroup;

@@ -13,14 +13,14 @@ import { DTProcessingTimes } from "./dt_processing_times"
 import { DTProductId } from "./dt_product_id"
 import { DTResultId } from "./dt_result_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |4:ResultType ns=4;i=2002                          |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTResult ns=4;i=3006                              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ResultType i=2002                                           |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTResult i=3006                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     creationTime: UABaseDataVariable<Date, DataType.DateTime>;

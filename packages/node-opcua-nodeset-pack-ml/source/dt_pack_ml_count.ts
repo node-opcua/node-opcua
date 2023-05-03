@@ -4,12 +4,12 @@ import { Int32, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/PackML/               |
- * | nodeClass |DataType                                          |
- * | name      |15:PackMLCountDataType                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/PackML/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |15:PackMLCountDataType                                      |
+ * | isAbstract|false                                                       |
  */
 export interface DTPackMLCount extends DTStructure {
   /** A user defined value that represents the consumed (processed or defective) material. Typically this is an SKU number or a user material master number.*/

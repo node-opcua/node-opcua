@@ -3,12 +3,12 @@ import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |FileType ns=0;i=11575                             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FileType i=11575                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFile_Base {
     size: UAProperty<UInt64, DataType.UInt64>;

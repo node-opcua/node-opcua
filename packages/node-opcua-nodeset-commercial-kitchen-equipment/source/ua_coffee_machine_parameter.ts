@@ -25,12 +25,12 @@ export interface UACoffeeMachineParameter_grinderRuntime_$No_$<T, DT extends Dat
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CoffeeMachineParameterType ns=5;i=1022          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CoffeeMachineParameterType i=1022                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UACoffeeMachineParameter_Base extends UAKitchenDeviceParameter_Base {
     boilerPressureSteam: UAAnalogItem<number, DataType.Float>;

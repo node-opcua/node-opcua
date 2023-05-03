@@ -31,12 +31,12 @@ export interface UAVisionSystem_visionStateMachine extends Omit<UAVisionStateMac
       selectModeAutomatic?: UAMethod;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:VisionSystemType ns=4;i=1003                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |VisionSystemType i=1003                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAVisionSystem_Base {
     configurationManagement?: UAConfigurationManagement;

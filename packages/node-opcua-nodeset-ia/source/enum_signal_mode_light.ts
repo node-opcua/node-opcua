@@ -4,12 +4,12 @@
  * Contains the values used to indicate in what way
  * a lamp behaves when switched on.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IA/                   |
- * | nodeClass |DataType                                          |
- * | name      |9:SignalModeLight                                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IA/                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |9:SignalModeLight                                           |
+ * | isAbstract|false                                                       |
  */
 export enum EnumSignalModeLight  {
   /**

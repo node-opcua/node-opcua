@@ -7,12 +7,12 @@ import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UASignal, UASignal_Base } from "./ua_signal"
 import { UAAnalogSignalVariable } from "./ua_analog_signal_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PADIM/                |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |20:AnalogSignalType ns=20;i=1022                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PADIM/                          |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalogSignalType i=1022                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalogSignal_Base extends UASignal_Base {
     zeroPointAdjustment?: UAMethod;

@@ -208,6 +208,7 @@ async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     if (values.length < 1) {
         console.log(`There is no type information to generate for ${options.nsName}`)
     }
+    console.log("generating files for ", options.nsName);
     for (const info of values) {
         // create indexes
         await _output_index_ts_file(info);

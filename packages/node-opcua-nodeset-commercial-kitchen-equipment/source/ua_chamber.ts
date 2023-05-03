@@ -73,12 +73,12 @@ export interface UAChamber_timeRemaining<T, DT extends DataType> extends Omit<UA
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:ChamberType ns=5;i=1012                         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ChamberType i=1012                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAChamber_Base extends UAKitchenDeviceParameter_Base {
    // PlaceHolder for actualBoilerTemperature_$No_$

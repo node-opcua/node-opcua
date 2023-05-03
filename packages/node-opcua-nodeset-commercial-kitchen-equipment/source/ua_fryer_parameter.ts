@@ -26,12 +26,12 @@ export interface UAFryerParameter_timeRemaining<T, DT extends DataType> extends 
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:FryerParameterType ns=5;i=1006                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FryerParameterType i=1006                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFryerParameter_Base extends UAKitchenDeviceParameter_Base {
     actualTemperature: UAFryerParameter_actualTemperature<number, DataType.Float>;

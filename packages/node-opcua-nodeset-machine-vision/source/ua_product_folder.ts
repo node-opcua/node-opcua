@@ -3,12 +3,12 @@ import { DataType } from "node-opcua-variant"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 import { DTProduct } from "./dt_product"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:ProductFolderType ns=4;i=1010                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductFolderType i=1010                                    |
+ * |isAbstract      |false                                                       |
  */
 export type UAProductFolder_Base = UAFolder_Base;
 export interface UAProductFolder extends UAFolder, UAProductFolder_Base {

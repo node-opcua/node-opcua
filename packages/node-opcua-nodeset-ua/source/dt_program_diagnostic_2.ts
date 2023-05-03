@@ -7,12 +7,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTArgument } from "./dt_argument"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |ProgramDiagnostic2DataType                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |ProgramDiagnostic2DataType                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTProgramDiagnostic2 extends DTStructure {
   createSessionId: NodeId; // NodeId ns=0;i=17

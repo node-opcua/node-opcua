@@ -3,12 +3,12 @@ import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubCapabilitiesType ns=0;i=23832               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubCapabilitiesType i=23832                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubCapabilities_Base {
     maxPubSubConnections: UAProperty<UInt32, DataType.UInt32>;

@@ -16,12 +16,12 @@ export interface UACncAxis_zeroOffset<T, DT extends DataType> extends Omit<UAAna
 /**
  * CNC axis component.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncAxisType ns=11;i=1004                       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncAxisType i=1004                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncAxis_Base extends UACncDrive_Base {
     /**

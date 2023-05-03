@@ -10,12 +10,12 @@ import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
 import { UACertificateGroupFolder } from "node-opcua-nodeset-ua/source/ua_certificate_group_folder"
 import { UADirectory, UADirectory_Base } from "./ua_directory"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/GDS/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |6:CertificateDirectoryType ns=6;i=63              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/GDS/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CertificateDirectoryType i=63                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UACertificateDirectory_Base extends UADirectory_Base {
     startSigningRequest: UAMethod;

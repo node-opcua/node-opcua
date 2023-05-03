@@ -5,12 +5,12 @@ import { EUInformation } from "node-opcua-data-access"
 import { DTFileFormat } from "./dt_file_format"
 import { EnumCoordinateSystem } from "./enum_coordinate_system"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:ConfigurationRulesType ns=13;i=1063            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ConfigurationRulesType i=1063                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAConfigurationRules_Base {
     allowedEngineeringUnits?: UAProperty<EUInformation[], DataType.ExtensionObject>;

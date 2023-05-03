@@ -14,12 +14,12 @@ import { UAPackMLAdminObject } from "./ua_pack_ml_admin_object"
 import { UAPackMLBaseStateMachine } from "./ua_pack_ml_base_state_machine"
 import { UAPackMLStatusObject } from "./ua_pack_ml_status_object"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PackML/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |15:PackMLBaseObjectType ns=15;i=6                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PackML/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackMLBaseObjectType i=6                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackMLBaseObject_Base {
     admin: UAPackMLAdminObject;

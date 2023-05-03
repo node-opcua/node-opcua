@@ -21,12 +21,12 @@ import { UAPubSubDiagnosticsRoot } from "./ua_pub_sub_diagnostics_root"
 import { UAPubSubCapabilities } from "./ua_pub_sub_capabilities"
 import { UAFolder } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PublishSubscribeType ns=0;i=14416                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PublishSubscribeType i=14416                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPublishSubscribe_Base extends UAPubSubKeyService_Base {
    // PlaceHolder for $ConnectionName$

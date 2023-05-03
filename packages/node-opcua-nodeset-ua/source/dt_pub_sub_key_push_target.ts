@@ -5,12 +5,12 @@ import { DTStructure } from "./dt_structure"
 import { DTUserTokenPolicy } from "./dt_user_token_policy"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |PubSubKeyPushTargetDataType                       |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |PubSubKeyPushTargetDataType                                 |
+ * | isAbstract|false                                                       |
  */
 export interface DTPubSubKeyPushTarget extends DTStructure {
   applicationUri: UAString; // String ns=0;i=12

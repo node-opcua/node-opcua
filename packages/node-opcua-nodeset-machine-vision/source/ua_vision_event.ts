@@ -12,12 +12,12 @@ import { DTPartId } from "./dt_part_id"
 import { DTProductId } from "./dt_product_id"
 import { DTResultId } from "./dt_result_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:VisionEventType ns=4;i=1015                     |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |VisionEventType i=1015                                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAVisionEvent_Base extends UABaseEvent_Base {
     causePath?: UAProperty<UAString, DataType.String>;

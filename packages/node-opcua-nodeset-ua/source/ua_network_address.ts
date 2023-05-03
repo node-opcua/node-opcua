@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UASelectionList } from "./ua_selection_list"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |NetworkAddressType ns=0;i=21145                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |NetworkAddressType i=21145                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UANetworkAddress_Base {
     networkInterface: UASelectionList<UAString, DataType.String>;

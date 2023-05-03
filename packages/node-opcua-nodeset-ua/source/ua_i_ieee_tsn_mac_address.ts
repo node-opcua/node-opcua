@@ -4,12 +4,12 @@ import { Byte } from "node-opcua-basic-types"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IIeeeTsnMacAddressType ns=0;i=24199               |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IIeeeTsnMacAddressType i=24199                              |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIIeeeTsnMacAddress_Base extends UABaseInterface_Base {
     destinationAddress: UABaseDataVariable<Byte[], DataType.Byte>;

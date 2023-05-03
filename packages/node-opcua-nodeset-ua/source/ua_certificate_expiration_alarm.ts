@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UASystemOffNormalAlarm, UASystemOffNormalAlarm_Base } from "./ua_system_off_normal_alarm"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |CertificateExpirationAlarmType ns=0;i=13225       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CertificateExpirationAlarmType i=13225                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UACertificateExpirationAlarm_Base extends UASystemOffNormalAlarm_Base {
     expirationDate: UAProperty<Date, DataType.DateTime>;

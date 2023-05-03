@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/ADI/                  |
- * | nodeClass |DataType                                          |
- * | name      |2:ExecutionCycleEnumeration                       |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/ADI/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |2:ExecutionCycleEnumeration                                 |
+ * | isAbstract|false                                                       |
  */
 export enum EnumExecutionCycle  {
   /**

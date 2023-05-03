@@ -6,12 +6,12 @@ import { UAAutoIdDiagnosticsEvent, UAAutoIdDiagnosticsEvent_Base } from "./ua_au
 /**
  * Current presence of AutoID Identifier.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:AutoIdPresenceEventType ns=3;i=1018             |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AutoIdPresenceEventType i=1018                              |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAutoIdPresenceEvent_Base extends UAAutoIdDiagnosticsEvent_Base {
     /**

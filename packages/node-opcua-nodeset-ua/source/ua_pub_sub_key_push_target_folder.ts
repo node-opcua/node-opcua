@@ -6,12 +6,12 @@ import { DTUserTokenPolicy } from "./dt_user_token_policy"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubKeyPushTargetFolderType ns=0;i=25346        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubKeyPushTargetFolderType i=25346                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubKeyPushTargetFolder_Base extends UAFolder_Base {
    // PlaceHolder for $PushTargetName$

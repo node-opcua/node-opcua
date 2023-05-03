@@ -3,12 +3,12 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
 /**
  * Event transmitting simple information messages.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncMessageType ns=11;i=1011                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncMessageType i=1011                                       |
+ * |isAbstract      |false                                                       |
  */
 export type UACncMessage_Base = UABaseEvent_Base;
 export interface UACncMessage extends UABaseEvent, UACncMessage_Base {

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { StatusCode } from "node-opcua-status-code"
 import { UAPubSubStatusEvent, UAPubSubStatusEvent_Base } from "./ua_pub_sub_status_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubCommunicationFailureEventType ns=0;i=15563  |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubCommunicationFailureEventType i=15563                 |
+ * |isAbstract      |true                                                        |
  */
 export interface UAPubSubCommunicationFailureEvent_Base extends UAPubSubStatusEvent_Base {
     error: UAProperty<StatusCode, DataType.StatusCode>;

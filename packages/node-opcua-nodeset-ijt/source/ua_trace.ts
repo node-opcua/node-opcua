@@ -7,14 +7,14 @@ import { DTTrace } from "./dt_trace"
  * It is a base type to encapsulate common data for
  * a Trace.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:TraceType ns=14;i=2009                         |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTTrace ns=14;i=3011                              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TraceType i=2009                                            |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTTrace i=3011                                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UATrace_Base<T extends DTTrace>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

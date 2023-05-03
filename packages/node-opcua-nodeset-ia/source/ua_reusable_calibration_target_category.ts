@@ -7,12 +7,12 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * calibration and not destroyed by an individual
  * usage is of this category.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:ReusableCalibrationTargetCategoryType ns=9;i=1015|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ReusableCalibrationTargetCategoryType i=1015                |
+ * |isAbstract      |false                                                       |
  */
 export type UAReusableCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
 export interface UAReusableCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAReusableCalibrationTargetCategory_Base {

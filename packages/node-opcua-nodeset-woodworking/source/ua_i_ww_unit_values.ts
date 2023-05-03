@@ -9,12 +9,12 @@ import { UABaseAnalog } from "node-opcua-nodeset-ua/source/ua_base_analog"
  * The IWwUnitValuesType represents the values of a
  * unit
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwUnitValuesType ns=12;i=1006                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwUnitValuesType i=1006                                    |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIWwUnitValues_Base extends UABaseInterface_Base {
     /**

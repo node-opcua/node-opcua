@@ -4,12 +4,12 @@ import { UInt16, Byte } from "node-opcua-basic-types"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ISrClassType ns=0;i=24169                         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ISrClassType i=24169                                        |
+ * |isAbstract      |true                                                        |
  */
 export interface UAISrClass_Base extends UABaseInterface_Base {
     id: UABaseDataVariable<Byte, DataType.Byte>;

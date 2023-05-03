@@ -8,14 +8,14 @@ import { DTCncPosition } from "./dt_cnc_position"
 /**
  * Group of position values.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |11:CncPositionVariableType ns=11;i=2001           |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTCncPosition ns=11;i=3007                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |CncPositionVariableType i=2001                              |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTCncPosition i=3007                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncPositionVariable_Base<T extends DTCncPosition>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

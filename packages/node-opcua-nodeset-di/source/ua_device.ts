@@ -11,12 +11,12 @@ import { UAComponent, UAComponent_Base } from "./ua_component"
  * Defines the basic information components for all
  * configurable elements in a device topology
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:DeviceType ns=1;i=1002                          |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DeviceType i=1002                                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UADevice_Base extends UAComponent_Base {
     /**

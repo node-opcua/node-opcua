@@ -10,12 +10,12 @@ import { DTCncPosition } from "./dt_cnc_position"
 /**
  * List of CNC axis objects.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncAxisListType ns=11;i=1008                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncAxisListType i=1008                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncAxisList_Base {
    // PlaceHolder for $CncAxis$

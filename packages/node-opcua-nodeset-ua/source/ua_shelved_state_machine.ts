@@ -5,12 +5,12 @@ import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_sta
 import { UAState } from "./ua_state"
 import { UATransition } from "./ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ShelvedStateMachineType ns=0;i=2929               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ShelvedStateMachineType i=2929                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAShelvedStateMachine_Base extends UAFiniteStateMachine_Base {
     unshelveTime: UAProperty<number, DataType.Double>;

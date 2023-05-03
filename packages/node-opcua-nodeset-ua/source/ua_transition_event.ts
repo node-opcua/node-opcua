@@ -5,12 +5,12 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
 import { UATransitionVariable } from "./ua_transition_variable"
 import { UAStateVariable } from "./ua_state_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TransitionEventType ns=0;i=2311                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TransitionEventType i=2311                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UATransitionEvent_Base extends UABaseEvent_Base {
     transition: UATransitionVariable<LocalizedText>;

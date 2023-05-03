@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditEventType ns=0;i=2052                        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditEventType i=2052                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditEvent_Base extends UABaseEvent_Base {
     actionTimeStamp: UAProperty<Date, DataType.DateTime>;

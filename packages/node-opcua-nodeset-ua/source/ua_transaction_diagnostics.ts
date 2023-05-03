@@ -5,12 +5,12 @@ import { NodeId } from "node-opcua-nodeid"
 import { StatusCode } from "node-opcua-status-code"
 import { DTTransactionError } from "./dt_transaction_error"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TransactionDiagnosticsType ns=0;i=32286           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TransactionDiagnosticsType i=32286                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UATransactionDiagnostics_Base {
     startTime: UAProperty<Date, DataType.DateTime>;

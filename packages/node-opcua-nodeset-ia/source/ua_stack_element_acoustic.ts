@@ -8,12 +8,12 @@ import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
 /**
  * Represents an acoustic element in a stacklight.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:StackElementAcousticType ns=9;i=1007            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StackElementAcousticType i=1007                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStackElementAcoustic_Base extends UAStackElement_Base {
     /**

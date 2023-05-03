@@ -9,12 +9,12 @@ import { EnumSignificantSide } from "./enum_significant_side"
 import { EnumStructureAlignment } from "./enum_structure_alignment"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:GlassType ns=13;i=1011                         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |GlassType i=1011                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAGlass_Base extends UABaseMaterial_Base {
     absorption?: UAAnalogUnit<any, any>;

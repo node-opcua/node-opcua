@@ -17,12 +17,12 @@ export interface UAPubSubDiagnosticsWriterGroup_liveValues extends UAObject { //
       timeToNextTokenID?: UABaseDataVariable<number, DataType.Double>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsWriterGroupType ns=0;i=19834     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsWriterGroupType i=19834                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsWriterGroup_Base extends UAPubSubDiagnostics_Base {
     counters: UAPubSubDiagnosticsWriterGroup_counters;

@@ -9,14 +9,14 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 import { UACartesianCoordinates } from "./ua_cartesian_coordinates"
 import { UAOrientation } from "./ua_orientation"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |FrameType ns=0;i=18786                            |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTFrame ns=0;i=18813                              |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |FrameType i=18786                                           |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTFrame i=18813                                             |
+ * |isAbstract      |true                                                        |
  */
 export interface UAFrame_Base<T extends DTFrame>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     cartesianCoordinates: UACartesianCoordinates<DTCartesianCoordinates>;

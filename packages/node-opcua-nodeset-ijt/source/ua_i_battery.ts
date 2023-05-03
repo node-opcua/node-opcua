@@ -61,12 +61,12 @@ export interface UAIBattery_parameters extends UAFolder { // Object
       type?: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IBatteryType ns=14;i=1010                      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IBatteryType i=1010                                         |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIBattery_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIBattery_parameters;

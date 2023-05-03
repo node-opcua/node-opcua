@@ -5,12 +5,12 @@ import { UAObject } from "node-opcua-address-space-base"
  * that is an event dispatcher for machine
  * diagnostic and information events
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:WwEventsDispatcherType ns=12;i=15              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |WwEventsDispatcherType i=15                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAWwEventsDispatcher_Base {
 }

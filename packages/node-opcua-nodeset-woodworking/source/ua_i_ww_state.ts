@@ -23,12 +23,12 @@ export interface UAIWwState_machine extends UAObject { // Object
 /**
  * The IWwStateType provides a list of machine states
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwStateType ns=12;i=8                         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwStateType i=8                                            |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIWwState_Base extends UABaseInterface_Base {
     /**

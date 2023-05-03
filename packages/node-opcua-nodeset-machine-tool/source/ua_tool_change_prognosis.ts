@@ -6,12 +6,12 @@ import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ToolChangePrognosisType ns=10;i=45             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ToolChangePrognosisType i=45                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAToolChangePrognosis_Base extends UAPrognosis_Base {
     location: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;

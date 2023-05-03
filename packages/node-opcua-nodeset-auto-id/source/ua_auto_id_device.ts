@@ -46,12 +46,12 @@ export interface UAAutoIdDevice_runtimeParameters extends UAFunctionalGroup { //
       scanSettings?: UAFunctionalGroup;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:AutoIdDeviceType ns=3;i=1001                    |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AutoIdDeviceType i=1001                                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAutoIdDevice_Base extends UADevice_Base {
     autoIdModelVersion: UAProperty<UAString, DataType.String>;

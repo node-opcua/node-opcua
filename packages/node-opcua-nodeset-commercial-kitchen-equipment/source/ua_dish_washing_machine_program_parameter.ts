@@ -43,12 +43,12 @@ export interface UADishWashingMachineProgramParameter_pumpedFinalRinseTemperatur
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:DishWashingMachineProgramParameterType ns=5;i=1025|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DishWashingMachineProgramParameterType i=1025               |
+ * |isAbstract      |false                                                       |
  */
 export interface UADishWashingMachineProgramParameter_Base extends UAKitchenDeviceParameter_Base {
    // PlaceHolder for actualFinalRinseTemperature_$No_$

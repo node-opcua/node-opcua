@@ -67,12 +67,12 @@ export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_cleanupSa
       stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AnalyserChannel_OperatingModeExecuteSubStateMachineType ns=2;i=1009|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalyserChannel_OperatingModeExecuteSubStateMachineType i=1009|
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_Base extends UAFiniteStateMachine_Base {
     /**

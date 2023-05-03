@@ -10,12 +10,12 @@ import { UALockingServices } from "./ua_locking_services"
  * Defines the basic information components for all
  * configurable elements in a device topology
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:TopologyElementType ns=1;i=1001                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TopologyElementType i=1001                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UATopologyElement_Base {
     /**

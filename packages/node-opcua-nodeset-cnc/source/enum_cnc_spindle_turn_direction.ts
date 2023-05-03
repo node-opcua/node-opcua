@@ -3,12 +3,12 @@
 /**
  * Turn direction of a CNC spindle.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CNC                   |
- * | nodeClass |DataType                                          |
- * | name      |11:CncSpindleTurnDirection                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CNC                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |11:CncSpindleTurnDirection                                  |
+ * | isAbstract|false                                                       |
  */
 export enum EnumCncSpindleTurnDirection  {
   /**

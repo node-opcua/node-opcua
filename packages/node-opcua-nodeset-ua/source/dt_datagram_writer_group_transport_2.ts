@@ -5,12 +5,12 @@ import { DTDatagramWriterGroupTransport } from "./dt_datagram_writer_group_trans
 import { DTNetworkAddress } from "./dt_network_address"
 import { DTTransmitQos } from "./dt_transmit_qos"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |DatagramWriterGroupTransport2DataType             |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |DatagramWriterGroupTransport2DataType                       |
+ * | isAbstract|false                                                       |
  */
 export interface DTDatagramWriterGroupTransport2 extends DTDatagramWriterGroupTransport {
   messageRepeatCount: Byte; // Byte ns=0;i=3

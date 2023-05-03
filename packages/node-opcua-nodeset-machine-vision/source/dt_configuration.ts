@@ -3,12 +3,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTConfigurationId } from "./dt_configuration_id"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:ConfigurationDataType                           |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:ConfigurationDataType                                     |
+ * | isAbstract|false                                                       |
  */
 export interface DTConfiguration extends DTStructure {
   /** Indicates that actual content of the configuration may be transferred through temporary file transfer method.*/

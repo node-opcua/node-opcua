@@ -8,12 +8,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * information about the duration required by the
  * various sub-functions.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:ProcessingTimesDataType                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:ProcessingTimesDataType                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTProcessingTimes extends DTStructure {
   /** Contains the time when the system started execution of the joining process.*/

@@ -9,12 +9,12 @@ export interface UAProductionJob_runsPlanned<T, DT extends DataType> extends UAB
       isValid: UAProperty<boolean, DataType.Boolean>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionJobType ns=10;i=29                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionJobType i=29                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionJob_Base {
     customerOrderIdentifier?: UAProperty<UAString, DataType.String>;

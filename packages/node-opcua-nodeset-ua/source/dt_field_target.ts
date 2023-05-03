@@ -6,12 +6,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumOverrideValueHandling } from "./enum_override_value_handling"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |FieldTargetDataType                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |FieldTargetDataType                                         |
+ * | isAbstract|false                                                       |
  */
 export interface DTFieldTarget extends DTStructure {
   dataSetFieldId: Guid; // Guid ns=0;i=14

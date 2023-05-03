@@ -9,12 +9,12 @@ import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:InstallationStateMachineType ns=1;i=249         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |InstallationStateMachineType i=249                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAInstallationStateMachine_Base extends UAFiniteStateMachine_Base {
     percentComplete?: UABaseDataVariable<Byte, DataType.Byte>;

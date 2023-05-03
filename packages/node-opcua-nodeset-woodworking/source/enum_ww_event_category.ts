@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Woodworking/          |
- * | nodeClass |DataType                                          |
- * | name      |12:WwEventCategoryEnumeration                     |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
+ * | nodeClass |DataType                                                    |
+ * | name      |12:WwEventCategoryEnumeration                               |
+ * | isAbstract|false                                                       |
  */
 export enum EnumWwEventCategory  {
   /**

@@ -6,12 +6,12 @@ import { EnumSecurityTokenRequest } from "./enum_security_token_request"
 import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { UAAuditChannelEvent, UAAuditChannelEvent_Base } from "./ua_audit_channel_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditOpenSecureChannelEventType ns=0;i=2060       |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditOpenSecureChannelEventType i=2060                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditOpenSecureChannelEvent_Base extends UAAuditChannelEvent_Base {
     clientCertificate: UAProperty<Buffer, DataType.ByteString>;

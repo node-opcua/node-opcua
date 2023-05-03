@@ -173,12 +173,12 @@ export interface UAAnalyserChannel_OperatingModeSubStateMachine_stoppingToAborti
 /**
  * AnalyserChannel OperatingMode SubStateMachine
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AnalyserChannel_OperatingModeSubStateMachineType ns=2;i=1008|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalyserChannel_OperatingModeSubStateMachineType i=1008     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalyserChannel_OperatingModeSubStateMachine_Base extends UAFiniteStateMachine_Base {
     operatingExecuteSubStateMachine: UAAnalyserChannel_OperatingModeExecuteSubStateMachine;

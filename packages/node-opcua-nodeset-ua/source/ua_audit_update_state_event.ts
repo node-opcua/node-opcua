@@ -3,12 +3,12 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType, VariantOptions } from "node-opcua-variant"
 import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "./ua_audit_update_method_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditUpdateStateEventType ns=0;i=2315             |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditUpdateStateEventType i=2315                            |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditUpdateStateEvent_Base extends UAAuditUpdateMethodEvent_Base {
     oldStateId: UAProperty<any, any>;

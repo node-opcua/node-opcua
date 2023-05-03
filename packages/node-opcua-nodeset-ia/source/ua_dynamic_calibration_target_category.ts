@@ -11,12 +11,12 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * if a new piece should be used or item is created,
  * a new Object of this ObjectType is created.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:DynamicCalibrationTargetCategoryType ns=9;i=1018|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DynamicCalibrationTargetCategoryType i=1018                 |
+ * |isAbstract      |false                                                       |
  */
 export type UADynamicCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
 export interface UADynamicCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UADynamicCalibrationTargetCategory_Base {

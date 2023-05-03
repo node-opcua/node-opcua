@@ -10,12 +10,12 @@ import { EnumSignalMode } from "./enum_signal_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UAPressureCookingKettleParameter } from "./ua_pressure_cooking_kettle_parameter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:PressureCookingKettleDeviceType ns=5;i=1015     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PressureCookingKettleDeviceType i=1015                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPressureCookingKettleDevice_Base extends UACommercialKitchenDevice_Base {
     energySource: UAProperty<EnumEnergySource, DataType.Int32>;

@@ -5,14 +5,14 @@ import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |TransitionVariableType ns=0;i=2762                |
- * |dataType        |LocalizedText                                     |
- * |dataType Name   |LocalizedText ns=0;i=21                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TransitionVariableType i=2762                               |
+ * |dataType        |LocalizedText                                               |
+ * |dataType Name   |LocalizedText i=21                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UATransitionVariable_Base<T extends LocalizedText>  extends UABaseDataVariable_Base<T, DataType.LocalizedText> {
     id: UAProperty<any, any>;

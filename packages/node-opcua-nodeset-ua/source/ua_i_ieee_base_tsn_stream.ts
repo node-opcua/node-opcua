@@ -5,12 +5,12 @@ import { EnumTsnStreamState } from "./enum_tsn_stream_state"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IIeeeBaseTsnStreamType ns=0;i=24173               |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IIeeeBaseTsnStreamType i=24173                              |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIIeeeBaseTsnStream_Base extends UABaseInterface_Base {
     streamId: UABaseDataVariable<Byte[], DataType.Byte>;

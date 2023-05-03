@@ -8,12 +8,12 @@ import { UAMachineryItemIdentification, UAMachineryItemIdentification_Base } fro
  * Contains information about the identification and
  * nameplate of a component
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:MachineryComponentIdentificationType ns=8;i=1005|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineryComponentIdentificationType i=1005                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineryComponentIdentification_Base extends UAMachineryItemIdentification_Base {
     /**

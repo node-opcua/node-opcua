@@ -9,12 +9,12 @@ import { DTReaderGroupTransport } from "./dt_reader_group_transport"
 import { DTReaderGroupMessage } from "./dt_reader_group_message"
 import { DTDataSetReader } from "./dt_data_set_reader"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |ReaderGroupDataType                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |ReaderGroupDataType                                         |
+ * | isAbstract|false                                                       |
  */
 export interface DTReaderGroup extends DTPubSubGroup {
   name: UAString; // String ns=0;i=12

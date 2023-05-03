@@ -8,12 +8,12 @@ import { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di
  * Contains information about the identification and
  * nameplate of a MachineryItem
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:MachineryItemIdentificationType ns=8;i=1004     |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineryItemIdentificationType i=1004                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Base {
     /**

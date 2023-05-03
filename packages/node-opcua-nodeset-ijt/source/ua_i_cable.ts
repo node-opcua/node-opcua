@@ -21,12 +21,12 @@ export interface UAICable_parameters extends UAFolder { // Object
       type?: UAMultiStateDiscrete<Byte, DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:ICableType ns=14;i=1014                        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ICableType i=1014                                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAICable_Base extends UAITighteningSystemAsset_Base {
     parameters: UAICable_parameters;

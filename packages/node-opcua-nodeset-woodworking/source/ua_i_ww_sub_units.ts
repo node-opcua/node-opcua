@@ -23,12 +23,12 @@ export interface UAIWwSubUnits_$SubUnit$ extends UAObject { // Object
 /**
  * The IWwSubUnitsType provides a list of subUnits.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwSubUnitsType ns=12;i=7                      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwSubUnitsType i=7                                         |
+ * |isAbstract      |true                                                        |
  */
 export type UAIWwSubUnits_Base = UABaseInterface_Base;
 export interface UAIWwSubUnits extends UABaseInterface, UAIWwSubUnits_Base {

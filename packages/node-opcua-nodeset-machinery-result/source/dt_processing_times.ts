@@ -5,12 +5,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * Contains measured times that were generated
  * during the execution of a recipe.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Machinery/Result/     |
- * | nodeClass |DataType                                          |
- * | name      |22:ProcessingTimesDataType                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
+ * | nodeClass |DataType                                                    |
+ * | name      |21:ProcessingTimesDataType                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTProcessingTimes extends DTStructure {
   /** Contains the time when the system started execution of the recipe.*/

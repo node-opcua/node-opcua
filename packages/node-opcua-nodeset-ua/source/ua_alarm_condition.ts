@@ -11,12 +11,12 @@ import { UAAudioVariable } from "./ua_audio_variable"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 import { UAAlarmGroup } from "./ua_alarm_group"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AlarmConditionType ns=0;i=2915                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AlarmConditionType i=2915                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAlarmCondition_Base extends UAAcknowledgeableCondition_Base {
     enabledState: UATwoStateVariable<LocalizedText>;

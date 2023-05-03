@@ -24,12 +24,12 @@ import { EnumOperationalMode } from "./enum_operational_mode"
  * Contains the set of controllers and motion
  * devices in a closely-coupled motion device system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:MotionDeviceSystemType ns=7;i=1002              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MotionDeviceSystemType i=1002                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMotionDeviceSystem_Base extends UAComponent_Base {
     /**

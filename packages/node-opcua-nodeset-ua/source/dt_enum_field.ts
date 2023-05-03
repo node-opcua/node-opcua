@@ -4,12 +4,12 @@ import { Int64, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTEnumValue } from "./dt_enum_value"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |EnumField                                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |EnumField                                                   |
+ * | isAbstract|false                                                       |
  */
 export interface DTEnumField extends DTEnumValue {
   value: Int64; // Int64 ns=0;i=8

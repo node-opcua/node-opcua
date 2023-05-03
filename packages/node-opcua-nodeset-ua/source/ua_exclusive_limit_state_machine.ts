@@ -3,12 +3,12 @@ import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_sta
 import { UAState } from "./ua_state"
 import { UATransition } from "./ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ExclusiveLimitStateMachineType ns=0;i=9318        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ExclusiveLimitStateMachineType i=9318                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAExclusiveLimitStateMachine_Base extends UAFiniteStateMachine_Base {
     highHigh: UAState;

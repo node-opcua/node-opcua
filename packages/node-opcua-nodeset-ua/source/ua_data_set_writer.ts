@@ -8,12 +8,12 @@ import { UADataSetWriterMessage } from "./ua_data_set_writer_message"
 import { UAPubSubStatus } from "./ua_pub_sub_status"
 import { UAPubSubDiagnosticsDataSetWriter } from "./ua_pub_sub_diagnostics_data_set_writer"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DataSetWriterType ns=0;i=15298                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DataSetWriterType i=15298                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UADataSetWriter_Base {
     dataSetWriterId: UAProperty<UInt16, DataType.UInt16>;

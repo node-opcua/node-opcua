@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |BrokerConnectionTransportType ns=0;i=15155        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BrokerConnectionTransportType i=15155                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UABrokerConnectionTransport_Base extends UAConnectionTransport_Base {
     resourceUri: UAProperty<UAString, DataType.String>;

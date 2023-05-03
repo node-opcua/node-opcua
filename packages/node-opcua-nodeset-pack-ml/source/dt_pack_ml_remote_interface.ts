@@ -4,12 +4,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/PackML/               |
- * | nodeClass |DataType                                          |
- * | name      |15:PackMLRemoteInterfaceDataType                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/PackML/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |15:PackMLRemoteInterfaceDataType                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTPackMLRemoteInterface extends DTStructure {
   /** This is the unique number for the downstream/upstream unit machine using a common tag structure as the unit machine.*/

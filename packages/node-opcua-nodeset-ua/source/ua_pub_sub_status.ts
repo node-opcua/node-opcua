@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { EnumPubSubState } from "./enum_pub_sub_state"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubStatusType ns=0;i=14643                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubStatusType i=14643                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubStatus_Base {
     state: UABaseDataVariable<EnumPubSubState, DataType.Int32>;

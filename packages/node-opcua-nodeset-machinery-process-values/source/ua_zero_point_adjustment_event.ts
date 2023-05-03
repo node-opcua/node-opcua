@@ -11,12 +11,12 @@ import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_b
  * Provides information, that a zero-point
  * adjustment took place
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |21:ZeroPointAdjustmentEventType ns=21;i=1002      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/        |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ZeroPointAdjustmentEventType i=1002                         |
+ * |isAbstract      |true                                                        |
  */
 export interface UAZeroPointAdjustmentEvent_Base extends UABaseEvent_Base {
     zeroPointAdjustmentResult: UAProperty<StatusCode, DataType.StatusCode>;

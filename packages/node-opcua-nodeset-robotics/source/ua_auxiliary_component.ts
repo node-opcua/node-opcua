@@ -10,12 +10,12 @@ import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
  * Components mounted in a controller cabinet or a
  * motion device e.g. an IO-board or a power supply.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:AuxiliaryComponentType ns=7;i=17725             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuxiliaryComponentType i=17725                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAuxiliaryComponent_Base extends UADevice_Base {
     /**

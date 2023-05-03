@@ -11,12 +11,12 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
  * State machine representing the state of a
  * machinery item
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:MachineryItemState_StateMachineType ns=8;i=1002 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineryItemState_StateMachineType i=1002                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineryItemState_StateMachine_Base extends UAFiniteStateMachine_Base {
     /**

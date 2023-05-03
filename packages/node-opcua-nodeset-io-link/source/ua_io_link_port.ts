@@ -69,12 +69,12 @@ export interface UAIOLinkPort_statistics extends UAFunctionalGroup { // Object
       numberOfRetries?: UABaseDataVariable<UInt32, DataType.UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IOLink/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |17:IOLinkPortType ns=17;i=1015                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IOLink/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOLinkPortType i=1015                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAIOLinkPort_Base extends UATopologyElement_Base {
     alarms?: UAFolder;

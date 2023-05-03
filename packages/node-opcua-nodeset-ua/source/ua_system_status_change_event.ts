@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { EnumServerState } from "./enum_server_state"
 import { UASystemEvent, UASystemEvent_Base } from "./ua_system_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |SystemStatusChangeEventType ns=0;i=11446          |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SystemStatusChangeEventType i=11446                         |
+ * |isAbstract      |true                                                        |
  */
 export interface UASystemStatusChangeEvent_Base extends UASystemEvent_Base {
     systemState: UAProperty<EnumServerState, DataType.Int32>;

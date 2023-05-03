@@ -6,12 +6,12 @@ import { DataValue } from "node-opcua-data-value"
 import { EnumPerformUpdate } from "./enum_perform_update"
 import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditHistoryValueUpdateEventType ns=0;i=3006      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditHistoryValueUpdateEventType i=3006                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryValueUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
     updatedNode: UAProperty<NodeId, DataType.NodeId>;

@@ -4,12 +4,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTWriterGroupMessage } from "./dt_writer_group_message"
 import { EnumDataSetOrdering } from "./enum_data_set_ordering"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |UadpWriterGroupMessageDataType                    |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |UadpWriterGroupMessageDataType                              |
+ * | isAbstract|false                                                       |
  */
 export interface DTUadpWriterGroupMessage extends DTWriterGroupMessage {
   groupVersion: UInt32; // UInt32 ns=0;i=20998

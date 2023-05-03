@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { StatusCode } from "node-opcua-status-code"
 import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditSecurityEventType ns=0;i=2058                |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditSecurityEventType i=2058                               |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditSecurityEvent_Base extends UAAuditEvent_Base {
     statusCodeId?: UAProperty<StatusCode, DataType.StatusCode>;

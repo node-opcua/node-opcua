@@ -8,12 +8,12 @@ import { UABaseCalibrationTargetCategory, UABaseCalibrationTargetCategory_Base }
  * calibration target, but a batch of calibration
  * targets with the same characteristics.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:OneTimeCalibrationTargetCategoryType ns=9;i=1017|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |OneTimeCalibrationTargetCategoryType i=1017                 |
+ * |isAbstract      |false                                                       |
  */
 export type UAOneTimeCalibrationTargetCategory_Base = UABaseCalibrationTargetCategory_Base;
 export interface UAOneTimeCalibrationTargetCategory extends UABaseCalibrationTargetCategory, UAOneTimeCalibrationTargetCategory_Base {

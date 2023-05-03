@@ -7,12 +7,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * It is to describe of the trace samples for a
  * given program step.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:TraceContentDataType                           |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:TraceContentDataType                                     |
+ * | isAbstract|false                                                       |
  */
 export interface DTTraceContent extends DTStructure {
   /** The mandatory Values is an array of trace samples. The values correspond to the PhysicalQuantity attribute.*/

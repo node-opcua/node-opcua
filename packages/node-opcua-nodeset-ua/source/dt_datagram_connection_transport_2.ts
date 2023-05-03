@@ -5,12 +5,12 @@ import { DTDatagramConnectionTransport } from "./dt_datagram_connection_transpor
 import { DTNetworkAddress } from "./dt_network_address"
 import { DTQos } from "./dt_qos"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |DatagramConnectionTransport2DataType              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |DatagramConnectionTransport2DataType                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTDatagramConnectionTransport2 extends DTDatagramConnectionTransport {
   discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502

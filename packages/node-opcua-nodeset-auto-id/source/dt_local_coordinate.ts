@@ -3,12 +3,12 @@ import { Int32 } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:LocalCoordinate                                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:LocalCoordinate                                           |
+ * | isAbstract|false                                                       |
  */
 export interface DTLocalCoordinate extends DTStructure {
   x: number; // Double ns=0;i=11

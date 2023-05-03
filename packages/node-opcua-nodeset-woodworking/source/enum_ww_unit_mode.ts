@@ -4,12 +4,12 @@
  * This enumeration represents the generalized mode
  * of a unit.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Woodworking/          |
- * | nodeClass |DataType                                          |
- * | name      |12:WwUnitModeEnumeration                          |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
+ * | nodeClass |DataType                                                    |
+ * | name      |12:WwUnitModeEnumeration                                    |
+ * | isAbstract|false                                                       |
  */
 export enum EnumWwUnitMode  {
   /**

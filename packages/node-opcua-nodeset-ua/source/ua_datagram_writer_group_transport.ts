@@ -6,12 +6,12 @@ import { DTTransmitQos } from "./dt_transmit_qos"
 import { UAWriterGroupTransport, UAWriterGroupTransport_Base } from "./ua_writer_group_transport"
 import { UANetworkAddress } from "./ua_network_address"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DatagramWriterGroupTransportType ns=0;i=21133     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DatagramWriterGroupTransportType i=21133                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UADatagramWriterGroupTransport_Base extends UAWriterGroupTransport_Base {
     messageRepeatCount?: UAProperty<Byte, DataType.Byte>;

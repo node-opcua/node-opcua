@@ -3,12 +3,12 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/source/ua_condition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:InterruptionConditionType ns=10;i=19           |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |InterruptionConditionType i=19                              |
+ * |isAbstract      |true                                                        |
  */
 export interface UAInterruptionCondition_Base extends UACondition_Base {
     isAutomated: UAProperty<boolean, DataType.Boolean>;

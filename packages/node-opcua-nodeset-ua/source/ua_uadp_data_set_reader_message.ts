@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32, UInt16, Guid } from "node-opcua-basic-types"
 import { UADataSetReaderMessage, UADataSetReaderMessage_Base } from "./ua_data_set_reader_message"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |UadpDataSetReaderMessageType ns=0;i=21116         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |UadpDataSetReaderMessageType i=21116                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAUadpDataSetReaderMessage_Base extends UADataSetReaderMessage_Base {
     groupVersion: UAProperty<UInt32, DataType.UInt32>;

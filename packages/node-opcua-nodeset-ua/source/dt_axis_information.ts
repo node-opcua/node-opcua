@@ -6,12 +6,12 @@ import { DTStructure } from "./dt_structure"
 import { DTRange } from "./dt_range"
 import { EnumAxisScale } from "./enum_axis_scale"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |AxisInformation                                   |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |AxisInformation                                             |
+ * | isAbstract|false                                                       |
  */
 export interface DTAxisInformation extends DTStructure {
   engineeringUnits: EUInformation; // ExtensionObject ns=0;i=887

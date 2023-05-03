@@ -45,12 +45,12 @@ export interface UARfidReaderDevice_runtimeParameters extends UAAutoIdDevice_run
       tagTypes?: UAMultiStateDiscrete<UInt32[], DataType.UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:RfidReaderDeviceType ns=3;i=1003                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RfidReaderDeviceType i=1003                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UARfidReaderDevice_Base extends UAAutoIdDevice_Base {
     antennaNames?: UAProperty<DTAntennaNameIdPair[], DataType.ExtensionObject>;

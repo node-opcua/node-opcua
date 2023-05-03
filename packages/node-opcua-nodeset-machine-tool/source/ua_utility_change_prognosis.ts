@@ -4,12 +4,12 @@ import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:UtilityChangePrognosisType ns=10;i=6           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |UtilityChangePrognosisType i=6                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAUtilityChangePrognosis_Base extends UAPrognosis_Base {
     utilityName: UABaseDataVariable<UAString, DataType.String>;

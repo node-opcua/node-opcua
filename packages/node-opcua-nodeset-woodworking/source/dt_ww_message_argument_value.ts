@@ -6,12 +6,12 @@ import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
  * The WwArgumentValueDataType definition defines
  * the possible types of an argument value.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Woodworking/          |
- * | nodeClass |DataType                                          |
- * | name      |12:WwMessageArgumentValueDataType                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
+ * | nodeClass |DataType                                                    |
+ * | name      |12:WwMessageArgumentValueDataType                           |
+ * | isAbstract|false                                                       |
  */
 export interface DTWwMessageArgumentValue_0 extends DTUnion {
   /** The content of the value as an array of the own type*/

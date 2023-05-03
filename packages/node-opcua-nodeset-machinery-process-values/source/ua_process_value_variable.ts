@@ -8,14 +8,14 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "node-opcua-
 /**
  * Provides a process value and additional meta data
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/|
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |21:ProcessValueVariableType ns=21;i=2002          |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/        |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ProcessValueVariableType i=2002                             |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProcessValueVariable_Base<T, DT extends DataType>  extends UAAnalogSignalVariable_Base<T, DT> {
     /**

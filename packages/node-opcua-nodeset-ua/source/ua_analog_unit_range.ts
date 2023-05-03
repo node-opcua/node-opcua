@@ -4,14 +4,14 @@ import { DataType, Variant } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UAAnalogItem, UAAnalogItem_Base } from "./ua_analog_item"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |AnalogUnitRangeType ns=0;i=17570                  |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |AnalogUnitRangeType i=17570                                 |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalogUnitRange_Base<T, DT extends DataType>  extends UAAnalogItem_Base<T, DT> {
     engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;

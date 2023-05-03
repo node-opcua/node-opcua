@@ -5,12 +5,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTScanData } from "./dt_scan_data"
 import { DTLocation } from "./dt_location"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:ScanResult                                      |
- * | isAbstract|true                                              |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:ScanResult                                                |
+ * | isAbstract|true                                                        |
  */
 export interface DTScanResult extends DTStructure {
   /** Defines the format of the ScanData as string.*/

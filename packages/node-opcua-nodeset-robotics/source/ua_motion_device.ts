@@ -41,12 +41,12 @@ export interface UAMotionDevice_parameterSet extends UAObject { // Object
  * positioner. A MotionDevice should have at least
  * one axis.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:MotionDeviceType ns=7;i=1004                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MotionDeviceType i=1004                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMotionDevice_Base extends UAComponent_Base {
     /**

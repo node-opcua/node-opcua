@@ -8,12 +8,12 @@ import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
  * mounted in a controller cabinet or a motion
  * device.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:DriveType ns=7;i=17793                          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DriveType i=17793                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UADrive_Base extends UADevice_Base {
     /**

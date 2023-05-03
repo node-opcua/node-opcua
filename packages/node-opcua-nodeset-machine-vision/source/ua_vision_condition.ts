@@ -16,12 +16,12 @@ import { DTPartId } from "./dt_part_id"
 import { DTProductId } from "./dt_product_id"
 import { DTResultId } from "./dt_result_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:VisionConditionType ns=4;i=1033                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |VisionConditionType i=1033                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UAVisionCondition_Base extends UAAcknowledgeableCondition_Base {
     blockReaction: UAProperty<boolean, DataType.Boolean>;

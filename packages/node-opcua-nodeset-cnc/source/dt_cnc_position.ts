@@ -4,12 +4,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
  * Structure of position elements.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CNC                   |
- * | nodeClass |DataType                                          |
- * | name      |11:CncPositionDataType                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CNC                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |11:CncPositionDataType                                      |
+ * | isAbstract|false                                                       |
  */
 export interface DTCncPosition extends DTStructure {
   /** Position current value.*/

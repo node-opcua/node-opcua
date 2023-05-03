@@ -3,12 +3,12 @@ import { DataType, VariantOptions } from "node-opcua-variant"
 import { UATransitionEvent, UATransitionEvent_Base } from "./ua_transition_event"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ProgramTransitionEventType ns=0;i=2378            |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProgramTransitionEventType i=2378                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAProgramTransitionEvent_Base extends UATransitionEvent_Base {
     intermediateResult: UABaseDataVariable<any, any>;

@@ -15,12 +15,12 @@ export interface UAPubSubDiagnosticsReaderGroup_liveValues extends UAObject { //
       operationalDataSetReaders: UABaseDataVariable<UInt16, DataType.UInt16>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsReaderGroupType ns=0;i=19903     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsReaderGroupType i=19903                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsReaderGroup_Base extends UAPubSubDiagnostics_Base {
     counters: UAPubSubDiagnosticsReaderGroup_counters;

@@ -6,12 +6,12 @@ import { DTScanData } from "./dt_scan_data"
 import { DTLocation } from "./dt_location"
 import { DTRfidSighting } from "./dt_rfid_sighting"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:RfidScanResult                                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:RfidScanResult                                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTRfidScanResult extends DTScanResult {
   /** Defines the format of the ScanData as string.*/

@@ -14,12 +14,12 @@ export interface UAIServo_parameters extends UAFolder { // Object
       nodeNumber?: UABaseDataVariable<Int16, DataType.Int16>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IServoType ns=14;i=1008                        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IServoType i=1008                                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIServo_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIServo_parameters;

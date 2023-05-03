@@ -9,14 +9,14 @@ import { DTResultValue } from "./dt_result_value"
  * It is used report measurement values
  * corresponding to a given step in the program.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:StepResultType ns=14;i=2004                    |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTStepResult ns=14;i=3009                         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |StepResultType i=2004                                       |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTStepResult i=3009                                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStepResult_Base<T extends DTStepResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

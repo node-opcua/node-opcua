@@ -5,12 +5,12 @@ import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:ManualFolderType ns=13;i=1041                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ManualFolderType i=1041                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAManualFolder_Base extends UAFolder_Base {
    // PlaceHolder for $LocalManuals$

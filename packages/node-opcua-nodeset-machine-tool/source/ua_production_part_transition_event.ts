@@ -7,12 +7,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { EnumPartQuality } from "./enum_part_quality"
 import { EnumProcessIrregularity } from "./enum_process_irregularity"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionPartTransitionEventType ns=10;i=27   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionPartTransitionEventType i=27                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAProductionPartTransitionEvent_Base extends UATransitionEvent_Base {
     customerOrderIdentifier?: UAProperty<UAString, DataType.String>;

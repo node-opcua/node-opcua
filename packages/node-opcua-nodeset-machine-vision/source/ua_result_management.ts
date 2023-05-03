@@ -5,12 +5,12 @@ import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAResultFolder } from "./ua_result_folder"
 import { UAResultTransfer } from "./ua_result_transfer"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:ResultManagementType ns=4;i=1007                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultManagementType i=1007                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResultManagement_Base {
     getResultById: UAMethod;

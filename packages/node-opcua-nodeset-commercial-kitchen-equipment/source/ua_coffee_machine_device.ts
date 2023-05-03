@@ -9,12 +9,12 @@ import { EnumCoffeeMachineMode } from "./enum_coffee_machine_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UACoffeeMachineParameter } from "./ua_coffee_machine_parameter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CoffeeMachineDeviceType ns=5;i=1024             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CoffeeMachineDeviceType i=1024                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UACoffeeMachineDevice_Base extends UACommercialKitchenDevice_Base {
    // PlaceHolder for $RecipeName$

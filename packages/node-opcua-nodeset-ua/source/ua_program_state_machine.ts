@@ -23,12 +23,12 @@ export interface UAProgramStateMachine_lastTransition<T extends LocalizedText> e
       transitionTime: UAProperty<Date, DataType.DateTime>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ProgramStateMachineType ns=0;i=2391               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProgramStateMachineType i=2391                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProgramStateMachine_Base extends UAFiniteStateMachine_Base {
     currentState: UAProgramStateMachine_currentState<LocalizedText>;

@@ -4,12 +4,12 @@ import { StatusCode } from "node-opcua-status-code"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/DI/                   |
- * | nodeClass |DataType                                          |
- * | name      |1:ParameterResultDataType                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/DI/                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |1:ParameterResultDataType                                   |
+ * | isAbstract|false                                                       |
  */
 export interface DTParameterResult extends DTStructure {
   nodePath: QualifiedName[]; // QualifiedName ns=0;i=20

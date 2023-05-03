@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditProgramTransitionEventType ns=0;i=11856      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditProgramTransitionEventType i=11856                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditProgramTransitionEvent_Base extends UAAuditUpdateStateEvent_Base {
     transitionNumber: UAProperty<UInt32, DataType.UInt32>;

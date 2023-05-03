@@ -8,12 +8,12 @@ export interface UAPubSubDiagnosticsConnection_liveValues extends UAObject { // 
       resolvedAddress: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsConnectionType ns=0;i=19786      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsConnectionType i=19786                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsConnection_Base extends UAPubSubDiagnostics_Base {
     liveValues: UAPubSubDiagnosticsConnection_liveValues;

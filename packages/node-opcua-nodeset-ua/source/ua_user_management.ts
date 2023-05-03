@@ -7,12 +7,12 @@ import { DTUserManagement } from "./dt_user_management"
 import { DTRange } from "./dt_range"
 import { DTArgument } from "./dt_argument"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |UserManagementType ns=0;i=24264                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |UserManagementType i=24264                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAUserManagement_Base {
     users: UAProperty<DTUserManagement[], DataType.ExtensionObject>;

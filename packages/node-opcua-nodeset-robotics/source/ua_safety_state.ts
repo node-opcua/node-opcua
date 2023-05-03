@@ -43,12 +43,12 @@ export interface UASafetyState_parameterSet extends UAObject { // Object
  * device system is associated with one or more
  * instances of the SafetyStateType.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:SafetyStateType ns=7;i=1013                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SafetyStateType i=1013                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UASafetyState_Base extends UAComponent_Base {
     /**

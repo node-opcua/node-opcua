@@ -17,12 +17,12 @@ export interface UASealingMaterial_resin extends Omit<UABaseMaterial, "identifie
       materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:SealingMaterialType ns=13;i=1018               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SealingMaterialType i=1018                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UASealingMaterial_Base extends UABaseMaterial_Base {
     addOnMaterial?: UABaseDataVariable<UAString, DataType.String>;

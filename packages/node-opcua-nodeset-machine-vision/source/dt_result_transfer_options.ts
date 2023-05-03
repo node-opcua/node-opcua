@@ -3,12 +3,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTResultId } from "./dt_result_id"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:ResultTransferOptions                           |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:ResultTransferOptions                                     |
+ * | isAbstract|false                                                       |
  */
 export interface DTResultTransferOptions extends DTStructure {
   /** The Id of the result to be transferred to the client.*/

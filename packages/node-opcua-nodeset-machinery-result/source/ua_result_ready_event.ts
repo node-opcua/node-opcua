@@ -14,12 +14,12 @@ import { UAResult } from "./ua_result"
  * Provides information of a complete or partial
  * result.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/Result/     |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |22:ResultReadyEventType ns=22;i=1002              |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/Result/               |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultReadyEventType i=1002                                 |
+ * |isAbstract      |true                                                        |
  */
 export interface UAResultReadyEvent_Base extends UABaseEvent_Base {
     result: UAResult<DTResult>;

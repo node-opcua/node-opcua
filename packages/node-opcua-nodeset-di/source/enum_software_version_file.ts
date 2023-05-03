@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/DI/                   |
- * | nodeClass |DataType                                          |
- * | name      |1:SoftwareVersionFileType                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/DI/                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |1:SoftwareVersionFileType                                   |
+ * | isAbstract|false                                                       |
  */
 export enum EnumSoftwareVersionFile  {
   /**

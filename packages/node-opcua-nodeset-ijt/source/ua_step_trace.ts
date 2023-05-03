@@ -8,14 +8,14 @@ import { DTTraceContent } from "./dt_trace_content"
  * It is to describe of the trace for a given
  * program step.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:StepTraceType ns=14;i=2005                     |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTStepTrace ns=14;i=3013                          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |StepTraceType i=2005                                        |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTStepTrace i=3013                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStepTrace_Base<T extends DTStepTrace>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

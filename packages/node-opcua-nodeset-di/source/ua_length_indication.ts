@@ -4,12 +4,12 @@ import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_ba
  * Indicates the abraded length, for example of a
  * drill.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:LengthIndicationType ns=1;i=477                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |LengthIndicationType i=477                                  |
+ * |isAbstract      |true                                                        |
  */
 export type UALengthIndication_Base = UABaseLifetimeIndication_Base;
 export interface UALengthIndication extends UABaseLifetimeIndication, UALengthIndication_Base {

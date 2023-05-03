@@ -9,12 +9,12 @@ import { UAIStatistics, UAIStatistics_Base } from "./ua_i_statistics"
  * tracking the statistical data are considered,
  * until the tracking gets reset.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:IAggregateStatisticsType ns=9;i=1012            |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IAggregateStatisticsType i=1012                             |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIAggregateStatistics_Base extends UAIStatistics_Base {
     /**

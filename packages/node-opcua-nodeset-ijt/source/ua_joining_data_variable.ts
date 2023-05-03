@@ -8,14 +8,14 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-
  * It is to describe common sematic required for
  * variables in a given system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:JoiningDataVariableType ns=14;i=2011           |
- * |dataType        |Null                                              |
- * |dataType Name   |VariantOptions ns=0;i=0                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |JoiningDataVariableType i=2011                              |
+ * |dataType        |Null                                                        |
+ * |dataType Name   |VariantOptions i=0                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAJoiningDataVariable_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
     /**

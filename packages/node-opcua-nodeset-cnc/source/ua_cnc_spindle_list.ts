@@ -209,12 +209,12 @@ export interface UACncSpindleList_$CncSpindle$ extends Omit<UACncSpindle, "actCh
 /**
  * List of CNC spindle objects.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncSpindleListType ns=11;i=1009                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncSpindleListType i=1009                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncSpindleList_Base {
    // PlaceHolder for $CncSpindle$

@@ -4,12 +4,12 @@ import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTBinaryIdBase } from "./dt_binary_id_base"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:RecipeIdInternalDataType                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:RecipeIdInternalDataType                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTRecipeIdInternal extends DTBinaryIdBase {
   /** Id is a system-wide unique name for identifying the recipe.*/

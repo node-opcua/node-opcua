@@ -27,12 +27,12 @@ export interface UACalibrationTarget_identification extends UAFunctionalGroup { 
 /**
  * Provides information about a calibration target.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:CalibrationTargetType ns=9;i=1019               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CalibrationTargetType i=1019                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UACalibrationTarget_Base {
     /**

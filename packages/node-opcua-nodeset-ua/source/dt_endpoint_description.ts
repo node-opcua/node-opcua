@@ -6,12 +6,12 @@ import { DTApplicationDescription } from "./dt_application_description"
 import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 import { DTUserTokenPolicy } from "./dt_user_token_policy"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |EndpointDescription                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |EndpointDescription                                         |
+ * | isAbstract|false                                                       |
  */
 export interface DTEndpointDescription extends DTStructure {
   endpointUrl: UAString; // String ns=0;i=12

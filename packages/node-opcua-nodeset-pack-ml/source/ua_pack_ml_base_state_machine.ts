@@ -11,12 +11,12 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAPackMLMachineStateMachine } from "./ua_pack_ml_machine_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PackML/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |15:PackMLBaseStateMachineType ns=15;i=3           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PackML/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackMLBaseStateMachineType i=3                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackMLBaseStateMachine_Base extends UAFiniteStateMachine_Base {
     abort?: UAMethod;

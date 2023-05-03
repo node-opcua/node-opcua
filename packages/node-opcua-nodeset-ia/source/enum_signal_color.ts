@@ -4,12 +4,12 @@
  * Holds the possible colour values for stacklight
  * lamps.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IA/                   |
- * | nodeClass |DataType                                          |
- * | name      |9:SignalColor                                     |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IA/                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |9:SignalColor                                               |
+ * | isAbstract|false                                                       |
  */
 export enum EnumSignalColor  {
   /**

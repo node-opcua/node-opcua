@@ -5,12 +5,12 @@ import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionJobEndPrognosisType ns=10;i=37       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionJobEndPrognosisType i=37                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionJobEndPrognosis_Base extends UAPrognosis_Base {
     jobNodeId?: UABaseDataVariable<NodeId, DataType.NodeId>;

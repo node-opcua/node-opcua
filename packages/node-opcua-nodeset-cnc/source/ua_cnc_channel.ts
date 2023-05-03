@@ -39,12 +39,12 @@ export interface UACncChannel_dryRunFeed<T, DT extends DataType> extends Omit<UA
 /**
  * CNC channel component.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncChannelType ns=11;i=1002                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncChannelType i=1002                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncChannel_Base extends UACncComponent_Base {
    // PlaceHolder for $CncAxis$

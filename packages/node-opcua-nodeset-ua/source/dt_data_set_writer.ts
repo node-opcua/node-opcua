@@ -6,12 +6,12 @@ import { DTKeyValuePair } from "./dt_key_value_pair"
 import { DTDataSetWriterTransport } from "./dt_data_set_writer_transport"
 import { DTDataSetWriterMessage } from "./dt_data_set_writer_message"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |DataSetWriterDataType                             |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |DataSetWriterDataType                                       |
+ * | isAbstract|false                                                       |
  */
 export interface DTDataSetWriter extends DTStructure {
   name: UAString; // String ns=0;i=12

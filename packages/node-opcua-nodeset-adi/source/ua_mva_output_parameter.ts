@@ -10,14 +10,14 @@ import { EnumAlarmState } from "./enum_alarm_state"
  * and associated information to convert scaled data
  * into one or more process values.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |2:MVAOutputParameterType ns=2;i=2010              |
- * |dataType        |Null                                              |
- * |dataType Name   |VariantOptions ns=0;i=0                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |MVAOutputParameterType i=2010                               |
+ * |dataType        |Null                                                        |
+ * |dataType Name   |VariantOptions i=0                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMVAOutputParameter_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {
     warningLimits?: UAProperty<DTRange, DataType.ExtensionObject>;

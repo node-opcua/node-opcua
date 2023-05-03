@@ -3,12 +3,12 @@
 /**
  * Status of a CNC spindle.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CNC                   |
- * | nodeClass |DataType                                          |
- * | name      |11:CncSpindleStatus                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CNC                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |11:CncSpindleStatus                                         |
+ * | isAbstract|false                                                       |
  */
 export enum EnumCncSpindleStatus  {
   /**

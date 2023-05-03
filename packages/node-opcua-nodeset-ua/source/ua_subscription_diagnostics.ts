@@ -5,14 +5,14 @@ import { UInt32, Byte } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 import { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |SubscriptionDiagnosticsType ns=0;i=2172           |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTSubscriptionDiagnostics ns=0;i=874              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |SubscriptionDiagnosticsType i=2172                          |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTSubscriptionDiagnostics i=874                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UASubscriptionDiagnostics_Base<T extends DTSubscriptionDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     sessionId: UABaseDataVariable<NodeId, DataType.NodeId>;

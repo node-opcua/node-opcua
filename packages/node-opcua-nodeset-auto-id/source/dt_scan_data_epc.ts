@@ -3,12 +3,12 @@ import { UInt16 } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:ScanDataEpc                                     |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:ScanDataEpc                                               |
+ * | isAbstract|false                                                       |
  */
 export interface DTScanDataEpc extends DTStructure {
   PC: UInt16; // UInt16 ns=0;i=5

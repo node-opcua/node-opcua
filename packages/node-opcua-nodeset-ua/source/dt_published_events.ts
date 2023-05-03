@@ -5,12 +5,12 @@ import { DTPublishedDataSetSource } from "./dt_published_data_set_source"
 import { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand"
 import { DTContentFilter } from "./dt_content_filter"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |PublishedEventsDataType                           |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |PublishedEventsDataType                                     |
+ * | isAbstract|false                                                       |
  */
 export interface DTPublishedEvents extends DTPublishedDataSetSource {
   eventNotifier: NodeId; // NodeId ns=0;i=17

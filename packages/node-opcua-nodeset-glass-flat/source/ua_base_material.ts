@@ -5,12 +5,12 @@ import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:BaseMaterialType ns=13;i=1006                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BaseMaterialType i=1006                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UABaseMaterial_Base {
     "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;

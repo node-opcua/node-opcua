@@ -8,14 +8,14 @@ import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_dat
  * engineering unit) that a calibration target
  * provides for calibration of equipment.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |9:CalibrationValueType ns=9;i=2002                |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |CalibrationValueType i=2002                                 |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UACalibrationValue_Base<T, DT extends DataType>  extends UADataItem_Base<T, DT> {
     engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;

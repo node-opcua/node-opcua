@@ -4,12 +4,12 @@
  * Contains the values used to indicate how a
  * stacklight (as a whole unit) is used.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IA/                   |
- * | nodeClass |DataType                                          |
- * | name      |9:StacklightOperationMode                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IA/                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |9:StacklightOperationMode                                   |
+ * | isAbstract|false                                                       |
  */
 export enum EnumStacklightOperationMode  {
   /**

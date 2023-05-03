@@ -6,12 +6,12 @@ import { DTRecipeIdExternal } from "./dt_recipe_id_external"
 import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
 import { DTProductId } from "./dt_product_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:RecipePreparedEventType ns=4;i=1022             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RecipePreparedEventType i=1022                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UARecipePreparedEvent_Base extends UABaseEvent_Base {
     externalId?: UAProperty<DTRecipeIdExternal, DataType.ExtensionObject>;

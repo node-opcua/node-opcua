@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UAGlassEvent, UAGlassEvent_Base } from "./ua_glass_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:IntermediateStepEvent ns=13;i=1029             |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IntermediateStepEvent i=1029                                |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIntermediateStepEvent_Base extends UAGlassEvent_Base {
     processStep?: UAProperty<UAString, DataType.String>;

@@ -11,12 +11,12 @@ import { DTSecurityGroup } from "./dt_security_group"
 import { DTPubSubKeyPushTarget } from "./dt_pub_sub_key_push_target"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |PubSubConfiguration2DataType                      |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |PubSubConfiguration2DataType                                |
+ * | isAbstract|false                                                       |
  */
 export interface DTPubSubConfiguration2 extends DTPubSubConfiguration {
   publishedDataSets: DTPublishedDataSet[]; // ExtensionObject ns=0;i=15578

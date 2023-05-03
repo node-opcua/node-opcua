@@ -8,12 +8,12 @@ import { UASessionSecurityDiagnostics } from "./ua_session_security_diagnostics"
 import { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics"
 import { UASubscriptionDiagnosticsArray } from "./ua_subscription_diagnostics_array"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |SessionDiagnosticsObjectType ns=0;i=2029          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SessionDiagnosticsObjectType i=2029                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UASessionDiagnosticsObject_Base {
     sessionDiagnostics: UASessionDiagnosticsVariable<DTSessionDiagnostics>;

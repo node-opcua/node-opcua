@@ -4,12 +4,12 @@
  * This enumeration represents the generalized state
  * of a unit.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Woodworking/          |
- * | nodeClass |DataType                                          |
- * | name      |12:WwUnitStateEnumeration                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
+ * | nodeClass |DataType                                                    |
+ * | name      |12:WwUnitStateEnumeration                                   |
+ * | isAbstract|false                                                       |
  */
 export enum EnumWwUnitState  {
   /**

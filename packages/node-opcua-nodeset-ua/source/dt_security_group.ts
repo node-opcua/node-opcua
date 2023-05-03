@@ -5,12 +5,12 @@ import { DTStructure } from "./dt_structure"
 import { DTRolePermission } from "./dt_role_permission"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |SecurityGroupDataType                             |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |SecurityGroupDataType                                       |
+ * | isAbstract|false                                                       |
  */
 export interface DTSecurityGroup extends DTStructure {
   name: UAString; // String ns=0;i=12

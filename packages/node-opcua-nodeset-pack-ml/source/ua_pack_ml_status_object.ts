@@ -9,12 +9,12 @@ import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
 import { DTPackMLProduct } from "./dt_pack_ml_product"
 import { DTPackMLRemoteInterface } from "./dt_pack_ml_remote_interface"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PackML/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |15:PackMLStatusObjectType ns=15;i=4               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PackML/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackMLStatusObjectType i=4                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackMLStatusObject_Base {
     curMachSpeed: UAAnalogItem<number, DataType.Float>;

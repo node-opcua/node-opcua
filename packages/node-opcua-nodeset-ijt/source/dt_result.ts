@@ -12,12 +12,12 @@ import { DTTag } from "./dt_tag"
  * information of the Result data represented by
  * ResultType variable.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:ResultDataType                                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:ResultDataType                                           |
+ * | isAbstract|false                                                       |
  */
 export interface DTResult extends DTStructure {
   /** The mandatory ResultId is the system-wide unique identifier of the result.*/

@@ -1,9 +1,8 @@
-import { NodesetName } from './index';
+import { NodesetName, nodesets as nodesets1 } from "./index";
 
-const nodesets = <Record<NodesetName, string>> {};
-for (const key in NodesetName) {
-    const name = NodesetName[<NodesetName>key];
-    nodesets[name] = `nodeset:${name}`;
+const nodesets = <Record<NodesetName, string>>{};
+for (const name in Object.values(nodesets1)) {
+    nodesets[name as NodesetName] = `nodeset:${name}`;
 }
 
 module.exports = {

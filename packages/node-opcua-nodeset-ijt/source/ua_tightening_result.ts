@@ -11,14 +11,14 @@ import { DTTighteningTrace } from "./dt_tightening_trace"
  * It is used report data associated with Tightening
  * Result and the corresponding measurement values.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:TighteningResultType ns=14;i=2007              |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTResult ns=14;i=3004                             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TighteningResultType i=2007                                 |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTResult i=3004                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UATighteningResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

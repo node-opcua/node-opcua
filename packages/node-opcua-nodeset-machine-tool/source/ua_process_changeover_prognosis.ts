@@ -4,12 +4,12 @@ import { LocalizedText } from "node-opcua-data-model"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProcessChangeoverPrognosisType ns=10;i=8       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProcessChangeoverPrognosisType i=8                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProcessChangeoverPrognosis_Base extends UAPrognosis_Base {
     activity: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;

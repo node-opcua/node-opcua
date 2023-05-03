@@ -9,12 +9,12 @@ import { EnumLevelDisplayMode } from "./enum_level_display_mode"
  * operating as a level meter. The whole stack is
  * controlled by a percentual value.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:StackLevelType ns=9;i=1003                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StackLevelType i=1003                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStackLevel_Base {
     /**

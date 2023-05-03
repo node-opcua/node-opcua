@@ -6,12 +6,12 @@ import { DTBaseResultTransferOptions } from "./dt_base_result_transfer_options"
  * Contains information which file should be
  * provided.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Machinery/Result/     |
- * | nodeClass |DataType                                          |
- * | name      |22:ResultTransferOptionsDataType                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
+ * | nodeClass |DataType                                                    |
+ * | name      |21:ResultTransferOptionsDataType                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTResultTransferOptions extends DTBaseResultTransferOptions {
   /** The Id of the result to be transferred to the Clients*/

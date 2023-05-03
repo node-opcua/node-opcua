@@ -8,12 +8,12 @@ import { EnumInterfaceOperStatus } from "./enum_interface_oper_status"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 import { UAAnalogUnit } from "./ua_analog_unit"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IetfBaseNetworkInterfaceType ns=0;i=25221         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IetfBaseNetworkInterfaceType i=25221                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAIetfBaseNetworkInterface_Base {
     adminStatus: UABaseDataVariable<EnumInterfaceAdminStatus, DataType.Int32>;

@@ -9,12 +9,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * designed for the connection of external
  * protective devices.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:ProtectiveStopFunctionType ns=7;i=17233         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProtectiveStopFunctionType i=17233                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProtectiveStopFunction_Base {
     /**

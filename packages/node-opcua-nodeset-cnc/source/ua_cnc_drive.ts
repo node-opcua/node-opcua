@@ -27,12 +27,12 @@ export interface UACncDrive_cmdTorque<T, DT extends DataType> extends Omit<UAAna
  * Base component for CNC specific drive componentes
  * (e.g. axis or spindle).
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncDriveType ns=11;i=1003                      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncDriveType i=1003                                         |
+ * |isAbstract      |true                                                        |
  */
 export interface UACncDrive_Base extends UACncComponent_Base {
     /**

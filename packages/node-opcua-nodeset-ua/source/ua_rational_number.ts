@@ -4,14 +4,14 @@ import { UInt32, Int32 } from "node-opcua-basic-types"
 import { DTRationalNumber } from "./dt_rational_number"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |RationalNumberType ns=0;i=17709                   |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTRationalNumber ns=0;i=18806                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |RationalNumberType i=17709                                  |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTRationalNumber i=18806                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UARationalNumber_Base<T extends DTRationalNumber>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     numerator: UABaseDataVariable<Int32, DataType.Int32>;

@@ -5,12 +5,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumNodeClass } from "./enum_node_class"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |AddNodesItem                                      |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |AddNodesItem                                                |
+ * | isAbstract|false                                                       |
  */
 export interface DTAddNodesItem extends DTStructure {
   parentNodeId: ExpandedNodeId; // ExpandedNodeId ns=0;i=18

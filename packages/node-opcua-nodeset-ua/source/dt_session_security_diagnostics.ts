@@ -5,12 +5,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { EnumMessageSecurityMode } from "./enum_message_security_mode"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |SessionSecurityDiagnosticsDataType                |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |SessionSecurityDiagnosticsDataType                          |
+ * | isAbstract|false                                                       |
  */
 export interface DTSessionSecurityDiagnostics extends DTStructure {
   sessionId: NodeId; // NodeId ns=0;i=17

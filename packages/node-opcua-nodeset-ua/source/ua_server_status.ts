@@ -8,14 +8,14 @@ import { EnumServerState } from "./enum_server_state"
 import { DTBuildInfo } from "./dt_build_info"
 import { UABuildInfo } from "./ua_build_info"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |ServerStatusType ns=0;i=2138                      |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTServerStatus ns=0;i=862                         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ServerStatusType i=2138                                     |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTServerStatus i=862                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServerStatus_Base<T extends DTServerStatus>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     startTime: UABaseDataVariable<Date, DataType.DateTime>;

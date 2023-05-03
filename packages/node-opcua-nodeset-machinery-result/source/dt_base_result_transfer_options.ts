@@ -6,12 +6,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * Abstract type containing information which file
  * should be provided.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Machinery/Result/     |
- * | nodeClass |DataType                                          |
- * | name      |22:BaseResultTransferOptionsDataType              |
- * | isAbstract|true                                              |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
+ * | nodeClass |DataType                                                    |
+ * | name      |21:BaseResultTransferOptionsDataType                        |
+ * | isAbstract|true                                                        |
  */
 export interface DTBaseResultTransferOptions extends DTStructure {
   /** The Id of the result to be transferred to the Clients*/

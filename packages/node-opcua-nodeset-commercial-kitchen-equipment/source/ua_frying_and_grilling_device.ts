@@ -9,12 +9,12 @@ import { EnumGrillingZoneState } from "./enum_grilling_zone_state"
 import { EnumPlatenPositionState } from "./enum_platen_position_state"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:FryingAndGrillingDeviceType ns=5;i=1032         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FryingAndGrillingDeviceType i=1032                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFryingAndGrillingDevice_Base extends UACommercialKitchenDevice_Base {
     energySource: UAProperty<EnumEnergySource, DataType.Int32>;

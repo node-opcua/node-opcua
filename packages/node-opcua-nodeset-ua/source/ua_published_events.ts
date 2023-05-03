@@ -7,12 +7,12 @@ import { DTContentFilter } from "./dt_content_filter"
 import { DTArgument } from "./dt_argument"
 import { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PublishedEventsType ns=0;i=14572                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PublishedEventsType i=14572                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPublishedEvents_Base extends UAPublishedDataSet_Base {
     "$eventNotifier": UAProperty<NodeId, DataType.NodeId>;

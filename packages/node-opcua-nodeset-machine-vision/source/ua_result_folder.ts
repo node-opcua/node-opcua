@@ -13,12 +13,12 @@ import { DTProcessingTimes } from "./dt_processing_times"
 import { DTProductId } from "./dt_product_id"
 import { DTResultId } from "./dt_result_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:ResultFolderType ns=4;i=1016                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultFolderType i=1016                                     |
+ * |isAbstract      |false                                                       |
  */
 export type UAResultFolder_Base = UAFolder_Base;
 export interface UAResultFolder extends UAFolder, UAResultFolder_Base {

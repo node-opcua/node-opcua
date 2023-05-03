@@ -13,12 +13,12 @@ import { UAAnalyserChannelMaintenanceState } from "./ua_analyser_channel_mainten
  * Contains a nested state model that defines the
  * top level states Operating, Local and Maintenance
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AnalyserChannelStateMachineType ns=2;i=1007     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalyserChannelStateMachineType i=1007                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalyserChannelStateMachine_Base extends UAFiniteStateMachine_Base {
     operatingSubStateMachine: UAAnalyserChannel_OperatingModeSubStateMachine;

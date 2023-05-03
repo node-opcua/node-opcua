@@ -8,12 +8,12 @@ import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:InitializingSubStateMachineType ns=13;i=1024   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |InitializingSubStateMachineType i=1024                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAInitializingSubStateMachine_Base extends UAFiniteStateMachine_Base {
     idle: UAInitialState;

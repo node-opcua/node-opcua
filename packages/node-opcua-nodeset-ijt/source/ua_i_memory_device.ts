@@ -26,12 +26,12 @@ export interface UAIMemoryDevice_parameters extends UAFolder { // Object
       usedSpace?: UABaseDataVariable<UInt64, DataType.UInt64>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IMemoryDeviceType ns=14;i=1013                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IMemoryDeviceType i=1013                                    |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIMemoryDevice_Base extends UAITighteningSystemAsset_Base {
     parameters: UAIMemoryDevice_parameters;

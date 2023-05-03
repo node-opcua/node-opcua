@@ -81,12 +81,12 @@ export interface UAITool_parameters extends UAFolder { // Object
       type: UAMultiStateDiscrete<Byte, DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:IToolType ns=14;i=1004                         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IToolType i=1004                                            |
+ * |isAbstract      |true                                                        |
  */
 export interface UAITool_Base extends UAITighteningSystemAsset_Base {
     parameters: UAITool_parameters;

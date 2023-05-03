@@ -10,12 +10,12 @@ import { DTTransactionError } from "./dt_transaction_error"
 import { UACertificateGroupFolder } from "./ua_certificate_group_folder"
 import { UATransactionDiagnostics } from "./ua_transaction_diagnostics"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ServerConfigurationType ns=0;i=12581              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ServerConfigurationType i=12581                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServerConfiguration_Base {
     certificateGroups: UACertificateGroupFolder;

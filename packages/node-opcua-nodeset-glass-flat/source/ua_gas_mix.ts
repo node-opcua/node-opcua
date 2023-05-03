@@ -17,12 +17,12 @@ export interface UAGasMix_gas_2 extends Omit<UABaseMaterial, "identifier"|"locat
       materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:GasMixType ns=13;i=1010                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |GasMixType i=1010                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAGasMix_Base extends UABaseMaterial_Base {
     gas_1?: UAGasMix_gas_1;

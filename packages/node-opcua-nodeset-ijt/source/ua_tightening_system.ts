@@ -82,12 +82,12 @@ export interface UATighteningSystem_systemInformation extends UAFolder { // Obje
  * The TighteningSystemType provides the overview of
  * data exposed from a given tightening system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:TighteningSystemType ns=14;i=1005              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TighteningSystemType i=1005                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UATighteningSystem_Base {
     /**

@@ -6,12 +6,12 @@ import { UAObject } from "node-opcua-address-space-base"
  * not define any specific information, but can be
  * extended.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:StackRunningType ns=9;i=1004                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StackRunningType i=1004                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStackRunning_Base {
 }

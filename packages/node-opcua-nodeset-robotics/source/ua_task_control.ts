@@ -30,12 +30,12 @@ export interface UATaskControl_parameterSet extends UAObject { // Object
  * Represents a specific task control active on the
  * controller.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:TaskControlType ns=7;i=1011                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TaskControlType i=1011                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UATaskControl_Base extends UAComponent_Base {
     /**

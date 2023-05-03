@@ -22,12 +22,12 @@ export interface UACncSpindle_cmdSpeed<T, DT extends DataType> extends Omit<UAAn
 /**
  * CNC spindle component.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncSpindleType ns=11;i=1005                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncSpindleType i=1005                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncSpindle_Base extends UACncDrive_Base {
     /**

@@ -12,12 +12,12 @@ import { EnumSignalModeLight } from "./enum_signal_mode_light"
  * elements would use three ControlChannels, one for
  * each controllable colour).
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:ControlChannelType ns=9;i=1008                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ControlChannelType i=1008                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAControlChannel_Base {
     /**

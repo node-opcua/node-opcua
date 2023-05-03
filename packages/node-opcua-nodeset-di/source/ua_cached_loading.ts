@@ -7,12 +7,12 @@ import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAPackageLoading, UAPackageLoading_Base } from "./ua_package_loading"
 import { UASoftwareVersion } from "./ua_software_version"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:CachedLoadingType ns=1;i=171                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CachedLoadingType i=171                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UACachedLoading_Base extends UAPackageLoading_Base {
     pendingVersion: UASoftwareVersion;

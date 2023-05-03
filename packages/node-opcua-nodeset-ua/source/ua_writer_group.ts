@@ -7,12 +7,12 @@ import { UAWriterGroupTransport } from "./ua_writer_group_transport"
 import { UAWriterGroupMessage } from "./ua_writer_group_message"
 import { UAPubSubDiagnosticsWriterGroup } from "./ua_pub_sub_diagnostics_writer_group"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |WriterGroupType ns=0;i=17725                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |WriterGroupType i=17725                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAWriterGroup_Base extends UAPubSubGroup_Base {
     writerGroupId: UAProperty<UInt16, DataType.UInt16>;

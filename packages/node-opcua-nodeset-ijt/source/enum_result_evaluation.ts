@@ -4,12 +4,12 @@
  * The enumeration ResultEvaluation indicates
  * whether the operation is successful or not.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:ResultEvaluation                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:ResultEvaluation                                         |
+ * | isAbstract|false                                                       |
  */
 export enum EnumResultEvaluation  {
   UNDEFINED = 0,

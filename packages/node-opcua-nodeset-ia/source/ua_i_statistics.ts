@@ -5,12 +5,12 @@ import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/sou
 /**
  * Base interface for managing statistical data.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:IStatisticsType ns=9;i=1011                     |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IStatisticsType i=1011                                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIStatistics_Base extends UABaseInterface_Base {
     resetStatistics?: UAMethod;

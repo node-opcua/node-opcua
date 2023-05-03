@@ -5,12 +5,12 @@ import { UInt32, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |SecurityGroupFolderType ns=0;i=15452              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SecurityGroupFolderType i=15452                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UASecurityGroupFolder_Base extends UAFolder_Base {
    // PlaceHolder for $SecurityGroupName$

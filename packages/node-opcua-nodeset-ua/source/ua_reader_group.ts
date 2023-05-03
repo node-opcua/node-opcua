@@ -5,12 +5,12 @@ import { UAPubSubDiagnosticsReaderGroup } from "./ua_pub_sub_diagnostics_reader_
 import { UAReaderGroupTransport } from "./ua_reader_group_transport"
 import { UAReaderGroupMessage } from "./ua_reader_group_message"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ReaderGroupType ns=0;i=17999                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ReaderGroupType i=17999                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAReaderGroup_Base extends UAPubSubGroup_Base {
    // PlaceHolder for $DataSetReaderName$

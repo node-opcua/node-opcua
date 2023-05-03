@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:SoftwareVersionType ns=1;i=212                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SoftwareVersionType i=212                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UASoftwareVersion_Base {
     manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;

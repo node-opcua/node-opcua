@@ -10,12 +10,12 @@ import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
 import { UABatchInformation } from "./ua_batch_information"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CommercialKitchenDeviceType ns=5;i=1005         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CommercialKitchenDeviceType i=1005                          |
+ * |isAbstract      |true                                                        |
  */
 export interface UACommercialKitchenDevice_Base extends UADevice_Base {
     batchInformation?: UABatchInformation;

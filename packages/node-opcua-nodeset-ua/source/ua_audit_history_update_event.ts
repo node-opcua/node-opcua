@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UAAuditUpdateEvent, UAAuditUpdateEvent_Base } from "./ua_audit_update_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditHistoryUpdateEventType ns=0;i=2104           |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditHistoryUpdateEventType i=2104                          |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryUpdateEvent_Base extends UAAuditUpdateEvent_Base {
     parameterDataTypeId: UAProperty<NodeId, DataType.NodeId>;

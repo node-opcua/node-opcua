@@ -8,12 +8,12 @@ import { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum"
 /**
  * Meta data of a result, describing the result.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Machinery/Result/     |
- * | nodeClass |DataType                                          |
- * | name      |22:ResultMetaDataType                             |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
+ * | nodeClass |DataType                                                    |
+ * | name      |21:ResultMetaDataType                                       |
+ * | isAbstract|false                                                       |
  */
 export interface DTResultMeta extends DTStructure {
   /** System-wide unique identifier, which is assigned by the system. This ID can be used for fetching exactly this result using the method GetResultById and it is identical to the ResultId of the ResultReadyEventType.
@@ -66,11 +66,11 @@ This ID is system-wide unique and it is assigned by the system.*/
 It is recommended to always provide the creationTime.*/
   creationTime?: Date; // DateTime ns=0;i=294
   /** Collection of different processing times that were needed to create the result.*/
-  processingTimes?: DTProcessingTimes; // ExtensionObject ns=22;i=3006
+  processingTimes?: DTProcessingTimes; // ExtensionObject ns=21;i=3006
   /** Path to the actual measured result, managed external to the server.*/
   resultUri?: UAString[]; // String ns=0;i=23751
   /** The ResultEvaluation indicates whether the result was in tolerance.*/
-  resultEvaluation?: EnumResultEvaluationEnum; // Int32 ns=22;i=3002
+  resultEvaluation?: EnumResultEvaluationEnum; // Int32 ns=21;i=3002
   /** Vendor-specific code describing more details on resultEvaluation.*/
   resultEvaluationCode?: Int64; // Int64 ns=0;i=8
   /** The optional EvaluationDetails provides high level status information in a user-friendly text. This can be left empty for successful operations.*/

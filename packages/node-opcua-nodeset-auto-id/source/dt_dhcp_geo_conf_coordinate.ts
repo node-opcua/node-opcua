@@ -3,12 +3,12 @@ import { Int32, Int16, Byte } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:DhcpGeoConfCoordinate                           |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:DhcpGeoConfCoordinate                                     |
+ * | isAbstract|false                                                       |
  */
 export interface DTDhcpGeoConfCoordinate extends DTStructure {
   laRes: Byte; // Byte ns=0;i=3

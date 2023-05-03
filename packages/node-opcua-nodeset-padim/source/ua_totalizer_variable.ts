@@ -3,14 +3,14 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType, Variant } from "node-opcua-variant"
 import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PADIM/                |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |20:TotalizerVariableType ns=20;i=1126             |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PADIM/                          |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TotalizerVariableType i=1126                                |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UATotalizerVariable_Base<T, DT extends DataType>  extends UAAnalogSignalVariable_Base<T, DT> {
     pulseValue: UAProperty<any, any>;

@@ -10,14 +10,14 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * Define the desired value of the Variable it
  * belongs to.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/|
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |21:ProcessValueSetpointVariableType ns=21;i=2003  |
- * |dataType        |Variant                                           |
- * |dataType Name   |Variant ns=0;i=26                                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/        |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ProcessValueSetpointVariableType i=2003                     |
+ * |dataType        |Variant                                                     |
+ * |dataType Name   |Variant i=26                                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProcessValueSetpointVariable_Base<T, DT extends DataType>  extends UAAnalogUnitRange_Base<T, DT> {
     /**

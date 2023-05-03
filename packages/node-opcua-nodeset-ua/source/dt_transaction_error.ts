@@ -5,12 +5,12 @@ import { StatusCode } from "node-opcua-status-code"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |TransactionErrorType                              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |TransactionErrorType                                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTTransactionError extends DTStructure {
   targetId: NodeId; // NodeId ns=0;i=17

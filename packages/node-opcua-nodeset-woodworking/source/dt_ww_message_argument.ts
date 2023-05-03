@@ -9,12 +9,12 @@ import { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value"
  * The WwArgumentDataType definition extends the
  * argument structure with an argument value.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Woodworking/          |
- * | nodeClass |DataType                                          |
- * | name      |12:WwMessageArgumentDataType                      |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
+ * | nodeClass |DataType                                                    |
+ * | name      |12:WwMessageArgumentDataType                                |
+ * | isAbstract|false                                                       |
  */
 export interface DTWwMessageArgument extends DTArgument {
   name: UAString; // String ns=0;i=12

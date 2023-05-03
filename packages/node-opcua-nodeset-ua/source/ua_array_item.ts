@@ -7,14 +7,14 @@ import { DTRange } from "./dt_range"
 import { EnumAxisScale } from "./enum_axis_scale"
 import { UADataItem, UADataItem_Base } from "./ua_data_item"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |ArrayItemType ns=0;i=12021                        |
- * |dataType        |Null                                              |
- * |dataType Name   |VariantOptions ns=0;i=0                           |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ArrayItemType i=12021                                       |
+ * |dataType        |Null                                                        |
+ * |dataType Name   |VariantOptions i=0                                          |
+ * |isAbstract      |true                                                        |
  */
 export interface UAArrayItem_Base<T, DT extends DataType>  extends UADataItem_Base<T, DT> {
     instrumentRange?: UAProperty<DTRange, DataType.ExtensionObject>;

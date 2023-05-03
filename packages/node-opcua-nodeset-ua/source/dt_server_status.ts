@@ -6,12 +6,12 @@ import { DTStructure } from "./dt_structure"
 import { EnumServerState } from "./enum_server_state"
 import { DTBuildInfo } from "./dt_build_info"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |ServerStatusDataType                              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |ServerStatusDataType                                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTServerStatus extends DTStructure {
   startTime: Date; // DateTime ns=0;i=294

@@ -8,12 +8,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * which are outside the boundaries of the given
  * program.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:ErrorInformationDataType                       |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:ErrorInformationDataType                                 |
+ * | isAbstract|false                                                       |
  */
 export interface DTErrorInformation extends DTStructure {
   /** The mandatory ErrorType is the classification of type of errors due to external factors. Examples: Tool Trigger Lost is Operator error. Temperature overheat is hardware error, etc.*/

@@ -14,12 +14,12 @@ import { UACncSpindleList } from "./ua_cnc_spindle_list"
 /**
  * Entry point to CNC data interface.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncInterfaceType ns=11;i=1007                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncInterfaceType i=1007                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncInterface_Base {
     /**

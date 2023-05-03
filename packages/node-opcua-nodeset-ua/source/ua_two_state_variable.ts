@@ -4,14 +4,14 @@ import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |TwoStateVariableType ns=0;i=8995                  |
- * |dataType        |LocalizedText                                     |
- * |dataType Name   |LocalizedText ns=0;i=21                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TwoStateVariableType i=8995                                 |
+ * |dataType        |LocalizedText                                               |
+ * |dataType Name   |LocalizedText i=21                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UATwoStateVariable_Base<T extends LocalizedText>  extends UAStateVariable_Base<T> {
     id: UAProperty<boolean, DataType.Boolean>;

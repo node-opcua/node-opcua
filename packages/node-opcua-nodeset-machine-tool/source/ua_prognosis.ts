@@ -2,12 +2,12 @@
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:PrognosisType ns=10;i=3                        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PrognosisType i=3                                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAPrognosis_Base {
     predictedTime: UAProperty<Date, DataType.DateTime>;

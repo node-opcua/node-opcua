@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAFile, UAFile_Base } from "./ua_file"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TrustListType ns=0;i=12522                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TrustListType i=12522                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UATrustList_Base extends UAFile_Base {
     lastUpdateTime: UAProperty<Date, DataType.DateTime>;

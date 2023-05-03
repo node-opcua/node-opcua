@@ -5,12 +5,12 @@ import { LocalizedText } from "node-opcua-data-model"
 import { Int32, Guid } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:KitchenDeviceParameterType ns=5;i=1004          |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |KitchenDeviceParameterType i=1004                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAKitchenDeviceParameter_Base {
     programId?: UABaseDataVariable<Int32, DataType.Int32>;

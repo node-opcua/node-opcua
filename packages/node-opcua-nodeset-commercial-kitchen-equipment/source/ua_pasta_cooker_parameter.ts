@@ -26,12 +26,12 @@ export interface UAPastaCookerParameter_timeRemaining<T, DT extends DataType> ex
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:PastaCookerParameterType ns=5;i=1020            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PastaCookerParameterType i=1020                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPastaCookerParameter_Base extends UAKitchenDeviceParameter_Base {
     actualTemperature: UAPastaCookerParameter_actualTemperature<number, DataType.Float>;

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt16 } from "node-opcua-basic-types"
 import { UAAlarmCondition, UAAlarmCondition_Base } from "./ua_alarm_condition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |LimitAlarmType ns=0;i=2955                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |LimitAlarmType i=2955                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UALimitAlarm_Base extends UAAlarmCondition_Base {
     highHighLimit?: UAProperty<number, DataType.Double>;

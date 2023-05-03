@@ -8,12 +8,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * stop the robot shall have one or more emergency
  * stop functions.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:EmergencyStopFunctionType ns=7;i=17230          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |EmergencyStopFunctionType i=17230                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAEmergencyStopFunction_Base {
     /**

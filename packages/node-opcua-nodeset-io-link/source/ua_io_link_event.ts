@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt16 } from "node-opcua-basic-types"
 import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_base_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IOLink/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |17:IOLinkEventType ns=17;i=1003                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IOLink/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOLinkEventType i=1003                                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIOLinkEvent_Base extends UABaseEvent_Base {
     ioLinkEventCode: UAProperty<UInt16, DataType.UInt16>;

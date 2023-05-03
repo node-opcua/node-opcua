@@ -6,12 +6,12 @@ import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/sou
  * Interface defining counters for the duration of
  * operation
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:IOperationCounterType ns=1;i=480                |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOperationCounterType i=480                                 |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIOperationCounter_Base extends UABaseInterface_Base {
     /**

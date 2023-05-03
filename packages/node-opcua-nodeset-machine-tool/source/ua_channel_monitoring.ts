@@ -10,12 +10,12 @@ import { EnumChannelState } from "./enum_channel_state"
 import { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring"
 import { UAChannelModifier } from "./ua_channel_modifier"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ChannelMonitoringType ns=10;i=16               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ChannelMonitoringType i=16                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAChannelMonitoring_Base extends UAElementMonitoring_Base {
     channelMode: UABaseDataVariable<EnumChannelMode, DataType.Int32>;

@@ -6,12 +6,12 @@ import { DTScanData } from "./dt_scan_data"
 import { DTLocation } from "./dt_location"
 import { DTRotation } from "./dt_rotation"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:RtlsLocationResult                              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:RtlsLocationResult                                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTRtlsLocationResult extends DTScanResult {
   /** Defines the format of the ScanData as string.*/

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAAuditSessionEvent, UAAuditSessionEvent_Base } from "./ua_audit_session_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditCancelEventType ns=0;i=2078                  |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditCancelEventType i=2078                                 |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditCancelEvent_Base extends UAAuditSessionEvent_Base {
     requestHandle: UAProperty<UInt32, DataType.UInt32>;

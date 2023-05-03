@@ -6,12 +6,12 @@ import { DTStructure } from "./dt_structure"
 import { DTArgument } from "./dt_argument"
 import { DTStatusResult } from "./dt_status_result"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |ProgramDiagnosticDataType                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |ProgramDiagnosticDataType                                   |
+ * | isAbstract|false                                                       |
  */
 export interface DTProgramDiagnostic extends DTStructure {
   createSessionId: NodeId; // NodeId ns=0;i=17

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { DTArgument } from "./dt_argument"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TemporaryFileTransferType ns=0;i=15744            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TemporaryFileTransferType i=15744                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UATemporaryFileTransfer_Base {
     clientProcessingTimeout: UAProperty<number, DataType.Double>;

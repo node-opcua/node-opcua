@@ -7,12 +7,12 @@ import { EnumTsnFailureCode } from "./enum_tsn_failure_code"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IIeeeBaseTsnStatusStreamType ns=0;i=24183         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IIeeeBaseTsnStatusStreamType i=24183                        |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIIeeeBaseTsnStatusStream_Base extends UABaseInterface_Base {
     talkerStatus?: UABaseDataVariable<EnumTsnTalkerStatus, DataType.Int32>;

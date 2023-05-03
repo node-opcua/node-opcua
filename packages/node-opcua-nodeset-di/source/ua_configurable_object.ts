@@ -5,12 +5,12 @@ import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
  * Defines a general pattern to expose and configure
  * modular components
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:ConfigurableObjectType ns=1;i=1004              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ConfigurableObjectType i=1004                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAConfigurableObject_Base {
     /**

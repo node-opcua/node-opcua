@@ -4,14 +4,14 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 import { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostics"
 import { UASamplingIntervalDiagnostics } from "./ua_sampling_interval_diagnostics"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |SamplingIntervalDiagnosticsArrayType ns=0;i=2164  |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTSamplingIntervalDiagnostics[] ns=0;i=856        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |SamplingIntervalDiagnosticsArrayType i=2164                 |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTSamplingIntervalDiagnostics[] i=856                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UASamplingIntervalDiagnosticsArray_Base<T extends DTSamplingIntervalDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     samplingIntervalDiagnostics: UASamplingIntervalDiagnostics<DTSamplingIntervalDiagnostics>;

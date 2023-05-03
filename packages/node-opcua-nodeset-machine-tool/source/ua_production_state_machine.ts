@@ -19,12 +19,12 @@ export interface UAProductionStateMachine_lastTransition<T extends LocalizedText
       number: UAProperty<UInt32, DataType.UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionStateMachineType ns=10;i=24          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionStateMachineType i=24                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionStateMachine_Base extends UAFiniteStateMachine_Base {
     aborted: UAState;

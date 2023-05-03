@@ -7,12 +7,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PackML/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |15:PackMLExecuteStateMachineType ns=15;i=1        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PackML/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackMLExecuteStateMachineType i=1                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackMLExecuteStateMachine_Base extends UAFiniteStateMachine_Base {
     availableStates: UABaseDataVariable<NodeId[], DataType.NodeId>;

@@ -58,12 +58,12 @@ export interface UACombiSteamerParameter_timeRemainingStep<T, DT extends DataTyp
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CombiSteamerParameterType ns=5;i=1010           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CombiSteamerParameterType i=1010                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UACombiSteamerParameter_Base extends UAKitchenDeviceParameter_Base {
    // PlaceHolder for actualExternalCoreTemperature_$No_$

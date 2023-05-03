@@ -7,14 +7,14 @@ import { DTProgramDiagnostic } from "./dt_program_diagnostic"
 import { DTStatusResult } from "./dt_status_result"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |ProgramDiagnosticType ns=0;i=2380                 |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTProgramDiagnostic ns=0;i=894                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ProgramDiagnosticType i=2380                                |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTProgramDiagnostic i=894                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProgramDiagnostic_Base<T extends DTProgramDiagnostic>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     createSessionId: UAProperty<NodeId, DataType.NodeId>;

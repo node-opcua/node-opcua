@@ -10,14 +10,14 @@ import { UAJoiningDataVariable } from "./ua_joining_data_variable"
  * joining operation. Those are meant to
  * characterize the quality of the process.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:ResultValueType ns=14;i=2003                   |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTResultValue ns=14;i=3007                        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ResultValueType i=2003                                      |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTResultValue i=3007                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResultValue_Base<T extends DTResultValue>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

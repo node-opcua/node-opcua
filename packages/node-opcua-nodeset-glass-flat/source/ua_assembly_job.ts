@@ -23,12 +23,12 @@ export interface UAAssemblyJob_$OutputMaterial$ extends Omit<UAAssembly, "identi
       materialIdentifier: UAProperty<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:AssemblyJobType ns=13;i=1008                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AssemblyJobType i=1008                                      |
+ * |isAbstract      |false                                                       |
  */
 export type UAAssemblyJob_Base = UAProductionJob_Base;
 export interface UAAssemblyJob extends UAProductionJob, UAAssemblyJob_Base {

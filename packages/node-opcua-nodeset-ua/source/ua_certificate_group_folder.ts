@@ -8,12 +8,12 @@ import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 import { UACertificateGroup } from "./ua_certificate_group"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |CertificateGroupFolderType ns=0;i=13813           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CertificateGroupFolderType i=13813                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UACertificateGroupFolder_Base extends UAFolder_Base {
     defaultApplicationGroup: UACertificateGroup;

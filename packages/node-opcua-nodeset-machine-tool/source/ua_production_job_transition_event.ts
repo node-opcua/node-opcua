@@ -11,12 +11,12 @@ export interface UAProductionJobTransitionEvent_runsPlanned<T, DT extends DataTy
       isValid: UAProperty<boolean, DataType.Boolean>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionJobTransitionEventType ns=10;i=31    |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionJobTransitionEventType i=31                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAProductionJobTransitionEvent_Base extends UATransitionEvent_Base {
     customerOrderIdentifier?: UAProperty<UAString, DataType.String>;

@@ -5,12 +5,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTFilterOperand } from "./dt_filter_operand"
 import { DTRelativePath } from "./dt_relative_path"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |AttributeOperand                                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |AttributeOperand                                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTAttributeOperand extends DTFilterOperand {
   nodeId: NodeId; // NodeId ns=0;i=17

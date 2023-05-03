@@ -58,12 +58,12 @@ export interface UAMultiFunctionPanParameter_timeRemainingStep<T, DT extends Dat
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:MultiFunctionPanParameterType ns=5;i=1018       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MultiFunctionPanParameterType i=1018                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMultiFunctionPanParameter_Base extends UAKitchenDeviceParameter_Base {
     actualCoreTemperature: UAMultiFunctionPanParameter_actualCoreTemperature<number, DataType.Float>;

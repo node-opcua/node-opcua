@@ -4,14 +4,14 @@ import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 import { DTServerDiagnosticsSummary } from "./dt_server_diagnostics_summary"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |ServerDiagnosticsSummaryType ns=0;i=2150          |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTServerDiagnosticsSummary ns=0;i=859             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ServerDiagnosticsSummaryType i=2150                         |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTServerDiagnosticsSummary i=859                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServerDiagnosticsSummary_Base<T extends DTServerDiagnosticsSummary>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     serverViewCount: UABaseDataVariable<UInt32, DataType.UInt32>;

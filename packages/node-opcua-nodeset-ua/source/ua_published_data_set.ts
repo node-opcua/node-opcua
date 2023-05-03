@@ -6,12 +6,12 @@ import { DTConfigurationVersion } from "./dt_configuration_version"
 import { DTDataSetMeta } from "./dt_data_set_meta"
 import { UAExtensionFields } from "./ua_extension_fields"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PublishedDataSetType ns=0;i=14509                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PublishedDataSetType i=14509                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPublishedDataSet_Base {
     configurationVersion: UAProperty<DTConfigurationVersion, DataType.ExtensionObject>;

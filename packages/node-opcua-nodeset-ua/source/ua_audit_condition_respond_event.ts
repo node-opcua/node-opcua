@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
 import { UAAuditConditionEvent, UAAuditConditionEvent_Base } from "./ua_audit_condition_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditConditionRespondEventType ns=0;i=8927        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditConditionRespondEventType i=8927                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAuditConditionRespondEvent_Base extends UAAuditConditionEvent_Base {
     selectedResponse: UAProperty<UInt32, DataType.UInt32>;

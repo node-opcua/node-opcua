@@ -2,12 +2,12 @@
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:ProcessingTimesDataType                         |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:ProcessingTimesDataType                                   |
+ * | isAbstract|false                                                       |
  */
 export interface DTProcessingTimes extends DTStructure {
   /** Contains the time when the vision system started execution of the recipe.*/

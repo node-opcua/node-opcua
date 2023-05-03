@@ -10,12 +10,12 @@ import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UAVisionStepModelStateMachine } from "./ua_vision_step_model_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:VisionAutomaticModeStateMachineType ns=4;i=1021 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |VisionAutomaticModeStateMachineType i=1021                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAVisionAutomaticModeStateMachine_Base extends UAFiniteStateMachine_Base {
     abort: UAMethod;

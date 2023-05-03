@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineTool/          |
- * | nodeClass |DataType                                          |
- * | name      |10:ProcessIrregularity                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
+ * | nodeClass |DataType                                                    |
+ * | name      |10:ProcessIrregularity                                      |
+ * | isAbstract|false                                                       |
  */
 export enum EnumProcessIrregularity  {
   /**

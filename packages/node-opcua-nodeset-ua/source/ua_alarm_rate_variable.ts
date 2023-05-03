@@ -4,14 +4,14 @@ import { DataType } from "node-opcua-variant"
 import { UInt16 } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |AlarmRateVariableType ns=0;i=17277                |
- * |dataType        |Double                                            |
- * |dataType Name   |number ns=0;i=11                                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |AlarmRateVariableType i=17277                               |
+ * |dataType        |Double                                                      |
+ * |dataType Name   |number i=11                                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAlarmRateVariable_Base<T extends number>  extends UABaseDataVariable_Base<T, DataType.Double> {
     rate: UAProperty<UInt16, DataType.UInt16>;

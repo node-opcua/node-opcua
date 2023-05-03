@@ -51,5 +51,5 @@ export function quotifyIfNecessary(s: string): string {
     return s;
 }
 
-export const f2 = (str: string) => str.padEnd(50, "-");
-export const f1 = (str: string) => str.padEnd(50, " ");
+export const f2 = (str: string) => str.padEnd(60, "-");
+export const f1 = (str: string) => str.padEnd(60, " ");

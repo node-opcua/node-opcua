@@ -4,12 +4,12 @@ import { UInt32, Byte, UAString } from "node-opcua-basic-types"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IPriorityMappingEntryType ns=0;i=24205            |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IPriorityMappingEntryType i=24205                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIPriorityMappingEntry_Base extends UABaseInterface_Base {
     mappingUri: UABaseDataVariable<UAString, DataType.String>;

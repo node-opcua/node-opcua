@@ -9,12 +9,12 @@ import { DTWriterGroupTransport } from "./dt_writer_group_transport"
 import { DTWriterGroupMessage } from "./dt_writer_group_message"
 import { DTDataSetWriter } from "./dt_data_set_writer"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |WriterGroupDataType                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |WriterGroupDataType                                         |
+ * | isAbstract|false                                                       |
  */
 export interface DTWriterGroup extends DTPubSubGroup {
   name: UAString; // String ns=0;i=12

@@ -70,12 +70,12 @@ export interface UAIOLinkDevice_parameterSet extends UAObject { // Object
       processDataOutput: UAProcessDataVariable<Byte[], DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IOLink/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |17:IOLinkDeviceType ns=17;i=1002                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IOLink/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOLinkDeviceType i=1002                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAIOLinkDevice_Base extends UATopologyElement_Base {
     alarms?: UAFolder;

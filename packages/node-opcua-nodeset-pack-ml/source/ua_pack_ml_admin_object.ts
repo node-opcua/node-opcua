@@ -7,12 +7,12 @@ import { DTPackMLAlarm } from "./dt_pack_ml_alarm"
 import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
 import { DTPackMLCount } from "./dt_pack_ml_count"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PackML/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |15:PackMLAdminObjectType ns=15;i=5                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PackML/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackMLAdminObjectType i=5                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackMLAdminObject_Base {
     accTimeSinceReset?: UABaseDataVariable<Int32, DataType.Int32>;

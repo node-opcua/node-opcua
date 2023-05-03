@@ -42,12 +42,12 @@ export interface UAPressureCookingKettleParameter_timeRemaining<T, DT extends Da
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:PressureCookingKettleParameterType ns=5;i=1014  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PressureCookingKettleParameterType i=1014                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPressureCookingKettleParameter_Base extends UAKitchenDeviceParameter_Base {
     actualCoreTemperature: UAPressureCookingKettleParameter_actualCoreTemperature<number, DataType.Float>;

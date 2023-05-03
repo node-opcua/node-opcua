@@ -5,12 +5,12 @@ import { UInt32, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTFilterOperand } from "./dt_filter_operand"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |SimpleAttributeOperand                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |SimpleAttributeOperand                                      |
+ * | isAbstract|false                                                       |
  */
 export interface DTSimpleAttributeOperand extends DTFilterOperand {
   typeDefinitionId: NodeId; // NodeId ns=0;i=17

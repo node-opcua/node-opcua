@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UInt16, UAString } from "node-opcua-basic-types"
 import { UAProductionProgramStateMachine } from "./ua_production_program_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:ProductionProgramType ns=10;i=59               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionProgramType i=59                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionProgram_Base {
     name: UAProperty<UAString, DataType.String>;

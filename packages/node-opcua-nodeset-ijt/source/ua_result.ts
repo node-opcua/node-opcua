@@ -11,14 +11,14 @@ import { DTTag } from "./dt_tag"
  * It aggregates the properties of Result data which
  * are reported for a given joining system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:ResultType ns=14;i=2001                        |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTResult ns=14;i=3004                             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ResultType i=2001                                           |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTResult i=3004                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

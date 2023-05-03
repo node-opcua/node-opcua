@@ -30,12 +30,12 @@ import { UAVendorServerInfo } from "./ua_vendor_server_info"
 import { UAServerRedundancy } from "./ua_server_redundancy"
 import { UANamespaces } from "./ua_namespaces"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ServerType ns=0;i=2004                            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ServerType i=2004                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServer_Base {
     serverArray: UAProperty<UAString[], DataType.String>;

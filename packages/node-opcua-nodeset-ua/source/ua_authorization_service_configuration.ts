@@ -3,12 +3,12 @@ import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuthorizationServiceConfigurationType ns=0;i=17852|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuthorizationServiceConfigurationType i=17852               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAuthorizationServiceConfiguration_Base {
     serviceUri: UAProperty<UAString, DataType.String>;

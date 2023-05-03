@@ -12,12 +12,12 @@ import { UAInstallationStateMachine } from "./ua_installation_state_machine"
 import { UAPowerCycleStateMachine } from "./ua_power_cycle_state_machine"
 import { UAConfirmationStateMachine } from "./ua_confirmation_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:SoftwareUpdateType ns=1;i=1                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SoftwareUpdateType i=1                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UASoftwareUpdate_Base {
     loading?: UASoftwareLoading;

@@ -34,12 +34,12 @@ export interface UACoffeeMachineRecipeParameter_powderAmount<T, DT extends DataT
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CoffeeMachineRecipeParameterType ns=5;i=1023    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CoffeeMachineRecipeParameterType i=1023                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UACoffeeMachineRecipeParameter_Base extends UAKitchenDeviceParameter_Base {
     beverageSize: UACoffeeMachineRecipeParameter_beverageSize<number, DataType.Float>;

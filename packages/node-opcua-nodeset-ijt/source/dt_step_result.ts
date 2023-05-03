@@ -8,12 +8,12 @@ import { DTResultValue } from "./dt_result_value"
  * It is used report measurement values
  * corresponding to a given step in the program.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:StepResultDataType                             |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:StepResultDataType                                       |
+ * | isAbstract|false                                                       |
  */
 export interface DTStepResult extends DTStructure {
   /** The mandatory StepResultId is the system-wide unique identifier of the step result.*/

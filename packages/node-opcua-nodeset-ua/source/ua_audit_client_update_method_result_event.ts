@@ -6,12 +6,12 @@ import { StatusCode } from "node-opcua-status-code"
 import { DTArgument } from "./dt_argument"
 import { UAAuditClientEvent, UAAuditClientEvent_Base } from "./ua_audit_client_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditClientUpdateMethodResultEventType ns=0;i=23926|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditClientUpdateMethodResultEventType i=23926              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAuditClientUpdateMethodResultEvent_Base extends UAAuditClientEvent_Base {
     objectId: UAProperty<NodeId, DataType.NodeId>;

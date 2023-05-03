@@ -8,12 +8,12 @@ import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UAMachineryOperationModeStateMachine, UAMachineryOperationModeStateMachine_Base } from "node-opcua-nodeset-machinery/source/ua_machinery_operation_mode_state_machine"
 import { UAMaintenanceModeStateMachine } from "./ua_maintenance_mode_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:MachineOperationModeStateMachineType ns=10;i=1003|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineOperationModeStateMachineType i=1003                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineOperationModeStateMachine_Base extends UAMachineryOperationModeStateMachine_Base {
     /**

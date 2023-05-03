@@ -8,14 +8,14 @@ import { UAJoiningDataVariable } from "./ua_joining_data_variable"
  * It is to describe of the trace samples for a
  * given program step.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:TraceContentType ns=14;i=2006                  |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTTraceContent ns=14;i=3014                       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TraceContentType i=2006                                     |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTTraceContent i=3014                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UATraceContent_Base<T extends DTTraceContent>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

@@ -124,12 +124,12 @@ export interface UAITighteningSystemAsset_serviceInformation extends UAFolder { 
  * MachineryComponentIdentificationType for a given
  * asset based on the requirement of the system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:ITighteningSystemAssetType ns=14;i=1002        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ITighteningSystemAssetType i=1002                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAITighteningSystemAsset_Base extends UABaseInterface_Base {
     /**

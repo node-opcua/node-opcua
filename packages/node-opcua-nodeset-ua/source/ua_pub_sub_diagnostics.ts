@@ -14,12 +14,12 @@ export interface UAPubSubDiagnostics_counters extends UAObject { // Object
       stateDisabledByMethod: UAPubSubDiagnosticsCounter<UInt32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubDiagnosticsType ns=0;i=19677                |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubDiagnosticsType i=19677                               |
+ * |isAbstract      |true                                                        |
  */
 export interface UAPubSubDiagnostics_Base {
     diagnosticsLevel: UABaseDataVariable<EnumDiagnosticsLevel, DataType.Int32>;

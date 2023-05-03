@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AliasNameCategoryType ns=0;i=23456                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AliasNameCategoryType i=23456                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAliasNameCategory_Base extends UAFolder_Base {
     findAlias: UAMethod;

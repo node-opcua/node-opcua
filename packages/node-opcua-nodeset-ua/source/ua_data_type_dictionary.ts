@@ -4,14 +4,14 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |DataTypeDictionaryType ns=0;i=72                  |
- * |dataType        |ByteString                                        |
- * |dataType Name   |Buffer ns=0;i=15                                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |DataTypeDictionaryType i=72                                 |
+ * |dataType        |ByteString                                                  |
+ * |dataType Name   |Buffer i=15                                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UADataTypeDictionary_Base<T extends Buffer>  extends UABaseDataVariable_Base<T, DataType.ByteString> {
     dataTypeVersion?: UAProperty<UAString, DataType.String>;

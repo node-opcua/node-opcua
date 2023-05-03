@@ -11,12 +11,12 @@ import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_c
  * The GearType describes a gear in a powertrain,
  * e.g. a gear box or a spindle.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:GearType ns=7;i=1022                            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |GearType i=1022                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAGear_Base extends UAComponent_Base {
     manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;

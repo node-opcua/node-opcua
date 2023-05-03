@@ -8,12 +8,12 @@ import { UAOperationLimits } from "./ua_operation_limits"
 import { UAFolder } from "./ua_folder"
 import { UARoleSet } from "./ua_role_set"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ServerCapabilitiesType ns=0;i=2013                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ServerCapabilitiesType i=2013                               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServerCapabilities_Base {
     serverProfileArray: UAProperty<UAString[], DataType.String>;

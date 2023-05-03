@@ -4,12 +4,12 @@ import { DataType, VariantOptions } from "node-opcua-variant"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/GDS/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |6:DirectoryType ns=6;i=13                         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/GDS/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DirectoryType i=13                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UADirectory_Base extends UAFolder_Base {
     applications: UAFolder;

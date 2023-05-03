@@ -3,12 +3,12 @@ import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32, UAString } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |SecurityGroupType ns=0;i=15471                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SecurityGroupType i=15471                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UASecurityGroup_Base {
     securityGroupId: UAProperty<UAString, DataType.String>;

@@ -6,12 +6,12 @@ import { UInt32 } from "node-opcua-basic-types"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcua-nodeset-ua/source/ua_temporary_file_transfer"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:ConfigurationTransferType ns=4;i=1012           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ConfigurationTransferType i=1012                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAConfigurationTransfer_Base extends UATemporaryFileTransfer_Base {
     generateFileForRead: UAMethod;

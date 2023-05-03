@@ -9,12 +9,12 @@ import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
  * Describes the behaviour of an AccessorySlot when
  * a physical accessory is inserted or removed.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AccessorySlotStateMachineType ns=2;i=1018       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AccessorySlotStateMachineType i=1018                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAccessorySlotStateMachine_Base extends UAFiniteStateMachine_Base {
     /**

@@ -9,12 +9,12 @@ import { UATemporaryFileTransfer, UATemporaryFileTransfer_Base } from "node-opcu
 /**
  * Transfers result data as a file.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/Result/     |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |22:ResultTransferType ns=22;i=1003                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/Result/               |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultTransferType i=1003                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResultTransfer_Base extends UATemporaryFileTransfer_Base {
     generateFileForRead: UAMethod;

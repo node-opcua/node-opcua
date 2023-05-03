@@ -8,12 +8,12 @@ import { UABasicStacklight, UABasicStacklight_Base } from "./ua_basic_stacklight
  * Entry point to a stacklight with the possibility
  * to show the stacklight’s health status.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:StacklightType ns=9;i=1010                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StacklightType i=1010                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStacklight_Base extends UABasicStacklight_Base {
     /**

@@ -5,12 +5,12 @@ import { EUInformation } from "node-opcua-data-access"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:RtlsDeviceType ns=3;i=1012                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RtlsDeviceType i=1012                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UARtlsDevice_Base extends UAAutoIdDevice_Base {
     geographicalUnit: UAProperty<EUInformation, DataType.ExtensionObject>;

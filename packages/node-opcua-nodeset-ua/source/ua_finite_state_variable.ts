@@ -5,14 +5,14 @@ import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |FiniteStateVariableType ns=0;i=2760               |
- * |dataType        |LocalizedText                                     |
- * |dataType Name   |LocalizedText ns=0;i=21                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |FiniteStateVariableType i=2760                              |
+ * |dataType        |LocalizedText                                               |
+ * |dataType Name   |LocalizedText i=21                                          |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFiniteStateVariable_Base<T extends LocalizedText>  extends UAStateVariable_Base<T> {
     id: UAProperty<NodeId, DataType.NodeId>;

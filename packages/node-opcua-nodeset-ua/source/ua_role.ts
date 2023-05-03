@@ -5,12 +5,12 @@ import { UAString } from "node-opcua-basic-types"
 import { DTIdentityMappingRule } from "./dt_identity_mapping_rule"
 import { DTEndpoint } from "./dt_endpoint"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |RoleType ns=0;i=15620                             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RoleType i=15620                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UARole_Base {
     identities: UAProperty<DTIdentityMappingRule[], DataType.ExtensionObject>;

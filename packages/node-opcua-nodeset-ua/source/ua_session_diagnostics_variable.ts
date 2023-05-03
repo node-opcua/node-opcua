@@ -7,14 +7,14 @@ import { DTSessionDiagnostics } from "./dt_session_diagnostics"
 import { DTApplicationDescription } from "./dt_application_description"
 import { DTServiceCounter } from "./dt_service_counter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |SessionDiagnosticsVariableType ns=0;i=2197        |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTSessionDiagnostics ns=0;i=865                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |SessionDiagnosticsVariableType i=2197                       |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTSessionDiagnostics i=865                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UASessionDiagnosticsVariable_Base<T extends DTSessionDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     sessionId: UABaseDataVariable<NodeId, DataType.NodeId>;

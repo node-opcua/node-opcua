@@ -10,12 +10,12 @@ import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
  * State machine representing the operation mode of
  * a MachineryItem
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:MachineryOperationModeStateMachineType ns=8;i=1008|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineryOperationModeStateMachineType i=1008               |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineryOperationModeStateMachine_Base extends UAFiniteStateMachine_Base {
     /**

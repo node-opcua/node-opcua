@@ -7,12 +7,12 @@ import { UAStateVariable } from "./ua_state_variable"
 import { UATransitionVariable } from "./ua_transition_variable"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |FiniteStateMachineType ns=0;i=2771                |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FiniteStateMachineType i=2771                               |
+ * |isAbstract      |true                                                        |
  */
 export interface UAFiniteStateMachine_Base extends UAStateMachine_Base {
     currentState: UAStateVariable<LocalizedText>;

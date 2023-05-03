@@ -7,12 +7,12 @@ import { UAUIElement } from "./ua_ui_element"
  * Methods from the complete set (ParameterSet,
  * MethodSet) with regard to their application
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:FunctionalGroupType ns=1;i=1005                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FunctionalGroupType i=1005                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFunctionalGroup_Base extends UAFolder_Base {
    // PlaceHolder for $GroupIdentifier$

@@ -3,12 +3,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTProductId } from "./dt_product_id"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:ProductDataType                                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:ProductDataType                                           |
+ * | isAbstract|false                                                       |
  */
 export interface DTProduct extends DTStructure {
   /** Identification of the product used by the environment. This argument must not be empty.*/

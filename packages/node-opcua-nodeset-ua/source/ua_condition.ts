@@ -9,12 +9,12 @@ import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
 import { UATwoStateVariable } from "./ua_two_state_variable"
 import { UAConditionVariable } from "./ua_condition_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ConditionType ns=0;i=2782                         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ConditionType i=2782                                        |
+ * |isAbstract      |true                                                        |
  */
 export interface UACondition_Base extends UABaseEvent_Base {
     conditionClassId: UAProperty<NodeId, DataType.NodeId>;

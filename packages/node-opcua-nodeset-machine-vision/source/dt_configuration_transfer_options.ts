@@ -3,12 +3,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTConfigurationId } from "./dt_configuration_id"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:ConfigurationTransferOptions                    |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:ConfigurationTransferOptions                              |
+ * | isAbstract|false                                                       |
  */
 export interface DTConfigurationTransferOptions extends DTStructure {
   /** The Id of the configuration to be transferred to or from the client.*/

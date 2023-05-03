@@ -12,12 +12,12 @@ import { EnumMachineOperationMode } from "./enum_machine_operation_mode"
 import { UAMachineOperationModeStateMachine } from "./ua_machine_operation_mode_state_machine"
 import { UAObligation } from "./ua_obligation"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:MachineOperationMonitoringType ns=10;i=26      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineOperationMonitoringType i=26                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineOperationMonitoring_Base {
     feedOverride?: UAAnalogUnitRange<number, DataType.Double>;

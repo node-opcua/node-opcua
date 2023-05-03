@@ -5,12 +5,12 @@
  * percentual value is displayed if the stacklight
  * unit works in Levelmeter mode.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IA/                   |
- * | nodeClass |DataType                                          |
- * | name      |9:LevelDisplayMode                                |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IA/                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |9:LevelDisplayMode                                          |
+ * | isAbstract|false                                                       |
  */
 export enum EnumLevelDisplayMode  {
   /**

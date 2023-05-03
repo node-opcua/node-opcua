@@ -6,12 +6,12 @@ import { UAString } from "node-opcua-basic-types"
 /**
  * An interface for Locking.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:LockingServicesType ns=1;i=6388                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |LockingServicesType i=6388                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UALockingServices_Base {
     defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;

@@ -15,12 +15,12 @@ import { EnumCncChannelStatus } from "./enum_cnc_channel_status"
 /**
  * List of CNC channel objects.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CNC                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |11:CncChannelListType ns=11;i=1010                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CNC                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CncChannelListType i=1010                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UACncChannelList_Base {
    // PlaceHolder for $CncChannel$

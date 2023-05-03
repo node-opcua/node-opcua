@@ -5,12 +5,12 @@ import { UAReusableCalibrationTargetCategory, UAReusableCalibrationTargetCategor
  * device that produces a certain environment like
  * pressure that can be used for calibration.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:ReusableDeviceCalibrationTargetCategoryType ns=9;i=1016|
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ReusableDeviceCalibrationTargetCategoryType i=1016          |
+ * |isAbstract      |false                                                       |
  */
 export type UAReusableDeviceCalibrationTargetCategory_Base = UAReusableCalibrationTargetCategory_Base;
 export interface UAReusableDeviceCalibrationTargetCategory extends UAReusableCalibrationTargetCategory, UAReusableDeviceCalibrationTargetCategory_Base {

@@ -4,12 +4,12 @@ import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
 import { DTLocalCoordinate } from "./dt_local_coordinate"
 import { DTWGS84Coordinate } from "./dt_wgs_84_coordinate"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:Location                                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:Location                                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTLocation_0 extends DTUnion {
   NMEA: UAString; // String ns=3;i=3012

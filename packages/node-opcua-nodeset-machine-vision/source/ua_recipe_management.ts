@@ -11,12 +11,12 @@ export interface UARecipeManagement_products extends Omit<UAProductFolder, "$Pro
       "$Product$": UABaseDataVariable<DTProduct, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:RecipeManagementType ns=4;i=1004                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RecipeManagementType i=1004                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UARecipeManagement_Base {
     addRecipe?: UAMethod;

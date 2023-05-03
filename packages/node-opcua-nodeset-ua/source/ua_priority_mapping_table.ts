@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { DTPriorityMappingEntry } from "./dt_priority_mapping_entry"
 import { DTArgument } from "./dt_argument"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PriorityMappingTableType ns=0;i=25227             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PriorityMappingTableType i=25227                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPriorityMappingTable_Base {
     priorityMapppingEntries: UAProperty<DTPriorityMappingEntry[], DataType.ExtensionObject>;

@@ -6,12 +6,12 @@ import { EnumExceptionDeviationFormat } from "./enum_exception_deviation_format"
 import { UAAggregateConfiguration } from "./ua_aggregate_configuration"
 import { UAFolder } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |HistoricalDataConfigurationType ns=0;i=2318       |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |HistoricalDataConfigurationType i=2318                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAHistoricalDataConfiguration_Base {
     aggregateConfiguration: UAAggregateConfiguration;

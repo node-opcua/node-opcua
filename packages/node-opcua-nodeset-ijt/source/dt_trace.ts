@@ -6,12 +6,12 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * It is a base type to encapsulate common data for
  * a Trace.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:TraceDataType                                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:TraceDataType                                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTTrace extends DTStructure {
   /** The mandatory TraceId is the system-wide unique identifier of the Trace.*/

@@ -8,12 +8,12 @@ import { UAIStatistics, UAIStatistics_Base } from "./ua_i_statistics"
  * is rolled over, i.e. only a certain amount of
  * data is considered for statistical data.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:IRollingStatisticsType ns=9;i=1013              |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IRollingStatisticsType i=1013                               |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIRollingStatistics_Base extends UAIStatistics_Base {
     /**

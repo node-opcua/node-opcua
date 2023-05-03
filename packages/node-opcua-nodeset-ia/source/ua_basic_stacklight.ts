@@ -14,12 +14,12 @@ import { UAStackRunning } from "./ua_stack_running"
  * of the stacklight as well as additional
  * information valid for the whole unit.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:BasicStacklightType ns=9;i=1002                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BasicStacklightType i=1002                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UABasicStacklight_Base extends UAOrderedList_Base {
    // PlaceHolder for $OrderedObject$

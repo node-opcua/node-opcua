@@ -7,12 +7,12 @@ import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UAAnalogUnit } from "./ua_analog_unit"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IIeeeBaseEthernetPortType ns=0;i=24158            |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IIeeeBaseEthernetPortType i=24158                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIIeeeBaseEthernetPort_Base extends UABaseInterface_Base {
     speed: UAAnalogUnit<UInt64, DataType.UInt64>;

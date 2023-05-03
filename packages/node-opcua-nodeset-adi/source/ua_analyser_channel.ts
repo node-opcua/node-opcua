@@ -65,12 +65,12 @@ export interface UAAnalyserChannel_status extends UAFunctionalGroup { // Object
       activeStream: UADataItem<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AnalyserChannelType ns=2;i=1003                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalyserChannelType i=1003                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAnalyserChannel_Base extends UATopologyElement_Base {
     /**

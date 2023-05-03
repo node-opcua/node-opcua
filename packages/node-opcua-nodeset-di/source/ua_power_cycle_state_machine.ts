@@ -6,12 +6,12 @@ import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:PowerCycleStateMachineType ns=1;i=285           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PowerCycleStateMachineType i=285                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPowerCycleStateMachine_Base extends UAFiniteStateMachine_Base {
     notWaitingForPowerCycle: UAInitialState;

@@ -5,12 +5,12 @@ import { UAString } from "node-opcua-basic-types"
 import { DTRedundantServer } from "./dt_redundant_server"
 import { UAServerRedundancy, UAServerRedundancy_Base } from "./ua_server_redundancy"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TransparentRedundancyType ns=0;i=2036             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TransparentRedundancyType i=2036                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UATransparentRedundancy_Base extends UAServerRedundancy_Base {
     currentServerId: UAProperty<UAString, DataType.String>;

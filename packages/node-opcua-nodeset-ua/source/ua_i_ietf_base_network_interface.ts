@@ -9,12 +9,12 @@ import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 import { UAAnalogUnit } from "./ua_analog_unit"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IIetfBaseNetworkInterfaceType ns=0;i=24148        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IIetfBaseNetworkInterfaceType i=24148                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIIetfBaseNetworkInterface_Base extends UABaseInterface_Base {
     adminStatus: UABaseDataVariable<EnumInterfaceAdminStatus, DataType.Int32>;

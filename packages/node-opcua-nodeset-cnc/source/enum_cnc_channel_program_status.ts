@@ -3,12 +3,12 @@
 /**
  * Status of program execution within a channel.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CNC                   |
- * | nodeClass |DataType                                          |
- * | name      |11:CncChannelProgramStatus                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CNC                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |11:CncChannelProgramStatus                                  |
+ * | isAbstract|false                                                       |
  */
 export enum EnumCncChannelProgramStatus  {
   /**

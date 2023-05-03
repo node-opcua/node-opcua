@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { DTDeleteNodesItem } from "./dt_delete_nodes_item"
 import { UAAuditNodeManagementEvent, UAAuditNodeManagementEvent_Base } from "./ua_audit_node_management_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditDeleteNodesEventType ns=0;i=2093             |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditDeleteNodesEventType i=2093                            |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditDeleteNodesEvent_Base extends UAAuditNodeManagementEvent_Base {
     nodesToDelete: UAProperty<DTDeleteNodesItem[], DataType.ExtensionObject>;

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UAExclusiveLimitAlarm, UAExclusiveLimitAlarm_Base } from "./ua_exclusive_limit_alarm"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ExclusiveRateOfChangeAlarmType ns=0;i=9623        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ExclusiveRateOfChangeAlarmType i=9623                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAExclusiveRateOfChangeAlarm_Base extends UAExclusiveLimitAlarm_Base {
     engineeringUnits?: UAProperty<EUInformation, DataType.ExtensionObject>;

@@ -3,12 +3,12 @@
 /**
  * Indicates whether a result was in tolerance
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Machinery/Result/     |
- * | nodeClass |DataType                                          |
- * | name      |22:ResultEvaluationEnum                           |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
+ * | nodeClass |DataType                                                    |
+ * | name      |21:ResultEvaluationEnum                                     |
+ * | isAbstract|false                                                       |
  */
 export enum EnumResultEvaluationEnum  {
   /**

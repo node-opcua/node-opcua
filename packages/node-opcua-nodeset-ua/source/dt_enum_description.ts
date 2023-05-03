@@ -6,12 +6,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTDataTypeDescription } from "./dt_data_type_description"
 import { DTEnumDefinition } from "./dt_enum_definition"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |EnumDescription                                   |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |EnumDescription                                             |
+ * | isAbstract|false                                                       |
  */
 export interface DTEnumDescription extends DTDataTypeDescription {
   dataTypeId: NodeId; // NodeId ns=0;i=17

@@ -5,12 +5,12 @@ import { UAString } from "node-opcua-basic-types"
 import { EnumApplication } from "./enum_application"
 import { UAServerConfiguration, UAServerConfiguration_Base } from "./ua_server_configuration"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ApplicationConfigurationType ns=0;i=25731         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ApplicationConfigurationType i=25731                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAApplicationConfiguration_Base extends UAServerConfiguration_Base {
     applicationUri: UAProperty<UAString, DataType.String>;

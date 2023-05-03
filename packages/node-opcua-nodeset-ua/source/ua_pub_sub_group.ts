@@ -7,12 +7,12 @@ import { DTEndpointDescription } from "./dt_endpoint_description"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 import { UAPubSubStatus } from "./ua_pub_sub_status"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubGroupType ns=0;i=14232                      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubGroupType i=14232                                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAPubSubGroup_Base {
     securityMode: UAProperty<EnumMessageSecurityMode, DataType.Int32>;

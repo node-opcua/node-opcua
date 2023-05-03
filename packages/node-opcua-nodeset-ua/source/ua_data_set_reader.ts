@@ -12,12 +12,12 @@ import { UAPubSubStatus } from "./ua_pub_sub_status"
 import { UAPubSubDiagnosticsDataSetReader } from "./ua_pub_sub_diagnostics_data_set_reader"
 import { UASubscribedDataSet } from "./ua_subscribed_data_set"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DataSetReaderType ns=0;i=15306                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DataSetReaderType i=15306                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UADataSetReader_Base {
     publisherId: UAProperty<any, any>;

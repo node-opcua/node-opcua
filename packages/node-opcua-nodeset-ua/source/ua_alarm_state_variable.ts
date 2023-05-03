@@ -5,14 +5,14 @@ import { UInt32, UInt16 } from "node-opcua-basic-types"
 import { DTContentFilter } from "./dt_content_filter"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |AlarmStateVariableType ns=0;i=32244               |
- * |dataType        |UInt16                                            |
- * |dataType Name   |UInt16 ns=0;i=32251                               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |AlarmStateVariableType i=32244                              |
+ * |dataType        |UInt16                                                      |
+ * |dataType Name   |UInt16 i=32251                                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAlarmStateVariable_Base<T extends UInt16>  extends UABaseDataVariable_Base<T, DataType.UInt16> {
     highestActiveSeverity: UAProperty<UInt16, DataType.UInt16>;

@@ -49,12 +49,12 @@ export interface UAProcessValue_analogSignal<T, DT extends DataType> extends Omi
 /**
  * Represents a process value
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |21:ProcessValueType ns=21;i=1003                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/ProcessValues/        |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProcessValueType i=1003                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProcessValue_Base extends UAAnalogSignal_Base {
     /**

@@ -27,12 +27,12 @@ export interface UAProcessingJob_$OutputMaterial$ extends Omit<UABaseMaterial, "
       z?: UAAnalogUnit<number, DataType.Double>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:ProcessingJobType ns=13;i=1009                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProcessingJobType i=1009                                    |
+ * |isAbstract      |false                                                       |
  */
 export type UAProcessingJob_Base = UAProductionJob_Base;
 export interface UAProcessingJob extends UAProductionJob, UAProcessingJob_Base {

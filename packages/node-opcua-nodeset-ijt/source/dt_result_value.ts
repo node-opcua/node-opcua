@@ -8,12 +8,12 @@ import { EnumResultEvaluation } from "./enum_result_evaluation"
  * It is used to report measurement values of the
  * joining operation.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:ResultValueDataType                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:ResultValueDataType                                      |
+ * | isAbstract|false                                                       |
  */
 export interface DTResultValue extends DTStructure {
   /** The mandatory Value is the measured value of the given result. The value corresponds to the PhysicalQuantity attribute.*/

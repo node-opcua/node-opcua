@@ -24,12 +24,12 @@ export interface UAIOLinkIODDDevice_parameterSet extends UAIOLinkDevice_paramete
       supportedAccessLocks?: UAOptionSet<Byte, DataType.Byte>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IOLink/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |17:IOLinkIODDDeviceType ns=17;i=1012              |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IOLink/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOLinkIODDDeviceType i=1012                                 |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIOLinkIODDDevice_Base extends UAIOLinkDevice_Base {
     deviceName: UAProperty<LocalizedText, DataType.LocalizedText>;

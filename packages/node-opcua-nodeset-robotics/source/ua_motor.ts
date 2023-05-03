@@ -36,12 +36,12 @@ export interface UAMotor_parameterSet extends UAObject { // Object
  * The MotorType is for representing instances of
  * electric motors.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:MotorType ns=7;i=1019                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MotorType i=1019                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMotor_Base extends UAComponent_Base {
     /**

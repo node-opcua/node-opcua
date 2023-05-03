@@ -7,12 +7,12 @@ import { UAString } from "node-opcua-basic-types"
  * the registered user groups within the control
  * system.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:UserType ns=7;i=18175                           |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |UserType i=18175                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAUser_Base {
     /**

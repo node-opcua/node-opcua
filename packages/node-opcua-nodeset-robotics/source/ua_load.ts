@@ -11,12 +11,12 @@ import { UA3DVector } from "node-opcua-nodeset-ua/source/ua_3_d_vector"
  * the motion device typically by an integrator or a
  * customer.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:LoadType ns=7;i=1018                            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |LoadType i=1018                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UALoad_Base {
     /**

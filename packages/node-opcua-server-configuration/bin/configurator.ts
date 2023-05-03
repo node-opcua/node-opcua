@@ -288,7 +288,7 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
 
                     console.log("done");
                 } catch (err) {
-                    if (utils.types.isNativeError(err)) {
+                    if (util.types.isNativeError(err)) {
                         console.log("Error ", err.message);
                     }
                     console.log(err);

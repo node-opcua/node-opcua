@@ -7,12 +7,12 @@ import { DTTraceContent } from "./dt_trace_content"
  * It is to describe of the trace for a given
  * program step.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:StepTraceDataType                              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:StepTraceDataType                                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTStepTrace extends DTStructure {
   /** The mandatory StepTraceId is the system-wide unique identifier of the step trace.*/

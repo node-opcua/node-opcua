@@ -5,12 +5,12 @@ import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |FileDirectoryType ns=0;i=13353                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FileDirectoryType i=13353                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFileDirectory_Base extends UAFolder_Base {
     createDirectory: UAMethod;

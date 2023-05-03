@@ -5,12 +5,12 @@ import { DTDataSetMeta } from "./dt_data_set_meta"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |SubscribedDataSetFolderType ns=0;i=23795          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SubscribedDataSetFolderType i=23795                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UASubscribedDataSetFolder_Base extends UAFolder_Base {
    // PlaceHolder for $StandaloneSubscribedDataSetName$

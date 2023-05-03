@@ -13,12 +13,12 @@ import { DTConfigurationId } from "./dt_configuration_id"
 import { DTJobId } from "./dt_job_id"
 import { DTProcessingTimes } from "./dt_processing_times"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:ResultDataType                                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:ResultDataType                                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTResult extends DTStructure {
   /** System-wide unique identifier, which is assigned by the system. This ID can be used for fetching exactly this result using the pertinent result management methods and it is identical to the ResultId of the ResultReadyEventType.*/

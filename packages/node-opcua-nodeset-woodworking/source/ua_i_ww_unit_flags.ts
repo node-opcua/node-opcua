@@ -6,12 +6,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * The IWwUnitFlagsType represents the flags of a
  * unit
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwUnitFlagsType ns=12;i=4                     |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwUnitFlagsType i=4                                        |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIWwUnitFlags_Base extends UABaseInterface_Base {
     /**

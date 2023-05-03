@@ -3,12 +3,12 @@
 /**
  * Status of a CNC axis.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/CNC                   |
- * | nodeClass |DataType                                          |
- * | name      |11:CncAxisStatus                                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/CNC                             |
+ * | nodeClass |DataType                                                    |
+ * | name      |11:CncAxisStatus                                            |
+ * | isAbstract|false                                                       |
  */
 export enum EnumCncAxisStatus  {
   /**

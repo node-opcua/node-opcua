@@ -7,12 +7,12 @@ import { DTArgument } from "./dt_argument"
 import { UACondition, UACondition_Base } from "./ua_condition"
 import { UATwoStateVariable } from "./ua_two_state_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DialogConditionType ns=0;i=2830                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DialogConditionType i=2830                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UADialogCondition_Base extends UACondition_Base {
     enabledState: UATwoStateVariable<LocalizedText>;

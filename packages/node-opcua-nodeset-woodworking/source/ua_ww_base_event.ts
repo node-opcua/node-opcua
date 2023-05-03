@@ -12,12 +12,12 @@ import { EnumWwEventCategory } from "./enum_ww_event_category"
  * The WwBaseEventType represents a message event
  * from a module
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:WwBaseEventType ns=12;i=13                     |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |WwBaseEventType i=13                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAWwBaseEvent_Base extends UABaseEvent_Base {
     /**

@@ -7,12 +7,12 @@ import { DTRecipeIdExternal } from "./dt_recipe_id_external"
 import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
 import { DTProductId } from "./dt_product_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:RecipeFolderType ns=4;i=1008                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RecipeFolderType i=1008                                     |
+ * |isAbstract      |false                                                       |
  */
 export type UARecipeFolder_Base = UAFolder_Base;
 export interface UARecipeFolder extends UAFolder, UARecipeFolder_Base {

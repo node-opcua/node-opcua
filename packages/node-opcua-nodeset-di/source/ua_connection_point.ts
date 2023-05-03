@@ -5,12 +5,12 @@ import { UAFunctionalGroup } from "./ua_functional_group"
  * Represents the interface (interface card) of a
  * Device to a Network.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:ConnectionPointType ns=1;i=6308                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ConnectionPointType i=6308                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UAConnectionPoint_Base extends UATopologyElement_Base {
     /**

@@ -4,12 +4,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { EnumSystemState } from "./enum_system_state"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/MachineVision         |
- * | nodeClass |DataType                                          |
- * | name      |4:SystemStateDescriptionDataType                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/MachineVision                   |
+ * | nodeClass |DataType                                                    |
+ * | name      |4:SystemStateDescriptionDataType                            |
+ * | isAbstract|false                                                       |
  */
 export interface DTSystemStateDescription extends DTStructure {
   /** Denotes one of the basic SEMI E10 states*/

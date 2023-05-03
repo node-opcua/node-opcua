@@ -9,12 +9,12 @@ import { DTConnectionTransport } from "./dt_connection_transport"
 import { DTWriterGroup } from "./dt_writer_group"
 import { DTReaderGroup } from "./dt_reader_group"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |PubSubConnectionDataType                          |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |PubSubConnectionDataType                                    |
+ * | isAbstract|false                                                       |
  */
 export interface DTPubSubConnection extends DTStructure {
   name: UAString; // String ns=0;i=12

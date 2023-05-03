@@ -6,12 +6,12 @@ export interface UAOrderedList_$OrderedObject$ extends UAObject { // Object
       numberInList: UAProperty<any, any>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |OrderedListType ns=0;i=23518                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |OrderedListType i=23518                                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UAOrderedList_Base {
    // PlaceHolder for $OrderedObject$

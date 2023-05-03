@@ -5,12 +5,12 @@ import { DTUnsignedRationalNumber } from "./dt_unsigned_rational_number"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |IIeeeBaseTsnTrafficSpecificationType ns=0;i=24179 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IIeeeBaseTsnTrafficSpecificationType i=24179                |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIIeeeBaseTsnTrafficSpecification_Base extends UABaseInterface_Base {
     maxIntervalFrames: UABaseDataVariable<UInt16, DataType.UInt16>;

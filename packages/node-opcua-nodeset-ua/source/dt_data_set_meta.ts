@@ -9,12 +9,12 @@ import { DTSimpleTypeDescription } from "./dt_simple_type_description"
 import { DTFieldMetaData } from "./dt_field_meta_data"
 import { DTConfigurationVersion } from "./dt_configuration_version"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |DataSetMetaDataType                               |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |DataSetMetaDataType                                         |
+ * | isAbstract|false                                                       |
  */
 export interface DTDataSetMeta extends DTDataTypeSchemaHeader {
   namespaces: UAString[]; // String ns=0;i=12

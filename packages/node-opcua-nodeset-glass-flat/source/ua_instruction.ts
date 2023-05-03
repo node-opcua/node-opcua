@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAFile } from "node-opcua-nodeset-ua/source/ua_file"
 import { DTFileFormat } from "./dt_file_format"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:InstructionType ns=13;i=1003                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |InstructionType i=1003                                      |
+ * |isAbstract      |false                                                       |
  */
 export interface UAInstruction_Base {
     plan: UAFile;

@@ -10,12 +10,12 @@ import { DTTighteningTrace } from "./dt_tightening_trace"
  * It is used report data associated with Tightening
  * Result and the corresponding measurement values.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/IJT/                  |
- * | nodeClass |DataType                                          |
- * | name      |14:TighteningResultDataType                       |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/IJT/                            |
+ * | nodeClass |DataType                                                    |
+ * | name      |14:TighteningResultDataType                                 |
+ * | isAbstract|false                                                       |
  */
 export interface DTTighteningResult extends DTStructure {
   /** The optional ProgramId the system-wide unique Identifier of the Program configured for generating this result.*/

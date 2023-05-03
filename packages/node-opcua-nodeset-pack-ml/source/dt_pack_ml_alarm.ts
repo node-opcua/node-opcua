@@ -3,12 +3,12 @@ import { Int32, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/PackML/               |
- * | nodeClass |DataType                                          |
- * | name      |15:PackMLAlarmDataType                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/PackML/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |15:PackMLAlarmDataType                                      |
+ * | isAbstract|false                                                       |
  */
 export interface DTPackMLAlarm extends DTStructure {
   /** A unique number assigned to each type of alarm, stop or warning.*/

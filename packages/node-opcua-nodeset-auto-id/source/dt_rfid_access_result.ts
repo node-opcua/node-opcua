@@ -7,12 +7,12 @@ import { DTScanData } from "./dt_scan_data"
  * Additional result values of an Rfid Transponder
  * access.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:RfidAccessResult                                |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:RfidAccessResult                                          |
+ * | isAbstract|false                                                       |
  */
 export interface DTRfidAccessResult extends DTAccessResult {
   /** Defines the format of Identifier as string.*/

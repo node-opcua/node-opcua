@@ -6,12 +6,12 @@ import { DTQos } from "./dt_qos"
 import { UAConnectionTransport, UAConnectionTransport_Base } from "./ua_connection_transport"
 import { UANetworkAddress } from "./ua_network_address"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DatagramConnectionTransportType ns=0;i=15064      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DatagramConnectionTransportType i=15064                     |
+ * |isAbstract      |false                                                       |
  */
 export interface UADatagramConnectionTransport_Base extends UAConnectionTransport_Base {
     discoveryAddress: UANetworkAddress;

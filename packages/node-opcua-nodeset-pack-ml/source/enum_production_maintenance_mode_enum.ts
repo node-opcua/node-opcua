@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/PackML/               |
- * | nodeClass |DataType                                          |
- * | name      |15:ProductionMaintenanceModeEnum                  |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/PackML/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |15:ProductionMaintenanceModeEnum                            |
+ * | isAbstract|false                                                       |
  */
 export enum EnumProductionMaintenanceModeEnum  {
   /**

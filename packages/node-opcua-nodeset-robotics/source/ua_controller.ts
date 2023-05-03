@@ -64,12 +64,12 @@ export interface UAController_parameterSet extends UAObject { // Object
  * motion devices. One motion device system can have
  * one or more instances of the ControllerType.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Robotics/             |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |7:ControllerType ns=7;i=1003                      |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Robotics/                       |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ControllerType i=1003                                       |
+ * |isAbstract      |false                                                       |
  */
 export interface UAController_Base extends UAComponent_Base {
     /**

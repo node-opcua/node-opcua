@@ -8,12 +8,12 @@ import { DTEnumDescription } from "./dt_enum_description"
 import { DTSimpleTypeDescription } from "./dt_simple_type_description"
 import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |UABinaryFileDataType                              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |UABinaryFileDataType                                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTUABinaryFile extends DTDataTypeSchemaHeader {
   namespaces: UAString[]; // String ns=0;i=12

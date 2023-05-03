@@ -10,12 +10,12 @@ import { UAStateVariable } from "node-opcua-nodeset-ua/source/ua_state_variable"
 import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Glass/Flat/           |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |13:ProductionStateMachineType ns=13;i=1005        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Glass/Flat/                     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ProductionStateMachineType i=1005                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAProductionStateMachine_Base extends UAFiniteStateMachine_Base {
     aborted: UAState;

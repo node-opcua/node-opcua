@@ -10,12 +10,12 @@ import { EnumEnergySource } from "./enum_energy_source"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UACookingKettleParameter } from "./ua_cooking_kettle_parameter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:CookingKettleDeviceType ns=5;i=1017             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |CookingKettleDeviceType i=1017                              |
+ * |isAbstract      |false                                                       |
  */
 export interface UACookingKettleDevice_Base extends UACommercialKitchenDevice_Base {
     cookingKettle: UACookingKettleParameter;

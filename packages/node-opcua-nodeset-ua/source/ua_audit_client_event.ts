@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UAAuditEvent, UAAuditEvent_Base } from "./ua_audit_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditClientEventType ns=0;i=23606                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditClientEventType i=23606                                |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditClientEvent_Base extends UAAuditEvent_Base {
     serverUri: UAProperty<UAString, DataType.String>;

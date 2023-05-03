@@ -9,14 +9,14 @@ import { DTErrorInformation } from "./dt_error_information"
  * which are outside the boundaries of the given
  * program.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:ErrorInformationType ns=14;i=2002              |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTErrorInformation ns=14;i=3006                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ErrorInformationType i=2002                                 |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTErrorInformation i=3006                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UAErrorInformation_Base<T extends DTErrorInformation>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     /**

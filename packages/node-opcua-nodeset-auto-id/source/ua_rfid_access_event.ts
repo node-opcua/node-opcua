@@ -8,12 +8,12 @@ import { UAAutoIdAccessEvent, UAAutoIdAccessEvent_Base } from "./ua_auto_id_acce
  * Data of the access on one or more Rfid
  * Transponder.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:RfidAccessEventType ns=3;i=1016                 |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |RfidAccessEventType i=1016                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UARfidAccessEvent_Base extends UAAutoIdAccessEvent_Base {
     /**

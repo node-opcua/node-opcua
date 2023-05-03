@@ -9,12 +9,12 @@ import { UAConnectionTransport } from "./ua_connection_transport"
 import { UAPubSubStatus } from "./ua_pub_sub_status"
 import { UAPubSubDiagnosticsConnection } from "./ua_pub_sub_diagnostics_connection"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |PubSubConnectionType ns=0;i=14209                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PubSubConnectionType i=14209                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubConnection_Base {
     publisherId: UAProperty<any, any>;

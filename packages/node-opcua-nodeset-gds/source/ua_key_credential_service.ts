@@ -3,12 +3,12 @@ import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/GDS/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |6:KeyCredentialServiceType ns=6;i=1020            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/GDS/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |KeyCredentialServiceType i=1020                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAKeyCredentialService_Base {
     resourceUri: UAProperty<UAString, DataType.String>;

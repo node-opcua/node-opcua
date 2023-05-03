@@ -5,14 +5,14 @@ import { EUInformation } from "node-opcua-data-access"
 import { DTCartesianCoordinates } from "./dt_cartesian_coordinates"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |CartesianCoordinatesType ns=0;i=18772             |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTCartesianCoordinates ns=0;i=18809               |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |CartesianCoordinatesType i=18772                            |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTCartesianCoordinates i=18809                              |
+ * |isAbstract      |true                                                        |
  */
 export interface UACartesianCoordinates_Base<T extends DTCartesianCoordinates>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     lengthUnit?: UAProperty<EUInformation, DataType.ExtensionObject>;

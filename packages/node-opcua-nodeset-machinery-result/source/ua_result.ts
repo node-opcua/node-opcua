@@ -179,14 +179,14 @@ export interface UAResult_resultMetaData<T, DT extends DataType> extends UABaseD
  * Exposes the information of the ResultDataType in
  * individual subvariables.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/Result/     |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |22:ResultType ns=22;i=2001                        |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTResult ns=22;i=3008                             |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/Result/               |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |ResultType i=2001                                           |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTResult i=3008                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {
     reducedResultContent?: UABaseDataVariable<any, any>;

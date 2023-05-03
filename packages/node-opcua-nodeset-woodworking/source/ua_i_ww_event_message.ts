@@ -13,12 +13,12 @@ import { EnumWwEventCategory } from "./enum_ww_event_category"
  * includes this interface with a HasInterface
  * reference defines the predefined extensions
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Woodworking/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |12:IWwEventMessageType ns=12;i=1002               |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Woodworking/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IWwEventMessageType i=1002                                  |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
     /**

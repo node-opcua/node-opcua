@@ -6,12 +6,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/source/ua_analog_unit_range"
 import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:SpindleMonitoringType ns=10;i=22               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |SpindleMonitoringType i=22                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UASpindleMonitoring_Base extends UAWorkingUnitMonitoring_Base {
     isRotating: UABaseDataVariable<boolean, DataType.Boolean>;

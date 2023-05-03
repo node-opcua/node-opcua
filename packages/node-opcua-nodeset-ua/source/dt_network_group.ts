@@ -4,12 +4,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 import { DTEndpointUrlList } from "./dt_endpoint_url_list"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |NetworkGroupDataType                              |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |NetworkGroupDataType                                        |
+ * | isAbstract|false                                                       |
  */
 export interface DTNetworkGroup extends DTStructure {
   serverUri: UAString; // String ns=0;i=12

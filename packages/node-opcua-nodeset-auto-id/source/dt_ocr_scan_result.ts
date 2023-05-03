@@ -7,12 +7,12 @@ import { DTScanData } from "./dt_scan_data"
 import { DTLocation } from "./dt_location"
 import { DTPosition } from "./dt_position"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:OcrScanResult                                   |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:OcrScanResult                                             |
+ * | isAbstract|false                                                       |
  */
 export interface DTOcrScanResult extends DTScanResult {
   /** Defines the format of the ScanData as string.*/

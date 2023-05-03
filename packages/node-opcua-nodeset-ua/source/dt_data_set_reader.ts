@@ -11,12 +11,12 @@ import { DTDataSetReaderTransport } from "./dt_data_set_reader_transport"
 import { DTDataSetReaderMessage } from "./dt_data_set_reader_message"
 import { DTSubscribedDataSet } from "./dt_subscribed_data_set"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |DataSetReaderDataType                             |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |DataSetReaderDataType                                       |
+ * | isAbstract|false                                                       |
  */
 export interface DTDataSetReader extends DTStructure {
   name: UAString; // String ns=0;i=12

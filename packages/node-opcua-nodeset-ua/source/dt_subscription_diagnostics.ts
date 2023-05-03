@@ -4,12 +4,12 @@ import { UInt32, Byte } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |SubscriptionDiagnosticsDataType                   |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |SubscriptionDiagnosticsDataType                             |
+ * | isAbstract|false                                                       |
  */
 export interface DTSubscriptionDiagnostics extends DTStructure {
   sessionId: NodeId; // NodeId ns=0;i=17

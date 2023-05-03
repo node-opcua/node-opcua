@@ -7,12 +7,12 @@ import { DTDataSetMeta } from "./dt_data_set_meta"
 import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |DataSetFolderType ns=0;i=14477                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |DataSetFolderType i=14477                                   |
+ * |isAbstract      |false                                                       |
  */
 export interface UADataSetFolder_Base extends UAFolder_Base {
    // PlaceHolder for $PublishedDataSetName$

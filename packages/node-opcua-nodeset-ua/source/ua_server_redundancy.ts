@@ -3,12 +3,12 @@ import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { EnumRedundancySupport } from "./enum_redundancy_support"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ServerRedundancyType ns=0;i=2034                  |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ServerRedundancyType i=2034                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServerRedundancy_Base {
     redundancySupport: UAProperty<EnumRedundancySupport, DataType.Int32>;

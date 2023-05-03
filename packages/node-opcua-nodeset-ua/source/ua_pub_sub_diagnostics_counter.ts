@@ -6,14 +6,14 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
 import { EnumPubSubDiagnosticsCounterClassification } from "./enum_pub_sub_diagnostics_counter_classification"
 import { EnumDiagnosticsLevel } from "./enum_diagnostics_level"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |PubSubDiagnosticsCounterType ns=0;i=19725         |
- * |dataType        |UInt32                                            |
- * |dataType Name   |UInt32 ns=0;i=7                                   |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |PubSubDiagnosticsCounterType i=19725                        |
+ * |dataType        |UInt32                                                      |
+ * |dataType Name   |UInt32 i=7                                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsCounter_Base<T extends UInt32>  extends UABaseDataVariable_Base<T, DataType.UInt32> {
     active: UAProperty<boolean, DataType.Boolean>;

@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { UASystemOffNormalAlarm, UASystemOffNormalAlarm_Base } from "./ua_system_off_normal_alarm"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |TrustListOutOfDateAlarmType ns=0;i=19297          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TrustListOutOfDateAlarmType i=19297                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UATrustListOutOfDateAlarm_Base extends UASystemOffNormalAlarm_Base {
     trustListId: UAProperty<NodeId, DataType.NodeId>;

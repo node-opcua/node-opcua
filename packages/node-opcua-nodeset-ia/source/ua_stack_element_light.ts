@@ -9,12 +9,12 @@ import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
 /**
  * Represents a lamp element in a stacklight.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:StackElementLightType ns=9;i=1006               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StackElementLightType i=1006                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAStackElementLight_Base extends UAStackElement_Base {
    // PlaceHolder for $ControlChannel$

@@ -4,12 +4,12 @@ import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
 import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/PackML/               |
- * | nodeClass |DataType                                          |
- * | name      |15:PackMLIngredientsDataType                      |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/PackML/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |15:PackMLIngredientsDataType                                |
+ * | isAbstract|false                                                       |
  */
 export interface DTPackMLIngredients extends DTStructure {
   /** A unique number assigned to the ingredient.*/

@@ -18,12 +18,12 @@ export interface UAParticleSizeMonitorDeviceStream_acquisitionData extends UAStr
       backgroundAcquisitionTime: UADataItem<Date, DataType.DateTime>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:ParticleSizeMonitorDeviceStreamType ns=2;i=1032 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ParticleSizeMonitorDeviceStreamType i=1032                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAParticleSizeMonitorDeviceStream_Base extends UAStream_Base {
     /**

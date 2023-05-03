@@ -4,12 +4,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { EnumEDMGeneratorState } from "./enum_edm_generator_state"
 import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:EDMGeneratorMonitoringType ns=10;i=42          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |EDMGeneratorMonitoringType i=42                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UAEDMGeneratorMonitoring_Base extends UAWorkingUnitMonitoring_Base {
     edMGeneratorState: UABaseDataVariable<EnumEDMGeneratorState, DataType.Int32>;

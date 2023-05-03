@@ -6,12 +6,12 @@ import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAFileDirectory } from "node-opcua-nodeset-ua/source/ua_file_directory"
 import { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:FileSystemLoadingType ns=1;i=192                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |FileSystemLoadingType i=192                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAFileSystemLoading_Base extends UASoftwareLoading_Base {
     fileSystem: UAFileDirectory;

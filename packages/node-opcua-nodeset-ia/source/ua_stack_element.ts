@@ -4,12 +4,12 @@ import { DataType, Variant } from "node-opcua-variant"
 /**
  * Base class for elements in a stacklight.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IA/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |9:StackElementType ns=9;i=1005                    |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IA/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |StackElementType i=1005                                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAStackElement_Base {
     /**

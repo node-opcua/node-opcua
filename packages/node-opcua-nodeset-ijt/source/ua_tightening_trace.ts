@@ -10,14 +10,14 @@ import { UATrace, UATrace_Base } from "./ua_trace"
  * content of traces for all the steps in the given
  * program.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |14:TighteningTraceType ns=14;i=2010               |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DTTighteningTrace ns=14;i=3012                    |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |TighteningTraceType i=2010                                  |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DTTighteningTrace i=3012                                    |
+ * |isAbstract      |false                                                       |
  */
 export interface UATighteningTrace_Base<T extends DTTighteningTrace>  extends UATrace_Base<T> {
     /**

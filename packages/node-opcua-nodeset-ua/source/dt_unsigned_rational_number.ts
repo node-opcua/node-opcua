@@ -3,12 +3,12 @@ import { UInt32 } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "./dt_structure"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |UnsignedRationalNumber                            |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |UnsignedRationalNumber                                      |
+ * | isAbstract|false                                                       |
  */
 export interface DTUnsignedRationalNumber extends DTStructure {
   numerator: UInt32; // UInt32 ns=0;i=7

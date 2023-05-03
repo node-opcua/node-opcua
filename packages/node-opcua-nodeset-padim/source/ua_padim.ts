@@ -11,12 +11,12 @@ import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_c
 import { UAConfigurableObject } from "node-opcua-nodeset-di/source/ua_configurable_object"
 import { UASignalSet } from "./ua_signal_set"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PADIM/                |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |20:PADIMType ns=20;i=1009                         |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PADIM/                          |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PADIMType i=1009                                            |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPADIM_Base extends UAComponent_Base {
     manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;

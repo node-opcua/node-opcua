@@ -9,12 +9,12 @@ import { EnumMultiFunctionPanMode } from "./enum_multi_function_pan_mode"
 import { EnumSpecialFunctionMode } from "./enum_special_function_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:MultiFunctionPanDeviceType ns=5;i=1019          |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MultiFunctionPanDeviceType i=1019                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMultiFunctionPanDevice_Base extends UACommercialKitchenDevice_Base {
     energySource: UAProperty<EnumEnergySource, DataType.Int32>;

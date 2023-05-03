@@ -7,12 +7,12 @@ import { EnumOperatingMode } from "./enum_operating_mode"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 import { UAMicrowaveCombiOvenParameter } from "./ua_microwave_combi_oven_parameter"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:MicrowaveCombiOvenDeviceType ns=5;i=1034        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MicrowaveCombiOvenDeviceType i=1034                         |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMicrowaveCombiOvenDevice_Base extends UACommercialKitchenDevice_Base {
     microwaveCombiOven: UAMicrowaveCombiOvenParameter;

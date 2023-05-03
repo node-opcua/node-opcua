@@ -6,12 +6,12 @@ import { DTScanData } from "./dt_scan_data"
 /**
  * Result values of an AutoID Identifier access.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/AutoID/               |
- * | nodeClass |DataType                                          |
- * | name      |3:AccessResult                                    |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/AutoID/                         |
+ * | nodeClass |DataType                                                    |
+ * | name      |3:AccessResult                                              |
+ * | isAbstract|false                                                       |
  */
 export interface DTAccessResult extends DTStructure {
   /** Defines the format of Identifier as string.*/

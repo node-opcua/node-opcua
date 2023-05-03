@@ -7,12 +7,12 @@ import { DTEventFilter } from "./dt_event_filter"
 import { DTHistoryEventFieldList } from "./dt_history_event_field_list"
 import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_audit_history_update_event"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |AuditHistoryEventUpdateEventType ns=0;i=2999      |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AuditHistoryEventUpdateEventType i=2999                     |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryEventUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
     updatedNode: UAProperty<NodeId, DataType.NodeId>;

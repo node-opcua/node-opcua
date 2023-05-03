@@ -26,12 +26,12 @@ export interface UATray_setTemperature<T, DT extends DataType> extends Omit<UAAn
       euRange: UAProperty<DTRange, DataType.ExtensionObject>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:TrayType ns=5;i=1027                            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |TrayType i=1027                                             |
+ * |isAbstract      |false                                                       |
  */
 export interface UATray_Base extends UAKitchenDeviceParameter_Base {
     activeSince: UATray_activeSince<Int32, DataType.Int32>;

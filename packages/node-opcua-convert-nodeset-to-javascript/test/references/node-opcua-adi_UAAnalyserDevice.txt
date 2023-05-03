@@ -72,12 +72,12 @@ export interface UAAnalyserDevice_status extends UAFunctionalGroup { // Object
       diagnosticStatus: UADataItem<EnumDeviceHealth, DataType.Int32>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/ADI/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |2:AnalyserDeviceType ns=2;i=1001                  |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/ADI/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |AnalyserDeviceType i=1001                                   |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAnalyserDevice_Base extends UADevice_Base {
     /**

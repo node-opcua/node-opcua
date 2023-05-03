@@ -14,12 +14,12 @@ export interface UAMachineComponents_$Component$ extends UAObject { // Object
 /**
  * Contains all identifiable components of a machine
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:MachineComponentsType ns=8;i=1006               |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |MachineComponentsType i=1006                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAMachineComponents_Base {
    // PlaceHolder for $Component$

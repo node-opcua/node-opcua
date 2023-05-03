@@ -8,12 +8,12 @@ import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UAPackMLExecuteStateMachine } from "./ua_pack_ml_execute_state_machine"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/PackML/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |15:PackMLMachineStateMachineType ns=15;i=2        |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/PackML/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |PackMLMachineStateMachineType i=2                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UAPackMLMachineStateMachine_Base extends UAFiniteStateMachine_Base {
     availableStates: UABaseDataVariable<NodeId[], DataType.NodeId>;

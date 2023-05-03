@@ -4,12 +4,12 @@ import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/|
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |5:BatchInformationType ns=5;i=1002                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BatchInformationType i=1002                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UABatchInformation_Base {
     batchId: UAProperty<UAString, DataType.String>;

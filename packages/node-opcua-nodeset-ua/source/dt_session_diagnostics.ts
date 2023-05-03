@@ -6,12 +6,12 @@ import { DTStructure } from "./dt_structure"
 import { DTApplicationDescription } from "./dt_application_description"
 import { DTServiceCounter } from "./dt_service_counter"
 /**
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/                      |
- * | nodeClass |DataType                                          |
- * | name      |SessionDiagnosticsDataType                        |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/                                |
+ * | nodeClass |DataType                                                    |
+ * | name      |SessionDiagnosticsDataType                                  |
+ * | isAbstract|false                                                       |
  */
 export interface DTSessionDiagnostics extends DTStructure {
   sessionId: NodeId; // NodeId ns=0;i=17

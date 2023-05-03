@@ -20,12 +20,12 @@ export interface UAOcrReaderDevice_runtimeParameters extends UAAutoIdDevice_runt
       templateName?: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/AutoID/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |3:OcrReaderDeviceType ns=3;i=1002                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/AutoID/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |OcrReaderDeviceType i=1002                                  |
+ * |isAbstract      |false                                                       |
  */
 export interface UAOcrReaderDevice_Base extends UAAutoIdDevice_Base {
     images?: UAFolder;

@@ -9,12 +9,12 @@ import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
 import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAOffNormalAlarm, UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua/source/ua_off_normal_alarm"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IOLink/               |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |17:IOLinkAlarmType ns=17;i=1007                   |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IOLink/                         |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IOLinkAlarmType i=1007                                      |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIOLinkAlarm_Base extends UAOffNormalAlarm_Base {
     ioLinkEventCode: UAProperty<UInt16, DataType.UInt16>;

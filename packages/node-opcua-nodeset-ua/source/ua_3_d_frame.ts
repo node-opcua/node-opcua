@@ -9,14 +9,14 @@ import { UAFrame, UAFrame_Base } from "./ua_frame"
 import { UACartesianCoordinates } from "./ua_cartesian_coordinates"
 import { UAOrientation } from "./ua_orientation"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |VariableType                                      |
- * |typedDefinition |3DFrameType ns=0;i=18791                          |
- * |dataType        |ExtensionObject                                   |
- * |dataType Name   |DT3DFrame ns=0;i=18814                            |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |VariableType                                                |
+ * |typedDefinition |3DFrameType i=18791                                         |
+ * |dataType        |ExtensionObject                                             |
+ * |dataType Name   |DT3DFrame i=18814                                           |
+ * |isAbstract      |false                                                       |
  */
 export interface UA3DFrame_Base<T extends DT3DFrame>  extends UAFrame_Base<T> {
     cartesianCoordinates: UACartesianCoordinates<DT3DCartesianCoordinates>;

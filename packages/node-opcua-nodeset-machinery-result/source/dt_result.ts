@@ -7,16 +7,16 @@ import { DTResultMeta } from "./dt_result_meta"
  * Contains fields that were created during the
  * execution of a recipe.
  *
- * |           |                                                  |
- * |-----------|--------------------------------------------------|
- * | namespace |http://opcfoundation.org/UA/Machinery/Result/     |
- * | nodeClass |DataType                                          |
- * | name      |22:ResultDataType                                 |
- * | isAbstract|false                                             |
+ * |           |                                                            |
+ * |-----------|------------------------------------------------------------|
+ * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
+ * | nodeClass |DataType                                                    |
+ * | name      |21:ResultDataType                                           |
+ * | isAbstract|false                                                       |
  */
 export interface DTResult extends DTStructure {
   /** Contains meta data describing the resultContent.*/
-  resultMetaData: DTResultMeta; // ExtensionObject ns=22;i=3007
+  resultMetaData: DTResultMeta; // ExtensionObject ns=21;i=3007
   /** Abstract data type to be subtyped from to hold result data created by the selected recipe.*/
   resultContent: Variant[]; // Variant ns=0;i=24
 }

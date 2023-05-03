@@ -9,12 +9,12 @@ import { DTSubscriptionDiagnostics } from "./dt_subscription_diagnostics"
 import { UASubscriptionDiagnosticsArray } from "./ua_subscription_diagnostics_array"
 import { UASessionsDiagnosticsSummary } from "./ua_sessions_diagnostics_summary"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/                      |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |ServerDiagnosticsType ns=0;i=2020                 |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/                                |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ServerDiagnosticsType i=2020                                |
+ * |isAbstract      |false                                                       |
  */
 export interface UAServerDiagnostics_Base {
     serverDiagnosticsSummary: UAServerDiagnosticsSummary<DTServerDiagnosticsSummary>;

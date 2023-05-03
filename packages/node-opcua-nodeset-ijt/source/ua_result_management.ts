@@ -14,12 +14,12 @@ import { DTResult } from "./dt_result"
  * stores can be used to provide the results to the
  * Client.
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/IJT/                  |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |14:ResultManagementType ns=14;i=1017              |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/IJT/                            |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultManagementType i=1017                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResultManagement_Base {
     /**

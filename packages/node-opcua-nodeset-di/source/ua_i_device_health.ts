@@ -5,12 +5,12 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { EnumDeviceHealth } from "./enum_device_health"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:IDeviceHealthType ns=1;i=15051                  |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IDeviceHealthType i=15051                                   |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIDeviceHealth_Base extends UABaseInterface_Base {
     deviceHealth?: UABaseDataVariable<EnumDeviceHealth, DataType.Int32>;

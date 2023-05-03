@@ -5,12 +5,12 @@ import { UABaseLifetimeIndication, UABaseLifetimeIndication_Base } from "./ua_ba
  * has been used or can still be used for (for
  * example usages of a punching tool).
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/DI/                   |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |1:NumberOfUsagesIndicationType ns=1;i=476         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/DI/                             |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |NumberOfUsagesIndicationType i=476                          |
+ * |isAbstract      |true                                                        |
  */
 export type UANumberOfUsagesIndication_Base = UABaseLifetimeIndication_Base;
 export interface UANumberOfUsagesIndication extends UABaseLifetimeIndication, UANumberOfUsagesIndication_Base {

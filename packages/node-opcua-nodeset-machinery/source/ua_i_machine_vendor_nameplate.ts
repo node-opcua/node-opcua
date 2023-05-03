@@ -8,12 +8,12 @@ import { UAIMachineryItemVendorNameplate, UAIMachineryItemVendorNameplate_Base }
  * information for a machine provided by the machine
  * vendor
  *
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/Machinery/            |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |8:IMachineVendorNameplateType ns=8;i=1010         |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/Machinery/                      |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |IMachineVendorNameplateType i=1010                          |
+ * |isAbstract      |true                                                        |
  */
 export interface UAIMachineVendorNameplate_Base extends UAIMachineryItemVendorNameplate_Base {
     /**

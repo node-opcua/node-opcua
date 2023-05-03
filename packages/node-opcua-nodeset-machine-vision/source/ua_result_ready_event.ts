@@ -13,12 +13,12 @@ import { DTProcessingTimes } from "./dt_processing_times"
 import { DTProductId } from "./dt_product_id"
 import { DTResultId } from "./dt_result_id"
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineVision         |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |4:ResultReadyEventType ns=4;i=1024                |
- * |isAbstract      |false                                             |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineVision                   |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |ResultReadyEventType i=1024                                 |
+ * |isAbstract      |false                                                       |
  */
 export interface UAResultReadyEvent_Base extends UABaseEvent_Base {
     creationTime: UAProperty<Date, DataType.DateTime>;

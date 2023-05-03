@@ -7,12 +7,12 @@ export interface UABaseTool_location extends UAObject { // Object
       placeNumber: UAProperty<UInt16, DataType.UInt16>;
 }
 /**
- * |                |                                                  |
- * |----------------|--------------------------------------------------|
- * |namespace       |http://opcfoundation.org/UA/MachineTool/          |
- * |nodeClass       |ObjectType                                        |
- * |typedDefinition |10:BaseToolType ns=10;i=49                        |
- * |isAbstract      |true                                              |
+ * |                |                                                            |
+ * |----------------|------------------------------------------------------------|
+ * |namespace       |http://opcfoundation.org/UA/MachineTool/                    |
+ * |nodeClass       |ObjectType                                                  |
+ * |typedDefinition |BaseToolType i=49                                           |
+ * |isAbstract      |true                                                        |
  */
 export interface UABaseTool_Base {
     identifier?: UAProperty<UAString, DataType.String>;
