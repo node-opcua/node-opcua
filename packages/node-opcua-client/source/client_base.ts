@@ -102,6 +102,10 @@ export interface OPCUAClientBaseOptions {
      * @default false
      */
     keepSessionAlive?: boolean;
+    /**
+     * the number of milliseconds that the client should wait until it sends a keep alive message to the server.
+     */
+    keepAliveInterval?: number;
 
     /**
      * certificate Manager
@@ -132,6 +136,7 @@ export interface OPCUAClientBaseOptions {
      * @advanced
      */
     transportSettings?: TransportSettings;
+    transportTimeout?: number;
 }
 
 export interface GetEndpointsOptions {
@@ -325,7 +330,6 @@ export interface OPCUAClientBase {
     readonly connectionStrategy: ConnectionStrategy;
     readonly keepPendingSessionsOnDisconnect: boolean;
     readonly endpointUrl: string;
-    readonly keepSessionAlive: boolean;
     readonly applicationName: string;
 }
 

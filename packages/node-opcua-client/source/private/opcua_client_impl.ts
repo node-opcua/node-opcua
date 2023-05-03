@@ -1049,7 +1049,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     session.serverNonce = response.serverNonce;
                     session.lastResponseReceivedTime = new Date();
                     if (this.keepSessionAlive) {
-                        session.startKeepAliveManager();
+                        session.startKeepAliveManager(this.keepAliveInterval);
                     }
                     session.userIdentityInfo = userIdentityInfo;
                     return callback(null, session);

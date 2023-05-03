@@ -16,7 +16,6 @@ import { ClientSubscription, ClientSubscriptionOptions } from "./client_subscrip
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
 import { UserIdentityInfo } from "./user_identity_info";
 
-
 export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
     /**
      * the requested session timeout in CreateSession (ms)
@@ -43,51 +42,6 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
      * @default true
      */
     endpointMustExist?: boolean;
-
-    // --------------------------------------------------------------------
-    connectionStrategy?: ConnectionStrategyOptions;
-
-    /** the server certificate. */
-    serverCertificate?: Certificate;
-
-    /***
-     * default secure token lifetime in ms
-     */
-    defaultSecureTokenLifetime?: number;
-
-    /**
-     * the security mode
-     * @default MessageSecurityMode.None
-     */
-    securityMode?: MessageSecurityMode | string;
-
-    /**
-     * the security policy
-     * @default SecurityPolicy.None
-     */
-    securityPolicy?: SecurityPolicy | string;
-
-    /**
-     * @default false
-     */
-    keepSessionAlive?: boolean;
-
-    /**
-     * client certificate pem file.
-     * @default "certificates/client_self-signed_cert_2048.pem"
-     */
-    certificateFile?: string;
-
-    /**
-     * client private key pem file.
-     * @default "certificates/client_key_2048.pem"
-     */
-    privateKeyFile?: string;
-
-    /**
-     * a client name string that will be used to generate session names.
-     */
-    clientName?: string;
 }
 
 export interface OPCUAClient extends OPCUAClientBase {

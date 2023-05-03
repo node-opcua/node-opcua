@@ -1,9 +1,6 @@
 /* eslint-disable max-statements */
-// tslint:disable: no-shadowed-variable
-// tslint:disable: no-console
 import {
     AddressSpace,
-    assert,
     AttributeIds,
     ClientMonitoredItem,
     ClientSession,
@@ -15,12 +12,8 @@ import {
     DataChangeNotification,
     DataChangeTrigger,
     DataType,
-    DataValue,
     DeadbandType,
     ExtensionObject,
-    getCurrentClock,
-    makeBrowsePath,
-    MonitoredItem,
     MonitoredItemNotification,
     MonitoringMode,
     MonitoringParametersOptions,
@@ -28,8 +21,6 @@ import {
     NodeIdLike,
     NotificationMessage,
     OPCUAClient,
-    Range,
-    ServerSidePublishEngine,
     ServiceFault,
     SetTriggeringRequestOptions,
     StatusCode,
@@ -57,10 +48,12 @@ function getInternalPublishEngine(session: ClientSession): ClientSidePublishEngi
     return s;
 }
 export function t(test: any) {
-    const options = {};
-
+  
     async function createSession() {
-        const client = OPCUAClient.create(options);
+        const client = OPCUAClient.create({
+            keepSessionAlive: true,
+            keepAliveInterval: 1000,
+        });
         const endpointUrl = test.endpointUrl;
         await client.connect(endpointUrl);
         const session = await client.createSession();

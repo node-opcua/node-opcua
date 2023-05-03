@@ -43,7 +43,7 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         this.count = 0;
     }
 
-    public start(): void {
+    public start(keepAliveInterval?: number): void {
         assert(!this.timerId);
         /* istanbul ignore next*/
         if (this.session.timeout < 600) {
@@ -58,10 +58,12 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
             );
         }
 
-        const v = Math.min(this.session.timeout, ClientSecureChannelLayer.defaultTransportTimeout);
+        const selectedCheckInterval =
+            keepAliveInterval ||
+            Math.min(Math.floor(Math.min((this.session.timeout * 2) / 3, 20000)), ClientSecureChannelLayer.defaultTransportTimeout);
 
-        this.pingTimeout = Math.floor(Math.min(this.session.timeout / 3, 20000));
-        this.checkInterval = Math.floor(Math.max(50, Math.min((this.session.timeout * 2) / 3, 20000)));
+        this.checkInterval = selectedCheckInterval;
+        this.pingTimeout = Math.floor(Math.min(Math.max(50, selectedCheckInterval / 2), 20000));
 
         // make sure first one is almost immediate
         this.timerId = setTimeout(() => this.ping_server(), this.pingTimeout);

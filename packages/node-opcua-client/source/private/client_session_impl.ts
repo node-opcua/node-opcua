@@ -1998,7 +1998,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         });
     }
 
-    public startKeepAliveManager(): void {
+    public startKeepAliveManager(keepAliveInterval?: number): void {
         if (this._keepAliveManager) {
             //  "keepAliveManger already started"
             return;
@@ -2019,7 +2019,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
              */
             this.emit("keepalive", state, count);
         });
-        this._keepAliveManager.start();
+        this._keepAliveManager.start(keepAliveInterval);
     }
 
     public stopKeepAliveManager(): void {

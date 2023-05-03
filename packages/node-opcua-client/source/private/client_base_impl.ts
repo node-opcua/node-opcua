@@ -365,6 +365,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
      * true if session shall periodically probe the server to keep the session alive and prevent timeout
      */
     public keepSessionAlive: boolean;
+    public readonly keepAliveInterval?: number;
 
     public _sessions: ClientSessionImpl[];
     protected _serverEndpoints: EndpointDescription[];
@@ -383,6 +384,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     private _tmpClient?: OPCUAClientBase;
     private _instanceNumber: number;
     private _transportSettings: TransportSettings;
+    private _transportTimeout?: number;
 
     public clientCertificateManager: OPCUACertificateManager;
 
@@ -451,6 +453,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this.serverCertificate = options.serverCertificate;
 
         this.keepSessionAlive = typeof options.keepSessionAlive === "boolean" ? options.keepSessionAlive : false;
+        this.keepAliveInterval = options.keepAliveInterval;
 
         // statistics...
         this._byteRead = 0;
@@ -471,6 +474,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this._setInternalState("disconnected");
 
         this._transportSettings = options.transportSettings || {};
+        this._transportTimeout = options.transportTimeout;
     }
 
     private _cancel_reconnection(callback: ErrorCallback) {
@@ -645,8 +649,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             securityPolicy: this.securityPolicy,
             serverCertificate: this.serverCertificate,
             tokenRenewalInterval: this.tokenRenewalInterval,
-            transportSettings: this._transportSettings
-            // transportTimeout:
+            transportSettings: this._transportSettings,
+            transportTimeout: this._transportTimeout
         });
         secureChannel.on("backoff", (count: number, delay: number) => {
             this.emit("backoff", count, delay);
@@ -1288,8 +1292,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 setImmediate(callback);
             });
         } else {
-            this.emit("close", null);
             this._setInternalState("disconnected");
+        //    this.emit("close", null);
             setImmediate(callback);
         }
     }
@@ -1569,12 +1573,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                  * @event close
                  * @param error
                  */
-                this.emit("close", err);
+                if (err) {
+                    this.emit("connection_lost", err?.message); // instead of "close"
+                }
+                this.emit("close", err); // instead of "close"
             } else {
                 /**
                  * @event connection_lost
                  */
-                // this.emit("close", err);
                 if (this.reconnectOnFailure && this._internalState !== "reconnecting") {
                     debugLog(" ClientBaseImpl emitting connection_lost");
                     this.emit("connection_lost", err?.message); // instead of "close"
