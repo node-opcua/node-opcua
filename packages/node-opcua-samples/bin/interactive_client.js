@@ -7,34 +7,26 @@ const util = require("util");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const readline = require("node:readline");
 const chalk = require("chalk");
 const treeify = require("treeify");
 const { sprintf } = require("sprintf-js");
+
 const _ = require("underscore");
 
-const {
-    DataType,
-    OPCUAClient,
-    version,
-    makeNodeId,
-    coerceNodeId,
-    ObjectIds,
-    analyze_object_binary_encoding,
-    StatusCodes,
-    parseEndpointUrl
-} = require("node-opcua");
-const { NodeCrawler } = require("node-opcua-client-crawler");
+const { DataType, OPCUAClient, makeNodeId, coerceNodeId, ObjectIds, StatusCodes, parseEndpointUrl } = require("node-opcua");
 const { UAProxyManager } = require("node-opcua-client-proxy");
+const { analyze_object_binary_encoding } = require("node-opcua-packet-analyzer");
+const { NodeCrawler } = require("node-opcua-client-crawler");
 const utils = require("node-opcua-utils");
 const { assert } = require("node-opcua-assert");
-
-console.log(" Version ", version);
 
 const sessionTimeout = 2 * 60 * 1000; // 2 minutes
 
 const client = OPCUAClient.create({
     requestedSessionTimeout: sessionTimeout,
-    keepSessionAlive: true
+    keepSessionAlive: true,
+    keepAliveInterval: 10000
 });
 
 let the_session = null;
@@ -309,7 +301,7 @@ if (rl.history) {
 }
 
 process.on("uncaughtException", function (e) {
-    util.puts(e.stack.red);
+    log(chalk.red(e.stack));
     rl.prompt();
 });
 
@@ -393,7 +385,7 @@ function open_session(callback) {
         return callback();
     } else {
         client.requestedSessionTimeout = sessionTimeout;
-        client.createSession(function (err, session) {
+        client.createSession((err, session) => {
             if (err) {
                 log(chalk.red("Error : "), err);
             } else {
@@ -468,7 +460,7 @@ function process_line(line) {
             const port = p.port;
             log(" open    url : ", endpointUrl);
             log("    hostname : ", chalk.yellow(hostname || "<null>"));
-            log("        port : ", chalk.yellow(port.toString()));
+            log("        port : ", chalk.yellow(port));
 
             apply_command(cmd, function (callback) {
                 client.connect(endpointUrl, function (err) {
