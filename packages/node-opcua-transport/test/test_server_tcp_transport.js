@@ -285,6 +285,7 @@ function installTestFor(TransportPair) {
                     await steps[index]();
                     index++;
                     await doStep();
+                    await new Promise((resolve) => setImmediate(resolve));
                 }
             };
             await doStep();
