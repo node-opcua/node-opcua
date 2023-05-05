@@ -280,12 +280,12 @@ function installTestFor(TransportPair) {
         async function doAllSteps(steps) {
             let index = 0;
             const doStep = async () => {
-                await new Promise((resolve) => setImmediate(resolve));
+                await new Promise((resolve) => setTimeout(resolve, 100));
                 if (index < steps.length) {
                     await steps[index]();
+                    await new Promise((resolve) => setTimeout(resolve, 100));
                     index++;
                     await doStep();
-                    await new Promise((resolve) => setImmediate(resolve));
                 }
             };
             await doStep();
