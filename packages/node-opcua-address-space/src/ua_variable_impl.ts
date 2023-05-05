@@ -1293,7 +1293,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
         const readImmediate = (innerCallback: (err: Error | null, dataValue: DataValue) => void) => {
             assert(this.$dataValue instanceof DataValue);
-            const dataValue = this.readValue();
+            const dataValue = this.readValue(context);
             innerCallback(null, dataValue);
         };
 

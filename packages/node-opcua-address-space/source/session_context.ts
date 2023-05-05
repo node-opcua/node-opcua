@@ -305,6 +305,7 @@ export class SessionContext implements ISessionContext {
                 return true;
             }
         }
+        if (!this.session ) { return false; }
         const securityMode = this.session?.channel?.securityMode;
         if (accessRestrictions & AccessRestrictionsFlag.SigningRequired) {
             if (securityMode !== MessageSecurityMode.Sign && securityMode !== MessageSecurityMode.SignAndEncrypt) {

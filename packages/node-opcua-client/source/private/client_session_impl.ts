@@ -309,7 +309,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     get subscriptionCount(): number {
         return this._publishEngine ? this._publishEngine.subscriptionCount : 0;
     }
-
+    
     get isReconnecting(): boolean {
         return this._client ? this._client.isReconnecting || this._reconnecting?.reconnecting : false;
     }
