@@ -198,7 +198,13 @@ exports.createHVACSystem = function (addressSpace) {
             return { statusCode: s };
         }
 
-        variable.setValueFromSource(targetTemperature, StatusCodes.Good);
+        const dataValue = new opcua.DataValue({ value: targetTemperature });
+
+        const statusCode = opcua.adjustDataValueStatusCode(variable, dataValue, variable.acceptValueOutOfRange || false);
+        if (statusCode.isNotGood()) {
+            return { statusCode };
+        }
+        variable.setValueFromSource(targetTemperature, dataValue.statusCode);
         return { statusCode: StatusCodes.Good };
     });
 

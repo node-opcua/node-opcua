@@ -96,6 +96,7 @@ import {
     _installExtensionObjectBindingOnProperties,
     _touchValue
 } from "./ua_variable_impl_ext_obj";
+import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -849,7 +850,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 // ----------------------------------
                 if (this.$extensionObject || this.$$extensionObjectArray) {
                     // we have an extension object already bound to this node
-                    // the client is asking us to replace the object entierly by a new one
+                    // the client is asking us to replace the object entirely by a new one
                     // const ext = dataValue.value.value;
                     this._internal_set_dataValue(dataValue);
                     return;
@@ -865,6 +866,11 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             errorLog(this.parent?.toString());
             throw err;
         }
+    }
+
+    private adjustDataValueStatusCode(dataValue: DataValue): StatusCode {
+        const statusCode = adjustDataValueStatusCode(this, dataValue, (this as any).acceptValueOutOfRange || false);
+        return statusCode;
     }
 
     public writeValue(
@@ -937,6 +943,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         const statusCode = this.checkVariantCompatibility(variant);
         if (statusCode.isNot(StatusCodes.Good)) {
             return callback!(null, statusCode);
+        }
+
+        // adjust dataValue.statusCode based on InstrumentRange and EngineeringUnits
+        const statusCode2 = this.adjustDataValueStatusCode(dataValue);
+        if (statusCode2.isNotGood()) {
+            return callback!(null, statusCode2);
         }
 
         const write_func = this._timestamped_set_func || default_func;
@@ -2046,10 +2058,14 @@ function _default_writable_timestamped_set_func(
 function turn_sync_to_async<T, D, R>(f: (this: T, data: D) => R, numberOfArgs: number) {
     if (f.length <= numberOfArgs) {
         return function (this: T, data: D, callback: (err: Error | null, r?: R) => void) {
-            const r = f.call(this, data);
-            setImmediate(() => {
-                return callback(null, r);
-            });
+            try {
+                const r = f.call(this, data);
+                setImmediate(() => {
+                    return callback(null, r);
+                });
+            } catch (err) {
+                return callback(err as Error);
+            }
         };
     } else {
         assert(f.length === numberOfArgs + 1);
@@ -2208,6 +2224,10 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: any) {
                 );
                 errorLog(chalk.yellow("StatusCode.Good is assumed"));
                 return callback(err, StatusCodes.Good, timestamped_value);
+            }
+            if (statusCode && statusCode.isNotGood()) {
+                // record the value but still record the statusCode !
+                timestamped_value.statusCode = statusCode;
             }
             callback(err, statusCode, timestamped_value);
         });

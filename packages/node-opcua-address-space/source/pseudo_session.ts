@@ -352,11 +352,19 @@ export class PseudoSession implements IBasicSession {
                 if (!obj) {
                     return StatusCodes.BadNodeIdUnknown;
                 }
-                return promisify(obj.writeAttribute).call(obj, context, nodeToWrite);
+                try {
+                    return promisify(obj.writeAttribute).call(obj, context, nodeToWrite);
+                } catch (err) {
+                    return StatusCodes.BadInternalError;
+                }
             });
-            Promise.all(statusCodesPromises).then((statusCodes) => {
-                callback!(null, isArray ? statusCodes : statusCodes[0]);
-            });
+            Promise.all(statusCodesPromises)
+                .then((statusCodes) => {
+                    callback!(null, isArray ? statusCodes : statusCodes[0]);
+                })
+                .catch((err) => {
+                    callback!(err);
+                });
         });
     }
 }

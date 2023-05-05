@@ -76,7 +76,7 @@ import {
     UATwoStateDiscreteEx,
     UAYArrayItemEx
 } from "../source";
-import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
+import { AddAnalogDataItemOptions, AddDataItemOptions, UAAnalogItemEx } from "../source/namespace_data_access";
 import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
 import { UAAlarmConditionEx } from "../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
@@ -124,7 +124,6 @@ import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { UAViewImpl } from "./ua_view_impl";
 import { UAStateMachineImpl, UATransitionImpl } from "./state_machine/finite_state_machine";
 import { _addMultiStateValueDiscrete } from "./data_access/ua_multistate_value_discrete_impl";
-
 
 function _makeHashKey(nodeId: NodeId): string | number {
     switch (nodeId.identifierType) {
@@ -931,6 +930,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
             instrumentRange.on("value_changed", handler);
         }
+        (variable as any).acceptValueOutOfRange = options.acceptValueOutOfRange;
 
         if (Object.prototype.hasOwnProperty.call(options, "engineeringUnits")) {
             const engineeringUnits = new EUInformation(options.engineeringUnits);
@@ -1445,7 +1445,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const _component = component as UAStateMachineImpl;
 
         assert(_component.nodeClass === NodeClass.Object || _component.nodeClass === NodeClass.ObjectType);
-      
+
         const initialStateType = addressSpace.findObjectType("InitialStateType")!;
         const stateType = addressSpace.findObjectType("StateType")!;
 
@@ -1662,24 +1662,24 @@ export class NamespaceImpl implements NamespacePrivate {
 
         // istanbul ignore next
         if (this._nodeid_index.has(hashKey)) {
-
             const exstingNode = this.findNode(node.nodeId)!;
             throw new Error(
                 "node " +
-                node.browseName.toString() +
-                " nodeId = " +
-                node.nodeId.displayText() +
-                " already registered " +
-                node.nodeId.toString() +
-                "\n" +
-                " in namespace " +
-                this.namespaceUri +
-                " index = " +
-                this.index +
-                "\n" +
-                "existing node = " +
-                exstingNode.toString() +
-                "this parent : " + node.parentNodeId?.toString()
+                    node.browseName.toString() +
+                    " nodeId = " +
+                    node.nodeId.displayText() +
+                    " already registered " +
+                    node.nodeId.toString() +
+                    "\n" +
+                    " in namespace " +
+                    this.namespaceUri +
+                    " index = " +
+                    this.index +
+                    "\n" +
+                    "existing node = " +
+                    exstingNode.toString() +
+                    "this parent : " +
+                    node.parentNodeId?.toString()
             );
         }
 
@@ -1742,15 +1742,15 @@ export class NamespaceImpl implements NamespacePrivate {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                            indexVerif +
-                            " do not match the index of the current namespace (" +
-                            this.index +
-                            ")"
+                                indexVerif +
+                                " do not match the index of the current namespace (" +
+                                this.index +
+                                ")"
                         )
                     );
                     errorLog(
                         " Please fix your code so that the created node is inserted in the correct namespace," +
-                        " please refer to the NodeOPCUA documentation"
+                            " please refer to the NodeOPCUA documentation"
                     );
                 }
             }
@@ -1990,13 +1990,16 @@ export class NamespaceImpl implements NamespacePrivate {
 
         // -----------------------------------------------------
         const hasGetter = (options: AddVariableOptions2) => {
-            return typeof options.value?.get === "function" || typeof options.value?.timestamped_get === "function"
-        }
+            return typeof options.value?.get === "function" || typeof options.value?.timestamped_get === "function";
+        };
 
         // istanbul ignore next
         if (options.minimumSamplingInterval === undefined && hasGetter(options)) {
             // a getter has been specified and no options.minimumSamplingInterval has been specified
-            warningLog("[NODE-OPCUA-W30", "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms");
+            warningLog(
+                "[NODE-OPCUA-W30",
+                "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms"
+            );
             options.minimumSamplingInterval = 1000;
         }
 
@@ -2004,7 +2007,10 @@ export class NamespaceImpl implements NamespacePrivate {
 
         // istanbul ignore next
         if (options.minimumSamplingInterval === 0 && hasGetter(options)) {
-            warningLog("[NODE-OPCUA-W31", "namespace#addVariable a getter has been specified and minimumSamplingInterval is 0.\nThis may conduct to an unpredicable behavior.\nPlease specify a non zero minimum sampling interval")
+            warningLog(
+                "[NODE-OPCUA-W31",
+                "namespace#addVariable a getter has been specified and minimumSamplingInterval is 0.\nThis may conduct to an unpredicable behavior.\nPlease specify a non zero minimum sampling interval"
+            );
         }
 
         let references = options.references || ([] as AddReferenceOpts[]);
@@ -2209,15 +2215,15 @@ export function isNonEmptyQualifiedName(browseName?: null | string | QualifiedNa
     return browseName.name!.length > 0;
 }
 
-function _create_node_version_if_needed(node: BaseNode, options: {nodeVersion: boolean}) {
+function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion: boolean }) {
     assert(options);
     if (options.nodeVersion) {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
         // istanbul ignore next
-        if (node.getChildByName("NodeVersion"))  {
+        if (node.getChildByName("NodeVersion")) {
             return; // already exists
         }
-        const namespace  = node.addressSpace.getOwnNamespace();
+        const namespace = node.addressSpace.getOwnNamespace();
         const nodeVersion = namespace.addVariable({
             browseName: "NodeVersion",
             dataType: "String",

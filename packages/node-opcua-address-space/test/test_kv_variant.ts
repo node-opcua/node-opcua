@@ -16,7 +16,7 @@ describe("bug KeyValuePair", () => {
     it("KVP2: should create a KeyValue Pair", () => {
         const kv = new KeyValuePair({ key: "A", value: { dataType: DataType.String, value: "B" } });
         kv.key.should.be.instanceOf(QualifiedName);
-        kv.key.name.should.eql("A");
+        kv.key.name!.should.eql("A");
         kv.value.dataType.should.eql(DataType.String);
         kv.value.value.should.eql("B");
     });

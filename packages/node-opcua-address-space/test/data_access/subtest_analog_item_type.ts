@@ -105,7 +105,7 @@ export function subtest_analog_item_type(maintest: any): void {
             dataValue3.value.value?.should.eql(fakeValue);
         });
 
-        it("Writing a value exceeding InstrumentRange shall return BadOutOfRange", async () => {
+        it("Writing a value exceeding InstrumentRange shall return BadOutOfRange and refuse to set the dataValue", async () => {
             const objectsFolder = addressSpace.rootFolder.objects;
 
             const analogItem = namespace.addAnalogDataItem({
@@ -126,6 +126,40 @@ export function subtest_analog_item_type(maintest: any): void {
 
             const statusCode = await analogItem.writeValue(context, dataValue);
             statusCode.should.eql(StatusCodes.BadOutOfRange);
+
+            const dataValue2 = await analogItem.readValueAsync(context);
+            dataValue2.statusCode.should.eql(StatusCodes.Good);
+            dataValue2.value.dataType.should.eql(DataType.Double);
+            dataValue2.value.value?.should.eql(10.0);
+        });
+
+        it("Writing a value exceeding InstrumentRange shall return Good and adjust the StatusCode to BadOutOfRange if record", async () => {
+            const objectsFolder = addressSpace.rootFolder.objects;
+
+            const analogItem = namespace.addAnalogDataItem({
+                browseName: "TemperatureSensor",
+                dataType: "Double",
+                definition: "(tempA -25) + tempB",
+                engineeringUnits: standardUnits.degree_celsius,
+                engineeringUnitsRange: { low: -2000, high: 2000 },
+                instrumentRange: { low: -100, high: 200 },
+                organizedBy: objectsFolder,
+                value: new Variant({ dataType: DataType.Double, value: 10.0 }),
+                valuePrecision: 0.5
+            });
+            analogItem.acceptValueOutOfRange = true;
+
+            const dataValue = new DataValue({
+                value: new Variant({ dataType: DataType.Double, value: -1000.0 }) // out of range
+            });
+
+            const statusCode = await analogItem.writeValue(context, dataValue);
+            statusCode.should.eql(StatusCodes.Good);
+
+            const dataValue2 = await analogItem.readValueAsync(context);
+            dataValue2.statusCode.should.eql(StatusCodes.BadOutOfRange);
+            dataValue2.value.dataType.should.eql(DataType.Double);
+            dataValue2.value.value?.should.eql(-1000.0);
         });
 
         it("Writing a value within InstrumentRange shall return Good", async () => {

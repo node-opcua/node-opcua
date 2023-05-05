@@ -43,7 +43,7 @@ export { adjustNamespaceArray } from "./nodeset_tools/adjust_namespace_array";
 export { makeAttributeEventName } from "./base_node_impl";
 export { resolveReferenceNode, resolveReferenceType } from "./reference_impl";
 
-export * from "./data_access/check_variant_compatibility_ua_analog_item";
+export * from "./data_access/adjust_datavalue_status_code";
 export * from "./data_access/add_dataItem_stuff";
 export * from "./data_access/ua_multistate_discrete_impl";
 export * from "./data_access/ua_multistate_value_discrete_impl";
