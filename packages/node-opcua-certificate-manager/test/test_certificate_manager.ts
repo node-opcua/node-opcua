@@ -218,16 +218,16 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
                 statusCode.should.eql(StatusCodes.BadCertificateUntrusted);
 
                 const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(certificateIssuedByCA);
-                statusCode2.should.eql(StatusCodes.BadSecurityChecksFailed);
+                statusCode2.should.eql(StatusCodes.BadCertificateChainIncomplete);
             });
             it("AQU02- should reject a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer is not trusted !", async () => {
                 await certificateMgrWithNoIssuerCert.trustCertificate(certificateIssuedByCA);
 
                 const verif = await certificateMgrWithNoIssuerCert.verifyCertificate(certificateIssuedByCA);
-                verif.should.eql("BadSecurityChecksFailed");
+                verif.should.eql("BadCertificateChainIncomplete");
 
                 const statusCode2 = await certificateMgrWithNoIssuerCert.checkCertificate(certificateIssuedByCA);
-                statusCode2.should.eql(StatusCodes.BadSecurityChecksFailed);
+                statusCode2.should.eql(StatusCodes.BadCertificateChainIncomplete);
             });
             it("AQU03- should reject a certificate (signed by CA) that appears in the trusted certificate folder - if the issuer certificate is also trusted  - and revocation list is missing!", async () => {
                 await certificateMgrWithNoIssuerCert.trustCertificate(certificateIssuedByCA);

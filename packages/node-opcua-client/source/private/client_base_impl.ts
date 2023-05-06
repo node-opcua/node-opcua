@@ -10,7 +10,7 @@ import * as chalk from "chalk";
 import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
-import { Certificate, makeSHA1Thumbprint, Nonce } from "node-opcua-crypto";
+import { Certificate, makeSHA1Thumbprint, Nonce, split_der } from "node-opcua-crypto";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 
@@ -1293,7 +1293,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             });
         } else {
             this._setInternalState("disconnected");
-        //    this.emit("close", null);
+            //    this.emit("close", null);
             setImmediate(callback);
         }
     }
@@ -1416,14 +1416,28 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             _verify_serverCertificate(this.clientCertificateManager, endpoint.serverCertificate, (err1?: Error) => {
                 if (err1) {
                     warningLog("[NODE-OPCUA-W25] client's server certificate verification has failed ", err1.message);
-                    warningLog("                 ", this.clientCertificateManager.rootDir);
-                    warningLog(
-                        "                 ",
-                        endpoint.serverCertificate.toString("base64").replace(/(.{80})/g, "$1\n                 ")
-                    );
-                    warningLog(
-                        "                 verify that server certificate is trusted or that server certificate issuer's certificate is present in the issuer folder"
-                    );
+                    warningLog("                 clientCertificateManager.rootDir = ", this.clientCertificateManager.rootDir);
+
+                    const f = (b: Buffer) =>
+                        "                 " + b.toString("base64").replace(/(.{80})/g, "$1\n                 ");
+
+                    const chain = split_der(endpoint.serverCertificate);
+                    warningLog(`                  server certificate contains ${chain.length} elements`);
+                    for (let i = 0; i < chain.length; i++) {
+                        const c = chain[i];
+                        warningLog("certificate", i, "\n" + f(c));
+                    }
+                    if (chain.length > 1) {
+                        warningLog(
+                            "                 verify also that the issuer certificate is trusted and the issuer's certificate is present in the issuer.cert folder\n" +
+                                "                 of the client certificate manager located in ",
+                            this.clientCertificateManager.rootDir
+                        );
+                    } else {
+                        warningLog(
+                            "                 verify that the server certificate is trusted or that server certificate issuer's certificate is present in the issuer folder"
+                        );
+                    }
                     return callback(err1);
                 }
                 this.serverCertificate = endpoint.serverCertificate;

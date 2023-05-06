@@ -9,7 +9,7 @@ import * as mkdirp from "mkdirp";
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
-import { Certificate, makeSHA1Thumbprint } from "node-opcua-crypto";
+import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager, CertificateManagerOptions } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
@@ -127,20 +127,44 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                 return callback!(err1);
             }
             const statusCode = (StatusCodes as any)[status!];
+            const certificates = split_der(certificateChain);
 
             debugLog("checkCertificate => StatusCode = ", statusCode.toString());
             if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
-                const thumbprint = makeSHA1Thumbprint(certificateChain).toString("hex");
+                const topCertificateInChain = certificates[0];
+                const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
                 if (this.automaticallyAcceptUnknownCertificate) {
                     debugLog("automaticallyAcceptUnknownCertificate = true");
                     debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
-                    return this.trustCertificate(certificateChain, () => callback!(null, StatusCodes.Good));
+                    return this.trustCertificate(topCertificateInChain, () => callback!(null, StatusCodes.Good));
                 } else {
                     debugLog("automaticallyAcceptUnknownCertificate = false");
                     debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
-                    return this.rejectCertificate(certificateChain, () => callback!(null, StatusCodes.BadCertificateUntrusted));
+                    return this.rejectCertificate(topCertificateInChain, () =>
+                        callback!(null, StatusCodes.BadCertificateUntrusted)
+                    );
                 }
+            } else if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
+                // put all certificates of the chain in the rejected folder
+                const rejectAll = async (certificates: Certificate[]) => {
+                    console.log("-----------------------------------------------");
+                    for (const certificate of certificates) {
+                        console.log(" =>  ", certificate.toString("base64"));
+                        await this.rejectCertificate(certificate);
+                    }
+                    console.log("-----------------------------------------------");
+                };
+
+                rejectAll(certificates)
+                    .then(() => {
+                        callback!(null, statusCode);
+                    })
+                    .catch((err) => {
+                        callback!(err);
+                    });
+                return;
             }
+
             callback!(null, statusCode);
         });
     }
