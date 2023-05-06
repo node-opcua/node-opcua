@@ -20,7 +20,7 @@
     },
     "devDependencies": {
         "should": "^13.2.3",
-        "sinon": "^15.0.3",
+        "sinon": "^15.0.4",
         "xlsx": "*"
     },
     "author": "Etienne Rossignon",

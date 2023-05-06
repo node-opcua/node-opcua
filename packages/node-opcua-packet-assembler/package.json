@@ -17,7 +17,7 @@
     },
     "devDependencies": {
         "should": "^13.2.3",
-        "sinon": "^15.0.3"
+        "sinon": "^15.0.4"
     },
     "repository": {
         "type": "git",

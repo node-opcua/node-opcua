@@ -14,7 +14,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^1.2.0",
-        "@types/async": "^3.2.18",
+        "@types/async": "^3.2.20",
         "async": "^3.2.4",
         "chalk": "4.1.2",
         "node-opcua-assert": "2.98.1",
@@ -24,7 +24,7 @@
         "node-opcua-client-dynamic-extension-object": "2.103.0",
         "node-opcua-common": "2.103.0",
         "node-opcua-constants": "2.98.1",
-        "node-opcua-crypto": "^2.1.2",
+        "node-opcua-crypto": "^2.2.0",
         "node-opcua-data-model": "2.102.0",
         "node-opcua-data-value": "2.102.0",
         "node-opcua-date-time": "2.99.0",
@@ -33,7 +33,7 @@
         "node-opcua-hostname": "2.98.1",
         "node-opcua-nodeid": "2.99.0",
         "node-opcua-object-registry": "2.99.0",
-        "node-opcua-pki": "^3.0.2",
+        "node-opcua-pki": "^3.1.2",
         "node-opcua-pseudo-session": "2.103.0",
         "node-opcua-schemas": "2.103.0",
         "node-opcua-secure-channel": "2.103.0",
@@ -67,7 +67,7 @@
         "node-opcua-leak-detector": "2.99.0",
         "node-opcua-nodesets": "2.103.0",
         "should": "^13.2.3",
-        "sinon": "^15.0.3",
+        "sinon": "^15.0.4",
         "underscore": "^1.13.6"
     },
     "eslintConfig": {
