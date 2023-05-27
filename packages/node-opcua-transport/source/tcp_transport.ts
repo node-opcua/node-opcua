@@ -230,9 +230,19 @@ export class TCP_transport extends EventEmitter {
         this.maxMessageSize = maxMessageSize;
         this.maxChunkCount = maxChunkCount;
 
-        if (maxMessageSize / sendBufferSize > maxChunkCount || maxMessageSize / receiveBufferSize > maxChunkCount) {
-            warningLog(`Warning : maxMessageSize / sendBufferSize ${maxMessageSize / sendBufferSize}> maxChunkCount ${maxChunkCount}
-                             || maxMessageSize / receiveBufferSize ${maxMessageSize / receiveBufferSize} < maxChunkCount `);
+        if (maxChunkCount !== 0) {
+            if (maxMessageSize / sendBufferSize > maxChunkCount) {
+                const expectedMaxChunkCount = Math.ceil(maxMessageSize / sendBufferSize);
+                warningLog(
+                    `Warning: maxChunkCount is not big enough : maxMessageSize / sendBufferSize ${expectedMaxChunkCount} > maxChunkCount ${maxChunkCount}`
+                );
+            }
+            if (maxMessageSize / receiveBufferSize > maxChunkCount) {
+                const expectedMaxChunkCount = Math.ceil(maxMessageSize / receiveBufferSize);
+                warningLog(
+                    `Warning: maxChunkCount is not big enough :maxMessageSize / sendBufferSize ${expectedMaxChunkCount} > maxChunkCount ${maxChunkCount}`
+                );
+            }
         }
 
         // reinstall packetAssembler with correct limits
