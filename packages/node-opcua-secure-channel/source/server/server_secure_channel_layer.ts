@@ -1010,7 +1010,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
 
             if (callback) {
-                setImmediate(callback);
+                callback();
             }
 
             /* istanbul ignore next */
@@ -1403,7 +1403,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             requestId
         };
 
-        if (msgType === "CLO" && request.schema.name === "CloseSecureChannelRequest") {
+        if (msgType === "CLO" /* && request.schema.name === "CloseSecureChannelRequest" */) {
             this.close();
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token

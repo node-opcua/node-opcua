@@ -6,6 +6,7 @@
 // tslint:disable:no-console
 import { createPublicKey, randomBytes } from "crypto";
 import { EventEmitter } from "events";
+import { types } from "util";
 import chalk from "chalk";
 import * as async from "async";
 
@@ -77,7 +78,6 @@ import {
     traceClientResponseMessage,
     _dump_client_transaction_statistics
 } from "../utils";
-import { types } from "util";
 // import * as backoff from "backoff";
 // tslint:disable-next-line: no-var-requires
 const backoff = require("backoff");
@@ -563,7 +563,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n is opened ................ : " + this.isOpened();
         str += "\n is valid ................. : " + this.isValid();
         str += "\n channelId ................ : " + this.channelId;
-        str += "\n transportParameters: ..... : " ;
+        str += "\n transportParameters: ..... : ";
         str += "\n   maxMessageSize (to send) : " + (this._transport?.parameters?.maxMessageSize || "<not set>");
         str += "\n   maxChunkCount  (to send) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
         str += "\n   receiveBufferSize(server): " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
@@ -790,7 +790,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     .join(" ")
             );
         }
-
         for (const key of Object.keys(this._requests)) {
             // kill timer id
             const transaction = this._requests[key];
@@ -798,7 +797,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 transaction.callback(new Error("Transaction has been canceled because client channel  is being closed"));
             }
         }
-        setImmediate(callback);
+        callback();
     }
 
     /**
@@ -828,7 +827,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this._cancel_security_token_watchdog();
 
             doDebug && debugLog("Sending CloseSecureChannelRequest to server");
-            const request = new CloseSecureChannelRequest({});
+            const request = new CloseSecureChannelRequest({
+                requestHeader: {
+                    timeoutHint: 1000 // 1 second !
+                }
+            });
 
             this.__in_normal_close_operation = true;
 
@@ -836,7 +839,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 this.dispose();
                 return callback(new Error("Transport disconnected"));
             }
-            this._performMessageTransaction("CLO", request, () => {
+            this._performMessageTransaction("CLO", request, (err) => {
+                if (err) {
+                    warningLog("CLO transaction terminated with error: ", err.message);
+                }
                 this.dispose();
                 callback();
             });
@@ -862,8 +868,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _on_message_received(response: Response, msgType: string, requestId: number) {
         //      assert(msgType !== "ERR");
 
-        /* istanbul ignore next */
         if (response.responseHeader.requestHandle !== requestId) {
+            /* istanbul ignore next */
             warningLog(response.toString());
             errorLog(
                 chalk.red.bgWhite.bold("xxxxx  <<<<<< _on_message_received  ERROR"),
@@ -885,6 +891,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (!requestData) {
+            if (this.__in_normal_close_operation) {
+                // may be some responses that are received from the server
+                // after the communication is closed. We can just ignore them
+                // ( this happens with Dotnet C# stack for instance)
+                return;
+            }
             errorLog(
                 chalk.cyan.bold("xxxxx  <<<<<< _on_message_received for unknown or timeout request "),
                 requestId,
@@ -1061,7 +1073,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         const percent = 75 / 100.0;
         let timeout = this.tokenRenewalInterval || lifeTime * percent;
         timeout = Math.min(timeout, (lifeTime * 75) / 100);
-        timeout = Math.max(timeout, 50); // at least one half second !
+        timeout = Math.max(timeout, 50);
 
         if (doDebug) {
             debugLog(
@@ -1247,7 +1259,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     }
 
     private _connect(transport: ClientTCP_transport, endpointUrl: string, _i_callback: ErrorCallback) {
-
         const on_connect = (err?: Error | null) => {
             doDebug && debugLog("Connection => err", err ? err.message : "null");
             // force Backoff to fail if err is not ECONNRESET or ECONNREFUSED

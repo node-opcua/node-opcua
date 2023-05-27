@@ -386,7 +386,7 @@ export class MessageBuilder extends MessageBuilderBase {
                     warningLog(chalk.red("MessageBuilder : ERROR DETECTED IN 'message' event handler"));
                     if (types.isNativeError(err)) {
                         warningLog(err.message);
-                        warningLog(err.stack);
+                        // warningLog(err.stack);
                     }
                 }
             } else {
@@ -400,7 +400,7 @@ export class MessageBuilder extends MessageBuilderBase {
                     ("" + this.totalBodySize).padEnd(8),
                     objMessage.constructor.name
                 );
-                console.log(objMessage.toString());
+                warningLog(objMessage.toString());
 
                 // we don't report an error here, we just ignore the message
                 return false; // this._report_error(message);
