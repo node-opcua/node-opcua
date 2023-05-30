@@ -1,7 +1,7 @@
 node-opcua
 ==========
 
-node-opcua is an implementation of an OPC UA stack fully written in Typescript for NodeJS.
+node-opcua is a full OPC UA stack for NodeJS and the Browser written in Typescript.
 
 [![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](https://www.npmtrends.com/node-opcua)
 [![NPM version](https://img.shields.io/npm/v/node-opcua)](https://img.shields.io/npm/v/node-opcua)
