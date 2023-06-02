@@ -1,4 +1,4 @@
-/**
+    /**
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
@@ -54,7 +54,7 @@ const hasFalseSubState_ReferenceTypeNodeId = resolveNodeId("HasFalseSubState");
 //                  TwoStateVariableType
 //                                                  <StateIdentifier> Defined in Clause 5.4.3 Optional
 
-function _updateTransitionTime(node: UATwoStateVariableEx) {
+function _updateTransitionTime(node: UATwoStateVariableEx, _subState?: UAVariable) {
     // TransitionTime specifies the time when the current state was entered.
     if (node.transitionTime) {
         node.transitionTime.setValueFromSource({ dataType: DataType.DateTime, value: new Date() });
@@ -370,7 +370,7 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
             const addressSpace = this.addressSpace;
             // add event handle
             const subState = addressSpace.findNode(reference.nodeId) as UAVariable;
-            subState.on("value_changed", _updateEffectiveTransitionTime.bind(null, this, subState));
+            subState.on("value_changed", _updateEffectiveTransitionTime.bind(null, this));
         }
     }
 }

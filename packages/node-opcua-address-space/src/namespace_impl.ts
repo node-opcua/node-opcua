@@ -1354,7 +1354,7 @@ export class NamespaceImpl implements NamespacePrivate {
                 return new EnumValueType({
                     description: coerceLocalizedText(enumItem.description),
                     displayName: coerceLocalizedText(enumItem.displayName),
-                    value: [0, enumItem.value]
+                    value: coerceInt64(enumItem.value)
                 });
             });
 
