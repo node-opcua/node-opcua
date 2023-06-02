@@ -7,7 +7,7 @@ import * as path from "path";
 import * as os from "os";
 import { types } from "util";
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import {

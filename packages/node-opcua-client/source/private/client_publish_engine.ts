@@ -3,7 +3,7 @@
  */
 import { types } from "util";
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { PublishRequest, PublishResponse, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";

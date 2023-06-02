@@ -1,6 +1,6 @@
 import * as path from "path";
 
-import * as should from "should";
+import should from "should";
 
 import { assert } from "node-opcua-assert";
 import { DataType } from "node-opcua-variant";

@@ -36,8 +36,8 @@ import {
     TimestampsToReturn,
     UAVariable
 } from "node-opcua";
-import * as sinon from "sinon";
-import * as should from "should";
+import sinon from "sinon";
+import should from "should";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");

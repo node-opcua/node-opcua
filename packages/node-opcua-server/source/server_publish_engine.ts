@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { partition, sortBy } from "lodash";
 
 import { assert } from "node-opcua-assert";

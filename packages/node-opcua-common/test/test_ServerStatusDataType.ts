@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { ServerState, ServerStatusDataType } from "..";
 const _should = should;
 should(true).eql(true);

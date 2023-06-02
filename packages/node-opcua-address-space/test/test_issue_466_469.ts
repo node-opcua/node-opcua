@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { LocalizedText } from "node-opcua-data-model";
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";

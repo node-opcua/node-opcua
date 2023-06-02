@@ -1,5 +1,5 @@
 import * as path from "path";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import "should";
 
 import { readCertificate, readCertificatePEM } from "node-opcua-crypto";

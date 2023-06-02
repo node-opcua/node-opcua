@@ -1,6 +1,6 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import {
     AttributeIds,

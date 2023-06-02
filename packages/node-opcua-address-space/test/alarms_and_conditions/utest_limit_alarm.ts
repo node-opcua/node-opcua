@@ -1,8 +1,8 @@
 // tslint:disable:no-console
 // tslint:disable:max-statements
-import * as chalk from "chalk";
-import * as should from "should";
-import * as sinon from "sinon";
+import chalk from "chalk";
+import should from "should";
+import sinon from "sinon";
 
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";

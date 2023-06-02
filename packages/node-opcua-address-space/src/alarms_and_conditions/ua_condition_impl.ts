@@ -2,7 +2,7 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { ByteString } from "node-opcua-basic-types";

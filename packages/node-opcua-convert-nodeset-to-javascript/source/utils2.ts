@@ -1,5 +1,5 @@
 import { lowerFirstLetter } from "node-opcua-utils";
-import * as wrap from "wordwrap";
+import wrap from "wordwrap";
 
 const wrapText = wrap(0, 50);
 

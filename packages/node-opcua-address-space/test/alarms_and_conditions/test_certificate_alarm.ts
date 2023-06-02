@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 import * as path from "path";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { NodeId } from "node-opcua-nodeid";

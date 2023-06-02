@@ -1,5 +1,5 @@
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 import { assert } from "node-opcua-assert";
 import { TransportPairDirect, TransportPairSocket } from "../test_helpers";
 import { ITransportPair } from "../test_helpers/ITransportPair";

@@ -7,7 +7,7 @@ import * as path from "path";
 import { createPrivateKey, KeyObject } from "crypto";
 import { promisify } from "util";
 
-import * as rimraf from "rimraf";
+import rimraf from "rimraf";
 import { SubjectOptions } from "node-opcua-pki";
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";

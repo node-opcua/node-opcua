@@ -4,7 +4,7 @@
  * @module node-opcua-factory
  */
 // tslint:disable:no-shadowed-variable
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";

@@ -3,7 +3,7 @@
 
 import * as fs from "fs";
 import { assert } from "node-opcua-assert";
-import * as should from "should";
+import should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
 import { DataType } from "node-opcua-variant";

@@ -1,5 +1,5 @@
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace, PseudoSession } from "..";

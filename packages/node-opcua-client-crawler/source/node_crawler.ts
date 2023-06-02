@@ -1,4 +1,4 @@
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as async from "async";
 
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";

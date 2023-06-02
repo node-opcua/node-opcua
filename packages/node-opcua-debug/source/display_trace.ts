@@ -2,7 +2,7 @@
  * @module node-opcua-debug
  */
 // tslint:disable:no-console
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 export function traceFromThisProjectOnly(err?: Error): string {
     const str = [];

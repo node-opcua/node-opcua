@@ -2,9 +2,9 @@
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
 import * as path from "path";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { nodesets, OPCUAServer } from "node-opcua";
-import * as yargs from "yargs";
+import yargs from "yargs";
 import { Argv } from "yargs";
 
 Error.stackTraceLimit = Infinity;

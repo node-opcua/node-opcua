@@ -3,7 +3,7 @@
 /**
  * @module node-opcua-client-dynamic-extension-object
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { AttributeIds, makeNodeClassMask, makeResultMask, NodeClassMask, QualifiedName } from "node-opcua-data-model";

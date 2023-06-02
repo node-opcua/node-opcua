@@ -5,7 +5,7 @@
 // system
 import { Socket } from "net";
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 // opcua requires

@@ -7,7 +7,7 @@ import { DataType } from "node-opcua-variant";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import {
     AddressSpace,
     promoteToStateMachine,

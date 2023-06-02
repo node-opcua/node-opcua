@@ -1,7 +1,7 @@
 /* eslint-disable max-statements */
 // tslint:disable: no-console
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { DateTime, Double, UAString, UInt32 } from "node-opcua-basic-types";
 import { LocalizedText } from "node-opcua-data-model";

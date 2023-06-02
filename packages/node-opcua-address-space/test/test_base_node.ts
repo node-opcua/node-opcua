@@ -1,6 +1,6 @@
 // tslint:disable:no-console
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { BrowseDirection } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";

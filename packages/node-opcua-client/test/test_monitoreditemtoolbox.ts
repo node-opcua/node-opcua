@@ -1,5 +1,5 @@
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 import { TimestampsToReturn } from "node-opcua-data-value";
 import { SinonSandbox } from "sinon";
 import { ClientSubscriptionImpl } from "../source/private/client_subscription_impl";

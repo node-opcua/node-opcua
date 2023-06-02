@@ -31,7 +31,7 @@ import {
     TimestampsToReturn,
     UAVariable
 } from "node-opcua";
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");

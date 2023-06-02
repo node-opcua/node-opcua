@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceQualifiedName } from "node-opcua-data-model";

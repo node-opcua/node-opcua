@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import * as mocha from "mocha";
-import * as should from "should";
+import should from "should";
 
 import { ReaderStateParserLike, FragmentClonerParser, Xml2Json } from "..";
 

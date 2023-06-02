@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { UAReference, BaseNode, UAObject, UAVariable, UAObjectType, UAVariableType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";

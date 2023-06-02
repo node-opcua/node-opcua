@@ -1,7 +1,7 @@
 /***
  * @module node-opcua-assert
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 const displayAssert = typeof process === "object" ? (process.env.DISPLAY_ASSERT ? true : false) : false;
 

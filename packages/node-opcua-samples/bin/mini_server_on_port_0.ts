@@ -1,6 +1,6 @@
 #!/usr/bin/env ts-node
 import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, OPCUAServerOptions, WellKnownRoles } from "node-opcua";
-import * as chalk from "chalk";
+import chalk from "chalk";
 async function main() {
 
     const serverOptions = {

@@ -1,5 +1,5 @@
 import "should";
-import * as should from "should";
+import should from "should";
 import { DataTypeFactory } from "node-opcua-factory";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { parseBinaryXSDAsync } from "node-opcua-schemas";

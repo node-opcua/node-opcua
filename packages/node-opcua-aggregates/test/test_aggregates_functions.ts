@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { DataValue } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";

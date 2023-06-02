@@ -3,7 +3,7 @@ import { DataValue } from "node-opcua-data-value";
 import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
-import * as should from "should";
+import should from "should";
 
 import { getMiniAddressSpace } from "../testHelpers";
 

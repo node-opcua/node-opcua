@@ -1,5 +1,5 @@
 "use strict";
-import * as should from "should";
+import should from "should";
 
 import { standardUnits } from "node-opcua-data-access";
 import { DataValue } from "node-opcua-data-value";

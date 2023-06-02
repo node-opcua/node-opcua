@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 /* eslint-disable complexity */
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { timestamp } from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 

@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 import "should";
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import {
     MonitoringMode,

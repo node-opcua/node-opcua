@@ -1,5 +1,5 @@
-import * as sinon from "sinon";
-import * as should from "should";
+import sinon from "sinon";
+import should from "should";
 import { messageLogger } from "node-opcua-debug";
 import { OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 

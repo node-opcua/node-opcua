@@ -1,7 +1,7 @@
 /* eslint-disable max-statements */
 // tslint:disable:max-statement
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace, Namespace, UAObject, UAVariable } from "../..";

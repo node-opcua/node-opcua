@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { UAState, UAStateVariable, UATransition, UATransition_Base, UATransitionVariable } from "node-opcua-nodeset-ua";
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";

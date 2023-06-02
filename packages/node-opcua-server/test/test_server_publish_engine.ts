@@ -33,8 +33,8 @@
  *
  */
 
-import * as sinon from "sinon";
-import * as should from "should";
+import sinon from "sinon";
+import should from "should";
 import { property } from "underscore";
 
 import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";

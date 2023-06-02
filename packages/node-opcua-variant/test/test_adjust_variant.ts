@@ -1,6 +1,6 @@
 "use strict";
 
-import * as should from "should";
+import should from "should";
 import { assert } from "node-opcua-assert";
 
 import {

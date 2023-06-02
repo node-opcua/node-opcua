@@ -2,7 +2,7 @@
 import * as util from "node:util";
 import * as path from "node:path";
 
-import * as should from "should";
+import should from "should";
 import { AttributeIds, ClientSession, ClientSubscription, DataValue, IBasicSession, MonitoringMode, NodeClassMask, NodeId, nodesets, OPCUAClient, OPCUAServer, ReferenceDescription, ResultMask, TimestampsToReturn, Variant } from "node-opcua";
 import { BaseNode, NodeClass, UAVariable, DataType, BrowseDirection } from "node-opcua";
 

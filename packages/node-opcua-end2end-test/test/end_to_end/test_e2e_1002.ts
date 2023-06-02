@@ -1,5 +1,5 @@
 import "should";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import { ClientSecureChannelLayer, get_mini_nodeset_filename, OPCUAClient, OPCUAServer } from "node-opcua";
 
 const port = 2128;

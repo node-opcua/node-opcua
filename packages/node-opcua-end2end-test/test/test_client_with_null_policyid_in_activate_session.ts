@@ -7,7 +7,7 @@ import {
     MessageSecurityMode,
     AnonymousIdentityToken
 } from "node-opcua";
-import * as should from "should";
+import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
 const port = 2235;

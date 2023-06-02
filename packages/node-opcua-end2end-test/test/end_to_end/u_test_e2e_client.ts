@@ -1,6 +1,6 @@
 import { types } from "util";
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 import { AttributeIds, DataType, DataValue, OPCUAClient, ReadValueIdOptions, WriteValueOptions } from "node-opcua";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;

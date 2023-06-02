@@ -1,5 +1,5 @@
-import * as chalk from "chalk";
-import * as should from "should";
+import chalk from "chalk";
+import should from "should";
 
 import { AddressSpace, UAObjectType, UAServerStatus, DTServerStatus } from "..";
 import { getMiniAddressSpace } from "../testHelpers";

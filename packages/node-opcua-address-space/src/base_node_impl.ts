@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { isEqual } from "lodash";
 
 import {

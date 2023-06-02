@@ -16,7 +16,8 @@
         "removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */,
         "outDir": "dist",
         "incremental": true,
-        "composite": true
+        "composite": true,
+	"esModuleInterop": true
     },
     "exclude": [
         "**/node_modulesdist/*",

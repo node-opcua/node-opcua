@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 // tslint:disable:max-statements
-import * as should from "should";
+import should from "should";
 import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace, UANonExclusiveDeviationAlarmEx, UAObject, UAVariable, UAVariableT } from "../..";
 

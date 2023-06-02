@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { BrowseDirection } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";

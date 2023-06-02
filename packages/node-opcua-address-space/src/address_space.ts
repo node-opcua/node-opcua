@@ -3,7 +3,7 @@
  */
 
 import { randomBytes } from "crypto";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";

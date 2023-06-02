@@ -5,11 +5,11 @@ import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
 import * as crypto from "crypto";
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { fs as fsMemory } from "memfs";
 
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace, PseudoSession, SessionContext, UAFile } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";

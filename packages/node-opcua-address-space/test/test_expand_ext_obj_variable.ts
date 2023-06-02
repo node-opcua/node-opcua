@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 /* eslint-disable no-inner-declarations */
-import * as should from "should";
+import should from "should";
 import { resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { DataTypeIds } from "node-opcua-constants";

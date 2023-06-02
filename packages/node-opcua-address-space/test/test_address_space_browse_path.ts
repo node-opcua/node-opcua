@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import * as should from "should";
+import should from "should";
 
 import { coerceQualifiedName } from "node-opcua-data-model";
 import { nodesets } from "node-opcua-nodesets";

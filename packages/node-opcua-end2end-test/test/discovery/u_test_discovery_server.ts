@@ -2,7 +2,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import { promisify } from "util";
-import * as should from "should";
+import should from "should";
 import * as async from "async";
 
 import { assert } from "node-opcua-assert";

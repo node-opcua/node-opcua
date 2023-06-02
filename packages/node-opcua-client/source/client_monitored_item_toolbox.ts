@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-client
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { TimestampsToReturn } from "node-opcua-data-value";

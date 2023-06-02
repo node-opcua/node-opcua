@@ -5,7 +5,7 @@ import * as path from "path";
 import { Socket } from "net";
 import "should";
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { ErrorCallback } from "node-opcua-status-code";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {

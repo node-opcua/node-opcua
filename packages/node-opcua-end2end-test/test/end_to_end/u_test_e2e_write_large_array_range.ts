@@ -1,6 +1,6 @@
 
 "use strict";
-import * as should from "should";
+import should from "should";
 
 import { makeNodeId, DataType, AttributeIds, OPCUAClient, ClientSession, ClientSubscription } from "node-opcua";
 

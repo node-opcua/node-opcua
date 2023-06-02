@@ -1,5 +1,5 @@
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";

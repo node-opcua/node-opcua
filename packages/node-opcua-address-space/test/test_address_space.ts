@@ -7,7 +7,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { makeNodeId } from "node-opcua-nodeid";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace, Namespace, SessionContext, UAReference } from "..";
 import { getMiniAddressSpace } from "../testHelpers";

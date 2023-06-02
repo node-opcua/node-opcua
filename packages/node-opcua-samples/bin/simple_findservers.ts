@@ -2,7 +2,7 @@
 // tslint:disable:no-console
 // this script queries the discovery server and display the discovery urls
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { MessageSecurityMode, ApplicationType, findServers } from "node-opcua";
 
 async function main() {

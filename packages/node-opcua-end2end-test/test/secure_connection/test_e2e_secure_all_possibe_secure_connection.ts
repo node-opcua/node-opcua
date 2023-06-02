@@ -8,9 +8,9 @@ import * as os from "os";
 
 import { randomBytes } from "crypto";
 
-import * as chalk from "chalk";
-import * as should from "should";
-import * as sinon from "sinon";
+import chalk from "chalk";
+import should from "should";
+import sinon from "sinon";
 
 import {
     coerceMessageSecurityMode,

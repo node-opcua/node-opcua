@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { NodeClass } from "node-opcua-data-model";
 import { Variant } from "node-opcua-variant";

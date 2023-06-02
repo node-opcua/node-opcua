@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace, UAReferenceType } from "..";

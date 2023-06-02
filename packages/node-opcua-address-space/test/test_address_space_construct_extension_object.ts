@@ -14,7 +14,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as mocha from "mocha";
-import * as should from "should";
+import should from "should";
 
 import * as utils from "node-opcua-utils";
 import { assert } from "node-opcua-assert";

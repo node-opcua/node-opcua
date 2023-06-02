@@ -1,6 +1,6 @@
 "use strict";
 
-import * as should from "should";
+import should from "should";
 
 import { invalidPrivateKey, SecurityPolicy } from "node-opcua-secure-channel";
 import { MessageSecurityMode } from "node-opcua-secure-channel";

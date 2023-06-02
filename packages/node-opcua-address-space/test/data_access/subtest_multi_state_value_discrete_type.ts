@@ -1,6 +1,6 @@
 // tslint:disable:no-bitwise
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { AccessLevelFlag } from "node-opcua-data-model";
 import { DataValue, DataValueOptionsT, DataValueT } from "node-opcua-data-value";

@@ -2,7 +2,7 @@
  * @module node-opcua-server
  */
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { ISessionContext } from "node-opcua-address-space-base";
 import { BaseNode, IEventData, makeAttributeEventName, SessionContext, UAVariable, AddressSpace } from "node-opcua-address-space";

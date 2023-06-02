@@ -3,7 +3,7 @@
  * @module node-opcua-transport
  */
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { make_debugLog, checkDebugFlag, make_errorLog, hexDump, make_warningLog } from "node-opcua-debug";

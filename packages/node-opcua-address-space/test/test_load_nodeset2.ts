@@ -1,7 +1,7 @@
 // tslint:disable:no-bitwise
 import * as fs from "fs";
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 
 import { AccessLevelFlag, AttributeIds } from "node-opcua-data-model";
 import { NodeId, NodeIdType } from "node-opcua-nodeid";

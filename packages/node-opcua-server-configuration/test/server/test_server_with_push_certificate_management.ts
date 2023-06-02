@@ -5,7 +5,7 @@ import * as path from "path";
 import * as fs from "fs";
 import { hostname } from "os";
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ClientSession, makeApplicationUrn, OPCUAClient, UserIdentityInfoUserName } from "node-opcua-client";

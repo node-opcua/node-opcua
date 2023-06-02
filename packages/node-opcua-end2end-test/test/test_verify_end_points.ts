@@ -1,5 +1,5 @@
 import { OPCUAServer, OPCUAClient } from "node-opcua";
-import * as should from "should";
+import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 const _should = should;
 const port = 2004;

@@ -1,5 +1,5 @@
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 import { spy } from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { getExtensionObjectConstructor } from "node-opcua-client-dynamic-extension-object";

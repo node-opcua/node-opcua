@@ -1,5 +1,5 @@
 import { NodeClass } from "node-opcua-data-model";
-import * as should from "should";
+import should from "should";
 import { AddressSpace, Namespace } from "..";
 const _should = should;
 

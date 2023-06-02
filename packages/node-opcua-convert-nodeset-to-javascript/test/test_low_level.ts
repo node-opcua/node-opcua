@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { coerceQualifiedName, NodeClass, QualifiedNameLike } from "node-opcua-data-model";
 import { AddressSpace, PseudoSession, UAObjectType, UAVariable } from "node-opcua-address-space";
 import { coerceNodeId, NodeId, NodeIdLike } from "node-opcua-nodeid";

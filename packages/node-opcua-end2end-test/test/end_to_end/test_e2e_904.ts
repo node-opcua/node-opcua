@@ -10,7 +10,7 @@ import {
     Response,
     Request
 } from "node-opcua";
-import * as should from "should";
+import should from "should";
 const port = 2008;
 const doDebug = false;
 

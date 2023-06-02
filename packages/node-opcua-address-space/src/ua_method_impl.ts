@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import { callbackify, types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds, QualifiedNameLike } from "node-opcua-data-model";

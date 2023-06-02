@@ -1,5 +1,5 @@
 import "should";
-import * as should from "should";
+import should from "should";
 import {
     OPCUAClient,
     OPCUAServer,

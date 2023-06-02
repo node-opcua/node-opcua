@@ -1,5 +1,5 @@
 "use strict";
-import * as should from "should";
+import should from "should";
 
 import { Range } from "node-opcua-data-access";
 import { standardUnits } from "node-opcua-data-access";

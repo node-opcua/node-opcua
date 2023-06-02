@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";

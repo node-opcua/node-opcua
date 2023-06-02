@@ -4,8 +4,8 @@ import * as path from "path";
 import * as fs from "fs";
 import "mocha";
 import { StatusCodes } from "node-opcua-status-code";
-import * as rimraf from "rimraf";
-import * as should from "should";
+import rimraf from "rimraf";
+import should from "should";
 
 const _should = should; // make sure should is not removed during typescript compilation
 

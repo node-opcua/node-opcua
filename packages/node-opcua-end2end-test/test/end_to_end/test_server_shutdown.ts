@@ -11,10 +11,10 @@ import {
     ClientMonitoredItem,
     AttributeIds,
     ServerState} from "node-opcua";
-import * as chalk from "chalk";
-import * as sinon from "sinon";
+import chalk from "chalk";
+import sinon from "sinon";
 import { SinonSpy } from "sinon";
-import * as should from "should";
+import should from "should";
 const a = should;
 const port = 2233;
 

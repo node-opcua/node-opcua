@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { SessionContext, AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";

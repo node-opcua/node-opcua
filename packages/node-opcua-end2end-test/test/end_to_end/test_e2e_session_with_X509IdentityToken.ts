@@ -12,7 +12,7 @@ import {
     UserIdentityInfoX509, UserTokenType
 } from "node-opcua-client";
 
-import * as should from "should";
+import should from "should";
 import * as  crypto_utils from "node-opcua-crypto";
 import { Certificate, PrivateKey, PrivateKeyPEM, readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
 

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-date-time
  */
-import * as long from "long";
+import long from "long";
 import { assert } from "node-opcua-assert";
 import { hrtime } from "node-opcua-utils";
 

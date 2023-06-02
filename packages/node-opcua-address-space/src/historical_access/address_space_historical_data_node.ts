@@ -4,7 +4,7 @@
  */
 // tslint:disable:no-console
 
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { AccessLevelFlag, NodeClass, QualifiedNameLike } from "node-opcua-data-model";

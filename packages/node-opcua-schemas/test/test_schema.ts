@@ -2,7 +2,7 @@
 import { promisify } from "util";
 import * as fs from "fs";
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 
 import * as mocha from "mocha";
 import { BinaryStream } from "node-opcua-binary-stream";

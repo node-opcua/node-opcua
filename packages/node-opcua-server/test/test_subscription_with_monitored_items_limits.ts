@@ -1,5 +1,5 @@
 import "should";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, Namespace, SessionContext } from "node-opcua-address-space";
