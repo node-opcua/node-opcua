@@ -32,8 +32,8 @@ import {
     CallbackT,
     Response
 } from "node-opcua";
-import { CertificateAuthority, dumpCertificate } from "node-opcua-pki";
-import { readCertificateRevocationList, readCertificate, Certificate } from "node-opcua-crypto";
+import { CertificateAuthority } from "node-opcua-pki";
+import { readCertificateRevocationList, readCertificate, Certificate, exploreCertificate } from "node-opcua-crypto";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
@@ -400,9 +400,10 @@ async function check_open_secure_channel_fails(
     console.log("options", o);
     console.log(endpointUrl);
     console.log(new Date().toUTCString());
-    dumpCertificate(client.certificateFile, (err, data) => {
-        console.log(data);
-    });
+
+    const clientCertificate = await client.getCertificate();
+    const data = exploreCertificate(clientCertificate);
+    console.log(data);
 
     // give a other chance to explore what is going on by setting a break point here
     await client.connect(endpointUrl);

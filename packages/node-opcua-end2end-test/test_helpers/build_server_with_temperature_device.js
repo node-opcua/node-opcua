@@ -51,7 +51,7 @@ function addTestUAAnalogItem(parentNode) {
         dataType: "Double",
         minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
         value: {
-            get: function () {
+            get: function() {
                 return new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 });
             }
         }
@@ -59,7 +59,7 @@ function addTestUAAnalogItem(parentNode) {
 }
 
 const userManager = {
-    isValidUser: function (userName, password) {
+    isValidUser: function(userName, password) {
         if (userName === "user1" && password === "password1") {
             return true;
         }
@@ -123,158 +123,158 @@ async function build_server_with_temperature_device(options) {
     return server;
 }
 
-async function _build_server_with_temperature_device(server, options, done) {
+async function _build_server_with_temperature_device(server, options) {
     assert(options.port, "expecting a port number");
     //xx console.log("xxx building server with temperature device");
 
-    server.on("session_closed", function (session, reason) {
+    server.on("session_closed", function(session, reason) {
         debugLog(" server_with_temperature_device has closed a session :", reason);
         debugLog(chalk.cyan("              session name: "), session.sessionName.toString());
     });
 
-    server.on("post_initialize", function () {
-        const addressSpace = server.engine.addressSpace;
+    await server.initialize();
 
-        const namespace = addressSpace.getOwnNamespace();
+    const addressSpace = server.engine.addressSpace;
 
-        const myDevices = namespace.addFolder("ObjectsFolder", { browseName: "MyDevices" });
-        assert(myDevices.browseName.toString() === "1:MyDevices");
+    const namespace = addressSpace.getOwnNamespace();
 
-        // create a variable with a string namepsace
-        const variable0 = namespace.addVariable({
-            componentOf: myDevices,
-            browseName: "FanSpeed",
-            nodeId: "s=FanSpeed",
-            dataType: "Double",
-            value: new Variant({ dataType: DataType.Double, value: 1000.0 })
-        });
-        assert(variable0.nodeId.toString() === "ns=1;s=FanSpeed");
+    const myDevices = namespace.addFolder("ObjectsFolder", { browseName: "MyDevices" });
+    assert(myDevices.browseName.toString() === "1:MyDevices");
 
-        const setPointTemperatureId = "s=SetPointTemperature";
-        // install a Read/Write variable representing a temperature set point of a temperature controller.
-        server.temperatureVariableId = namespace.addVariable({
-            organizedBy: myDevices,
-            browseName: "SetPointTemperature",
-            nodeId: setPointTemperatureId,
-            dataType: "Double",
-            minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
-            value: {
-                get: function () {
-                    return new Variant({ dataType: DataType.Double, value: server.set_point_temperature });
-                },
-                set: function (variant) {
-                    // to do : test if variant can be coerce to Float or Double
-                    server.set_point_temperature = parseFloat(variant.value);
-                    return StatusCodes.Good;
-                }
+    // create a variable with a string namepsace
+    const variable0 = namespace.addVariable({
+        componentOf: myDevices,
+        browseName: "FanSpeed",
+        nodeId: "s=FanSpeed",
+        dataType: "Double",
+        value: new Variant({ dataType: DataType.Double, value: 1000.0 })
+    });
+    assert(variable0.nodeId.toString() === "ns=1;s=FanSpeed");
+
+    const setPointTemperatureId = "s=SetPointTemperature";
+    // install a Read/Write variable representing a temperature set point of a temperature controller.
+    server.temperatureVariableId = namespace.addVariable({
+        organizedBy: myDevices,
+        browseName: "SetPointTemperature",
+        nodeId: setPointTemperatureId,
+        dataType: "Double",
+        minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
+        value: {
+            get: function() {
+                return new Variant({ dataType: DataType.Double, value: server.set_point_temperature });
+            },
+            set: function(variant) {
+                // to do : test if variant can be coerce to Float or Double
+                server.set_point_temperature = parseFloat(variant.value);
+                return StatusCodes.Good;
             }
-        });
-
-        // install a Read-Only variable defined with a fancy Opaque nodeid
-        const pumpSpeedId = "b=0102030405060708090a0b0c0d0e0f10";
-
-        server.pumpSpeed = namespace.addVariable({
-            componentOf: myDevices,
-            browseName: "PumpSpeed",
-            nodeId: pumpSpeedId,
-            dataType: "Double",
-            minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
-            value: {
-                get: function () {
-                    const pump_speed = 200 + Math.random();
-                    return new Variant({ dataType: DataType.Double, value: pump_speed });
-                },
-                set: function (variant) {
-                    return StatusCodes.BadNotWritable;
-                }
-            }
-        });
-        assert(server.pumpSpeed.nodeId.toString() === "ns=1;" + pumpSpeedId);
-
-        const endpointUrl = server.getEndpointUrl();
-        debugLog("endpointUrl", endpointUrl);
-        is_valid_endpointUrl(endpointUrl).should.equal(true);
-
-        if (options.add_simulation) {
-            build_address_space_for_conformance_testing(server.engine.addressSpace);
         }
+    });
 
-        // add a Analog Data Item
-        addTestUAAnalogItem(myDevices);
+    // install a Read-Only variable defined with a fancy Opaque nodeid
+    const pumpSpeedId = "b=0102030405060708090a0b0c0d0e0f10";
 
-        // add a variable that can be written asynchronously
-        const asyncWriteNodeId = "s=AsynchronousVariable";
-        let asyncValue = 46;
-
-        server.asyncWriteNode = namespace.addVariable({
-            componentOf: myDevices,
-            browseName: "AsynchronousVariable",
-            nodeId: asyncWriteNodeId,
-            dataType: "Double",
-            minimumSamplingInterval: 100,
-            value: {            
-                // asynchronous read
-                refreshFunc: function (callback) {
-                    const dataValue = new DataValue({
-                        value: {
-                            dataType: DataType.Double,
-                            value: asyncValue
-                        },
-                        sourceTimestamp: new Date()
-                    });
-                    // simulate a asynchronous behaviour
-                    setTimeout(function () {
-                        callback(null, dataValue);
-                    }, 10);
-                },
-                set: function (variant) {
-                    setTimeout(function () {
-                        asyncValue = variant.value;
-                    }, 100);
-                    return StatusCodes.GoodCompletesAsynchronously;
-                }
+    server.pumpSpeed = namespace.addVariable({
+        componentOf: myDevices,
+        browseName: "PumpSpeed",
+        nodeId: pumpSpeedId,
+        dataType: "Double",
+        minimumSamplingInterval: 100, // need to specify the minimum sampling interval when using getter
+        value: {
+            get: function() {
+                const pump_speed = 200 + Math.random();
+                return new Variant({ dataType: DataType.Double, value: pump_speed });
+            },
+            set: function(variant) {
+                return StatusCodes.BadNotWritable;
             }
-        });
+        }
+    });
+    assert(server.pumpSpeed.nodeId.toString() === "ns=1;" + pumpSpeedId);
 
-        // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
-        const asyncWriteFullNodeId = "s=AsynchronousFullVariable";
-        let asyncWriteFull_dataValue = {
-            statusCode: StatusCodes.UncertainInitialValue
-        };
+    const endpointUrl = server.getEndpointUrl();
+    debugLog("endpointUrl", endpointUrl);
+    is_valid_endpointUrl(endpointUrl).should.equal(true);
 
-        server.asyncWriteNode = namespace.addVariable({
-            componentOf: myDevices,
-            browseName: "AsynchronousFullVariable",
-            nodeId: asyncWriteFullNodeId,
-            dataType: "Double",
-            minimumSamplingInterval: 100,
-            value: {
-                // asynchronous read
-                timestamped_get: function (callback) {
-                    assert(typeof callback === "function", "callback must be a function");
-                    setTimeout(function () {
-                        callback(null, asyncWriteFull_dataValue);
-                    }, 10);
-                },
-                // asynchronous write
-                // in this case, we are using timestamped_set and not set
-                // as we want to control and deal with the dataValue provided by the client write
-                // This will allow us to handle more specifically timestamps and statusCodes
-                timestamped_set: function (dataValue, callback) {
-                    assert(typeof callback === "function", "callback must be a function");
-                    //xxx console.log(chalk.cyan(" DATA VALUE !!!"), chalk.yellow(dataValue.toString()));
-                    setTimeout(function () {
-                        asyncWriteFull_dataValue = new DataValue(dataValue);
-                        callback();
-                    }, 250);
-                }
+    if (options.add_simulation) {
+        build_address_space_for_conformance_testing(server.engine.addressSpace);
+    }
+
+    // add a Analog Data Item
+    addTestUAAnalogItem(myDevices);
+
+    // add a variable that can be written asynchronously
+    const asyncWriteNodeId = "s=AsynchronousVariable";
+    let asyncValue = 46;
+
+    server.asyncWriteNode = namespace.addVariable({
+        componentOf: myDevices,
+        browseName: "AsynchronousVariable",
+        nodeId: asyncWriteNodeId,
+        dataType: "Double",
+        minimumSamplingInterval: 100,
+        value: {
+            // asynchronous read
+            refreshFunc: function(callback) {
+                const dataValue = new DataValue({
+                    value: {
+                        dataType: DataType.Double,
+                        value: asyncValue
+                    },
+                    sourceTimestamp: new Date()
+                });
+                // simulate a asynchronous behaviour
+                setTimeout(function() {
+                    callback(null, dataValue);
+                }, 10);
+            },
+            set: function(variant) {
+                setTimeout(function() {
+                    asyncValue = variant.value;
+                }, 100);
+                return StatusCodes.GoodCompletesAsynchronously;
             }
-        });
+        }
+    });
+
+    // add a variable that can be written asynchronously and that supports TimeStamps and StatusCodes
+    const asyncWriteFullNodeId = "s=AsynchronousFullVariable";
+    let asyncWriteFull_dataValue = {
+        statusCode: StatusCodes.UncertainInitialValue
+    };
+
+    server.asyncWriteNode = namespace.addVariable({
+        componentOf: myDevices,
+        browseName: "AsynchronousFullVariable",
+        nodeId: asyncWriteFullNodeId,
+        dataType: "Double",
+        minimumSamplingInterval: 100,
+        value: {
+            // asynchronous read
+            timestamped_get: function(callback) {
+                assert(typeof callback === "function", "callback must be a function");
+                setTimeout(function() {
+                    callback(null, asyncWriteFull_dataValue);
+                }, 10);
+            },
+            // asynchronous write
+            // in this case, we are using timestamped_set and not set
+            // as we want to control and deal with the dataValue provided by the client write
+            // This will allow us to handle more specifically timestamps and statusCodes
+            timestamped_set: function(dataValue, callback) {
+                assert(typeof callback === "function", "callback must be a function");
+                //xxx console.log(chalk.cyan(" DATA VALUE !!!"), chalk.yellow(dataValue.toString()));
+                setTimeout(function() {
+                    asyncWriteFull_dataValue = new DataValue(dataValue);
+                    callback();
+                }, 250);
+            }
+        }
     });
 
     server.set_point_temperature = 20.0;
 
-  
+
     await server.start();
 
     const shutdownReason = server.engine.addressSpace.rootFolder.objects.server.serverStatus.shutdownReason;

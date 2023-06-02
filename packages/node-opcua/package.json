@@ -12,7 +12,7 @@
         "node": ">=8.10"
     },
     "dependencies": {
-        "@types/semver": "^7.3.13",
+        "@types/semver": "^7.5.0",
         "chalk": "4.1.2",
         "node-opcua-address-space": "2.103.0",
         "node-opcua-address-space-for-conformance-testing": "2.103.0",
@@ -26,7 +26,7 @@
         "node-opcua-client-proxy": "2.103.0",
         "node-opcua-common": "2.103.0",
         "node-opcua-constants": "2.98.1",
-        "node-opcua-crypto": "^2.2.0",
+        "node-opcua-crypto": "3.0.5",
         "node-opcua-data-access": "2.103.0",
         "node-opcua-data-model": "2.102.0",
         "node-opcua-data-value": "2.102.0",
@@ -62,7 +62,7 @@
         "node-opcua-utils": "2.98.1",
         "node-opcua-variant": "2.102.0",
         "node-opcua-vendor-diagnostic": "2.103.0",
-        "semver": "^7.5.0"
+        "semver": "^7.5.1"
     },
     "devDependencies": {
         "should": "^13.2.3"

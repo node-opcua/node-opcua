@@ -6,7 +6,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "test": "echo none",
+        "test": "mocha",
         "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "lint": "eslint source/*.ts"
     },
@@ -20,7 +20,7 @@
         "node-opcua-status-code": "2.98.1"
     },
     "devDependencies": {
-        "@types/node": "20.1.0",
+        "@types/node": "20.2.5",
         "node-opcua-benchmarker": "2.98.1",
         "node-opcua-debug": "2.99.0",
         "should": "^13.2.3"

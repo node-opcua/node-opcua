@@ -1,8 +1,8 @@
-// luanch with mocha -r ts-node/register test/*.ts
+// launch with mocha -r ts-node/register test/*.ts
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
 import * as fs from "fs";
 import * as path from "path";
-import { Socket } from "net";
+
 import "should";
 import * as async from "async";
 import chalk from "chalk";
@@ -295,11 +295,11 @@ describe("Testing secure client and server connection", () => {
 
     function performTest1(sizeC: number, sizeS: number, securityPolicy: SecurityPolicy, done: (err?: Error) => void): void {
         function m(file: string): string {
-            const fullpathname = path.join(certificateFolder, file);
-            if (!fs.existsSync(fullpathname)) {
-                throw new Error("file must exist: " + fullpathname);
+            const fullPathname = path.join(certificateFolder, file);
+            if (!fs.existsSync(fullPathname)) {
+                throw new Error("file must exist: " + fullPathname);
             }
-            return fullpathname;
+            return fullPathname;
         }
 
         const serverCertificateFile = m(`server_cert_${sizeS}.pem`);

@@ -12,7 +12,7 @@ import chalk from "chalk";
 import { UAServerConfiguration, AddressSpace } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKey, PrivateKeyPEM, split_der } from "node-opcua-crypto";
+import { Certificate, convertPEMtoDER, makeSHA1Thumbprint, PrivateKey, readPrivateKey, split_der } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ICertificateKeyPairProviderPriv } from "node-opcua-common";
@@ -145,8 +145,8 @@ function getCertificateChainEP(this: OPCUAServerEndPoint): Certificate {
 }
 
 function getPrivateKeyEP(this: OPCUAServerEndPoint): PrivateKey {
-    const $$privateKey = createPrivateKey(fs.readFileSync(this.certificateManager.privateKey, "utf8"));
-    return $$privateKey;
+    const privateKey = readPrivateKey(this.certificateManager.privateKey);
+    return privateKey;
 }
 
 async function onCertificateAboutToChange(server: OPCUAServer) {
@@ -169,12 +169,12 @@ async function onCertificateChange(server: OPCUAServer) {
 
     const _server = server as any as OPCUAServerPartial;
 
-    _server.$$privateKey = createPrivateKey(fs.readFileSync(server.serverCertificateManager.privateKey, "utf8"));
+    _server.$$privateKey = readPrivateKey(server.serverCertificateManager.privateKey);
     const certificateFile = path.join(server.serverCertificateManager.rootDir, "own/certs/certificate.pem");
     const certificatePEM = fs.readFileSync(certificateFile, "utf8");
 
     const privateKeyFile = server.serverCertificateManager.privateKey;
-    const privateKey = createPrivateKey(fs.readFileSync(privateKeyFile, "utf8"));
+    const privateKey = readPrivateKey(privateKeyFile);
     // also reread the private key
 
     _server.$$certificateChain = convertPEMtoDER(certificatePEM);

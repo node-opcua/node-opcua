@@ -3,15 +3,15 @@
 import * as path from "path";
 import * as fs from "fs";
 import "mocha";
-import { StatusCodes } from "node-opcua-status-code";
 import rimraf from "rimraf";
 import should from "should";
 
-const _should = should; // make sure should is not removed during typescript compilation
+import { CertificateAuthority } from "node-opcua-pki";
+import { StatusCodes } from "node-opcua-status-code";
 
 import { Certificate, readCertificate, makeSHA1Thumbprint, readCertificateRevocationList } from "node-opcua-crypto";
 import { OPCUACertificateManager, OPCUACertificateManagerOptions } from "../source";
-import { CertificateAuthority, CertificateManager } from "..";
+import { CertificateManager } from "..";
 
 async function t(a: number) {
     return await new Promise((resolve) => setTimeout(resolve, 1000));

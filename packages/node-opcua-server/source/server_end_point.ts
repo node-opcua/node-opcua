@@ -82,8 +82,9 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
 
 function dumpChannelInfo(channels: ServerSecureChannelLayer[]): void {
     function d(s: IServerSessionBase) {
-        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${s.sessionTimeout
-            } ]`;
+        return `[ status=${s.status} lastSeen=${s.clientLastContactTime.toFixed(0)}ms sessionName=${s.sessionName} timeout=${
+            s.sessionTimeout
+        } ]`;
     }
     function dumpChannel(channel: ServerSecureChannelLayer): void {
         console.log("------------------------------------------------------");
@@ -379,7 +380,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         }
         //
 
-
         // resource Path is a string added at the end of the url such as "/UA/Server"
         const resourcePath = (options.resourcePath || "").replace(/\\/g, "/");
 
@@ -399,23 +399,26 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         // now build endpointUrl
         this._endpoints.push(
-            _makeEndpointDescription({
-                collection: this._policy_deduplicator,
-                hostname,
-                server: this.serverInfo,
-                serverCertificateChain: this.getCertificateChain(),
+            _makeEndpointDescription(
+                {
+                    collection: this._policy_deduplicator,
+                    hostname,
+                    server: this.serverInfo,
+                    serverCertificateChain: this.getCertificateChain(),
 
-                securityMode,
-                securityPolicy,
+                    securityMode,
+                    securityPolicy,
 
-                allowUnsecurePassword: options.allowUnsecurePassword,
-                resourcePath: options.resourcePath,
+                    allowUnsecurePassword: options.allowUnsecurePassword,
+                    resourcePath: options.resourcePath,
 
-                restricted: !!options.restricted,
-                securityPolicies: options.securityPolicies || [],
+                    restricted: !!options.restricted,
+                    securityPolicies: options.securityPolicies || [],
 
-                userTokenTypes
-            }, this)
+                    userTokenTypes
+                },
+                this
+            )
         );
     }
 
@@ -508,7 +511,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this._server!.listen(
             this.port,
-            /*"::",*/(err?: Error) => {
+            /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
                 assert(!err, " cannot listen to port ");
@@ -516,12 +519,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 if (!this.port) {
                     const add = this._server!.address()!;
                     this.port = typeof add !== "string" ? add.port : this.port;
-
                 }
                 this._end_listen();
             }
         );
-
     }
 
     public killClientSockets(callback: (err?: Error) => void): void {
@@ -692,7 +693,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
+                        "SERVER END POINT IS PROBABLY SHUTTING DOWN !!! - Connection is refused"
                 )
             );
             socket.end();
@@ -702,7 +703,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             console.log(
                 chalk.bgWhite.cyan(
                     "OPCUAServerEndPoint#_on_client_connection " +
-                    "The maximum number of connection has been reached - Connection is refused"
+                        "The maximum number of connection has been reached - Connection is refused"
                 )
             );
             const reason = "maxConnections reached (" + this.maxConnections + ")";
@@ -938,7 +939,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 }
 
 interface MakeEndpointDescriptionOptions {
-
     /**
      * @default  default hostname (default value will be full qualified domain name)
      */
@@ -1139,7 +1139,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
     }
     // return the endpoint object
     const endpoint = new EndpointDescription({
-        endpointUrl: '<to be evaluated at run time>',// options.endpointUrl,
+        endpointUrl: "<to be evaluated at run time>", // options.endpointUrl,
 
         server: undefined, // options.server,
         serverCertificate: options.serverCertificateChain,
@@ -1152,7 +1152,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
         transportProfileUri: default_transportProfileUri
     }) as EndpointDescriptionEx;
     endpoint._parent = parent;
-   
+
     // endpointUrl is dynamic as port number may be adjusted
     // when the tcp socker start listening
     (endpoint as any).__defineGetter__("endpointUrl", () => {

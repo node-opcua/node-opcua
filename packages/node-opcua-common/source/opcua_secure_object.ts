@@ -81,6 +81,7 @@ export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPa
             assert(fs.existsSync(this.privateKeyFile), "private file must exist :" + this.privateKeyFile);
             priv.$$privateKey = _load_private_key(this.privateKeyFile);
         }
+        assert(!(priv.$$privateKey instanceof Buffer), "should not be a buffer");
         return priv.$$privateKey;
     }
 }

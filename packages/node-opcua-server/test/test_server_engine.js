@@ -2030,7 +2030,9 @@ describe("testing ServerEngine", () => {
 
                     values[0].value.value.should.equal(1);
                     values[1].value.value.should.equal(1);
-
+                    if (value1 !==1 || value2 !==1) {
+                        console.log("value1 = ", values[0].toString(),"value2 = ",values[1].toString());
+                    }
                     value1.should.equal(1);
                     value2.should.equal(1);
                 }

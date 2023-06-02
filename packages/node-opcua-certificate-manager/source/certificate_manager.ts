@@ -7,6 +7,9 @@ import * as path from "path";
 
 import * as mkdirp from "mkdirp";
 import envPaths from "env-paths";
+
+import { withLock } from "@ster5/global-mutex";
+
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 
 import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
@@ -175,6 +178,9 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         this.isCertificateTrusted(certificate, (err: Error | null, trustedStatus?: string) => {
             callback!(err, err ? undefined : (StatusCodes as any)[trustedStatus!]);
         });
+    }
+    public async withLock2<T>(action: () => Promise<T>): Promise<T> {
+        return await super.withLock2(action);
     }
 }
 

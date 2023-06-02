@@ -15,7 +15,7 @@
         "listFiles": false,
         "traceResolution": false,
         "pretty": true,
-
+        "esModuleInterop": false /* Enables emit interoperability between CommonJS and ES Modules via */,
         "noUnusedLocals": false /* Report errors on unused locals. */,
         "noUnusedParameters": false /* Report errors on unused parameters. */,
         "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,

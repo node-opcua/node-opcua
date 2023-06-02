@@ -8,7 +8,7 @@
         "test": "mocha"
     },
     "devDependencies": {
-        "@types/underscore": "^1.11.4",
+        "@types/underscore": "^1.11.5",
         "async": "^3.2.4",
         "chalk": "4.1.2",
         "cli-table3": "^0.6.3",
@@ -26,7 +26,7 @@
         "node-opcua-client-crawler": "2.103.0",
         "node-opcua-client-proxy": "2.103.0",
         "node-opcua-constants": "2.98.1",
-        "node-opcua-crypto": "^2.2.0",
+        "node-opcua-crypto": "3.0.5",
         "node-opcua-debug": "2.99.0",
         "node-opcua-extension-object": "2.99.0",
         "node-opcua-factory": "2.99.0",
@@ -35,7 +35,7 @@
         "node-opcua-nodeid": "2.99.0",
         "node-opcua-nodeset-ijt": "2.103.0",
         "node-opcua-packet-analyzer": "2.102.0",
-        "node-opcua-pki": "^3.1.2",
+        "node-opcua-pki": "4.2.0",
         "node-opcua-server": "2.103.0",
         "node-opcua-server-discovery": "2.103.0",
         "node-opcua-service-browse": "2.103.0",
@@ -44,7 +44,7 @@
         "node-opcua-service-secure-channel": "2.103.0",
         "node-opcua-variant": "2.102.0",
         "should": "^13.2.3",
-        "sinon": "^15.0.4",
+        "sinon": "^15.1.0",
         "thenify": "^3.3.1",
         "underscore": "^1.13.6",
         "yargs": "15.4.1"

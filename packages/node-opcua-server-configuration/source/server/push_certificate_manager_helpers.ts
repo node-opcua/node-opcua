@@ -31,7 +31,7 @@ import {
 } from "node-opcua-data-model";
 import { ByteString, UAString } from "node-opcua-basic-types";
 import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
-import { CertificateManager } from "node-opcua-certificate-manager";
+import { CertificateManager } from "node-opcua-pki";
 import { Certificate, readCertificate } from "node-opcua-crypto";
 
 import { CreateSigningRequestResult, PushCertificateManager } from "../push_certificate_manager";
