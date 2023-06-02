@@ -58,6 +58,7 @@ describe("coerceUInt64", () => {
         ["1", [0x0, 0x1]],
         ["-1", [0xffffffff, 0xffffffff]],
         ["-2", [0xffffffff, 0xfffffffe]],
+        [-32768, [0xffffffff, 0xffff8000]],
         ["0x1000000000", [0x10, 0x0]],
         ["-100000000000000", [4294944012, 4018520064]],
     ].forEach(([input, output]) =>
@@ -93,7 +94,7 @@ describe("check coerce various types", () => {
 
     const types = ["Byte", "SByte", "UInt8", "UInt16", "UInt32", "Int8", "Int16", "Int32", "Float", "Double", "Int64", "UInt64"];
 
-    types.forEach(function (type) {
+    types.forEach(function(type) {
         it("should have a coerce method for " + type, () => {
             const coerceFunc = ec["coerce" + type];
             const randomFunc = ec["random" + type];
