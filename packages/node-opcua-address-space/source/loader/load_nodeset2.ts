@@ -3,9 +3,9 @@
  * @module node-opcua-address-space
  */
 import { promisify, types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
-import * as ec from "node-opcua-basic-types";
+import { coerceByte , coerceBoolean, coerceInt32} from "node-opcua-basic-types";
 import {
     AddReferenceTypeOptions,
     BaseNode,
@@ -49,7 +49,7 @@ import {
     XmlAttributes,
     SimpleCallback
 } from "node-opcua-xml2json";
-import * as semver from "semver";
+import semver from "semver";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
@@ -401,10 +401,10 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             this.obj = {};
             this.obj.nodeClass = NodeClass.Object;
-            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
+            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.eventNotifier = ec.coerceByte(attrs.EventNotifier) || 0;
+            this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
             this.obj.symbolicName = attrs.SymbolicName || null;
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
@@ -439,10 +439,10 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             this.obj = {};
             this.obj.nodeClass = NodeClass.ObjectType;
-            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
+            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.eventNotifier = ec.coerceByte(attrs.EventNotifier) || 0;
+            this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
         },
         finish(this: any) {
             _internal_createNode(this.obj);
@@ -470,7 +470,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             this.obj = {};
             this.obj.nodeClass = NodeClass.ReferenceType;
-            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
+            this.obj.isAbstract =coerceBoolean(attrs.IsAbstract);
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
         },
@@ -507,7 +507,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             this.obj = {};
             this.obj.nodeClass = NodeClass.DataType;
-            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract) || false;
+            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract) || false;
             this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
             this.obj.displayName = "";
@@ -1104,7 +1104,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
 
-            Boolean: parser2("Boolean", ec.coerceBoolean),
+            Boolean: parser2("Boolean", coerceBoolean),
             Byte: parser2("Byte", parseInt),
             Int16: parser2("Int16", parseInt),
             Int32: parser2("Int32", parseInt),
@@ -1240,7 +1240,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 }
             },
 
-            ListOfBoolean: ListOf<boolean>("Boolean", ec.coerceBoolean),
+            ListOfBoolean: ListOf<boolean>("Boolean", coerceBoolean),
 
             ListOfByte: ListOf<number>("Byte", parseInt),
 
@@ -1362,7 +1362,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.obj.parentNodeId = convertToNodeId(attrs.ParentNodeId);
             this.obj.dataType = convertToNodeId(attrs.DataType);
 
-            this.obj.valueRank = attrs.ValueRank === undefined ? -1 : ec.coerceInt32(attrs.ValueRank);
+            this.obj.valueRank = attrs.ValueRank === undefined ? -1 : coerceInt32(attrs.ValueRank);
             this.obj.arrayDimensions = this.obj.valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
@@ -1453,14 +1453,14 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             _perform();
 
             this.obj = {};
-            this.obj.isAbstract = ec.coerceBoolean(attrs.IsAbstract);
+            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
 
             this.obj.nodeClass = NodeClass.VariableType;
             this.obj.browseName = convertQualifiedName(attrs.BrowseName);
             this.obj.parentNodeId = attrs.ParentNodeId || null;
             this.obj.dataType = convertToNodeId(attrs.DataType) || null;
 
-            this.obj.valueRank = ec.coerceInt32(attrs.ValueRank) || -1;
+            this.obj.valueRank = coerceInt32(attrs.ValueRank) || -1;
             this.obj.arrayDimensions = this.obj.valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
 
             this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;

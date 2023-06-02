@@ -15,7 +15,7 @@ import {
     browseAll
 } from "node-opcua";
 import { spy } from "sinon";
-import * as should from "should";
+import should from "should";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const doDebug = false;
 

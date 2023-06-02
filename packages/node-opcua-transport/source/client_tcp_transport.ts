@@ -4,7 +4,7 @@
 import * as os from "os";
 import { createConnection } from "net";
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";

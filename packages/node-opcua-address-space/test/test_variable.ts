@@ -1,6 +1,6 @@
 import * as path from "path";
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 import { DataTypeIds } from "node-opcua-constants";
 import { AttributeIds, makeAccessLevelFlag, NodeClass } from "node-opcua-data-model";
 import { DataValue, sameDataValue } from "node-opcua-data-value";

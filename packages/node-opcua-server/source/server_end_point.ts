@@ -5,7 +5,7 @@
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as async from "async";
 
 import { assert } from "node-opcua-assert";

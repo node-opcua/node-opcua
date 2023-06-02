@@ -2,12 +2,12 @@
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
 import * as path from "path";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, OPCUAServerOptions, WellKnownRoles } from "node-opcua";
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
-import * as yargs from "yargs";
+import yargs from "yargs";
 
 const rootFolder = path.join(__dirname, "../../..");
 

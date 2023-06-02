@@ -3,7 +3,7 @@
 import { promisify } from "util";
 import * as path from "path";
 import * as fs from "fs";
-import * as should from "should";
+import should from "should";
 import "mocha";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";

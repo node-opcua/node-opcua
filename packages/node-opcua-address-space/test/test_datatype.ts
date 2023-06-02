@@ -1,7 +1,7 @@
 import { AttributeIds } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace, SessionContext, UADataType } from "..";
 

@@ -1,6 +1,6 @@
 // compile with  tsc --lib es2018 sample1.ts
 // tslint:disable:no-console
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import {
     Argument,

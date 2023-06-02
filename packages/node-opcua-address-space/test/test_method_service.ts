@@ -2,7 +2,7 @@
 /* global: describe it before after beforeEach afterEach require*/
 import * as fs from "fs";
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { NodeClass } from "node-opcua-data-model";

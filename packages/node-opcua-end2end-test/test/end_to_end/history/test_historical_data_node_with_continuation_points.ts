@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { ContinuationPoint, nodesets, StatusCodes } from "node-opcua";
 import { OPCUAServer } from "node-opcua-server";
 import { date_add } from "node-opcua-address-space/testHelpers";

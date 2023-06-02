@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 // tslint:disable:no-string-literal
 import { makeOptionalsMap } from "..";
 

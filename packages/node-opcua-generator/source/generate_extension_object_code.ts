@@ -7,7 +7,7 @@
 // tslint:disable:no-inner-declarations
 //
 import * as fs from "fs";
-import * as chalk from "chalk";
+import chalk from "chalk";
 // node 14 onward : import { readFile } from "fs/promises";
 const { readFile } = fs.promises;
 

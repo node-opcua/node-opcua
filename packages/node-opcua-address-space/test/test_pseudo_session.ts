@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";

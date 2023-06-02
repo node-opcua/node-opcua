@@ -2,7 +2,7 @@
 import { Benchmarker } from "node-opcua-benchmarker";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { Guid, isValidGuid } from "node-opcua-guid";
-import * as should from "should";
+import should from "should";
 import { encodeGuid, randomGuid } from "..";
 
 function write_UInt16Old(stream: OutputBinaryStream, guid: string, starts: number[]) {

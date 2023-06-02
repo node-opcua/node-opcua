@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import "should";
 
 import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";

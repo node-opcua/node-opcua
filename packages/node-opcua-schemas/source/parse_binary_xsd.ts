@@ -4,7 +4,7 @@
 // tslint:disable:object-literal-sort-keys
 // tslint:disable:no-empty
 
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import assert from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

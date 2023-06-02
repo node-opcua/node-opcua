@@ -1,6 +1,6 @@
 import "should";
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { ClientSession, CreateSessionResponse, OPCUAClient, OPCUAServer, OPCUAServerOptions } from "node-opcua";
 

@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { nodesets } from "node-opcua-nodesets";
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";

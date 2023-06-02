@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";

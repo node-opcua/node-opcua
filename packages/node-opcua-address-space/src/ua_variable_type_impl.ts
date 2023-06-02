@@ -3,7 +3,7 @@
  */
 // tslint:disable:max-classes-per-file
 // tslint:disable:no-console
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import {

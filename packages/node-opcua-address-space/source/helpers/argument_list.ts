@@ -3,10 +3,10 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import * as ec from "node-opcua-basic-types";
+import { decodeArray, encodeArray }  from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import * as factories from "node-opcua-factory";
+import { findBuiltInType } from "node-opcua-factory";
 import { coerceNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -22,7 +22,7 @@ const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 function myfindBuiltInType(dataType: DataType): any {
-    return factories.findBuiltInType(DataType[dataType]);
+    return findBuiltInType(DataType[dataType]);
 }
 export interface ArgumentDef {
     dataType: DataType;
@@ -49,7 +49,7 @@ export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stre
         const isArray = def.valueRank && (def.valueRank === 1 || def.valueRank !== -1);
 
         if (isArray) {
-            ec.encodeArray(value, stream, encodeFunc);
+            encodeArray(value, stream, encodeFunc);
         } else {
             encodeFunc(value, stream);
         }
@@ -76,7 +76,7 @@ export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStr
         const isArray = def.valueRank === 1 || def.valueRank === -1;
 
         if (isArray) {
-            value = ec.decodeArray(stream, decodeFunc);
+            value = decodeArray(stream, decodeFunc);
         } else {
             value = decodeFunc(stream);
         }

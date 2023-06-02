@@ -6,7 +6,7 @@ const { writeFile } = fs.promises;
 
 import * as os from "os";
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import {
     addExtensionObjectDataType,

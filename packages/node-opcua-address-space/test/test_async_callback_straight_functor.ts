@@ -1,5 +1,5 @@
 import { CallbackT } from "node-opcua-status-code";
-import * as should from "should";
+import should from "should";
 
 import {
     MultiformFunc,

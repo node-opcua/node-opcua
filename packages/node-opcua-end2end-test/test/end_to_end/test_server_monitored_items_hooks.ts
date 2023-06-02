@@ -12,7 +12,7 @@ import {
     Subscription,
     TimestampsToReturn
 } from "node-opcua";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import "should";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 

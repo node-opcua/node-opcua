@@ -1,12 +1,12 @@
 // tslint:disable:no-console
 // @ts-check
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import { ExpandedNodeId } from "node-opcua-nodeid";
 import { BaseUAObject, ConstructorFuncWithSchema, getStandardDataTypeFactory } from "node-opcua-factory";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
-import * as should from "should";
+import should from "should";
 
 import { analyze_object_binary_encoding, analyzePacket } from "../source";
 

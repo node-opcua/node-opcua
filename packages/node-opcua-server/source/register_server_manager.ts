@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 import { EventEmitter } from "events";
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { ErrorCallback, UAString } from "node-opcua-basic-types";

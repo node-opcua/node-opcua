@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";

@@ -2,7 +2,7 @@ import { standardUnits } from "node-opcua-data-access";
 import { nodesets } from "node-opcua-nodesets";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
-import * as should from "should";
+import should from "should";
 
 import { generateAddressSpace } from "../nodeJS";
 import { AddressSpace } from "..";

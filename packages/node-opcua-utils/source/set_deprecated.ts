@@ -2,7 +2,7 @@
  * @module node-opcua-utils
  */
 // tslint:disable:ban-types
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 import { FunctionVariadic } from "./function_variadic";

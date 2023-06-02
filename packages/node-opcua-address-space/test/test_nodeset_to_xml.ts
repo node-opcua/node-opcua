@@ -1,5 +1,5 @@
 import * as fs from "fs";
-import * as should from "should";
+import should from "should";
 import "should";
 
 import { getTempFilename } from "node-opcua-debug/nodeJS";

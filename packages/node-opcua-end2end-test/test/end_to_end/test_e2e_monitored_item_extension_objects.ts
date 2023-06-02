@@ -18,8 +18,8 @@ import {
     constructEventFilter,
     ClientSession
 } from "node-opcua";
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");

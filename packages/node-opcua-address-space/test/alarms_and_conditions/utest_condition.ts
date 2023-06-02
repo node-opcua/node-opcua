@@ -1,7 +1,7 @@
 // tslint:disable:max-line-length
-import * as should from "should";
+import should from "should";
 
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";

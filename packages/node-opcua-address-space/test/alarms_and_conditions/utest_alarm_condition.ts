@@ -1,7 +1,7 @@
 // tslint:disable:no-console
 import * as async from "async";
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { LocalizedText } from "node-opcua-data-model";

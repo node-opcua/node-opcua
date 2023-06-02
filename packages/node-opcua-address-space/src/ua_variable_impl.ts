@@ -7,7 +7,7 @@
 // tslint:disable:no-console
 // tslint:disable:max-line-length
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import {
     BindExtensionObjectOptions,

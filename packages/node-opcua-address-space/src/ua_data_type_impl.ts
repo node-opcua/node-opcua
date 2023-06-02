@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { NodeClass, QualifiedNameLike } from "node-opcua-data-model";

@@ -1,5 +1,5 @@
 import { inspect, types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 import { decodeByte, decodeExpandedNodeId, decodeNodeId, decodeUInt32 } from "node-opcua-basic-types";

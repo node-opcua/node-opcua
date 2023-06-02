@@ -2,7 +2,7 @@
  * @module node-opcua-client
  */
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { ServerState } from "node-opcua-common";
 import { VariableIds } from "node-opcua-constants";

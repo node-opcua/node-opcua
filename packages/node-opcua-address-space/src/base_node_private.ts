@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.Private
  */
 // tslint:disable:no-bitwise
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import {
     AccessLevelFlag,

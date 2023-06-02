@@ -1,5 +1,5 @@
 import "should";
-import * as should from "should";
+import should from "should";
 import { IndexIterator} from "../src/idx_iterator";
 
 describe("index iterator", function(){

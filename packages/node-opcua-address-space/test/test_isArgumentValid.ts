@@ -1,6 +1,6 @@
 import * as path from "path";
 
-import * as should from "should";
+import should from "should";
 
 import { resolveNodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-types";

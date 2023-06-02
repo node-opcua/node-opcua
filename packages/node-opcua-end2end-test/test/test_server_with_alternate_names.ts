@@ -4,7 +4,7 @@ import * as os from "os";
 
 import "should";
 import { types } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import {
     EndpointDescription,

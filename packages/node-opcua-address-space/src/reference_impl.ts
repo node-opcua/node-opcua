@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 // tslint:disable:no-console
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { AddReferenceOpts, UAReference, BaseNode, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { coerceNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";

@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { DataType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";

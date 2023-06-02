@@ -1,6 +1,6 @@
 // tslint:disable:max-line-length
 import { resolveNodeId } from "node-opcua-nodeid";
-import * as should from "should";
+import should from "should";
 import { AddressSpace, UAReference } from "..";
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
 

@@ -4,7 +4,7 @@
 // tslint:disable:no-console
 import { EventEmitter } from "events";
 import { format } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 const debugFlags: { [id: string]: boolean } = {};
 

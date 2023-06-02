@@ -3,7 +3,7 @@
 import { promisify } from "util";
 import * as fs from "fs";
 
-import * as should from "should";
+import should from "should";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";

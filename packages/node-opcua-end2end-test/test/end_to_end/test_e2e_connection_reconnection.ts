@@ -2,7 +2,7 @@
 "use strict";
 import { Socket } from "net";
 import * as fs from "fs";
-import * as should from "should";
+import should from "should";
 import * as async from "async";
 import {
     DataType,
@@ -22,7 +22,7 @@ import {
     ConnectionStrategy,
     ConnectionStrategyOptions
 } from "node-opcua";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { readCertificate } from "node-opcua-crypto";
 

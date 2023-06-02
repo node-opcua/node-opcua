@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { displayTraceFromThisProjectOnly, hexDump, make_debugLog } from "node-opcua-debug";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";

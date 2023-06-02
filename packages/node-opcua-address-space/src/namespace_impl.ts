@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 // tslint:disable:no-console
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";

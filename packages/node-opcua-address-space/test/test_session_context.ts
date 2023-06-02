@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
-import * as should from "should";
+import should from "should";
 
 import { readCertificate } from "node-opcua-crypto";
 import { PermissionType, X509IdentityToken } from "node-opcua-types";

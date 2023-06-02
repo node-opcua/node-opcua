@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { AxisInformation, AxisScaleEnumeration, standardUnits } from "node-opcua-data-access";
 import { coerceLocalizedText } from "node-opcua-data-model";

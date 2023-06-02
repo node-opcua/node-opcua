@@ -1,4 +1,4 @@
-import * as chalk from "chalk";
+import chalk from "chalk";
 import {
     AddressSpace,
     AttributeIds,
@@ -15,7 +15,7 @@ import {
     UAVariable,
     Variant
 } from "node-opcua";
-import * as should from "should";
+import should from "should";
 
 const _should = should;
 

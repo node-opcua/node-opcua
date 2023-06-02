@@ -3,7 +3,7 @@
 
 import * as path from "path";
 import * as fs from "fs";
-import * as should from "should";
+import should from "should";
 import { make_warningLog } from "node-opcua-debug";
 
 import {

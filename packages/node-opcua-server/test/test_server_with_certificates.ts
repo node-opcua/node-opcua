@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as should from "should";
+import should from "should";
 import { OPCUAServer } from "..";
 
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");

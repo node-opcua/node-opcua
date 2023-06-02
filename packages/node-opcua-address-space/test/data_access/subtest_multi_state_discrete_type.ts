@@ -1,11 +1,11 @@
-import * as should from "should";
+import should from "should";
 
 import { DataValue, DataValueOptionsT, DataValueT } from "node-opcua-data-value";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { getCurrentClock } from "node-opcua-date-time";
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { AddressSpace, SessionContext, UAMultiStateDiscrete, UAMultiStateDiscreteEx } from "../..";
 

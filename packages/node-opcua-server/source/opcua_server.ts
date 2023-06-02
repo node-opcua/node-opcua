@@ -11,7 +11,7 @@ import { EventEmitter } from "events";
 import { callbackify, types } from "util";
 
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 

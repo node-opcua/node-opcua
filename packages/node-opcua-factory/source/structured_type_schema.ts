@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";

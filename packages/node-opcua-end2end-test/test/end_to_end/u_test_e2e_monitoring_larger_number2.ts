@@ -19,7 +19,7 @@ import {
     StatusCode,
     TimestampsToReturn
 } from "node-opcua";
-import * as should from "should";
+import should from "should";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { itemsToMonitor1 } from "./_helpers_items_to_monitor";

@@ -1,6 +1,6 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { BaseUAObject } from "node-opcua-factory";
-import * as should from "should";
+import should from "should";
 const persist = should;
 
 export function compare_obj_by_encoding(obj1: BaseUAObject, obj2: BaseUAObject): boolean {

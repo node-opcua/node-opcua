@@ -9,7 +9,7 @@ import * as crypto from "crypto";
 import { createPublicKey } from "crypto";
 import { callbackify } from "util";
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";

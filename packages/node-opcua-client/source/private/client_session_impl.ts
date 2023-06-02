@@ -3,7 +3,7 @@
  */
 import { EventEmitter } from "events";
 import { callbackify } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { AggregateFunction } from "node-opcua-constants";
 import { DateTime } from "node-opcua-basic-types";

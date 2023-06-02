@@ -4,7 +4,7 @@
 import { EventEmitter } from "events";
 import { types } from "util";
 import * as async from "async";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import {

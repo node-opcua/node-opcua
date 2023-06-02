@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 import "should";
-import * as sinon from "sinon";
+import sinon from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 

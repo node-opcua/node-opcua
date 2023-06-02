@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { Double } from "node-opcua-basic-types";
 import { DataTypeIds } from "node-opcua-constants";

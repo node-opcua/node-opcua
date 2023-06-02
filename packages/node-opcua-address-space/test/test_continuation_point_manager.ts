@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";

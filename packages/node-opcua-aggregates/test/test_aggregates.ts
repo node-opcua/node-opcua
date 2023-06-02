@@ -1,5 +1,5 @@
 /* eslint-disable max-statements */
-import * as should from "should";
+import should from "should";
 
 import { AddressSpace, BaseNode, UAObject, UAVariable } from "node-opcua-address-space";
 import { DataValue } from "node-opcua-data-value";

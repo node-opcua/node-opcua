@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { NumericRange } from "node-opcua-numeric-range";
 import { Variant } from "node-opcua-variant";

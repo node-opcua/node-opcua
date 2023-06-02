@@ -1,6 +1,6 @@
 import "should";
 import "mocha";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import {
     OPCUAClient,
     UserTokenType,

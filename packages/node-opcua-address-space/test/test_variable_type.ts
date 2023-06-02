@@ -1,6 +1,6 @@
 import * as mocha from "mocha";
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";

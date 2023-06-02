@@ -1,5 +1,5 @@
 import * as mocha from "mocha";
-import * as should from "should";
+import should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";

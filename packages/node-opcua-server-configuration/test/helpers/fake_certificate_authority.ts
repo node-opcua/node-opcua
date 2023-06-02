@@ -5,7 +5,7 @@ import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
 
-import * as rimraf from "rimraf";
+import rimraf from "rimraf";
 
 import {
     Certificate,

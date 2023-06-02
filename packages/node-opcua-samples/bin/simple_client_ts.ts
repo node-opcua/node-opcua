@@ -6,8 +6,8 @@ import * as fs from "fs";
 import * as path from "path";
 import * as util from "util";
 import { types } from "util";
-import * as yargs from "yargs";
-import * as chalk from "chalk";
+import yargs from "yargs";
+import chalk from "chalk";
 
 import {
     ApplicationType,

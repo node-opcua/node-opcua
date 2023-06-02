@@ -6,7 +6,7 @@
 // tslint:disable:no-console
 import { createPublicKey, randomBytes } from "crypto";
 import { EventEmitter } from "events";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as async from "async";
 
 import {

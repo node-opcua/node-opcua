@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 import { ClientAlarm, ClientAlarmList, DataType, EventStuff, NodeId, resolveNodeId, TVariant, Variant } from "../source/index";
 
 class VariantId extends Variant {

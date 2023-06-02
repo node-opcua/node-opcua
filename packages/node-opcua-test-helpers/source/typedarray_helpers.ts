@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 const _should: any = should;
 
 function __isEqual(a: any, b: any): boolean {

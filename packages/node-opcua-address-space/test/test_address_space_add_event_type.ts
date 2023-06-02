@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import * as should from "should";
+import should from "should";
 
 import { Benchmarker } from "node-opcua-benchmarker";
 import { resolveNodeId } from "node-opcua-nodeid";

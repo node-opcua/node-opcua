@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import { callbackify, promisify } from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";

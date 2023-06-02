@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import * as should from "should";
+import should from "should";
 
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { BaseUAObject, DataTypeFactory } from "node-opcua-factory";

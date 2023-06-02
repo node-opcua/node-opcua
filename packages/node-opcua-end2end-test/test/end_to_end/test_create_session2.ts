@@ -3,7 +3,7 @@
  */
 import { OPCUAServer, RegisterServerMethod } from "node-opcua-server";
 import { OPCUAClient } from "node-opcua-client";
-import * as should from "should";
+import should from "should";
 
 
 const sleep = async (delay: number) => await new Promise((resolve) => setTimeout(resolve, delay));

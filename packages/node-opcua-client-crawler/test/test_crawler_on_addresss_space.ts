@@ -1,4 +1,4 @@
-import * as sinon from "sinon";
+import sinon from "sinon";
 
 import { AddressSpace, BaseNode, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";

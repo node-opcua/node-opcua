@@ -4,8 +4,8 @@
 import * as path from "path";
 import * as os from "os";
 
-import * as chalk from "chalk";
-import * as yargs from "yargs";
+import chalk from "chalk";
+import yargs from "yargs";
 
 import {
     makeApplicationUrn,

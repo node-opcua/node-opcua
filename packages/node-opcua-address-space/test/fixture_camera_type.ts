@@ -1,4 +1,4 @@
-import * as should from "should";
+import should from "should";
 
 import { QualifiedName } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";

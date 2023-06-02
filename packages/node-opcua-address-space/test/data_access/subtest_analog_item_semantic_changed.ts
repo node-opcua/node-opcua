@@ -1,5 +1,5 @@
-import * as should from "should";
-import * as sinon from "sinon";
+import should from "should";
+import sinon from "sinon";
 
 import { Range, standardUnits } from "node-opcua-data-access";
 import { AttributeIds } from "node-opcua-data-model";

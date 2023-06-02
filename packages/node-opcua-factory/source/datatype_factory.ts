@@ -2,7 +2,7 @@
  * @module node-opcua-factory
  */
 import * as util from "util";
-import * as chalk from "chalk";
+import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
