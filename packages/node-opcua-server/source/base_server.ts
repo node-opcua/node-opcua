@@ -8,8 +8,9 @@ import * as os from "os";
 import { types } from "util";
 import * as async from "async";
 import chalk from "chalk";
-import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
+import { withLock } from "@ster5/global-mutex";
+
 import {
     getDefaultCertificateManager,
     ICertificateManager,
@@ -192,10 +193,11 @@ export class OPCUABaseServer extends OPCUASecureObject {
                 /* to do */
             }
         }
-
-        const lockfile = path.join(this.certificateFile + ".lock");
-        await withLock({ lockfile }, async () => {
-            if (!fs.existsSync(this.certificateFile)) {
+        if (!fs.existsSync(this.certificateFile)) {
+            await withLock({ fileToLock: this.certificateFile + ".mutex" }, async () => {
+                if (fs.existsSync(this.certificateFile)) {
+                    return;
+                }
                 const applicationUri = this.serverInfo.applicationUri!;
                 const fqdn = getFullyQualifiedDomainName();
                 const hostname = getHostname();
@@ -212,8 +214,8 @@ export class OPCUABaseServer extends OPCUASecureObject {
                     startDate: new Date(),
                     validity: 365 * 10 // 10 years
                 });
-            }
-        });
+            });
+        }
     }
 
     public async initializeCM(): Promise<void> {
@@ -221,7 +223,7 @@ export class OPCUABaseServer extends OPCUASecureObject {
         await this.createDefaultCertificate();
         debugLog("privateKey      = ", this.privateKeyFile, this.serverCertificateManager.privateKey);
         debugLog("certificateFile = ", this.certificateFile);
-        await performCertificateSanityCheck.call(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
+        await performCertificateSanityCheck(this, "server", this.serverCertificateManager, this.serverInfo.applicationUri!);
     }
 
     /**

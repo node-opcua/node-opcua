@@ -20,7 +20,7 @@
         "node-opcua-certificate-manager": "2.99.0",
         "node-opcua-chunkmanager": "2.99.0",
         "node-opcua-common": "2.103.0",
-        "node-opcua-crypto": "^2.2.0",
+        "node-opcua-crypto": "3.0.5",
         "node-opcua-debug": "2.99.0",
         "node-opcua-factory": "2.99.0",
         "node-opcua-nodeid": "2.99.0",
@@ -42,7 +42,7 @@
         "node-opcua-test-fixtures": "2.103.0",
         "node-opcua-test-helpers": "2.98.1",
         "should": "^13.2.3",
-        "sinon": "^15.0.4"
+        "sinon": "^15.1.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

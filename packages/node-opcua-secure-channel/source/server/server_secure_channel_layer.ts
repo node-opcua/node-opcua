@@ -14,7 +14,6 @@ import {
     exploreCertificateInfo,
     extractPublicKeyFromCertificate,
     makeSHA1Thumbprint,
-    PrivateKeyPEM,
     PublicKeyLength,
     rsaLengthPublicKey,
     exploreCertificate,

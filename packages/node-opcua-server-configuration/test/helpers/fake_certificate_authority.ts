@@ -17,8 +17,10 @@ import {
     readPrivateKey,
     toPem
 } from "node-opcua-crypto";
+import { CertificateAuthority } from "node-opcua-pki";
+
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { CertificateAuthority, CertificateManager, g_config } from "node-opcua-certificate-manager";
+import { CertificateManager } from "node-opcua-certificate-manager";
 
 export async function initializeHelpers(prefix: string, n: number): Promise<string> {
     const _tempFolder = path.join(os.tmpdir(), "node-opcua2");
@@ -43,7 +45,7 @@ export async function initializeHelpers(prefix: string, n: number): Promise<stri
 
 export async function produceCertificateAndPrivateKey(
     subfolder: string
-): Promise<{ certificate: Certificate; privateKey: PrivateKey }> {
+): Promise<{ certificate: Certificate; privateKey: PrivateKey; privateKeyPEM: string }> {
     // Given a Certificate Authority
     const certificateManager = new CertificateManager({
         keySize: 2048,
@@ -69,7 +71,8 @@ export async function produceCertificateAndPrivateKey(
     const certificate = readCertificate(certFile);
     const privateKey = readPrivateKey(certificateManager.privateKey);
 
-    return { certificate, privateKey };
+    const privateKeyPEM = await fs.promises.readFile(certificateManager.privateKey, "utf8");
+    return { certificate, privateKey, privateKeyPEM };
 }
 
 export async function _getFakeAuthorityCertificate(

@@ -6,7 +6,6 @@ import * as fs from "fs";
 import * as path from "path";
 import * as async from "async";
 import chalk from "chalk";
-
 import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
@@ -750,11 +749,14 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         if ((this as any)._inCreateDefaultCertificate) {
             errorLog("Internal error : re-entrancy in createDefaultCertificate!");
         }
-
         (this as any)._inCreateDefaultCertificate = true;
         if (!fs.existsSync(this.certificateFile)) {
-            const lockfile = path.join(this.certificateFile + ".lock");
-            await withLock({ lockfile: lockfile, maxStaleDuration: 60 * 1000, retryInterval: 100 }, async () => {
+            await withLock({ fileToLock: this.certificateFile + ".mutex" }, async () => {
+                if (fs.existsSync(this.certificateFile)) {
+                    // the file may have been created in between    
+                    return;
+                }
+                console.log("Creating default certificate ... please wait");
                 if (this.disconnecting) return;
 
                 await ClientBaseImpl.createCertificate(
@@ -797,13 +799,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         if (!fs.existsSync(this.privateKeyFile)) {
             throw new Error(" cannot locate private key file " + this.privateKeyFile);
         }
-
         if (this.disconnecting) return;
 
-        const lockfile = path.join(this.certificateFile + ".lock");
-        await withLock({ lockfile: lockfile, maxStaleDuration: 60 * 1000, retryInterval: 100 }, async () => {
-            if (this.disconnecting) return;
-            await performCertificateSanityCheck.call(this, "client", this.clientCertificateManager, this._getBuiltApplicationUri());
+        await this.clientCertificateManager.withLock2(async () => {
+            await performCertificateSanityCheck(this, "client", this.clientCertificateManager, this._getBuiltApplicationUri());
         });
     }
 
@@ -1289,12 +1288,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 tmpChannel = null;
                 this._destroy_secure_channel();
                 this._setInternalState("disconnected");
-                setImmediate(callback);
+                callback();
             });
         } else {
             this._setInternalState("disconnected");
             //    this.emit("close", null);
-            setImmediate(callback);
+            callback();
         }
     }
 

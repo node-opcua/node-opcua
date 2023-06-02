@@ -26,7 +26,7 @@ import {
     NodeId,
     UserManagerOptions
 } from "node-opcua";
-import { readCertificate, readPrivateKey, readPrivateKeyPEM, toPem } from "node-opcua-crypto";
+import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const warningLog = make_warningLog("TEST");
 
@@ -182,7 +182,7 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         let _err: Error | undefined;
 
-        const privateKeyBefore = toPem(readPrivateKey(server.privateKeyFile),"RSA PRIVATE KEY");
+        const privateKeyBefore = readPrivateKeyPEM(server.privateKeyFile);
         const privateKeyAfter = await (async () => {
             try {
                 await server.shutdown();
@@ -201,7 +201,7 @@ describe("test reconnection when server stops and change it privateKey and certi
                 server = await startServer();
                 warningLog("server restarted");
 
-                const privateKeyAfter = toPem(readPrivateKey(server.privateKeyFile),"RSA PRIVATE KEY");
+                const privateKeyAfter = readPrivateKey(server.privateKeyFile);
 
                 warningLog("waiting for client session to be back and running");
                 await waitForReconnection(session);

@@ -20,7 +20,8 @@
 	"esModuleInterop": true
     },
     "exclude": [
-        "**/node_modulesdist/*",
+        "**/node_modules",
+        "**/dist/*",
         "packages/*",
         "tmp/*"
     ],

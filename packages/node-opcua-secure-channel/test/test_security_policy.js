@@ -1,12 +1,12 @@
 "use strict";
 
-const should = require("should");
-const crypto_utils = require("node-opcua-crypto");
-
 const crypto = require("crypto");
+const should = require("should");
+const { readCertificate, readPrivateKeyPEM } = require("node-opcua-crypto");
+const { getFixture } = require("node-opcua-test-fixtures");
+
 
 const { SecurityPolicy, fromURI, toURI, computeSignature, verifySignature } = require("..");
-const { getFixture } = require("node-opcua-test-fixtures");
 
 describe("Security Policy", function () {
     it("should convert a security policy uri to an enum value", function () {
@@ -38,11 +38,11 @@ describe("Security Policy", function () {
 });
 
 describe("Security Policy computeSignature, verifySignature", function () {
-    const senderCertificate = crypto_utils.readCertificate(getFixture("certs/server_cert_2048.pem"));
+    const senderCertificate = readCertificate(getFixture("certs/server_cert_2048.pem"));
     const senderNonce = crypto.randomBytes(32);
 
-    const receiverPrivateKey = crypto_utils.readPrivateKeyPEM(getFixture("certs/client_key_1024.pem"));
-    const receiverCertificate = crypto_utils.readCertificate(getFixture("certs/client_cert_1024.pem"));
+    const receiverPrivateKey = readPrivateKeyPEM(getFixture("certs/client_key_1024.pem"));
+    const receiverCertificate = readCertificate(getFixture("certs/client_cert_1024.pem"));
 
     const securityPolicy = SecurityPolicy.Basic256;
 
@@ -50,7 +50,9 @@ describe("Security Policy computeSignature, verifySignature", function () {
     senderNonce.should.be.instanceOf(Buffer);
     receiverCertificate.should.be.instanceOf(Buffer);
 
-    beforeEach(function () {});
+    beforeEach(function () {
+        /**  */
+    });
 
     it("should compute a Signature and verify a signature", function () {
         const signatureData = computeSignature(senderCertificate, senderNonce, receiverPrivateKey, securityPolicy);

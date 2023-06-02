@@ -4,27 +4,30 @@
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as path from "path";
-import { createPrivateKey, KeyObject } from "crypto";
 import { promisify } from "util";
+import { KeyObject, createPrivateKey } from "crypto";
 
 import rimraf from "rimraf";
 import { SubjectOptions } from "node-opcua-pki";
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
 import {
+    generatePrivateKey,
     convertPEMtoDER,
     exploreCertificate,
     makeSHA1Thumbprint,
     readPrivateKey,
     toPem,
-    privateDecrypt_long,
     PrivateKey,
-    publicEncrypt_long,
     certificateMatchesPrivateKey,
-    readCertificate
+    readCertificate,
+    privateKeyToPEM,
+    derToPrivateKey,
+    pemToPrivateKey,
+    toPem2
 } from "node-opcua-crypto";
 
-import { DirectoryName } from "node-opcua-crypto/dist/source/asn1";
+import { DirectoryName } from "node-opcua-crypto";
 
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -49,6 +52,37 @@ const doDebug = checkDebugFlag("ServerConfiguration");
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
 const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
+
+async function coercePrivateKey(privateKey: Buffer | string | PrivateKey | CryptoKey): Promise<PrivateKey> {
+    if (privateKey instanceof Buffer) {
+        const privateKey1 = await derToPrivateKey(privateKey); //
+        return KeyObject.from(privateKey1);
+    } else if (typeof privateKey === "string") {
+        try {
+           // privateKey = privateKey.replace(/RSA PRIVATE KEY-----\n.*/mg, "RSA PRIVATE KEY-----");
+            const privateKey1 = await pemToPrivateKey(privateKey);
+            return KeyObject.from(privateKey1);
+        } catch (err) {
+            console.log(privateKey);
+            throw err;
+        }
+    } else if (privateKey instanceof KeyObject) {
+        return privateKey;
+    }
+    throw new Error("Invalid privateKey");
+}
+
+async function privateKeyToPEM2(privateKey: Buffer | string | PrivateKey): Promise<string> {
+    if (privateKey instanceof Buffer) {
+        return toPem2(privateKey, "RSA PRIVATE KEY");
+    } else if (typeof privateKey === "string") {
+        return privateKey;
+    }
+    
+    return toPem2(privateKey, "PRIVATE KEY");
+    //  privateKey.export({ format: "pem", type: "pkcs1" }});
+   //  return (await privateKeyToPEM(privateKey)).privPem;
+}
 
 function findCertificateGroupName(certificateGroupNodeId: NodeId | string): string {
     if (typeof certificateGroupNodeId === "string") {
@@ -411,7 +445,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const ownPrivateFolder = path.join(certificateManager.rootDir, "own/private");
             const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${fileCounter++}.pem`);
 
-            const privateKeyPEM = toPem(privateKey!, "RSA PRIVATE KEY");
+            const privateKeyPEM = await privateKeyToPEM2(privateKey!);
+
             await writeFile(privateKeyFilePEM, privateKeyPEM, "utf-8");
 
             self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
@@ -477,13 +512,13 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 warningLog("certificate doesn't match privateKey");
                 /* debug code */
                 const certificatePEM = toPem(certificate, "CERTIFICATE");
-                const privateKeyPEM = toPem(privateKeyDER, "RSA PRIVATE KEY");
-                const initialBuffer = Buffer.from("Lorem Ipsum");
-                const encryptedBuffer = publicEncrypt_long(initialBuffer, certificatePEM, 256, 11);
-                const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKeyPEM, 256);
+                //xx const privateKeyPEM = toPem(privateKeyDER, "RSA PRIVATE KEY");
+                //xx const initialBuffer = Buffer.from("Lorem Ipsum");
+                //xx const encryptedBuffer = publicEncrypt_long(initialBuffer, certificatePEM, 256, 11);
+                //xx const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKeyPEM, 256);
                 console.log(certificatePEM);
-                console.log(privateKeyPEM);
-                console.log("decrypted buffer", decryptedBuffer.toString("utf-8"));
+                //xx console.log(privateKeyPEM);
+                //xx console.log("decrypted buffer", decryptedBuffer.toString("utf-8"));
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
             }
             // a new certificate is provided for us,
@@ -510,7 +545,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
 
             if (privateKey instanceof Buffer || typeof privateKey === "string") {
-                privateKey = createPrivateKey(privateKey);
+                if (privateKey instanceof Buffer && privateKeyFormat === "PEM") {
+                    privateKey = privateKey.toString("utf-8");
+                }
+                privateKey = await coercePrivateKey(privateKey);
             }
             // privateKey is  provided, so check that the public key matches provided private key
             if (!certificateMatchesPrivateKey(certificate, privateKey)) {

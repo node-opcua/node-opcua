@@ -19,7 +19,6 @@ import {
     extractPublicKeyFromCertificateSync,
     Nonce,
     PrivateKey,
-    PrivateKeyPEM,
     toPem
 } from "node-opcua-crypto";
 

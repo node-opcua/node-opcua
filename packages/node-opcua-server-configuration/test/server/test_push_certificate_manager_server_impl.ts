@@ -5,7 +5,7 @@ import "should";
 const { readFile } = fs.promises;
 
 import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
-import { CertificateManager, g_config } from "node-opcua-certificate-manager";
+import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
 
 import { subjectToString, UpdateCertificateResult } from "../..";
@@ -17,9 +17,6 @@ import {
     produceOutdatedCertificate
 } from "../helpers/fake_certificate_authority";
 import { getCertificateDER } from "../helpers/tools";
-
-g_config.silent = true;
-
 
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires

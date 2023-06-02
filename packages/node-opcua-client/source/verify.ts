@@ -86,6 +86,7 @@ export function verifyIsOPCUAValidCertificate(
                     `see https://reference.opcfoundation.org/v104/Core/docs/Part6/6.2.2/\n` +
                     `certificateFile = ${certificateFile}`
             );
+            warningLog(`keyUsage = ${JSON.stringify(keyUsage, null, " ")}`);
         }
     }
     const extKeyUsage = certificateInfo.tbsCertificate.extensions?.extKeyUsage;
@@ -120,21 +121,21 @@ export function verifyIsOPCUAValidCertificate(
 }
 
 export async function performCertificateSanityCheck(
-    this: OPCUASecureObject,
+    secureObject: OPCUASecureObject,
     serverOrClient: "server" | "client",
     certificateManager: OPCUACertificateManager,
     applicationUri: string
 ): Promise<void> {
-    // verify that certificate is matching private key, and inform the developper if not
-    const certificate = this.getCertificate();
-    const privateKey = this.getPrivateKey();
+    // verify that certificate is matching private key, and inform the developer if not
+    const certificate = secureObject.getCertificate();
+    const privateKey = secureObject.getPrivateKey();
     //
     if (!publicKeyAndPrivateKeyMatches(certificate, privateKey)) {
         errorLog("[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match !");
         errorLog("                  please check the configuration of the OPCUA Server");
-        errorLog("                    privateKey= ", this.privateKeyFile);
+        errorLog("                    privateKey= ", secureObject.privateKeyFile);
         errorLog(" certificateManager.privateKey= ", certificateManager.privateKey);
-        errorLog("               certificateFile= ", this.certificateFile);
+        errorLog("               certificateFile= ", secureObject.certificateFile);
         throw new Error(
             "[NODE-OPCUA-E01] Configuration error : the certificate and the private key do not match ! please fix your configuration"
         );
@@ -154,8 +155,8 @@ export async function performCertificateSanityCheck(
     const status = await certificateManager.verifyCertificateAsync(certificate);
 
     if (status !== "Good") {
-        warningLog("[NODE-OPCUA-W04] Warning: the certificate status is = ", status, " file = ", this.certificateFile);
+        warningLog("[NODE-OPCUA-W04] Warning: the certificate status is = ", status, " file = ", secureObject.certificateFile);
     }
 
-    verifyIsOPCUAValidCertificate(certificate, this.certificateFile, serverOrClient, applicationUri);
+    verifyIsOPCUAValidCertificate(certificate, secureObject.certificateFile, serverOrClient, applicationUri);
 }
