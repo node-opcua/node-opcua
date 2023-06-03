@@ -66,7 +66,8 @@ export {
     NodeClass,
     NodeClassMask,
     AttributeIds,
-    BrowseDirection
+    BrowseDirection,
+    WriteMask
 } from "node-opcua-data-model";
 
 // basic_types

@@ -179,8 +179,13 @@ describe("testing Server resilience to DDOS attacks", function () {
                         if (err) {
                             nbError++;
                         }
-                        callback && callback();
-                        callback = null;
+                        if(callback) {
+                            const _callback = callback;
+                            callback = null;
+                            _callback();
+                        } else {
+                            console.log("warning callback already called !!!!!! CHECK Channel implementationc");
+                        }
                     });
                 },
                 callback
