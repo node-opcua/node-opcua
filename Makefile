@@ -7,7 +7,7 @@ istanbul:
 	npx nyc@15 --exclude="_generated_opcua_types.ts" \
 			--exclude="./packages/node-opcua-types/**/*.*" \
 			--exclude="./packages/node-opcua-utils/**/*.*" \
-			--cwd=. node ./packages/run_all_mocha_tests.js  Variant
+			--cwd=. node ./packages/run_all_mocha_tests.js  
 
 coveralls:
 	npx nyc@15 report --cwd=. \
