@@ -71,8 +71,8 @@ describe("test xml decode", function () {
         const pojo = parser2.parseStringSync(xmlBody);
         console.log(util.inspect(pojo, { colors: true, depth: 10 }));
         (pojo.certificates as Buffer[]).length.should.eql(2);
-        pojo.certificates[0].toString("utf-8").should.eql("Hello");
-        pojo.certificates[1].toString("utf-8").should.eql("World");
+        (pojo.certificates as Buffer[])[0]!.toString("utf-8").should.eql("Hello");
+        (pojo.certificates as Buffer[])[1]!.toString("utf-8").should.eql("World");
         (pojo.url as string).should.eql("http://10.0.19.124");
     });
 });

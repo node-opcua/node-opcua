@@ -52,7 +52,7 @@ async function simulateExternalWrite(node: BaseNode, value: number, sourceTimest
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Extending extension object variables", function () {
+describe("Extending extension object variables", function (this: Mocha.Suite) {
 
     this.timeout(Math.max(this.timeout(), 500000));
     let addressSpace: AddressSpace;

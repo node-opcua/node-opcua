@@ -94,7 +94,7 @@ describe("Testing Historical Data Node", () => {
 
         const indexRange = null;
         const dataEncoding = null;
-        const continuationPoint: ContinuationPoint | undefined = undefined;
+        const continuationPoint: ContinuationPoint | null = null;
 
         const historyReadResult = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint
@@ -130,7 +130,7 @@ describe("Testing Historical Data Node", () => {
         });
         const indexRange = null;
         const dataEncoding = null;
-        const continuationPoint: ContinuationPoint | undefined = undefined;
+        const continuationPoint: ContinuationPoint | null = null;
 
         node.setValueFromSource({ dataType: "Double", value: 3.14 });
 
@@ -264,7 +264,7 @@ describe("Testing Historical Data Node", () => {
         });
         const indexRange = null;
         const dataEncoding = null;
-        const continuationPoint: ContinuationPoint | undefined = undefined;
+        const continuationPoint: ContinuationPoint | null = null;
 
         const historyReadResult = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
             continuationPoint
@@ -363,7 +363,7 @@ describe("Testing Historical Data Node", () => {
             });
             const indexRange = null;
             const dataEncoding = null;
-            const continuationPoint: ContinuationPoint | undefined = undefined;
+            const continuationPoint: ContinuationPoint | null = null;
 
             const historyReadResult = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
                 continuationPoint
@@ -386,7 +386,7 @@ describe("Testing Historical Data Node", () => {
             });
             const indexRange = null;
             const dataEncoding = null;
-            const continuationPoint: ContinuationPoint | undefined = undefined;
+            const continuationPoint: ContinuationPoint | null = null;
 
             const historyReadResult = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
                 continuationPoint
@@ -483,7 +483,7 @@ describe("Testing Historical Data Node", () => {
             });
             const indexRange = null;
             const dataEncoding = null;
-            const continuationPoint: ContinuationPoint | undefined = undefined;
+            const continuationPoint: ContinuationPoint | null = null;
 
             const historyReadResult1 = await node.historyRead(context, historyReadDetails, indexRange, dataEncoding, {
                 continuationPoint
