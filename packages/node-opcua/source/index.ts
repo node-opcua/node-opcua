@@ -67,7 +67,8 @@ export {
     NodeClassMask,
     AttributeIds,
     BrowseDirection,
-    WriteMask
+    WriteMask,
+    DiagnosticInfo
 } from "node-opcua-data-model";
 
 // basic_types
@@ -92,7 +93,6 @@ export * from "node-opcua-service-secure-channel";
 export * from "node-opcua-service-translate-browse-path";
 export * from "node-opcua-service-query";
 export * from "node-opcua-service-node-management";
-export { DiagnosticInfo } from "node-opcua-data-model";
 
 // -----------------------------------------------------------------------------
 // Nodeset stuff
