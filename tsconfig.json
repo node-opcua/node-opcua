@@ -1,100 +1,10 @@
 {
-    /// "extends": "./config/tsconfig.flexible",
-    // also available: "./config/tsconfig.strict"
-    "compilerOptions": {
-        "skipLibCheck": true,
-        "target": "es6",
-        "outDir": "build/main",
-        "rootDir": "./",
-        "moduleResolution": "node",
-        "module": "commonjs",
-        "declaration": true,
-        "removeComments": false /* to prevent Istanbul  ignore statement in comment to disappear */,
-        "importHelpers": true,
-        "inlineSourceMap": true,
-        "listFiles": false,
-        "traceResolution": false,
-        "pretty": true,
-        "esModuleInterop": false /* Enables emit interoperability between CommonJS and ES Modules via */,
-        "noUnusedLocals": false /* Report errors on unused locals. */,
-        "noUnusedParameters": false /* Report errors on unused parameters. */,
-        "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
-
-       "incremental": true,
-       "composite": true,
-
-        "lib": ["es2017", "es2017.object"],
-        "types": ["node"],
-        "baseUrl": ".", // required for "paths"
-        "paths": {
-            "typescript-starter": ["package/node-opcua/index.js"] // write tests without relative paths
-        }
-    },
-    "exclude": ["./documentation", "build" , "dist", "packages/node-opcua-convert-nodeset-to-javascript/tmp/*"],
+    "extends": "./tsconfig.common.json",
     "references": [
         {
-            "path": "packages/node-opcua"
-        },
-        {
-            "path": "packages/node-opcua-model"
-        },
-        {
-            "path": "packages/node-opcua-modeler"
-        },
-        {
-            "path": "packages/node-opcua-nodeset-di"
-        },
-        {
-            "path": "packages/node-opcua-nodeset-adi"
-        },
-        {
-            "path": "packages/node-opcua-nodeset-ia"
+            "path": "packages"
         }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-auto-id"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-cnc"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-commercial-kitchen-equipment"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-gds"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-machine-tool"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-machine-vision"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-machinery"
-        }
-        ,
-        {
-            "path": "packages/node-opcua-nodeset-robotics"
-        },
-        {
-            "path": "packages/node-opcua-nodeset-glass-flat"
-        },
-        {
-            "path": "packages/node-opcua-nodeset-ijt"
-        },
-        {
-            "path": "packages/node-opcua-nodeset-woodworking"
-        },
-        {
-            "path": "packages/node-opcua-units"
-        }
-
-    ],    
-    "compileOnSave": false,
+    ],
+    "include": [],
+    "exclude": ["*"]
 }

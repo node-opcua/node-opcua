@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "strictFunctionTypes": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "target": "es2015",
+        "module": "commonjs",
+        "declaration": true,
+        "sourceMap": true,
+        "strict": true,
+        "listFiles": false,
+        "noStrictGenericChecks": false,
+        "noImplicitThis": true,
+        "skipLibCheck": false,
+        "removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */,
+        "incremental": true,
+        "composite": true,
+        "esModuleInterop": true
+    }
+}
