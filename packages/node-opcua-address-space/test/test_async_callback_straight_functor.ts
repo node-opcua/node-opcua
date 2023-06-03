@@ -19,20 +19,20 @@ describe("Async Callback Straight functors", () => {
     async function test(func: MultiformFunc<Output, Stuff>) {
         const convertedFunc = convertToCallbackFunction(func);
         const result = await new Promise<Output>((resolve, reject) => {
-            convertedFunc.call(stuff, (err, result) => (err ? reject(err) : resolve(result)));
+            convertedFunc.call(stuff, (err, result) => (err ? reject(err) : resolve(result!)));
         });
         return result;
     }
 
     async function testFailing(func: MultiformFunc<Output, Stuff>) {
-        let _err: Error;
+        let _err: Error | undefined;
         try {
             const result = await test(func);
         } catch (err) {
             _err = err as Error;
         }
         should.exist(_err);
-        _err.message.should.eql("this is failing");
+        _err!.message.should.eql("this is failing");
     }
 
     it("should work with a straight function", async () => {
@@ -122,20 +122,20 @@ describe("Async Callback Straight functors with one arguments", () => {
     async function test(func: MultiformFunc1<Output, string, Stuff>) {
         const convertedFunc = convertToCallbackFunction1(func);
         const result = await new Promise<Output>((resolve, reject) => {
-            convertedFunc.call(stuff, param, (err, result) => (err ? reject(err) : resolve(result)));
+            convertedFunc.call(stuff, param, (err, result) => (err ? reject(err) : resolve(result!)));
         });
         return result;
     }
 
     async function testFailing(func: MultiformFunc1<Output, string, Stuff>) {
-        let _err: Error;
+        let _err: Error | undefined;
         try {
             const result = await test(func);
         } catch (err) {
             _err = err as Error;
         }
         should.exist(_err);
-        _err.message.should.eql("this is failing");
+        _err!.message.should.eql("this is failing");
     }
 
     it("should work with a straight function", async () => {

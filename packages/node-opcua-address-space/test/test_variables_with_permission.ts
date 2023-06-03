@@ -139,7 +139,7 @@ describe("SPP1 AddressSpace: RoleAndPermissions resolving to Namespace Metadata"
 
     const server = {
         userManager: {
-            getUserRoles(username) {
+            getUserRoles(username: string) {
                 switch (username) {
                     case "user":
                     case "user1": {

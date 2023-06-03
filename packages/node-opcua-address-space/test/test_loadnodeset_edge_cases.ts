@@ -16,7 +16,7 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
     });
 
     it("LNSEC-1 should raise a error if node set is missing - for instance ADI without DI", async () => {
-        let _err: Error;
+        let _err: Error | undefined;
         try {
             await generateAddressSpace(addressSpace, [
                 nodesets.standard,
@@ -24,7 +24,7 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
                 nodesets.adi
             ]);
         } catch (err) {
-            _err = err;
+            _err = err as Error;
         }
         should(_err!).be.instanceOf(Error);
         should(_err!.message).match(/Cannot find namespace for http:\/\/opcfoundation.org\/UA\/DI\//);

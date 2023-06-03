@@ -90,7 +90,7 @@ export function utest_off_normal_alarm(test: any): void {
 
             normalStateNode.setValueFromSource({ dataType: "UInt32", value: green });
             normalStateNode.getValue().should.eql(2);
-            alarm.getNormalStateValue().should.eql(2);
+            alarm.getNormalStateValue()!.should.eql(2);
             alarm.activeState.getValue().should.eql(true);
             spyOnEvent.callCount.should.eql(1);
 
@@ -129,19 +129,19 @@ export function utest_off_normal_alarm(test: any): void {
             // changing the normalStateNode Value shall also automatically update the alarm
             normalStateNode.setValue("Orange");
             normalStateNode.getValue().should.eql(1);
-            alarm.getNormalStateValue().should.eql(1);
+            alarm.getNormalStateValue()!.should.eql(1);
 
             alarm.activeState.getValue().should.eql(true);
 
             normalStateNode.setValue("Green");
             normalStateNode.getValue().should.eql(2);
-            alarm.getNormalStateValue().should.eql(2);
+            alarm.getNormalStateValue()!.should.eql(2);
 
             alarm.activeState.getValue().should.eql(false);
 
             normalStateNode.setValue("Red");
             normalStateNode.getValue().should.eql(0);
-            alarm.getNormalStateValue().should.eql(0);
+            alarm.getNormalStateValue()!.should.eql(0);
         });
     });
 }

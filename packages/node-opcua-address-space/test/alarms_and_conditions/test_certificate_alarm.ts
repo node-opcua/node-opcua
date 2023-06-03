@@ -13,7 +13,7 @@ export const OneDayDuration = 1000 * 60 * 60 * 24;
 export const TwoWeeksDuration = OneDayDuration * 2 * 7;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Test Certificate alarm", function () {
+describe("Test Certificate alarm", function (this: Mocha.Suite) {
     let clock: sinon.SinonFakeTimers | undefined;
     beforeEach(() => {
         clock = sinon.useFakeTimers({ now: Date.now(), shouldAdvanceTime: true, shouldClearNativeTimers: true } as any);
@@ -24,7 +24,6 @@ describe("Test Certificate alarm", function () {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const test = this;
     let addressSpace: AddressSpace;
     this.timeout(Math.max(this.timeout(), 100000));
 

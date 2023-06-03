@@ -58,7 +58,7 @@ export function utest_issue_316(test: any): void {
             // instances. If a ConditionSource has only one instance of a ConditionType, and the Server has
             // no instance name, the Server shall supply the ConditionType browse name.
             condition.conditionName.readValue().value.dataType.should.eql(DataType.String);
-            condition.conditionName.readValue().value.value.should.eql("MyConditionName");
+            condition.conditionName.readValue().value.value!.should.eql("MyConditionName");
         });
     });
 }

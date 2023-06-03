@@ -58,7 +58,7 @@ describe("Testing Historical Data Node", () => {
         });
         const indexRange = null;
         const dataEncoding = null;
-        const continuationPoint: ContinuationPoint | undefined = undefined;
+        const continuationPoint: ContinuationPoint | null = null;
 
         node.setValueFromSource(
             {

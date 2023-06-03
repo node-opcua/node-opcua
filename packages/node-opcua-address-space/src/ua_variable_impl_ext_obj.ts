@@ -608,7 +608,9 @@ export function _bindExtensionObjectArrayOrMatrix(
     const addressSpace = uaVariable.addressSpace;
     if (optionalExtensionObjectArray) {
         if (optionalExtensionObjectArray.length !== totalLength) {
-            throw new Error(`optionalExtensionObjectArray must have the expected number of element matching ${arrayDimensions}`)
+            throw new Error(
+                `optionalExtensionObjectArray must have the expected number of element matching ${arrayDimensions} but was ${optionalExtensionObjectArray.length}`
+            );
         }
     }
     if (!optionalExtensionObjectArray) {

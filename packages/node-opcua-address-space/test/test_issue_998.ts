@@ -37,7 +37,7 @@ describe("testing github issue #998", () => {
         });
     });
     after(async () => {
-        addressSpace.dispose();
+        addressSpace && addressSpace.dispose();
     });
 
     it("getBuiltInDataType should succeed when dataType is not numeric", async () => {

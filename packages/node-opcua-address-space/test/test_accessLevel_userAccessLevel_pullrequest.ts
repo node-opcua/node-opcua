@@ -31,7 +31,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: CurrentRead", () => {
@@ -45,7 +45,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
     });
 
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: CurrentWrite", () => {
@@ -59,7 +59,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentWrite);
     });
 
     it("accessLevel: CurrentRead | CurrentWrite\tuserAccessLevel: undefined", () => {
@@ -87,7 +87,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
     });
 
     it("accessLevel: CurrentRead \tuserAccessLevel: CurrentRead", () => {
@@ -101,7 +101,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
     });
 
     it("accessLevel: CurrentRead \tuserAccessLevel: CurrentWrite", () => {
@@ -115,7 +115,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead);
-        v.userAccessLevel.should.eql(AccessLevelFlag.NONE);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.NONE);
     });
 
     it("accessLevel: CurrentRead \tuserAccessLevel: undefined", () => {
@@ -143,7 +143,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentWrite);
     });
 
     it("accessLevel: CurrentWrite \tuserAccessLevel: CurrentRead", () => {
@@ -157,7 +157,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.NONE);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.NONE);
     });
 
     it("accessLevel: CurrentWrite \tuserAccessLevel: CurrentWrite", () => {
@@ -171,7 +171,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentWrite);
     });
 
     it("accessLevel: CurrentWrite \tuserAccessLevel: undefined", () => {
@@ -198,7 +198,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
     });
 
     it("accessLevel: undefined \tuserAccessLevel: CurrentRead", () => {
@@ -211,7 +211,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentRead);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentRead);
     });
 
     it("accessLevel: undefined \tuserAccessLevel: CurrentWrite", () => {
@@ -224,7 +224,7 @@ describe("testing Variables ", () => {
         });
 
         v.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
-        v.userAccessLevel.should.eql(AccessLevelFlag.CurrentWrite);
+        v.userAccessLevel!.should.eql(AccessLevelFlag.CurrentWrite);
     });
 
     it("accessLevel: undefined \tuserAccessLevel: undefined", () => {

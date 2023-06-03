@@ -84,7 +84,7 @@ describe("historization and status code Bad #1119", function () {
                 console.log(retStatusCode.toString(), value, statusCode.description.toString());
                 return retStatusCode;
             } catch (err) {
-                console.log("write failed ", err.message);
+                console.log("write failed ", (err as any).message);
                 return StatusCodes.BadInternalError;
             }
         };

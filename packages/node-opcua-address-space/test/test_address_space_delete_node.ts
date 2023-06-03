@@ -101,7 +101,7 @@ describe("AddressSpace#deleteNode-b", () => {
             // normalState: normalStateNode,
             optionals: ["ConfirmedState", "Confirm"]
         };
-        const alarmNode = namespace.instantiateAlarmCondition(alarmType, options, null);
+        const alarmNode = namespace.instantiateAlarmCondition(alarmType, options, undefined);
 
         alarmNode.conditionName.setValueFromSource({
             dataType: DataType.String,

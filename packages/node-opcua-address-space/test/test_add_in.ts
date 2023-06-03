@@ -33,10 +33,14 @@ describe("AddIns", () => {
         if (nsMachineTool === -1) throw new Error("namespace not found");
 
         const machineToolType = addressSpace.findObjectType("MachineToolType", nsMachineTool);
+        if (!machineToolType) throw new Error("MachineToolType not found");
+
+        const machines = addressSpace.rootFolder.objects.getFolderElementByName("Machines", nsMachinery);
+        if (!machines) throw new Error("Machines not found");
 
         const machineTool = machineToolType.instantiate({
             browseName: "MachineTool",
-            organizedBy: addressSpace.rootFolder.objects.getFolderElementByName("Machines", nsMachineTool),
+            organizedBy: machines,
             optionals: [
                 "Identification.DeviceClass",
                 "Identification.SoftwareIdentification",

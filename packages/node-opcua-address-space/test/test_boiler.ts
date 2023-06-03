@@ -187,7 +187,7 @@ describe("Testing Boiler System", () => {
 
         // when state is "Halted" , the Halt method is not executable
         boilerStateMachine.setState(haltedState);
-        boilerStateMachine.currentStateNode.browseName.toString().should.eql("Halted");
+        boilerStateMachine.currentStateNode!.browseName.toString().should.eql("Halted");
 
         const haltMethod = boilerStateMachine.getMethodByName("Halt")!;
         // halt method should not be executable when current State is Halted
