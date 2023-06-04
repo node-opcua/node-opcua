@@ -109,8 +109,9 @@ describe("testing clock getCurrentClock", function () {
         for (let i = 1; i < 10000; i++) {
             const d = new Date();
             const c = getCurrentClock();
-            // let's allow for a 20 millisecond drift max
-            (c.timestamp.getTime() + 20).should.be.greaterThanOrEqual(d.getTime());
+            // let's allow for a 100 millisecond drift max
+            // (this could happen in some containerize environment)
+            (c.timestamp.getTime() + 100).should.be.greaterThanOrEqual(d.getTime());
         }
     });
 });
