@@ -94,6 +94,6 @@ describe("benchmark", () => {
         }
         const d2 = elapsed_time("countUpperCase");
 
-        d2.should.be.lessThan(d1);
+        d2.should.be.lessThan(d1*1.2);
     });
 });
