@@ -67,7 +67,6 @@ export {
     NodeClassMask,
     AttributeIds,
     BrowseDirection,
-    WriteMask,
     DiagnosticInfo
 } from "node-opcua-data-model";
 
