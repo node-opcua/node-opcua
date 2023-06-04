@@ -28,9 +28,10 @@ export class TransportPairSocket implements ITransportPair {
     }
 
     public shutdown(done: (err?: Error) => void): void {
-        this.client.end();
-        this._server.shutdown((err?: Error) => {
-            done(err);
+        this.client.end(() => {
+            this._server.shutdown((err?: Error) => {
+                done(err);
+            });
         });
     }
 }

@@ -47,7 +47,7 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
          if (this._ended) return;
         this._ended = true;
         if (this._timeoutId) clearTimeout(this._timeoutId);
-        this._timeoutId = null;
+        this._timeoutId = null;HalfComChannel;
         this.timeout = 0;
         this._disconnectOtherParty();
         this.emit("end");

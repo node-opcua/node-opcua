@@ -1,3 +1,4 @@
+import * as os from "os";
 import { OPCUAServer, OPCUAClient } from "node-opcua";
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
@@ -7,7 +8,7 @@ const port = 2004;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Verifying Server Endpoint", () => {
     let server: OPCUAServer;
-    let endpointUri = `opc.tcp://localhost:${port}`;
+    let endpointUri = `opc.tcp://${os.hostname()}:${port}`;
     before(async () => {
         const serverCertificateManager = await createServerCertificateManager(port);
         server = new OPCUAServer({ port, serverCertificateManager });
