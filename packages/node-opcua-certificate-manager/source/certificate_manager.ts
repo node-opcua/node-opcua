@@ -86,7 +86,11 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
         const location = options.rootFolder || paths.config;
         if (!fs.existsSync(location)) {
-            mkdirp.sync(location);
+            try {
+                mkdirp.sync(location);
+            } catch (err) {
+                console.log(" cannot create folder ", location  , fs.existsSync(location));
+            }
         }
 
         const _options: CertificateManagerOptions = {

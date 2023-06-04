@@ -937,6 +937,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     /* */
                     this._handleDisconnectionWhileConnecting(err, callback);
                 } else {
+                    console.log("REMOVE ME", err.stack);
                     err = new Error("The connection may have been rejected by server,\n" + "Err = (" + err.message + ")");
                     this._handleUnrecoverableConnectionFailure(err, callback);
                 }
