@@ -5,14 +5,12 @@ import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
-import { KeyObject, createPrivateKey } from "crypto";
 
 import rimraf from "rimraf";
 import { SubjectOptions } from "node-opcua-pki";
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
 import {
-    generatePrivateKey,
     convertPEMtoDER,
     exploreCertificate,
     makeSHA1Thumbprint,
@@ -21,7 +19,6 @@ import {
     PrivateKey,
     certificateMatchesPrivateKey,
     readCertificate,
-    privateKeyToPEM,
     derToPrivateKey,
     pemToPrivateKey,
     toPem2
@@ -33,6 +30,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCode } from "node-opcua-status-code";
+import { coercePrivateKey } from "node-opcua-crypto";
 
 import {
     CreateSigningRequestResult,
@@ -40,6 +38,7 @@ import {
     PushCertificateManager,
     UpdateCertificateResult
 } from "../push_certificate_manager";
+
 
 // node 14 onward : import {  readFile, writeFile, readdir } from "fs/promises";
 const { readFile, writeFile, readdir } = fs.promises;
@@ -53,24 +52,28 @@ const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGr
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
 const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
 
-async function coercePrivateKey(privateKey: Buffer | string | PrivateKey | CryptoKey): Promise<PrivateKey> {
-    if (privateKey instanceof Buffer) {
-        const privateKey1 = await derToPrivateKey(privateKey); //
-        return KeyObject.from(privateKey1);
-    } else if (typeof privateKey === "string") {
-        try {
-           // privateKey = privateKey.replace(/RSA PRIVATE KEY-----\n.*/mg, "RSA PRIVATE KEY-----");
-            const privateKey1 = await pemToPrivateKey(privateKey);
-            return KeyObject.from(privateKey1);
-        } catch (err) {
-            console.log(privateKey);
-            throw err;
-        }
-    } else if (privateKey instanceof KeyObject) {
-        return privateKey;
-    }
-    throw new Error("Invalid privateKey");
-}
+// async function coercePrivateKey(privateKey: Buffer | string | PrivateKey | CryptoKey): Promise<PrivateKey> {
+
+//     const crypto = getCrypto();
+//     const KeyObject = crypto.KeyObject;
+    
+//     if (privateKey instanceof Buffer) {
+//         const privateKey1 = await derToPrivateKey(privateKey); //
+//         return KeyObject.from(privateKey1);
+//     } else if (typeof privateKey === "string") {
+//         try {
+//            // privateKey = privateKey.replace(/RSA PRIVATE KEY-----\n.*/mg, "RSA PRIVATE KEY-----");
+//             const privateKey1 = await pemToPrivateKey(privateKey);
+//             return KeyObject.from(privateKey1);
+//         } catch (err) {
+//             console.log(privateKey);
+//             throw err;
+//         }
+//     } else if (privateKey instanceof KeyObject) {
+//         return privateKey;
+//     }
+//     throw new Error("Invalid privateKey");
+// }
 
 async function privateKeyToPEM2(privateKey: Buffer | string | PrivateKey): Promise<string> {
     if (privateKey instanceof Buffer) {
@@ -545,10 +548,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
 
             if (privateKey instanceof Buffer || typeof privateKey === "string") {
-                if (privateKey instanceof Buffer && privateKeyFormat === "PEM") {
+                if (privateKey instanceof Buffer) {
+                    assert(privateKeyFormat === "PEM");
                     privateKey = privateKey.toString("utf-8");
                 }
-                privateKey = await coercePrivateKey(privateKey);
+                privateKey = coercePrivateKey(privateKey as string);
             }
             // privateKey is  provided, so check that the public key matches provided private key
             if (!certificateMatchesPrivateKey(certificate, privateKey)) {
