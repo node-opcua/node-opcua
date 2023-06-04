@@ -4,13 +4,19 @@ test-cov: istanbul coveralls
 
 
 istanbul:
-	npx nyc@15 --exclude="_generated_opcua_types.ts" \
+	npx -y nyc@15 --exclude="_generated_opcua_types.ts" \
+			--exclude="packages/node-opcua-*/test/**/*.js"  \
+			--exclude="packages/node-opcua-*/test/**/*.ts"  \
+			--exclude-after-remap=false \
 			--exclude="./packages/node-opcua-types/**/*.*" \
 			--exclude="./packages/node-opcua-utils/**/*.*" \
-			--cwd=. node -r source-map-support/register --max_old_space_size=16384 ./packages/run_all_mocha_tests.js  
+			--cwd=. node -r source-map-support/register --max_old_space_size=8192 ./packages/run_all_mocha_tests.js  
 
 coveralls:
-	npx nyc@15 report --cwd=. \
+	npx -y nyc@15 report --cwd=. \
+			--include="packages/node-opcua*/dist/**/*.js"  \
+			--exclude-after-remap=false \
+			--cwd=. \
 			--reporter=text-lcov \
 		 | npx coveralls --exclude tmp
 
@@ -24,7 +30,8 @@ istanbul-old:
 			--exclude="_generated_opcua_types.ts" \
 			--exclude="packages/node-opcua-types/**/*.*" \
 			--exclude="packages/node-opcua-utils/**/*.*" \
-			--cwd=. node -max_old_space_size=8192 packages/run_all_mocha_tests.js
+			--cwd=. node -max_old_space_size=8192 ./packages/run_all_mocha_tests.js
+
 coveralls-old: istanbul-old
 	npx nyc@14 report --source-map \
 			--include="packages/node-opcua*/dist/**/*.js"  \
