@@ -39,7 +39,9 @@ function installTestFor(TransportPair) {
         });
 
         afterEach((done) => {
-            transportPair.shutdown(done);
+            transportPair.shutdown(()=>{
+                setTimeout(done,10);
+            });
         });
 
         /** @type {ServerTCP_transport} */
@@ -91,7 +93,9 @@ function installTestFor(TransportPair) {
                 if (spyOnConnect.callCount === 1) {
                     spyOnClose.callCount.should.equal(1);
                 }
-                done();
+                setTimeout(()=>{
+                    done();
+                }, 100);
             });
         });
 

@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as fs from "fs";
+import * as os from "os";
 import "should";
 import { DataType, OPCUAClient, OPCUAServer, nodesets, AttributeIds, UAObject, UAVariableT, UAVariable } from "node-opcua";
 
@@ -36,7 +37,7 @@ describe("testing github issue", function () {
         server && (await server.shutdown());
     });
     it("should be possible ", async () => {
-        const endpointUrl = `opc.tcp://localhost:${port}`;
+        const endpointUrl = `opc.tcp://${os.hostname()}:${port}`;
 
         const client = OPCUAClient.create({ endpointMustExist: false });
 

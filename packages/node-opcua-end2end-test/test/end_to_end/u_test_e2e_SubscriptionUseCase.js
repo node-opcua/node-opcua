@@ -2003,8 +2003,7 @@ module.exports = function (test) {
             if (process.platform === "darwin") {
                 return done(); // skipping on MacOS
             }
-            //xx endpointUrl = "opc.tcp://localhost:2200/OPCUA/SimulationServer";
-
+         
             // from Spec OPCUA Version 1.03 Part 4 - 5.13.1.1 Description : Page 69
             // h. Subscriptions have a lifetime counter that counts the number of consecutive publishing cycles in
             //    which there have been no Publish requests available to send a Publish response for the

@@ -1,7 +1,6 @@
 // tslint:disable:no-console
 import * as path from "path";
 import * as os from "os";
-
 import "should";
 import { types } from "util";
 import chalk from "chalk";

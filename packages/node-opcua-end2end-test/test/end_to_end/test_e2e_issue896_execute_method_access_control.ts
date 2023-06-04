@@ -1,3 +1,4 @@
+import * as os from "os";
 import { allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles, makeRoles } from "node-opcua";
 import "should";
 
@@ -57,7 +58,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
                 callback(null, { statusCode: StatusCodes.Good });
             });
         await server.start();
-        return client.connect(`opc.tcp://localhost:${port}/UA/NodeOPCUA`);
+        return client.connect(`opc.tcp://${os.hostname()}:${port}/UA/NodeOPCUA`);
     });
 
     after(async () => {

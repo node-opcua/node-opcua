@@ -1,5 +1,6 @@
 "use strict";
 
+const os = require("os");
 const { promisify } = require("util");
 const should = require("should");
 const { ReadRequest } = require("node-opcua-types");
@@ -62,7 +63,7 @@ describe("Testing ClientSecureChannel 1", function () {
             client_has_received_close_event += 1;
         });
 
-        secureChannel.create("opc.tcp://localhost:8888/UA/Sample", function (err) {
+        secureChannel.create("opc.tcp://"+ os.hostname()+ ":8888/UA/Sample", function (err) {
             should(err).be.instanceOf(Error);
             err.message.should.match(/connect ECONNREFUSED/);
             client_has_received_close_event.should.eql(0);
@@ -127,7 +128,7 @@ describe("Testing ClientSecureChannel 2", function () {
                 /** */
             }
         });
-        secureChannel.create(`opc.tcp://localhost:${port}/UA/Sample`, function (err) {
+        secureChannel.create(`opc.tcp://${os.hostname()}:${port}/UA/Sample`, function (err) {
             should(!err).be.eql(true, "connection expected to succeed");
 
             secureChannel.close(function () {
@@ -152,7 +153,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         };
         const secureChannel = new ClientSecureChannelLayer(options);
 
-        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
+        const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
         let nbRetry = 0;
         secureChannel.on("backoff", function (number, delay) {
             debugLog(number + " " + delay + "ms");
@@ -179,7 +180,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         const secureChannel = new ClientSecureChannelLayer(options);
 
-        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
+        const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
         let nbRetry = 0;
 
         secureChannel.on("backoff", function (number, delay) {
@@ -221,7 +222,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         const secureChannel = new ClientSecureChannelLayer(options);
 
-        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
+        const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
         let nbRetry = 0;
 
         secureChannel.on("backoff", function (number, delay) {
@@ -285,7 +286,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         await promisify(startServer)(holder, port);
 
-        const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
+        const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
         await promisify(secureChannel.create).call(secureChannel, endpoint);
 
         //-----------------------------------------------------------------
@@ -344,7 +345,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         await promisify(startServer)(holder, port);
 
         try {
-            const endpoint = `opc.tcp://localhost:${port}/UA/Sample`;
+            const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
             await promisify(secureChannel.create).call(secureChannel, endpoint);
             secureChannel._closeWithError(StatusCodes.Bad, new Error("Sabotage"));
         } catch (err) {

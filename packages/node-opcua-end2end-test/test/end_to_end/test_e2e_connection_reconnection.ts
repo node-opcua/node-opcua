@@ -661,7 +661,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     });
 
     it("TR14 - it should be possible to disconnect a client which is attempting to establish it's first connection to a unavailable server", async () => {
-        const endpointUrl = "opc.tcp://localhost:11111"; // uri of an unavailable opcua server
+        const endpointUrl = `opc.tcp://${os.hostname()}:11111`; // uri of an unavailable opcua server
 
         // use robust connectionStrategy
         await f(

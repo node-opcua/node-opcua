@@ -1,4 +1,5 @@
 "use strict";
+const os = require("os");
 const should = require("should");
 const {OPCUAClient} = require("node-opcua");
 
@@ -68,7 +69,7 @@ module.exports = function(test) {
 
             const match = test.endpointUrl.match(/:([0-9]*)$/);
             const port = parseInt(match[1],10);
-            const endpointUrl = `opc.tcp://localhost:${port}`;
+            const endpointUrl = `opc.tcp://${os.hostname()}:${port}`;
             // console.log(endpointUrl);
             const { createSessionResponse, err }= await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);

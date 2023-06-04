@@ -70,7 +70,7 @@ describe("issue #931 investigation", function () {
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256
         };
-        await doTest(options, "localhost");
+        await doTest(options, os.hostname());
     });
     it("931-B should be able to disconnect when the client is trying to initially connect to a server - With Security - hostname", async () => {
         const options = {

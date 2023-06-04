@@ -3,8 +3,8 @@
 import * as path from "path";
 import * as fs from "fs";
 import "mocha";
+import "should";
 import rimraf from "rimraf";
-import should from "should";
 
 import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
@@ -77,7 +77,7 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
 
     if (fs.existsSync(temporaryFolder)) {
         await rimraf.sync(temporaryFolder);
-        await fs.mkdirSync(temporaryFolder);
+        fs.mkdirSync(temporaryFolder);
     }
     const certificateMgr = new OPCUACertificateManager(options);
     await certificateMgr.initialize();
@@ -87,7 +87,7 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing OPCUA Client Certificate Manager", function (this: any) {
-    this.timeout(Math.max(40000,this.timeout()));
+    this.timeout(Math.max(40000, this.timeout()));
 
     let certificateMgr: OPCUACertificateManager;
     let certificateMgrWithNoIssuerCert: OPCUACertificateManager;
@@ -96,7 +96,9 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
     let certificateSelfSigned: Certificate;
 
     before(async () => await initializeDemoCertificates());
-    after(async () => {/** */});
+    after(async () => {
+        /** */
+    });
     beforeEach(async () => {
         // create a PKI with no issuer certificate
         const temporaryFolder2 = path.join(_tmpFolder, "testing_certificates");
@@ -264,7 +266,7 @@ describe("Testing OPCUA Client Certificate Manager", function (this: any) {
 });
 
 describe("Testing OPCUA Certificate Manager with automatically acceptance of unknown certificate", function (this: any) {
-    this.timeout(Math.max(40000,this.timeout()));
+    this.timeout(Math.max(40000, this.timeout()));
 
     let acceptingCertificateMgr: OPCUACertificateManager;
     let rejectingCertificateMgr: OPCUACertificateManager;

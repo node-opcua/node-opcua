@@ -1,3 +1,4 @@
+const os = require("os");
 const should = require("should");
 
 const { HelloMessage } = require("node-opcua-transport");
@@ -379,7 +380,7 @@ describe("testing ServerSecureChannelLayer ", function () {
                 sendBufferSize: 8 * 1024,
                 maxMessageSize: 16 * 1024,
                 maxChunkCount: 2,
-                endpointUrl: "opc.tcp://localhost:1234/SomeEndpoint"
+                endpointUrl: `opc.tcp://${os.hostname()}:1234/SomeEndpoint`
             });
             await send1("HEL", helloMessage);
         }
