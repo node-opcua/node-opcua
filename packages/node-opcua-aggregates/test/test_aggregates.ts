@@ -7,20 +7,25 @@ import { nodesets } from "node-opcua-nodesets";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataType } from "node-opcua-variant";
 
-import { AggregateFunction, getInterpolatedData, installAggregateConfigurationOptions } from "..";
-import { addAggregateSupport, getAggregateConfiguration } from "..";
-import { getMaxData, getMinData } from "..";
-import { getAverageData } from "../source/average";
-import { getCountData } from "../source/count";
-import { getPercentGoodData } from "../source/percent_good";
-import { getPercentBadData } from "../source/percent_bad";
-import { getDurationBadData } from "../source/duration_bad";
-import { getDurationGoodData } from "../source/duration_good";
+import {
+    AggregateFunction,
+    getInterpolatedData,
+    installAggregateConfigurationOptions,
+    addAggregateSupport,
+    getAggregateConfiguration,
+    getMaxData,
+    getMinData,
+    getAverageData,
+    getCountData,
+    getPercentGoodData,
+    getPercentBadData,
+    getDurationBadData,
+    getDurationGoodData
+} from "..";
 
 import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 } from "./helpers/create_historizing_variables";
 import { makeDate } from "./helpers/helpers";
 
-const _should = should;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
@@ -669,7 +674,11 @@ describe("Aggregates - Function ", () => {
         const startDate = makeDate("12:00:00");
         const endDate = makeDate("12:01:40");
 
+        console.log("startDate = ", startDate.toISOString());
+        console.log("startDate = ", endDate.toISOString());
+        
         getCountData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
+            
             if (err) {
                 return done(err);
             }

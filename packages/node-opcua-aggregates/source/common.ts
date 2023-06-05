@@ -27,11 +27,11 @@ function processAggregateData(
 
     const results: DataValue[] = [];
 
-    const tstart = startDate.getTime();
-    const tend = endDate.getTime();
+    const startTime = startDate.getTime();
+    const endTime = endDate.getTime();
 
     const indexHint = 0;
-    for (let t = tstart; t < tend; t += processingInterval) {
+    for (let t = startTime; t < endTime; t += processingInterval) {
         const sourceTimestamp = new Date();
         sourceTimestamp.setTime(t);
 
@@ -63,12 +63,12 @@ export function getAggregateData(
 ): void {
     /* istanbul ignore next */
     if (node.nodeClass !== NodeClass.Variable) {
-        throw new Error("node must be UAVariable");
+        return callback(new Error("node must be UAVariable"));
     }
 
     /* istanbul ignore next */
     if (processingInterval <= 0) {
-        throw new Error("Invalid processing interval, shall be greater than 0");
+        return callback(new Error("Invalid processing interval, shall be greater than 0"));
     }
 
     const continuationPointManager = new ContinuationPointManager();
