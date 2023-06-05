@@ -1,7 +1,7 @@
 // tslint:disable:no-console
 import * as fs from "fs";
 import * as path from "path";
-import should from "should";
+import "should";
 
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";

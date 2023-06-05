@@ -10,24 +10,6 @@ function isChannelSecure(channel: IChannelBase): boolean {
     return false;
 }
 
-function newIsUserReadable(this: BaseNode, context: ISessionContext): boolean {
-    if (context) {
-        if (!context.session) {
-            // console.log(" context has no session", context);
-            return false;
-        }
-        if (!context.session.channel) {
-            // console.log(" context has no channel", context);
-            return false;
-        }
-        if (!isChannelSecure(context.session.channel)) {
-            return false;
-        }
-        return true;
-    }
-    return false;
-}
-
 /**
  * make sure that the given ia node can only be read
  * by Administrator user on a encrypted channel
@@ -57,7 +39,6 @@ const restrictedAccessFlag = makeAccessRestrictionsFlag("SigningRequired | Encry
 export function ensureObjectIsSecure(node: BaseNode): void {
     node.setAccessRestrictions(restrictedAccessFlag);
     if (node.nodeClass === NodeClass.Variable) {
-        // replaceMethod(node, "isUserReadable", newIsUserReadable);
         const variable = node as UAVariable;
         variable.setRolePermissions(restrictedPermissions);
     }
