@@ -450,7 +450,7 @@ export class NumericRange implements NumericalRange1 {
      * @param dimensions: of the matrix if data is a matrix
      * @return {*}
      */
-    public extract_values<U, T extends ArrayLike<U>>(array: T, dimensions?: number[]): ExtractResult<T> {
+    public extract_values<U, T extends ArrayLike<U>>(array: T, dimensions?: number[] | null): ExtractResult<T> {
         const self = this as NumericalRange0;
 
         if (!array) {
@@ -654,7 +654,7 @@ function extract_matrix_range<U, T extends ArrayLike<U>>(
     array: T,
     rowRange: number[],
     colRange: number[],
-    dimension?: number[]
+    dimension?: number[] | null
 ): ExtractResult<T> {
     assert(Array.isArray(rowRange) && Array.isArray(colRange));
 

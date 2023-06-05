@@ -1,3 +1,5 @@
+import * as path from "path";
+import * as os from "os";
 import { spy } from "sinon";
 import "should";
 
@@ -15,7 +17,8 @@ import {
     DataType,
     ExtensionObjectDefinition,
     NodeClassMask,
-    StructureDefinitionOptions} from "..";
+    StructureDefinitionOptions
+} from "..";
 
 describe("loading very large DataType Definitions ", function (this: any) {
     this.timeout(Math.max(10000, this.timeout()));
@@ -92,12 +95,11 @@ describe("loading very large DataType Definitions ", function (this: any) {
         const xml = namespace.toNodeset2XML();
         if (true) {
             const fs = require("fs");
-            const tmpFile = "tmp_1.xml";
+            const tmpFile = path.join(os.tmpdir(), "tmp_1.xml");
             await fs.promises.writeFile(tmpFile, xml, "utf-8");
             /* to be completed */
         }
-      
-      
+
         const maxBrowseContinuationPoints = 2;
         const maxNodesPerBrowse = 100;
 
@@ -135,7 +137,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
-       
+
         const dataTypeManager = new ExtraDataTypeManager();
         await populateDataTypeManager(session, dataTypeManager);
 

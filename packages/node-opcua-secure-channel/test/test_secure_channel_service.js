@@ -7,7 +7,6 @@ const secure_channel = require("node-opcua-service-secure-channel");
 const CloseSecureChannelResponse = secure_channel.CloseSecureChannelResponse;
 const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
 
-const { compare_buffers } = require("node-opcua-utils");
 const { clone_buffer } = require("node-opcua-buffer-utils");
 const { hexDump, makeBufferFromTrace } = require("node-opcua-debug");
 
