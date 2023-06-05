@@ -45,8 +45,7 @@ const colorWheel = [
     chalk.bgCyan,
     chalk.bgGray
 ];
-const pageCount = 1;
-const pageSize = 1;
+
 
 const TEST_FILE_STARTED = "TEST_FILE_STARTED";
 const TEST_FILE_COMPLETED = "TEST_FILE_COMPLETED";
@@ -296,7 +295,8 @@ if (isMainThread) {
             process.stdin.on("keypress", async (str, key) => {
                 console.log(`You pressed the "${str}" key`);
 
-                if (key.ctrl && key.name === "C") {
+                if (key.name === "C") {
+                    console.log("Stopping now !")
                     process.exit(0);
                 }
                 if (key.name === "l") {
