@@ -27,4 +27,5 @@ describe("testing Client - Umbrella-A ", function () {
     require("./u_test_e2e_call_service")(test);
     require("./u_test_e2e_ClientSession_readVariableValue")(test);
     require("./u_test_e2e_client_node_crawler")(test);
+    require("./u_test_e2e_ read_history_server_capabilities").t(test);
 });
