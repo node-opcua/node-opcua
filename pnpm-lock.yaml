@@ -237,9 +237,6 @@ importers:
         specifier: 15.4.1
         version: 15.4.1
     devDependencies:
-      '@istanbuljs/nyc-config-typescript':
-        specifier: ^1.0.2
-        version: 1.0.2(nyc@15.1.0)
       '@types/mocha':
         specifier: ^10.0.1
         version: 10.0.1
@@ -4043,6 +4040,7 @@ packages:
   /@colors/colors@1.5.0:
     resolution: {integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==}
     engines: {node: '>=0.1.90'}
+    requiresBuild: true
 
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -4131,16 +4129,6 @@ packages:
       get-package-type: 0.1.0
       js-yaml: 3.14.1
       resolve-from: 5.0.0
-    dev: true
-
-  /@istanbuljs/nyc-config-typescript@1.0.2(nyc@15.1.0):
-    resolution: {integrity: sha512-iKGIyMoyJuFnJRSVTZ78POIRvNnwZaWIf8vG4ZS3rQq58MMDrqEX2nnzx0R28V2X8JvmKYiqY9FP2hlJsm8A0w==}
-    engines: {node: '>=8'}
-    peerDependencies:
-      nyc: '>=15'
-    dependencies:
-      '@istanbuljs/schema': 0.1.3
-      nyc: 15.1.0
     dev: true
 
   /@istanbuljs/schema@0.1.3:
