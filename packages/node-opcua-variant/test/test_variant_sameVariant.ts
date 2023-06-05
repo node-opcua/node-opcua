@@ -1,11 +1,9 @@
 /* eslint-disable max-statements */
-"use strict";
+import "should";
+import  { assert }from "node-opcua-assert";
+import { ExtensionObject }from "node-opcua-extension-object";
 
-const should = require("should");
-const { assert } = require("node-opcua-assert");
-const { ExtensionObject } = require("node-opcua-extension-object");
-
-const { sameVariant, Variant, DataType, VariantArrayType, buildVariantArray } = require("..");
+import { sameVariant, Variant, DataType, VariantArrayType, buildVariantArray } from "..";
 
 describe("testing return sameVariant for pull request", function () {
     it("testing same variants of type Boolean", function () {
@@ -976,12 +974,14 @@ describe("testing return sameVariant for pull request", function () {
     });
 
     class SomeExtensionObjectA extends ExtensionObject {
+        public a: any;
         constructor(options) {
             super();
             this.a = options.a;
         }
     }
     class SomeExtensionObjectB extends ExtensionObject {
+        public a: any;
         constructor(options) {
             super();
             this.a = options.a;
