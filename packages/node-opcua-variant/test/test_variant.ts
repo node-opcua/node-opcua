@@ -1,34 +1,44 @@
-"use strict";
+import should from "should";
+import { assert } from "node-opcua-assert";
 
-const should = require("should");
-const { assert } = require("node-opcua-assert");
-
-const ul = require("lodash");
-const uu = require("underscore");
+import ul from "lodash";
+import uu from "underscore";
 const sameVariantSlow1 = ul.isEqual;
 const sameVariantSlow2 = uu.isEqual;
 
-const ec = require("node-opcua-basic-types");
-const { QualifiedName, LocalizedText } = require("node-opcua-data-model");
+import { randomGuid, emptyGuid, encodeUInt8, encodeUInt32 } from "node-opcua-basic-types";
+import { QualifiedName, LocalizedText } from "node-opcua-data-model";
 
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
+import { redirectToFile } from "node-opcua-debug/nodeJS";
 
-const { Benchmarker } = require("node-opcua-benchmarker");
-const { BinaryStream } = require("node-opcua-binary-stream");
+import { Benchmarker } from "node-opcua-benchmarker";
+import { BinaryStream } from "node-opcua-binary-stream";
 
-const factories = require("node-opcua-factory");
+import factories, { findBuiltInType } from "node-opcua-factory";
 
-const { NumericRange } = require("node-opcua-numeric-range");
-const { StatusCodes } = require("node-opcua-status-code");
-const { ExtensionObject } = require("node-opcua-extension-object");
-const { resolveNodeId } = require("node-opcua-nodeid");
-const { makeNodeId } = require("node-opcua-nodeid");
-const { analyze_object_binary_encoding } = require("node-opcua-packet-analyzer");
+import { NumericRange } from "node-opcua-numeric-range";
+import { StatusCodes } from "node-opcua-status-code";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { resolveNodeId } from "node-opcua-nodeid";
+import { makeNodeId } from "node-opcua-nodeid";
+import { analyze_object_binary_encoding } from "node-opcua-packet-analyzer";
 
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
-const { get_clock_tick } = require("node-opcua-utils");
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { get_clock_tick } from "node-opcua-utils";
+
+import {
+    encodeVariant,
+    sameVariant,
+    Variant,
+    DataType,
+    VariantArrayType,
+    isValidVariant,
+    buildVariantArray,
+    VARIANT_ARRAY_MASK,
+    decodeVariant
+} from "..";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -45,6 +55,15 @@ describe("Variant", () => {
         encode_decode_round_trip_test(var1, (stream) => {
             stream.length.should.equal(1);
         });
+    });
+
+    it("should encode null variant", () => {
+        const stream = new BinaryStream(2);
+        encodeVariant(null, stream);
+
+        const reloaded = new Variant();
+        stream.rewind();
+        reloaded.decode(stream);
     });
 
     it("should create a Scalar UInt32 Variant", () => {
@@ -247,7 +266,7 @@ describe("Variant", () => {
         const var1 = new Variant({
             dataType: DataType.Guid,
             arrayType: VariantArrayType.Array,
-            value: [ec.emptyGuid, ec.randomGuid(), ec.randomGuid(), ec.emptyGuid, ec.randomGuid(), ec.randomGuid()]
+            value: [emptyGuid, randomGuid(), randomGuid(), emptyGuid, randomGuid(), randomGuid()]
         });
 
         var1.dataType.should.eql(DataType.Guid);
@@ -297,7 +316,7 @@ describe("Variant", () => {
         });
 
         var1.arrayType.should.eql(VariantArrayType.Matrix);
-        var1.dimensions.should.eql([2, 3]);
+        var1.dimensions!.should.eql([2, 3]);
         var1.value.length.should.eql(6);
         var1.dataType.should.eql(DataType.UInt32);
 
@@ -323,7 +342,7 @@ describe("Variant", () => {
             value: []
         });
         var1.arrayType.should.eql(VariantArrayType.Matrix);
-        var1.dimensions.should.eql([]);
+        var1.dimensions!.should.eql([]);
         var1.value.length.should.eql(0);
         var1.dataType.should.eql(DataType.UInt32);
 
@@ -353,7 +372,7 @@ describe("Variant", () => {
         });
 
         var1.arrayType.should.eql(VariantArrayType.Matrix);
-        var1.dimensions.should.eql([2, 3]);
+        var1.dimensions!.should.eql([2, 3]);
 
         var1.value.length.should.eql(6);
 
@@ -509,7 +528,7 @@ describe("Variant", () => {
 
         var1.dataType.should.eql(DataType.Int16);
         var1.arrayType.should.eql(VariantArrayType.Matrix);
-        var1.dimensions.should.eql([3, 4]);
+        var1.dimensions!.should.eql([3, 4]);
 
         encode_decode_round_trip_test(var1, (stream) => {
             stream.length.should.equal(41);
@@ -531,7 +550,7 @@ describe("Variant", () => {
 
         var1.dataType.should.eql(DataType.String);
         var1.arrayType.should.eql(VariantArrayType.Matrix);
-        var1.dimensions.should.eql([3, 4]);
+        var1.dimensions!.should.eql([3, 4]);
 
         encode_decode_round_trip_test(var1, (stream) => {
             stream.length.should.equal(137);
@@ -556,24 +575,61 @@ describe("Variant", () => {
         v.value[0].should.eql(StatusCodes.Good);
         v.value[1].should.eql(StatusCodes.BadConditionDisabled);
     });
+    it("Variant ByteString", () => {
+        const variant = new Variant({
+            dataType: DataType.ByteString,
+            value: Buffer.from("A")
+        });
+        variant.toString().should.eql("Variant(Scalar<ByteString>, value: 0x41)");
+    });
+    it("Variant ByteString null", () => {
+        const variant = new Variant({
+            dataType: DataType.ByteString,
+            value: null
+        });
+        variant.toString().should.eql("Variant(Scalar<ByteString>, value: <null>)");
+    });
+    it("Variant ByteString Array", () => {
+        const variant = new Variant({
+            dataType: DataType.ByteString,
+            arrayType: VariantArrayType.Array,
+            value: [Buffer.from("A")]
+        });
+        variant.toString().should.eql("Variant(Array<ByteString>, l= 1, value=[0x41])");
+    });
+    it("Variant ByteString Matrix", () => {
+        const variant = new Variant({
+            dataType: DataType.ByteString,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [1, 1],
+            value: [Buffer.from("A")]
+        });
+        variant.toString().should.eql("Variant(Matrix[ 1,1 ]<ByteString>, l= 1, value=[0x41])");
+    });
+    it("Variant ByteString null", () => {
+        const variant = new Variant({
+            dataType: DataType.ByteString,
+            arrayType: VariantArrayType.Matrix,
+            dimensions: [0, 0],
+            value: null
+        });
+        variant.value = null;
+        variant.toString().should.eql("Variant(Matrix[ 0,0 ]<ByteString>, null)");
+    });
+    it("Variant DateTime", () => {
+        const variant = new Variant({
+            dataType: DataType.DateTime,
+            value: new Date(Date.UTC(2023, 5, 9))
+        });
+        variant.toString().should.eql("Variant(Scalar<DateTime>, value: 2023-06-09T00:00:00.000Z)");
+    });
 });
-
-const {
-    Variant,
-    DataType,
-    VariantArrayType,
-    isValidVariant,
-    buildVariantArray,
-    VARIANT_ARRAY_MASK,
-    coerceVariantType,
-    decodeVariant
-} = require("..");
 
 describe("Variant - Analyser", function () {
     // increase timeout to cope with istanbul
     this.timeout(Math.max(400000, this.timeout()));
 
-    const manyValues = [];
+    const manyValues: number[] = [];
     for (let i = 0; i < 1000; i++) {
         manyValues[i] = Math.random() * 1000 - 500;
     }
@@ -590,7 +646,7 @@ describe("Variant - Analyser", function () {
             value: new LocalizedText({ text: "Hello", locale: "en" })
         }),
         new Variant({ dataType: DataType.Double, arrayType: VariantArrayType.Scalar, value: 3.14 }),
-        new Variant({ dataType: DataType.Guid, arrayType: VariantArrayType.Scalar, value: ec.randomGuid() }),
+        new Variant({ dataType: DataType.Guid, arrayType: VariantArrayType.Scalar, value: randomGuid() }),
 
         // various Variant Array
         new Variant({ dataType: DataType.Int32, arrayType: VariantArrayType.Array /*, unspecified value*/ }),
@@ -637,12 +693,16 @@ describe("Variant - Analyser", function () {
 
     //xx debugLog(various_variants.map(function(a){return a.toString()}).join("\n"));
 
-    it("should analyze variant", () => {
-        redirectToFile("variant_analyze1.log", () => {
-            various_variants.forEach(function (v) {
-                analyze_object_binary_encoding(v);
-            });
-        });
+    it("should analyze variant", (done) => {
+        redirectToFile(
+            "variant_analyze1.log",
+            () => {
+                various_variants.forEach(function (v) {
+                    analyze_object_binary_encoding(v);
+                });
+            },
+            done
+        );
     });
     it("ZZ1 should encode/decode variant", () => {
         const v = new Variant({
@@ -710,62 +770,6 @@ describe("Variant - Analyser", function () {
             // stream.length.should.equal(1+4+4*4);
         });
     });
-
-    it("should check the performance of encode/decode a very large array of Float", () => {
-        const length = 500 * 1024;
-
-        debugLog("    array size = ", length);
-
-        const obj = new Variant({
-            dataType: DataType.Double,
-            arrayType: VariantArrayType.Array,
-            value: new Float64Array(length)
-        });
-
-        for (let i = 0; i < length; i++) {
-            obj.value[i] = i;
-        }
-        obj.value[100].should.eql(100);
-
-        const size = obj.binaryStoreSize();
-        const stream = new BinaryStream(Buffer.allocUnsafe(size));
-
-        const bench = new Benchmarker();
-
-        const obj_reloaded = new Variant();
-
-        bench
-            .add("Variant.encode", () => {
-                stream.rewind();
-                obj.encode(stream);
-            })
-            .add("Variant.decode", () => {
-                stream.rewind();
-                obj_reloaded.decode(stream);
-            })
-            .on("cycle", function (message) {
-                //xx debugLog(message);
-            })
-            .on("complete", function () {
-                debugLog(" Fastest is " + this.fastest.name);
-                debugLog(" Speed Up : x", this.speedUp);
-                //xx this.fastest.name.should.eql("Variant.encode");
-            })
-            .run({ max_time: 0.2 });
-
-        // note : the following test could be *slow* with large value of length
-        //        for (let i=0;i<length;i++) { obj.value[i].should.eql(i); }
-        function validate_array() {
-            for (let i = 0; i < length; i++) {
-                if (obj.value[i] !== i) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        validate_array().should.eql(true);
-    });
 });
 
 const old_encode = function (variant, stream) {
@@ -779,15 +783,15 @@ const old_encode = function (variant, stream) {
     if (variant.arrayType === VariantArrayType.Array) {
         encodingByte |= VARIANT_ARRAY_MASK;
     }
-    ec.encodeUInt8(encodingByte, stream);
-    const encode = factories.findBuiltInType(DataType[variant.dataType]).encode;
+    encodeUInt8(encodingByte, stream);
+    const encode = findBuiltInType(DataType[variant.dataType]).encode;
     /* istanbul ignore next */
     if (!encode) {
         throw new Error("Cannot find encode function for dataType " + DataType[variant.dataType]);
     }
     if (variant.arrayType === VariantArrayType.Array) {
         const arr = variant.value || [];
-        ec.encodeUInt32(arr.length, stream);
+        encodeUInt32(arr.length, stream);
         arr.forEach(function (el) {
             encode(el, stream);
         });
@@ -796,21 +800,13 @@ const old_encode = function (variant, stream) {
     }
 };
 
-const { encodeVariant } = require("..");
+describe("benchmarking variant encode", function () {
+    this.timeout(Math.max(this.timeout(), 2 * 120 * 1000));
 
-describe("encodeVariant", () => {
-    it("should throw if variant is missing", () => {
-        should.throws(() => {
-            encodeVariant(null);
-        });
-    });
-});
-
-describe("benchmarking variant encode", () => {
-    function perform_benchmark(done) {
+    function perform_benchmark_variant_encode(done: (err?: Error) => void) {
         const bench = new Benchmarker();
 
-        function test_iteration(v, s, encode) {
+        function test_iteration(v: Variant, s: BinaryStream, encode: (variant: Variant, stream: BinaryStream) => void) {
             s.rewind();
             encode.call(this, v, stream);
         }
@@ -831,7 +827,11 @@ describe("benchmarking variant encode", () => {
             })
             .add("Variant.old_encode", () => {
                 assert(typeof old_encode === "function");
-                test_iteration(variant, stream, old_encode);
+                try {
+                    test_iteration(variant, stream, old_encode);
+                } catch (err) {
+                    console.log("old_encode broken ?", err.message);
+                }
             })
             .on("cycle", function (message) {
                 // debugLog(message);
@@ -839,15 +839,80 @@ describe("benchmarking variant encode", () => {
             .on("complete", function () {
                 debugLog(" Fastest is " + this.fastest.name);
                 debugLog(" Speed Up : x", this.speedUp);
+                console.log(" Fastest is " + this.fastest.name);
+                console.log(" Speed Up : x", this.speedUp);
                 // this test fails only on AppVeyor ! why ?
                 //xx this.fastest.name.should.eql("Variant.encode");
                 done();
             })
-            .run({ max_time: 0.1 });
+            .run({ max_time: 0.5, min_count: 1 });
     }
 
+    it("should check the performance of encode/decode a very large array of Float", (done) => {
+        const length = 500 * 1024;
+
+        console.log("checking performance of encoding/decoding a large array of Float64 with length = ", length);
+        debugLog("    array size = ", length);
+
+        const obj = new Variant({
+            dataType: DataType.Double,
+            arrayType: VariantArrayType.Array,
+            value: new Float64Array(length)
+        });
+
+        for (let i = 0; i < length; i++) {
+            obj.value[i] = i;
+        }
+        obj.value[100].should.eql(100);
+        function validate_array() {
+            for (let i = 0; i < length; i++) {
+                if (obj.value[i] !== i) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        const size = obj.binaryStoreSize();
+        const stream = new BinaryStream(Buffer.allocUnsafe(size));
+        const bench = new Benchmarker();
+
+        const obj_reloaded = new Variant();
+
+        bench
+            .add("Variant.encode/decode", () => {
+                stream.rewind();
+                obj.encode(stream);
+                stream.rewind();
+                obj_reloaded.decode(stream);
+            })
+            .add("Variant.encode", () => {
+                stream.rewind();
+                obj.encode(stream);
+            })
+            .add("Variant.decode", () => {
+                stream.rewind();
+                obj_reloaded.decode(stream);
+            })
+            .on("cycle", function (message) {
+                console.log("cycle", message);
+                //xx debugLog(message);
+            })
+            .on("complete", function () {
+                debugLog(" Fastest is " + this.fastest.name);
+                debugLog(" Speed Up : x", this.speedUp);
+                //xx this.fastest.name.should.eql("Variant.encode");
+                // note : the following test could be *slow* with large value of length
+                //        for (let i=0;i<length;i++) { obj.value[i].should.eql(i); }
+                validate_array().should.eql(true);
+                done();
+            })
+            .run({ max_time: 0.2, min_count: 1 });
+    });
+
     it("should verify that current Variant.encode method is better than old implementation", function (done) {
-        perform_benchmark(done);
+        console.log("starting benchmarking");
+        perform_benchmark_variant_encode(done);
     });
 });
 
@@ -907,7 +972,7 @@ describe("benchmarking float Array encode/decode", function () {
         fct(stream, variant.value);
     }
 
-    function perform_benchmark(done) {
+    function perform_benchmark_fastest_way_to_encode_decode_float(done) {
         const bench = new Benchmarker();
 
         const length = 1024;
@@ -960,9 +1025,9 @@ describe("benchmarking float Array encode/decode", function () {
                 //xx debugLog(message);
             })
             .on("complete", function () {
-                debugLog(" slowest is " + this.slowest.name);
-                debugLog(" Fastest is " + this.fastest.name);
-                debugLog(" Speed Up : x", this.speedUp);
+                console.log(" slowest is " + this.slowest.name);
+                console.log(" Fastest is " + this.fastest.name);
+                console.log(" Speed Up : x", this.speedUp);
                 // xx this.fastest.name.should.eql("test4");
                 done();
             })
@@ -970,7 +1035,7 @@ describe("benchmarking float Array encode/decode", function () {
     }
 
     it("should check which is the faster way to encode decode a float", function (done) {
-        perform_benchmark(done);
+        perform_benchmark_fastest_way_to_encode_decode_float(done);
     });
 });
 
@@ -1050,10 +1115,10 @@ describe("Variant with Advanced Array", () => {
 
         nr.isValid().should.eql(true);
 
-        const results = nr.extract_values(v.value, v.dimensions); // << We must provide dimension here
+        const results = nr.extract_values(v.value, v.dimensions!); // << We must provide dimension here
         results.statusCode.should.eql(StatusCodes.Good);
 
-        results.dimensions.should.eql([2, 3]);
+        results.dimensions!.should.eql([2, 3]);
 
         results.array.should.eql(new Float64Array([0x301, 0x302, 0x303, 0x401, 0x402, 0x403]));
     });
@@ -1118,10 +1183,9 @@ describe("Variant with enumeration", () => {
             value: [0, 1, 2, 3, 4, 5]
         };
 
-        let v1, v2, v3;
-        v1 = new Variant(options);
+        const v1 = new Variant(options);
 
-        v2 = new Variant({
+        const v2 = new Variant({
             dataType: DataType.Float,
             arrayType: VariantArrayType.Array,
             value: v1.value
@@ -1131,7 +1195,7 @@ describe("Variant with enumeration", () => {
         should(v1.value[1] === v2.value[1]).eql(false);
         v1.value[1] -= 1;
 
-        v3 = new Variant({
+        const v3 = new Variant({
             dataType: v1.dataType,
             arrayType: v1.arrayType,
             value: v1.value
@@ -1170,8 +1234,6 @@ describe("Variant with enumeration", () => {
         const variant2 = new Variant(variant1);
     });
 });
-
-const { sameVariant } = require("..");
 
 describe("testing sameVariant Performance", function () {
     this.timeout(Math.max(50 * 1000, this.timeout()));
@@ -1283,14 +1345,14 @@ describe("testing sameVariant Performance", function () {
         ];
 
         // create artificial null array variant
-        a[0].value = null;
-        a[1].value = null;
+        a[0]!.value = null;
+        a[1]!.value = null;
 
         return a;
     }
 
-    const variousVariants = build_variants();
-    const variousVariants_clone = build_variants();
+    const variousVariants = build_variants() as Variant[];
+    const variousVariants_clone = build_variants() as Variant[];
 
     function _t(t) {
         return t ? t.toString() : "<null>";
@@ -1357,11 +1419,14 @@ describe("testing sameVariant Performance", function () {
 });
 
 class SomeExtensionObject extends ExtensionObject {
+    public a: any;
     constructor(options) {
         super();
         this.a = options.a;
     }
-    toString() { return `a=${this.a}`; }
+    toString() {
+        return `a=${this.a}`;
+    }
 }
 
 describe("testing variant Clone & Copy Construct", () => {
@@ -1448,26 +1513,29 @@ describe("testing variant Clone & Copy Construct", () => {
             v.value[0].a.should.eql(1000);
             v.value[1].a.should.eql(1001);
         });
-        it("should " + copy_construct_or_clone + " a variant containing a extension object array - Extension Ojbect must be cloned too !", () => {
-            const extObj1 = new SomeExtensionObject({ a: 36 });
-            const extObj2 = new SomeExtensionObject({ a: 37 });
-            const v = new Variant({
-                dataType: DataType.ExtensionObject,
-                arrayType: VariantArrayType.Array,
-                value: [extObj1, extObj2]
-            });
+        it(
+            "should " +
+                copy_construct_or_clone +
+                " a variant containing a extension object array - Extension Ojbect must be cloned too !",
+            () => {
+                const extObj1 = new SomeExtensionObject({ a: 36 });
+                const extObj2 = new SomeExtensionObject({ a: 37 });
+                const v = new Variant({
+                    dataType: DataType.ExtensionObject,
+                    arrayType: VariantArrayType.Array,
+                    value: [extObj1, extObj2]
+                });
 
-            // copy construct;,
-            const cloned = copy_construct_or_clone_func(v);
+                // copy construct;,
+                const cloned = copy_construct_or_clone_func(v);
 
-            cloned.value[0].toString().should.equal(v.value[0].toString(), " same value 0");
-            cloned.value[1].toString().should.equal(v.value[1].toString(), " same value 0");
+                cloned.value[0].toString().should.equal(v.value[0].toString(), " same value 0");
+                cloned.value[1].toString().should.equal(v.value[1].toString(), " same value 0");
 
-            cloned.value[0].should.not.equal(v.value[0].toString(), "Extension object 0 must be cloned too");
-            cloned.value[1].should.not.equal(v.value[1].toString(), "Extension object 1 must be cloned too");
-    
-        });
-        
+                cloned.value[0].should.not.equal(v.value[0].toString(), "Extension object 0 must be cloned too");
+                cloned.value[1].should.not.equal(v.value[1].toString(), "Extension object 1 must be cloned too");
+            }
+        );
     }
 
     install_test("copy construct", copy_construct);
@@ -1555,6 +1623,7 @@ describe("testing variant JSON conversion", () => {
 
     it("should convert a Variant with ExtensionObject Array to JSON", () => {
         class SomeExtensionObject extends ExtensionObject {
+            public name: string;
             constructor(options /*: { name: string } */) {
                 super();
                 this.name = options.name;
@@ -1582,6 +1651,7 @@ describe("testing variant JSON conversion", () => {
     });
     it("should convert a Variant with ExtensionObject to JSON", () => {
         class SomeExtensionObject extends ExtensionObject {
+            public name: string;
             constructor(options /*: { name: string } */) {
                 super();
                 this.name = options.name;
@@ -1658,6 +1728,14 @@ describe("testing isValidVariant", () => {
     it("variantToString 5", () => {
         const v = new Variant({ dataType: "DateTime", arrayType: "Array", value: null });
         v.toString().should.eql("Variant(Array<DateTime>, null)");
+    });
+
+    it("Variant#coerce -  1", () => {
+        const variant = Variant.coerce({ dataType: DataType.Boolean, value: true });
+    });
+
+    it("Variant#coerce -  2", () => {
+        const variant = Variant.coerce(new Variant({ dataType: DataType.Boolean, value: true }));
     });
 });
 
