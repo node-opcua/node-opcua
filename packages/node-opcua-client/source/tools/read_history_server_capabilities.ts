@@ -55,18 +55,24 @@ export function readHistoryServerCapabilities(
         const properties = [
             "AccessHistoryDataCapability",
             "AccessHistoryEventsCapability",
+          
             "DeleteAtTimeCapability",
             "DeleteRawCapability",
             "DeleteEventCapability",
+          
             "InsertAnnotationCapability",
             "InsertDataCapability",
             "InsertEventCapability",
+          
             "ReplaceDataCapability",
             "ReplaceEventCapability",
+          
             "UpdateDataCapability",
             "UpdateEventCapability",
+          
             "MaxReturnDataValues",
             "MaxReturnEventValues",
+          
             "AggregateFunctions/AnnotationCount",
             "AggregateFunctions/Average",
             "AggregateFunctions/Count",

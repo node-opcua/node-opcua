@@ -1,18 +1,38 @@
-extends: "@istanbuljs/nyc-config-typescript"
 all: false
-# check-coverage: true
-report: none 
-source-map: true
+check-coverage: true
+# report: none 
+# source-map: true
 # reporter: [ text-lcov ]
-exclude-after-remap: false
-include: 
-  - packages/node-opcua-*/dist/**/*.js
+exclude-after-remap: true
+cwd: ./packages
+include:
+  - node-opcua-*/**/*.js
+  - node-opcua-*/**/*.ts
+  
 exclude: 
-  - packages/node-opcua-*/test/**/*.js
-  - _generated_opcua_types.ts
-  - packages/node-opcua-types/**/*.*
-  - packages/node-opcua-utils/**/*.*
-  - packages/node-opcua-generator/**/*.*
-  - packages/node-opcua-end2end-test/**/*.*
-  - packages/node-opcua-debug/**/*.*
-  - packages/node-opcua-xml2json/**/*.*
+   - "**/test/**"
+   - "**/test_helpers/**"
+   - "**/test-fixtures/**"
+   # - node-opcua-*/test/**/*.js
+   - "**/**/_generated_opcua_types.*"
+   - node-opcua-types
+   - node-opcua-utils
+   - node-opcua-benchmarker
+   - node-opcua-packet-analyzer
+   - node-opcua-schemas
+   - node-opcua-generator
+   - node-opcua-end2end-test
+   - node-opcua-debug
+   - node-opcua-leak-detector
+   - node-opcua-modeler
+   - node-opcua-nodesets
+   - node-opcua-nodeset-*
+   - node-opcua-xml2json
+   - node-opcua-address-space-for-conformance-testing
+   - node-opcua-assert
+   - node-opcua-test-helpers
+   - node-opcua-test-fixtures
+   - node-opcua-convert-nodeset-to-javascript
+   - node-opcua-service-discovery/source/bonjour.ts   
+   - node-opcua-hostname
+   
