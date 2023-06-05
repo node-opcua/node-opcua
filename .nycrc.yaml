@@ -1,0 +1,18 @@
+extends: "@istanbuljs/nyc-config-typescript"
+all: false
+# check-coverage: true
+report: none 
+source-map: true
+# reporter: [ text-lcov ]
+exclude-after-remap: false
+include: 
+  - packages/node-opcua-*/dist/**/*.js
+exclude: 
+  - packages/node-opcua-*/test/**/*.js
+  - _generated_opcua_types.ts
+  - packages/node-opcua-types/**/*.*
+  - packages/node-opcua-utils/**/*.*
+  - packages/node-opcua-generator/**/*.*
+  - packages/node-opcua-end2end-test/**/*.*
+  - packages/node-opcua-debug/**/*.*
+  - packages/node-opcua-xml2json/**/*.*

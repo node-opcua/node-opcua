@@ -1,57 +1,10 @@
 
 
-test-cov: istanbul coveralls
-
+test-cov: istanbul
 
 istanbul:
-	npx -y nyc@15 --exclude="_generated_opcua_types.ts" \
-			--exclude="packages/node-opcua-*/test/**/*.js"  \
-			--exclude="packages/node-opcua-*/test/**/*.ts"  \
-			--exclude-after-remap=false \
-			--exclude="./packages/node-opcua-types/**/*.*" \
-			--exclude="./packages/node-opcua-utils/**/*.*" \
-			--cwd=. node -r source-map-support/register --max_old_space_size=8192 ./packages/run_all_mocha_tests.js  
-
-coveralls:
-	npx -y nyc@15 report --cwd=. \
-			--include="packages/node-opcua*/dist/**/*.js"  \
-			--exclude-after-remap=false \
-			--cwd=. \
-			--reporter=text-lcov \
-		 | npx coveralls --exclude tmp
-
-test-cov-old: istanbul-old coveralls-old
-
-istanbul-old:
-	npx nyc@14 --report none --source-map \
-			--include="packages/node-opcua-*/dist/**/*.js"  \
-			--exclude="packages/node-opcua-*/test/**/*.js"  \
-			--exclude-after-remap=false \
-			--exclude="_generated_opcua_types.ts" \
-			--exclude="packages/node-opcua-types/**/*.*" \
-			--exclude="packages/node-opcua-utils/**/*.*" \
-			--cwd=. node -max_old_space_size=8192 ./packages/run_all_mocha_tests.js
-
-coveralls-old: istanbul-old
-	npx nyc@14 report --source-map \
-			--include="packages/node-opcua*/dist/**/*.js"  \
-			--exclude-after-remap=false \
-			--cwd=. \
-			--reporter=text-lcov \
-		 | npx coveralls --exclude tmp
-
-
-coveralls2: istanbul
-	npx nyc@14 report --source-map \
-			--include="packages/node-opcua*/dist/**/*.js"  \
-			--exclude-after-remap=false \
-			--cwd=. \
-			--reporter=lcov 
-
-# note a CODECLIMATE_REPO_TOKEN must be specified as an environment variable.
-codeclimate: istanbul
-	codeclimate-test-reporter < ./coverage/lcov.info
-
+	npx -y nyc@15 --cwd=. node -r source-map-support/register --max_old_space_size=8192 ./packages/run_all_mocha_tests.js  
+	npx -y nyc@15 report --reporter=lcov --reporter=html 
 
 # literate_programming stuff
 LP= "../node_modules/.bin/literate-programming"
