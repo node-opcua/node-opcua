@@ -5,7 +5,10 @@ import { makeNodeId } from "node-opcua-nodeid";
 import { VariableIds } from "node-opcua-constants";
 import { DataValue } from "node-opcua-data-value";
 import { AttributeIds } from "node-opcua-service-read";
+import { make_warningLog } from "node-opcua-debug";
 import { IBasicSession } from "./basic_session_interface";
+
+const warningLog = make_warningLog(__filename);
 
 const serverCapabilitiesIds = [
     VariableIds.Server_ServerCapabilities_MaxArrayLength,
@@ -66,7 +69,7 @@ export async function readOperationLimits(session: IBasicSession): Promise<Opera
         if (dataValue.statusCode.value === 0x00) {
             return dataValue.value.value as number;
         } else {
-            console.log("dataValue = ", dataValue.toString());
+            warningLog("dataValue = ", dataValue.toString());
         }
         return 0;
     }

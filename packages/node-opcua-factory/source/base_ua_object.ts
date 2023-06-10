@@ -491,7 +491,6 @@ export class BaseUAObject {
             return this.schema.toString.apply(this, arguments as any);
         } else {
             if (!this.explore) {
-                // xx console.log(util.inspect(this));
                 return Object.prototype.toString.apply(this, arguments as any);
             }
             return this.explore();

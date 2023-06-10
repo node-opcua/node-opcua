@@ -2,7 +2,7 @@
  * @module node-opcua-pseudo-session
  */
 import { assert } from "node-opcua-assert";
-import { ByteString} from "node-opcua-basic-types";
+import { ByteString } from "node-opcua-basic-types";
 import { AttributeIds, BrowseDirection, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
@@ -21,13 +21,12 @@ export type CallMethodRequestLike = CallMethodRequestOptions;
 
 export type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
-
 export interface IBasicTransportSettings {
     maxMessageSize: number;
 }
 
 export interface IBasicSession {
-    getTransportSettings?: ()=> IBasicTransportSettings;
+    getTransportSettings?: () => IBasicTransportSettings;
 }
 
 export interface IBasicSession {
@@ -176,7 +175,6 @@ export function getArgumentDefinitionHelper(
 
         browseResult.references = browseResult.references || [];
 
-        // xx console.log("xxxx results", util.inspect(results, {colors: true, depth: 10}));
         const inputArgumentRefArray = browseResult.references.filter((r) => r.browseName.name === "InputArguments");
 
         // note : InputArguments property is optional thus may be missing

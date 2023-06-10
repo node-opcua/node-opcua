@@ -5,12 +5,13 @@
 import { callbackify, promisify } from "util";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { Bonjour, Service, ServiceConfig } from "sterfive-bonjour-service";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const errorLog = make_errorLog(__filename);
 
 let gBonjour: Bonjour | undefined;
 let gBonjourRefCount = 0;
@@ -18,7 +19,7 @@ let gBonjourRefCount = 0;
 const registry = new ObjectRegistry();
 
 function errorCallback(err: Error) {
-    console.log(" ERROR received from Bonjour", err.message);
+    errorLog(" ERROR received from Bonjour", err.message);
 }
 
 export function acquireBonjour(): Bonjour {
@@ -98,7 +99,17 @@ export function isSameService(a?: ServiceConfig, b?: ServiceConfig): boolean {
 }
 
 export const serviceToString = (service: ServiceConfig) => {
-    return "host" + service.host + " type=" + service.type + service.name + " on port " + service.port + " txt " + JSON.stringify(service.txt);
+    return (
+        "host" +
+        service.host +
+        " type=" +
+        service.type +
+        service.name +
+        " on port " +
+        service.port +
+        " txt " +
+        JSON.stringify(service.txt)
+    );
 };
 
 // function waitServiceUp(serviceConfig: ServiceConfig, callback: () => void) {

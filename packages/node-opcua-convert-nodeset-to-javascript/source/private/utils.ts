@@ -5,7 +5,9 @@ import { IBasicSession } from "node-opcua-pseudo-session";
 import { BrowseResult, DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
 import { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-variant";
-import { StatusCodes } from "node-opcua-status-code";
+import { make_debugLog } from "node-opcua-debug";
+
+const debugLog = make_debugLog(__filename);
 
 export async function getDefinition(session: IBasicSession, nodeId: NodeId): Promise<DataTypeDefinition | null> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.DataTypeDefinition });
@@ -66,16 +68,10 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
     });
     if (!browseResult.references || browseResult.references.length === 0) {
         return null;
-        /* 
-        console.log(nodeId.toString());
-        const browseName = await getBrowseName(session, nodeId);
-        throw new Error("No modelling rule for " + nodeId.toString() + " " + browseName.toString());
-        */
     }
     return browseResult.references[0].browseName.name! as ModellingRuleType;
 }
 export async function isExtensionObject(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
-
     const n = nodeId as INodeId;
     if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value === DataTypeIds.Structure) {
         return true;
@@ -154,7 +150,6 @@ export async function getTypeDefOrBaseType(session: IBasicSession, nodeId: NodeI
         });
     }
     if (!browseResult.references || browseResult.references.length === 0) {
-        // console.log("cannot find type definition / subtype for " + nodeId.toString());
         return new ReferenceDescription({});
     }
     return browseResult.references[0];
@@ -169,7 +164,7 @@ export async function getTypeDefinition(session: IBasicSession, nodeId: NodeId):
         resultMask: 0xffff
     });
     if (!browseResult.references || browseResult.references.length === 0) {
-        console.log(nodeId.toString());
+        debugLog("no subtype", nodeId.toString());
         throw new Error("No subtype");
     }
     return browseResult.references[0];
@@ -181,11 +176,8 @@ async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<Q
         nodeId
     };
     const dataValue = await session.read(nodeToRead);
-
     // istanbul ignore next
     if (dataValue.statusCode.isNotGood()) {
-        //  throw new Error("Error " + dataValue.statusCode.toString() + " " + nodeId.toString());
-        //  console.log("Error " + dataValue.statusCode.toString() + " " + nodeId.toString());
         return new QualifiedName({ name: "", namespaceIndex: 0 });
     }
     const dataTypeName = dataValue.value.value;

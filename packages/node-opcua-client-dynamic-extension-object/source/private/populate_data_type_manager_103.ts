@@ -122,8 +122,7 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
     const binaryEncodings = [];
     const nodesToBrowseDataType: BrowseDescriptionOptions[] = [];
 
-    for (let i=0;i< results3.length;i++) {
-   
+    for (let i = 0; i < results3.length; i++) {
         const result3 = results3[i];
         const dataTypeDescription = dataTypeDescriptions[i];
 
@@ -135,7 +134,7 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
         }
         if (result3.references.length !== 1) {
             warningLog("_enrichWithDescriptionOf : expecting 1 reference for ", dataTypeDescription.browseName.toString());
-            warningLog(result3.toString()); 
+            warningLog(result3.toString());
             continue;
         }
         for (const ref of result3.references) {
@@ -164,9 +163,8 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
 
     if (nodesToBrowseDataType.length > 0) {
         const results4 = await browseAll(session, nodesToBrowseDataType);
-        for (let i=0;i< results4.length; i++) {
-
-            const result4 =results4[i];
+        for (let i = 0; i < results4.length; i++) {
+            const result4 = results4[i];
             result4.references = result4.references || [];
 
             /* istanbul ignore next */
@@ -176,13 +174,13 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
 
             const ref = result4.references![0];
             const dataTypeNodeId = ref.nodeId;
-            dataTypeNodeIds[i]= dataTypeNodeId;
+            dataTypeNodeIds[i] = dataTypeNodeId;
             const dataTypeDescription = dataTypeDescriptions[i];
             dataTypeDescription.encodings!.dataTypeNodeId = dataTypeNodeId;
         }
     }
 
-    const otherEncodingBrowse = dataTypeNodeIds.map((dataTypeNodeId)=>({
+    const otherEncodingBrowse = dataTypeNodeIds.map((dataTypeNodeId) => ({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: false,
         nodeClassMask: NodeClassMask.Object,
@@ -193,11 +191,11 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
     }));
 
     const results5 = await browseAll(session, otherEncodingBrowse);
-    for (let i=0;i<results5.length;i++) {
-        const result5= results5[i];
+    for (let i = 0; i < results5.length; i++) {
+        const result5 = results5[i];
         const dataTypeDescription = dataTypeDescriptions[i];
         for (const ref of result5.references || []) {
-            switch(ref.browseName.name) {
+            switch (ref.browseName.name) {
                 case "Default XML":
                     dataTypeDescription.encodings!.xmlEncodingNodeId = ref.nodeId;
                     break;
@@ -209,7 +207,7 @@ async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescript
                     break;
                 default:
                     errorLog("Cannot handle unknown encoding", ref.browseName.name);
-            } 
+            }
         }
     }
     return dataTypeNodeIds;
@@ -338,9 +336,9 @@ async function _extractDataTypeDictionaryFromDefinition(
             const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
             assert(Constructor.schema === schema);
         } catch (err) {
-            console.log("Constructor verification err: ", (<Error>err).message);
-            console.log("For this reason class " + className + " has not been registered");
-            console.log(err);
+            errorLog("Constructor verification err: ", (<Error>err).message);
+            errorLog("For this reason class " + className + " has not been registered");
+            errorLog(err);
         }
     }
 }
@@ -379,7 +377,7 @@ interface TypeDictionaryInfo {
 function _isOldDataTypeDictionary(d: TypeDictionaryInfo) {
     const isDictionaryDeprecated = d.isDictionaryDeprecated; // await _readDeprecatedFlag(session, dataTypeDictionaryNodeId);
     const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
-    return !isDictionaryDeprecated && rawSchema.length >=0;
+    return !isDictionaryDeprecated && rawSchema.length >= 0;
 }
 async function _extractDataTypeDictionary(
     session: IBasicSession,
@@ -472,7 +470,7 @@ async function _exploreDataTypeDefinition(
 
     /* istanbul ignore next */
     if (doDebug) {
-        console.log(chalk.bgWhite.red("testing new constructors"));
+        debugLog(chalk.bgWhite.red("testing new constructors"));
         for (let i = 0; i < references.length; i++) {
             const ref = references[i];
             const binaryEncoding = binaryEncodingNodeIds[i];
@@ -620,7 +618,7 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
 
             if (!isDictionaryDeprecated && rawSchema.length > 0) {
                 if (doDebug) {
-                    console.log("schema", rawSchema);
+                    debugLog("schema", rawSchema);
                 }
                 const matches = rawSchema.match(/<opc:TypeDictionary([^>]+)>/);
                 if (matches) {
@@ -703,7 +701,6 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
             }
             const baseDataFactory = map[namespace];
             if (!baseDataFactory) {
-                // xx console.log("xxxxx baseDataFactory = ", namespace);
                 continue;
             }
             const namespaceIndex = baseDataFactory.dataTypeDictionaryNodeId.namespace;
@@ -750,7 +747,6 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
     for (const d of dataTypeDictionaryInfo) {
         try {
             await processReferenceOnDataTypeDictionaryType(d).catch((e) => {
-                console.log(e);
                 debugLog("processReferenceOnDataTypeDictionaryType has failed ");
                 debugLog("Error", e.message);
                 debugLog(e);

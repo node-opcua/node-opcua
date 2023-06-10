@@ -1,4 +1,5 @@
 import should from "should";
+import "mocha";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { NodeClass } from "node-opcua-data-model";
 import { DataType } from "node-opcua-variant";

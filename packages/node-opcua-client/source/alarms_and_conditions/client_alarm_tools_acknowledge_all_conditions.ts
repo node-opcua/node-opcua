@@ -21,7 +21,6 @@ const errorLog = make_errorLog(__filename);
  * @param comment
  */
 export async function acknowledgeCondition(session: ClientSession, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
-
     try {
         const conditionId = eventStuff.conditionId.value;
         const eventId = eventStuff.eventId.value;
@@ -95,12 +94,9 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
                 if (RefreshEndEventHasBeenReceived) {
                     return;
                 }
-          
-          
+
                 // dumpEvent(session, fields, eventFields);
                 const pojo = fieldsToJson(fields, eventFields) as any;
-                
-                // console.log(pojo.eventType.value.toString({ addressSpace}), RefreshEndEventType, RefreshStartEventType);
 
                 // make sure we only start recording event after the RefreshStartEvent has been received
                 if (!refreshStartEventHasBeenReceived) {

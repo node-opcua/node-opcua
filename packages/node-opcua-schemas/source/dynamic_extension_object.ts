@@ -649,7 +649,7 @@ class UnionBaseClass extends BaseUAObject {
                 // throw new Error(this.schema.name + ": cannot find field with value "
                 // +  options[switchFieldName]);
             } else {
-                console.log(this.schema);
+                debugLog(this.schema);
                 throw new Error(
                     this.schema.name + ": At least one of [ " + r + " ] must be specified in " + JSON.stringify(options)
                 );
@@ -824,7 +824,7 @@ export function createDynamicObjectConstructor(
                 }
             }
         } catch (err) {
-            console.log("createDynamicObjectConstructor err= ", (err as Error).message);
+            warningLog("createDynamicObjectConstructor err= ", (err as Error).message);
         }
     }
 
@@ -866,3 +866,7 @@ export function createDynamicObjectConstructor(
 
     return EXTENSION as ConstructorFuncWithSchema;
 }
+function warningLog(arg0: string, message: string) {
+    throw new Error("Function not implemented.");
+}
+

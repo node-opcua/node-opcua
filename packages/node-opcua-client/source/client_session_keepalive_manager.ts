@@ -120,7 +120,6 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                 timeSinceLastServerContact
             );
             // no need to send a ping yet
-            // console.log("Skipping ",timeSinceLastServerContact,this.session.timeout);
             return timeSinceLastServerContact - this.pingTimeout;
         }
 

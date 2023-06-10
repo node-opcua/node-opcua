@@ -156,7 +156,7 @@ export class DataTypeFactory {
         }
         // istanbul ignore next
         if (doDebug) {
-            console.log([...this.structuredTypesNames()].join(" "));
+            debugLog([...this.structuredTypesNames()].join(" "));
         }
         // istanbul ignore next
         throw new Error(
@@ -311,15 +311,6 @@ export class DataTypeFactory {
         if (dataTypeNodeId.value !== 0) {
             this._structureInfoByDataTypeMap.set(dataTypeNodeId.toString(), structureInfo);
         }
-
-        // console.log("is this neceesary anymore ?");
-        // if (constructor) {
-        //     Object.defineProperty(constructor.schema, "$$factory", {
-        //         enumerable: false,
-        //         value: this,
-        //         writable: false
-        //     });
-        // }
     }
 }
 
@@ -331,7 +322,7 @@ function dumpSchema(schema: IStructuredTypeSchema, write: any) {
         write("          ", f.name.padEnd(30, " "), f.isArray ? true : false, f.fieldType);
     }
 }
-function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ...any[]])=>void) {
+function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ...any[]]) => void) {
     for (const structureTypeName of dataFactory.structuredTypesNames()) {
         const schema = dataFactory.getStructuredTypeSchema(structureTypeName);
 
@@ -345,7 +336,7 @@ function dumpDataFactory(dataFactory: DataTypeFactory, write: (...args: [any, ..
         } else {
             if (dataFactory.hasConstructor(schema.encodingDefaultBinary)) {
                 write("ERROR: cannot find constructor for encodingDefaultBinary");
-                write("schema             name:", schema.name, "(abstract=", schema.isAbstract,")");
+                write("schema             name:", schema.name, "(abstract=", schema.isAbstract, ")");
                 write("        dataType NodeId:", schema.dataTypeNodeId.toString());
                 write("encoding Default Binary:", schema.encodingDefaultBinary ? schema.encodingDefaultBinary.toString() : " ");
                 write("encoding Default Xml   :", schema.encodingDefaultXml ? schema.encodingDefaultXml.toString() : " ");

@@ -61,7 +61,7 @@ async function findSuperType(session: IBasicSession, dataTypeNodeId: NodeId): Pr
 
     /* istanbul ignore next */
     if (result3.references.length !== 1) {
-        console.log(result3.toString());
+        errorLog("Invalid dataType with more than one (or 0) superType", result3.toString());
         throw new Error(
             "Invalid dataType with more than one (or 0) superType " + dataTypeNodeId.toString() + " l=" + result3.references.length
         );
@@ -391,7 +391,6 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
         switch (definition.structureType) {
             case StructureType.Union:
-                // xx console.log("Union Found : ", name);
                 fields.push({
                     fieldType: "UInt32",
                     name: "SwitchField"

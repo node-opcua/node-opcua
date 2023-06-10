@@ -34,7 +34,6 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
     // enumeration
     for (const e of enumeratedTypes.values()) {
         l.push(`export enum ${e.name} {`);
-        // console.log((e.typedEnum as any).enumItems);
         for (const v of Object.entries(e.enumValues as any)) {
             const vv = parseInt(v[0], 10);
             if (vv >= 0) {
@@ -52,7 +51,7 @@ export function toTypeScript(dataTypeFactory: DataTypeFactory): string {
             dumpType(bt);
         }
         alreadyDone.add(o.name);
-        const ex1 =  bt ? `extends ${bt.name} ` : "";
+        const ex1 = bt ? `extends ${bt.name} ` : "";
 
         if (o.baseType === "Union") {
             const p: string[] = [];

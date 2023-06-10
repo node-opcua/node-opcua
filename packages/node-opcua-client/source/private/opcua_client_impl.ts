@@ -13,14 +13,7 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-import {
-    Certificate,
-    exploreCertificate,
-    extractPublicKeyFromCertificateSync,
-    Nonce,
-    PrivateKey,
-    toPem
-} from "node-opcua-crypto";
+import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, Nonce, PrivateKey, toPem } from "node-opcua-crypto";
 
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -608,7 +601,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                             innerCallback();
                         });
                     } catch (err) {
-                        console.log("Exception catch in inner function,  check your code ", err);
+                        errorLog("Exception catch in inner function,  check your code ", err);
                         errorLog("OPCUAClientImpl#withClientSession", (<Error>err).message);
                         the_error = err as Error;
                         innerCallback();
@@ -637,7 +630,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             ],
             (err1) => {
                 if (err1) {
-                    console.log("err", err1.message);
+                    errorLog("err", err1.message);
                 }
                 if (need_disconnect) {
                     errorLog("Disconnecting client after failure");
@@ -728,7 +721,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                 const result = await func(session, subscription);
                 return result;
             } catch (err) {
-                console.log("withSubscriptionAsync inner function failed ", (<Error>err).message);
+                errorLog("withSubscriptionAsync inner function failed ", (<Error>err).message);
                 throw err;
             } finally {
                 await subscription.terminate();
@@ -756,9 +749,14 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         if (!this.__resolveEndPoint() || !this.endpoint) {
             return callback!(
                 new Error(
-                    " End point must exist " + this._secureChannel!.endpointUrl +
-                    "  securityMode = " + MessageSecurityMode[this.securityMode] +
-                    "  securityPolicy = " + this.securityPolicy));
+                    " End point must exist " +
+                        this._secureChannel!.endpointUrl +
+                        "  securityMode = " +
+                        MessageSecurityMode[this.securityMode] +
+                        "  securityPolicy = " +
+                        this.securityPolicy
+                )
+            );
         }
 
         assert(
@@ -845,7 +843,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.clientNonce = crypto.randomBytes(32);
 
         // recycle session name if already exists
-        const sessionName = session.name
+        const sessionName = session.name;
 
         const request = new CreateSessionRequest({
             clientCertificate: this.getCertificate(),
@@ -855,7 +853,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             maxResponseMessageSize: 800000,
             requestedSessionTimeout: this.requestedSessionTimeout,
             serverUri: this.serverUri,
-            sessionName,
+            sessionName
         });
 
         // a client Nonce must be provided if security mode is set
@@ -864,10 +862,8 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
             /* istanbul ignore next */
             if (err) {
-                console.log("__createSession_step3 has failed", err.message);
+                debugLog("__createSession_step3 has failed", err.message);
                 return callback(err);
-
-                //  //xxxxxx               qdqsdqsdqsdqsd
                 //                 // we could have an invalid state here or a connection error
                 //                 errorLog("error: ", err.message, " retrying in ... 5 secondes");
                 //                 setTimeout(() => {
@@ -1155,20 +1151,32 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         if (!this.__resolveEndPoint() || !this.endpoint) {
             /* istanbul ignore next */
             if (this._serverEndpoints) {
-                warningLog("server endpoints =",
-                    this._serverEndpoints.map(
-                        (endpoint) =>
-                            endpoint.endpointUrl + " "
-                            + MessageSecurityMode[endpoint.securityMode] + " "
-                            + endpoint.securityPolicyUri + " "
-                            + endpoint.userIdentityTokens?.map((u) => UserTokenType[u.tokenType]).join(",")
-                    ).join('\n')
+                warningLog(
+                    "server endpoints =",
+                    this._serverEndpoints
+                        .map(
+                            (endpoint) =>
+                                endpoint.endpointUrl +
+                                " " +
+                                MessageSecurityMode[endpoint.securityMode] +
+                                " " +
+                                endpoint.securityPolicyUri +
+                                " " +
+                                endpoint.userIdentityTokens?.map((u) => UserTokenType[u.tokenType]).join(",")
+                        )
+                        .join("\n")
                 );
             }
-            return callback(new Error(
-                " End point must exist " + this._secureChannel!.endpointUrl +
-                "  securityMode = " + MessageSecurityMode[this.securityMode] +
-                "  securityPolicy = " + this.securityPolicy));
+            return callback(
+                new Error(
+                    " End point must exist " +
+                        this._secureChannel!.endpointUrl +
+                        "  securityMode = " +
+                        MessageSecurityMode[this.securityMode] +
+                        "  securityPolicy = " +
+                        this.securityPolicy
+                )
+            );
         }
         this.serverUri = this.endpoint.server.applicationUri || "invalid application uri";
         this.endpointUrl = this._secureChannel!.endpointUrl;

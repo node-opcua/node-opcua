@@ -28,7 +28,6 @@ export async function writeOPCUAFile(clientFile: IClientFile, filePath: string, 
     if (maxMessageSize > 200) {
         chunkSize = Math.min(chunkSize, maxMessageSize - 1000);
     }
-    console.log("chunkSize = ", chunkSize, maxMessageSize);
 
     if (!fs.existsSync(filePath)) {
         throw new Error(`File ${filePath} does not exist`);

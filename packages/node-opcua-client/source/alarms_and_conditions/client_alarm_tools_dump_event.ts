@@ -4,6 +4,10 @@ import { NodeId } from "node-opcua-nodeid";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
+import { make_warningLog } from "node-opcua-debug";
+
+const warningLog = make_warningLog("ClientAlarmTool");
+
 /**
  *
  * @param session
@@ -32,8 +36,7 @@ export async function dumpEvent(session: IBasicSession, fields: string[], eventF
         }
         if (variant.dataType === DataType.NodeId) {
             const name = await getBrowseName(_session, variant.value);
-            // tslint:disable-next-line: no-console
-            console.log(
+            warningLog(
                 chalk.yellow(w(name, 30), w(_fields[index], 25)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
                 chalk.cyan.bold(name),
@@ -43,7 +46,7 @@ export async function dumpEvent(session: IBasicSession, fields: string[], eventF
             );
         } else {
             // tslint:disable-next-line: no-console
-            console.log(
+            warningLog(
                 chalk.yellow(w("", 30), w(_fields[index], 25)),
                 chalk.cyan(w(DataType[variant.dataType as number], 10).toString()),
                 variant.value

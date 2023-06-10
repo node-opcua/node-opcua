@@ -28,9 +28,12 @@ import {
     encodeUInt8,
     UInt16
 } from "node-opcua-basic-types";
+import { make_errorLog } from "node-opcua-debug";
 import { AttributeIds } from "node-opcua-data-model";
 import { DataValueEncodingByte } from "./DataValueEncodingByte_enum";
 import { TimestampsToReturn } from "./TimestampsToReturn_enum";
+
+const errorLog = make_errorLog(__filename);
 
 type NumericalRange = any;
 
@@ -75,8 +78,7 @@ export function encodeDataValue(dataValue: DataValue, stream: OutputBinaryStream
         }
         // istanbul ignore next
         if (!dataValue.value.encode) {
-            // tslint:disable-next-line:no-console
-            console.log(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", JSON.stringify(dataValue, null, " "));
+            errorLog(" CANNOT FIND ENCODE METHOD ON VARIANT !!! HELP", JSON.stringify(dataValue, null, " "));
         }
         dataValue.value.encode(stream);
     }
@@ -653,4 +655,4 @@ export interface DataValueOptionsT<T, DT extends DataType> extends DataValueOpti
 export declare interface DataValueT<T, DT extends DataType> extends DataValue {
     value: VariantT<T, DT>;
 }
-export class DataValueT<T, DT extends DataType> extends DataValue { }
+export class DataValueT<T, DT extends DataType> extends DataValue {}

@@ -1,5 +1,5 @@
 import { BrowseDirection } from "node-opcua-data-model";
-import { make_warningLog} from "node-opcua-debug";
+import { make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { ReferenceDescription } from "node-opcua-types";
@@ -23,7 +23,7 @@ export async function getChildByBrowseName(session: IBasicSession, nodeId: NodeI
         (r) => r.browseName.name?.match(name) || r.displayName.text!.match(name)
     );
     if (!selectedReference) {
-        console.log(browseResult.toString());
+        warningLog("getChildByBrowseName error", browseResult.toString());
         throw new Error("Cannot find node " + name + " from " + nodeId.toString());
     }
     return selectedReference;

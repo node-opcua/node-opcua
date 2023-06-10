@@ -81,7 +81,7 @@ function figureOutSchema(
             returnValue = dataTypeFactory.getBuiltInType(fieldTypeWithoutNS);
             if (!returnValue) {
                 if (dataTypeFactory.hasEnumeration(fieldTypeWithoutNS)) {
-                    warningLog("expecing a enumeration!");
+                    warningLog("expecting a enumeration!");
                 }
                 returnValue = dataTypeFactory.getStructuredTypeSchema(fieldTypeWithoutNS);
                 if (returnValue) {
@@ -97,18 +97,18 @@ function figureOutSchema(
         try {
             returnValue = dataTypeFactory.getEnumeration(fieldTypeWithoutNS);
         } catch (err) {
-            console.log(err);
+            warningLog("dataTypeFactory.getEnumeration has failed", err);
         }
         throw new Error(
             "Cannot find Schema for field with name " +
-            field.name +
-            " fieldTypeWithoutNS= " +
-            fieldTypeWithoutNS +
-            " with type " +
-            field.fieldType +
-            " category = " +
-            category +
-            JSON.stringify(field, null, "\t")
+                field.name +
+                " fieldTypeWithoutNS= " +
+                fieldTypeWithoutNS +
+                " with type " +
+                field.fieldType +
+                " category = " +
+                category +
+                JSON.stringify(field, null, "\t")
         );
     }
     return returnValue;
@@ -127,13 +127,13 @@ function buildField(
     if (!schema) {
         throw new Error(
             "expecting a valid schema for field with name " +
-            fieldLight.name +
-            " with type " +
-            fieldLight.fieldType +
-            " category" +
-            category +
-            " at index" +
-            _index
+                fieldLight.name +
+                " with type " +
+                fieldLight.fieldType +
+                " category" +
+                category +
+                " at index" +
+                _index
         );
     }
 
@@ -225,13 +225,13 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
         for (const f of this.fields) {
             str.push(
                 "  field   =  " +
-                f.name.padEnd(30) +
-                " isArray= " +
-                (f.isArray ? true : false) +
-                " " +
-                f.fieldType.toString().padEnd(30) +
-                (f.switchBit !== undefined ? " switchBit " + f.switchBit : "") +
-                (f.switchValue !== undefined ? " switchValue    " + f.switchValue : "")
+                    f.name.padEnd(30) +
+                    " isArray= " +
+                    (f.isArray ? true : false) +
+                    " " +
+                    f.fieldType.toString().padEnd(30) +
+                    (f.switchBit !== undefined ? " switchBit " + f.switchBit : "") +
+                    (f.switchValue !== undefined ? " switchValue    " + f.switchValue : "")
             );
         }
         return str.join("\n");
@@ -254,7 +254,6 @@ function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema 
         schema.baseType !== "Structure" &&
         schema.baseType !== "DataTypeDefinition"
     ) {
-
         if (!dataTypeFactory.hasStructureByTypeName(schema.baseType)) {
             //    warningLog(`Cannot find schema for ${schema.baseType} in dataTypeFactory for ${schema.name} and schema is not abstract ! fix me !`);
             return undefined;

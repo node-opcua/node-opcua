@@ -17,9 +17,7 @@ async function getOrExtractConstructor(
     binaryEncodingNodeId: NodeId,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<ConstructorFunc> {
-
     const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(binaryEncodingNodeId.namespace);
-
 
     const Constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
     if (Constructor) {
@@ -89,7 +87,6 @@ export async function resolveOpaqueStructureInExtentionObject(
         if (field.category === "basic" && field.fieldType !== "Variant") {
             return;
         }
-        console.log("field", field.name, field.category, field.fieldType);
         const a = object[field.name];
         if (!a) {
             return;
@@ -116,26 +113,6 @@ export async function resolveOpaqueStructureInExtentionObject(
     await Promise.all(promises);
 }
 
-// async function resolveInnerVariantType(session: IBasicSession, object: ExtensionObject, dataTypeManager: ExtraDataTypeManager) {
-//     console.log("object = ", object.constructor.name);
-
-//     const fields = object.schema.fields;
-//     const _object = object as unknown as Record<string, unknown>;
-//     for (const field of fields) {
-//         console.log("field = ", field.name);
-//         if (field.category !== "complex") continue;
-//         const p = _object[field.name];
-//         if (p === undefined || p === null) continue;
-//         console.log("=>", field.name, (p as any).toString());
-//         if (p instanceof ExtensionObject) {
-//             resolveInnerVariantType(session, p, dataTypeManager);
-//         }
-//         if (p instanceof Variant && p.value instanceof OpaqueStructure) {
-//             console.log("§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§§");
-//             p.value = resolveDynamicExtensionObjectV(session, p.value, dataTypeManager);
-//         }
-//     }
-// }
 async function resolveDynamicExtensionObjectV(
     session: IBasicSession,
     opaque: OpaqueStructure,

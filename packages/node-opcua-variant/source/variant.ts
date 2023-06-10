@@ -34,11 +34,14 @@ import {
 } from "node-opcua-factory";
 
 import * as utils from "node-opcua-utils";
+import { make_warningLog } from "node-opcua-debug";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { _enumerationDataType, DataType } from "./DataType_enum";
 import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
 // tslint:disable:no-bitwise
+
+const warningLog = make_warningLog(__filename);
 
 const schemaVariant = buildStructuredType({
     baseType: "BaseUAObject",
@@ -559,14 +562,11 @@ function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstr
     }
     // istanbul ignore next
     if (arrayTypeConstructor && displayWarning && n > 10) {
-        // tslint:disable-next-line:no-console
-        console.log("Warning ! an array containing  " + DataType[dataType] + " elements has been provided as a generic array. ");
-        // tslint:disable-next-line:no-console
-        console.log(
+        warningLog("Warning ! an array containing  " + DataType[dataType] + " elements has been provided as a generic array. ");
+        warningLog(
             "          This is inefficient as every array value will " + "have to be coerced and verified against the expected type"
         );
-        // tslint:disable-next-line:no-console
-        console.log(
+        warningLog(
             "          It is highly recommended that you use a " + " typed array ",
             arrayTypeConstructor.constructor.name,
             " instead"
@@ -781,7 +781,6 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
             value = parseInt(value, 10);
             /* istanbul ignore next */
             if (!isFinite(value)) {
-                // xx console.log("xxx ", value, ttt);
                 throw new Error("expecting a number " + value);
             }
             break;

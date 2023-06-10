@@ -57,10 +57,6 @@ async function serverImplementsDataTypeDefinition(session: IBasicSession): Promi
 
     const dataValues = await session.read(nodesToRead);
 
-    // for (let i = 0; i < dataValues.length; i++) {
-    //     console.log(i, " | ", nodesToRead[i].nodeId.toString().padEnd(40), references[i].browseName.toString().padEnd(50), dataValues[i].statusCode.toString());
-    // }
-
     const countOK = dataValues.reduce((prev, a) => prev + (a.statusCode.isGood() ? 1 : 0), 0);
     if (countOK === dataValues.length) {
         return true;
@@ -71,13 +67,9 @@ async function serverImplementsDataTypeDefinition(session: IBasicSession): Promi
     return false;
 }
 
-export async function populateDataTypeManager(
-    session: IBasicSession,
-    dataTypeManager: ExtraDataTypeManager,
-): Promise<void> {
+export async function populateDataTypeManager(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
     const force104 = await serverImplementsDataTypeDefinition(session);
     if (force104) {
-        // console.log("xxxxxxx! using 1.04");
         await populateDataTypeManager104(session, dataTypeManager);
         return;
     }

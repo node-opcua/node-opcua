@@ -133,7 +133,7 @@ async function applyOnReferenceRecursively(
     browseDescriptionTemplate: BrowseDescriptionOptions,
     action: (ref: ReferenceDescription) => Promise<void>
 ): Promise<void> {
-    const taskMananager = new TaskMan();
+    const taskManager = new TaskMan();
 
     let pendingNodesToBrowse: BrowseDescriptionOptions[] = [];
 
@@ -152,7 +152,7 @@ async function applyOnReferenceRecursively(
                 for (const r of result.references || []) {
                     // also explore sub types
                     browseSubDataTypeRecursively(r.nodeId);
-                    taskMananager.registerTask(async () => await action(r));
+                    taskManager.registerTask(async () => await action(r));
                 }
             } else {
                 errorLog(
@@ -168,9 +168,8 @@ async function applyOnReferenceRecursively(
         if (pendingNodesToBrowse.length) {
             const nodesToBrowse = pendingNodesToBrowse;
             pendingNodesToBrowse = [];
-            taskMananager.registerTask(async () => {
+            taskManager.registerTask(async () => {
                 try {
-                    // YY console.log(" reading ", nodesToBrowse.length);
                     const browseResults = await browseAll(session, nodesToBrowse);
                     processBrowseResults(nodesToBrowse, browseResults);
                 } catch (err) {
@@ -187,10 +186,10 @@ async function applyOnReferenceRecursively(
             nodeId
         };
         pendingNodesToBrowse.push(nodeToBrowse);
-        taskMananager.registerTask(async () => flushBrowse());
+        taskManager.registerTask(async () => flushBrowse());
     }
     browseSubDataTypeRecursively(nodeId);
-    await taskMananager.waitForCompletion();
+    await taskManager.waitForCompletion();
 }
 export async function populateDataTypeManager104(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
     const cache: { [key: string]: CacheForFieldResolution } = {};

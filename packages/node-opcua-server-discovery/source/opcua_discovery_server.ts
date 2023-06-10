@@ -13,7 +13,7 @@ import envPaths from "env-paths";
 import { assert } from "node-opcua-assert";
 import { UAString } from "node-opcua-basic-types";
 import { makeApplicationUrn } from "node-opcua-common";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import {
     Message,
     MessageSecurityMode,
@@ -54,6 +54,7 @@ import { MDNSResponder } from "./mdns_responder";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+const errorLog = make_errorLog(__filename);
 
 function hasCapabilities(serverCapabilities: UAString[] | null, serverCapabilityFilter: string): boolean {
     if (serverCapabilities == null) {
@@ -185,7 +186,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
                 return callback!(err);
             }
             const endpointUri = this.getEndpointUrl();
-            const { hostname } = url.parse(endpointUri) ;
+            const { hostname } = url.parse(endpointUri);
 
             this.mDnsResponder = new MDNSResponder();
             // declare discovery server in bonjour
@@ -216,7 +217,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
         this.bonjourHolder.stopAnnouncedOnMulticastSubnetWithCallback((err?: Error | null) => {
             if (err) {
-                console.log("Error ", err.message);
+                errorLog("stopAnnouncedOnMulticastSubnet Error ", err.message);
             }
 
             debugLog("stopping announcement of LDS on mDNS - DONE");
@@ -264,10 +265,8 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
             (err: Error | null, response?: Response) => {
                 // istanbul ignore next
                 if (err) {
-                    // tslint:disable-next-line: no-console
-                    console.log("What shall I do ?", err.message);
-                    // tslint:disable-next-line: no-console
-                    console.log(err);
+                    errorLog("What shall I do ?", err.message);
+                    errorLog(err);
                     let additional_messages = [];
                     additional_messages.push("EXCEPTION CAUGHT WHILE PROCESSING REQUEST !!! " + request.schema.name);
                     additional_messages.push(err.message);
@@ -475,8 +474,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
 
             const endpointUrl = serverInfo.discoveryUrls[0]!;
             const parsedUrl = url.parse(endpointUrl);
-       
-            
+
             discoveryConfiguration.serverCapabilities = discoveryConfiguration.serverCapabilities || [];
             const announcement = {
                 capabilities: discoveryConfiguration.serverCapabilities.map((x: UAString) => x!) || ["DA"],

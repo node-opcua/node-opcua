@@ -273,11 +273,6 @@ export function getStatusCodeFromCode(code: number): StatusCode {
     /* istanbul ignore if */
     if (!sc) {
         sc = StatusCodes.Bad;
-        // tslint:disable-next-line: no-console
-        console.log(
-            "expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16),
-            " code was 0x" + code.toString(16)
-        );
         warnLog("expecting a known StatusCode but got 0x" + codeWithoutInfoBits.toString(16), " code was 0x" + code.toString(16));
     }
     if (infoBits) {

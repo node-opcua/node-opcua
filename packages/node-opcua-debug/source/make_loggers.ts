@@ -8,7 +8,7 @@ import chalk from "chalk";
 
 const debugFlags: { [id: string]: boolean } = {};
 
-const _process = (typeof process === "object") ? process : { env: {} as Record<string, string> };
+const _process = typeof process === "object" ? process : { env: {} as Record<string, string> };
 const sTraceFlag = _process.env && (_process.env.DEBUG as string);
 
 // istanbul ignore next
@@ -43,7 +43,7 @@ function extractBasename(name: string): string {
 }
 
 function w(str: string, l: number): string {
-    return str.padEnd(l," ").substring(0, l);
+    return str.padEnd(l, " ").substring(0, l);
 }
 
 export function setDebugFlag(scriptFullPath: string, flag: boolean): void {

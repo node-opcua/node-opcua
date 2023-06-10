@@ -167,7 +167,6 @@ function repair_client_session_by_recreating_a_new_session(
     session: ClientSessionImpl,
     callback: (err?: Error) => void
 ) {
-
     // As we don"t know if server has been rebooted or not,
     // and may be upgraded in between, we have to invalidate the extra data type manager
     invalidateExtraDataTypeManager(session);
@@ -367,8 +366,7 @@ function repair_client_session_by_recreating_a_new_session(
                 //      call Republish
                 return _ask_for_subscription_republish(newSession, (err) => {
                     if (err) {
-                        // tslint:disable-next-line: no-console
-                        console.log("warning: Subscription republished has failed ", err.message);
+                        warningLog("warning: Subscription republished has failed ", err.message);
                     }
                     innerCallback(err);
                 });

@@ -159,15 +159,15 @@ let refTime = Date.now();
 
 export const periodicClockAdjustment = {
     adjustmentCount: 0,
-    interval: 3000, /* every 30 seconds */
-    timerInstallationCount: 0,
+    interval: 3000 /* every 30 seconds */,
+    timerInstallationCount: 0
 };
 // update refTime now and then to make sure that we don't miss
 // any system time adjustment here such as a NTP clock event
 // see #651
 let timerId: NodeJS.Timeout | null;
-const g_setInterval = (typeof global === "object") ? global.setInterval : setInterval;
-const g_clearInterval = (typeof global === "object") ? global.clearInterval: clearInterval;
+const g_setInterval = typeof global === "object" ? global.setInterval : setInterval;
+const g_clearInterval = typeof global === "object" ? global.clearInterval : clearInterval;
 export function installPeriodicClockAdjustment() {
     periodicClockAdjustment.timerInstallationCount++;
     if (timerId) {
@@ -209,8 +209,6 @@ export function getCurrentClock(): PreciseClock {
     gClock.tick = original_hrtime(origin); // [seconds, nanoseconds]
     const milliseconds = gClock.tick[0] * 1000 + Math.floor(gClock.tick[1] / 1000000) + refTime;
     const picoseconds = (gClock.tick[1] % 1000000) * 1000;
-    // display drift in seconds :
-    //    console.log(gClock.tick[0] - Math.floor((Date.now()-refTime) / 1000));
 
     gClock.timestamp = new Date(milliseconds) as DateWithPicoseconds;
     gClock.picoseconds = picoseconds;
@@ -224,7 +222,7 @@ export function coerceClock(timestamp: undefined | null | DateWithPicoseconds | 
         return getCurrentClock();
     }
 }
- 
+
 export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 
 export const minOPCUADate = minDate;

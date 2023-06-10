@@ -119,7 +119,6 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePath 
         if (!matches) {
             throw new Error("Malformed relative path  :'" + str + "'" + " in " + originalStr);
         }
-        // console.log(mm);
 
         let referenceTypeId: NodeId;
         let includeSubtypes: boolean;

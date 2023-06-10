@@ -36,7 +36,8 @@ export async function _findEncodings(session: IBasicSession, dataTypeNodeId: Nod
                 encodings.jsonEncodingNodeId = ref.nodeId;
                 break;
             default:
-                console.log(" ignoring encoding ", ref.browseName.toString());
+                // warningLog(" ignoring encoding ", ref.browseName.toString());
+                break;
         }
     }
     return encodings;

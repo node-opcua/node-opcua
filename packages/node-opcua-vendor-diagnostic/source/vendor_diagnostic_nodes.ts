@@ -9,6 +9,10 @@ import { ObjectIds } from "node-opcua-constants";
 import { ServerEngine } from "node-opcua-server";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
+import { make_warningLog } from "node-opcua-debug";
+
+const warningLog = make_warningLog(__filename);
+
 // tslint:disable:no-var-requires
 const humanize = require("humanize");
 
@@ -59,7 +63,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         usage = require(usage_module); // a warning will be generated here with webpack as the module name is not a litteral
     } catch (err) {
         if (types.isNativeError(err)) {
-            console.log("err", err.message);
+            warningLog("err", err.message);
         }
         usage = null;
         // xx return;
@@ -80,9 +84,9 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
         setInterval(() => {
             usage.lookup(pid, options, (err: Error | null, result: any) => {
                 usage_result = result;
-                console.log("result Used Memory: ", humanize.filesize(result.memory), " CPU ", Math.round(result.cpu), " %");
+                warningLog("result Used Memory: ", humanize.filesize(result.memory), " CPU ", Math.round(result.cpu), " %");
                 if (err) {
-                    console.log("err ", err);
+                    warningLog("err ", err);
                 }
             });
         }, 1000);
@@ -124,7 +128,7 @@ export function install_optional_cpu_and_memory_usage_node(server: any) {
             }
         });
     } else {
-        console.log("skipping installation of cpu_usage and memory_usage nodes");
+        warningLog("skipping installation of cpu_usage and memory_usage nodes");
     }
 
     namespace.addVariable({

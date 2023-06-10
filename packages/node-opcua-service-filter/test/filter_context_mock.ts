@@ -374,7 +374,7 @@ makeVariable(g_nodes, {
     browseName: "Id",
     dataType: DataType.Boolean,
     parent: "RootFolder.Objects.Server.VariableWithAlarm.AlarmNode.EnabledState",
-    value: { dataType: DataType.Boolean, value:false }
+    value: { dataType: DataType.Boolean, value: false }
 });
 makeVariable(g_nodes, {
     browseName: "AckedState",
@@ -386,9 +386,8 @@ makeVariable(g_nodes, {
     browseName: "Id",
     dataType: DataType.Boolean,
     parent: "RootFolder.Objects.Server.VariableWithAlarm.AlarmNode.AckedState",
-    value: { dataType: DataType.Boolean, value:false }
+    value: { dataType: DataType.Boolean, value: false }
 });
-
 
 makeEvent(g_nodes, {
     browseName: "AuditCertificateExpiredEvent",
@@ -489,7 +488,7 @@ export class FilterContextMock implements FilterContext {
                 return null;
             }
             if (!node.children) {
-                console.log("cannot find element", element.targetName.name, "in", node.browseName);
+                warningLog("cannot find element", element.targetName.name, "in", node.browseName);
                 return null;
             }
             const index = node.children.findIndex((c) => c.browseName === element.targetName.name);

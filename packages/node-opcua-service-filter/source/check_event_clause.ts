@@ -6,6 +6,9 @@ import { SimpleAttributeOperand } from "node-opcua-types";
 import { constructBrowsePathFromQualifiedName } from "node-opcua-service-translate-browse-path";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { BaseNode, UAObjectType } from "node-opcua-address-space-base";
+import { make_debugLog } from "node-opcua-debug";
+
+const debugLog = make_debugLog(__filename);
 
 /**
  * @method checkSelectClause
@@ -24,11 +27,9 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
     const eventTypeNode = addressSpace.findEventType(selectClause.typeDefinitionId)!;
 
     if (!eventTypeNode || !(eventTypeNode.nodeClass === NodeClass.ObjectType)) {
-        // xx console.log("eventTypeNode = ",selectClause.typeDefinitionId.toString());
-        // xx console.log("eventTypeNode = ",eventTypeNode);
         // istanbul ignore next
         if (eventTypeNode) {
-            console.log(eventTypeNode.toString());
+            debugLog(" checkSelectClause", eventTypeNode.toString());
         }
     }
 

@@ -5,9 +5,7 @@ import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
 import { ObjectIds, DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import {
-    DataType,
-    ReferenceDescription} from "node-opcua-client";
+import { DataType, ReferenceDescription } from "node-opcua-client";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { CacheNode, NodeCrawlerBase, UserData } from "..";
@@ -115,7 +113,6 @@ describe("NodeCrawlerBase", function (this: any) {
         // }
     }
 
-
     it("CRAWL1 should crawl on a PseudoSession", async () => {
         const session = new PseudoSession($.addressSpace);
 
@@ -138,21 +135,21 @@ describe("NodeCrawlerBase", function (this: any) {
             .join(" ")
             .should.eql(
                 "HasComponent HasProperty " +
-                "LocaleIdArray " +
-                "MaxMonitoredItemsPerCall " +
-                "MaxNodesPerBrowse " +
-                "MaxNodesPerHistoryReadData " +
-                "MaxNodesPerHistoryReadEvents " +
-                "MaxNodesPerHistoryUpdateData " +
-                "MaxNodesPerHistoryUpdateEvents " +
-                "MaxNodesPerMethodCall " +
-                "MaxNodesPerNodeManagement " +
-                "MaxNodesPerRead " +
-                "MaxNodesPerRegisterNodes " +
-                "MaxNodesPerTranslateBrowsePathsToNodeIds " +
-                "MaxNodesPerWrite " +
-                "OperationLimits " +
-                "ServerCapabilities"
+                    "LocaleIdArray " +
+                    "MaxMonitoredItemsPerCall " +
+                    "MaxNodesPerBrowse " +
+                    "MaxNodesPerHistoryReadData " +
+                    "MaxNodesPerHistoryReadEvents " +
+                    "MaxNodesPerHistoryUpdateData " +
+                    "MaxNodesPerHistoryUpdateEvents " +
+                    "MaxNodesPerMethodCall " +
+                    "MaxNodesPerNodeManagement " +
+                    "MaxNodesPerRead " +
+                    "MaxNodesPerRegisterNodes " +
+                    "MaxNodesPerTranslateBrowsePathsToNodeIds " +
+                    "MaxNodesPerWrite " +
+                    "OperationLimits " +
+                    "ServerCapabilities"
             );
 
         crawler.dispose();
@@ -184,9 +181,9 @@ describe("NodeCrawlerBase", function (this: any) {
             .join(" ")
             .should.eql(
                 "1:Group 1:Object0 1:Object1 " +
-                "1:Object2 1:Object3 1:Object4 " +
-                "1:Object5 1:Object6 1:Object7 " +
-                "1:Object8 1:Object9 Organizes"
+                    "1:Object2 1:Object3 1:Object4 " +
+                    "1:Object5 1:Object6 1:Object7 " +
+                    "1:Object8 1:Object9 Organizes"
             );
 
         // tslint:disable: no-console
@@ -436,7 +433,7 @@ describe("NodeCrawlerBase", function (this: any) {
         (session as any).browse = sinon.spy(session, "browse");
         (session as any).browseNext = sinon.spy(session, "browseNext");
         (session as any).read = sinon.spy(session, "read");
-   
+
         const crawler = new NodeCrawlerBase(session);
 
         const results: { browseName: string; nodeClass: string; nodeId: NodeId; references: ReferenceDescription[] }[] = [];
@@ -456,8 +453,6 @@ describe("NodeCrawlerBase", function (this: any) {
         crawler.maxNodesPerRead = 100;
         session.requestedMaxReferencesPerNode = 10;
         await crawler.crawl($.strangeObjectNodeId, data);
-
-        console.log("Here !");
         crawler.dispose();
         for (const r of results) {
             //    console.log(r.browseName.toString(), r.nodeId.toString(), r.references.length);
@@ -467,6 +462,5 @@ describe("NodeCrawlerBase", function (this: any) {
         console.log("read      ", (session as any).read.callCount);
         console.log("browse    ", (session as any).browse.callCount);
         console.log("browseNext", (session as any).browseNext.callCount);
-
     });
 });

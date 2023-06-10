@@ -16,12 +16,15 @@ import { ErrorCallback } from "node-opcua-status-code";
 import { IBasicSession } from "node-opcua-pseudo-session";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { Variant } from "node-opcua-variant";
+import { make_debugLog } from "node-opcua-debug";
 
 import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
 import { ProxyBaseNode } from "./proxy_base_node";
 import { ProxyObject } from "./proxy_object";
 import { ProxyStateMachineType } from "./state_machine_proxy";
+
+const debugLog = make_debugLog(__filename);
 
 export interface IProxy1 {
     nodeId: NodeId;
@@ -106,18 +109,14 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
                         dataValues = dataValues!;
 
                         if (dataValues[0].statusCode.equals(StatusCodes.BadNodeIdUnknown)) {
-                            // xx console.log(" INVALID NODE ", nodeId.toString());
                             return callback(new Error("Invalid Node " + nodeId.toString()));
                         }
 
                         clientObject = new ProxyObject(proxyManager, nodeId as NodeId);
 
-                        /// x console.log("xxxx ,s",results.map(function(a){ return a.toString();}));
-
                         clientObject.browseName = dataValues[0].value.value;
                         clientObject.description = dataValues[1].value ? dataValues[1].value.value : "";
                         clientObject.nodeClass = dataValues[2].value.value;
-                        // xx console.log("xxx nodeClass = ",clientObject.nodeClass.toString());
 
                         if (clientObject.nodeClass === NodeClass.Variable) {
                             return read_accessLevels(clientObject, callback);
@@ -130,13 +129,6 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
             (callback: ErrorCallback) => {
                 // install monitored item
                 if (clientObject.nodeClass === NodeClass.Variable) {
-                    /*console.log(
-                        "xxxx -> monitoring",
-                        clientObject.nodeId.toString(),
-                        clientObject.nodeClass.toString(),
-                        clientObject.browseName.toString()
-                    );
-                    */
                     return proxyManager._monitor_value(clientObject, callback);
                 }
                 callback();
@@ -292,8 +284,7 @@ export class UAProxyManager {
                     proxyObject.emit("value_changed", dataValue);
                 });
                 proxyObject.__monitoredItem!.on("err", (err: Error) => {
-                    // tslint:disable-next-line: no-console
-                    console.log("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
+                    debugLog("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
                 });
                 callback(err!);
             }
