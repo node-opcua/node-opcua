@@ -16,6 +16,7 @@
         "node-opcua-constants": "2.98.1",
         "node-opcua-server": "2.104.0",
         "node-opcua-status-code": "2.104.0",
+        "node-opcua-debug": "2.104.0",
         "node-opcua-variant": "2.104.0"
     },
     "author": "Etienne Rossignon",
