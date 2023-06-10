@@ -2,6 +2,5 @@
     "packages": ["packages/*", "packages_extra/*"],
     "version": "2.104.0",
     "npmClient": "pnpm",
-    "useWorkspaces": true,
     "exact": true
 }
