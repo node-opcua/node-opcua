@@ -1554,7 +1554,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 return _bindExtensionObject(this, optionalExtensionObject, options) as ExtensionObject;
             }
         }
-        assert(optionalExtensionObject === undefined);
+        assert(optionalExtensionObject === undefined || optionalExtensionObject === null);
         if (this.valueRank === -1) {
             return _bindExtensionObject(this, undefined, options) as ExtensionObject;
         } else if (this.valueRank === 1) {
