@@ -80,7 +80,6 @@ export function subtest_analog_item_type(maintest: any): void {
                 referenceTypeId: 0,
                 resultMask: 0x3f
             });
-            // xx var browseResult = engine.browseSingleNode(analogItem.nodeId, browseDescription);
             const references = analogItem.browseNode(browseDescription);
 
             references.length.should.eql(6);

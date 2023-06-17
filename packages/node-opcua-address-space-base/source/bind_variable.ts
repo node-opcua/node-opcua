@@ -29,7 +29,7 @@ export type HistoryReadFunc = (
     callback: CallbackT<HistoryReadResult>
 ) => void;
 
-export type GetFunc = (this: UAVariable) => Variant;
+export type GetFunc = (this: UAVariable) => Variant | StatusCode;
 export type SetFunc = VariableSetter | null;
 
 export type VariableDataValueGetterSync = (this: UAVariable) => DataValue;

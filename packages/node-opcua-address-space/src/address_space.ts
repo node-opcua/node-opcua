@@ -10,7 +10,17 @@ import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object
 import { DataTypeIds, VariableTypeIds } from "node-opcua-constants";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { coerceExpandedNodeId, coerceNodeId, INodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import {
+    coerceExpandedNodeId,
+    coerceNodeId,
+    INodeId,
+    makeNodeId,
+    NodeId,
+    NodeIdLike,
+    NodeIdType,
+    resolveNodeId,
+    sameNodeId
+} from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { BrowseResult } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
@@ -474,9 +484,9 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!(dataTypeNode instanceof UADataTypeImpl)) {
             throw new Error(
                 "we are expecting an UADataType here :  " +
-                _orig_dataTypeNode.toString() +
-                " should not refer to a  " +
-                (dataTypeNode as BaseNode).browseName.name
+                    _orig_dataTypeNode.toString() +
+                    " should not refer to a  " +
+                    (dataTypeNode as BaseNode).browseName.name
             );
         }
 
@@ -768,18 +778,18 @@ export class AddressSpace implements AddressSpacePrivate {
                         // tslint:disable:no-console
                         console.log(
                             chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
-                            self.browseName.toString() +
-                            " => " +
-                            chalk.cyan(lowerName)
+                                self.browseName.toString() +
+                                " => " +
+                                chalk.cyan(lowerName)
                         );
                     } else {
                         console.log(
                             chalk.yellow(
                                 "Warning : AddressSpace#constructEventData(eventType,options)" + " cannot find property "
                             ) +
-                            self.browseName.toString() +
-                            " => " +
-                            chalk.cyan(lowerName)
+                                self.browseName.toString() +
+                                " => " +
+                                chalk.cyan(lowerName)
                         );
                     }
                 }
@@ -796,11 +806,11 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (!alreadyVisited(k)) {
                     throw new Error(
                         " cannot find property '" +
-                        k +
-                        "' in [ " +
-                        Object.keys(visitedProperties).join(", ") +
-                        "] when filling " +
-                        eventTypeNode.browseName.toString()
+                            k +
+                            "' in [ " +
+                            Object.keys(visitedProperties).join(", ") +
+                            "] when filling " +
+                            eventTypeNode.browseName.toString()
                     );
                 }
             });
@@ -1090,16 +1100,6 @@ export class AddressSpace implements AddressSpacePrivate {
         }
     }
 
-    /**
-     *
-     * @method browseSingleNode
-     * @param nodeId {NodeId|String} : the nodeid of the element to browse
-     * @param browseDescription
-     * @param browseDescription.browseDirection {BrowseDirection} :
-     * @param browseDescription.referenceTypeId {String|NodeId}
-     * @param [session]
-     * @return {BrowseResult}
-     */
     public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: ISessionContext): BrowseResult {
         const browseResult: BrowseResultOptions = {
             continuationPoint: undefined,

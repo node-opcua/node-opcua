@@ -172,7 +172,7 @@ export class PseudoSession implements IBasicSession {
                 const r = this[$addressSpace].browseSingleNode(nodeId, _browseDescription, this[$context]);
                 results.push(r);
             }
-            callack(null, results);
+            callack!(null, results);
         };
 
         setImmediate(() => {

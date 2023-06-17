@@ -84,7 +84,10 @@ import {
     TimeZoneDataType,
     ProgramDiagnosticDataType,
     CallMethodResultOptions,
-    AggregateConfiguration
+    AggregateConfiguration,
+    ReadRequestOptions,
+    ReadValueIdOptions,
+    BrowseDescriptionOptions
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -1325,21 +1328,6 @@ export class ServerEngine extends EventEmitter {
         });
     }
 
-    /**
-     *
-     * @method browseSingleNode
-     * @param nodeId {NodeId|String} : the nodeid of the element to browse
-     * @param browseDescription
-     * @param browseDescription.browseDirection {BrowseDirection} :
-     * @param browseDescription.referenceTypeId {String|NodeId}
-     * @param [context]
-     * @return  the browse result
-     */
-    public browseSingleNode(nodeId: NodeIdLike, browseDescription: BrowseDescription, context?: ISessionContext): BrowseResult {
-        const addressSpace = this.addressSpace!;
-        return addressSpace.browseSingleNode(nodeId, browseDescription, context);
-    }
-
     public async browseWithAutomaticExpansion(
         nodesToBrowse: BrowseDescription[],
         context?: ISessionContext
@@ -1363,16 +1351,24 @@ export class ServerEngine extends EventEmitter {
                 }
             }
         }
-        return this.browse(nodesToBrowse, context);
+        return await this.browseAsync(nodesToBrowse, context);
     }
     /**
      *
      */
-    public browse(nodesToBrowse: BrowseDescription[], context?: ISessionContext): BrowseResult[] {
+    public async browseAsync(nodesToBrowse: BrowseDescriptionOptions[], context?: ISessionContext): Promise<BrowseResult[]> {
+        if (!this.addressSpace) {
+            throw new Error("Address Space has not been initialized");
+        }
         const results: BrowseResult[] = [];
         for (const browseDescription of nodesToBrowse) {
-            const nodeId = resolveNodeId(browseDescription.nodeId);
-            const r = this.browseSingleNode(nodeId, browseDescription, context);
+            assert(browseDescription.nodeId!, "expecting a nodeId");
+            const nodeId = resolveNodeId(browseDescription.nodeId!);
+            const r = this.addressSpace.browseSingleNode(
+                nodeId,
+                browseDescription instanceof BrowseDescription ? browseDescription : new BrowseDescription({...browseDescription, nodeId}),
+                context
+            );
             results.push(r);
         }
         return results;
@@ -1380,34 +1376,10 @@ export class ServerEngine extends EventEmitter {
 
     /**
      *
-     * @method readSingleNode
-     * @param context
-     * @param nodeId
-     * @param attributeId
-     * @param [timestampsToReturn=TimestampsToReturn.Neither]
-     * @return DataValue
-     */
-    public readSingleNode(
-        context: ISessionContext,
-        nodeId: NodeId | string,
-        attributeId: AttributeIds,
-        timestampsToReturn?: TimestampsToReturn
-    ): DataValue {
-        context.currentTime = getCurrentClock();
-        return this._readSingleNode(
-            context,
-            new ReadValueId({
-                attributeId,
-                nodeId: resolveNodeId(nodeId)
-            }),
-            timestampsToReturn
-        );
-    }
-
-    /**
      *
-     *
-     *    Maximum age of the value to be read in milliseconds. The age of the value is based on the difference between
+     *    @param {number} maxAge: Maximum age of the value to be read in milliseconds. 
+     * 
+     *    The age of the value is based on the difference between
      *    the ServerTimestamp and the time when the  Server starts processing the request. For example if the Client
      *    specifies a maxAge of 500 milliseconds and it takes 100 milliseconds until the Server starts  processing
      *    the request, the age of the returned value could be 600 milliseconds  prior to the time it was requested.
@@ -1427,10 +1399,10 @@ export class ServerEngine extends EventEmitter {
      *
      *  @return  an array of DataValue
      */
-    public read(context: ISessionContext, readRequest: ReadRequest): DataValue[] {
+    public async readAsync(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]> {
         assert(context instanceof SessionContext);
-        assert(readRequest instanceof ReadRequest);
-        assert(readRequest.maxAge >= 0);
+        // assert(readRequest instanceof ReadRequest);
+        assert(readRequest.maxAge === undefined || readRequest.maxAge >= 0);
 
         const timestampsToReturn = readRequest.timestampsToReturn;
 
@@ -1441,7 +1413,7 @@ export class ServerEngine extends EventEmitter {
 
         const dataValues: DataValue[] = [];
         for (const readValueId of nodesToRead) {
-            const dataValue = this._readSingleNode(context, readValueId, timestampsToReturn);
+            const dataValue = await this._readSingleNode(context, readValueId, timestampsToReturn);
             if (timestampsToReturn === TimestampsToReturn.Server) {
                 dataValue.sourceTimestamp = null;
                 dataValue.sourcePicoseconds = 0;
@@ -1635,7 +1607,6 @@ export class ServerEngine extends EventEmitter {
                 return callback(null, [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })]);
             }
 
-            // chkec parameters
             const parameterStatus = checkReadProcessedDetails(historyReadDetails);
             if (parameterStatus !== StatusCodes.Good) {
                 return callback(null, [new HistoryReadResult({ statusCode: parameterStatus })]);
@@ -2140,19 +2111,25 @@ export class ServerEngine extends EventEmitter {
     }
 
     private __findNode(nodeId: NodeId): BaseNode | null {
-        if (nodeId.namespace >= (this.addressSpace?.getNamespaceArray().length || 0)) {
+        const namespaceIndex = nodeId.namespace || 0;
+
+        if (namespaceIndex && namespaceIndex >= (this.addressSpace?.getNamespaceArray().length || 0)) {
             return null;
         }
-        const namespace = this.addressSpace!.getNamespace(nodeId.namespace)!;
+        const namespace = this.addressSpace!.getNamespace(namespaceIndex)!;
         return namespace.findNode2(nodeId)!;
     }
 
-    private _readSingleNode(context: ISessionContext, nodeToRead: ReadValueId, timestampsToReturn?: TimestampsToReturn): DataValue {
+    private async _readSingleNode(
+        context: ISessionContext,
+        nodeToRead: ReadValueIdOptions,
+        timestampsToReturn?: TimestampsToReturn
+    ): Promise<DataValue> {
         assert(context instanceof SessionContext);
-        const nodeId: NodeId = nodeToRead.nodeId!;
+        const nodeId = resolveNodeId(nodeToRead.nodeId!);
         const attributeId: AttributeIds = nodeToRead.attributeId!;
         const indexRange: NumericRange = nodeToRead.indexRange!;
-        const dataEncoding: QualifiedName = nodeToRead.dataEncoding;
+        const dataEncoding = nodeToRead.dataEncoding;
 
         if (timestampsToReturn === TimestampsToReturn.Invalid) {
             return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
@@ -2160,7 +2137,7 @@ export class ServerEngine extends EventEmitter {
 
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
 
-        const obj = this.__findNode(nodeId!);
+        const obj = this.__findNode(coerceNodeId(nodeId));
 
         let dataValue;
         if (!obj) {

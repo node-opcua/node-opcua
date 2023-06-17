@@ -1051,7 +1051,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * the maximum number of subscription that can be created per server
      * @deprecated
      */
-    public static deprectated_MAX_SUBSCRIPTION = 50;
+    public static deprecated_MAX_SUBSCRIPTION = 50;
 
     /**
      * the maximum number of concurrent sessions allowed on the server
@@ -1156,7 +1156,7 @@ export class OPCUAServer extends OPCUABaseServer {
             const hostname = getFullyQualifiedDomainName();
 
             endpointDefinitions.push({
-                port: options.port  === undefined ? 26543 : options.port,
+                port: options.port === undefined ? 26543 : options.port,
 
                 allowAnonymous: options.allowAnonymous,
                 alternateHostname: options.alternateHostname,
@@ -1328,7 +1328,7 @@ export class OPCUAServer extends OPCUABaseServer {
         const shutdownTime = new Date(Date.now() + timeout);
         this.engine.setShutdownTime(shutdownTime);
 
-        debugLog("OPCUAServer is now unregistering itself from  the discovery server " + this.buildInfo);
+        debugLog("OPCUAServer is now un-registering itself from  the discovery server " + this.buildInfo);
         this.registerServerManager!.stop((err?: Error | null) => {
             debugLog("OPCUAServer unregistered from discovery server", err);
             setTimeout(async () => {
@@ -2667,19 +2667,20 @@ export class OPCUAServer extends OPCUABaseServer {
                 // ask for a refresh of asynchronous variables
                 this.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
                     assert(!err, " error not handled here , fix me");
-                    results = this.engine.read(context, request);
+                    this.engine.readAsync(context, request).then((results) => {
+                        assert(results[0].schema.name === "DataValue");
+                        assert(results.length === request.nodesToRead!.length);
 
-                    assert(results[0].schema.name === "DataValue");
-                    assert(results.length === request.nodesToRead!.length);
-
-                    response = new ReadResponse({
-                        diagnosticInfos: undefined,
-                        results: undefined
+                        response = new ReadResponse({
+                            diagnosticInfos: undefined,
+                            results: undefined
+                        });
+                        // set it here for performance
+                        response.results = results;
+                        assert(response.diagnosticInfos!.length === 0);
+                        sendResponse(response);
+                        
                     });
-                    // set it here for performance
-                    response.results = results;
-                    assert(response.diagnosticInfos!.length === 0);
-                    sendResponse(response);
                 });
             }
         );
@@ -3534,7 +3535,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
         const hostname = getFullyQualifiedDomainName();
         endpointOptions.hostname = endpointOptions.hostname || hostname;
-        endpointOptions.port = endpointOptions.port === undefined ? 26543 : endpointOptions.port ;
+        endpointOptions.port = endpointOptions.port === undefined ? 26543 : endpointOptions.port;
 
         /* istanbul ignore next */
         if (
@@ -3697,7 +3698,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData { }
+export interface RaiseEventTransitionEventData extends RaiseEventData {}
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
@@ -3727,7 +3728,7 @@ export interface RaiseAuditCertificateDataMismatchEventData extends RaiseAuditCe
      */
     invalidUri: PseudoVariantString;
 }
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3739,7 +3740,7 @@ export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCerti
  * There are no additional Properties defined for this EventType.
  *
  */
-export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3749,7 +3750,7 @@ export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3759,7 +3760,7 @@ export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertifi
  * If a trust chain is involved then the certificate that failed in the trust chain should be described.
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3782,7 +3783,7 @@ export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType
  */
-export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData { }
+export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
 export interface OPCUAServer {
     /**
      * @internal
