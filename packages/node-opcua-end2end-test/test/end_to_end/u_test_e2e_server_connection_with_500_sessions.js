@@ -6,16 +6,16 @@ const should = require("should");
 const opcua = require("node-opcua");
 const chalk = require("chalk");
 
-const doDebug = false;
+const doDebug = true;
 
-module.exports = function (test) {
+module.exports = function(test) {
     const maxSessionsForTest = 50;
 
     function getTick() {
         return Date.now() / 1000.0;
     }
 
-    const connectivity_strategy = {
+    const connectionStrategy = {
         maxRetry: 100,
         initialDelay: 100,
         maxDelay: 200,
@@ -32,12 +32,12 @@ module.exports = function (test) {
         }
 
         function perform(msg, func, callback) {
-            setTimeout(function () {
+            setTimeout(function() {
                 if (doDebug) {
                     console.log(msg);
                 }
                 const t = getTick();
-                func(function (err) {
+                func(function(err) {
                     if (doDebug) {
                         if (err) {
                             console.log("   ", chalk.red(msg), err.message, r(getTick() - t));
@@ -50,7 +50,7 @@ module.exports = function (test) {
             }, 10);
         }
         function wait(callback) {
-            setTimeout(callback, Math.ceil(Math.random() * 10 + 10));
+            setTimeout(callback, Math.ceil(Math.random() * 10 + 100));
         }
 
         let the_session;
@@ -59,11 +59,15 @@ module.exports = function (test) {
             [
                 //Xx wait,
                 // create a session using client1
-                perform.bind(null, "create session " + data.index, function (callback) {
-                    client.createSession(function (err, session) {
+                perform.bind(null, "create session " + data.index, function(callback) {
+                    client.createSession(function(err, session) {
                         the_session = session;
                         if (doDebug) {
-                            console.log("session.authenticationToken = ", session.authenticationToken.toString("hex"));
+                            if (session) {
+                                console.log("session.authenticationToken = ", session.authenticationToken.toString("hex"));
+                            } else {
+                                console.log("session creation has failed", err.message);
+                            }
                         }
                         callback(err);
                     });
@@ -71,8 +75,8 @@ module.exports = function (test) {
 
                 wait,
 
-                perform.bind(null, "closing session " + data.index, function (callback) {
-                    the_session.close(function (err) {
+                perform.bind(null, "closing session " + data.index, function(callback) {
+                    the_session.close(function(err) {
                         callback(err);
                     });
                 })
@@ -81,31 +85,31 @@ module.exports = function (test) {
         );
     }
 
-    describe("AAAY Testing " + maxSessionsForTest + " sessions on the same  connection ", function () {
-        before(function (done) {
+    describe("AAAY Testing " + maxSessionsForTest + " sessions on the same  connection ", function() {
+        before(function(done) {
             const options = {
-                connectionStrategy: connectivity_strategy,
+                connectionStrategy,
                 requestedSessionTimeout: 100000
             };
             client = opcua.OPCUAClient.create(options);
             const endpointUrl = test.endpointUrl;
-            client.on("send_request", function (req) {
+            client.on("send_request", function(req) {
                 if (doDebug) {
                     console.log(req.constructor.name);
                 }
             });
-            client.on("receive_response", function (res) {
+            client.on("receive_response", function(res) {
                 if (doDebug) {
                     console.log(res.constructor.name, res.responseHeader.serviceResult.toString());
                 }
             });
 
-            client.on("start_reconnection", function (err) {
+            client.on("start_reconnection", function(err) {
                 if (doDebug) {
                     console.log(chalk.bgWhite.yellow("start_reconnection"));
                 }
             });
-            client.on("backoff", function (number, delay) {
+            client.on("backoff", function(number, delay) {
                 if (doDebug) {
                     console.log(chalk.bgWhite.yellow("backoff"), number, delay);
                 }
@@ -113,17 +117,16 @@ module.exports = function (test) {
 
             //xx client.knowsServerEndpoint.should.eql(true);
 
-            client.connect(endpointUrl, function () {
-                //xx console.log("AAAA!!!!");
+            client.connect(endpointUrl, function() {
                 done();
             });
         });
-        after(function (done) {
-            client.disconnect(function (err) {
+        after(function(done) {
+            client.disconnect((err) => {
                 done(err);
             });
         });
-        it("QZQ should be possible to open  many sessions on a single connection", function (done) {
+        it("QZQ should be possible to open  many sessions on a single connection", function(done) {
             let maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
             test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
 
