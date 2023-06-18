@@ -31,7 +31,8 @@ import {
     resolveOpaqueOnAddressSpace,
     ContinuationData,
     IServerBase,
-    UARole
+    UARole,
+    ensureDatatypeExtracted
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
@@ -1351,34 +1352,38 @@ export class ServerEngine extends EventEmitter {
                 }
             }
         }
-        return await this.browseAsync(nodesToBrowse, context);
+        return await this.browseNodes(nodesToBrowse, context);
     }
     /**
      *
      */
-    public async browseAsync(nodesToBrowse: BrowseDescriptionOptions[], context?: ISessionContext): Promise<BrowseResult[]> {
-        if (!this.addressSpace) {
-            throw new Error("Address Space has not been initialized");
-        }
+    public async browseNodes(nodesToBrowse: BrowseDescriptionOptions[], context?: ISessionContext): Promise<BrowseResult[]> {
         const results: BrowseResult[] = [];
         for (const browseDescription of nodesToBrowse) {
+            results.push(await this.browseNode(browseDescription, context));
             assert(browseDescription.nodeId!, "expecting a nodeId");
-            const nodeId = resolveNodeId(browseDescription.nodeId!);
-            const r = this.addressSpace.browseSingleNode(
-                nodeId,
-                browseDescription instanceof BrowseDescription ? browseDescription : new BrowseDescription({...browseDescription, nodeId}),
-                context
-            );
-            results.push(r);
         }
         return results;
     }
-
+    public async browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult> {
+        if (!this.addressSpace) {
+            throw new Error("Address Space has not been initialized");
+        }
+        const nodeId = resolveNodeId(browseDescription.nodeId!);
+        const r = this.addressSpace.browseSingleNode(
+            nodeId,
+            browseDescription instanceof BrowseDescription
+                ? browseDescription
+                : new BrowseDescription({ ...browseDescription, nodeId }),
+            context
+        );
+        return r;
+    }
     /**
      *
      *
-     *    @param {number} maxAge: Maximum age of the value to be read in milliseconds. 
-     * 
+     *    @param {number} maxAge: Maximum age of the value to be read in milliseconds.
+     *
      *    The age of the value is based on the difference between
      *    the ServerTimestamp and the time when the  Server starts processing the request. For example if the Client
      *    specifies a maxAge of 500 milliseconds and it takes 100 milliseconds until the Server starts  processing
@@ -1430,28 +1435,14 @@ export class ServerEngine extends EventEmitter {
         return dataValues;
     }
 
-    /**
-     *
-     * @method writeSingleNode
-     * @param context
-     * @param writeValue
-     * @param callback
-     * @param callback.err
-     * @param callback.statusCode
-     * @async
-     */
-    public writeSingleNode(
-        context: ISessionContext,
-        writeValue: WriteValue,
-        callback: (err: Error | null, statusCode?: StatusCode) => void
-    ): void {
+    public async writeSingleNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
         assert(context instanceof SessionContext);
-        assert(typeof callback === "function");
         assert(writeValue.schema.name === "WriteValue");
         assert(writeValue.value instanceof DataValue);
 
-        if (writeValue.value.value === null) {
-            return callback(null, StatusCodes.BadTypeMismatch);
+        if (!writeValue.value.value) {
+            /* missing Variant */
+            return StatusCodes.BadTypeMismatch;
         }
 
         assert(writeValue.value.value instanceof Variant);
@@ -1460,9 +1451,17 @@ export class ServerEngine extends EventEmitter {
 
         const obj = this.__findNode(nodeId) as UAVariable;
         if (!obj) {
-            return callback(null, StatusCodes.BadNodeIdUnknown);
+            return StatusCodes.BadNodeIdUnknown;
         } else {
-            obj.writeAttribute(context, writeValue, callback);
+            return await new Promise<StatusCode>((resolve, reject) => {
+                obj.writeAttribute(context, writeValue, (err, statusCode) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(statusCode!);
+                    }
+                });
+            });
         }
     }
 
@@ -1476,36 +1475,23 @@ export class ServerEngine extends EventEmitter {
      * @param callback.results
      * @async
      */
-    public write(
-        context: ISessionContext,
-        nodesToWrite: WriteValue[],
-        callback: (err: Error | null, statusCodes?: StatusCode[]) => void
-    ): void {
+    public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
         assert(context instanceof SessionContext);
-        assert(typeof callback === "function");
 
         context.currentTime = getCurrentClock();
 
-        ensureDatatypeExtractedWithCallback(
-            this.addressSpace!,
-            (err2: Error | null, extraDataTypeManager?: ExtraDataTypeManager) => {
-                if (err2) {
-                    return callback(err2);
-                }
-                const performWrite = (writeValue: WriteValue, inner_callback: StatusCodeCallback) => {
-                    resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!)
-                        .then(() => {
-                            this.writeSingleNode(context, writeValue, inner_callback);
-                        })
-                        .catch(inner_callback);
-                };
-                // tslint:disable:array-type
-                async.map(nodesToWrite, performWrite, (err?: Error | null, statusCodes?: (StatusCode | undefined)[]) => {
-                    assert(Array.isArray(statusCodes));
-                    callback(err!, statusCodes as StatusCode[]);
-                });
-            }
-        );
+        const extraDataTypeManager = await ensureDatatypeExtracted(this.addressSpace!);
+
+        const performWrite = async (writeValue: WriteValue): Promise<StatusCode> => {
+            await resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!);
+            return await this.writeSingleNode(context, writeValue);
+        };
+        const results: StatusCode[] = [];
+        for (const writeValue of nodesToWrite) {
+            const statusCode = await performWrite(writeValue);
+            results.push(statusCode);
+        }
+        return results;
     }
 
     /**
@@ -1542,20 +1528,6 @@ export class ServerEngine extends EventEmitter {
         );
     }
 
-    /**
-     *
-     *  @method historyRead
-     *  @param context {SessionContext}
-     *  @param historyReadRequest {HistoryReadRequest}
-     *  @param historyReadRequest.requestHeader  {RequestHeader}
-     *  @param historyReadRequest.historyReadDetails  {HistoryReadDetails}
-     *  @param historyReadRequest.timestampsToReturn  {TimestampsToReturn}
-     *  @param historyReadRequest.releaseContinuationPoints  {Boolean}
-     *  @param historyReadRequest.nodesToRead {HistoryReadValueId[]}
-     *  @param callback
-     *  @param callback.err
-     *  @param callback.results {HistoryReadResult[]}
-     */
     public historyRead(
         context: ISessionContext,
         historyReadRequest: HistoryReadRequest,
@@ -1951,9 +1923,15 @@ export class ServerEngine extends EventEmitter {
         return session;
     }
 
-    /**
-     */
-    public browsePath(browsePath: BrowsePath): BrowsePathResult {
+    public async translateBrowsePaths(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]> {
+        const browsePathResults: BrowsePathResult[] = [];
+        for (const browsePath of browsePaths) {
+            const result = await this.translateBrowsePath(browsePath);
+            browsePathResults.push(result);
+        }
+        return browsePathResults;
+    }
+    public async translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult> {
         return this.addressSpace!.browsePath(browsePath);
     }
 

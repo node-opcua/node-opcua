@@ -49,7 +49,7 @@ export interface InnerBrowseEngine {
     maxBrowseContinuationPoints: number;
     continuationPointManager: ContinuationPointManager;
     context: ISessionContext;
-    browseAll: (nodesToBrowse: BrowseDescriptionOptions[], callack: ResponseCallback<BrowseResult[]>) => void;
+    browseAll: (nodesToBrowse: BrowseDescriptionOptions[], callback: ResponseCallback<BrowseResult[]>) => void;
 }
 
 export function innerBrowse(

@@ -20,7 +20,7 @@ import { nodesets } from "node-opcua-nodesets";
 import { getCurrentClock } from "node-opcua-date-time";
 
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
-import { BrowseDescriptionLike } from "node-opcua-client";
+import { BrowseDescriptionLike, BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
 import { NumericRange } from "node-opcua-numeric-range";
 
 import { ServerEngine } from "..";
@@ -149,7 +149,8 @@ describe("testing ServerEngine", function () {
             });
 
             function check_if_allow(n: number, context: ISessionContext) {
-                const _session: any = context.session;
+                //xx console.log(" check_if_allow", n, context.session ? (context.session as any).testFilterArray : null)
+                const _session: any = context ? context.session : null;
                 if (context && _session && Object.prototype.hasOwnProperty.call(_session, "testFilterArray")) {
                     if (_session["testFilterArray"].indexOf(n) > -1) {
                         return true;
@@ -223,8 +224,6 @@ describe("testing ServerEngine", function () {
         const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray);
         const server_NamespaceArray = engine.addressSpace!.findNode(server_NamespaceArray_Id) as UAVariable;
         assert(server_NamespaceArray !== null);
-
-        //xx console.log(require("util").inspect(server_NamespaceArray));
 
         server_NamespaceArray.should.have.property("parent");
         // TODO : should(server_NamespaceArray.parent !==  null).ok;
@@ -460,7 +459,7 @@ describe("testing ServerEngine", function () {
             resultMask: 0x3f
         });
 
-        const browseResult = (await engine.browseAsync([browseDescription]))[0];
+        const browseResult = await engine.browseNode(browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
         browseResult.references!.length.should.equal(1);
@@ -483,7 +482,7 @@ describe("testing ServerEngine", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult = (await engine.browseAsync([browseDescription]))[0];
+        const browseResult = await engine.browseNode(browseDescription);
 
         const browseNames = browseResult.references!.map(function (r) {
             return r.browseName.name;
@@ -526,7 +525,7 @@ describe("testing ServerEngine", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult1 = (await engine.browseAsync([browseDescription1]))[0];
+        const browseResult1 = await engine.browseNode(browseDescription1);
         browseResult1.references!.length.should.equal(3);
 
         const browseDescription2 = {
@@ -537,7 +536,7 @@ describe("testing ServerEngine", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult2 = (await engine.browseAsync([browseDescription2]))[0];
+        const browseResult2 = await engine.browseNode(browseDescription2);
     });
 
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", async () => {
@@ -554,7 +553,7 @@ describe("testing ServerEngine", function () {
         });
         browseDescription.browseDirection.should.eql(BrowseDirection.Both);
 
-        const browseResult = (await engine.browseAsync([browseDescription]))[0];
+        const browseResult = await engine.browseNode(browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
         if (!browseResult.references) {
@@ -594,7 +593,7 @@ describe("testing ServerEngine", function () {
             referenceTypeId: resolveNodeId("Organizes"),
             resultMask: 0x3f
         };
-        const browseResult = (await engine.browseAsync([new BrowseDescription(browseDescription)]))[0];
+        const browseResult = await engine.browseNode(browseDescription);
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
         browseResult.references!.length.should.be.greaterThan(1);
@@ -611,17 +610,13 @@ describe("testing ServerEngine", function () {
             referenceTypeId: resolveNodeId("Organizes"),
             resultMask: 0x3f
         };
-        const browseResult = (await engine.browseAsync([new BrowseDescription(browseDescription)]))[0];
+        const browseResult = await engine.browseNode(browseDescription);
         browseResult.statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         browseResult.references!.length.should.equal(0);
     });
 
     it("should handle a BrowseRequest and set StatusCode if browseDescription is not provided", async () => {
-        const browseResult = (
-            await engine.browseAsync([
-                new BrowseDescription({ nodeId: "ns=46;i=123456", browseDirection: BrowseDirection.Invalid })
-            ])
-        )[0];
+        const browseResult = await engine.browseNode({ nodeId: "ns=46;i=123456", browseDirection: BrowseDirection.Invalid });
         browseResult.statusCode.should.equal(StatusCodes.BadBrowseDirectionInvalid);
         browseResult.references!.length.should.equal(0);
     });
@@ -645,7 +640,7 @@ describe("testing ServerEngine", function () {
         });
 
         browseRequest.nodesToBrowse!.length.should.equal(2);
-        const results = await engine.browseAsync(browseRequest.nodesToBrowse!);
+        const results = await engine.browseNodes(browseRequest.nodesToBrowse!);
 
         results.length.should.equal(2);
 
@@ -668,25 +663,28 @@ describe("testing ServerEngine", function () {
         };
 
         const browseRequest = new BrowseRequest(browseDescription);
+        engine.currentSessionCount.should.equal(0);
         const session = engine.createSession({ server: {} });
 
         const context = new SessionContext({ session });
 
         const _session = session as unknown as { testFilterArray: number[] };
         _session.testFilterArray = [1, 3];
-        const results1 = await engine.browseAsync(browseRequest.nodesToBrowse!, context);
+        const results1 = await engine.browseNodes(browseRequest.nodesToBrowse!, context);
         results1[0].references!.length.should.equal(2);
 
         _session.testFilterArray = [1, 2, 3];
-        const results2 = await engine.browseAsync(browseRequest.nodesToBrowse!, context);
+        const results2 = await engine.browseNodes(browseRequest.nodesToBrowse!, context);
         results2[0].references!.length.should.equal(3);
 
         _session.testFilterArray = [3];
-        const results3 = await engine.browseAsync(browseRequest.nodesToBrowse!, context);
+        const results3 = await engine.browseNodes(browseRequest.nodesToBrowse!, context);
         results3[0].references!.length.should.equal(1);
         results3[0].references![0].displayName.text!.should.equal("filteredFolder3");
 
-        await engine.closeSession(session.authenticationToken, true, "CloseSession");
+        engine.closeSession(session.authenticationToken, true, "CloseSession");
+
+        engine.currentSessionCount.should.equal(0);
     });
 
     it("should provide results that conforms to browseDescription.resultMask", async () => {
@@ -717,7 +715,7 @@ describe("testing ServerEngine", function () {
                 nodeClassMask: 0, // 0 = all nodes
                 resultMask: resultMask
             });
-            const browseResult = (await engine.browseAsync([browseDescription]))[0];
+            const browseResult = await engine.browseNode(browseDescription);
 
             browseResult.references!.length.should.be.greaterThan(1);
             for (const referenceDescription of browseResult.references!) {
@@ -1209,7 +1207,6 @@ describe("testing ServerEngine", function () {
         });
 
         it("should read and set the required timestamps : TimestampsToReturn.Source", async () => {
-            const DataValue = require("node-opcua-data-value").DataValue;
             const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Source,
@@ -1241,7 +1238,6 @@ describe("testing ServerEngine", function () {
         });
 
         it("should read and set the required timestamps : TimestampsToReturn.Both", async () => {
-            const DataValue = require("node-opcua-data-value").DataValue;
             const readRequest = new ReadRequest({
                 maxAge: 0,
                 timestampsToReturn: TimestampsToReturn.Both,
@@ -1392,91 +1388,87 @@ describe("testing ServerEngine", function () {
         dataValues[0].value.value.should.eql(VariantArrayType.Array);
     });
 
-    describe("testing ServerEngine browsePath", () => {
-        const translate_service = require("node-opcua-service-translate-browse-path");
-        const nodeid = require("node-opcua-nodeid");
-
-        it("translating a browse path to a nodeId with a invalid starting node shall return BadNodeIdUnknown", () => {
-            const browsePath = new translate_service.BrowsePath({
-                startingNode: nodeid.makeNodeId(0), // <=== invalid node id
-                relativePath: []
+    describe("testing ServerEngine browsePath", async () => {
+        it("translating a browse path to a nodeId with a invalid starting node shall return BadNodeIdUnknown", async () => {
+            const browsePath = new BrowsePath({
+                startingNode: makeNodeId(0) // <=== invalid node id
             });
 
-            const browsePathResult = engine.browsePath(browsePath);
-            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            const browsePathResult = await engine.translateBrowsePath(browsePath);
+            browsePathResult.should.be.instanceOf(BrowsePathResult);
 
             browsePathResult.statusCode.should.eql(StatusCodes.BadNodeIdUnknown);
         });
 
-        it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", () => {
-            const browsePath = new translate_service.BrowsePath({
-                startingNode: nodeid.makeNodeId(84), // <=== valid node id
+        it("translating a browse path to a nodeId with an empty relativePath  shall return BadNothingToDo", async () => {
+            const browsePath = new BrowsePath({
+                startingNode: makeNodeId(84), // <=== valid node id
                 relativePath: { elements: [] } // <=== empty path
             });
-            const browsePathResult = engine.browsePath(browsePath);
-            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            const browsePathResult = await engine.translateBrowsePath(browsePath);
+            browsePathResult.should.be.instanceOf(BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.BadNothingToDo);
         });
 
-        it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", () => {
-            const browsePath = new translate_service.BrowsePath({
-                startingNode: nodeid.makeNodeId(84),
+        it("The Server shall return BadBrowseNameInvalid if the targetName is missing. ", async () => {
+            const browsePath = new BrowsePath({
+                startingNode: makeNodeId(84),
                 relativePath: {
                     elements: [
                         {
                             //xx referenceTypeId: null,
                             isInverse: false,
-                            includeSubtypes: 0,
+                            includeSubtypes: false,
                             targetName: null // { namespaceIndex:0 , name: "Server"}
                         }
                     ]
                 }
             });
 
-            const browsePathResult = engine.browsePath(browsePath);
-            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            const browsePathResult = await engine.translateBrowsePath(browsePath);
+            browsePathResult.should.be.instanceOf(BrowsePathResult);
 
             browsePathResult.statusCode.should.eql(StatusCodes.BadBrowseNameInvalid);
             browsePathResult.targets!.length.should.eql(0);
         });
-        it("The Server shall return BadNoMatch if the targetName doesn't exist. ", () => {
-            const browsePath = new translate_service.BrowsePath({
-                startingNode: nodeid.makeNodeId(84),
+        it("The Server shall return BadNoMatch if the targetName doesn't exist. ", async () => {
+            const browsePath = new BrowsePath({
+                startingNode: makeNodeId(84),
                 relativePath: {
                     elements: [
                         {
                             //xx referenceTypeId: null,
                             isInverse: false,
-                            includeSubtypes: 0,
+                            includeSubtypes: false,
                             targetName: { namespaceIndex: 0, name: "xxxx invalid name xxx" }
                         }
                     ]
                 }
             });
 
-            const browsePathResult = engine.browsePath(browsePath);
-            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            const browsePathResult = await engine.translateBrowsePath(browsePath);
+            browsePathResult.should.be.instanceOf(BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.BadNoMatch);
             browsePathResult.targets!.length.should.eql(0);
         });
 
-        it("The Server shall return Good if the targetName does exist. ", () => {
-            const browsePath = new translate_service.BrowsePath({
-                startingNode: nodeid.makeNodeId(84),
+        it("The Server shall return Good if the targetName does exist. ", async () => {
+            const browsePath = new BrowsePath({
+                startingNode: makeNodeId(84),
                 relativePath: {
                     elements: [
                         {
                             //xx referenceTypeId: null,
                             isInverse: false,
-                            includeSubtypes: 0,
+                            includeSubtypes: false,
                             targetName: { namespaceIndex: 0, name: "Objects" }
                         }
                     ]
                 }
             });
 
-            const browsePathResult = engine.browsePath(browsePath);
-            browsePathResult.should.be.instanceOf(translate_service.BrowsePathResult);
+            const browsePathResult = await engine.translateBrowsePath(browsePath);
+            browsePathResult.should.be.instanceOf(BrowsePathResult);
             browsePathResult.statusCode.should.eql(StatusCodes.Good);
             browsePathResult.targets!.length.should.eql(1);
             browsePathResult.targets![0].targetId.should.eql(makeExpandedNodeId(85));
@@ -1568,6 +1560,7 @@ describe("testing ServerEngine", function () {
             });
 
             const dataValues = await refreshAndRead(engine, readRequest);
+
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
             dataValues[0].value.dataType.should.eql(DataType.UInt32);
             dataValues[0].value.value.should.eql(0);
@@ -1777,13 +1770,10 @@ describe("testing ServerEngine", function () {
     });
 
     describe("writing nodes ", () => {
-        const WriteValue = require("node-opcua-service-write").WriteValue;
-
-        it("should write a single node", function (done) {
+        it("should write a single node", async () => {
             const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                 attributeId: AttributeIds.Value,
-                indexRange: null,
                 value: {
                     // dataValue
                     value: {
@@ -1793,17 +1783,14 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            engine.writeSingleNode(context, nodeToWrite, function (err, statusCode) {
-                statusCode!.should.eql(StatusCodes.Good);
-                done(err);
-            });
+            const statusCode = await engine.writeSingleNode(context, nodeToWrite);
+            statusCode!.should.eql(StatusCodes.Good);
         });
 
-        it("should return BadNotWritable when trying to write a Executable attribute", function (done) {
+        it("should return BadNotWritable when trying to write a Executable attribute", async () => {
             const nodeToWrite = new WriteValue({
                 nodeId: resolveNodeId("RootFolder"),
                 attributeId: AttributeIds.Executable,
-                indexRange: null,
                 value: {
                     // dataValue
                     value: {
@@ -1813,18 +1800,15 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            engine.writeSingleNode(context, nodeToWrite, function (err, statusCode) {
-                statusCode!.should.eql(StatusCodes.BadNotWritable);
-                done(err);
-            });
+            const statusCode = await engine.writeSingleNode(context, nodeToWrite);
+            statusCode!.should.eql(StatusCodes.BadNotWritable);
         });
 
-        it("should write many nodes", function (done) {
+        it("should write many nodes", async () => {
             const nodesToWrite = [
                 new WriteValue({
                     nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                     attributeId: AttributeIds.Value,
-                    indexRange: null,
                     value: {
                         // dataValue
                         value: {
@@ -1837,7 +1821,6 @@ describe("testing ServerEngine", function () {
                 new WriteValue({
                     nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                     attributeId: AttributeIds.Value,
-                    indexRange: null,
                     value: {
                         // dataValue
                         value: {
@@ -1849,32 +1832,27 @@ describe("testing ServerEngine", function () {
                 })
             ];
 
-            engine.write(context, nodesToWrite, function (err, results) {
-                results!.length.should.eql(2);
-                results![0].should.eql(StatusCodes.Good);
-                results![1].should.eql(StatusCodes.Good);
-                done(err);
-            });
+            const results = await engine.write(context, nodesToWrite);
+            results!.length.should.eql(2);
+            results![0].should.eql(StatusCodes.Good);
+            results![1].should.eql(StatusCodes.Good);
         });
 
-        it(" write a single node with a null variant shall return BadTypeMismatch", function (done) {
+        it(" write a single node with a null variant shall return BadTypeMismatch", async () => {
             const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
                 attributeId: AttributeIds.Value,
-                indexRange: null,
                 value: {
                     // dataValue
                     statusCode: StatusCodes.Good,
-                    value: null
+                    value: undefined
                 }
             });
 
-            nodeToWrite.value.value = null;
+            nodeToWrite.value.value = null as any as Variant;
 
-            engine.writeSingleNode(context, nodeToWrite, function (err, statusCode) {
-                statusCode!.should.eql(StatusCodes.BadTypeMismatch);
-                done(err);
-            });
+            const statusCode = await engine.writeSingleNode(context, nodeToWrite);
+            statusCode!.should.eql(StatusCodes.BadTypeMismatch);
         });
     });
 
@@ -2075,7 +2053,6 @@ describe("ServerEngine advanced", () => {
             applicationUri: "application:uri"
         });
 
-        const sinon = require("sinon");
         const myFunc = sinon.spy();
 
         engine.registerShutdownTask(myFunc);

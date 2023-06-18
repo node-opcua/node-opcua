@@ -2630,10 +2630,6 @@ export class OPCUAServer extends OPCUABaseServer {
             (session: ServerSession, sendResponse: (response: Response) => void, sendError: (statusCode: StatusCode) => void) => {
                 const context = session.sessionContext;
 
-                let response;
-
-                let results = [];
-
                 const timestampsToReturn = request.timestampsToReturn;
 
                 if (timestampsToReturn === TimestampsToReturn.Invalid) {
@@ -2671,7 +2667,7 @@ export class OPCUAServer extends OPCUABaseServer {
                         assert(results[0].schema.name === "DataValue");
                         assert(results.length === request.nodesToRead!.length);
 
-                        response = new ReadResponse({
+                        const response = new ReadResponse({
                             diagnosticInfos: undefined,
                             results: undefined
                         });
@@ -2679,7 +2675,6 @@ export class OPCUAServer extends OPCUABaseServer {
                         response.results = results;
                         assert(response.diagnosticInfos!.length === 0);
                         sendResponse(response);
-                        
                     });
                 });
             }
@@ -2805,19 +2800,21 @@ export class OPCUAServer extends OPCUABaseServer {
                 const context = session.sessionContext;
 
                 assert(request.nodesToWrite[0].schema.name === "WriteValue");
-                this.engine.write(context, request.nodesToWrite, (err: Error | null, results?: StatusCode[]) => {
-                    if (err) {
+
+                this.engine
+                    .write(context, request.nodesToWrite)
+                    .then((results: StatusCode[]) => {
+                        assert(results!.length === request.nodesToWrite!.length);
+                        response = new WriteResponse({
+                            diagnosticInfos: undefined,
+                            results
+                        });
+                        sendResponse(response);
+                    })
+                    .catch((err) => {
                         errorLog(err);
-                        return sendError(StatusCodes.BadInternalError);
-                    }
-                    assert(Array.isArray(results));
-                    assert(results!.length === request.nodesToWrite!.length);
-                    response = new WriteResponse({
-                        diagnosticInfos: undefined,
-                        results
+                        sendError(StatusCodes.BadInternalError);
                     });
-                    sendResponse(response);
-                });
             }
         );
     }
@@ -3327,14 +3324,18 @@ export class OPCUAServer extends OPCUABaseServer {
                     }
                 }
 
-                const browsePathsResults = request.browsePaths.map((browsePath) => this.engine.browsePath(browsePath));
-
-                const response = new TranslateBrowsePathsToNodeIdsResponse({
-                    diagnosticInfos: null,
-                    results: browsePathsResults
-                });
-
-                sendResponse(response);
+                this.engine
+                    .translateBrowsePaths(request.browsePaths)
+                    .then((browsePathsResults) => {
+                        const response = new TranslateBrowsePathsToNodeIdsResponse({
+                            diagnosticInfos: null,
+                            results: browsePathsResults
+                        });
+                        sendResponse(response);
+                    })
+                    .catch((err) => {
+                        sendError(StatusCodes.BadInternalError);
+                    });
             }
         );
     }
@@ -3367,7 +3368,6 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadTooManyOperations);
                 }
 
-                /* jshint validthis: true */
                 const addressSpace = this.engine.addressSpace!;
 
                 const context = session.sessionContext;

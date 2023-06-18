@@ -13,13 +13,13 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine - addMethod", function () {
+describe("ServerEngine - addMethod", function() {
     let addressSpace;
     let namespace;
-    before(function (done) {
+    before(function(done) {
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
             addressSpace = engine.addressSpace;
             namespace = addressSpace.getOwnNamespace();
 
@@ -36,7 +36,7 @@ describe("ServerEngine - addMethod", function () {
         engine = null;
     });
 
-    it("should be able to attach a method on a object of the address space and call it", function (done) {
+    it("should be able to attach a method on a object of the address space and call it", async () => {
         const objectFolder = engine.addressSpace.findNode("ObjectsFolder");
 
         const object = namespace.addObject({
@@ -83,7 +83,7 @@ describe("ServerEngine - addMethod", function () {
         const methodOutputArguments = objectMethod.getOutputArguments();
         Array.isArray(methodOutputArguments).should.eql(true);
 
-        method.bindMethod(async function (inputArguments, context) {
+        method.bindMethod(async function(inputArguments, context) {
             const nbBarks = inputArguments[0].value;
             const barks = [];
             for (let i = 0; i < nbBarks; i++) {
@@ -115,7 +115,7 @@ describe("ServerEngine - addMethod", function () {
             {
                 startingNode: /* NodeId  */ method.nodeId,
                 relativePath: /* RelativePath   */ {
-                    elements: /* RelativePathElement */ [
+                    elements: /* RelativePathElement */[
                         {
                             referenceTypeId: hasPropertyRefId,
                             isInverse: false,
@@ -140,18 +140,15 @@ describe("ServerEngine - addMethod", function () {
             }
         ];
 
-        let result = engine.browsePath(new BrowsePath(browsePath[0]));
+        let result = await engine.translateBrowsePath(new BrowsePath(browsePath[0]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        result = engine.browsePath(new BrowsePath(browsePath[1]));
+        result = await engine.translateBrowsePath(new BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        objectMethod.execute(null, inputArguments, context, (err, callMethodResponse) => {
-            callMethodResponse.statusCode.should.eql(StatusCodes.Good);
-            callMethodResponse.outputArguments.length.should.eql(1);
-            callMethodResponse.outputArguments[0].value.should.eql(["Whaff", "Whaff", "Whaff"]);
-            // xx console.log(" Result = ", callMethodResponse.outputArguments[0].value);
-            done(err);
-        });
+        const callMethodResponse = await objectMethod.execute(null, inputArguments, context);
+        callMethodResponse.statusCode.should.eql(StatusCodes.Good);
+        callMethodResponse.outputArguments.length.should.eql(1);
+        callMethodResponse.outputArguments[0].value.should.eql(["Whaff", "Whaff", "Whaff"]);
     });
 });
