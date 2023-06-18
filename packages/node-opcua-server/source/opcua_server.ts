@@ -20,9 +20,6 @@ import * as utils from "node-opcua-utils";
 
 import {
     AddressSpace,
-    callMethodHelper,
-    ContinuationPoint,
-    IUserManager,
     PseudoVariantBoolean,
     PseudoVariantByteString,
     PseudoVariantDateTime,
