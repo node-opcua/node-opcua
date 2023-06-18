@@ -32,7 +32,8 @@ import {
     ContinuationData,
     IServerBase,
     UARole,
-    ensureDatatypeExtracted
+    ensureDatatypeExtracted,
+    callMethodHelper
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
@@ -88,7 +89,8 @@ import {
     AggregateConfiguration,
     ReadRequestOptions,
     ReadValueIdOptions,
-    BrowseDescriptionOptions
+    BrowseDescriptionOptions,
+    CallMethodRequest
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -369,10 +371,139 @@ export interface CreateSessionOption {
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
 
 export type ServerEngineShutdownTask = (this: ServerEngine) => void | Promise<void>;
+
+interface IAddressSpaceAccessor {
+    browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult>;
+    readNode(context: ISessionContext, nodeToRead: ReadValueIdOptions, timestampsToReturn?: TimestampsToReturn): Promise<DataValue>;
+    writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode>;
+    callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions>;
+}
+
+class AddressSpaceAccessor implements IAddressSpaceAccessor {
+    constructor(public addressSpace: AddressSpace) {}
+
+    public async browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult> {
+        if (!this.addressSpace) {
+            throw new Error("Address Space has not been initialized");
+        }
+        const nodeId = resolveNodeId(browseDescription.nodeId!);
+        const r = this.addressSpace.browseSingleNode(
+            nodeId,
+            browseDescription instanceof BrowseDescription
+                ? browseDescription
+                : new BrowseDescription({ ...browseDescription, nodeId }),
+            context
+        );
+        return r;
+    }
+    public async readNode(
+        context: ISessionContext,
+        nodeToRead: ReadValueIdOptions,
+        timestampsToReturn?: TimestampsToReturn
+    ): Promise<DataValue> {
+        assert(context instanceof SessionContext);
+        const nodeId = resolveNodeId(nodeToRead.nodeId!);
+        const attributeId: AttributeIds = nodeToRead.attributeId!;
+        const indexRange: NumericRange = nodeToRead.indexRange!;
+        const dataEncoding = nodeToRead.dataEncoding;
+
+        if (timestampsToReturn === TimestampsToReturn.Invalid) {
+            return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
+        }
+
+        timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
+
+        const obj = this.__findNode(coerceNodeId(nodeId));
+
+        let dataValue;
+        if (!obj) {
+            // may be return BadNodeIdUnknown in dataValue instead ?
+            // Object Not Found
+            return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+        } else {
+            // check access
+            //    BadUserAccessDenied
+            //    BadNotReadable
+            //    invalid attributes : BadNodeAttributesInvalid
+            //    invalid range      : BadIndexRangeInvalid
+            dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+            dataValue = apply_timestamps_no_copy(dataValue, timestampsToReturn, attributeId);
+
+            if (timestampsToReturn === TimestampsToReturn.Server) {
+                dataValue.sourceTimestamp = null;
+                dataValue.sourcePicoseconds = 0;
+            }
+            if (
+                (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
+                (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
+            ) {
+                const t: Date = context.currentTime ? context.currentTime.timestamp : getCurrentClock().timestamp;
+                dataValue.serverTimestamp = t;
+                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds;
+            }
+
+            return dataValue;
+        }
+    }
+
+    private __findNode(nodeId: NodeId): BaseNode | null {
+        const namespaceIndex = nodeId.namespace || 0;
+
+        if (namespaceIndex && namespaceIndex >= (this.addressSpace?.getNamespaceArray().length || 0)) {
+            return null;
+        }
+        const namespace = this.addressSpace!.getNamespace(namespaceIndex)!;
+        return namespace.findNode2(nodeId)!;
+    }
+
+    public async writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
+        await resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!);
+
+        assert(context instanceof SessionContext);
+        assert(writeValue.schema.name === "WriteValue");
+        assert(writeValue.value instanceof DataValue);
+
+        if (!writeValue.value.value) {
+            /* missing Variant */
+            return StatusCodes.BadTypeMismatch;
+        }
+
+        assert(writeValue.value.value instanceof Variant);
+
+        const nodeId = writeValue.nodeId;
+
+        const obj = this.__findNode(nodeId) as UAVariable;
+        if (!obj) {
+            return StatusCodes.BadNodeIdUnknown;
+        } else {
+            return await new Promise<StatusCode>((resolve, reject) => {
+                obj.writeAttribute(context, writeValue, (err, statusCode) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(statusCode!);
+                    }
+                });
+            });
+        }
+    }
+
+    public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
+        return await new Promise((resolve, reject) => {
+            callMethodHelper(context, this.addressSpace, methodToCall, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result!);
+                }
+            });
+        });
+    }
+}
 /**
  *
  */
-export class ServerEngine extends EventEmitter {
+export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor {
     public static readonly registry = new ObjectRegistry();
 
     public isAuditing: boolean;
@@ -383,6 +514,7 @@ export class ServerEngine extends EventEmitter {
     public clientDescription?: ApplicationDescription;
 
     public addressSpace: AddressSpace | null;
+    public addressSpaceAccessor: IAddressSpaceAccessor | null = null;
 
     // pseudo private
     public _internalState: "creating" | "initializing" | "initialized" | "shutdown" | "disposed";
@@ -778,6 +910,8 @@ export class ServerEngine extends EventEmitter {
         debugLog("Loading ", options.nodeset_filename, "...");
 
         this.addressSpace = AddressSpace.create();
+
+        this.addressSpaceAccessor = new AddressSpaceAccessor(this.addressSpace);
 
         // register namespace 1 (our namespace);
         const serverNamespace = this.addressSpace.registerNamespace(this.serverNamespaceUrn);
@@ -1366,18 +1500,7 @@ export class ServerEngine extends EventEmitter {
         return results;
     }
     public async browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult> {
-        if (!this.addressSpace) {
-            throw new Error("Address Space has not been initialized");
-        }
-        const nodeId = resolveNodeId(browseDescription.nodeId!);
-        const r = this.addressSpace.browseSingleNode(
-            nodeId,
-            browseDescription instanceof BrowseDescription
-                ? browseDescription
-                : new BrowseDescription({ ...browseDescription, nodeId }),
-            context
-        );
-        return r;
+        return this.addressSpaceAccessor!.browseNode(browseDescription, context);
     }
     /**
      *
@@ -1404,7 +1527,7 @@ export class ServerEngine extends EventEmitter {
      *
      *  @return  an array of DataValue
      */
-    public async readAsync(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]> {
+    public async read(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]> {
         assert(context instanceof SessionContext);
         // assert(readRequest instanceof ReadRequest);
         assert(readRequest.maxAge === undefined || readRequest.maxAge >= 0);
@@ -1418,51 +1541,10 @@ export class ServerEngine extends EventEmitter {
 
         const dataValues: DataValue[] = [];
         for (const readValueId of nodesToRead) {
-            const dataValue = await this._readSingleNode(context, readValueId, timestampsToReturn);
-            if (timestampsToReturn === TimestampsToReturn.Server) {
-                dataValue.sourceTimestamp = null;
-                dataValue.sourcePicoseconds = 0;
-            }
-            if (
-                (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
-                (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
-            ) {
-                dataValue.serverTimestamp = context.currentTime.timestamp;
-                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds;
-            }
+            const dataValue = await this.readNode(context, readValueId, timestampsToReturn);
             dataValues.push(dataValue);
         }
         return dataValues;
-    }
-
-    public async writeSingleNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
-        assert(context instanceof SessionContext);
-        assert(writeValue.schema.name === "WriteValue");
-        assert(writeValue.value instanceof DataValue);
-
-        if (!writeValue.value.value) {
-            /* missing Variant */
-            return StatusCodes.BadTypeMismatch;
-        }
-
-        assert(writeValue.value.value instanceof Variant);
-
-        const nodeId = writeValue.nodeId;
-
-        const obj = this.__findNode(nodeId) as UAVariable;
-        if (!obj) {
-            return StatusCodes.BadNodeIdUnknown;
-        } else {
-            return await new Promise<StatusCode>((resolve, reject) => {
-                obj.writeAttribute(context, writeValue, (err, statusCode) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(statusCode!);
-                    }
-                });
-            });
-        }
     }
 
     /**
@@ -1483,8 +1565,7 @@ export class ServerEngine extends EventEmitter {
         const extraDataTypeManager = await ensureDatatypeExtracted(this.addressSpace!);
 
         const performWrite = async (writeValue: WriteValue): Promise<StatusCode> => {
-            await resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!);
-            return await this.writeSingleNode(context, writeValue);
+            return await this.addressSpaceAccessor!.writeNode(context, writeValue);
         };
         const results: StatusCode[] = [];
         for (const writeValue of nodesToWrite) {
@@ -1492,6 +1573,22 @@ export class ServerEngine extends EventEmitter {
             results.push(statusCode);
         }
         return results;
+    }
+
+    public async writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
+        return this.addressSpaceAccessor!.writeNode(context, writeValue);
+    }
+
+    public async callMethods(context: ISessionContext, methodsToCall: CallMethodRequest[]): Promise<CallMethodResultOptions[]> {
+        const results: CallMethodResultOptions[] = [];
+        for (const methodToCall of methodsToCall) {
+            const result = await this.callMethod(context, methodToCall);
+            results.push(result);
+        }
+        return results;
+    }
+    public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
+        return this.addressSpaceAccessor?.callMethod(context, methodToCall) || {};
     }
 
     /**
@@ -1528,15 +1625,14 @@ export class ServerEngine extends EventEmitter {
         );
     }
 
-    public historyRead(
+    public async historyRead(
         context: ISessionContext,
-        historyReadRequest: HistoryReadRequest,
-        callback: (err: Error | null, results: HistoryReadResult[]) => void
-    ): void {
+        historyReadRequest: HistoryReadRequest
+    ): Promise<HistoryReadResult[]> {
+
         assert(context instanceof SessionContext);
         assert(historyReadRequest instanceof HistoryReadRequest);
-        assert(typeof callback === "function");
-
+        
         const timestampsToReturn = historyReadRequest.timestampsToReturn;
         const historyReadDetails = historyReadRequest.historyReadDetails! as HistoryReadDetails;
         const releaseContinuationPoints = historyReadRequest.releaseContinuationPoints;
@@ -1576,12 +1672,12 @@ export class ServerEngine extends EventEmitter {
         if (historyReadDetails instanceof ReadProcessedDetails) {
             //
             if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== nodesToRead.length) {
-                return callback(null, [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })]);
+                return [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })];
             }
 
             const parameterStatus = checkReadProcessedDetails(historyReadDetails);
             if (parameterStatus !== StatusCodes.Good) {
-                return callback(null, [new HistoryReadResult({ statusCode: parameterStatus })]);
+                return [new HistoryReadResult({ statusCode: parameterStatus })];
             }
             const promises: Promise<HistoryReadResult>[] = [];
             let index = 0;
@@ -1591,10 +1687,9 @@ export class ServerEngine extends EventEmitter {
                 promises.push(_q({ nodeToRead, processDetail, index }));
                 index++;
             }
-            Promise.all(promises).then((results: HistoryReadResult[]) => {
-                callback(null, results);
-            });
-            return;
+            
+            const results: HistoryReadResult[] = await Promise.all(promises);
+            return results;
         }
 
         const _r = async (nodeToRead: HistoryReadValueId, index: number) => {
@@ -1622,9 +1717,8 @@ export class ServerEngine extends EventEmitter {
             promises.push(_r(nodeToRead, index));
             index++;
         }
-        Promise.all(promises).then((results: HistoryReadResult[]) => {
-            callback(null, results);
-        });
+        const result = await Promise.all(promises);
+        return result;
     }
 
     public getOldestInactiveSession(): ServerSession | null {
@@ -2098,41 +2192,15 @@ export class ServerEngine extends EventEmitter {
         return namespace.findNode2(nodeId)!;
     }
 
-    private async _readSingleNode(
+    public async readNode(
         context: ISessionContext,
         nodeToRead: ReadValueIdOptions,
         timestampsToReturn?: TimestampsToReturn
     ): Promise<DataValue> {
-        assert(context instanceof SessionContext);
-        const nodeId = resolveNodeId(nodeToRead.nodeId!);
-        const attributeId: AttributeIds = nodeToRead.attributeId!;
-        const indexRange: NumericRange = nodeToRead.indexRange!;
-        const dataEncoding = nodeToRead.dataEncoding;
-
-        if (timestampsToReturn === TimestampsToReturn.Invalid) {
-            return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
-        }
-
-        timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
-
-        const obj = this.__findNode(coerceNodeId(nodeId));
-
-        let dataValue;
-        if (!obj) {
-            // may be return BadNodeIdUnknown in dataValue instead ?
-            // Object Not Found
-            return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
-        } else {
-            // check access
-            //    BadUserAccessDenied
-            //    BadNotReadable
-            //    invalid attributes : BadNodeAttributesInvalid
-            //    invalid range      : BadIndexRangeInvalid
-            dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-            dataValue = apply_timestamps_no_copy(dataValue, timestampsToReturn, attributeId);
-
-            return dataValue;
-        }
+        return (
+            this.addressSpaceAccessor?.readNode(context, nodeToRead, timestampsToReturn) ||
+            Promise.reject(new Error("Not implemented"))
+        );
     }
 
     private _historyReadSingleNode(

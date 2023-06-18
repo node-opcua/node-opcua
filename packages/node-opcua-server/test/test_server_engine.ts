@@ -41,7 +41,7 @@ async function refreshAndRead(engine: ServerEngine, readRequest: ReadRequest, ma
             else resolve();
         });
     });
-    const dataValues = await engine.readAsync(context, readRequest);
+    const dataValues = await engine.read(context, readRequest);
     return dataValues;
 }
 
@@ -370,7 +370,7 @@ describe("testing ServerEngine", function () {
         });
     });
 
-    it("should be possible to create a variable that returns historical data", function (done) {
+    it("should be possible to create a variable that returns historical data", async () => {
         const newFolder = namespace.addFolder("ObjectsFolder", "MyNewFolderHistorical1");
 
         const readValue = new DataValue({
@@ -430,14 +430,11 @@ describe("testing ServerEngine", function () {
             ]
         });
 
-        engine.historyRead(context, historyReadRequest, function (err, historyReadResults) {
-            historyReadResults[0].should.be.instanceOf(HistoryReadResult);
-
-            const historyReadResult = historyReadResults[0] as HistoryReadResult;
-            const historyData = historyReadResult.historyData as HistoryData;
-            historyData.dataValues!.length.should.eql(50);
-            done(err);
-        });
+        const historyReadResults = await engine.historyRead(context, historyReadRequest);
+        historyReadResults[0].should.be.instanceOf(HistoryReadResult);
+        const historyReadResult = historyReadResults[0] as HistoryReadResult;
+        const historyData = historyReadResult.historyData as HistoryData;
+        historyData.dataValues!.length.should.eql(50);
     });
 
     it("should be possible to create a object in a folder", () => {
@@ -787,7 +784,7 @@ describe("testing ServerEngine", function () {
 
     async function readSingleNode(engine: ServerEngine, context: ISessionContext, nodeId: NodeIdLike, attributeId: AttributeIds) {
         return (
-            await engine.readAsync(
+            await engine.read(
                 context,
                 new ReadRequest({
                     nodesToRead: [
@@ -803,7 +800,7 @@ describe("testing ServerEngine", function () {
 
     describe("readSingleNode on Object", () => {
         it("should handle a readSingleNode - BrowseName", async () => {
-            const dataValues = await engine.readAsync(context, {
+            const dataValues = await engine.read(context, {
                 nodesToRead: [
                     {
                         nodeId: "RootFolder",
@@ -1028,7 +1025,7 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        const dataValues = await engine.readAsync(context, readRequest);
+        const dataValues = await engine.read(context, readRequest);
         dataValues.length.should.equal(1);
     });
 
@@ -1068,7 +1065,7 @@ describe("testing ServerEngine", function () {
                 ],
                 timestampsToReturn: TimestampsToReturn.Both
             });
-            const dataValues = await engine.readAsync(context, readRequest);
+            const dataValues = await engine.read(context, readRequest);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
         }
@@ -1105,7 +1102,7 @@ describe("testing ServerEngine", function () {
                 ],
                 timestampsToReturn: TimestampsToReturn.Both
             });
-            const dataValues = await engine.readAsync(context, readRequest);
+            const dataValues = await engine.read(context, readRequest);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.BadDataEncodingInvalid);
         });
@@ -1121,7 +1118,7 @@ describe("testing ServerEngine", function () {
                 ],
                 timestampsToReturn: TimestampsToReturn.Both
             });
-            const dataValues = await engine.readAsync(context, readRequest);
+            const dataValues = await engine.read(context, readRequest);
             dataValues.length.should.eql(1);
             dataValues[0].statusCode.should.eql(StatusCodes.Good);
         });
@@ -1180,7 +1177,7 @@ describe("testing ServerEngine", function () {
                 timestampsToReturn: TimestampsToReturn.Server,
                 nodesToRead: nodesToRead
             });
-            const dataValues = await engine.readAsync(context, readRequest);
+            const dataValues = await engine.read(context, readRequest);
 
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
@@ -1213,7 +1210,7 @@ describe("testing ServerEngine", function () {
                 nodesToRead: nodesToRead
             });
 
-            const dataValues = await engine.readAsync(context, readRequest);
+            const dataValues = await engine.read(context, readRequest);
 
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
@@ -1243,7 +1240,7 @@ describe("testing ServerEngine", function () {
                 timestampsToReturn: TimestampsToReturn.Both,
                 nodesToRead: nodesToRead
             });
-            const dataValues = await engine.readAsync(context, readRequest);
+            const dataValues = await engine.read(context, readRequest);
 
             dataValues.length.should.equal(3);
             dataValues[0].should.be.instanceOf(DataValue);
@@ -1360,7 +1357,7 @@ describe("testing ServerEngine", function () {
                 }
             ]
         });
-        const dataValues = await engine.readAsync(context, readRequest);
+        const dataValues = await engine.read(context, readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].value.dataType.should.eql(DataType.NodeId);
         dataValues[0].value.value.toString().should.eql("ns=0;i=12"); // String
@@ -1380,7 +1377,7 @@ describe("testing ServerEngine", function () {
             ]
         });
 
-        const dataValues = await engine.readAsync(context, readRequest);
+        const dataValues = await engine.read(context, readRequest);
         dataValues.length.should.equal(1);
         dataValues[0].statusCode.should.eql(StatusCodes.Good);
 
@@ -1783,7 +1780,7 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            const statusCode = await engine.writeSingleNode(context, nodeToWrite);
+            const statusCode = await engine.writeNode(context, nodeToWrite);
             statusCode!.should.eql(StatusCodes.Good);
         });
 
@@ -1800,7 +1797,7 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            const statusCode = await engine.writeSingleNode(context, nodeToWrite);
+            const statusCode = await engine.writeNode(context, nodeToWrite);
             statusCode!.should.eql(StatusCodes.BadNotWritable);
         });
 
@@ -1851,7 +1848,7 @@ describe("testing ServerEngine", function () {
 
             nodeToWrite.value.value = null as any as Variant;
 
-            const statusCode = await engine.writeSingleNode(context, nodeToWrite);
+            const statusCode = await engine.writeNode(context, nodeToWrite);
             statusCode!.should.eql(StatusCodes.BadTypeMismatch);
         });
     });

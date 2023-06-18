@@ -2663,7 +2663,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 // ask for a refresh of asynchronous variables
                 this.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
                     assert(!err, " error not handled here , fix me");
-                    this.engine.readAsync(context, request).then((results) => {
+                    this.engine.read(context, request).then((results) => {
                         assert(results[0].schema.name === "DataValue");
                         assert(results.length === request.nodesToRead!.length);
 
@@ -2732,25 +2732,23 @@ export class OPCUAServer extends OPCUABaseServer {
                 this.engine.refreshValues(request.nodesToRead, 0, (err?: Error | null) => {
                     assert(!err, " error not handled here , fix me"); // TODO
 
-                    this.engine.historyRead(context, request, (err1: Error | null, results?: HistoryReadResult[]) => {
-                        if (err1) {
-                            return sendError(StatusCodes.BadHistoryOperationInvalid);
-                        }
-                        if (!results) {
-                            return sendError(StatusCodes.BadHistoryOperationInvalid);
-                        }
+                    this.engine
+                        .historyRead(context, request)
+                        .then((results: HistoryReadResult[]) => {
+                            assert(results[0].schema.name === "HistoryReadResult");
+                            assert(results.length === request.nodesToRead!.length);
 
-                        assert(results[0].schema.name === "HistoryReadResult");
-                        assert(results.length === request.nodesToRead!.length);
+                            response = new HistoryReadResponse({
+                                diagnosticInfos: undefined,
+                                results
+                            });
 
-                        response = new HistoryReadResponse({
-                            diagnosticInfos: undefined,
-                            results
+                            assert(response.diagnosticInfos!.length === 0);
+                            sendResponse(response);
+                        })
+                        .catch((err) => {
+                            return sendError(StatusCodes.BadHistoryOperationInvalid);
                         });
-
-                        assert(response.diagnosticInfos!.length === 0);
-                        sendResponse(response);
-                    });
                 });
             }
         );
@@ -3368,26 +3366,17 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadTooManyOperations);
                 }
 
-                const addressSpace = this.engine.addressSpace!;
-
                 const context = session.sessionContext;
-
-                async.map(
-                    request.methodsToCall,
-                    callMethodHelper.bind(null, context, addressSpace),
-                    (err?: Error | null, results?: (CallMethodResultOptions | undefined)[]) => {
-                        /* istanbul ignore next */
-                        if (err) {
-                            errorLog("ERROR in method Call !! ", err);
-                        }
-                        assert(Array.isArray(results));
-                        response = new CallResponse({
-                            results: results as CallMethodResultOptions[]
-                        });
+                this.engine
+                    .callMethods(context, request.methodsToCall)
+                    .then((results) => {
+                        const response = new CallResponse({ results });
                         filterDiagnosticInfo(request.requestHeader.returnDiagnostics, response);
                         sendResponse(response);
-                    }
-                );
+                    })
+                    .catch((err) => {
+                        sendError(StatusCodes.BadInternalError);
+                    });
             }
         );
     }
