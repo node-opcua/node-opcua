@@ -10,7 +10,7 @@ import { VariableIds, ObjectIds } from "node-opcua-constants";
 import { NodeClass, QualifiedName, AttributeIds, BrowseDirection, LocalizedText, ResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { coerceNodeId, resolveNodeId, makeNodeId, makeExpandedNodeId, NodeId, NodeIdLike, ExpandedNodeId } from "node-opcua-nodeid";
-import { BrowseRequest, BrowseDescription, ReferenceDescription } from "node-opcua-service-browse";
+import { BrowseRequest, BrowseDescription, ReferenceDescription, BrowseDescriptionOptions } from "node-opcua-service-browse";
 import { TimestampsToReturn, ReadRequest, ReadValueId, ReadRequestOptions } from "node-opcua-service-read";
 import { HistoryReadRequest, HistoryReadDetails, HistoryReadResult, HistoryData } from "node-opcua-service-history";
 import { StatusCodes } from "node-opcua-status-code";
@@ -446,6 +446,10 @@ describe("testing ServerEngine", function () {
         });
     });
 
+    const browseNode = async (engine: ServerEngine, browseDescription: BrowseDescriptionOptions) => {
+        const context = SessionContext.defaultContext;
+        return (await engine.browse(context, [browseDescription]))[0];
+    };
     it("should browse the 'Objects' folder for back references", async () => {
         const browseDescription = new BrowseDescription({
             nodeId: resolveNodeId("ObjectsFolder"),
@@ -456,7 +460,7 @@ describe("testing ServerEngine", function () {
             resultMask: 0x3f
         });
 
-        const browseResult = await engine.browseNode(browseDescription);
+        const browseResult = await browseNode(engine, browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
         browseResult.references!.length.should.equal(1);
@@ -479,7 +483,7 @@ describe("testing ServerEngine", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult = await engine.browseNode(browseDescription);
+        const browseResult = await browseNode(engine, browseDescription);
 
         const browseNames = browseResult.references!.map(function (r) {
             return r.browseName.name;
@@ -522,7 +526,7 @@ describe("testing ServerEngine", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult1 = await engine.browseNode(browseDescription1);
+        const browseResult1 = await browseNode(engine, browseDescription1);
         browseResult1.references!.length.should.equal(3);
 
         const browseDescription2 = {
@@ -533,7 +537,7 @@ describe("testing ServerEngine", function () {
             nodeClassMask: 0, // 0 = all nodes
             resultMask: 0x3f
         };
-        const browseResult2 = await engine.browseNode(browseDescription2);
+        const browseResult2 = await browseNode(engine, browseDescription2);
     });
 
     it("should browse root folder with abstract referenceTypeId and includeSubtypes set to true", async () => {
@@ -550,7 +554,7 @@ describe("testing ServerEngine", function () {
         });
         browseDescription.browseDirection.should.eql(BrowseDirection.Both);
 
-        const browseResult = await engine.browseNode(browseDescription);
+        const browseResult = await browseNode(engine, browseDescription);
 
         browseResult.statusCode.should.eql(StatusCodes.Good);
         if (!browseResult.references) {
@@ -590,7 +594,7 @@ describe("testing ServerEngine", function () {
             referenceTypeId: resolveNodeId("Organizes"),
             resultMask: 0x3f
         };
-        const browseResult = await engine.browseNode(browseDescription);
+        const browseResult = await browseNode(engine, browseDescription);
         browseResult.statusCode.should.eql(StatusCodes.Good);
 
         browseResult.references!.length.should.be.greaterThan(1);
@@ -607,13 +611,13 @@ describe("testing ServerEngine", function () {
             referenceTypeId: resolveNodeId("Organizes"),
             resultMask: 0x3f
         };
-        const browseResult = await engine.browseNode(browseDescription);
+        const browseResult = await browseNode(engine, browseDescription);
         browseResult.statusCode.should.equal(StatusCodes.BadNodeIdUnknown);
         browseResult.references!.length.should.equal(0);
     });
 
     it("should handle a BrowseRequest and set StatusCode if browseDescription is not provided", async () => {
-        const browseResult = await engine.browseNode({ nodeId: "ns=46;i=123456", browseDirection: BrowseDirection.Invalid });
+        const browseResult = await browseNode(engine, { nodeId: "ns=46;i=123456", browseDirection: BrowseDirection.Invalid });
         browseResult.statusCode.should.equal(StatusCodes.BadBrowseDirectionInvalid);
         browseResult.references!.length.should.equal(0);
     });
@@ -637,7 +641,8 @@ describe("testing ServerEngine", function () {
         });
 
         browseRequest.nodesToBrowse!.length.should.equal(2);
-        const results = await engine.browseNodes(browseRequest.nodesToBrowse!);
+        const context = SessionContext.defaultContext;
+        const results = await engine.browse(context, browseRequest.nodesToBrowse!);
 
         results.length.should.equal(2);
 
@@ -667,15 +672,15 @@ describe("testing ServerEngine", function () {
 
         const _session = session as unknown as { testFilterArray: number[] };
         _session.testFilterArray = [1, 3];
-        const results1 = await engine.browseNodes(browseRequest.nodesToBrowse!, context);
+        const results1 = await engine.browse(context, browseRequest.nodesToBrowse!);
         results1[0].references!.length.should.equal(2);
 
         _session.testFilterArray = [1, 2, 3];
-        const results2 = await engine.browseNodes(browseRequest.nodesToBrowse!, context);
+        const results2 = await engine.browse(context, browseRequest.nodesToBrowse!);
         results2[0].references!.length.should.equal(3);
 
         _session.testFilterArray = [3];
-        const results3 = await engine.browseNodes(browseRequest.nodesToBrowse!, context);
+        const results3 = await engine.browse(context, browseRequest.nodesToBrowse!);
         results3[0].references!.length.should.equal(1);
         results3[0].references![0].displayName.text!.should.equal("filteredFolder3");
 
@@ -712,7 +717,7 @@ describe("testing ServerEngine", function () {
                 nodeClassMask: 0, // 0 = all nodes
                 resultMask: resultMask
             });
-            const browseResult = await engine.browseNode(browseDescription);
+            const browseResult = await browseNode(engine, browseDescription);
 
             browseResult.references!.length.should.be.greaterThan(1);
             for (const referenceDescription of browseResult.references!) {
@@ -770,7 +775,8 @@ describe("testing ServerEngine", function () {
                 resultMask: 63
             })
         ];
-        const browseResults = await engine.browseWithAutomaticExpansion(nodesToBrowse);
+        const context = SessionContext.defaultContext;
+        const browseResults = await engine.browseWithAutomaticExpansion(nodesToBrowse, context);
         browseResults.length.should.eql(2);
         browseResults[0].references!.length.should.eql(2);
         browseResults[0].references![0].browseName.toString().should.eql("1:SubObject1");
@@ -1767,6 +1773,9 @@ describe("testing ServerEngine", function () {
     });
 
     describe("writing nodes ", () => {
+        const writeNode = async (engine: ServerEngine, nodeToWrite: WriteValue) => {
+            return (await engine.write(context, [nodeToWrite]))[0];
+        };
         it("should write a single node", async () => {
             const nodeToWrite = new WriteValue({
                 nodeId: coerceNodeId("ns=1;s=WriteableInt32"),
@@ -1780,7 +1789,8 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            const statusCode = await engine.writeNode(context, nodeToWrite);
+
+            const statusCode = await writeNode(engine, nodeToWrite);
             statusCode!.should.eql(StatusCodes.Good);
         });
 
@@ -1797,7 +1807,7 @@ describe("testing ServerEngine", function () {
                     }
                 }
             });
-            const statusCode = await engine.writeNode(context, nodeToWrite);
+            const statusCode = await writeNode(engine, nodeToWrite);
             statusCode!.should.eql(StatusCodes.BadNotWritable);
         });
 
@@ -1848,7 +1858,7 @@ describe("testing ServerEngine", function () {
 
             nodeToWrite.value.value = null as any as Variant;
 
-            const statusCode = await engine.writeNode(context, nodeToWrite);
+            const statusCode = await writeNode(engine, nodeToWrite);
             statusCode!.should.eql(StatusCodes.BadTypeMismatch);
         });
     });

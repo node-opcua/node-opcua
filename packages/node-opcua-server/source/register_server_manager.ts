@@ -10,7 +10,6 @@ import { assert } from "node-opcua-assert";
 import { ErrorCallback, UAString } from "node-opcua-basic-types";
 import {
     coerceLocalizedText,
-    LocalizedTextLike,
     LocalizedTextOptions,
     OPCUAClientBase,
     OPCUAClientBaseOptions,

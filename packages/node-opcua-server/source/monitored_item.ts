@@ -54,7 +54,7 @@ import { sameVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
 import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
-import { checkWhereClauseOnAdressSpace } from "./filter/check_where_clause_on_address_space";
+import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space";
 import { SamplingFunc } from "./sampling_func";
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
@@ -991,7 +991,7 @@ export class MonitoredItem extends EventEmitter {
 
         const addressSpace: AddressSpace = eventData.$eventDataSource?.addressSpace as AddressSpace;
 
-        if (!checkWhereClauseOnAdressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
+        if (!checkWhereClauseOnAddressSpace(addressSpace, SessionContext.defaultContext, this.filter.whereClause, eventData)) {
             return;
         }
 

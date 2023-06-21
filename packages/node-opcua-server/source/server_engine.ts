@@ -10,7 +10,6 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import {
     addElement,
     AddressSpace,
-    BaseNode,
     bindExtObjArrayNode,
     ensureObjectIsSecure,
     MethodFunctor,
@@ -26,14 +25,9 @@ import {
     BindVariableOptions,
     ISessionContext,
     DTServerStatus,
-    resolveOpaqueOnAddressSpace,
-    ContinuationData,
-    IServerBase,
-    ensureDatatypeExtracted,
-    callMethodHelper
-} from "node-opcua-address-space";
+    IServerBase} from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
-import { DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
+import { DataValue } from "node-opcua-data-value";
 import {
     ServerDiagnosticsSummaryDataType,
     ServerState,
@@ -42,40 +36,30 @@ import {
 } from "node-opcua-common";
 import {
     AttributeIds,
-    BrowseDirection,
     coerceLocalizedText,
     LocalizedTextLike,
     makeAccessLevelFlag,
-    NodeClass,
-    QualifiedName
-} from "node-opcua-data-model";
+    NodeClass} from "node-opcua-data-model";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseResult } from "node-opcua-service-browse";
-import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
 import { UInt32 } from "node-opcua-basic-types";
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
-import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
 import { getCurrentClock, minOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
-import { NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { CallMethodResult } from "node-opcua-service-call";
 import { TransferResult } from "node-opcua-service-subscription";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
-import { HistoryReadDetails, HistoryReadRequest, HistoryReadResult, HistoryReadValueId } from "node-opcua-service-history";
-import { StatusCode, StatusCodes, CallbackT, StatusCodeCallback } from "node-opcua-status-code";
+import { HistoryReadRequest, HistoryReadResult, HistoryReadValueId } from "node-opcua-service-history";
+import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
 import {
     BrowseDescription,
     BrowsePath,
     BrowsePathResult,
     BuildInfo,
     BuildInfoOptions,
-    ReadAtTimeDetails,
-    ReadEventDetails,
-    ReadProcessedDetails,
-    ReadRawModifiedDetails,
     SessionDiagnosticsDataType,
     SessionSecurityDiagnosticsDataType,
     WriteValue,
@@ -83,9 +67,7 @@ import {
     TimeZoneDataType,
     ProgramDiagnosticDataType,
     CallMethodResultOptions,
-    AggregateConfiguration,
     ReadRequestOptions,
-    ReadValueIdOptions,
     BrowseDescriptionOptions,
     CallMethodRequest
 } from "node-opcua-types";
@@ -100,6 +82,8 @@ import { ServerSession } from "./server_session";
 import { Subscription } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 import { OPCUAServerOptions } from "./opcua_server";
+import { IAddressSpaceAccessor } from "./i_address_space_accessor";
+import { AddressSpaceAccessor } from "./addressSpace_accessor";
 
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
@@ -306,44 +290,6 @@ function _get_next_subscriptionId() {
     return next_subscriptionId++;
 }
 
-function checkReadProcessedDetails(historyReadDetails: ReadProcessedDetails): StatusCode {
-    if (!historyReadDetails.aggregateConfiguration) {
-        historyReadDetails.aggregateConfiguration = new AggregateConfiguration({
-            useServerCapabilitiesDefaults: true
-        });
-    }
-    if (historyReadDetails.aggregateConfiguration.useServerCapabilitiesDefaults) {
-        return StatusCodes.Good;
-    }
-
-    // The PercentDataGood and PercentDataBad shall follow the following relationship
-    //          PercentDataGood ≥ (100 – PercentDataBad).
-    // If they are equal the result of the PercentDataGood calculation is used.
-    // If the values entered for PercentDataGood and PercentDataBad do not result in a valid calculation
-    //  (e.g. Bad = 80; Good = 0) the result will have a StatusCode of Bad_AggregateInvalidInputs.
-    if (
-        historyReadDetails.aggregateConfiguration.percentDataGood <
-        100 - historyReadDetails.aggregateConfiguration.percentDataBad
-    ) {
-        return StatusCodes.BadAggregateInvalidInputs;
-    }
-    // The StatusCode Bad_AggregateInvalidInputs will be returned if the value of PercentDataGood
-    // or PercentDataBad exceed 100.
-    if (
-        historyReadDetails.aggregateConfiguration.percentDataGood > 100 ||
-        historyReadDetails.aggregateConfiguration.percentDataGood < 0
-    ) {
-        return StatusCodes.BadAggregateInvalidInputs;
-    }
-    if (
-        historyReadDetails.aggregateConfiguration.percentDataBad > 100 ||
-        historyReadDetails.aggregateConfiguration.percentDataBad < 0
-    ) {
-        return StatusCodes.BadAggregateInvalidInputs;
-    }
-    return StatusCodes.Good;
-}
-
 export type StringGetter = () => string;
 
 export interface ServerEngineOptions {
@@ -369,199 +315,10 @@ export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing
 
 export type ServerEngineShutdownTask = (this: ServerEngine) => void | Promise<void>;
 
-interface IAddressSpaceAccessor {
-    browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult>;
-    readNode(context: ISessionContext, nodeToRead: ReadValueIdOptions, timestampsToReturn?: TimestampsToReturn): Promise<DataValue>;
-    writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode>;
-    callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions>;
-    historyReadNode(
-        context: ISessionContext,
-        nodeToRead: HistoryReadValueId,
-        historyReadDetails: HistoryReadDetails,
-        timestampsToReturn: TimestampsToReturn,
-        continuationData: ContinuationData
-    ): Promise<HistoryReadResult>;
-}
 
-class AddressSpaceAccessor implements IAddressSpaceAccessor {
-    constructor(public addressSpace: AddressSpace) {}
 
-    public async browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult> {
-        if (!this.addressSpace) {
-            throw new Error("Address Space has not been initialized");
-        }
-        const nodeId = resolveNodeId(browseDescription.nodeId!);
-        const r = this.addressSpace.browseSingleNode(
-            nodeId,
-            browseDescription instanceof BrowseDescription
-                ? browseDescription
-                : new BrowseDescription({ ...browseDescription, nodeId }),
-            context
-        );
-        return r;
-    }
-    public async readNode(
-        context: ISessionContext,
-        nodeToRead: ReadValueIdOptions,
-        timestampsToReturn?: TimestampsToReturn
-    ): Promise<DataValue> {
-        assert(context instanceof SessionContext);
-        const nodeId = resolveNodeId(nodeToRead.nodeId!);
-        const attributeId: AttributeIds = nodeToRead.attributeId!;
-        const indexRange: NumericRange = nodeToRead.indexRange!;
-        const dataEncoding = nodeToRead.dataEncoding;
 
-        if (timestampsToReturn === TimestampsToReturn.Invalid) {
-            return new DataValue({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
-        }
 
-        timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
-
-        const obj = this.__findNode(coerceNodeId(nodeId));
-
-        let dataValue;
-        if (!obj) {
-            // may be return BadNodeIdUnknown in dataValue instead ?
-            // Object Not Found
-            return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
-        } else {
-            // check access
-            //    BadUserAccessDenied
-            //    BadNotReadable
-            //    invalid attributes : BadNodeAttributesInvalid
-            //    invalid range      : BadIndexRangeInvalid
-            dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-            dataValue = apply_timestamps_no_copy(dataValue, timestampsToReturn, attributeId);
-
-            if (timestampsToReturn === TimestampsToReturn.Server) {
-                dataValue.sourceTimestamp = null;
-                dataValue.sourcePicoseconds = 0;
-            }
-            if (
-                (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
-                (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
-            ) {
-                const t: Date = context.currentTime ? context.currentTime.timestamp : getCurrentClock().timestamp;
-                dataValue.serverTimestamp = t;
-                dataValue.serverPicoseconds = 0; // context.currentTime.picoseconds;
-            }
-
-            return dataValue;
-        }
-    }
-
-    private __findNode(nodeId: NodeId): BaseNode | null {
-        const namespaceIndex = nodeId.namespace || 0;
-
-        if (namespaceIndex && namespaceIndex >= (this.addressSpace?.getNamespaceArray().length || 0)) {
-            return null;
-        }
-        const namespace = this.addressSpace!.getNamespace(namespaceIndex)!;
-        return namespace.findNode2(nodeId)!;
-    }
-
-    public async writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
-        await resolveOpaqueOnAddressSpace(this.addressSpace!, writeValue.value.value!);
-
-        assert(context instanceof SessionContext);
-        assert(writeValue.schema.name === "WriteValue");
-        assert(writeValue.value instanceof DataValue);
-
-        if (!writeValue.value.value) {
-            /* missing Variant */
-            return StatusCodes.BadTypeMismatch;
-        }
-
-        assert(writeValue.value.value instanceof Variant);
-
-        const nodeId = writeValue.nodeId;
-
-        const obj = this.__findNode(nodeId) as UAVariable;
-        if (!obj) {
-            return StatusCodes.BadNodeIdUnknown;
-        } else {
-            return await new Promise<StatusCode>((resolve, reject) => {
-                obj.writeAttribute(context, writeValue, (err, statusCode) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(statusCode!);
-                    }
-                });
-            });
-        }
-    }
-
-    public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
-        return await new Promise((resolve, reject) => {
-            callMethodHelper(context, this.addressSpace, methodToCall, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result!);
-                }
-            });
-        });
-    }
-
-    public async historyReadNode(
-        context: ISessionContext,
-        nodeToRead: HistoryReadValueId,
-        historyReadDetails: HistoryReadDetails,
-        timestampsToReturn: TimestampsToReturn,
-        continuationData: ContinuationData
-    ): Promise<HistoryReadResult> {
-        assert(context instanceof SessionContext);
-
-        const nodeId = nodeToRead.nodeId;
-        const indexRange = nodeToRead.indexRange;
-        const dataEncoding = nodeToRead.dataEncoding;
-        const continuationPoint = nodeToRead.continuationPoint;
-
-        timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
-        if (timestampsToReturn === TimestampsToReturn.Invalid) {
-            return new HistoryReadResult({ statusCode: StatusCodes.BadTimestampsToReturnInvalid });
-        }
-
-        const obj = this.__findNode(nodeId) as UAVariable;
-
-        if (!obj) {
-            // may be return BadNodeIdUnknown in dataValue instead ?
-            // Object Not Found
-            return new HistoryReadResult({ statusCode: StatusCodes.BadNodeIdUnknown });
-        } else {
-            // istanbul ignore next
-            if (!obj.historyRead) {
-                // note : Object and View may also support historyRead to provide Event historical data
-                //        todo implement historyRead for Object and View
-                const msg =
-                    " this node doesn't provide historyRead! probably not a UAVariable\n " +
-                    obj.nodeId.toString() +
-                    " " +
-                    obj.browseName.toString() +
-                    "\n" +
-                    "with " +
-                    nodeToRead.toString() +
-                    "\n" +
-                    "HistoryReadDetails " +
-                    historyReadDetails.toString();
-                if (doDebug) {
-                    debugLog(chalk.cyan("ServerEngine#_historyReadSingleNode "), chalk.white.bold(msg));
-                }
-                throw new Error(msg);
-            }
-            // check access
-            //    BadUserAccessDenied
-            //    BadNotReadable
-            //    invalid attributes : BadNodeAttributesInvalid
-            //    invalid range      : BadIndexRangeInvalid
-            const result = await obj.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationData);
-            assert(result!.statusCode instanceof StatusCode);
-            assert(result!.isValid());
-            return result;
-        }
-    }
-}
 /**
  *
  */
@@ -1527,7 +1284,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
     public async browseWithAutomaticExpansion(
         nodesToBrowse: BrowseDescription[],
-        context?: ISessionContext
+        context: ISessionContext
     ): Promise<BrowseResult[]> {
         // do expansion first
         for (const browseDescription of nodesToBrowse) {
@@ -1548,206 +1305,22 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 }
             }
         }
-        return await this.browseNodes(nodesToBrowse, context);
+        return await this.browse(context, nodesToBrowse);
     }
-    /**
-     *
-     */
-    public async browseNodes(nodesToBrowse: BrowseDescriptionOptions[], context?: ISessionContext): Promise<BrowseResult[]> {
-        const results: BrowseResult[] = [];
-        for (const browseDescription of nodesToBrowse) {
-            results.push(await this.browseNode(browseDescription, context));
-            assert(browseDescription.nodeId!, "expecting a nodeId");
-        }
-        return results;
+    public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
+        return this.addressSpaceAccessor!.browse(context, nodesToBrowse);
     }
-    public async browseNode(browseDescription: BrowseDescriptionOptions, context?: ISessionContext): Promise<BrowseResult> {
-        return this.addressSpaceAccessor!.browseNode(browseDescription, context);
-    }
-    /**
-     *
-     *
-     *    @param {number} maxAge: Maximum age of the value to be read in milliseconds.
-     *
-     *    The age of the value is based on the difference between
-     *    the ServerTimestamp and the time when the  Server starts processing the request. For example if the Client
-     *    specifies a maxAge of 500 milliseconds and it takes 100 milliseconds until the Server starts  processing
-     *    the request, the age of the returned value could be 600 milliseconds  prior to the time it was requested.
-     *    If the Server has one or more values of an Attribute that are within the maximum age, it can return any one
-     *    of the values or it can read a new value from the data  source. The number of values of an Attribute that
-     *    a Server has depends on the  number of MonitoredItems that are defined for the Attribute. In any case,
-     *    the Client can make no assumption about which copy of the data will be returned.
-     *    If the Server does not have a value that is within the maximum age, it shall attempt to read a new value
-     *    from the data source.
-     *    If the Server cannot meet the requested maxAge, it returns its 'best effort' value rather than rejecting the
-     *    request.
-     *    This may occur when the time it takes the Server to process and return the new data value after it has been
-     *    accessed is greater than the specified maximum age.
-     *    If maxAge is set to 0, the Server shall attempt to read a new value from the data source.
-     *    If maxAge is set to the max Int32 value or greater, the Server shall attempt to get a cached value.
-     *    Negative values are invalid for maxAge.
-     *
-     *  @return  an array of DataValue
-     */
     public async read(context: ISessionContext, readRequest: ReadRequestOptions): Promise<DataValue[]> {
-        assert(context instanceof SessionContext);
-        // assert(readRequest instanceof ReadRequest);
-        assert(readRequest.maxAge === undefined || readRequest.maxAge >= 0);
-
-        const timestampsToReturn = readRequest.timestampsToReturn;
-
-        const nodesToRead = readRequest.nodesToRead || [];
-        assert(Array.isArray(nodesToRead));
-
-        context.currentTime = getCurrentClock();
-
-        const dataValues: DataValue[] = [];
-        for (const readValueId of nodesToRead) {
-            const dataValue = await this.readNode(context, readValueId, timestampsToReturn);
-            dataValues.push(dataValue);
-        }
-        return dataValues;
+        return this.addressSpaceAccessor!.read(context, readRequest);
     }
-
-    /**
-     * write a collection of nodes
-     * @method write
-     * @param context
-     * @param nodesToWrite
-     * @param callback
-     * @param callback.err
-     * @param callback.results
-     * @async
-     */
     public async write(context: ISessionContext, nodesToWrite: WriteValue[]): Promise<StatusCode[]> {
-        assert(context instanceof SessionContext);
-
-        context.currentTime = getCurrentClock();
-
-        const extraDataTypeManager = await ensureDatatypeExtracted(this.addressSpace!);
-
-        const performWrite = async (writeValue: WriteValue): Promise<StatusCode> => {
-            return await this.addressSpaceAccessor!.writeNode(context, writeValue);
-        };
-        const results: StatusCode[] = [];
-        for (const writeValue of nodesToWrite) {
-            const statusCode = await performWrite(writeValue);
-            results.push(statusCode);
-        }
-        return results;
+        return await this.addressSpaceAccessor!.write(context, nodesToWrite);
     }
-
-    public async writeNode(context: ISessionContext, writeValue: WriteValue): Promise<StatusCode> {
-        return this.addressSpaceAccessor!.writeNode(context, writeValue);
+    public async call(context: ISessionContext, methodsToCall: CallMethodRequest[]): Promise<CallMethodResultOptions[]> {
+        return await this.addressSpaceAccessor!.call(context, methodsToCall);
     }
-
-    public async callMethods(context: ISessionContext, methodsToCall: CallMethodRequest[]): Promise<CallMethodResultOptions[]> {
-        const results: CallMethodResultOptions[] = [];
-        for (const methodToCall of methodsToCall) {
-            const result = await this.callMethod(context, methodToCall);
-            results.push(result);
-        }
-        return results;
-    }
-    public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
-        return this.addressSpaceAccessor?.callMethod(context, methodToCall) || {};
-    }
-
-    /**
-     *
-     */
-    public async historyReadSingleNode(
-        context: ISessionContext,
-        nodeId: NodeId,
-        attributeId: AttributeIds,
-        historyReadDetails: ReadRawModifiedDetails | ReadEventDetails | ReadProcessedDetails | ReadAtTimeDetails,
-        timestampsToReturn: TimestampsToReturn,
-        continuationData: ContinuationData
-    ): Promise<HistoryReadResult> {
-        if (timestampsToReturn === TimestampsToReturn.Invalid) {
-            return new HistoryReadResult({
-                statusCode: StatusCodes.BadTimestampsToReturnInvalid
-            });
-        }
-        assert(context instanceof SessionContext);
-        return await this.historyReadNode(
-            context,
-            new HistoryReadValueId({
-                nodeId
-            }),
-            historyReadDetails,
-            timestampsToReturn,
-            continuationData
-        );
-    }
-
     public async historyRead(context: ISessionContext, historyReadRequest: HistoryReadRequest): Promise<HistoryReadResult[]> {
-        assert(context instanceof SessionContext);
-        assert(historyReadRequest instanceof HistoryReadRequest);
-
-        const timestampsToReturn = historyReadRequest.timestampsToReturn;
-        const historyReadDetails = historyReadRequest.historyReadDetails! as HistoryReadDetails;
-        const releaseContinuationPoints = historyReadRequest.releaseContinuationPoints;
-        assert(historyReadDetails instanceof HistoryReadDetails);
-        //  ReadAnnotationDataDetails | ReadAtTimeDetails | ReadEventDetails | ReadProcessedDetails | ReadRawModifiedDetails;
-
-        const nodesToRead = historyReadRequest.nodesToRead || ([] as HistoryReadValueId[]);
-        assert(Array.isArray(nodesToRead));
-
-        // special cases with ReadProcessedDetails
-        interface M {
-            nodeToRead: HistoryReadValueId;
-            processDetail: ReadProcessedDetails;
-            index: number;
-        }
-
-        const _q = async (m: M): Promise<HistoryReadResult> => {
-            const continuationPoint = m.nodeToRead.continuationPoint;
-            return await this.historyReadNode(context, m.nodeToRead, m.processDetail, timestampsToReturn, {
-                continuationPoint,
-                releaseContinuationPoints /**, index = ??? */
-            });
-        };
-
-        if (historyReadDetails instanceof ReadProcessedDetails) {
-            //
-            if (!historyReadDetails.aggregateType || historyReadDetails.aggregateType.length !== nodesToRead.length) {
-                return [new HistoryReadResult({ statusCode: StatusCodes.BadInvalidArgument })];
-            }
-
-            const parameterStatus = checkReadProcessedDetails(historyReadDetails);
-            if (parameterStatus !== StatusCodes.Good) {
-                return [new HistoryReadResult({ statusCode: parameterStatus })];
-            }
-            const promises: Promise<HistoryReadResult>[] = [];
-            let index = 0;
-            for (const nodeToRead of nodesToRead) {
-                const aggregateType = historyReadDetails.aggregateType[index];
-                const processDetail = new ReadProcessedDetails({ ...historyReadDetails, aggregateType: [aggregateType] });
-                promises.push(_q({ nodeToRead, processDetail, index }));
-                index++;
-            }
-
-            const results: HistoryReadResult[] = await Promise.all(promises);
-            return results;
-        }
-
-        const _r = async (nodeToRead: HistoryReadValueId, index: number) => {
-            const continuationPoint = nodeToRead.continuationPoint;
-            return await this.historyReadNode(context, nodeToRead, historyReadDetails, timestampsToReturn, {
-                continuationPoint,
-                releaseContinuationPoints,
-                index
-            });
-        };
-        const promises: Promise<HistoryReadResult>[] = [];
-        let index = 0;
-        for (const nodeToRead of nodesToRead) {
-            promises.push(_r(nodeToRead, index));
-            index++;
-        }
-        const result = await Promise.all(promises);
-        return result;
+        return this.addressSpaceAccessor!.historyRead(context, historyReadRequest);
     }
 
     public getOldestInactiveSession(): ServerSession | null {
@@ -2209,43 +1782,6 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         });
 
         return subscription;
-    }
-
-    private __findNode(nodeId: NodeId): BaseNode | null {
-        const namespaceIndex = nodeId.namespace || 0;
-
-        if (namespaceIndex && namespaceIndex >= (this.addressSpace?.getNamespaceArray().length || 0)) {
-            return null;
-        }
-        const namespace = this.addressSpace!.getNamespace(namespaceIndex)!;
-        return namespace.findNode2(nodeId)!;
-    }
-
-    public async readNode(
-        context: ISessionContext,
-        nodeToRead: ReadValueIdOptions,
-        timestampsToReturn?: TimestampsToReturn
-    ): Promise<DataValue> {
-        return (
-            this.addressSpaceAccessor?.readNode(context, nodeToRead, timestampsToReturn) ||
-            Promise.reject(new Error("Not implemented"))
-        );
-    }
-
-    public async historyReadNode(
-        context: ISessionContext,
-        nodeToRead: HistoryReadValueId,
-        historyReadDetails: HistoryReadDetails,
-        timestampsToReturn: TimestampsToReturn,
-        continuationData: ContinuationData
-    ): Promise<HistoryReadResult> {
-        return this.addressSpaceAccessor!.historyReadNode(
-            context,
-            nodeToRead,
-            historyReadDetails,
-            timestampsToReturn,
-            continuationData
-        );
     }
 
     /**
