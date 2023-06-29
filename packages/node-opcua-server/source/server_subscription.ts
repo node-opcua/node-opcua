@@ -1086,11 +1086,11 @@ export class Subscription extends EventEmitter {
         this._createMonitoredItemStep3(monitoredItem, monitoredItemCreateRequest);
     }
 
-    public createMonitoredItem(
+    public async createMonitoredItem(
         addressSpace: AddressSpace,
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest
-    ): MonitoredItemCreateResult {
+    ): Promise<MonitoredItemCreateResult> {
         const { monitoredItem, createResult } = this.preCreateMonitoredItem(
             addressSpace,
             timestampsToReturn,

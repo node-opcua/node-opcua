@@ -144,7 +144,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         });
     }
     function install_spying_samplingFunc(nodeId: NodeId) {
-        const spy_samplingEventCall = sinon.spy((sessionContext,oldValue, callback) => {
+        const spy_samplingEventCall = sinon.spy((sessionContext, oldValue, callback) => {
             const variable = addressSpace.findNode(nodeId) as UAVariable;
             const dataValue = variable.readValue();
             callback(null, dataValue);
@@ -195,7 +195,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         test.clock.restore();
     });
 
-    function installMonitoredItem(nodeId: NodeId, clientHandle: number, monitoringMode: MonitoringMode) {
+    async function installMonitoredItem(nodeId: NodeId, clientHandle: number, monitoringMode: MonitoringMode) {
         const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
             itemToMonitor: {
                 nodeId,
@@ -212,7 +212,11 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
                 filter: null
             }
         });
-        const createResult = subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
         return createResult;
     }
 
@@ -257,24 +261,24 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         return publishResponse;
     }
 
-    it("STG-1 should return BadNothingToDo if linksToAdd and linksToRemove are empty", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+    it("STG-1 should return BadNothingToDo if linksToAdd and linksToRemove are empty", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
         const result = subscription.setTriggering(createResult1.monitoredItemId, [], []);
         result.statusCode.should.eql(StatusCodes.BadNothingToDo);
     });
 
-    it("STG-2 should return BadMonitoredItemIdInvalid if triggeringItem is not found", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+    it("STG-2 should return BadMonitoredItemIdInvalid if triggeringItem is not found", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
 
         const result = subscription.setTriggering(invalidMonitoredItemId, [createResult1.monitoredItemId], []);
         result.statusCode.should.eql(StatusCodes.BadMonitoredItemIdInvalid);
     });
 
-    it("STG-3 should return Good if triggeringItem is found and all other monitoredItem are found - add", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+    it("STG-3 should return Good if triggeringItem is found and all other monitoredItem are found - add", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
         const result = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -286,10 +290,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result.removeResults.should.eql([]);
     });
 
-    it("STG-4 should return Good if triggeringItem is found and all other monitoredItem are found - remove", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+    it("STG-4 should return Good if triggeringItem is found and all other monitoredItem are found - remove", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
         const result0 = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -306,10 +310,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result1.addResults.should.eql([]);
     });
 
-    it("STG-5 If the monitoring mode of the triggering item is SAMPLING,  then it is not reported when the triggering item triggers the items to report.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Sampling);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
+    it("STG-5 If the monitoring mode of the triggering item is SAMPLING,  then it is not reported when the triggering item triggers the items to report.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Sampling);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
 
         const result = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -321,10 +325,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result.removeResults.should.eql([]);
     });
 
-    it("STG-6 If the monitoring mode of the triggering item is REPORTING, then it is reported when the triggering item triggers the items to report.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
+    it("STG-6 If the monitoring mode of the triggering item is REPORTING, then it is reported when the triggering item triggers the items to report.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
 
         multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
         test.clock.tick(100);
@@ -378,10 +382,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         notifs1[1].clientHandle.should.eql(3);
     });
 
-    it("STG-7 If the monitoring mode of the triggering item is DISABLED, then the triggering item does not trigger the items to report.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Disabled);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
+    it("STG-7 If the monitoring mode of the triggering item is DISABLED, then the triggering item does not trigger the items to report.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Disabled);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
         const publishedResponse0 = waitInitialNotification();
         {
             publishedResponse0.notificationMessage.notificationData!.length.should.eql(0);
@@ -402,10 +406,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         publishResponse.notificationMessage.notificationData!.length.should.eql(0);
     });
 
-    it("STG-8 If the monitoring mode of the item to report is SAMPLING, then it is reported when the triggering item triggers the items to report.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
+    it("STG-8 If the monitoring mode of the item to report is SAMPLING, then it is reported when the triggering item triggers the items to report.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Sampling);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Sampling);
 
         const publishedResponse0 = waitInitialNotification();
         {
@@ -439,10 +443,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     it(
         "STG-9 If the monitoring mode of the item to report is REPORTING, this effectively causes the triggering item to be" +
             "ignored. All notifications of the items to report are sent after the publishing interval expires.",
-        () => {
-            const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Sampling);
-            const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
-            const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+        async () => {
+            const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Sampling);
+            const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+            const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
             multipleIncrement([nodeIdV1, nodeIdV2, nodeIdV3]);
             test.clock.tick(100);
@@ -480,10 +484,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     it(
         "STG-10 If the monitoring mode of the item to report is DISABLED," +
             " then there will be no sampling of the item to report and therefore no notifications to report.",
-        () => {
-            const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-            const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Disabled);
-            const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Disabled);
+        async () => {
+            const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+            const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Disabled);
+            const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Disabled);
             const publishedResponse0 = waitInitialNotification();
             {
                 publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
@@ -512,10 +516,10 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         }
     );
 
-    it("STG-11 SetTriggering: Remove the same link twice.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+    it("STG-11 SetTriggering: Remove the same link twice.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
         const result0 = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -532,16 +536,16 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result2.removeResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid]);
         result2.addResults.should.eql([]);
     });
-    it("STG-12 SetTriggering: LinksToAdd and LinksToRemove are both empty.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+    it("STG-12 SetTriggering: LinksToAdd and LinksToRemove are both empty.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
 
         const result0 = subscription.setTriggering(createResult1.monitoredItemId, [], []);
         result0.statusCode.should.eql(StatusCodes.BadNothingToDo);
     });
-    it("STG-13 SetTriggering: Specify the same item in both linksToAdd and linksToRemove.", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
-        const createResult2 = installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
-        const createResult3 = installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
+    it("STG-13 SetTriggering: Specify the same item in both linksToAdd and linksToRemove.", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+        const createResult2 = await installMonitoredItem(nodeIdV2, 2, MonitoringMode.Reporting);
+        const createResult3 = await installMonitoredItem(nodeIdV3, 3, MonitoringMode.Reporting);
 
         const result1 = subscription.setTriggering(
             createResult1.monitoredItemId,
@@ -553,15 +557,15 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
         result1.removeResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid, StatusCodes.BadMonitoredItemIdInvalid]);
     });
 
-    it("STG-14 triggeringItem and linked items cannot be the same - add", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+    it("STG-14 triggeringItem and linked items cannot be the same - add", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
         const result1 = subscription.setTriggering(createResult1.monitoredItemId, [createResult1.monitoredItemId], []);
         result1.statusCode.should.eql(StatusCodes.Good);
         result1.addResults.should.eql([StatusCodes.BadMonitoredItemIdInvalid]);
         result1.removeResults.should.eql([]);
     });
-    it("STG-15 triggeringItem and linked items cannot be the same - remove", () => {
-        const createResult1 = installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
+    it("STG-15 triggeringItem and linked items cannot be the same - remove", async () => {
+        const createResult1 = await installMonitoredItem(nodeIdV1, 1, MonitoringMode.Reporting);
         const result1 = subscription.setTriggering(createResult1.monitoredItemId, [], [createResult1.monitoredItemId]);
         result1.statusCode.should.eql(StatusCodes.Good);
         result1.addResults.should.eql([]);

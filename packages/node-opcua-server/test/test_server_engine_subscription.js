@@ -511,7 +511,7 @@ describe("ServerEngine Subscriptions service", function () {
                 }
             });
 
-            const createResult = subscription.createMonitoredItem(
+            const createResult = await subscription.createMonitoredItem(
                 engine.addressSpace,
                 TimestampsToReturn.Both,
                 monitoredItemCreateRequest
