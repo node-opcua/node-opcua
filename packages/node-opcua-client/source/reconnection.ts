@@ -18,10 +18,10 @@ import { ClientSessionImpl, Reconnectable } from "./private/client_session_impl"
 import { ClientSubscriptionImpl } from "./private/client_subscription_impl";
 import { IClientBase } from "./private/i_private_client";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const errorLog = make_errorLog(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("RECONNECTION");
+const doDebug = checkDebugFlag("RECONNECTION");
+const errorLog = make_errorLog("RECONNECTION");
+const warningLog = make_warningLog("RECONNECTION");
 
 //
 // a new secure channel has be created, we need to reactivate the corresponding session,
@@ -167,6 +167,9 @@ function repair_client_session_by_recreating_a_new_session(
     session: ClientSessionImpl,
     callback: (err?: Error) => void
 ) {
+    if (session._client && session._client.isUnusable()) {
+        return callback(new Error("Client is unusable"));
+    }
     // As we don"t know if server has been rebooted or not,
     // and may be upgraded in between, we have to invalidate the extra data type manager
     invalidateExtraDataTypeManager(session);
@@ -215,25 +218,25 @@ function repair_client_session_by_recreating_a_new_session(
                     newSession,
                     newSession.userIdentityInfo!,
                     (err: Error | null, session1?: ClientSessionImpl) => {
-                        doDebug &&
-                            debugLog(
-                                chalk.bgWhite.cyan("    =>  activating a new session .... Done err=", err ? err.message : "null")
-                            );
+                        doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
                         if (err) {
                             doDebug &&
                                 debugLog(
-                                    chalk.bgWhite.cyan(
-                                        "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
-                                    )
+                                    "reactivation of the new session has failed: let be smart and close it before failing this repair attempt"
                                 );
                             // but just on the server side, not on the client side
                             const closeSessionRequest = new CloseSessionRequest({
+                                requestHeader: {
+                                    authenticationToken: newSession.authenticationToken
+                                },
                                 deleteSubscriptions: true
                             });
-                            session.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
+                            newSession._client!.performMessageTransaction(closeSessionRequest, (err2?: Error | null) => {
                                 if (err2) {
                                     warningLog("closing session", err2.message);
                                 }
+                                doDebug && debugLog("the temporary replacement session is now closed");
+                                doDebug && debugLog(" err ", err.message, "propagated upwards");
                                 innerCallback(err);
                             });
                         } else {
@@ -384,6 +387,7 @@ function repair_client_session_by_recreating_a_new_session(
             }
         ],
         (err) => {
+            doDebug && err && debugLog("repair_client_session_by_recreating_a_new_session failed with ", err.message);
             callback(err!);
         }
     );
@@ -393,7 +397,9 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
     const callback2 = (err2?: Error) => {
         doDebug &&
             debugLog("Session repair completed with err: ", err2 ? err2.message : "<no error>", session.sessionId.toString());
-        session.emit("session_repaired");
+        if (!err2) {
+            session.emit("session_repaired");
+        }
         callback(err2);
     };
 
@@ -420,53 +426,71 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
 type EmptyCallback = (err?: Error) => void;
 
 export function repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: EmptyCallback): void {
+    
     if (!client) {
         doDebug && debugLog("Aborting reactivation of old session because user requested session to be close");
         return callback();
     }
+    
     doDebug && debugLog(chalk.yellow("Starting client session repair"));
+
     const privateSession = session as any as Reconnectable;
     privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pendingCallbacks: [] };
+
     if (privateSession._reconnecting.reconnecting) {
         doDebug && debugLog(chalk.bgCyan("Reconnecting already happening for session"), session.sessionId.toString());
         privateSession._reconnecting.pendingCallbacks.push(callback);
         return;
     }
+    
     privateSession._reconnecting.reconnecting = true;
 
     // get old transaction queue ...
     const transactionQueue = privateSession.pendingTransactions ? privateSession.pendingTransactions.splice(0) : [];
 
-    _repair_client_session(client, session, (err) => {
-        privateSession._reconnecting.reconnecting = false;
-        if (err) {
-            errorLog(
-                chalk.red("session restoration has failed! err ="),
-                err.message,
-                session.sessionId.toString(),
-                " => Let's retry"
-            );
-            if (!session.hasBeenClosed()) {
-                setTimeout(() => {
-                    _repair_client_session(client, session, callback);
-                }, 2000);
-            } else {
-                // session does not need to be repaired anymore
-                callback();
-            }
-            return;
-        }
-        doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
-        session.emit("session_restored");
-        const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
-        privateSession._reconnecting.pendingCallbacks = [];
 
-        // re-inject element in queue
-        doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-        transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
-        otherCallbacks.forEach((c: EmptyCallback) => c(err));
-        callback(err);
-    });
+    const repeatedAction = (callback: EmptyCallback) => {
+        _repair_client_session(client, session, (err) => {
+            if (err) {
+                errorLog(
+                    chalk.red("session restoration has failed! err ="),
+                    err.message,
+                    session.sessionId.toString(),
+                    " => Let's retry"
+                );
+                if (!session.hasBeenClosed()) {
+
+                    const delay = 2000;
+                    errorLog(chalk.red(`... will retry session repair... in ${delay} ms`));
+                    setTimeout(() => {
+                        errorLog(chalk.red("Retrying session repair..."));
+                        repeatedAction(callback);
+                    }, delay);
+                    return;
+                } else {
+                    console.log(chalk.red("session restoration should be interrupted because session has been closed forcefully"));
+                    // session does not need to be repaired anymore
+                    callback();
+                } 
+                return;
+            }
+
+            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DELETE ME");
+            privateSession._reconnecting.reconnecting = false;
+            errorLog("Session has been restored");
+            doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
+            session.emit("session_restored");
+            const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
+            privateSession._reconnecting.pendingCallbacks = [];
+
+            // re-inject element in queue
+            doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
+            transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
+            otherCallbacks.forEach((c: EmptyCallback) => c(err));
+            callback(err);
+        });
+    };
+    repeatedAction(callback);
 }
 
 export function repair_client_sessions(client: IClientBase, callback: (err?: Error) => void): void {
@@ -475,11 +499,13 @@ export function repair_client_sessions(client: IClientBase, callback: (err?: Err
     doDebug && debugLog(chalk.red.bgWhite(" Starting sessions reactivation", sessions.length));
     async.map(
         sessions,
-        (session, next: (err?: Error) => void) => {
-            repair_client_session(client, session as ClientSessionImpl, next);
+        (session, next: (err: Error | null, err2: Error | null | undefined) => void) => {
+            repair_client_session(client, session as ClientSessionImpl, (err) => {
+                next(null, err);
+            });
         },
-        (err) => {
-            err && errorLog("sessions reactivation completed: err ", err ? err.message : "null");
+        (err, allErrors: (undefined | Error | null)[] | undefined) => {
+            err && errorLog("sessions reactivation completed with err: err ", err ? err.message : "null");
             return callback(err!);
         }
     );

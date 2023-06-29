@@ -6,7 +6,7 @@ const should = require("should");
 const opcua = require("node-opcua");
 const chalk = require("chalk");
 
-const doDebug = true;
+const doDebug = false;
 
 module.exports = function(test) {
     const maxSessionsForTest = 50;

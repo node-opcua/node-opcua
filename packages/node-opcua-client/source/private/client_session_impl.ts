@@ -1797,6 +1797,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public hasBeenClosed(): boolean {
         return isNullOrUndefined(this._client) || this._closed || this._closeEventHasBeenEmitted;
     }
+    
 
     public async call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
     public async call(methodToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;

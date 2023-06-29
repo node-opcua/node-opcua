@@ -384,8 +384,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     private _instanceNumber: number;
     private _transportSettings: TransportSettings;
     private _transportTimeout?: number;
-
+    
     public clientCertificateManager: OPCUACertificateManager;
+
+    public isUnusable() {
+        return this._internalState === "disconnected" || this._internalState === "disconnecting";
+    }
 
     protected _setInternalState(internalState: InternalClientState): void {
         const previousState = this._internalState;

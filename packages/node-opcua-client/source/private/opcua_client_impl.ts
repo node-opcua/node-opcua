@@ -312,6 +312,7 @@ function _adjustRevisedSessionTimeout(revisedSessionTimeout: number, requestedTi
  */
 export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public static minimumRevisedSessionTimeout = 100.0;
+    private _retryCreateSessionTimer?: NodeJS.Timer;
 
     public static create(options: OPCUAClientOptions): OPCUAClient {
         return new OPCUAClientImpl(options);
@@ -430,12 +431,15 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             // we do not have a connection anymore
             return callback(new Error("Connection is closed"));
         }
+        if (this._internalState === "disconnected" || this._internalState === "disconnecting") {
+            return callback(new Error(`disconnecting`));
+        }
         return this.createSession(args[0], (err: Error | null, session?: ClientSession) => {
             if (err && err.message.match(/BadTooManySessions/)) {
                 const delayToRetry = 5; // seconds
-                errorLog(`TooManySession .... we need to retry later  ... in  ${delayToRetry} secondes`);
-                const retryCreateSessionTimer = setTimeout(() => {
-                    errorLog("TooManySession .... now retrying");
+                errorLog(`TooManySession .... we need to retry later  ... in  ${delayToRetry} secondes ${this._internalState}`);
+                this._retryCreateSessionTimer = setTimeout(() => {
+                    errorLog(`TooManySession .... now retrying (${this._internalState})`);
                     this.createSession2(userIdentityInfo, callback);
                 }, delayToRetry * 1000);
                 return;
@@ -474,6 +478,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @param args
      */
     public closeSession(...args: any[]): any {
+
+        if (this._retryCreateSessionTimer) {
+            clearTimeout(this._retryCreateSessionTimer);
+            this._retryCreateSessionTimer = undefined;
+        } 
         super.closeSession(...args);
     }
 

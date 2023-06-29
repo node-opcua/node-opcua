@@ -49,7 +49,7 @@ module.exports = function (test) {
         const clients = [];
 
         const sessions = [];
-        function create_non_activated_session(callback) {
+        function  create_non_activated_session(callback) {
             const endpointUrl = test.endpointUrl;
             const client1 = OPCUAClient.create({
                 connectionStrategy: fail_fast_connectionStrategy
