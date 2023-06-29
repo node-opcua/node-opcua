@@ -30,7 +30,8 @@ import {
     UAReference,
     UAReferenceType,
     UAVariable,
-    UAVariableType
+    UAVariableType,
+    UAView
 } from "node-opcua-address-space-base";
 import { AttributeIds, Int64, minOPCUADate, StatusCode, StatusCodes } from "node-opcua-basic-types";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
@@ -55,6 +56,7 @@ import {
     constructNamespacePriorityTable,
     hasHigherPriorityThan
 } from "./construct_namespace_dependency";
+import { UAViewImpl } from "../ua_view_impl";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
@@ -939,6 +941,21 @@ function _dumpUADataTypeDefinition(xw: XmlWriter, uaDataType: UADataType) {
     }
 }
 
+function dumpUAView(xw: XmlWriter, node: UAView) {
+    _markAsVisited(xw, node);
+
+    xw.startElement("UAView");
+    xw.writeAttribute("NodeId", n(xw, node.nodeId));
+    xw.writeAttribute("BrowseName", b(xw, node.browseName));
+
+    dumpCommonElements(xw, node);
+
+    xw.endElement();
+
+    dumpAggregates(xw, node);
+
+}
+
 function dumpUADataType(xw: XmlWriter, node: UADataType) {
     _markAsVisited(xw, node);
 
@@ -1344,6 +1361,10 @@ UAObjectTypeImpl.prototype.dumpXML = function (xw) {
 UADataTypeImpl.prototype.dumpXML = function (xw: XmlWriter) {
     dumpUADataType(xw, this);
 };
+
+UAViewImpl.prototype.dumpXML = function (xw: XmlWriter) {
+    dumpUAView(xw, this);
+}
 
 function makeTypeXsd(namespaceUri: string): string {
     return namespaceUri.replace(/\/$/, "") + "/Type.xsd";

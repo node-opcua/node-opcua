@@ -47,7 +47,7 @@ describe("testing nodeset to xml", () => {
         }
     });
 
-    it("KLKL1 should output a standard extension object datatype to xml (Argument)", () => {
+    it("NS2XML-1 should output a standard extension object datatype to xml (Argument)", () => {
         const argumentDataType = addressSpace.findDataType("Argument")!;
         if (doDebug) {
             console.log(argumentDataType.toString());
@@ -59,7 +59,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/Argument/);
     });
 
-    it("KLKL2 should output a standard Enum node to xml (ServerState)", () => {
+    it("NS2XML-2 should output a standard Enum node to xml (ServerState)", () => {
         // TemperatureSensorType
         const serverStateType = addressSpace.findDataType("ServerState")!;
         const str = dumpXml(serverStateType);
@@ -69,7 +69,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/CommunicationFault/);
     });
 
-    it("KLKL3 should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", () => {
+    it("NS2XML-3 should output a custom Enum node to xml (MyEnumType) - Form1( with EnumStrings )", () => {
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumTypeForm1",
             enumeration: ["RUNNING", "STOPPED"]
@@ -90,7 +90,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<Field Name="STOPPED" Value="1">/);
     });
 
-    it("KLKL4 should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
+    it("NS2XML-4 should output a custom Enum node to xml (MyEnumType) - Form2 ( with EnumValues )", () => {
         const myEnumType = namespace.addEnumerationType({
             browseName: "MyEnumType",
             enumeration: [
@@ -109,7 +109,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/<Field Name="STOPPED" Value="20">/);
     });
 
-    it("KLKL5 should output a simple objectType node to xml", () => {
+    it("NS2XML-5 should output a simple objectType node to xml", () => {
         // TemperatureSensorType
         const temperatureSensorType = createTemperatureSensorType(addressSpace);
 
@@ -117,7 +117,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/);
     });
 
-    it("KLKL6 should output a instance of a new ObjectType  to xml", () => {
+    it("NS2XML-6 should output a instance of a new ObjectType  to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
 
         // TemperatureSensorType
@@ -153,7 +153,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAObjectType/g);
     });
 
-    it("KLKL7 should output a instance of object with method  to xml", () => {
+    it("NS2XML-7 should output a instance of object with method  to xml", () => {
         const cameraType = createCameraType(addressSpace);
 
         const camera1 = cameraType.instantiate({
@@ -175,7 +175,7 @@ describe("testing nodeset to xml", () => {
         );
     });
 
-    it("KLKL8 should output an instance of variable type to xml", () => {
+    it("NS2XML-8 should output an instance of variable type to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
         const variableType = ownNamespace.addVariableType({ browseName: "MyCustomVariableType" });
 
@@ -186,7 +186,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/UAVariableType/g);
     });
 
-    it("KLKL9 should output a ReferenceType to xml", () => {
+    it("NS2XML-9 should output a ReferenceType to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
         const referenceType = ownNamespace.addReferenceType({
             browseName: "HasStuff",
@@ -202,7 +202,7 @@ describe("testing nodeset to xml", () => {
         str.should.match(/HasStuff/g);
     });
 
-    it("KLKLA should output a Method to xml", () => {
+    it("NS2XML-A should output a Method to xml", () => {
         const ownNamespace = addressSpace.getOwnNamespace();
 
         const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
@@ -319,6 +319,43 @@ describe("testing nodeset to xml", () => {
     </Value>
 </UAVariable>
 <!--Object - 1:Object }}}} -->`);
+    });
+
+    it("NS2XML-B should output a View to xml", () => {
+        const ownNamespace = addressSpace.getOwnNamespace();
+
+        const rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+
+        const obj1 = ownNamespace.addObject({
+            browseName: "Object",
+            organizedBy: rootFolder.objects
+        });
+
+        const view = ownNamespace.addView({
+            browseName: "View1",
+            organizedBy: rootFolder.views
+        });
+
+        view.addReference({
+            nodeId: obj1,
+            referenceType: "Organizes",
+            isForward: true
+        });
+
+        const str = dumpXml(view);
+
+        str.should.match(/<\/UAView>/g, "must have a complex UAView element");
+
+        console.log(str);
+
+        str.should.eql(`<?xml version="1.0"?>
+<UAView NodeId="ns=1;i=1001" BrowseName="1:View1">
+    <DisplayName>View1</DisplayName>
+    <References>
+        <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        <Reference ReferenceType="Organizes" IsForward="false">i=87</Reference>
+    </References>
+</UAView>`);
     });
 });
 
@@ -840,7 +877,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         fs.writeFileSync(tmpFilename, xml);
 
         const r_xml2 = await reloadedNodeSet(tmpFilename);
-        
+
         r_xml2.split("\n").should.eql(xml2.split("\n"));
     });
     it("NSXML9 - matrix of extension objects", async () => {
