@@ -193,7 +193,8 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return _private._description!;
     }
 
-    public setDescription(value: LocalizedText): void {
+    public setDescription(value: LocalizedTextLike): void {
+        
         this._setDescription(value);
         /**
          * fires when the description attribute is changed.
