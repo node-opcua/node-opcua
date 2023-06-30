@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-secure-channel",
-    "version": "2.105.0",
+    "version": "2.106.0",
     "description": "pure nodejs OPCUA SDK - module secure-channel",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -29,7 +29,7 @@
         "node-opcua-service-endpoints": "2.105.0",
         "node-opcua-service-secure-channel": "2.105.0",
         "node-opcua-status-code": "2.105.0",
-        "node-opcua-transport": "2.105.0",
+        "node-opcua-transport": "2.106.0",
         "node-opcua-types": "2.105.0",
         "node-opcua-utils": "2.105.0"
     },
