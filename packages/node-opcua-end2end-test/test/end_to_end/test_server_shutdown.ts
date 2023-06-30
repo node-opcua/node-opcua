@@ -37,9 +37,8 @@ async function given_a_running_server() {
 }
 async function when_server_is_shutdown(server: OPCUAServer): Promise<void> {
     server.engine.setShutdownReason("Shutdown by Test");
-    await server.shutdown(1000).then(() => {
-        debugLog("Server has shutdown");
-    });
+    await server.shutdown(1000);
+    debugLog("Server has shutdown");
 }
 async function given_a_connected_client(
     endpointUrl: string
