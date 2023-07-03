@@ -201,6 +201,9 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
 
     public deactivateAlarm(retain?: boolean): void {
         const branch = this.currentBranch();
+        if (!branch) {
+            return;
+        }
         branch.setRetain(retain === undefined ? true : retain);
         branch.setActiveState(false);
     }

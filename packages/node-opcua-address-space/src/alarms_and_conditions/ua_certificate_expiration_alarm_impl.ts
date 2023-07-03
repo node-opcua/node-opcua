@@ -193,7 +193,7 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
             this.expirationLimit.accessLevel = makeAccessLevelExFlag("CurrentRead | CurrentWrite");
             this.expirationLimit.userAccessLevel = makeAccessLevelExFlag("CurrentRead | CurrentWrite");
             this.expirationLimit.on("value_changed", (dataValue) => {
-                // make sure we re-evaluate the certificfate
+                // make sure we re-evaluate the certificate
                 const certificate = this.getCertificate();
                 this.setCertificate(certificate);
             });
