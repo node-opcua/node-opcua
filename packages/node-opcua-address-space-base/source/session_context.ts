@@ -33,7 +33,7 @@ export interface IContinuationPointInfo<T> {
     statusCode: StatusCode;
 }
 export interface ContinuationData {
-    continuationPoint: ContinuationPoint | null;
+    continuationPoint?: ContinuationPoint | null;
     releaseContinuationPoints?: boolean;
     index?: number;
 }

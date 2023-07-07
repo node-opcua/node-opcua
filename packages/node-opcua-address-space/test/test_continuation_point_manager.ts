@@ -26,7 +26,7 @@ describe("ContinuationPointManager", () => {
         cpm.hasReachedMaximum(0).should.eql(false);
         cpm.hasReachedMaximum(1).should.eql(true);
 
-        cpm.getNextReferences(0, { continuationPoint: results.continuationPoint, releaseContinuationPoints: true });
+        cpm.getNextReferences(0, { continuationPoint: results.continuationPoint!, releaseContinuationPoints: true });
 
         cpm.hasReachedMaximum(0).should.eql(false);
         cpm.hasReachedMaximum(1).should.eql(false);

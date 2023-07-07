@@ -5,28 +5,34 @@ import chalk from "chalk";
 import { UAState, UAStateVariable, UATransition, UATransition_Base, UATransitionVariable } from "node-opcua-nodeset-ua";
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";
-import { coerceLocalizedText, LocalizedText, NodeClass } from "node-opcua-data-model";
+import { coerceLocalizedText, coerceQualifiedName, LocalizedText, NodeClass } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
+import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { UAString } from "node-opcua-basic-types";
 import { BaseNode, UAMethod, UAObject, UAObjectType, UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 
-import { UAStateMachineEx, TransitionSelector, UAStateMachineTypeHelper } from "../../source/interfaces/state_machine/ua_state_machine_type";
+import {
+    UAStateMachineEx,
+    TransitionSelector,
+    UAStateMachineTypeHelper
+} from "../../source/interfaces/state_machine/ua_state_machine_type";
 import { UAObjectImpl } from "../ua_object_impl";
 import { UATransitionEx } from "../../source/interfaces/state_machine/ua_transition_ex";
 import { BaseNodeImpl } from "../base_node_impl";
 import { UAObjectTypeImpl } from "../ua_object_type_impl";
 
+const warningLog = make_warningLog(__filename);
+
 const doDebug = false;
 
-export declare interface UATransitionImpl extends UATransition, UATransitionEx { }
-export class UATransitionImpl implements UATransition, UATransitionEx { }
+export declare interface UATransitionImpl extends UATransition, UATransitionEx {}
+export class UATransitionImpl implements UATransition, UATransitionEx {}
 
 function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType): UAObject[] {
-
     const get = (typeDef: UAObjectType) =>
         typeDef.getComponents().filter((cc) => {
             const c = cc as UAObject | UAVariable | UAMethod;
@@ -45,7 +51,6 @@ function getComponentOfType(typeDef: UAObjectType, typedefinition: UAObjectType)
         components_parts = get(typeDef);
     }
     return components_parts as UAObject[];
-
 }
 
 export interface UAStateMachineImpl {
@@ -63,24 +68,17 @@ const defaultPredicate = (transitions: UATransition[], fromState: UAState, toSta
     if (transitions.length === 1) {
         return transitions[0];
     }
-    // tslint:disable-next-line: no-console
-    console.log(" FromState = ", fromState.browseName.toString());
-    // tslint:disable-next-line: no-console
-    console.log(" ToState   = ", toState.browseName.toString());
+    warningLog(" FromState = ", fromState.browseName.toString());
+    warningLog(" ToState   = ", toState.browseName.toString());
     for (const transition of transitions) {
-        // tslint:disable-next-line: no-console
-        console.log("  possible transition : ", transition.browseName.toString(), " ", transition.nodeId.toString());
+        warningLog("  possible transition : ", transition.browseName.toString(), " ", transition.nodeId.toString());
     }
-    // tslint:disable-next-line: no-console
-    console.log(
+    warningLog(
         "warning: a duplicated FromState Reference to the same target has been found.\nPlease check your model or provide a predicate method to select which one to use"
     );
-    // tslint:disable-next-line: no-console
-    console.log("fromStateNode: ", fromState.toString());
+    warningLog("fromStateNode: ", fromState.toString());
     return transitions[0];
 };
-
-
 
 export function getFiniteStateMachineTypeStates(uaFiniteStateMachineType: UAObjectType): UAState[] {
     const addressSpace = uaFiniteStateMachineType.addressSpace;
@@ -113,7 +111,6 @@ export function getFiniteStateMachineTypeTransitions(uaFiniteStateMachineType: U
     }
     const comp = getComponentOfType(uaFiniteStateMachineType, transitionType);
     return comp as UATransitionEx[];
-
 }
 
 export function getFiniteStateMachineTypeStateByName(uaFiniteStateMachineType: UAObjectType, stateName: string): UAState | null {
@@ -318,7 +315,6 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
             if (!state) {
                 throw new Error("Cannot find state with name " + toStateNode);
             }
-            assert(state.browseName.name!.toString() === toStateNode);
             toStateNode = state;
         }
         const fromStateNode = this.currentStateNode;
@@ -329,16 +325,119 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         this.currentState.setValueFromSource(
             {
                 dataType: DataType.LocalizedText,
-                value: coerceLocalizedText(toStateNode.browseName.toString())
+                value: coerceLocalizedText(toStateNode.displayName[0] || toStateNode.browseName.name!)
             },
             StatusCodes.Good
         );
 
         this.currentStateNode = toStateNode;
 
-        const transitionNode = this.findTransitionNode(fromStateNode, toStateNode, predicate) as UATransitionImpl;
+        const applyCurrentStateOptionalProps = () => {
+            const uaId = this.currentState.getPropertyByName("Id")! as UAVariable;
+            if (uaId) {
+                uaId.setValueFromSource({
+                    dataType: DataType.NodeId,
+                    value: this.currentStateNode ? this.currentStateNode.nodeId : NodeId.nullNodeId
+                });
+            }
 
+            const uaName = this.currentState.getPropertyByName("Name")! as UAVariable;
+            if (uaName) {
+                uaName.setValueFromSource({
+                    dataType: DataType.QualifiedName,
+                    value: this.currentStateNode ? this.currentStateNode.browseName : coerceQualifiedName("")
+                });
+            }
+
+            const uaNumber = this.currentState.getPropertyByName("Number")! as UAVariable;
+            if (uaNumber) {
+                if (!this.currentStateNode) {
+                    const n = uaNumber.setValueFromSource({
+                        dataType: DataType.UInt32,
+                        value: 0 // may be wrong !
+                    });
+                } else {
+                    const n = uaNumber.setValueFromSource({
+                        dataType: DataType.UInt32,
+                        value: this.currentStateNode.stateNumber.readValue().value.value
+                    });
+                }
+            }
+
+            const uaEffectiveDisplayName = this.currentState.getPropertyByName("EffectiveDisplayName")! as UAVariable;
+            if (uaEffectiveDisplayName) {
+                uaEffectiveDisplayName.setValueFromSource({
+                    dataType: DataType.LocalizedText,
+                    value: coerceLocalizedText(
+                        this.currentStateNode ? this.currentStateNode.displayName[0] || this.currentStateNode.browseName.name : ""
+                    )
+                });
+            }
+        };
+        applyCurrentStateOptionalProps();
+
+        const transitionNode = this.findTransitionNode(fromStateNode, toStateNode, predicate) as UATransitionImpl;
         if (transitionNode) {
+            const applyLastTransitionOptionalProps = () => {
+                const transitionTime = new Date();
+
+                const uaLastTransition = this.getComponentByName("LastTransition") as UAVariable;
+                if (uaLastTransition) {
+                    uaLastTransition.setValueFromSource(
+                        {
+                            dataType: DataType.LocalizedText,
+                            value: transitionNode.displayName[0] || transitionNode.browseName.name!
+                        },
+                        StatusCodes.Good,
+                        transitionTime
+                    );
+
+                    const uaId = uaLastTransition.getPropertyByName("Id")! as UAVariable;
+                    if (uaId) {
+                        uaId.setValueFromSource({
+                            dataType: DataType.NodeId,
+                            value: transitionNode.nodeId
+                        });
+                    }
+                    
+                    const uaLastTransitionTime = uaLastTransition.getPropertyByName("TransitionTime")! as UAVariable;
+                    if (uaLastTransitionTime) {
+                        uaLastTransitionTime.setValueFromSource({
+                            dataType: DataType.DateTime,
+                            value: transitionTime
+                        });
+                    }
+                    /**
+                     * EffectiveTransitionTime specifies the time when the current state or one of its substates was entered.
+                     * If, for example, a StateA is active and – while active – switches several times between its substates
+                     * SubA and SubB, then the TransitionTime stays at the point in time where StateA became active whereas the *
+                     * EffectiveTransitionTime changes with each change of a substate.
+                     */
+                    const uaEffectiveTransitionTime = uaLastTransition.getPropertyByName("EffectiveTransitionTime")! as UAVariable;
+                    if (uaEffectiveTransitionTime) {
+                        uaEffectiveTransitionTime.setValueFromSource({
+                            dataType: DataType.DateTime,
+                            value: transitionTime
+                        });
+                    }
+
+                    const uaName = uaLastTransition.getPropertyByName("Name")! as UAVariable;
+                    if (uaName) {
+                        uaName.setValueFromSource({
+                            dataType: DataType.QualifiedName,
+                            value: transitionNode.browseName
+                        });
+                    }
+                    const uaNumber = uaLastTransition.getPropertyByName("Number")! as UAVariable;
+                    if (uaNumber) {
+                        uaNumber.setValueFromSource({
+                            dataType: DataType.UInt32,
+                            value: transitionNode.transitionNumber.readValue().value.value
+                        });
+                    }
+                }
+            };
+            applyLastTransitionOptionalProps();
             // xx console.log("transitionNode ",transitionNode.toString());
             // The inherited Property SourceNode shall be filled with the NodeId of the StateMachine instance where the
             // Transition occurs. If the Transition occurs in a SubStateMachine, then the NodeId of the SubStateMachine
@@ -367,8 +466,8 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                 "fromState.id": fromStateNode
                     ? fromStateNode.stateNumber.readValue().value
                     : {
-                        dataType: "Null"
-                    },
+                          dataType: "Null"
+                      },
 
                 toState: {
                     dataType: "LocalizedText",
@@ -383,8 +482,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                 if (doDebug) {
                     const f = fromStateNode.browseName.toString();
                     const t = toStateNode.browseName.toString();
-                    // tslint:disable-next-line:no-console
-                    console.log(chalk.red("Warning"), " cannot raise event :  transition " + f + " to " + t + " is missing");
+                    warningLog(chalk.red("Warning"), " cannot raise event :  transition " + f + " to " + t + " is missing");
                 }
             }
         }
@@ -419,6 +517,38 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                 d.value && d.value.value ? (d.value.value.text ? d.value.value.text.toString() : d.value.value.toString()) : "";
             this.currentStateNode = this.getStateByName(txt);
         }
+
+        // Install AvailableStatesVariable if available
+        const uaAvailableStates = this.getComponentByName("AvailableStates", 0) as UAVariable;
+        if (uaAvailableStates) {
+            uaAvailableStates.bindVariable(
+                {
+                    get: () => {
+                        return new Variant({
+                            arrayType: VariantArrayType.Array,
+                            dataType: DataType.NodeId,
+                            value: this.getStates().map((state) => state.nodeId)
+                        });
+                    }
+                },
+                true
+            );
+        }
+        const uaAvailableTransitions = this.getComponentByName("AvailableTransitions", 0) as UAVariable;
+        if (uaAvailableTransitions) {
+            uaAvailableTransitions.bindVariable(
+                {
+                    get: () => {
+                        return new Variant({
+                            arrayType: VariantArrayType.Array,
+                            dataType: DataType.NodeId,
+                            value: this.getTransitions().map((state) => state.nodeId)
+                        });
+                    }
+                },
+                true
+            );
+        }
     }
 }
 
@@ -434,14 +564,12 @@ export function promoteToStateMachine(node: UAObject): UAStateMachineEx {
 }
 registerNodePromoter(ObjectTypeIds.FiniteStateMachineType, promoteToStateMachine);
 
-
 export class UAStateMachineTypeImpl extends UAObjectTypeImpl implements UAStateMachineTypeHelper {
     getStateByName(name: string): UAState | null {
         return getFiniteStateMachineTypeStateByName(this, name);
     }
     getStates(): UAState[] {
         return getFiniteStateMachineTypeStates(this);
-
     }
     getTransitions(): UATransitionEx[] {
         return getFiniteStateMachineTypeTransitions(this);
@@ -450,7 +578,6 @@ export class UAStateMachineTypeImpl extends UAObjectTypeImpl implements UAStateM
     _post_initialize(): void {
         /** */
     }
-
 }
 export function promoteToStateMachineType(node: UAObject): UAStateMachineTypeHelper {
     if (node instanceof UAStateMachineTypeImpl) {
