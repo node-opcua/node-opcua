@@ -327,10 +327,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     get typeDefinitionObj(): UAVariableType {
         // istanbul ignore next
         if (super.typeDefinitionObj && super.typeDefinitionObj.nodeClass !== NodeClass.VariableType) {
-            console.log(super.typeDefinitionObj.toString());
-            throw new Error(
-                "Invalid type definition node class , expecting a VariableType got " + NodeClass[super.typeDefinitionObj.nodeClass]
-            );
+            // this could happen in faulty external nodeset and has been seen once 
+            // in an nano server
+            warningLog(super.typeDefinitionObj.toString());
+            return this.addressSpace.findVariableType("BaseVariableType")!;
         }
         return super.typeDefinitionObj as UAVariableType;
     }
