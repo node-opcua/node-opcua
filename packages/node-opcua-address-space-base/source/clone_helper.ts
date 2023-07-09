@@ -1,14 +1,17 @@
 import { assert } from "node-opcua-assert";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
+import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
+import { ReferenceTypeIds } from "node-opcua-constants";
+
+import chalk from "chalk";
+
 import { UAObject } from "./ua_object";
 import { UAVariable } from "./ua_variable";
 import { UAMethod } from "./ua_method";
 import { UAObjectType } from "./ua_object_type";
 import { UAVariableType } from "./ua_variable_type";
 import { BaseNode } from "./base_node";
-import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
-import { ReferenceTypeIds } from "node-opcua-constants";
 import { UAReference } from "./ua_reference";
 import { IAddressSpace } from "./address_space";
 
@@ -16,7 +19,24 @@ const debugLog = make_debugLog("CLONE");
 const doDebug = checkDebugFlag("CLONE");
 const warningLog = make_warningLog("CLONE");
 
+const errorLog = make_errorLog(__filename);
+const doTrace = checkDebugFlag("INSTANTIATE");
+const traceLog = errorLog;
+
 type UAConcrete = UAVariable | UAObject | UAMethod;
+
+export function fullPath(node: BaseNode): string {
+    const browseName = node.browseName.toString();
+
+    const parent = node.findReferencesExAsObject("Aggregates", BrowseDirection.Inverse)[0];
+    if (parent) {
+        return fullPath(parent) + "/" + browseName;
+    }
+    return browseName;
+}
+export function fullPath2(node: BaseNode): string {
+    return fullPath(node) + " (" + node.nodeId.toString() + ")";
+}
 
 //
 //  case 1:
@@ -42,7 +62,7 @@ type UAConcrete = UAVariable | UAObject | UAMethod;
 //   \-----------------------------/
 //              ^        |
 //              |        |       +----------+
-//              |        +-------| Folder1  |
+//              |        +-------| Folder1  |
 //              |                +----------+
 //              |                     |
 //              |                     +--------------|- (EnabledState)   (shadow element)
@@ -52,7 +72,7 @@ type UAConcrete = UAVariable | UAObject | UAMethod;
 //   \-----------------------------/
 //              |
 //              |        |       +----------+
-//              |        +-------| Folder1  |
+//              |        +-------| Folder1  |
 //              |                +----------+
 //              |                     |
 //              |                     +--------------|- (EnabledState)
@@ -124,6 +144,8 @@ export class CloneHelper {
         TO extends UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
         TC extends UAObject | UAVariable | UAMethod
     >(clonedNode: TC, originalNode: TO) {
+        doTrace &&
+            traceLog(chalk.yellow("registerClonedObject"), "originalNode = ", fullPath2(originalNode), fullPath2(clonedNode));
         this.mapOrgToClone.set(originalNode.nodeId.toString(), {
             cloned: clonedNode,
             original: originalNode
@@ -144,11 +166,10 @@ export class CloneHelper {
                 }
                 base = base.subtypeOfObj;
             }
-        } else {
         }
         // find subTypeOf
     }
-    public getCloned(originalNode: UAVariableType | UAObjectType): UAObject | UAVariable | UAMethod | null {
+    public getCloned(contextNode: BaseNode, originalNode: UAVariableType | UAObjectType): UAObject | UAVariable | UAMethod | null {
         const info = this.mapOrgToClone.get(originalNode.nodeId.toString());
         if (info) {
             return info.cloned;

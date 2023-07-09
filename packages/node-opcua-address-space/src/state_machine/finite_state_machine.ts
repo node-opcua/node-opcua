@@ -5,10 +5,17 @@ import chalk from "chalk";
 import { UAState, UAStateVariable, UATransition, UATransition_Base, UATransitionVariable } from "node-opcua-nodeset-ua";
 import { assert } from "node-opcua-assert";
 import { ObjectTypeIds } from "node-opcua-constants";
-import { coerceLocalizedText, coerceQualifiedName, LocalizedText, NodeClass } from "node-opcua-data-model";
+import {
+    BrowseDirection,
+    coerceLocalizedText,
+    coerceQualifiedName,
+    LocalizedText,
+    NodeClass,
+    QualifiedName
+} from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { UAString } from "node-opcua-basic-types";
@@ -376,11 +383,85 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         };
         applyCurrentStateOptionalProps();
 
+        const transitionTime = new Date();
+        const applyTransitionOptionalPropsPhase1 = () => {
+            //                                                  +-----------------------------+
+            //             +--------------------------------|>|>| MainStateMachineType        |
+            //             |                                    +-----------------------------+
+            //             |                                                 |
+            //             |                                                 |    +--------+
+            // +------------------+                                          +--->| State1 |
+            // | MainStateMachine |                                          |    +--------+
+            // +------------------+                                          |
+            //       |                                                       |    +--------+
+            //       |       +----------------+                              +--->| State2 |   --- HasSubStateMachine --+
+            //       +---||->| SubStateMachine|                              |    +--------+                            |
+            //               +----------------+                              |                                          |
+            //                      |                                        |    +-----------------+                   |
+            //                                                               +--->| SubStateMachine |<------------------+
+            //                                                                    +-----------------+
+            //
+            // * `this` is potentially a subState machine
+            // *  get mainState = parent of `this`
+            // *  is mainState.typeDefinition is not StateMachineType -> exit
+            // *  find subMachine in mainState.typeDefinition (or any subtype of it) that has the same browse name as this.browseName
+            const ms = this.findReferencesExAsObject("Aggregates", BrowseDirection.Inverse)[0] as
+                | UAStateMachineEx
+                | undefined
+                | null;
+            if (!ms) return;
+            if (ms.nodeClass !== NodeClass.Object) return;
+            const stateMachineType = this.addressSpace.findObjectType("StateMachineType")!;
+            if (!ms.typeDefinitionObj.isSubtypeOf(stateMachineType)) return;
+
+            const find = (node: UAObjectType, browseName: QualifiedName): UAObject | UAVariable | null => {
+                const r = node
+                    .getAggregates()
+                    .filter((x) => x.browseName.name! === browseName.name && x.namespaceIndex === browseName.namespaceIndex);
+                if (r.length === 0) {
+                    // look in subType
+                    const subType = node.subtypeOfObj;
+                    if (subType) {
+                        return find(subType, browseName);
+                    }
+                    return null;
+                } else {
+                    const retVal = r[0];
+                    if (retVal.nodeClass !== NodeClass.Variable && retVal.nodeClass !== NodeClass.Object) {
+                        throw new Error("find: expecting only object and variable here");
+                    }
+                    return retVal as UAObject | UAVariable;
+                }
+            };
+            const stateMachineInType = find(ms.typeDefinitionObj, this.browseName);
+            if (!stateMachineInType) return;
+            const mainState = stateMachineInType.findReferencesAsObject("HasSubStateMachine", false)[0] as UAVariable;
+
+            if (mainState) {
+                if (!ms.currentStateNode || !sameNodeId(mainState.nodeId, ms.currentStateNode.nodeId)) {
+                    return;
+                }
+
+                // also update uaLastTransition.EffectiveTransitionTime
+                const uaLastTransitionMain = ms.getComponentByName("LastTransition") as UAVariable;
+                if (uaLastTransitionMain) {
+                    const uaEffectiveTransitionTimeMain = uaLastTransitionMain.getPropertyByName(
+                        "EffectiveTransitionTime"
+                    )! as UAVariable;
+                    if (uaEffectiveTransitionTimeMain) {
+                        uaEffectiveTransitionTimeMain.setValueFromSource({
+                            dataType: DataType.DateTime,
+                            value: transitionTime
+                        });
+                    }
+                }
+            }
+        };
+        applyTransitionOptionalPropsPhase1();
+
         const transitionNode = this.findTransitionNode(fromStateNode, toStateNode, predicate) as UATransitionImpl;
         if (transitionNode) {
             const applyLastTransitionOptionalProps = () => {
-                const transitionTime = new Date();
-
                 const uaLastTransition = this.getComponentByName("LastTransition") as UAVariable;
                 if (uaLastTransition) {
                     uaLastTransition.setValueFromSource(
@@ -399,7 +480,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                             value: transitionNode.nodeId
                         });
                     }
-                    
+
                     const uaLastTransitionTime = uaLastTransition.getPropertyByName("TransitionTime")! as UAVariable;
                     if (uaLastTransitionTime) {
                         uaLastTransitionTime.setValueFromSource({
@@ -408,10 +489,10 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                         });
                     }
                     /**
-                     * EffectiveTransitionTime specifies the time when the current state or one of its substates was entered.
-                     * If, for example, a StateA is active and – while active – switches several times between its substates
+                     * EffectiveTransitionTime specifies the time when the current state or one of its sub-states was entered.
+                     * If, for example, a StateA is active and – while active – switches several times between its sub-states
                      * SubA and SubB, then the TransitionTime stays at the point in time where StateA became active whereas the *
-                     * EffectiveTransitionTime changes with each change of a substate.
+                     * EffectiveTransitionTime changes with each change of a sub-state.
                      */
                     const uaEffectiveTransitionTime = uaLastTransition.getPropertyByName("EffectiveTransitionTime")! as UAVariable;
                     if (uaEffectiveTransitionTime) {
@@ -420,7 +501,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                             value: transitionTime
                         });
                     }
-
+                    //
                     const uaName = uaLastTransition.getPropertyByName("Name")! as UAVariable;
                     if (uaName) {
                         uaName.setValueFromSource({
@@ -495,7 +576,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
 
     /**
      * @internal
-     * @private
+     * @private|
      */
     public _post_initialize(): void {
         const addressSpace = this.addressSpace;

@@ -44,6 +44,7 @@ import * as tools from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
+import { MandatoryChildOrRequestedOptionalFilter } from "./_mandatory_child_or_requested_optional_filter";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -316,94 +317,6 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
     }
 }
 
-/**
- * return true if node is a mandatory child or a requested optional
- * @method MandatoryChildOrRequestedOptionalFilter
- * @param instance
- * @param optionalsMap
- * @return {Boolean}
- */
-class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
-    private readonly instance: BaseNode;
-    private readonly optionalsMap: any;
-    private readonly references: UAReference[];
-
-    constructor(instance: BaseNode, optionalsMap: any) {
-        // should we clone the node to be a component or propertyOf of a instance
-        assert(optionalsMap !== null && typeof optionalsMap === "object");
-        assert(null !== instance);
-        this.optionalsMap = optionalsMap;
-        this.instance = instance;
-        this.references = instance.allReferences();
-    }
-
-    public shouldKeep(node: BaseNode): boolean {
-        const addressSpace = node.addressSpace;
-
-        const alreadyIn = this.references.filter((r: UAReference) => {
-            const n = addressSpace.findNode(r.nodeId)!;
-            // istanbul ignore next
-            if (!n) {
-                warningLog(" cannot find node ", r.nodeId.toString());
-                return false;
-            }
-            return n.browseName!.name!.toString() === node.browseName!.name!.toString();
-        });
-
-        if (alreadyIn.length > 0) {
-            assert(alreadyIn.length === 1, "Duplication found ?");
-            // a child with the same browse name has already been install
-            // probably from a SuperClass, we should ignore this.
-            return false; // ignore
-        }
-
-        const modellingRule = node.modellingRule;
-
-        switch (modellingRule) {
-            case null:
-            case undefined:
-                debugLog(
-                    "node ",
-                    node.browseName.toString(),
-                    node.nodeId.toString(),
-                    " has no modellingRule ",
-                    node.parentNodeId?.toString()
-                );
-                /**
-                 * in some badly generated NodeSet2.xml file, the modellingRule is not specified
-                 *
-                 * but in some other NodeSet2.xml, this means that the data are only attached to the Type node and shall not be
-                 * instantiate in the corresponding instance (example is the state variable of a finite state machine that are only
-                 * defined in the Type node)
-                 *
-                 * we should not consider it as an error, and treat it as not present
-                 */
-                return false;
-
-            case "Mandatory":
-                return true; // keep;
-            case "Optional":
-                // only if in requested optionals
-                return node.browseName!.name! in this.optionalsMap;
-            case "OptionalPlaceholder":
-                return false; // ignored
-            default:
-                return false; // ignored
-        }
-    }
-
-    public filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter {
-        const browseName: string = childInstance.browseName.name!;
-
-        let map = {};
-
-        if (browseName in this.optionalsMap) {
-            map = this.optionalsMap[browseName];
-        }
-        const newFilter = new MandatoryChildOrRequestedOptionalFilter(childInstance, map);
-        return newFilter;
-    }
-}
 
 // install properties and components on a instantiated Object
 //
@@ -423,13 +336,13 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
     extraInfo: CloneHelper,
     browseNameMap: Set<string>
 ) {
-    if (doDebug) {
-        debugLog("instance browseName =", instance.browseName.toString());
-        debugLog("typeNode            =", typeDefinitionNode.browseName.toString());
-        debugLog("optionalsMap        =", Object.keys(optionalsMap).join(" "));
+    if (doTrace) {
+        warningLog("instance browseName =", instance.browseName.toString());
+        warningLog("typeNode            =", typeDefinitionNode.browseName.toString());
+        warningLog("optionalsMap        =", Object.keys(optionalsMap).join(" "));
 
         const c = typeDefinitionNode.findReferencesEx("Aggregates");
-        debugLog("typeDefinition aggregates      =", c.map((x) => x.node!.browseName.toString()).join(" "));
+        warningLog("typeDefinition aggregates      =", c.map((x) => x.node!.browseName.toString()).join(" "));
     }
     optionalsMap = optionalsMap || {};
 

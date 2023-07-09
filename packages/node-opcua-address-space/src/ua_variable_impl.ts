@@ -1387,7 +1387,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             try {
                 newVariable.bindExtensionObject(newVariable.$dataValue.value.value);
             } catch (err) {
-                errorLog("Errro binding extension objects");
+                errorLog("Error binding extension objects");
                 errorLog((err as Error).message);
                 errorLog(this.toString());
                 errorLog("---------------------------------------");

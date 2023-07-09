@@ -27,7 +27,7 @@ export interface CloneExtraInfo {
     level: number;
     pad(): string;
     registerClonedObject(clonedNode: BaseNode, originalNode: BaseNode): void;
-    getCloned(originalObject: BaseNode): BaseNode | null;
+    getCloned(contextNode: BaseNode, originalObject: BaseNode): BaseNode | null;
 }
 
 export const makeDefaultCloneExtraInfo = (): CloneExtraInfo =>   new CloneHelper();

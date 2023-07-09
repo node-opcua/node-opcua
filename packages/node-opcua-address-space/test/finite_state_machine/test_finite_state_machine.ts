@@ -8,6 +8,7 @@ import { DataType, VariantArrayType } from "node-opcua-variant";
 
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
+import { NodeId } from "node-opcua-nodeid";
 import sinon from "sinon";
 import should from "should";
 
@@ -22,8 +23,6 @@ import {
     UAVariable
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
-import { NodeId } from "node-opcua-nodeid";
-import { stat } from "fs";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -31,7 +30,7 @@ const doDebug = checkDebugFlag("TEST");
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing Finite State Machine", () => {
+describe("FSM1 - Finite State Machine - general tests", () => {
     let addressSpace: AddressSpace;
 
     before(async () => {
@@ -50,7 +49,7 @@ describe("Testing Finite State Machine", () => {
         }
     });
 
-    it("finite state machine should have expected mandatory and optional fields", async () => {
+    it("a finite state machine should have expected mandatory and optional fields", async () => {
         const stateMachineType = addressSpace.findObjectType("StateMachineType")! as UAStateMachineType;
 
         stateMachineType.currentState.modellingRule!.should.eql("Mandatory");
@@ -274,7 +273,7 @@ describe("Testing Finite State Machine", () => {
     });
 });
 
-describe("FiniteStateMachine with Multiple transition from one state to an other", () => {
+describe("FSM2 - Finite State Machine with Multiple transition from one state to an other", () => {
     // some state machine may have multiple transition from one state to the other
     // this is the case in the VisionStateMachine of the MachineVision nodeset
     // for this reason the setState method need to have a extra argument that allows disambiguation
@@ -371,11 +370,36 @@ describe("FiniteStateMachine with Multiple transition from one state to an other
     });
 });
 
-describe("SMSM1 Test FiniteStateMachine from companion specification", () => {
+describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companion specification", () => {
+    let clock: sinon.SinonFakeTimers | undefined;
+    beforeEach(() => {
+        clock = sinon.useFakeTimers({
+            now: 1000,
+            shouldAdvanceTime: false,
+            shouldClearNativeTimers: true
+        } as any);
+    });
+    afterEach(() => {
+        clock!.restore();
+        clock = undefined;
+    });
+    function advanceClockOneHour() {
+        const OneHour = 1000 * 60 * 60;
+        const now = new Date(Date.now() + OneHour);
+        clock!.setSystemTime(now);
+        return now;
+    }
+
     let addressSpace: AddressSpace;
     before(async () => {
         addressSpace = AddressSpace.create();
-        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodesets.machinery]);
+        await generateAddressSpace(addressSpace, [
+            nodesets.standard,
+            nodesets.di,
+            nodesets.machinery,
+            nodesets.ia,
+            nodesets.machineTool
+        ]);
         addressSpace.registerNamespace("urn:my");
         //        addressSpace.installAlarmsAndConditionsService();
     });
@@ -383,7 +407,7 @@ describe("SMSM1 Test FiniteStateMachine from companion specification", () => {
         addressSpace.dispose();
     });
 
-    describe("SMSM1 Test FiniteStateMachine from companion specification", function () {
+    describe("FSM3-A Test FiniteStateMachine from companion specification", function () {
         let stateMachine: UAStateMachineEx;
 
         before(async () => {
@@ -525,8 +549,6 @@ describe("SMSM1 Test FiniteStateMachine from companion specification", () => {
         });
 
         it("changing state should update lastTransition", () => {
-
-
             stateMachine.setState("NotAvailable");
             stateMachine.setState("Executing");
 
@@ -573,6 +595,96 @@ describe("SMSM1 Test FiniteStateMachine from companion specification", () => {
 
         it("changing state should update lastUpdateDate", () => {
             stateMachine.setState("NotAvailable");
+        });
+    });
+
+    describe("FSM3-B Test MachineState with SubMachine state", function () {
+        // MachineOperationModeStateMachineType
+        let stateMachine: UAStateMachineEx;
+
+        before(async () => {
+            const nsMachineTool = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/MachineTool/");
+            const machineItemStateStateMachineType = addressSpace.findObjectType(
+                "MachineOperationModeStateMachineType",
+                nsMachineTool
+            )!;
+
+            stateMachine = machineItemStateStateMachineType.instantiate({
+                browseName: "MachineOperationModeStateMachine",
+                organizedBy: addressSpace.rootFolder.objects,
+                optionals: [
+                    "AvailableStates",
+                    "AvailableTransitions",
+
+                    "CurrentState.Name",
+                    "CurrentState.Number",
+                    "CurrentState.EffectiveDisplayName",
+
+                    "LastTransition",
+                    "LastTransition.Name",
+                    "LastTransition.Number",
+                    "LastTransition.TransitionTime",
+                    "LastTransition.EffectiveTransitionTime",
+
+                    "MaintenanceMode",
+                    "MaintenanceMode.AvailableStates",
+                    "MaintenanceMode.AvailableTransitions",
+                    "MaintenanceMode.LastTransition",
+                    "MaintenanceMode.LastTransition.Name",
+                    "MaintenanceMode.LastTransition.Number",
+                    "MaintenanceMode.LastTransition.TransitionTime"
+                ]
+            }) as UAStateMachineEx;
+
+            promoteToStateMachine(stateMachine);
+            console.log(
+                stateMachine
+                    .getStates()
+                    .map((s) => s.browseName.toString())
+                    .join(" ")
+            );
+
+            const lastTransition = stateMachine.getComponentByName("LastTransition", 0)! as UAVariable;
+            should.exist(lastTransition);
+
+            // the sub-state machine
+            const maintenanceMode = stateMachine.getComponentByName("MaintenanceMode", nsMachineTool)! as UAStateMachineEx;
+            should.exist(maintenanceMode);
+            promoteToStateMachine(maintenanceMode);
+        });
+
+        it("should update the effectTransitionTime of the mainState when the subState is changed", () => {
+            new Date().should.eql(new Date(1000));
+
+            const lastTransition = stateMachine.getComponentByName("LastTransition");
+            should.exist(lastTransition);
+
+            const lastTransitionEffectiveTransitionTime = lastTransition!.getPropertyByName(
+                "EffectiveTransitionTime"
+            )! as UAVariable;
+            should.exist(lastTransitionEffectiveTransitionTime);
+
+            stateMachine.setState("Maintenance");
+
+            const maintenanceMode = stateMachine.getComponentByName("MaintenanceMode")! as UAStateMachineEx;
+            should.exist(maintenanceMode);
+
+            {
+                const now = advanceClockOneHour();
+                maintenanceMode.setState("Service");
+                lastTransitionEffectiveTransitionTime.readValue().value.value.should.eql(now);
+            }
+            {
+                const now = advanceClockOneHour();
+                maintenanceMode.setState("Repair");
+                lastTransitionEffectiveTransitionTime.readValue().value.value.should.eql(now);
+            }
+            {
+                const now = advanceClockOneHour();
+
+                maintenanceMode.setState("Upgrade");
+                lastTransitionEffectiveTransitionTime.readValue().value.value.should.eql(now);
+            }
         });
     });
 });
