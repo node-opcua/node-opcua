@@ -15,8 +15,6 @@ import { BaseNode } from "./base_node";
 import { UAReference } from "./ua_reference";
 import { IAddressSpace } from "./address_space";
 
-const debugLog = make_debugLog("CLONE");
-const doDebug = checkDebugFlag("CLONE");
 const warningLog = make_warningLog("CLONE");
 
 const errorLog = make_errorLog(__filename);
@@ -25,6 +23,8 @@ const traceLog = errorLog;
 
 type UAConcrete = UAVariable | UAObject | UAMethod;
 
+// istanbul ignore next
+/** @private */
 export function fullPath(node: BaseNode): string {
     const browseName = node.browseName.toString();
 
@@ -32,12 +32,54 @@ export function fullPath(node: BaseNode): string {
     if (parent) {
         return fullPath(parent) + "/" + browseName;
     }
+    const containingFolder = node.findReferencesExAsObject("Organizes", BrowseDirection.Inverse)[0];
+    if (containingFolder) {
+        return fullPath(containingFolder) + "@" + browseName;
+    }
     return browseName;
 }
+// istanbul ignore next
+/** @private */
 export function fullPath2(node: BaseNode): string {
     return fullPath(node) + " (" + node.nodeId.toString() + ")";
 }
 
+// istanbul ignore next
+/** @private */
+export function exploreNode(node: BaseNode) {
+    const f = (n: BaseNode) => {
+        return `${n.browseName.toString()} (${n.nodeId.toString()})${n.modellingRule ? " - " + n.modellingRule : ""}`;
+    };
+    const r = (r: any) => {
+        const ref = node.addressSpace.findNode(r);
+        if (!ref) return `${r.nodeId.toString()} (unknown)`;
+        return ref?.browseName.toString() + " " + ref!.nodeId.toString();
+    };
+    const map = new Set();
+    const _explore = (node: BaseNode, pad: string) => {
+        const a = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
+        const b = node.findReferencesEx("Organizes", BrowseDirection.Forward);
+
+        for (const ref of [...a, ...b]) {
+            const alreadyVisited = map.has(ref.nodeId.toString());
+            traceLog(
+                pad,
+                "  +-- ",
+                r(ref.referenceType).padEnd(20),
+                "-->",
+                f(ref.node!).padEnd(10),
+                alreadyVisited ? " (already visited)" : ""
+            );
+            if (alreadyVisited) {
+                continue;
+            }
+            map.add(ref.nodeId.toString());
+            _explore(ref.node!, pad + "   ");
+        }
+    };
+    traceLog("exploring ", f(node));
+    _explore(node, "   ");
+}
 //
 //  case 1:
 //   /-----------------------------\
@@ -133,44 +175,141 @@ function followPath(node: BaseNode, path: QualifiedName[]): UAConcrete | null {
     return current as UAConcrete;
 }
 
+type Context = Map<string, CloneInfo>;
+
 export class CloneHelper {
     public level = 0;
-    private readonly mapOrgToClone: Map<string, CloneInfo> = new Map();
-
+    private _context: Context | null = null;
+    private _contextStack: Context[] = [];
+    private readonly mapTypeInstanceChildren: Map<string, Map<string, CloneInfo>> = new Map();
     public pad(): string {
         return " ".padEnd(this.level * 2, " ");
+    }
+
+    public getClonedArray() {
+        const result: CloneInfo[] = [];
+        for (const map of this.mapTypeInstanceChildren.values()) {
+            for (const cloneInfo of map.values()) {
+                result.push(cloneInfo);
+            }
+        }
+        return result;
+    }
+
+    public pushContext<
+        TO extends UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
+        TC extends UAObject | UAVariable | UAMethod
+    >({ clonedParent, originalParent }: { clonedParent: TC; originalParent: TO }): void {
+        // istanbul ignore next
+        doTrace &&
+            traceLog(
+                chalk.yellow("push context: "),
+                "original parent = ",
+                fullPath2(originalParent),
+                "cloned parent =",
+                fullPath2(clonedParent)
+            );
+
+        const typeInstance = originalParent.nodeId.toString() + clonedParent.nodeId.toString();
+
+        // istanbul ignore next
+        doTrace && traceLog("typeInstance (1) = ", typeInstance, fullPath2(originalParent), fullPath2(clonedParent));
+
+        let a = this.mapTypeInstanceChildren.get(typeInstance);
+        if (a) {
+            throw new Error("Internal Error");
+        }
+        a = new Map<string, CloneInfo>();
+        this.mapTypeInstanceChildren.set(typeInstance, a);
+
+        if (this._context) {
+            this._contextStack.push(this._context);
+        }
+        this._context = a;
+    }
+    public popContext() {
+        assert(this._contextStack.length > 0);
+        this._context = this._contextStack.pop()!;
     }
     public registerClonedObject<
         TO extends UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
         TC extends UAObject | UAVariable | UAMethod
-    >(clonedNode: TC, originalNode: TO) {
+    >({ clonedNode, originalNode }: { clonedNode: TC; originalNode: TO }): void {
+        if (!this._context) {
+            this.pushContext({ clonedParent: clonedNode, originalParent: originalNode });
+        }
+        // istanbul ignore next
         doTrace &&
-            traceLog(chalk.yellow("registerClonedObject"), "originalNode = ", fullPath2(originalNode), fullPath2(clonedNode));
-        this.mapOrgToClone.set(originalNode.nodeId.toString(), {
+            traceLog(
+                chalk.yellow("registerClonedObject"),
+                "originalNode = ",
+                fullPath2(originalNode),
+                "clonedNode =",
+                fullPath2(clonedNode)
+            );
+
+        const insertShadow = (map: Map<string, CloneInfo>) => {
+            const { parentType, path } = _get_parent_type_and_path(originalNode);
+
+            if (parentType) {
+                let base = parentType.subtypeOfObj;
+                while (base) {
+                    const shadowChild = followPath(base, path);
+                    if (shadowChild) {
+                        // istanbul ignore next
+                        doTrace && traceLog("shadowChild = ", fullPath2(shadowChild));
+                        map.set(shadowChild.nodeId.toString(), {
+                            cloned: clonedNode,
+                            original: shadowChild
+                        });
+                    }
+                    base = base.subtypeOfObj;
+                }
+            }
+        };
+        // find subTypeOf
+
+        if (!this._context) {
+            throw new Error("internal error: Cannot find context");
+        }
+        // also create  [Type+Instance] map
+        // to do so we need to find the TypeDefinition of the originalNode
+        this._context.set(originalNode.nodeId.toString(), {
             cloned: clonedNode,
             original: originalNode
         });
-
-        //
-        const { parentType, path } = _get_parent_type_and_path(originalNode);
-
-        if (parentType) {
-            let base = parentType.subtypeOfObj;
-            while (base) {
-                const shadowChild = followPath(base, path);
-                if (shadowChild) {
-                    this.mapOrgToClone.set(shadowChild.nodeId.toString(), {
-                        cloned: clonedNode,
-                        original: shadowChild
-                    });
-                }
-                base = base.subtypeOfObj;
-            }
-        }
-        // find subTypeOf
+        insertShadow(this._context);
     }
-    public getCloned(contextNode: BaseNode, originalNode: UAVariableType | UAObjectType): UAObject | UAVariable | UAMethod | null {
-        const info = this.mapOrgToClone.get(originalNode.nodeId.toString());
+    public getCloned({
+        originalParent,
+        clonedParent,
+        originalNode
+    }: {
+        originalParent: BaseNode;
+        clonedParent: BaseNode;
+        originalNode: UAVariable | UAObject;
+    }): UAObject | UAVariable | UAMethod | null {
+        //
+        //  Type                                                 Instance
+        //    +-> Folder (A)                                         +-> Folder (A')
+        //    |      |                                               |     |
+        //    |      +- Component (B)                                |     +- Component (B')
+        //    °-> Folder (C)       [parentNode]                      +-> Folder (C')          <= [clonedParent]
+        //          |                                                      |
+        //          +- Component (B again !)  [originalNode]               +- Component (B again !)
+
+        // istanbul ignore next
+        doTrace &&
+            traceLog(
+                "typeInstance (3) = originalParent",
+                fullPath2(originalParent),
+                "originalNode=",
+                fullPath2(originalNode),
+                "clonedParent",
+                fullPath2(clonedParent)
+            );
+
+        const info = this._context!.get(originalNode.nodeId.toString());
         if (info) {
             return info.cloned;
         }
@@ -229,19 +368,27 @@ function findNonHierarchicalReferences(originalObject: BaseNode): UAReference[] 
     return references;
 }
 
-export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): void {
-    const extraInfo_ = extraInfo as unknown as { mapOrgToClone: Map<string, CloneInfo> };
+const findImplementedObject = (cloneInfoArray: CloneInfo[], ref: UAReference): CloneInfo | null => {
+    const a = cloneInfoArray.filter((x) => x.original.nodeId.toString() === ref.nodeId.toString());
+    if (a.length === 0) return null;
+    const info = a[0];
+    return info;
+};
 
-    const findImplementedObject = (ref: UAReference): CloneInfo | null =>
-        extraInfo_.mapOrgToClone.get(ref.nodeId.toString()) || null;
+export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): void {
+    const cloneInfoArray: CloneInfo[] = extraInfo.getClonedArray();
 
     // navigate through original objects to find those that are being references by node that
     // have been cloned .
     // this could be node organized by some FunctionalGroup
 
-    for (const { original, cloned } of extraInfo_.mapOrgToClone.values()) {
+    // istanbul ignore next
+    doTrace && traceLog(chalk.yellow("reconstructNonHierarchicalReferences"));
+
+    for (const { original, cloned } of cloneInfoArray) {
         apply(original, cloned);
     }
+
     function apply(original: BaseNode, cloned: BaseNode) {
         const addressSpace = original.addressSpace;
         // find NonHierarchical References on original object
@@ -252,54 +399,34 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
         }
 
         // istanbul ignore next
-        if (doDebug) {
-            debugLog(
-                " investigation ",
-                original.browseName.toString(),
-                cloned.nodeClass.toString(),
-                original.nodeClass.toString(),
-                original.nodeId.toString(),
-                cloned.nodeId.toString()
-            );
-        }
+        doTrace && traceLog(" investigation ", "original", fullPath2(original), NodeClass[cloned.nodeClass], fullPath2(cloned));
 
         for (const ref of originalNonHierarchical) {
-            const info = findImplementedObject(ref);
+            const info = findImplementedObject(cloneInfoArray, ref);
+            if (!info) continue;
 
             // if the object pointed by this reference is also cloned ...
-            if (info) {
-                const originalDest = info.original;
-                const cloneDest = info.cloned;
 
-                // istanbul ignore next
-                if (doDebug) {
-                    debugLog(
-                        "   adding reference ",
-                        ref.referenceType,
-                        addressSpace.findNode(ref.referenceType)!.browseName.toString(),
-                        " from cloned ",
-                        cloned.nodeId.toString(),
-                        cloned.browseName.toString(),
-                        " to cloned ",
-                        cloneDest.nodeId.toString(),
-                        cloneDest.browseName.toString()
-                    );
-                }
+            const originalDest = info.original;
+            const cloneDest = info.cloned;
 
-                // restore reference
-                cloned.addReference({
-                    isForward: false,
-                    nodeId: cloneDest.nodeId,
-                    referenceType: ref.referenceType
-                });
-            } else {
-                //     // restore reference
-                //     cloned.addReference({
-                //         isForward: false,
-                //         nodeId: ref.nodeId,
-                //         referenceType: ref.referenceType
-                //     });
-            }
+            // istanbul ignore next
+            doTrace &&
+                traceLog(
+                    "   adding reference ",
+                    fullPath2(addressSpace.findNode(ref.referenceType)!),
+                    " from cloned ",
+                    fullPath2(cloned),
+                    " to cloned ",
+                    fullPath2(cloneDest)
+                );
+
+            // restore reference
+            cloned.addReference({
+                isForward: false,
+                nodeId: cloneDest.nodeId,
+                referenceType: ref.referenceType
+            });
         }
     }
 }
@@ -324,14 +451,13 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
  *                                +-------- Organizes---+
  */
 export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
-    const extraInfo_ = extraInfo as unknown as { mapOrgToClone: Map<string, CloneInfo> };
+    const cloneInfoArray: CloneInfo[] = extraInfo.getClonedArray();
 
     // navigate through original objects to find those that are being organized by some FunctionalGroup
-    for (const { original, cloned } of extraInfo_.mapOrgToClone.values()) {
+    for (const { original, cloned } of cloneInfoArray) {
         const organizedByArray = original.findReferencesEx("Organizes", BrowseDirection.Inverse);
-
         for (const ref of organizedByArray) {
-            const info = extraInfo_.mapOrgToClone.get(ref.nodeId.toString());
+            const info = findImplementedObject(cloneInfoArray, ref);
             if (!info) continue;
 
             const folder = info.original;

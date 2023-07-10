@@ -264,12 +264,15 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
         _handle_hierarchy_parent(addressSpace, options.references, options);
 
+        if (!extraInfo) {
+            extraInfo = makeDefaultCloneExtraInfo(this);
+        }
         const clonedMethod = _clone(
             this,
             UAMethodImpl,
             options,
             optionalFilter || defaultCloneFilter,
-            extraInfo || makeDefaultCloneExtraInfo()
+            extraInfo 
         ) as UAMethodImpl;
 
         clonedMethod._asyncExecutionFunction = this._asyncExecutionFunction;

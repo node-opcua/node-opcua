@@ -44,6 +44,7 @@ export function utest_off_normal_alarm(test: any): void {
             const alarm = namespace.instantiateOffNormalAlarm({
                 browseName: "MyOffNormalAlarm",
                 conditionSource: null,
+                conditionOf: addressSpace.rootFolder.objects,
                 inputNode: multiStateDiscreteNode,
                 normalState: normalStateNode.nodeId
             });

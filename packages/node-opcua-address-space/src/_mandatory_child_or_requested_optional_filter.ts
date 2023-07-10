@@ -1,5 +1,5 @@
 import { assert } from "node-opcua-assert";
-import { BaseNode, UAMethod, UAObject, UAReference, UAVariable, CloneFilter } from "node-opcua-address-space-base";
+import { BaseNode, UAMethod, UAObject, UAReference, UAVariable, CloneFilter, fullPath2 } from "node-opcua-address-space-base";
 
 import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 
@@ -55,10 +55,9 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 doTrace &&
                     traceLog(
                         "node ",
-                        node.browseName.toString(),
-                        node.nodeId.toString(),
+                        fullPath2(node),
                         " has no modellingRule ",
-                        node.parentNodeId?.toString()
+                        node ? fullPath2(node) : ""
                     );
                 /**
                  * in some badly generated NodeSet2.xml file, the modellingRule is not specified

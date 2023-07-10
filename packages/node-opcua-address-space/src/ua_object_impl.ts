@@ -101,7 +101,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
             UAObjectImpl,
             options,
             optionalFilter || defaultCloneFilter,
-            extraInfo || makeDefaultCloneExtraInfo()
+            extraInfo || makeDefaultCloneExtraInfo(this)
         ) as UAObject;
         // xx  newObject.propagate_back_references();
         // xx newObject.install_extra_properties();
@@ -191,8 +191,7 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
             server.emit("event", eventData);
             m[server.nodeId.toString()] = server;
         } else {
-            // tslint:disable:no-console
-            console.warn(
+            errorLog(
                 chalk.yellow("Warning. ") +
                     chalk.cyan("UAObject#raiseEvent") +
                     chalk.red(" cannot find Server object on addressSpace")

@@ -25,10 +25,10 @@ import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 import * as tools from "./tool_isSubtypeOf";
 import {
     assertUnusedChildBrowseName,
-    initialize_properties_and_components,
     topMostParentIsObjectTypeOrVariableType
 } from "./ua_variable_type_impl";
 import { AddressSpacePrivate } from "./address_space_private";
+import { initialize_properties_and_components } from "./_instantiate_helpers";
 
 export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
     public readonly nodeClass = NodeClass.ObjectType;

@@ -74,6 +74,7 @@ export function utest_condition(test: any): void {
                             browseName: "MyCustomCondition2",
                             conditionSource: null,
                             organizedBy: addressSpace.rootFolder.objects,
+                            conditionOf: addressSpace.rootFolder.objects.server
                         });
 
                         (condition as any).evaluateConditionsAfterEnabled = () => {
@@ -152,7 +153,9 @@ export function utest_condition(test: any): void {
                     condition = namespace.instantiateCondition(myCustomConditionType, {
                         browseName: "MyCustomCondition2B",
                         conditionSource: null,
-                        organizedBy: addressSpace.rootFolder.objects
+                        organizedBy: addressSpace.rootFolder.objects,
+                        conditionOf: addressSpace.rootFolder.objects.server
+
                     });
                 });
                 it("writing to a master branch (branch0) variable should affect the underlying variable", () => {
@@ -208,7 +211,7 @@ export function utest_condition(test: any): void {
                 // Recommended state names are described in Annex A.
                 //
                 // A Condition’s EnabledState effects the generation of Event Notifications and as such results
-                // in the following specific behaviour:
+                // in the following specific behavior:
                 //
                 // RQ1
                 // * When the Condition instance enters the Disabled state, the Retain Property of this
@@ -236,7 +239,7 @@ export function utest_condition(test: any): void {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2C",
                     conditionSource: source,
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
                 });
 
                 (condition as any).evaluateConditionsAfterEnabled = () => {
@@ -245,7 +248,7 @@ export function utest_condition(test: any): void {
 
                 condition.setEnabledState(true);
                 condition.getEnabledState().should.eql(true);
-                condition.getEnabledStateAsString().should.eql("Enabled");
+                condition.getEnabledStateAsString().should.eql("Enabled");             
                 condition.currentBranch().getEnabledState().should.eql(true);
                 condition.currentBranch().getEnabledStateAsString().should.eql("Enabled");
 
@@ -321,7 +324,7 @@ export function utest_condition(test: any): void {
                 // An event should have been raised to specify that the condition has entered a Enabled State
                 // and a event should have been raised with the retained condition s
 
-                // Note : the specs are not clear about wheither an specific event for enable state is required ....
+                // Note : the specs are not clear about whether an specific event for enable state is required ....
                 spyOnEvent.callCount.should.eql(3, "an event should have been raised to signal Enabled State");
                 spyOnEvent.getCalls()[2].args[0]["enabledState"].value.text.should.eql("Enabled");
                 spyOnEvent.getCalls()[2].args[0]["enabledState.id"].value.should.eql(true);
@@ -437,6 +440,7 @@ export function utest_condition(test: any): void {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition12",
                     conditionSource: null,
+                    conditionOf: addressSpace.rootFolder.objects.server,
                     organizedBy: addressSpace.rootFolder.objects
                 });
 

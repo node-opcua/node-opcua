@@ -32,7 +32,8 @@ import {
     BaseNode,
     UAObject,
     InstantiateObjectOptions,
-    UAProperty
+    UAProperty,
+    fullPath2
 } from "node-opcua-address-space-base";
 import { UAConditionVariable } from "node-opcua-nodeset-ua";
 
@@ -89,7 +90,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         namespace: INamespace,
         conditionTypeId: NodeId | string | UAEventType,
         options: any,
-        data: any
+        data?: Record<string, VariantOptions>
     ): UAConditionImpl {
         return UACondition_instantiate(namespace, conditionTypeId, options, data) as UAConditionImpl;
     }
@@ -455,9 +456,10 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
             }
         } else {
             warningLog(
-                "Condition ",
-                this.nodeId.toString(),
-                "is not linked to a Object with a IsConditionOf(reversed(HasCondition))"
+                "raiseConditionEvent: the condition ",
+                fullPath2(this),
+                "is not linked to a Object with a IsConditionOf(reversed(HasCondition)) reference",
+                "therefore event cannot bubble-up to the server object"
             );
         }
         // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +

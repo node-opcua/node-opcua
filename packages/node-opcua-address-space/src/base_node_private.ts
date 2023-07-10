@@ -35,8 +35,7 @@ import {
     UAReference,
     CloneOptions,
     CloneHelper,
-    fullPath2,
-    makeDefaultCloneExtraInfo
+    fullPath2
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
 import { ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
@@ -489,8 +488,7 @@ function _clone_children_on_template(
     node: BaseNode,
     copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
-    extraInfo: CloneExtraInfo,
-    browseNameMap: Set<string>
+    extraInfo: CloneExtraInfo
 ) {
     /**
      * the type definition node of the node to clone
@@ -579,7 +577,11 @@ function _clone_children_on_template(
                         copyAlsoModellingRules
                     };
 
-                    const alreadyCloned = extraInfo.getCloned(newParent, grandChild);
+                    const alreadyCloned = extraInfo.getCloned({
+                        originalParent: nodeToClone,
+                        clonedParent: newParent,
+                        originalNode: grandChild
+                    });
                     if (alreadyCloned) {
                         alreadyCloned.addReference({
                             referenceType: ref.referenceType,
@@ -588,7 +590,10 @@ function _clone_children_on_template(
                         });
                     } else {
                         const clonedGrandChild = grandChild.clone(options, optionalFilter, extraInfo);
-                        extraInfo.registerClonedObject(clonedGrandChild, grandChild);
+                        extraInfo.registerClonedObject({
+                            originalNode: grandChild,
+                            clonedNode: clonedGrandChild
+                        });
                     }
                 }
             }
@@ -636,6 +641,7 @@ function _clone_collection_new(
         if (node && !node.modellingRule) {
             // istanbul ignore next
             doTrace && traceLog(extraInfo.pad(), "skipping  with no modelling rule", fullPath2(node));
+            // those node stays in the Type
             continue; // skip this node
         }
 
@@ -644,18 +650,18 @@ function _clone_collection_new(
             doTrace && traceLog(extraInfo.pad(), "skipping optional that doesn't appear in the filter", fullPath2(node));
             continue; // skip this node
         }
-        const key = newParent.nodeId.toString()+ "(" +  newParent.browseName.toString() + ")" + "/" + node.browseName.toString();
+        const key = newParent.nodeId.toString() + "(" + newParent.browseName.toString() + ")" + "/" + node.browseName.toString();
         if (browseNameMap?.has(key)) {
-            _clone_children_on_template(
-                nodeToClone,
-                newParent,
-                node,
-                copyAlsoModellingRules,
-                optionalFilter,
-                extraInfo,
-                browseNameMap
-            );
-            doTrace && traceLog(extraInfo.pad(), "skipping required node with same browseName", fullPath2(node), "because it has already been cloned", "key=", key);
+            _clone_children_on_template(nodeToClone, newParent, node, copyAlsoModellingRules, optionalFilter, extraInfo);
+            doTrace &&
+                traceLog(
+                    extraInfo.pad(),
+                    "skipping required node with same browseName",
+                    fullPath2(node),
+                    "because it has already been cloned",
+                    "key=",
+                    key
+                );
 
             continue; // skipping node with same browseName
         }
@@ -669,7 +675,7 @@ function _clone_collection_new(
             copyAlsoModellingRules
         };
 
-        const alreadyCloned = extraInfo.getCloned(newParent, node);
+        const alreadyCloned = extraInfo.getCloned({ originalParent: nodeToClone, clonedParent: newParent, originalNode: node });
         if (alreadyCloned) {
             // istanbul ignore next
             doTrace &&
@@ -679,8 +685,10 @@ function _clone_collection_new(
                     fullPath2(node),
                     "already cloned as",
                     fullPath2(alreadyCloned),
-                    "\nnode to clone =", fullPath2(nodeToClone),
-                    "\nnew parent   =", fullPath2(newParent)
+                    "\nnode to clone =",
+                    fullPath2(nodeToClone),
+                    "\nnew parent   =",
+                    fullPath2(newParent)
                 );
 
             const hasReference =
@@ -693,13 +701,7 @@ function _clone_collection_new(
                 });
             } else {
                 // istanbul ignore next
-                doTrace &&
-                    traceLog(
-                        extraInfo.pad(),
-                        "reference to node  ",
-                        fullPath2(alreadyCloned),
-                         " already exists !"
-                    );
+                doTrace && traceLog(extraInfo.pad(), "reference to node  ", fullPath2(alreadyCloned), " already exists !");
             }
         } else {
             // istanbul ignore next
@@ -714,10 +716,7 @@ function _clone_collection_new(
                 );
 
             extraInfo.level += 1;
-            const extraInfo2 = makeDefaultCloneExtraInfo();
-            const clonedNode = node.clone(options, optionalFilter, extraInfo2);
-            // assert(extraInfo2.getCloned(newParent, node));
-
+            const clonedNode = node.clone(options, optionalFilter, extraInfo);
             extraInfo.level -= 1;
 
             // istanbul ignore next
@@ -734,20 +733,11 @@ function _clone_collection_new(
                     extraInfo.pad(),
                     "    cloned   nodeId",
                     clonedNode.nodeId.toString(),
-                    fullPath2(clonedNode) +
-                    ""
+                    fullPath2(clonedNode) + ""
                 );
 
             extraInfo.level++;
-            _clone_children_on_template(
-                nodeToClone,
-                newParent,
-                node,
-                copyAlsoModellingRules,
-                optionalFilter,
-                extraInfo,
-                browseNameMap
-            );
+            _clone_children_on_template(nodeToClone, newParent, node, copyAlsoModellingRules, optionalFilter, extraInfo);
             extraInfo.level--;
 
             // also clone or instantiate interface members that may be required in the optionals
@@ -837,7 +827,6 @@ function _extractInterfaces2(typeDefinitionNode: UAObjectType | UAVariableType, 
     return deduplicatedInterfaces;
 }
 
-
 function _cloneInterface(
     nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: BaseNode,
@@ -879,7 +868,7 @@ function _cloneInterface(
 
     for (const iface of interfaces) {
         const aggregates = iface.findReferencesEx("Aggregates", BrowseDirection.Forward);
-        
+        if (aggregates.length === 0) continue;
         // istanbul ignore next
         doTrace &&
             traceLog(
@@ -893,7 +882,7 @@ function _cloneInterface(
 }
 
 function __clone_organizes_references(
-    node: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: UAObject | UAVariable | UAMethod,
     copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
@@ -901,12 +890,13 @@ function __clone_organizes_references(
     browseNameMap: Set<string>
 ): void {
     // find all references that derives from the Organizes
-    const organizedRef = node.findReferencesEx("Organizes", BrowseDirection.Forward);
-    _clone_collection_new(node, newParent, organizedRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    const organizedRef = nodeToClone.findReferencesEx("Organizes", BrowseDirection.Forward);
+    if (organizedRef.length === 0) return;
+    _clone_collection_new(nodeToClone, newParent, organizedRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
 function __clone_children_references(
-    node: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: UAObject | UAVariable | UAMethod,
     copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
@@ -914,20 +904,21 @@ function __clone_children_references(
     browseNameMap: Set<string>
 ): void {
     // find all references that derives from the Aggregates
-    const aggregatesRef = node.findReferencesEx("Aggregates", BrowseDirection.Forward);
-    _clone_collection_new(node, newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    const aggregatesRef = nodeToClone.findReferencesEx("Aggregates", BrowseDirection.Forward);
+    if (aggregatesRef.length === 0) return;
+    _clone_collection_new(nodeToClone, newParent, aggregatesRef, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
 export function _clone_hierarchical_references(
-    node: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
+    nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
     newParent: UAObject | UAVariable | UAMethod,
     copyAlsoModellingRules: boolean,
     optionalFilter: CloneFilter,
     extraInfo: CloneExtraInfo,
     browseNameMap: Set<string>
 ) {
-    __clone_children_references(node, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
-    __clone_organizes_references(node, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    __clone_children_references(nodeToClone, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
+    __clone_organizes_references(nodeToClone, newParent, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 export function _clone_non_hierarchical_references(
     nodeToClone: UAObject | UAVariable | UAMethod | UAObjectType | UAVariableType,
@@ -944,6 +935,7 @@ export function _clone_non_hierarchical_references(
     assert(newParent instanceof BaseNodeImpl);
     // find all reference that derives from the HasSubStateMachine
     const references = nodeToClone.findReferencesEx("HasSubStateMachine", BrowseDirection.Forward);
+    if (references.length === 0) return;
     _clone_collection_new(nodeToClone, newParent, references, copyAlsoModellingRules, optionalFilter, extraInfo, browseNameMap);
 }
 
@@ -1010,7 +1002,11 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
 
     const clonedNode = new Constructor(constructorOptions);
     (originalNode.addressSpace as AddressSpacePrivate)._register(clonedNode);
-    extraInfo.registerClonedObject(clonedNode, originalNode);
+
+    extraInfo.registerClonedObject({
+        originalNode,
+        clonedNode
+    });
 
     if (!options.ignoreChildren) {
         // clone children and the rest ....
@@ -1030,6 +1026,12 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
 
         if (originalNode.nodeClass === NodeClass.Object || originalNode.nodeClass === NodeClass.Variable) {
             let typeDefinitionNode: UAVariableType | UAObjectType | null = originalNode.typeDefinitionObj;
+
+            extraInfo.pushContext({
+                clonedParent : clonedNode,
+                originalParent: originalNode
+            });
+
             while (typeDefinitionNode) {
                 // istanbul ignore next
                 doTrace &&
@@ -1051,6 +1053,9 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
                 );
                 typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
             }
+            
+            extraInfo.popContext();
+
         }
         _clone_non_hierarchical_references(
             originalNode,

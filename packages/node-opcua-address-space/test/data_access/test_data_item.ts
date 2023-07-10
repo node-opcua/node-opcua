@@ -34,8 +34,10 @@ describe("DataAccess", () => {
     });
 
     after(async () => {
-        await addressSpace.shutdown();
-        addressSpace.dispose();
+        if (addressSpace) {
+            await addressSpace.shutdown();
+            addressSpace.dispose();
+        }
     });
 
     // BaseDataVariableType
@@ -146,7 +148,7 @@ describe("DataAccess", () => {
 // Clients  that use any of these  Properties   should re- read them before they process the data value .
 // Part 8 5.3.2
 // The  StatusCode SemanticsChanged  bit shall be set if any of the  EURange  ( could change the
-// behaviour of a  Subscription  if a  PercentDeadband  filter is used)   or  EngineeringUnits  (could create
+// behavior of a  Subscription  if a  PercentDeadband  filter is used)   or  EngineeringUnits  (could create
 // problems if the client uses the value to perform calculations)  Properties  are changed (see section
 // 5.2  for additional information).
 

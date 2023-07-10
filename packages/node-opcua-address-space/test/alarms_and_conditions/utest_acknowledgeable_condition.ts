@@ -1,7 +1,7 @@
 import should from "should";
 import sinon from "sinon";
 
-import { NodeClass } from "node-opcua-data-model";
+import { BrowseDirection, NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
@@ -46,9 +46,31 @@ export function utest_acknowledgeable_condition(test: any): void {
                 }
             ) as UAAcknowledgeableConditionEx;
 
+            // +------------------------------+
+            // | AcknowledgeableConditionType |
+            // +------------------------------+
+            //        |
+            //        +     +------------+
+            //        +---> |EnableState |---- HasTrueSubState ---+
+            //        |     +------------+                        |
+            //        |                                           |
+            //        |     +-------------------+                 |
+            //        +---- |EnabledState       |<|---------------+
+            //        |     +-------------------+                       
+
+            should.exist(condition.enabledState, "enabledState must exist");
+            should.exist(condition.ackedState, "ackedState must exist");
+
+            const trueSubStates = condition.enabledState.findReferencesEx("HasTrueSubState", BrowseDirection.Forward);
+            trueSubStates.length.should.eql(1);
+            condition.enabledState.getTrueSubStates().length.should.eql(1);
+            
+
+            should.exist(condition.ackedState.isTrueSubStateOf, "isTrueSubStateOf must exist");
+
             // HasTrueSubState and HasFalseSubState relationship must be maintained
             condition.ackedState.isTrueSubStateOf!.should.eql(condition.enabledState);
-            condition.enabledState.getTrueSubStates().length.should.eql(1);
+            
             condition.browseName.toString().should.eql("1:AcknowledgeableCondition2");
         });
         it("should instantiate AcknowledgeableConditionType (variation 3)", async () => {

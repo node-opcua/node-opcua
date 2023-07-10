@@ -16,7 +16,12 @@ export interface CloneFilter {
     filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter;
 }
 export const defaultCloneFilter: CloneFilter = {
-    shouldKeep: () => true,
+    shouldKeep: (node: BaseNode) => {
+        if (node.modellingRule === "OptionalPlaceholder" || node.modellingRule === "MandatoryPlaceholder") {
+            return false;
+        }
+        return true;
+    },
     filterFor(node: BaseNode) {
         return this;
     }
@@ -26,11 +31,23 @@ export interface CloneExtraInfo {
     /* */
     level: number;
     pad(): string;
-    registerClonedObject(clonedNode: BaseNode, originalNode: BaseNode): void;
-    getCloned(contextNode: BaseNode, originalObject: BaseNode): BaseNode | null;
+
+    pushContext(params: { clonedParent: BaseNode; originalParent: BaseNode }): void;
+    popContext(): void;
+    
+    registerClonedObject(params: { clonedNode: BaseNode; originalNode: BaseNode }): void;
+    getCloned(params: {
+        originalParent: BaseNode;
+        clonedParent: BaseNode;
+        originalNode: UAVariable | UAObject | UAMethod;
+    }): BaseNode | null;
 }
 
-export const makeDefaultCloneExtraInfo = (): CloneExtraInfo =>   new CloneHelper();
+export const makeDefaultCloneExtraInfo = (node: UAVariable | UAMethod | UAObject): CloneExtraInfo => {
+    const extraInfo = new CloneHelper();
+    extraInfo.pushContext({ originalParent: node, clonedParent: node });
+    return extraInfo;
+};
 
 export interface CloneOptions /* extends ConstructNodeIdOptions */ {
     namespace: INamespace;

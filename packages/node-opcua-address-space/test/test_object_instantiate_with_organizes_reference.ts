@@ -1,10 +1,10 @@
 import should from "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
+import { BrowseDirection } from "node-opcua-data-model";
 
 import { AddressSpace, getSymbols, IAddressSpace, SessionContext, setSymbols, UAObject } from "..";
 import { generateAddressSpace } from "../nodeJS";
-import { BrowseDirection } from "node-opcua-data-model";
 
 const context = SessionContext.defaultContext;
 
@@ -65,15 +65,24 @@ describe("Test object instantiate when organizes references exists", () => {
     });
 
     it("ION-2 - should clone the organized nodes", () => {
-
         const functionalGroupType = addressSpace.findObjectType("FunctionalGroupType", 2)!;
+
+        //  MyObjectType (A)
+        //     |
+        //     +----------||-ParameterSet (B)
+        //     |                |
+        //     |                +---------||- Parameter1 (C)
+        //     |
+        //     +-organizes-> Folder1  (D)
+        //     |                |
+        //                      --organizes-> Parameter1 (C)
 
         const namespace = addressSpace.getOwnNamespace();
         const objectType = namespace.addObjectType({
             browseName: "MyObjectType",
             subtypeOf: "BaseObjectType"
         });
-        
+
         const parameterSet = namespace.addObject({
             browseName: "ParameterSet",
             componentOf: objectType,
@@ -85,7 +94,7 @@ describe("Test object instantiate when organizes references exists", () => {
             componentOf: parameterSet,
             modellingRule: "Mandatory"
         });
-        
+
         const folder1 = namespace.addObject({
             browseName: "Folder1",
             organizedBy: objectType,
@@ -93,8 +102,8 @@ describe("Test object instantiate when organizes references exists", () => {
             modellingRule: "Mandatory"
         });
 
-        folder1.addReference({ 
-            referenceType: "Organizes", 
+        folder1.addReference({
+            referenceType: "Organizes",
             nodeId: parameter1
         });
 
@@ -104,8 +113,10 @@ describe("Test object instantiate when organizes references exists", () => {
         });
         objInstance.typeDefinitionObj.browseName.name!.should.eql("MyObjectType");
 
-        const parameter1InInstanceAsStoredInParamaterSet = objInstance.getChildByName("ParameterSet", 1)!.getChildByName("Parameter1")!;
-        parameter1InInstanceAsStoredInParamaterSet.browseName.name!.should.eql("Parameter1");
+        const parameter1InInstanceAsStoredInParameterSet = objInstance
+            .getChildByName("ParameterSet", 1)!
+            .getChildByName("Parameter1")!;
+        parameter1InInstanceAsStoredInParameterSet.browseName.name!.should.eql("Parameter1");
 
         const folder1InInstance = objInstance.getFolderElementByName("Folder1");
         // console.log(folder1InInstance?.toString());
@@ -114,11 +125,16 @@ describe("Test object instantiate when organizes references exists", () => {
         should.not.exist(folder1InInstance?.modellingRule, "folder1 in instance must not have a modelling rule");
 
         folder1InInstance?.findReferencesEx("Organizes", BrowseDirection.Forward).length.should.eql(1);
-        const parameter1InInstanceAsStoredInFolder1 = folder1InInstance?.findReferencesExAsObject("Organizes", BrowseDirection.Forward)[0]! ;
-        parameter1InInstanceAsStoredInFolder1.browseName.toString().should.eql(parameter1InInstanceAsStoredInParamaterSet.browseName.toString());
- 
-        parameter1InInstanceAsStoredInFolder1.nodeId.should.eql(parameter1InInstanceAsStoredInParamaterSet.nodeId);
-        
+        const parameter1InInstanceAsStoredInFolder1 = folder1InInstance!.findReferencesExAsObject(
+            "Organizes",
+            BrowseDirection.Forward
+        )[0]!;
+        parameter1InInstanceAsStoredInFolder1.browseName
+            .toString()
+            .should.eql(parameter1InInstanceAsStoredInParameterSet.browseName.toString());
+
+        parameter1InInstanceAsStoredInFolder1.nodeId.should.eql(parameter1InInstanceAsStoredInParameterSet.nodeId);
+
         console.log(folder1InInstance?.toString());
     });
 
@@ -161,8 +177,8 @@ describe("Test object instantiate when organizes references exists", () => {
         });
         objInstance.typeDefinitionObj.browseName.name!.should.eql("MyObjectType");
 
-        const parameter1InInstanceAsStoredInParamaterSet = objInstance.getChildByName("ParameterSet", 1)!.getChildByName("Parameter1")!;
-        parameter1InInstanceAsStoredInParamaterSet.browseName.name!.should.eql("Parameter1");
+        const parameter1InInstanceAsStoredInParameterSet = objInstance.getChildByName("ParameterSet", 1)!.getChildByName("Parameter1")!;
+        parameter1InInstanceAsStoredInParameterSet.browseName.name!.should.eql("Parameter1");
 
         const folder1InInstance = objInstance.getFolderElementByName("Folder1");
         // console.log(folder1InInstance?.toString());
@@ -171,10 +187,10 @@ describe("Test object instantiate when organizes references exists", () => {
         should.not.exist(folder1InInstance?.modellingRule, "folder1 in instance must not have a modelling rule");
 
         folder1InInstance?.findReferencesEx("Organizes", BrowseDirection.Forward).length.should.eql(1);
-        const parameter1InInstanceAsStoredInFolder1 = folder1InInstance?.findReferencesExAsObject("Organizes", BrowseDirection.Forward)[0]! ;
-        parameter1InInstanceAsStoredInFolder1.browseName.toString().should.eql(parameter1InInstanceAsStoredInParamaterSet.browseName.toString());
+        const parameter1InInstanceAsStoredInFolder1 = folder1InInstance!.findReferencesExAsObject("Organizes", BrowseDirection.Forward)[0]! ;
+        parameter1InInstanceAsStoredInFolder1.browseName.toString().should.eql(parameter1InInstanceAsStoredInParameterSet.browseName.toString());
  
-        parameter1InInstanceAsStoredInFolder1.nodeId.toString().should.eql(parameter1InInstanceAsStoredInParamaterSet.nodeId.toString());
+        parameter1InInstanceAsStoredInFolder1.nodeId.toString().should.eql(parameter1InInstanceAsStoredInParameterSet.nodeId.toString());
         
         console.log(folder1InInstance?.toString());
     });

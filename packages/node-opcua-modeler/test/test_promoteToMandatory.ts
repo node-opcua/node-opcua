@@ -1,5 +1,6 @@
 import should from "should";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
+import { exploreNode } from "node-opcua-address-space-base";
 import {
     AddressSpace,
     assert,
@@ -122,10 +123,12 @@ describe("promoteToMandatory", () => {
     });
 
     it("PRMT-3 should clone the organized nodes", () => {
-        // MyObjectType   <|<|---------- MyObjectType
-        //   Folder1                        Folder1
-        //      Variable1                       Variable1
-        //                                         EURange
+        //       -----|>|>  BaseObjectType
+        //       |
+        // MyObjectType   <|<|---------- DerivedObjectType
+        //   Folder1                          Folder1  ( promoted)
+        //      Variable1                         Variable1 (promoted)
+        //                                           EURange
         //   Folder2
         //      Variable1
 
@@ -143,6 +146,7 @@ describe("promoteToMandatory", () => {
             typeDefinition: functionalGroupType,
             modellingRule: "Mandatory"
         });
+
         const folder2 = namespace.addObject({
             browseName: "Folder2",
             componentOf: objectType,
@@ -162,11 +166,17 @@ describe("promoteToMandatory", () => {
             isForward: true
         });
 
+        exploreNode(objectType);
+
         {
             const objInstance = objectType.instantiate({
                 browseName: "MyInstance",
                 organizedBy: addressSpace.rootFolder.objects
             });
+
+            exploreNode(objInstance);
+
+
             objInstance.typeDefinitionObj.browseName.name!.should.eql("MyObjectType");
             const folder1InInstance = objInstance.getComponentByName("Folder1")! as UAObject;
             const folder2InInstance = objInstance.getComponentByName("Folder2")! as UAObject;
@@ -197,8 +207,13 @@ describe("promoteToMandatory", () => {
             copyAlsoModellingRules: true
         });
         */
-        console.log("A-!!!!!!!!!!!!!!!!");
+        console.log("A1-!!!!!!!!!!!!!!!!");
         const folder1_bis = promoteChild(derivedObjectType, "Folder1", 1) as UAObject;
+
+        exploreNode(derivedObjectType);
+        
+
+        console.log("A2-!!!!!!!!!!!!!!!!");
         const variable1_bis = folder1_bis.getComponentByName("Variable1")!;
         const euRange = namespace.addVariable({
             browseName: "EURange",
@@ -206,6 +221,8 @@ describe("promoteToMandatory", () => {
             dataType: "Double",
             modellingRule: "Mandatory"
         });
+
+        exploreNode(derivedObjectType);
 
         {
             console.log("B-!!!!!!!!!!!!!!!!");

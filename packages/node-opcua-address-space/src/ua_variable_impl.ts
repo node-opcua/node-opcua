@@ -249,7 +249,7 @@ interface UAVariableOptions extends InternalBaseNodeOptions {
     value?: any;
     dataType: NodeId | string;
     /**
-     * This attribute indicates whether the Value attribute of the Variableis an array and how many dimensions the array has.
+     * This attribute indicates whether the Value attribute of the Variable is an array and how many dimensions the array has.
      * It may have the following values:
      *   * n > 1: the Value is an array with the specified number of dimensions.
      *   * OneDimension (1): The value is an array with one dimension.
@@ -1371,7 +1371,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             UAVariableImpl,
             options,
             optionalFilter || defaultCloneFilter,
-            extraInfo || makeDefaultCloneExtraInfo()
+            extraInfo || makeDefaultCloneExtraInfo(this)
         ) as UAVariableImpl;
 
         newVariable.bindVariable();

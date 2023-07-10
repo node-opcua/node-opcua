@@ -191,9 +191,6 @@ importers:
       shebang-loader:
         specifier: ^0.0.1
         version: 0.0.1
-      should:
-        specifier: ^13.2.3
-        version: 13.2.3
       sinon:
         specifier: ^15.1.0
         version: 15.1.0
@@ -300,6 +297,9 @@ importers:
       prettier:
         specifier: ^2.8.8
         version: 2.8.8
+      should:
+        specifier: ^13.2.3
+        version: 13.2.3
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@20.2.6)(typescript@5.1.3)
@@ -1873,6 +1873,9 @@ importers:
       node-opcua-address-space:
         specifier: 2.106.0
         version: link:../node-opcua-address-space
+      node-opcua-address-space-base:
+        specifier: 2.106.0
+        version: link:../node-opcua-address-space-base
       node-opcua-assert:
         specifier: 2.105.0
         version: link:../node-opcua-assert

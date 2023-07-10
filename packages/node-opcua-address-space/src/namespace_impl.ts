@@ -1554,7 +1554,11 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     // --- Alarms & Conditions -------------------------------------------------
-    public instantiateCondition(conditionTypeId: UAEventType | NodeId | string, options: any, data: any): UAConditionEx {
+    public instantiateCondition(
+        conditionTypeId: UAEventType | NodeId | string,
+        options: any,
+        data: Record<string, VariantOptions>
+    ): UAConditionEx {
         return UAConditionImpl.instantiate(this, conditionTypeId, options, data);
     }
 
@@ -1662,7 +1666,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         // istanbul ignore next
         if (this._nodeid_index.has(hashKey)) {
-            const exstingNode = this.findNode(node.nodeId)!;
+            const existingNode = this.findNode(node.nodeId)!;
             throw new Error(
                 "node " +
                     node.browseName.toString() +
@@ -1677,7 +1681,7 @@ export class NamespaceImpl implements NamespacePrivate {
                     this.index +
                     "\n" +
                     "existing node = " +
-                    exstingNode.toString() +
+                    existingNode.toString() +
                     "this parent : " +
                     node.parentNodeId?.toString()
             );
@@ -1737,12 +1741,12 @@ export class NamespaceImpl implements NamespacePrivate {
                 console.log("   ", options.browseName, " will be replaced with ", correctedName);
                 console.log(" Please update your code");
 
-                const indexVerif = parseInt(match[0], 10);
-                if (indexVerif !== this.index) {
+                const indexVerify = parseInt(match[0], 10);
+                if (indexVerify !== this.index) {
                     errorLog(
                         chalk.red.bold(
                             "Error: namespace index used at the front of the browseName " +
-                                indexVerif +
+                                indexVerify +
                                 " do not match the index of the current namespace (" +
                                 this.index +
                                 ")"
@@ -2009,7 +2013,7 @@ export class NamespaceImpl implements NamespacePrivate {
         if (options.minimumSamplingInterval === 0 && hasGetter(options)) {
             warningLog(
                 "[NODE-OPCUA-W31",
-                "namespace#addVariable a getter has been specified and minimumSamplingInterval is 0.\nThis may conduct to an unpredicable behavior.\nPlease specify a non zero minimum sampling interval"
+                "namespace#addVariable a getter has been specified and minimumSamplingInterval is 0.\nThis may conduct to an unpredictable behavior.\nPlease specify a non zero minimum sampling interval"
             );
         }
 

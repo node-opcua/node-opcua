@@ -189,13 +189,10 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
      * @private
      */
     public _coerceNode(node: UAState | BaseNode | null | string | NodeId): BaseNode | null {
-        if (node === null) {
-            return null;
-        }
-        const addressSpace = this.addressSpace;
         if (node instanceof BaseNodeImpl) {
             return node;
         } else if (node instanceof NodeId) {
+            const addressSpace = this.addressSpace;
             return addressSpace.findNode(node) as BaseNode;
         } else if (typeof node === "string") {
             return this.getStateByName(node) as any as BaseNode;
@@ -247,14 +244,18 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
             return null;
         }
 
+        // istanbul ignore next
         if (_fromStateNode.nodeClass !== NodeClass.Object) {
             throw new Error("Internal Error");
         }
+        // istanbul ignore next
         if (_toStateNode && _toStateNode.nodeClass !== NodeClass.Object) {
             throw new Error("Internal Error");
         }
 
         const stateType = addressSpace.findObjectType("StateType");
+        
+        // istanbul ignore next
         if (!stateType) {
             throw new Error("Cannot find StateType");
         }
@@ -427,6 +428,8 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                     return null;
                 } else {
                     const retVal = r[0];
+
+                    // istanbul ignore next
                     if (retVal.nodeClass !== NodeClass.Variable && retVal.nodeClass !== NodeClass.Object) {
                         throw new Error("find: expecting only object and variable here");
                     }
@@ -581,6 +584,8 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
     public _post_initialize(): void {
         const addressSpace = this.addressSpace;
         const finiteStateMachineType = addressSpace.findObjectType("FiniteStateMachineType");
+       
+        // istanbul ignore next
         if (!finiteStateMachineType) {
             throw new Error("cannot find FiniteStateMachineType");
         }

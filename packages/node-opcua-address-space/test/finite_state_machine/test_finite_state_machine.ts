@@ -403,7 +403,8 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
         addressSpace.registerNamespace("urn:my");
         //        addressSpace.installAlarmsAndConditionsService();
     });
-    after(() => {
+    after(async () => {
+        await addressSpace.shutdown();
         addressSpace.dispose();
     });
 
