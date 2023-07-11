@@ -3,12 +3,11 @@
 const should = require("should");
 const EnumSlow = require("enum");
 const { Benchmarker } = require("node-opcua-benchmarker");
-const { Enum  } = require("..");
-const EnumFast  = Enum;
+const { Enum } = require("..");
+const EnumFast = Enum;
 
-describe("Test Enum", function() {
-
-    it("should create flaggable enum from string array", function() {
+describe("Test Enum", function () {
+    it("should create flaggable enum from string array", function () {
         const e = new Enum(["e1", "e2", "e3"]);
         e.get("e1").value.should.equal(1);
         e.get("e2").value.should.equal(2);
@@ -20,8 +19,8 @@ describe("Test Enum", function() {
         should(e.get(0)).equal(null);
     });
 
-    it("should create flaggable enum from flaggable map", function() {
-        const e = new Enum({ "e1": 1, "e2": 2, "e3": 4 });
+    it("should create flaggable enum from flaggable map", function () {
+        const e = new Enum({ e1: 1, e2: 2, e3: 4 });
         e.get("e1").value.should.equal(1);
         e.get("e2").value.should.equal(2);
         e.get("e3").value.should.equal(4);
@@ -32,8 +31,8 @@ describe("Test Enum", function() {
         should(e.get(0)).equal(null);
     });
 
-    it("should create non-flaggable enum from non-flaggable map", function() {
-        const e = new Enum({ "e1": 1, "e2": 2, "e3": 3 });
+    it("should create non-flaggable enum from non-flaggable map", function () {
+        const e = new Enum({ e1: 1, e2: 2, e3: 3 });
         e.get("e1").value.should.equal(1);
         e.get("e2").value.should.equal(2);
         e.get("e3").value.should.equal(3);
@@ -45,8 +44,8 @@ describe("Test Enum", function() {
         e.enumItems[0].key.should.equal("e1");
     });
 
-    it("should access enum from enum item name", function() {
-        const e = new Enum({ "e1": 1, "e2": 2, "e3": 4 });
+    it("should access enum from enum item name", function () {
+        const e = new Enum({ e1: 1, e2: 2, e3: 4 });
         e.e1.value.should.equal(1);
         e.e1.key.should.equal("e1");
         e.e2.value.should.equal(2);
@@ -55,8 +54,20 @@ describe("Test Enum", function() {
         e.e3.key.should.equal("e3");
     });
 
-    it("EnumItem should function properly", function() {
-        const e = new Enum({ "e1": 1, "e2": 2, "e3": 4 });
+    it("should handle enum with typescript type enum , value starting at 1 and unicode names", function () {
+        const e = new Enum({
+            1: "丸",
+            2: "角",
+            3: "板",
+            丸: 1,
+            角: 2,
+            板: 3
+        });
+        e.getDefaultValue().value.should.equal(1);
+    });
+
+    it("EnumItem should function properly", function () {
+        const e = new Enum({ e1: 1, e2: 2, e3: 4 });
         const e1ore2 = e.get("e2 | e1");
         e1ore2.value.should.equal(3);
         e1ore2.is(e.get(3)).should.equal(true);
@@ -81,21 +92,15 @@ describe("Test Enum", function() {
         e.e1.valueOf().should.equal(1);
         e.e1.toJSON().should.equal("e1");
     });
-
 });
 
-
-describe("Benchmarking Enums", function() {
-
-
+describe("Benchmarking Enums", function () {
     function perform_benchmark(params, checks, done) {
-
         const bench = new Benchmarker();
 
         const keys = Array.isArray(params) ? params : Object.keys(params);
 
         function test_iteration(en) {
-
             const e1 = en.SOMEDATA;
             should.not.exist(e1);
             const e2 = en.get("OTHERDATA");
@@ -106,29 +111,25 @@ describe("Benchmarking Enums", function() {
             const item = en[keys[0]];
             en.get(item).value.should.eql(item.value);
 
-
-            checks.forEach(function(p) {
+            checks.forEach(function (p) {
                 p.value.should.eql(en.get(p.key).value);
                 p.value.should.eql(en.get(p.value).value);
             });
         }
 
-        bench.add("slowEnum", function() {
-
-            const en = new EnumSlow(params);
-            test_iteration(en);
-
-        })
-            .add("fastEnum", function() {
-
+        bench
+            .add("slowEnum", function () {
+                const en = new EnumSlow(params);
+                test_iteration(en);
+            })
+            .add("fastEnum", function () {
                 const en = new EnumFast(params);
                 test_iteration(en);
             })
-            .on("cycle", function(message) {
+            .on("cycle", function (message) {
                 console.log(message);
             })
-            .on("complete", function() {
-
+            .on("complete", function () {
                 console.log(" Fastest is " + this.fastest.name);
                 console.log(" Speed Up : x", this.speedUp);
                 if (this.speedUp > 1.5) {
@@ -139,12 +140,9 @@ describe("Benchmarking Enums", function() {
                 done();
             })
             .run();
-
     }
 
-
-    it("should verify that our enums are faster than  Enum 2.1.0 (flaggable enum)", function(done) {
-
+    it("should verify that our enums are faster than  Enum 2.1.0 (flaggable enum)", function (done) {
         const AccessLevelFlag = {
             CurrentRead: 0x01,
             CurrentWrite: 0x02,
@@ -154,11 +152,11 @@ describe("Benchmarking Enums", function() {
         };
 
         const checks = [
-            { key: "CurrentWrite | HistoryWrite", value: 0x0A },
-            { key: "HistoryWrite | CurrentWrite", value: 0x0A },
+            { key: "CurrentWrite | HistoryWrite", value: 0x0a },
+            { key: "HistoryWrite | CurrentWrite", value: 0x0a },
             { key: "CurrentWrite", value: 0x02 },
             { key: "CurrentWrite | CurrentWrite", value: 0x02 },
-            { key: "CurrentRead | CurrentWrite | HistoryRead | HistoryWrite | SemanticChange", value: 0x1F },
+            { key: "CurrentRead | CurrentWrite | HistoryRead | HistoryWrite | SemanticChange", value: 0x1f },
             { key: "CurrentRead", value: 0x01 },
             { key: "HistoryRead", value: 0x04 },
             { key: "HistoryWrite", value: 0x08 }
@@ -166,12 +164,12 @@ describe("Benchmarking Enums", function() {
         perform_benchmark(AccessLevelFlag, checks, done);
     });
 
-    it("should verify that our enums are faster than Enum 2.1.0 ( simple enum )", function(done) {
+    it("should verify that our enums are faster than Enum 2.1.0 ( simple enum )", function (done) {
         const ApplicationType = {
             SERVER: 0, // The application is a Server
             CLIENT: 1, // The application is a Client
             CLIENTANDSERVER: 2, // The application is a Client and a Server
-            DISCOVERYSERVER: 3  // The application is a DiscoveryServer
+            DISCOVERYSERVER: 3 // The application is a DiscoveryServer
         };
         const checks = [
             { key: "SERVER", value: 0 },
@@ -180,8 +178,5 @@ describe("Benchmarking Enums", function() {
             { key: "DISCOVERYSERVER", value: 3 }
         ];
         perform_benchmark(ApplicationType, checks, done);
-
     });
-
-
 });

@@ -120,6 +120,7 @@ export function adaptTypescriptEnum(map: _TypescriptEnum | string[]) {
     return map as _TypescriptEnum;
 }
 
+const regexpSignedNumber = /^[-+]?[0-9]+$/;
 /**
  * @class Enum
  * @constructor
@@ -141,16 +142,11 @@ export class Enum {
             mm = map;
         }
 
-        for (const key of Object.keys(mm)) {
-            if (typeof key !== "string") {
-                continue;
-            }
-            const val = mm[key] as number;
-            if (undefined === val) {
+        for (const  [key, val] of Object.entries(mm)) {
+            if (typeof val !== "number") {
                 continue;
             }
             const kv = new EnumItem(key, val);
-
             const pThis = this as any;
             pThis[key] = kv;
             pThis[val] = kv;

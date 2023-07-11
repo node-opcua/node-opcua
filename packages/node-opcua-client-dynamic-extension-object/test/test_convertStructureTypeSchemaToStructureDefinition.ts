@@ -1,8 +1,8 @@
 import "should";
 import should from "should";
 import { DataTypeFactory } from "node-opcua-factory";
-import { resolveNodeId } from "node-opcua-nodeid";
-import { parseBinaryXSDAsync } from "node-opcua-schemas";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { DataTypeAndEncodingId, parseBinaryXSDAsync } from "node-opcua-schemas";
 import { MockProvider } from "node-opcua-schemas/test/mock_id_provider";
 import { StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
@@ -66,7 +66,6 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
             const ss = convertStructureTypeSchemaToStructureDefinition(f.schema);
         }
 
-        
         // --------------------------------------------------------------------------
         const a = dataTypeFactory.getStructureInfoByTypeName("CustomUnionType");
         const customUnionType = convertStructureTypeSchemaToStructureDefinition(a.schema);
@@ -76,21 +75,20 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         customUnionType.baseDataType.toString().should.eql("ns=0;i=0");
 
         customUnionType.fields!.length.should.eql(2);
-       
+
         customUnionType.fields![0].name!.should.eql("foo");
         customUnionType.fields![0].dataType.toString().should.eql(resolveNodeId(DataType.UInt32).toString());
         customUnionType.fields![0].valueRank.should.eql(-1);
         customUnionType.fields![0].arrayDimensions!.should.eql([]);
         customUnionType.fields![1].isOptional.should.eql(false);
         should(customUnionType.fields![0].description.text).eql(null);
-        
+
         customUnionType.fields![1].name!.should.eql("bar");
         customUnionType.fields![1].dataType.toString().should.eql(resolveNodeId(DataType.String).toString());
         customUnionType.fields![1].valueRank.should.eql(-1);
         customUnionType.fields![1].arrayDimensions!.should.eql([]);
-        customUnionType.fields![1].isOptional.should.eql(false);        
+        customUnionType.fields![1].isOptional.should.eql(false);
         should(customUnionType.fields![1].description.text).eql(null);
-        
 
         // ----------------------------------------------------------------------- CustomStructType
         const b = dataTypeFactory.getStructureInfoByTypeName("CustomStructType");
@@ -101,7 +99,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         customStructType.baseDataType.toString().should.eql("ns=0;i=0");
 
         customStructType.fields!.length.should.eql(5);
-     
+
         customStructType.fields![0].name!.should.eql("foo");
         customStructType.fields![0].dataType.toString().should.eql(resolveNodeId("String").toString());
         customStructType.fields![1].name!.should.eql("bar");
@@ -112,6 +110,59 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         customStructType.fields![3].dataType.toString().should.eql("ns=0;i=0".toString());
         customStructType.fields![4].name!.should.eql("poc");
         customStructType.fields![4].dataType.toString().should.eql("ns=1;i=1".toString());
-    
+    });
+
+    it("should convert a enumeration with unicode characters", async () => {
+        /**
+         *
+         */
+        const schema1 = `
+<?xml version="1.0" encoding="utf-8"?>
+<opc:TypeDictionary xmlns:opc="http://opcfoundation.org/BinarySchema/" TargetNamespace="urn:eclipse:milo:opcua:server:demo" DefaultByteOrder="LittleEndian">
+<opc:Import Namespace="http://opcfoundation.org/BinarySchema/"/>
+ <opc:EnumeratedType LengthInBits="32" Name="MyEnumeration">
+  <opc:EnumeratedValue Name="丸" Value="1"/>
+  <opc:EnumeratedValue Name="角" Value="2"/>
+  <opc:EnumeratedValue Name="板" Value="3"/>
+  <opc:EnumeratedValue Name="丸パイプ" Value="4"/>
+  <opc:EnumeratedValue Name="角パイプ" Value="5"/>
+  <opc:EnumeratedValue Name="丸パイプ材2本束ね" Value="6"/>
+  <opc:EnumeratedValue Name="角パイプ材2本束ね" Value="7"/>
+  <opc:EnumeratedValue Name="六角" Value="8"/>
+  <opc:EnumeratedValue Name="束ね切り" Value="9"/>
+ </opc:EnumeratedType>
+  <opc:StructuredType BaseType="ua:ExtensionObject" Name="MyStruct">
+  <opc:Field TypeName="opc:CharArray" Name="Name"/>
+  <opc:Field TypeName="tns:MyEnumeration" Name="Shape"/>
+  </opc:StructuredType>
+</opc:TypeDictionary>
+`;
+
+        const binaryEncodingNodeId = resolveNodeId("ns=1;i=1");
+
+        const idProvider = {
+            getDataTypeAndEncodingId(key: string): DataTypeAndEncodingId | null {
+                switch (key) {
+                    case "MyStruct": {
+                        return {
+                            binaryEncodingNodeId: binaryEncodingNodeId,
+                            dataTypeNodeId: resolveNodeId("ns=1;i=2"),
+                            xmlEncodingNodeId: NodeId.nullNodeId,
+                            jsonEncodingNodeId: NodeId.nullNodeId
+                        };
+                    }
+                }
+                throw new Error("Not implemented");
+            }
+        };
+        const dataTypeFactory = new DataTypeFactory([]);
+        await parseBinaryXSDAsync(schema1, idProvider, dataTypeFactory);
+
+        const e = dataTypeFactory.getEnumeration("MyEnumeration");
+
+        const s = dataTypeFactory.constructObject(binaryEncodingNodeId) as any;
+        s.shape.should.eql(1);
+        console.log(s.toString());
+        //       console.log(s.toString());
     });
 });
