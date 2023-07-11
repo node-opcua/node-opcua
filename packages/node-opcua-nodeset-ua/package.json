@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ua",
-    "version": "2.106.0",
+    "version": "2.107.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-ua",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,9 +10,9 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.106.0",
+        "node-opcua-address-space-base": "2.107.0",
         "node-opcua-basic-types": "2.105.0",
-        "node-opcua-data-access": "2.105.0",
+        "node-opcua-data-access": "2.107.0",
         "node-opcua-data-model": "2.105.0",
         "node-opcua-data-value": "2.105.0",
         "node-opcua-extension-object": "2.105.0",
