@@ -3,7 +3,6 @@ node-opcua
 
 node-opcua is a full OPC UA stack for NodeJS and the Browser written in Typescript.
 
-[![NPM download](https://img.shields.io/npm/dm/node-opcua.svg)](https://www.npmtrends.com/node-opcua)
 [![NPM version](https://img.shields.io/npm/v/node-opcua)](https://img.shields.io/npm/v/node-opcua)
 [![Node.js CI](https://github.com/node-opcua/node-opcua/actions/workflows/workflow.yml/badge.svg)](https://github.com/node-opcua/node-opcua/actions/workflows/workflow.yml)
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lernajs.io/)
@@ -11,6 +10,13 @@ node-opcua is a full OPC UA stack for NodeJS and the Browser written in Typescri
 [![Gitter chat](https://img.shields.io/gitter/room/node-opcua/node-opcua
 )](https://gitter.im/node-opcua/node-opcua)
 [![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2022)
+
+[![NPM download - server](https://img.shields.io/npm/dm/node-opcua.svg?logo=npm&label=node-opcua-server)](https://www.npmtrends.com/node-opcua-server)
+[![NPM download - server -total](https://img.shields.io/npm/dt/node-opcua.svg?label=total)](https://www.npmtrends.com/node-opcua-server)
+ 
+[![NPM download - client](https://img.shields.io/npm/dm/node-opcua-client.svg?logo=npm&label=node-opcua-client)](https://www.npmtrends.com/node-opcua-client)
+[![NPM download - client -total](https://img.shields.io/npm/dt/node-opcua-client.svg?label=total)](https://www.npmtrends.com/node-opcua-client)
+
 
 [Node-opcua](https://node-opcua.github.io/) is the OPC-UA stack running on NodeJS.
 
