@@ -60,11 +60,11 @@ export interface PseudoVariantByte {
     value: Byte;
 }
 export interface PseudoVariantInt32 {
-    dataType: "Int32" | DataType.UInt32;
+    dataType: "Int32" | DataType.Int32;
     value: Int32;
 }
 export interface PseudoVariantInt16 {
-    dataType: "Int16" | DataType.UInt16;
+    dataType: "Int16" | DataType.Int16;
     value: Int16;
 }
 export interface PseudoVariantSByte {
