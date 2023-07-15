@@ -12,7 +12,7 @@ describe("test constructEventFilter", function () {
 
         // console.log(ef.toString());
 
-        ef.selectClauses.length.should.eql(1, "expected one elemen in the select clause : SourceName");
+        ef.selectClauses.length.should.eql(1, "expected one element in the select clause : SourceName");
 
         ef.selectClauses[0].browsePath.length.should.eql(1);
         ef.selectClauses[0].browsePath[0].name.should.eql("SourceName");
