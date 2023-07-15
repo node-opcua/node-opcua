@@ -4,7 +4,7 @@
 import { assert } from "node-opcua-assert";
 
 import { BrowseDirection, NodeClass } from "node-opcua-data-model";
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
@@ -13,11 +13,12 @@ import { VariantArrayType } from "node-opcua-variant";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { UADataType, UADynamicVariableArray, UAObject, UAReferenceType, UAVariable } from "node-opcua-address-space-base";
 import { UAVariableImpl } from "./ua_variable_impl";
-import { getProxyTarget } from "./ua_variable_impl_ext_obj";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
+const warningLog= make_warningLog(__filename);
+
 /*
  * define a complex Variable containing a array of extension objects
  * each element of the array is also accessible as a component variable.
@@ -129,7 +130,7 @@ function _getElementBrowseName<T extends ExtensionObject>
     const indexPropertyName1 = this.$$indexPropertyName;
 
     if (!Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1)) {
-        console.log(" extension object do not have ", indexPropertyName1, extObj);
+        warningLog(" extension object does not have ", indexPropertyName1, extObj);
     }
     // assert(extObj.constructor === addressSpace.constructExtensionObject(dataType));
     assert(Object.prototype.hasOwnProperty.call(extObj, indexPropertyName1));
