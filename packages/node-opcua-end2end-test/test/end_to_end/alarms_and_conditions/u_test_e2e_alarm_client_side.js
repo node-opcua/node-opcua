@@ -6,7 +6,7 @@ const {
     installAlarmMonitoring,
     uninstallAlarmMonitoring,
     OPCUAClient,
-    acknwoledgeAllConditions,
+    acknowledgeAllConditions,
     confirmAllConditions,
     dumpEvent
 } = require("node-opcua-client");
@@ -262,7 +262,7 @@ module.exports = function (test) {
                     console.log("now lets acknoweldege all alarms");
                     console.log("---------------------------------------------------------------------- ");
 
-                    await acknwoledgeAllConditions(session, "Acked by test");
+                    await acknowledgeAllConditions(session, "Acked by test");
 
                     alarms.alarms()[0].fields.ackedState.id.value.should.eql(true);
                     alarms.alarms()[0].fields.confirmedState.id.value.should.eql(false);
