@@ -40,17 +40,35 @@ describe("coerceInt32", () => {
         coerceInt32([0, 56]).should.eql(56);
     });
 });
+
+describe ("coerceInt64", ()=>{
+    it("should coerce a positive Int32 to Int64", ()=>{
+        coerceInt64(10).should.eql([0x0,0xA]);        
+    });
+    it("should coerce a negative Int32 to Int64", () => {
+        coerceInt64(-1).should.eql([0xFFFFFFFF, 0xFFFFFFFF]);
+    });
+    it("should coerce a negative Int32 to Int64", () => {
+        coerceInt64(-2).should.eql([0xFFFFFFFF, 0xFFFFFFFE]);
+    });
+    it("should coerce a negative Int32 to Int64", () => {
+        coerceInt64(-9).should.eql([0xFFFFFFFF, 0xFFFFFFF7]);
+    });
+})
 describe("coerceUInt64", () => {
-    it("should coerce an Int32 into Int64", () => {
+    it("should coerce an Int32 into UInt64", () => {
         coerceUInt64(0xff1000).should.eql([0x0, 0xff1000]);
     });
-    it("should coerce an long number into Int64", () => {
+    it("should coerce an long number into UInt64", () => {
         coerceUInt64(0x1020000000).should.eql([0x10, 0x20000000]);
     });
-    it("should coerce an long number into Int64", () => {
+
+    it("should coerce an long number into UInt64", () => {
         coerceUInt64(0x100020000000).should.eql([0x1000, 0x20000000]);
     });
-
+    it("should coerce an long number into UInt64", () => {
+        coerceUInt64(0x100020000000).should.eql([0x1000, 0x20000000]);
+    });
     [
         [1, [0x0, 0x1]],
         [-1, [0xffffffff, 0xffffffff]],
