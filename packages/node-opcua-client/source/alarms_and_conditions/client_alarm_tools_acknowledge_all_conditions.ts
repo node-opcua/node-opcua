@@ -133,20 +133,20 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
 
     await promise;
 
-    // now shut down susbscription
+    // now shut down subscription
     await subscription.terminate();
 
     return acknowledgeableConditions;
 }
 
-export async function acknwoledgeAllConditions(session: ClientSession, message: string): Promise<void> {
+export async function acknowledgeAllConditions(session: ClientSession, message: string): Promise<void> {
     try {
         let conditions = await findActiveConditions(session);
         if (conditions.length === 0) {
             debugLog("Warning: cannot find conditions ");
         }
 
-        // filter acknowledgable conditions (no acked yet)
+        // filter acknowledgeable conditions (no acked yet)
         conditions = conditions.filter((pojo) => pojo.ackedState.id.value === false);
 
         const promises: Array<Promise<StatusCode>> = [];
