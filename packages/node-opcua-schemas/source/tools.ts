@@ -70,7 +70,7 @@ export function getOrCreateStructuredTypeSchema(
         const baseSchema = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
 
         // remove redundant fields
-        // Note: Some file do not have SourceType property and may be replicated here,
+        // Note: Some files do not have SourceType property and may be replicated here,
         //       but they belong to the base class and shall be removed.
         //       For instance, DataTypeSchemaHeader => UABinaryFileDataType
         if (baseSchema && baseSchema.fields && baseSchema.name !== "ExtensionObject") {

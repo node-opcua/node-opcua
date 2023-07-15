@@ -38,7 +38,7 @@ function dump_array(arr: any[]) {
 
 export function assert_arrays_are_equal(arr1: any[], arr2: any[]) {
     if (arr1.constructor.name !== arr2.constructor.name) {
-        throw new Error(" array do not have the same type " + arr1.constructor.name + " " + arr2.constructor.name);
+        throw new Error("the two arrays do not have the same type " + arr1.constructor.name + " " + arr2.constructor.name);
     }
     if (!_is_equal(arr1, arr2)) {
         // tslint:disable-next-line:no-console

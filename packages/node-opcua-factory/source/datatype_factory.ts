@@ -202,7 +202,7 @@ export class DataTypeFactory {
             this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
         } else {
             // for instance in DI FetchResultDataType should be abstract but is not
-            warningLog("warning ", dataTypeNodeId.toString(), "name=", className, " do not have binary encoding");
+            warningLog("warning ", dataTypeNodeId.toString(), "name=", className, " does not have binary encoding");
         }
     }
 
