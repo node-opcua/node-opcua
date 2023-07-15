@@ -27,7 +27,7 @@ function r(_key: string, o: { dataType?: unknown; value?: unknown }) {
 interface ClientSessionPriv extends ClientSession {
     $clientAlarmList: ClientAlarmList | null;
     $monitoredItemForAlarmList: ClientMonitoredItem | null;
-    $subscriptionforAlarmList: ClientSubscription | null;
+    $subscriptionForAlarmList: ClientSubscription | null;
 }
 // ------------------------------------------------------------------------------------------------------------------------------
 export async function uninstallAlarmMonitoring(session: ClientSession): Promise<void> {
@@ -40,7 +40,7 @@ export async function uninstallAlarmMonitoring(session: ClientSession): Promise<
     mi.removeAllListeners();
 
     _sessionPriv.$monitoredItemForAlarmList = null;
-    await _sessionPriv.$subscriptionforAlarmList!.terminate();
+    await _sessionPriv.$subscriptionForAlarmList!.terminate();
     _sessionPriv.$clientAlarmList = null;
     return;
 }
@@ -76,7 +76,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
         requestedPublishingInterval: 500
     };
     const subscription = await session.createSubscription2(request);
-    _sessionPriv.$subscriptionforAlarmList = subscription;
+    _sessionPriv.$subscriptionForAlarmList = subscription;
 
     const itemToMonitor: ReadValueIdOptions = {
         attributeId: AttributeIds.EventNotifier,

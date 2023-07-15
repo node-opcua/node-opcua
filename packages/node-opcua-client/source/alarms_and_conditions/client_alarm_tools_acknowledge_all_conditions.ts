@@ -168,7 +168,7 @@ export async function confirmAllConditions(session: ClientSession, message: stri
             debugLog("Warning: cannot find conditions ");
         }
 
-        // filter acknowledgable conditions (no acked yet)
+        // filter acknowledgeable conditions (no acked yet)
         conditions = conditions.filter((pojo) => pojo.confirmedState.id.value === false);
 
         const promises: Array<Promise<any>> = [];
