@@ -24,7 +24,7 @@
         "node-opcua-client-dynamic-extension-object": "2.107.0",
         "node-opcua-common": "2.107.0",
         "node-opcua-constants": "2.98.1",
-        "node-opcua-crypto": "3.0.6",
+        "node-opcua-crypto": "3.1.0",
         "node-opcua-data-model": "2.105.0",
         "node-opcua-data-value": "2.105.0",
         "node-opcua-date-time": "2.105.0",
@@ -67,7 +67,7 @@
         "node-opcua-leak-detector": "2.105.0",
         "node-opcua-nodesets": "2.107.0",
         "should": "^13.2.3",
-        "sinon": "^15.1.0",
+        "sinon": "^15.2.0",
         "underscore": "^1.13.6"
     },
     "eslintConfig": {
