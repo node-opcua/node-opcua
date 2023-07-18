@@ -4,7 +4,6 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { createPrivateKey } from "crypto";
 
 import { types } from "util";
 import chalk from "chalk";
@@ -93,7 +92,7 @@ async function install(this: OPCUAServerPartial): Promise<void> {
     );
 
     if (!this.$$privateKey) {
-        this.$$privateKey = createPrivateKey(await readFile(this.serverCertificateManager.privateKey, "utf8"));
+        this.$$privateKey = readPrivateKey(this.serverCertificateManager.privateKey);
     }
 
     if (!this.$$certificateChain) {

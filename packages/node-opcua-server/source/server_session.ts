@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 
-import * as crypto from "crypto";
+import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 
 import { assert } from "node-opcua-assert";
@@ -147,7 +147,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
         assert(sessionTimeout >= 0, " sessionTimeout");
         this.sessionTimeout = sessionTimeout;
 
-        const authenticationTokenBuf = crypto.randomBytes(16);
+        const authenticationTokenBuf = randomBytes(16);
         this.authenticationToken = new NodeId(NodeIdType.BYTESTRING, authenticationTokenBuf);
 
         // the sessionId

@@ -6,7 +6,7 @@
 // tslint:disable:max-line-length
 // tslint:disable:unified-signatures
 
-import * as crypto from "crypto";
+import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import { callbackify, types } from "util";
 
@@ -1749,7 +1749,7 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     protected makeServerNonce(): Nonce {
-        return crypto.randomBytes(32);
+        return randomBytes(32);
     }
 
     // session services

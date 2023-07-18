@@ -1,10 +1,8 @@
-import { createPrivateKey } from "crypto";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUASecureObject } from "node-opcua-common";
 
 import {
     Certificate,
-    convertPEMtoDER,
     exploreCertificate,
     explorePrivateKey,
     publicKeyAndPrivateKeyMatches

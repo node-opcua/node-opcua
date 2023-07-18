@@ -1,4 +1,5 @@
 "use strict";
+const { randomBytes } = require("crypto");
 const should = require("should");
 
 const { hexDump } = require("node-opcua-debug");
@@ -13,7 +14,6 @@ const {
     makeExpandedNodeId,
     ExpandedNodeId
 } = require("node-opcua-nodeid");
-const crypto = require("crypto");
 const { encodeNodeId, decodeNodeId, randomGuid } = require("..");
 
 
@@ -363,7 +363,7 @@ describe("testing built-in type encoding", () => {
 
     it("should encode and decode a BYTESTRING NodeId", () => {
 
-        const nodeId = new NodeId(NodeIdType.BYTESTRING, crypto.randomBytes(16));
+        const nodeId = new NodeId(NodeIdType.BYTESTRING, randomBytes(16));
 
         const expectedLength = 1 + 2 + 4 + 16;
         test_encode_decode(nodeId, ec.encodeNodeId, ec.decodeNodeId, expectedLength, (buffer) => {

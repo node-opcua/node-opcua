@@ -4,7 +4,7 @@ import * as fsOrigin from "fs";
 import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
-import * as crypto from "crypto";
+import { randomBytes } from "crypto";
 import sinon from "sinon";
 
 import { fs as fsMemory } from "memfs";
@@ -370,7 +370,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
         it(m + "readFile with large file", async () => {
 
 
-            const randomData = crypto.randomBytes(3 * 1024).toString("hex");
+            const randomData = randomBytes(3 * 1024).toString("hex");
 
             randomData.length.should.equal(6 * 1024);
 

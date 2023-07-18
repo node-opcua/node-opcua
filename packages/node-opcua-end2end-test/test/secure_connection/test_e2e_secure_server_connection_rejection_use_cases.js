@@ -1,5 +1,6 @@
 "use strict";
 
+const { randomBytes } = require("crypto");
 const should = require("should");
 const async = require("async");
 const sinon = require("sinon");
@@ -172,11 +173,10 @@ describe("testing the server ability to deny client session request (server with
 
     it("Client shall deny server session if server nonce is too small", function(done) {
 
-        const crypto = require("crypto");
         let bad_nonce = 0;
         server.makeServerNonce = function() {
             bad_nonce += 1;
-            return crypto.randomBytes(31); //<< instead of 32  !!!
+            return randomBytes(31); //<< instead of 32  !!!
         };
         const options = {
             endpointMustExist: true

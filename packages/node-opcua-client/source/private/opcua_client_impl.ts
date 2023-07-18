@@ -1,13 +1,8 @@
 /**
  * @module node-opcua-client-private
  */
-// tslint:disable:variable-name
-// tslint:disable:no-console
-// tslint:disable:no-empty
-
-import * as crypto from "crypto";
-import { createPublicKey } from "crypto";
 import { callbackify } from "util";
+import { randomBytes, createPublicKey, createPrivateKey } from "crypto";
 import * as async from "async";
 import chalk from "chalk";
 
@@ -849,7 +844,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
         // note : do not confuse CreateSessionRequest.clientNonce with OpenSecureChannelRequest.clientNonce
         //        which are two different nonce, with different size (although they share the same name )
-        this.clientNonce = crypto.randomBytes(32);
+        this.clientNonce = randomBytes(32);
 
         // recycle session name if already exists
         const sessionName = session.name;
@@ -1262,7 +1257,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 case UserTokenType.Certificate: {
                     const certificate = userIdentityInfo.certificateData;
-                    const privateKey = crypto.createPrivateKey(userIdentityInfo.privateKey);
+                    const privateKey = createPrivateKey(userIdentityInfo.privateKey);
                     ({ userIdentityToken, userTokenSignature } = createX509IdentityToken(context, certificate, privateKey));
                     break;
                 }

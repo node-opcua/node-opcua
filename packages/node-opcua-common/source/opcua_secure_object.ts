@@ -1,7 +1,6 @@
 /**
  * @module node-opcua-common
  */
-import { createPrivateKey } from "crypto";
 import { EventEmitter } from "events";
 import * as fs from "fs";
 
