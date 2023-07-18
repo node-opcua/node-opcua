@@ -1,11 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 /**
  * @module node-opcua-secure-channel
  */
 // tslint:disable:variable-name
 // tslint:disable:max-line-length
-
-
-import { createPrivateKey } from "crypto";
 import { types } from "util";
 import chalk from "chalk";
 
@@ -16,6 +14,7 @@ import {
     decryptBufferWithDerivedKeys,
     DerivedKeys,
     exploreCertificateInfo,
+    generatePrivateKey,
     makeSHA1Thumbprint,
     PrivateKey,
     reduceLength,
@@ -88,21 +87,8 @@ export interface SecurityTokenAndDerivedKeys {
     derivedKeys: DerivedKeys | null;
 }
 
-export const invalidPrivateKey = createPrivateKey(`-----BEGIN RSA PRIVATE KEY-----
-MIICXAIBAAKBgQC04ltMWV1bf/WLIWHp2BWe+6DHOzbTa9Xqxh7U+RFUBwyNFcNg
-IpIWWRZQp1w3g5Gegj4aetJqBHjns9Rwu4iwl8Iyb0iL45pQ6/CDkC9uGWPiqqlN
-hGadBcAG7Nwmkp8w0+VaOGACTfomSABMjdiqMS04M+wZH+sujmikBQwljwIDAQAB
-AoGACwr6qemWwnxIYEsUcDNJ9p/EDAW4biXaNHAN99CQ10Fq6b4XZGoX4xdjPl9J
-SPZWUIgBBJrU97X4L6UR5iP8zzjb3cpDJ+Pi9UQwHdRQIz4VlrqcNs2KkwRaMKgl
-CR7thpI8XsNwjMLF8+eleg9wUmm0F6vQAXEAzjdrJQ1XGpECQQDdAP37TqxEAenf
-r9VARue0GgIh6rfQjqVp3ZM1KKXbxnR8wklBQWdAghFNu6f3aJ9pcfDifxdxK4rq
-tz8dBH5nAkEA0YcAfWKbB6SdGuFoWaLPlEN9mibaLllOocIC9NNZjvF3MF3NuvRd
-CAx7P+wbmnG3FmZIqvXJwpFdXuMUYipWmQJAfrJp6F9izJ4YOJ9x7qZ3gL2ESXNp
-K4wLclSPZuNFqmfsMfWjz2AyVD38s4aINYLqGKY0hXR8uOlQe1zQNs9zswJAB4uN
-APbkDkpnPeiQEWpDf1tO0pZDlReyNTD/WkGiH/uiByPZnLnf/8IzTgH6nH0r0qqs
-QzvGoDML4bbbrQ1JQQJBAJWb5pApj32rXPhQ+qMLVqy+CWJBWDd9sEuAYDhjIP1p
-8B8zGo/PAP52VYDpy2YDDSfceMcAIhmsCjZv1AAP4eM=
------END RSA PRIVATE KEY-----`);
+export const invalidPrivateKey = null as any as PrivateKey;
+
 let counter = 0;
 
 type PacketInfo = any;
