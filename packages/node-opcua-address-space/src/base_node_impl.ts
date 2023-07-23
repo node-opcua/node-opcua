@@ -178,7 +178,11 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return _private._displayName;
     }
 
-    public setDisplayName(value: LocalizedText[]): void {
+    
+    public setDisplayName(value: LocalizedTextLike[] | LocalizedTextLike): void {
+        if (!Array.isArray(value)) {
+            return this.setDisplayName([value]);
+        }
         this._setDisplayName(value);
         /**
          * fires when the displayName is changed.
@@ -193,8 +197,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return _private._description!;
     }
 
-    public setDescription(value: LocalizedTextLike): void {
-        
+    public setDescription(value: LocalizedTextLike| null): void {
         this._setDescription(value);
         /**
          * fires when the description attribute is changed.

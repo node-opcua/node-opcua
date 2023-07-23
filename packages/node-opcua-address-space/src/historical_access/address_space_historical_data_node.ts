@@ -30,11 +30,14 @@ import {
     UAVariable,
     ContinuationData
 } from "node-opcua-address-space-base";
+import { make_warningLog } from "node-opcua-debug";
 import { ISessionContext } from "node-opcua-address-space-base";
 
 import { UAVariableImpl } from "../ua_variable_impl";
 import { AddressSpace } from "../../source/address_space_ts";
 import { AddressSpacePrivate } from "../address_space_private";
+
+const warningLog = make_warningLog(__filename);
 
 // tslint:disable:no-var-requires
 const Dequeue = require("dequeue");
@@ -138,12 +141,20 @@ export class VariableHistorian implements IVariableHistorian {
         // ensure that values are set with date increasing
         if (sourceTime.getTime() <= this.lastDate.getTime()) {
             if (!(sourceTime.getTime() === this.lastDate.getTime() && sourcePicoSeconds > this.lastDatePicoSeconds)) {
-                console.log(
+                warningLog(
                     chalk.red("Warning date not increasing "),
+                    chalk.cyan("\n node: ", this.node.browseName.toString(), this.node.nodeId.toString()),
+                    "\n new value       = ",
                     newDataValue.toString(),
-                    " last known date = ",
-                    this.lastDate
+                    "\n last known date = ",
+                    this.lastDate,
+                    "\n last known picoSeconds = ",
+                    this.lastDatePicoSeconds,
+                    "\n lastValue = ",
+                    this._timeline[this._timeline.length - 1]?.toString()
                 );
+                // artificially increment date by one 100 picoseconds
+                newDataValue.sourcePicoseconds++;
             }
         }
 

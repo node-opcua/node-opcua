@@ -256,5 +256,6 @@ export declare class BaseNode extends EventEmitter {
      */
     getAggregates(): BaseNode[];
 
-    setDescription(description: LocalizedTextLike): void;
+    public setDisplayName(value: LocalizedTextLike[] | LocalizedTextLike): void;
+    public setDescription(value: LocalizedTextLike| null): void;
 }
