@@ -1,5 +1,4 @@
 import * as fs from "fs";
-import { createPrivateKey } from "node:crypto";
 import {
     computeDerivedKeys,
     encryptBufferWithDerivedKeys,

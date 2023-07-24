@@ -475,10 +475,11 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                 return;
             }
 
-            console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DELETE ME");
             privateSession._reconnecting.reconnecting = false;
-            errorLog("Session has been restored");
+
+            // warningLog("Session has been restored");
             doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
+           
             session.emit("session_restored");
             const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
             privateSession._reconnecting.pendingCallbacks = [];

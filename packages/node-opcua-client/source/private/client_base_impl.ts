@@ -532,7 +532,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         };
 
         const _when_reconnectionIsCanceled = (callback: ErrorCallback) => {
-            warningLog("attempt to recreate a new secure channel : suspended because reconnection is canceled !");
+            doDebug && debugLog("attempt to recreate a new secure channel : suspended because reconnection is canceled !");
             this.emit("reconnection_canceled");
             return callback(new Error("Reconnection has been canceled - " + this.clientName));
         };
@@ -706,7 +706,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             ],
             (err) => {
                 if (err) {
-                    errorLog("Inner create secure channel has failed", err.message);
+                    doDebug && debugLog("Inner create secure channel has failed", err.message);
                     if (this._secureChannel) {
                         this._secureChannel!.abortConnection(() => {
                             this._destroy_secure_channel();
