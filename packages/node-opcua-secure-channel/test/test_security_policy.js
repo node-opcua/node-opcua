@@ -2,7 +2,7 @@
 
 const { randomBytes } = require("crypto");
 const should = require("should");
-const { readCertificate, readPrivateKeyPEM } = require("node-opcua-crypto");
+const { readCertificate, readPrivateKey } = require("node-opcua-crypto");
 const { getFixture } = require("node-opcua-test-fixtures");
 
 
@@ -41,7 +41,7 @@ describe("Security Policy computeSignature, verifySignature", function () {
     const senderCertificate = readCertificate(getFixture("certs/server_cert_2048.pem"));
     const senderNonce = randomBytes(32);
 
-    const receiverPrivateKey = readPrivateKeyPEM(getFixture("certs/client_key_1024.pem"));
+    const receiverPrivateKey = readPrivateKey(getFixture("certs/client_key_1024.pem"));
     const receiverCertificate = readCertificate(getFixture("certs/client_cert_1024.pem"));
 
     const securityPolicy = SecurityPolicy.Basic256;

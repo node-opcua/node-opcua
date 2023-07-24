@@ -402,7 +402,7 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         certificate: Buffer,
         issuerCertificates: Buffer[],
         privateKeyFormat: string,
-        privateKey: Buffer | string | PrivateKey
+        privateKey: string | Buffer
     ): Promise<UpdateCertificateResult>;
     public async updateCertificate(
         certificateGroupId: NodeId | string,
@@ -410,9 +410,8 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         certificate: Buffer,
         issuerCertificates: Buffer[],
         privateKeyFormat?: string,
-        privateKey?: Buffer | string | PrivateKey
+        privateKey?: string | Buffer
     ): Promise<UpdateCertificateResult> {
-
         const inputArguments: VariantLike[] = [
             { dataType: DataType.NodeId, value: findCertificateGroupNodeId(certificateGroupId) },
             { dataType: DataType.NodeId, value: findCertificateTypeIdNodeId(certificateTypeId) },

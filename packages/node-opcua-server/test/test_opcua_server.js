@@ -8,6 +8,7 @@ const { UserTokenType } = require("node-opcua-service-endpoints");
 const { NodeId } = require("node-opcua-nodeid");
 
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+const { coercePrivateKeyPem, readPrivateKey } = require("node-opcua-crypto");
 
 const { OPCUAServer } = require("..");
 
@@ -144,7 +145,8 @@ describe("OPCUAServer-4", () => {
     let client;
     const endpointUrl = `opc.tcp://localhost:${port}`;
     const privateKeyFile = path.join(__dirname, "utils", "private_key.pem");
-    const privateKey = fs.readFileSync(privateKeyFile, "ascii");
+    const privateKey1 = readPrivateKey(privateKeyFile);
+    const privateKeyPem = coercePrivateKeyPem(privateKey1);
 
     before(async () => {
         client = OPCUAClient.create({
@@ -175,7 +177,7 @@ describe("OPCUAServer-4", () => {
             await client.createSession({
                 type: UserTokenType.Certificate,
                 certificateData: Buffer.from("AZEAZE"),
-                privateKey
+                privateKey: privateKeyPem
             });
             should(true).eql(false); // should never be reached
         } catch (e) {

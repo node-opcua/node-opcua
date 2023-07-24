@@ -315,7 +315,7 @@ export class MessageBuilder extends MessageBuilderBase {
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
-            return this._report_error(StatusCodes2.BadTcpInternalError, types.isNativeError(err)? err.message : " err");
+            return this._report_error(StatusCodes2.BadTcpInternalError, types.isNativeError(err) ? err.message : " err");
         }
 
         if (!this.objectFactory.hasConstructor(id)) {

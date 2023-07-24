@@ -16,7 +16,7 @@
         "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
         "node-opcua-assert": "2.105.0",
-        "node-opcua-crypto": "3.1.0",
+        "node-opcua-crypto": "4.0.0-beta.0",
         "node-opcua-debug": "2.108.0",
         "node-opcua-object-registry": "2.108.0",
         "node-opcua-pki": "4.2.1",

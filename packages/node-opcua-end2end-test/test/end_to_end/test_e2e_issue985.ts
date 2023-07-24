@@ -26,7 +26,7 @@ import {
     NodeId,
     UserManagerOptions
 } from "node-opcua";
-import { readCertificate, readPrivateKey, readPrivateKeyPEM } from "node-opcua-crypto";
+import { coercePrivateKeyPem, readCertificate, readPrivateKey } from "node-opcua-crypto";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
 const warningLog = make_warningLog("TEST");
 
@@ -182,8 +182,9 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         let _err: Error | undefined;
 
-        const privateKeyBefore = readPrivateKeyPEM(server.privateKeyFile);
-        const privateKeyAfter = await (async () => {
+        const privateKeyBefore = readPrivateKey(server.privateKeyFile);
+
+        const privateKeyAfter = await(async () => {
             try {
                 await server.shutdown();
                 warningLog("server has shutdown");
@@ -196,9 +197,14 @@ describe("test reconnection when server stops and change it privateKey and certi
                 // make sure private key is deleted so it can be regenerated automatically
                 fs.unlinkSync(server.privateKeyFile);
                 fs.unlinkSync(server.certificateFile);
+                fs.existsSync(server.privateKeyFile).should.eql(false);
+                fs.existsSync(server.certificateFile).should.eql(false);
 
                 warningLog("restarting server - with a different private key");
                 server = await startServer();
+                fs.existsSync(server.privateKeyFile).should.eql(true);
+                fs.existsSync(server.certificateFile).should.eql(true);
+
                 warningLog("server restarted");
 
                 const privateKeyAfter = readPrivateKey(server.privateKeyFile);
@@ -213,16 +219,22 @@ describe("test reconnection when server stops and change it privateKey and certi
             } catch (err) {
                 console.log(err);
                 _err = err as Error;
+                throw err;
             } finally {
                 await session.close();
                 await client.disconnect();
                 await server.shutdown();
             }
-            return "";
         })();
 
         should.not.exist(_err);
-        privateKeyAfter.should.not.eql(privateKeyBefore, "expecting a different server private key");
+
+        const privateKeyPemAfter = coercePrivateKeyPem(privateKeyAfter);
+        const privateKeyPemBefore = coercePrivateKeyPem(privateKeyBefore);
+        //xx console.log("privateKeyPemBefore", privateKeyPemBefore);
+        //xx console.log("privateKeyPemAfter", privateKeyPemAfter);
+
+        privateKeyPemAfter.should.not.eql(privateKeyPemBefore, "expecting a different server private key");
     }
     it("T1- server should not crash when client re-establishes the connection - encrypted", async () => {
         await test(SecurityPolicy.Basic256Sha256, MessageSecurityMode.SignAndEncrypt, 10000, 5000);
@@ -370,12 +382,12 @@ describe("test reconnection when server stops and change it privateKey and certi
         const clientCertificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
         const clientCertificate = readCertificate(clientCertificateFilename);
         const clientPrivateKeyFilename = path.join(certificateFolder, "client_key_2048.pem");
-        const privateKey = readPrivateKeyPEM(clientPrivateKeyFilename);
-
+        const privateKey = readPrivateKey(clientPrivateKeyFilename);
+        const privateKeyPem = coercePrivateKeyPem(privateKey);
         try {
             const userIdentity: UserIdentityInfoX509 = {
                 certificateData: clientCertificate,
-                privateKey,
+                privateKey: privateKeyPem,
                 type: UserTokenType.Certificate
             };
 

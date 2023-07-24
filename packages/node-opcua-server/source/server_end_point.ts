@@ -10,7 +10,7 @@ import * as async from "async";
 
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, makeSHA1Thumbprint, PrivateKey, split_der } from "node-opcua-crypto";
+import { Certificate, PrivateKey, makePrivateKeyThumbPrint, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
@@ -294,8 +294,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
-        const privateKey1 = this.getPrivateKey().export({ format: "der", type: "pkcs1" });
 
+        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey())
+        
         const txt =
             " end point" +
             this._counter +
@@ -306,7 +307,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             " " +
             makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
             " " +
-            makeSHA1Thumbprint(privateKey1).toString("hex");
+            privateKeyThumpPrint.toString("hex");
         return txt;
     }
 

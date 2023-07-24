@@ -219,7 +219,7 @@ export class ChunkManager extends EventEmitter {
             const sectionToSign = chunk.subarray(0, signatureStart);
 
             const signature = this.signBufferFunc(sectionToSign);
-            assert(signature.length === this.signatureLength);
+            assert(signature.length === this.signatureLength , "expecting signature length to match");
 
             signature.copy(chunk, signatureStart);
         } else {

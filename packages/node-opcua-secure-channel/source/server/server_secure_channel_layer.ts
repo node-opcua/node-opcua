@@ -520,7 +520,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
     public getPrivateKey(): PrivateKey {
         if (!this.parent) {
             return invalidPrivateKey;
-            // throw new Error("getPrivateKey : cannot get PrivateKey");
         }
         return this.parent.getPrivateKey();
     }
@@ -1062,7 +1061,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         return null;
     }
-
     private _get_security_options_for_MSG(): SecureMessageChunkManagerOptionsPartial | null {
         if (this.securityMode === MessageSecurityMode.None) {
             return null;

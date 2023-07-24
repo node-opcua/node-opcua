@@ -15,6 +15,7 @@ import {
     convertPEMtoDER,
     exploreCertificate,
     exploreCertificateSigningRequest,
+    makePrivateKeyThumbPrint,
     makeSHA1Thumbprint,
     PrivateKey,
     readCertificate,
@@ -149,7 +150,7 @@ describe("Testing server configured with push certificate management", () => {
         const privateKey1 = server.getPrivateKey();
         debugLog(
             "server.getPrivateKey()       =",
-            makeSHA1Thumbprint(privateKey1.export({ format: "der", type: "pkcs1" })).toString("hex")
+            makePrivateKeyThumbPrint(privateKey1).toString("hex")
         );
 
         const match = certificateMatchesPrivateKey(certificateChain1, privateKey1);
@@ -280,7 +281,7 @@ describe("Testing server configured with push certificate management", () => {
         const { certificate, privateKey, privateKeyPEM } = await produceCertificateAndPrivateKey(_folder);
 
         const privateKeyFormat = "PEM"; // or PFX
-       
+
         await withSecureClient(endpointUrl, async (session: ClientSession) => {
             const pm = new ClientPushCertificateManagement(session);
 
@@ -651,7 +652,7 @@ describe("Testing server configured with push certificate management", () => {
         await server.shutdown();
     });
 
-    it("SCT-4 should be possible to change the certificate and PrivateKey of the server", async () => {
+    it("SCT-4 should be possible to change the certificate and private key of the server", async () => {
         step("Given a server with push management");
         const server = await constructServerWithPushCertificate();
 
@@ -670,7 +671,7 @@ describe("Testing server configured with push certificate management", () => {
         await startOnGoingConnection(endpointUrl);
 
         try {
-            step("when an administrative client replaces the certificate & PrivateKey");
+            step("when an administrative client replaces the certificate & private key");
             const { certificate, privateKey } = await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(
                 endpointUrl
             );
@@ -728,7 +729,7 @@ describe("Testing server configured with push certificate management", () => {
         await startOnGoingConnection(endpointUrl);
 
         try {
-            step("when an administrative client replaces the certificate & PrivateKey");
+            step("when an administrative client replaces the certificate & private key");
             const { certificate } = await createSigningRequestAndNewPrivateKey(endpointUrl);
 
             step("then I should verify that the server certificate has changed");

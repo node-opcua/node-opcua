@@ -2,13 +2,13 @@
  * @module node-opcua-client-private
  */
 import { callbackify } from "util";
-import { randomBytes, createPublicKey, createPrivateKey } from "crypto";
+import { randomBytes, createPublicKey } from "crypto";
 import * as async from "async";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, Nonce, PrivateKey, toPem } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, makePrivateKeyFromPem, PrivateKey, Nonce, toPem } from "node-opcua-crypto";
 
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -1257,7 +1257,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
                 case UserTokenType.Certificate: {
                     const certificate = userIdentityInfo.certificateData;
-                    const privateKey = createPrivateKey(userIdentityInfo.privateKey);
+                    const privateKey = makePrivateKeyFromPem(userIdentityInfo.privateKey);
                     ({ userIdentityToken, userTokenSignature } = createX509IdentityToken(context, certificate, privateKey));
                     break;
                 }
