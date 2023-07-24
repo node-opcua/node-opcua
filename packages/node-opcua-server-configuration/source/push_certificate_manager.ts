@@ -23,9 +23,9 @@ export interface UpdateCertificateResult {
 export interface PushCertificateManager {
 
     /**
-     * The SupportedPrivateKeyFormats specifies the PrivateKey formats supported by the Server.
+     * The SupportedPrivateKeyFormats specifies the private key formats supported by the Server.
      * Possible values include “PEM” (see RFC 5958) or “PFX” (see PKCS #12). The array is empty
-     * if the Server does not allow external Clients to update the PrivateKey
+     * if the Server does not allow external Clients to update the private key
      */
     getSupportedPrivateKeyFormats(): Promise<string[]>;
 
@@ -59,7 +59,7 @@ export interface PushCertificateManager {
      * Result Code                  Description
      * BadInvalidArgument           The certificateTypeId or certificateGroupId is not valid.
      * BadCertificateInvalid        The Certificate is invalid or the format is not supported.
-     * BadNotSupported              The PrivateKey is invalid or the format is not supported.
+     * BadNotSupported              The private key is invalid or the format is not supported.
      * BadUserAccessDenied          The current user does not have the rights required.
      * BadSecurityChecksFailed      Some failure occurred verifying the integrity of the Certificate.
      *

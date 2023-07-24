@@ -28,7 +28,7 @@
         "node-opcua-assert": "2.105.0",
         "node-opcua-client-crawler": "2.108.0",
         "node-opcua-client-proxy": "2.108.0",
-        "node-opcua-crypto": "3.1.0",
+        "node-opcua-crypto": "4.0.0-beta.0",
         "node-opcua-packet-analyzer": "2.108.0",
         "node-opcua-pki": "4.2.1",
         "node-opcua-server-configuration": "2.108.0",

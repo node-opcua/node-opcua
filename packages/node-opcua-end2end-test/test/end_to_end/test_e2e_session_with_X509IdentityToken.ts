@@ -6,7 +6,7 @@ import { get_empty_nodeset_filename, OPCUACertificateManager, OPCUAClient, OPCUA
 import { UserIdentityInfoX509, UserTokenType } from "node-opcua-client";
 
 import should from "should";
-import { readCertificate, readPrivateKeyPEM, PrivateKeyPEM   } from "node-opcua-crypto";
+import { readCertificate, readPrivateKey, coercePrivateKeyPem } from "node-opcua-crypto";
 import { Certificate, readCertificateRevocationList } from "node-opcua-crypto";
 
 const empty_nodeset_filename = get_empty_nodeset_filename();
@@ -77,10 +77,13 @@ describe("Testing Session with user certificate", () => {
     after(endServer);
 
     const clientPrivateKeyFilename = path.join(certificateFolder, "client_key_2048.pem");
-    const privateKey: PrivateKeyPEM = readPrivateKeyPEM(clientPrivateKeyFilename);
+    const privateKey1 = readPrivateKey(clientPrivateKeyFilename);
+    const privateKeyPem = coercePrivateKeyPem(privateKey1);
 
     const wrongClientPrivateKeyFilename = path.join(certificateFolder, "server_key_2048.pem");
-    const wrongPrivateKey: PrivateKeyPEM = readPrivateKeyPEM(wrongClientPrivateKeyFilename);
+    
+    const wrongPrivateKey1 = readPrivateKey(wrongClientPrivateKeyFilename);
+    const wrongPrivateKey = coercePrivateKeyPem(wrongPrivateKey1);
 
     const clientCertificateFilename = path.join(certificateFolder, "client_cert_2048.pem");
     const clientCertificate: Certificate = readCertificate(clientCertificateFilename);
@@ -114,7 +117,7 @@ describe("Testing Session with user certificate", () => {
 
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: clientCertificate,
-            privateKey,
+            privateKey: privateKeyPem,
             type: UserTokenType.Certificate
         };
         const session = await client!.createSession(userIdentity);
@@ -126,7 +129,7 @@ describe("Testing Session with user certificate", () => {
 
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: clientCertificate,
-            privateKey,
+            privateKey: privateKeyPem,
             type: UserTokenType.Certificate
         };
         let exceptionCaught: Error | null = null;
@@ -144,7 +147,7 @@ describe("Testing Session with user certificate", () => {
     it("should fail to create a session with a invalid client certificate (out-of-date)", async () => {
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: invalidClientCertificate,
-            privateKey,
+            privateKey: privateKeyPem,
             type: UserTokenType.Certificate
         };
         let exceptionCaught: Error | null = null;
@@ -160,7 +163,7 @@ describe("Testing Session with user certificate", () => {
     it("should fail to create a session with a invalid client certificate (not_active_yet)", async () => {
         const userIdentity: UserIdentityInfoX509 = {
             certificateData: notActiveClientCertificate,
-            privateKey,
+            privateKey: privateKeyPem,
             type: UserTokenType.Certificate
         };
         let exceptionCaught: Error | null = null;

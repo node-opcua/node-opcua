@@ -19,9 +19,9 @@ import {
     PrivateKey,
     certificateMatchesPrivateKey,
     readCertificate,
-    derToPrivateKey,
-    pemToPrivateKey,
-    toPem2
+    coercePEMorDerToPrivateKey,
+    toPem2,
+    coercePrivateKeyPem
 } from "node-opcua-crypto";
 
 import { DirectoryName } from "node-opcua-crypto";
@@ -30,7 +30,6 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCode } from "node-opcua-status-code";
-import { coercePrivateKey } from "node-opcua-crypto";
 
 import {
     CreateSigningRequestResult,
@@ -38,7 +37,6 @@ import {
     PushCertificateManager,
     UpdateCertificateResult
 } from "../push_certificate_manager";
-
 
 // node 14 onward : import {  readFile, writeFile, readdir } from "fs/promises";
 const { readFile, writeFile, readdir } = fs.promises;
@@ -52,40 +50,7 @@ const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGr
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
 const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
 
-// async function coercePrivateKey(privateKey: Buffer | string | PrivateKey | CryptoKey): Promise<PrivateKey> {
 
-//     const crypto = getCrypto();
-//     const KeyObject = crypto.KeyObject;
-    
-//     if (privateKey instanceof Buffer) {
-//         const privateKey1 = await derToPrivateKey(privateKey); //
-//         return KeyObject.from(privateKey1);
-//     } else if (typeof privateKey === "string") {
-//         try {
-//            // privateKey = privateKey.replace(/RSA PRIVATE KEY-----\n.*/mg, "RSA PRIVATE KEY-----");
-//             const privateKey1 = await pemToPrivateKey(privateKey);
-//             return KeyObject.from(privateKey1);
-//         } catch (err) {
-//             console.log(privateKey);
-//             throw err;
-//         }
-//     } else if (privateKey instanceof KeyObject) {
-//         return privateKey;
-//     }
-//     throw new Error("Invalid privateKey");
-// }
-
-async function privateKeyToPEM2(privateKey: Buffer | string | PrivateKey): Promise<string> {
-    if (privateKey instanceof Buffer) {
-        return toPem2(privateKey, "RSA PRIVATE KEY");
-    } else if (typeof privateKey === "string") {
-        return privateKey;
-    }
-    
-    return toPem2(privateKey, "PRIVATE KEY");
-    //  privateKey.export({ format: "pem", type: "pkcs1" }});
-   //  return (await privateKeyToPEM(privateKey)).privPem;
-}
 
 function findCertificateGroupName(certificateGroupNodeId: NodeId | string): string {
     if (typeof certificateGroupNodeId === "string") {
@@ -275,7 +240,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             warningLog("reusing existing certificate subjectAltName = ", subjectName);
         }
 
-        // todo : at this time regenerate PrivateKey is not supported
+        // todo : at this time regenerate private key is not supported
         if (regeneratePrivateKey) {
             // The Server shall create a new Private Key which it stores until the
             // matching signed Certificate is uploaded with the UpdateCertificate Method.
@@ -409,12 +374,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         certificate: Buffer,
         issuerCertificates: ByteString[],
         privateKeyFormat?: string,
-        privateKey?: Buffer | PrivateKey | string
+        privateKey?: Buffer | string
     ): Promise<UpdateCertificateResult> {
         // Result Code                Description
         // BadInvalidArgument        The certificateTypeId or certificateGroupId is not valid.
         // BadCertificateInvalid     The Certificate is invalid or the format is not supported.
-        // BadNotSupported           The PrivateKey is invalid or the format is not supported.
+        // BadNotSupported           The Private Key is invalid or the format is not supported.
         // BadUserAccessDenied       The current user does not have the rights required.
         // BadSecurityChecksFailed   Some failure occurred verifying the integrity of the Certificate.
         const certificateManager = this.getCertificateManager(certificateGroupId)!;
@@ -448,11 +413,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const ownPrivateFolder = path.join(certificateManager.rootDir, "own/private");
             const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${fileCounter++}.pem`);
 
-            const privateKeyPEM = await privateKeyToPEM2(privateKey!);
-
-            await writeFile(privateKeyFilePEM, privateKeyPEM, "utf-8");
-
-            self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
+            if (privateKey) {
+                const privateKey1 = coercePEMorDerToPrivateKey(privateKey);
+                const privateKeyPEM = await coercePrivateKeyPem(privateKey1);
+                await writeFile(privateKeyFilePEM, privateKeyPEM, "utf-8");
+                self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
+            }
         }
 
         // OPC Unified Architecture, Part 12 42 Release 1.04:
@@ -501,16 +467,16 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
         if (!privateKeyFormat || !privateKey) {
             // first of all we need to find the future private key;
-            // this one may have been created during the creation of the certficate signing request
+            // this one may have been created during the creation of the certificate signing request
             // but is not active yet
-            const privateKeyDER = readPrivateKey(
+            const privateKey1 = readPrivateKey(
                 this._tmpCertificateManager ? this._tmpCertificateManager.privateKey : certificateManager.privateKey
             );
 
             // The Server shall report an error if the public key does not match the existing Certificate and
             // the privateKey was not provided.
             // privateKey is not provided, so check that the public key matches the existing certificate
-            if (!certificateMatchesPrivateKey(certificate, privateKeyDER)) {
+            if (!certificateMatchesPrivateKey(certificate, privateKey1)) {
                 // certificate doesn't match privateKey
                 warningLog("certificate doesn't match privateKey");
                 /* debug code */
@@ -547,15 +513,19 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 return { statusCode: StatusCodes.BadNotSupported };
             }
 
-            if (privateKey instanceof Buffer || typeof privateKey === "string") {
+            let privateKey1: PrivateKey | undefined;
+            if (privateKey && (privateKey instanceof Buffer || typeof privateKey === "string")) {
                 if (privateKey instanceof Buffer) {
                     assert(privateKeyFormat === "PEM");
                     privateKey = privateKey.toString("utf-8");
                 }
-                privateKey = coercePrivateKey(privateKey as string);
+                privateKey1 = coercePEMorDerToPrivateKey(privateKey);
+            }
+            if (!privateKey1) {
+                return { statusCode: StatusCodes.BadNotSupported };
             }
             // privateKey is  provided, so check that the public key matches provided private key
-            if (!certificateMatchesPrivateKey(certificate, privateKey)) {
+            if (!certificateMatchesPrivateKey(certificate, privateKey1!)) {
                 // certificate doesn't match privateKey
                 warningLog("certificate doesn't match privateKey");
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
