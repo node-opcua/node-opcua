@@ -46,6 +46,7 @@ code_gen/latest
 code_gen/old
 coverage
 CTTA/
+CTT/Node-OPCUA-Client
 demo/
 dist/
 distHelpers/
