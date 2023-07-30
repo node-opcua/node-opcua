@@ -3,9 +3,6 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { BrowseDirection, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { makeNodeId, sameNodeId } from "node-opcua-nodeid";
 import { ReferenceTypeIds } from "node-opcua-constants";
-
-import chalk from "chalk";
-
 import { UAObject } from "./ua_object";
 import { UAVariable } from "./ua_variable";
 import { UAMethod } from "./ua_method";
@@ -203,7 +200,7 @@ export class CloneHelper {
         // istanbul ignore next
         doTrace &&
             traceLog(
-                chalk.yellow("push context: "),
+                "push context: ",
                 "original parent = ",
                 fullPath2(originalParent),
                 "cloned parent =",
@@ -241,7 +238,7 @@ export class CloneHelper {
         // istanbul ignore next
         doTrace &&
             traceLog(
-                chalk.yellow("registerClonedObject"),
+                "registerClonedObject",
                 "originalNode = ",
                 fullPath2(originalNode),
                 "clonedNode =",
@@ -383,7 +380,7 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
     // this could be node organized by some FunctionalGroup
 
     // istanbul ignore next
-    doTrace && traceLog(chalk.yellow("reconstructNonHierarchicalReferences"));
+    doTrace && traceLog("reconstructNonHierarchicalReferences");
 
     for (const { original, cloned } of cloneInfoArray) {
         apply(original, cloned);
