@@ -49,7 +49,7 @@ export const TwoWeeksDuration = OneDayDuration * 2 * 7;
  * of expiration. This alarm automatically returns to normal when the certificate is updated.
  */
 class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implements UACertificateExpirationAlarmEx {
-    private timer: any;
+    private timer: NodeJS.Timeout | null = null;
 
     public static instantiate(
         namespace: INamespace,

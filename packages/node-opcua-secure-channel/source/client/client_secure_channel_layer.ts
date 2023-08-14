@@ -362,7 +362,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     private __in_normal_close_operation: boolean;
     private _timeout_request_count: number;
-    private _securityTokenTimeoutId: NodeJS.Timer | null;
+    private _securityTokenTimeoutId: NodeJS.Timeout | null;
     private readonly transportTimeout: number;
     private readonly connectionStrategy: any;
     private last_transaction_stats: any | ClientTransactionStatistics;

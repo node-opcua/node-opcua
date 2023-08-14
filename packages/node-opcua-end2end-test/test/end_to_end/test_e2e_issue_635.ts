@@ -19,7 +19,7 @@ import should from "should";
 
 const _should = should;
 
-let timer1: any;
+let timer1: NodeJS.Timeout | undefined;
 let _variableNode2: UAVariable;
 let _variableNode1: UAVariable;
 

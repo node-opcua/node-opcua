@@ -26,14 +26,14 @@ const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 export interface UAShelvedStateMachineHelper {
-    _timer: NodeJS.Timer | null;
+    _timer: NodeJS.Timeout | null;
     _sheveldTime: Date;
     _unshelvedTime: Date;
     _duration: number;
 }
 
 export interface UAShelvedStateMachineExImpl extends UAShelvedStateMachineHelper {
-    unshelveTime: UAProperty<number, /*z*/ DataType.Double>;
+        unshelveTime: UAProperty<number, /*z*/ DataType.Double>;
     unshelved: UAState;
     timedShelved: UAState;
     oneShotShelved: UAState;
