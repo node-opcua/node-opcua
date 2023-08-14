@@ -16,7 +16,7 @@
         "clean": "npx rimraf certificates"
     },
     "dependencies": {
-        "@types/underscore": "^1.11.5",
+        "@types/underscore": "^1.11.6",
         "@types/yargs": "17.0.24",
         "chalk": "4.1.2",
         "easy-table": "^1.2.0",
@@ -28,9 +28,9 @@
         "node-opcua-assert": "2.105.0",
         "node-opcua-client-crawler": "2.108.0",
         "node-opcua-client-proxy": "2.108.0",
-        "node-opcua-crypto": "4.0.0-beta.0",
+        "node-opcua-crypto": "4.1.0",
         "node-opcua-packet-analyzer": "2.108.0",
-        "node-opcua-pki": "4.2.1",
+        "node-opcua-pki": "4.3.0",
         "node-opcua-server-configuration": "2.108.0",
         "node-opcua-utils": "2.108.0",
         "node-opcua-vendor-diagnostic": "2.108.0",

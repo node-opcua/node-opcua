@@ -730,7 +730,7 @@ describe("Testing server configured with push certificate management", () => {
 
         try {
             step("when an administrative client replaces the certificate & private key");
-            const { certificate } = await createSigningRequestAndNewPrivateKey(endpointUrl);
+                const { certificate } = await createSigningRequestAndNewPrivateKey(endpointUrl);
 
             step("then I should verify that the server certificate has changed");
             const certificateAfter = server.getCertificate();
