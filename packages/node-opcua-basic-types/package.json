@@ -20,7 +20,7 @@
         "node-opcua-status-code": "2.108.0"
     },
     "devDependencies": {
-        "@types/node": "20.4.2",
+        "@types/node": "20.5.0",
         "node-opcua-benchmarker": "2.108.0",
         "node-opcua-debug": "2.108.0",
         "should": "^13.2.3"
