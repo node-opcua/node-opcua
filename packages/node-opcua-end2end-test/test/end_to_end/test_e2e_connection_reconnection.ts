@@ -264,7 +264,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
     let temperatureVariableId: NodeId;
 
     let counterNode: UAVariable;
-    let timerId: NodeJS.Timer | undefined = undefined;
+    let timerId: NodeJS.Timeout | undefined = undefined;
     // -----------------------------------------------------------------------------------------------------------------
     // Common Steps
     // -----------------------------------------------------------------------------------------------------------------

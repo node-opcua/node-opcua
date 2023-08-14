@@ -62,7 +62,7 @@ export class WatchDog extends EventEmitter {
     private readonly _watchdogDataMap: { [id: number]: IWatchdogData2 };
     private _counter: number;
     private _currentTime: ArbitraryClockTick;
-    private _timer: NodeJS.Timer | null;
+    private _timer: NodeJS.Timeout | null;
     private readonly _visitSubscriberB: (...args: any[]) => void;
 
     constructor() {
@@ -140,7 +140,7 @@ export class WatchDog extends EventEmitter {
 
         delete this._watchdogDataMap[subscriber._watchDogData.key];
         delete subscriber._watchDog;
-        // leave it as it might be usefull, delete subscriber._watchDogData;
+        // leave it as it might be useful, delete subscriber._watchDogData;
         subscriber.keepAlive = WatchDog.emptyKeepAlive;
 
         // delete timer when the last subscriber comes out

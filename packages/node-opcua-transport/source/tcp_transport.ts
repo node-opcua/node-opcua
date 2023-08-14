@@ -163,7 +163,7 @@ export class TCP_transport extends EventEmitter {
      * @default  8
      */
     private readonly headerSize: 8;
-    private _timerId: NodeJS.Timer | null;
+    private _timerId: NodeJS.Timeout | null;
     private _theCallback?: (err?: Error | null, data?: Buffer) => void;
     private _on_error_during_one_time_message_receiver: ((hadError: boolean) => void) | undefined;
     private packetAssembler?: PacketAssembler;

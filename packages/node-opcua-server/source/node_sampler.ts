@@ -11,7 +11,12 @@ const doDebug = checkDebugFlag(__filename);
 
 import { MonitoredItem } from "./monitored_item";
 
-const timers: any = {};
+interface ITimer {
+    _samplingId: NodeJS.Timeout | false,
+    monitoredItems: Record<string,any>,
+    monitoredItemsCount: number;
+    }
+const timers: Record<string,ITimer> = {};
 const NS_PER_SEC = 1e9;
 
 interface MonitoredItemPriv {
@@ -85,7 +90,9 @@ export function removeFromTimer(monitoredItem: MonitoredItem): void {
     _t.monitoredItemsCount--;
     assert(_t.monitoredItemsCount >= 0);
     if (_t.monitoredItemsCount === 0) {
-        clearInterval(_t._samplingId);
+        if (_t._samplingId !==false) {
+            clearInterval(_t._samplingId);
+        }
         delete timers[key];
     }
 }

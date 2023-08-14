@@ -398,7 +398,7 @@ export class MonitoredItem extends EventEmitter {
     public queueSize = 0;
     public clientHandle: UInt32;
     public $subscription?: ISubscription;
-    public _samplingId?: TimerKey | string;
+    public _samplingId?: NodeJS.Timeout | string;
     public samplingFunc: SamplingFunc | null = null;
 
     private _node: BaseNode | null;
@@ -1331,7 +1331,7 @@ export class MonitoredItem extends EventEmitter {
             if (useCommonTimer) {
                 removeFromTimer(this);
             } else {
-                clearInterval(this._samplingId as NodeJS.Timer);
+                clearInterval(this._samplingId);
             }
             this._samplingId = undefined;
         }

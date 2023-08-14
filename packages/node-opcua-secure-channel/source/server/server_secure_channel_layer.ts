@@ -283,9 +283,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private receiverPublicKeyLength: number;
     private readonly messageChunker: MessageChunker;
 
-    private timeoutId: NodeJS.Timer | null;
+    private timeoutId: NodeJS.Timeout | null;
     private _open_secure_channel_onceClose: ErrorCallback | null = null;
-    private _securityTokenTimeout: NodeJS.Timer | null;
+    private _securityTokenTimeout: NodeJS.Timeout | null;
     private _transactionsCount: number;
     private revisedLifetime: number;
     private readonly transport: ServerTCP_transport;

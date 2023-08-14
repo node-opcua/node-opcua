@@ -11,7 +11,6 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
-import { StatusCodes } from "node-opcua-status-code";
 import { ClientSessionImpl } from "./private/client_session_impl";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
@@ -27,7 +26,7 @@ export interface ClientSessionKeepAliveManagerEvents {
 
 export class ClientSessionKeepAliveManager extends EventEmitter implements ClientSessionKeepAliveManagerEvents {
     private readonly session: ClientSessionImpl;
-    private timerId?: NodeJS.Timer;
+    private timerId?: NodeJS.Timeout;
     private pingTimeout: number;
     private lastKnownState?: ServerState;
     private transactionInProgress = false;
