@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-xml2json",
-    "version": "2.108.0",
+    "version": "2.109.0",
     "description": "pure nodejs OPCUA SDK - module xml2json",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
@@ -14,7 +14,7 @@
     "dependencies": {
         "ltx": "^3.0.0",
         "node-opcua-assert": "2.105.0",
-        "node-opcua-utils": "2.108.0",
+        "node-opcua-utils": "2.109.0",
         "thenify": "^3.3.1",
         "xml-writer": "^1.7.0"
     },
@@ -22,8 +22,8 @@
     "license": "MIT",
     "devDependencies": {
         "mocha": "^10.2.0",
-        "node-opcua-debug": "2.108.0",
-        "node-opcua-nodesets": "2.107.0",
+        "node-opcua-debug": "2.109.0",
+        "node-opcua-nodesets": "2.109.0",
         "should": "^13.2.3"
     },
     "repository": {

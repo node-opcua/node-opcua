@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-di",
-    "version": "2.108.0",
+    "version": "2.109.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-di",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,15 +10,15 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.108.0",
-        "node-opcua-basic-types": "2.108.0",
-        "node-opcua-data-access": "2.108.0",
-        "node-opcua-data-model": "2.108.0",
-        "node-opcua-extension-object": "2.108.0",
-        "node-opcua-nodeid": "2.108.0",
-        "node-opcua-nodeset-ua": "2.108.0",
-        "node-opcua-status-code": "2.108.0",
-        "node-opcua-variant": "2.108.0"
+        "node-opcua-address-space-base": "2.109.0",
+        "node-opcua-basic-types": "2.109.0",
+        "node-opcua-data-access": "2.109.0",
+        "node-opcua-data-model": "2.109.0",
+        "node-opcua-extension-object": "2.109.0",
+        "node-opcua-nodeid": "2.109.0",
+        "node-opcua-nodeset-ua": "2.109.0",
+        "node-opcua-status-code": "2.109.0",
+        "node-opcua-variant": "2.109.0"
     },
     "files": [
         "dist",
