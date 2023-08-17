@@ -28,7 +28,7 @@
         "node-opcua-binary-stream": "2.109.0",
         "node-opcua-client-dynamic-extension-object": "2.109.0",
         "node-opcua-constants": "2.98.1",
-        "node-opcua-crypto": "4.1.0",
+        "node-opcua-crypto": "4.2.0",
         "node-opcua-data-access": "2.109.0",
         "node-opcua-data-model": "2.109.0",
         "node-opcua-data-value": "2.109.0",
@@ -84,7 +84,7 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "gitHead": "07dcdd8e8c7f2b55544c6e23023093e35674829c",
+    "gitHead": "50cfa07779d4c07b299176ac9c27527fcd97d079",
     "files": [
         "dist",
         "distHelpers",
