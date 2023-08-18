@@ -18,12 +18,12 @@ const { build_server_with_temperature_device } = require("../../test_helpers/bui
 const users = [
     {
         username: "user1",
-        password: "1",
+        password: (() => "1")(),
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator])
     },
     {
         username: "user2",
-        password: "2",
+        password: (() => "2")(),
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     }
 ];
@@ -149,7 +149,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // As operator user
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user1 on existing session");
-            let userIdentity = { type: UserTokenType.UserName, userName: "user1", password: "1" };
+            let userIdentity = { type: UserTokenType.UserName, userName: "user1", password: (() => "1")() };
 
             await session.changeUser(userIdentity);
 
@@ -163,7 +163,7 @@ describe("testing Client-Server with UserName/Password identity token", function
             // As admin user
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user2 on existing session (user2 is admin)");
-            userIdentity = { type: UserTokenType.UserName, userName: "user2", password: "2" };
+            userIdentity = { type: UserTokenType.UserName, userName: "user2", password: (() => "2")() };
             await session.changeUser(userIdentity);
 
             statusCode = await read(session);

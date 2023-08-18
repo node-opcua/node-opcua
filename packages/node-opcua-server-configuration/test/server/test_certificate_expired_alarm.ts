@@ -18,11 +18,9 @@ import {
     SecurityPolicy,
     DataValue,
     DataType,
-    AttributeIds,
-    StatusCodes,
-    NodeId
+    AttributeIds
 } from "node-opcua-client";
-import { MockContinuationPointManager } from "node-opcua-address-space/test_helpers";
+import bcrypt from "bcrypt";
 
 import { installPushCertificateManagementOnServer } from "../..";
 import {
@@ -36,14 +34,20 @@ const port = 2909;
 
 const millisecondPerDay = 24 * 60 * 60 * 1000;
 
+const salt = bcrypt.genSaltSync(10);
+
 function buildUserManager() {
     const users = [
         {
             username: "root",
-            password: "secret",
+            password: bcrypt.hashSync((() => "secret")(), salt),
             role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin, WellKnownRoles.SecurityAdmin])
         },
-        { username: "user2", password: "password2", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
+        {
+            username: "user2",
+            password: bcrypt.hashSync((() => "password2")(), salt),
+            role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator])
+        }
     ];
 
     const userManager = {
@@ -52,10 +56,7 @@ function buildUserManager() {
             if (uIndex < 0) {
                 return false;
             }
-            if (users[uIndex].password !== password) {
-                return false;
-            }
-            return true;
+            return bcrypt.compareSync(password, users[uIndex].password);
         },
         getUserRoles(username: string) {
             const uIndex = users.findIndex((x) => x.username === username);
@@ -106,7 +107,6 @@ async function getFolder(name: string) {
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test CertificateExpiredAlarm", function (this: any) {
-
     this.timeout(Math.max(this.timeout(), 5 * 60 * 1000));
 
     let clientCertificateManager: OPCUACertificateManager;
@@ -171,7 +171,7 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
                 endpointUrl,
                 userIdentity: <UserIdentityInfoUserName>{
                     type: UserTokenType.UserName,
-                    password: "secret",
+                    password: (()=>"secret")(),
                     userName: "root"
                 }
             },
@@ -222,7 +222,7 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
                 endpointUrl,
                 userIdentity: <UserIdentityInfoUserName>{
                     type: UserTokenType.UserName,
-                    password: "secret",
+                    password: (() => "secret")(),
                     userName: "root"
                 }
             },

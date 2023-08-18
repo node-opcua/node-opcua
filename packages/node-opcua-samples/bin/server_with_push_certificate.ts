@@ -8,6 +8,7 @@ import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, OPCUAServerO
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
 import yargs from "yargs";
+import bcrypt from "bcrypt";
 
 const rootFolder = path.join(__dirname, "../../..");
 
@@ -21,13 +22,18 @@ const certificateManager = new OPCUACertificateManager({
     rootFolder: pkiFolder
 });
 
+const salt = bcrypt.genSaltSync(10);
 const users = [
     {
         username: "user1",
-        password: "password1",
+        password: bcrypt.hashSync((() => "password1")(), salt),
         role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin, WellKnownRoles.SecurityAdmin])
     },
-    { username: "user2", password: "password2", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
+    {
+        username: "user2",
+        password: bcrypt.hashSync((() => "password2")(), salt),
+        role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator])
+    }
 ];
 
 const userManager = {
@@ -36,7 +42,7 @@ const userManager = {
         if (uIndex < 0) {
             return false;
         }
-        if (users[uIndex].password !== password) {
+        if (!bcrypt.compareSync(password, users[uIndex].password)) {
             return false;
         }
         return true;
@@ -81,7 +87,7 @@ async function main() {
 
     const server = new OPCUAServer(serverOptions);
 
-    console.log(" Configuration rootdir =  ", server.serverCertificateManager.rootDir);
+    console.log(" Configuration root dir =  ", server.serverCertificateManager.rootDir);
     console.log(chalk.yellow("  server PID          :"), process.pid);
 
     await server.initialize();

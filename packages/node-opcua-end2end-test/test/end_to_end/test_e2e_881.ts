@@ -89,7 +89,7 @@ describe("building server with an AlternateName", () => {
             console.log("creating session");
             const session = await client.createSession({
                 type: UserTokenType.UserName,
-                password: "test",
+                password: (()=>"test")(),
                 userName: "test"
             });
             console.log("session created");

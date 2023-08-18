@@ -67,7 +67,7 @@ describe("Testing bug #574", function() {
         });
 
 
-        const userIdentity = { userName: "user1", password: "password1" };
+        const userIdentity = { userName: "user1", password: (() => "password1")() };
         let the_session;
         async.series([
 

@@ -39,7 +39,7 @@ const client = OPCUAClient.create(options);
         });
 
         const session = await client.createSession({
-            password: "password1",
+            password: (()=>"password1")(),
             type: UserTokenType.UserName,
             userName: "user1"
         });

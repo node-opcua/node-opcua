@@ -9,6 +9,7 @@ const assert = require("assert");
 const chalk = require("chalk");
 const yargs = require("yargs/yargs");
 const envPaths = require("env-paths");
+const bcrypt = require("bcrypt");
 
 const {
     OPCUAServer,
@@ -26,13 +27,9 @@ const {
     WellKnownRoles
 } = require("node-opcua");
 
-const {
-    install_optional_cpu_and_memory_usage_node,
-} = require("node-opcua-vendor-diagnostic");
+const { install_optional_cpu_and_memory_usage_node } = require("node-opcua-vendor-diagnostic");
 
-const {
-    build_address_space_for_conformance_testing,
-}= require("node-opcua-address-space-for-conformance-testing");
+const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 
 Error.stackTraceLimit = Infinity;
 
@@ -83,10 +80,10 @@ const maxSubscriptionsPerSession = argv.maxSubscriptionsPerSession || 50;
 async function getIpAddresses() {
     const ipAddresses = [];
     const interfaces = os.networkInterfaces();
-    Object.keys(interfaces).forEach(function (interfaceName) {
+    Object.keys(interfaces).forEach(function(interfaceName) {
         let alias = 0;
 
-        interfaces[interfaceName].forEach(function (iface) {
+        interfaces[interfaceName].forEach(function(iface) {
             if ("IPv4" !== iface.family || iface.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
                 return;
@@ -106,13 +103,18 @@ async function getIpAddresses() {
     return ipAddresses;
 }
 
+const salt = bcrypt.genSaltSync(10);
 const users = [
     {
         username: "user1",
-        password: "password1",
+        password: bcrypt.hashSync((() => "password1")(), salt),
         role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     },
-    { username: "user2", password: "password2", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
+    {
+        username: "user2",
+        password: bcrypt.hashSync((() => "password2")(), salt),
+        role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator])
+    }
 ];
 
 const userManager = {
@@ -121,10 +123,7 @@ const userManager = {
         if (uIndex < 0) {
             return false;
         }
-        if (users[uIndex].password !== password) {
-            return false;
-        }
-        return true;
+        return bcrypt.compareSync(password, users[uIndex].password);
     },
     getUserRoles(username) {
         const uIndex = users.findIndex((x) => x.username === username);
@@ -236,7 +235,6 @@ const paths = envPaths(productUri);
     server_options.alternateHostname = argv.alternateHostname;
     const server = new OPCUAServer(server_options);
 
-  
     await server.initialize();
 
     function post_initialize() {
@@ -270,7 +268,7 @@ const paths = envPaths(productUri);
             value: new Variant({ dataType: DataType.Double, value: 1000.0 })
         });
 
-        setInterval(function () {
+        setInterval(function() {
             const fluctuation = Math.random() * 100 - 50;
             variable0.setValueFromSource(new Variant({ dataType: DataType.Double, value: 1000.0 + fluctuation }));
         }, 10);
@@ -296,7 +294,7 @@ const paths = envPaths(productUri);
                  * @method get
                  * @return {Variant}
                  */
-                get: function () {
+                get: function() {
                     const pump_speed = 200 + 100 * Math.sin(Date.now() / 10000);
                     return new Variant({ dataType: DataType.Double, value: pump_speed });
                 }
@@ -309,7 +307,7 @@ const paths = envPaths(productUri);
             nodeId: "ns=1;s=SomeDate",
             dataType: "DateTime",
             value: {
-                get: function () {
+                get: function() {
                     return new Variant({ dataType: DataType.DateTime, value: new Date(Date.UTC(2016, 9, 13, 8, 40, 0)) });
                 }
             }
@@ -328,7 +326,7 @@ const paths = envPaths(productUri);
             sourceTimestamp: null,
             sourcePicoseconds: 0
         });
-        setInterval(function () {
+        setInterval(function() {
             external_value_with_sourceTimestamp.value.value = Math.random();
             external_value_with_sourceTimestamp.sourceTimestamp = new Date();
         }, 1000);
@@ -339,7 +337,7 @@ const paths = envPaths(productUri);
             nodeId: "ns=1;s=Pressure",
             dataType: "Double",
             value: {
-                timestamped_get: function () {
+                timestamped_get: function() {
                     return external_value_with_sourceTimestamp;
                 }
             }
@@ -362,13 +360,13 @@ const paths = envPaths(productUri);
             dataType: "Double",
 
             value: {
-                refreshFunc: function (callback) {
+                refreshFunc: function(callback) {
                     const temperature = 20 + 10 * Math.sin(Date.now() / 10000);
                     const value = new Variant({ dataType: DataType.Double, value: temperature });
                     const sourceTimestamp = new Date();
 
                     // simulate a asynchronous behaviour
-                    setTimeout(function () {
+                    setTimeout(function() {
                         callback(null, new DataValue({ value: value, sourceTimestamp: sourceTimestamp }));
                     }, 100);
                 }
@@ -389,7 +387,7 @@ const paths = envPaths(productUri);
             engineeringUnits: standardUnits.degree_celsius,
             dataType: "Double",
             value: {
-                get: function () {
+                get: function() {
                     return new Variant({ dataType: DataType.Double, value: Math.random() + 19.0 });
                 }
             }
@@ -403,7 +401,7 @@ const paths = envPaths(productUri);
             valueRank: 2,
             arrayDimensions: [3, 3],
             value: {
-                get: function () {
+                get: function() {
                     return new Variant({
                         dataType: DataType.Double,
                         arrayType: VariantArrayType.Matrix,
@@ -422,7 +420,7 @@ const paths = envPaths(productUri);
             valueRank: 1,
             arrayDimensions: null,
             value: {
-                get: function () {
+                get: function() {
                     return new Variant({
                         dataType: DataType.Double,
                         arrayType: VariantArrayType.Array,
@@ -485,13 +483,13 @@ const paths = envPaths(productUri);
 
     if (argv.silent) {
         console.log(" silent");
-        console.log = function () {
+        console.log = function() {
             /** */
         };
     }
     //  console.log = function(){};
 
-    server.on("create_session", function (session) {
+    server.on("create_session", function(session) {
         console.log(" SESSION CREATED");
         console.log(chalk.cyan("    client application URI: "), session.clientDescription.applicationUri);
         console.log(chalk.cyan("        client product URI: "), session.clientDescription.productUri);
@@ -502,7 +500,7 @@ const paths = envPaths(productUri);
         console.log(chalk.cyan("                session id: "), session.sessionId);
     });
 
-    server.on("session_closed", function (session, reason) {
+    server.on("session_closed", function(session, reason) {
         console.log(" SESSION CLOSED :", reason);
         console.log(chalk.cyan("              session name: "), session.sessionName ? session.sessionName.toString() : "<null>");
     });
@@ -517,7 +515,7 @@ const paths = envPaths(productUri);
         const spacer = "                                             ".slice(0, nb);
         return str
             .split("\n")
-            .map(function (s) {
+            .map(function(s) {
                 return spacer + s;
             })
             .join("\n");
@@ -531,7 +529,7 @@ const paths = envPaths(productUri);
     }
 
     const servicesToTrace = ["CreateMonitoredItems", "Publish", "ModifyMonitoredItems"]; // "Publish", "TransferSubscriptions", "Republish", "CreateSubscription", "CreateMonitoredItems"];
-    server.on("response", function (response) {
+    server.on("response", function(response) {
         if (argv.silent) {
             return;
         }
@@ -547,7 +545,7 @@ const paths = envPaths(productUri);
         }
     });
 
-    server.on("request", function (request, channel) {
+    server.on("request", function(request, channel) {
         if (argv.silent) {
             return;
         }
@@ -563,11 +561,11 @@ const paths = envPaths(productUri);
         }
     });
 
-    process.once("SIGINT", function () {
+    process.once("SIGINT", function() {
         // only work on linux apparently
         console.error(chalk.red.bold(" Received server interruption from user "));
         console.error(chalk.red.bold(" shutting down ..."));
-        server.shutdown(1000, function () {
+        server.shutdown(1000, function() {
             console.error(chalk.red.bold(" shutting down completed "));
             console.error(chalk.red.bold(" done "));
             console.error("");

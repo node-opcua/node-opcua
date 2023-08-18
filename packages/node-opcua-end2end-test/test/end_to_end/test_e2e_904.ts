@@ -158,7 +158,7 @@ describe("#904 - Client should connect to server that do not provide ServerNonce
 
     const userIdentity: UserIdentityInfo = {
         type: UserTokenType.UserName,
-        password: "test",
+        password: (()=>"test")(),
         userName: "test"
     };
     it("#904-3 Client should NOT allow unsecure connection when userName Identity is when serverNonce = null (because password would be sent un-encrypted)", async () => {

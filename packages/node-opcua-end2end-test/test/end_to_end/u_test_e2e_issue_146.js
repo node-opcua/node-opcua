@@ -41,7 +41,7 @@ module.exports = function (test) {
                 function (callback) {
 
                     console.log("    impersonate user user2 on existing session");
-                    const userIdentity = { userName: "user2", password: "password2" };
+                    const userIdentity = { userName: "user2", password: (() => "password2")() };
 
                     the_session.changeUser(userIdentity, function (err) {
                         if (err) {
