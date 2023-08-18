@@ -1,5 +1,5 @@
 import { OPCUAServer, makeRoles, WellKnownRoles, NodeId, nodesets } from "node-opcua";
-import { hashSync, genSaltSync } from "bcrypt";
+import { hashSync, genSaltSync, compareSync } from "bcrypt";
 const port = 2510;
 let server: OPCUAServer;
 
@@ -7,7 +7,7 @@ const salt = genSaltSync(10);
 const users = [
     {
         username: "user1",
-        password: (() => hashSync("password1", salt))(),
+        password: (() => hashSync((()=>"password1")(), salt))(),
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     }
 ];
@@ -20,12 +20,8 @@ const userManager = {
         if (uIndex < 0) {
             return false;
         }
-        if (users[uIndex].password !== hashSync(password, salt)) {
-            return false;
-        }
-        return true;
+        return compareSync(password, users[uIndex].password);
     },
-
     getUserRoles: (username: string): NodeId[] => {
         const uIndex = users.findIndex(function (x) {
             return x.username === username;

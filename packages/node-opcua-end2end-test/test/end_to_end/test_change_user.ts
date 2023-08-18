@@ -21,14 +21,14 @@ import {
     Variant,
     s
 } from "node-opcua";
-import { genSaltSync, hashSync } from "bcrypt";
+import { compareSync, genSaltSync, hashSync } from "bcrypt";
 
 const salt = genSaltSync(10);
 
 const users = [
     {
         username: "user1",
-        password: (() => hashSync("password1", salt))(),
+        password: hashSync((() => "password1")(), salt),
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     }
 ];
@@ -53,11 +53,8 @@ async function startServer() {
                     console.error(chalk.red("No such user, wrong username!"));
                     return false;
                 }
-                if (users[uIndex].password !== hashSync(password, salt)) {
-                    console.error(chalk.red("Wrong password!"));
-                    return false;
-                }
-                return true;
+                return compareSync(password, users[uIndex].password);
+
             },
             getUserRoles: (username: string): NodeId[] => {
                 const uIndex = users.findIndex(function (x) {
