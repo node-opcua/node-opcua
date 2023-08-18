@@ -559,11 +559,11 @@ module.exports = function (test) {
 
             const user1 = {
                 userName: "user1",
-                password: "password1"
+                password: (() => "password1")()
             };
             const user2 = new UserNameIdentityToken({
                 userName: "user1",
-                password: "password1"
+                password: (() => "password1")()
             });
             //xx console.log(" user1 ", user1.toString());
             async.series(

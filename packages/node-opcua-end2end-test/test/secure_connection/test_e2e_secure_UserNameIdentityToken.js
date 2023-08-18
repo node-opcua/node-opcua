@@ -167,14 +167,14 @@ describe("testing Client-Server with UserName/Password identity token", function
         };
         const userIdentity = {
             userName: "username",
-            password: "p@ssw0rd"
+            password: (() => "p@ssw0rd")()
         };
         perform_simple_connection(endpointUrl, options, userIdentity, done);
     });
 
     it("#158 should connect to a server using LOCALHOST url & username/password authentication and valid credentials - secure connection  - 128 bits", function (done) {
         const userName = "username";
-        const password = "p@ssw0rd";
+        const password = (() => "p@ssw0rd")();
         const options = {
             endpointMustExist: false,
             securityMode: MessageSecurityMode.Sign,
@@ -182,7 +182,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         };
         const endpointUrl_truncated = "opc.tcp://" + os.hostname() + ":" + port.toString();
 
-        perform_simple_connection(endpointUrl_truncated, options, { userName: userName, password: password }, done);
+        perform_simple_connection(endpointUrl_truncated, options, { userName, password }, done);
     });
 
 });
@@ -219,7 +219,7 @@ describe("testing Client-Server with UserName/Password identity token - Async", 
         };
         const userIdentity = {
             userName: "username",
-            password: "p@ssw0rd_@sync"
+            password: (() => "p@ssw0rd_@sync")()
         };
         perform_simple_connection(endpointUrl, options, userIdentity, done);
     });

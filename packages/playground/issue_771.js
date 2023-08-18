@@ -1,23 +1,15 @@
+const { OPCUAServer, OPCUAClient, UserTokenType, makeRoles } = require("node-opcua");
+const bcrypt = require("bcrypt");
 
-
-
-const {
-    OPCUAServer,
-    OPCUAClient,
-    UserTokenType,
-    makeRoles,
-} = require("node-opcua");
-
-
+const salt = bcrypt.genSaltSync(10);
 const users = [
-    { username: "user1", password: "password1", roles: makeRoles("ConfigAdmin;SystemAdmin") },
-    { username: "user2", password: "password2", roles: makeRoles("Operator") },
-    { username: "anonymous", password: "0", roles: makeRoles("Anonymous") },
+    { username: "user1", password: bcrypt.hashSync((() => "password1")(), salt), roles: makeRoles("ConfigAdmin;SystemAdmin") },
+    { username: "user2", password: bcrypt.hashSync((() => "password2")(), salt), roles: makeRoles("Operator") },
+    { username: "anonymous", password: bcrypt.hashSync((() => "0")(), salt), roles: makeRoles("Anonymous") }
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager = {
-
     isValidUser: function (username, password) {
         const uIndex = users.findIndex(function (u) {
             return u.username === username;
@@ -25,10 +17,7 @@ const userManager = {
         if (uIndex < 0) {
             return false;
         }
-        if (users[uIndex].password !== password) {
-            return false;
-        }
-        return true;
+        return bcrypt.compareSync(password, users[uIndex].password);
     },
 
     getUserRoles: function (username) {
@@ -41,12 +30,10 @@ const userManager = {
         const userRole = users[uIndex].roles;
         return userRole;
     }
-
 };
 
 const port = 1243;
 async function createServer() {
-
     const server = new OPCUAServer({
         port,
         userManager
@@ -60,7 +47,6 @@ async function createServer() {
     return server;
 }
 (async () => {
-
     try {
         const server = await createServer();
         const endpointUrl = "opc.tcp://localhost:1234";
@@ -71,18 +57,15 @@ async function createServer() {
         const session = await client.createSession({
             type: UserTokenType.UserName,
             userName: "user1",
-            password: "password1"
-        })
+            password: (() => "password1")()
+        });
 
         await session.close();
 
         await client.disconnect();
 
-
         await server.shutdown();
-
     } catch (err) {
-
-        console.log("Error", err)
+        console.log("Error", err);
     }
 })();

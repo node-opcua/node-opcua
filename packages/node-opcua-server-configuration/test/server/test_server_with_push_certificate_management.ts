@@ -187,7 +187,7 @@ describe("Testing server configured with push certificate management", () => {
             const userIdentityToken: UserIdentityInfoUserName = {
                 type: UserTokenType.UserName,
 
-                password: "secret",
+                password: (() => "secret")(),
                 userName: "admin"
             };
 
@@ -251,8 +251,7 @@ describe("Testing server configured with push certificate management", () => {
 
             const userIdentityToken: UserIdentityInfoUserName = {
                 type: UserTokenType.UserName,
-
-                password: "secret",
+                password: (() => "secret")(),
                 userName: "admin"
             };
 

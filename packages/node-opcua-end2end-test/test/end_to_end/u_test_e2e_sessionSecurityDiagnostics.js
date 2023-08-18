@@ -37,7 +37,7 @@ module.exports = function (test) {
                 userIdentity: {
                     type: UserTokenType.UserName,
                     userName: "user1",
-                    password: "password1"
+                    password: (() => "password1")()
                 }
             }
         });

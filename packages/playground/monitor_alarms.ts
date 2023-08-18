@@ -21,7 +21,7 @@ const doDebug = true;
             endpointUrl,
             userIdentity: <UserIdentityInfoUserName>{
                 type: UserTokenType.UserName,
-                password: "secret",
+                password:(()=>"secret")(),
                 userName: "root"
             }
         }

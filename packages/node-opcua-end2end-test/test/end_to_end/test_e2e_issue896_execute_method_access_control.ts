@@ -5,8 +5,12 @@ import "should";
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue #896: Check Authorization for UAMethods", () => {
     const users = [
-        { username: "Gandalf", password: "g", roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
-        { username: "Frodo", password: "f", roles: makeRoles([WellKnownRoles.AuthenticatedUser]) }
+        {
+            username: "Gandalf",
+            password: (() => "g")(),
+            roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
+        },
+        { username: "Frodo", password: (() => "f")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser]) }
     ];
 
     const port = 2226;
@@ -72,7 +76,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         const clientSession = await client.createSession({
             type: UserTokenType.UserName,
             userName: "Gandalf",
-            password: "g"
+            password: (()=>"g")()
         });
         const result = await clientSession.call({
             methodId: "ns=1;s=doIt",
@@ -88,7 +92,7 @@ describe("Issue #896: Check Authorization for UAMethods", () => {
         const clientSession = await client.createSession({
             type: UserTokenType.UserName,
             userName: "Frodo",
-            password: "f"
+            password: (()=>"f")()
         });
         const result = await clientSession.call({
             methodId: "ns=1;s=doIt",

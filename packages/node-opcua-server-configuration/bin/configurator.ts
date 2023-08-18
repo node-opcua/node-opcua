@@ -148,7 +148,7 @@ async function addApplicationIssuerCertificateAndCRL(session: IBasicSession) {
      */
 }
 async function replaceServerCertificate(session: IBasicSession, caAuthority: CertificateAuthority) {
-    const certificateAutorityhPath = path.join(caAuthority.location);
+    const certificateAuthorityPath = path.join(caAuthority.location);
     const caCertificate = await readCertificate(caAuthority.caCertificate);
     // also get crl
     const crl = await readCertificateRevocationList(caAuthority.revocationList);
@@ -164,8 +164,8 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
 
     console.log(csr.certificateSigningRequest?.toString("base64"));
 
-    const certificateFile = path.join(certificateAutorityhPath, "demo.pem");
-    const csrFilename = path.join(certificateAutorityhPath, "csr.pem");
+    const certificateFile = path.join(certificateAuthorityPath, "demo.pem");
+    const csrFilename = path.join(certificateAuthorityPath, "csr.pem");
     fs.writeFileSync(csrFilename, toPem(csr.certificateSigningRequest!, "CERTIFICATE REQUEST"));
 
     const certificateRequestInfo = exploreCertificateSigningRequest(csr.certificateSigningRequest!);
@@ -269,7 +269,11 @@ async function replaceServerCertificate(session: IBasicSession, caAuthority: Cer
         await client.withSessionAsync(
             {
                 endpointUrl,
-                userIdentity: { type: UserTokenType.UserName, userName: "root", password: "secret" }
+                userIdentity: {
+                    type: UserTokenType.UserName,
+                    userName: "root",
+                    password: (() => "secret")()
+                }
             },
             async (session) => {
                 try {

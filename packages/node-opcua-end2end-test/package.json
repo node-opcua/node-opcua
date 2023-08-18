@@ -64,5 +64,9 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "files": []
+    "files": [],
+    "dependencies": {
+        "@types/bcrypt": "^5.0.0",
+        "bcrypt": "^5.1.1"
+    }
 }

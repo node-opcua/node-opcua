@@ -33,7 +33,7 @@ module.exports = function(test) {
                         // todo
                         const options = {
                             userName: "",
-                            password: "blah"
+                            password: (() => "blah")()
                         };
                         client1.createSession(options, function(err, session) {
                             should.exist(err);

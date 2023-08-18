@@ -16,14 +16,14 @@ const {
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 const users = [
-    { username: "user1", password: "1", roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
-    { username: "user2", password: "2", roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
+    { username: "user1", password: (() => "1")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
+    { username: "user2", password: (() => "2")(), roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
 ];
 
 // simplistic user manager for test purpose only ( do not use in production !)
 const userManager = {
     isValidUser: (username, password) => {
-        const uIndex = users.findIndex(function (u) {
+        const uIndex = users.findIndex(function(u) {
             return u.username === username;
         });
         if (uIndex < 0) {
@@ -36,7 +36,7 @@ const userManager = {
     },
 
     getUserRoles: (username)/*: NodeId[] */ => {
-        const uIndex = users.findIndex(function (x) {
+        const uIndex = users.findIndex(function(x) {
             return x.username === username;
         });
         if (uIndex < 0) {
@@ -50,9 +50,9 @@ const userManager = {
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 const { createServerCertificateManager } = require("../../test_helpers/createServerCertificateManager");
-describe("issue171- testing Client-Server with UserName/Password identity token", function () {
+describe("issue171- testing Client-Server with UserName/Password identity token", function() {
 
-    let server,  endpointUrl;
+    let server, endpointUrl;
     let node1;
 
     const port = 2224;
@@ -85,7 +85,7 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
         ];
         endpointUrl = server.getEndpointUrl();
         // replace user manager with our custom one
-      
+
         const addressSpace = server.engine.addressSpace;
         const namespace = addressSpace.getOwnNamespace();
 
@@ -152,8 +152,8 @@ describe("issue171- testing Client-Server with UserName/Password identity token"
             // As admin user - access should be granted
             // ---------------------------------------------------------------------------------
             console.log("    impersonate user user1 on existing session (ConfigAdmin)");
-            const userIdentity = { userName: "user1", password: "1" };
-           
+            const userIdentity = { userName: "user1", password: (() => "1")() };
+
             const statusCodeChangeUser = await session.changeUser(userIdentity);
             statusCodeChangeUser.should.eql(StatusCodes.Good);
 

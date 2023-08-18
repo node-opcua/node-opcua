@@ -1,5 +1,5 @@
 import * as os from "os";
-import "should";
+import should from "should";
 import "mocha";
 import chalk from "chalk";
 import {
@@ -18,14 +18,17 @@ import {
     makePermissionFlag,
     NodeId,
     TimestampsToReturn,
-    Variant
+    Variant,
+    s
 } from "node-opcua";
-import should = require("should");
+import { genSaltSync, hashSync } from "bcrypt";
+
+const salt = genSaltSync(10);
 
 const users = [
     {
         username: "user1",
-        password: "password1",
+        password: (() => hashSync("password1", salt))(),
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     }
 ];
@@ -50,7 +53,7 @@ async function startServer() {
                     console.error(chalk.red("No such user, wrong username!"));
                     return false;
                 }
-                if (users[uIndex].password !== password) {
+                if (users[uIndex].password !== hashSync(password, salt)) {
                     console.error(chalk.red("Wrong password!"));
                     return false;
                 }
@@ -146,7 +149,7 @@ async function test_with_admin_user() {
             userIdentity: {
                 type: UserTokenType.UserName,
                 userName: "user1",
-                password: "password1"
+                password: (() => "password1")()
             }
         },
         async (session) => {
@@ -166,7 +169,7 @@ async function test_with_wrong_user_should_throw() {
                 userIdentity: {
                     type: UserTokenType.UserName,
                     userName: "user2",
-                    password: "password2"
+                    password: (() => "password2")()
                 }
             },
             async (session) => {
@@ -190,7 +193,7 @@ async function test_with_admin_user_changing_to_anonymous() {
             userIdentity: {
                 type: UserTokenType.UserName,
                 userName: "user1",
-                password: "password1"
+                password: (() => "password1")()
             }
         },
         async (session: ClientSession) => {
@@ -214,7 +217,7 @@ async function test_with_anonymous_user_changing_to_admin() {
             await session.changeUser({
                 type: UserTokenType.UserName,
                 userName: "user1",
-                password: "password1"
+                password: (() => "password1")()
             });
             return await doTest(session);
         }
@@ -229,14 +232,14 @@ async function test_with_admin_user_changing_to_wrong_user() {
             userIdentity: {
                 type: UserTokenType.UserName,
                 userName: "user1",
-                password: "password1"
+                password: (() => "password1")()
             }
         },
         async (session: ClientSession) => {
             const statusCode1 = await session.changeUser({
                 type: UserTokenType.UserName,
                 userName: "user2",
-                password: "password2"
+                password: (() => "password2")()
             });
             console.log("statusCode1 = ", statusCode1.toString());
             return await doTest(session);
@@ -244,7 +247,7 @@ async function test_with_admin_user_changing_to_wrong_user() {
     );
 }
 
-async function test_with_admin_chaging_to_make_is_valid_user_crash() {
+async function test_with_admin_changing_to_make_is_valid_user_crash() {
     // make_me_crash
     const client = OPCUAClient.create({ endpointMustExist: false });
 
@@ -259,7 +262,7 @@ async function test_with_admin_chaging_to_make_is_valid_user_crash() {
             const statusCode1 = await session.changeUser({
                 type: UserTokenType.UserName,
                 userName: "make_me_crash",
-                password: "who cares ?"
+                password: (() => "who cares ?")()
             });
             // console.log("statusCode1 = ", statusCode1.toString());
             return await doTest(session);
@@ -280,7 +283,7 @@ async function test_with_anonymous_user_changing_to_wrong_user() {
             const statusCode1 = await session.changeUser({
                 type: UserTokenType.UserName,
                 userName: "user2",
-                password: "password2"
+                password: (() => "password2")()
             });
             console.log("statusCode1 = ", statusCode1.toString());
             return await doTest(session);
@@ -346,7 +349,7 @@ describe("Testing user change security", () => {
     });
 
     it("server should be robust when isValidUser  method provided by the developer crashes", async () => {
-        const dataValue = await test_with_admin_chaging_to_make_is_valid_user_crash();
+        const dataValue = await test_with_admin_changing_to_make_is_valid_user_crash();
         dataValue.statusCode.should.eql(StatusCodes.BadUserAccessDenied);
     });
 });
@@ -423,7 +426,7 @@ describe("Testing subscription and  security", function (this: any) {
                 userIdentity: {
                     type: UserTokenType.UserName,
                     userName: "user1",
-                    password: "password1"
+                    password: (() => "password1")()
                 }
             },
             {
@@ -530,7 +533,7 @@ describe("Testing subscription and  security", function (this: any) {
                 await session.changeUser({
                     type: UserTokenType.UserName,
                     userName: "user1",
-                    password: "password1"
+                    password: (() => "password1")()
                 });
                 await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
                 dataValues.length.should.be.greaterThan(2);

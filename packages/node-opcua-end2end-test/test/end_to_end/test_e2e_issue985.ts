@@ -44,8 +44,12 @@ async function pause(duration: number): Promise<void> {
 }
 
 const users = [
-    { username: "user1", password: "1", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin]) },
-    { username: "user2", password: "2", role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
+    {
+        username: "user1",
+        password: (() => "1")(),
+        role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
+    },
+    { username: "user2", password: (() => "2")(), role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
 ];
 
 const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
@@ -152,7 +156,7 @@ async function createClient(
     const session = await client.createSession({
         type: UserTokenType.UserName,
         userName: "user1",
-        password: "1"
+        password: (()=>"1")()
     });
     session.on("session_closed", (statusCode: StatusCode) => {
         console.log("Session Closed =>", statusCode.toString());
@@ -184,7 +188,7 @@ describe("test reconnection when server stops and change it privateKey and certi
 
         const privateKeyBefore = readPrivateKey(server.privateKeyFile);
 
-        const privateKeyAfter = await(async () => {
+        const privateKeyAfter = await (async () => {
             try {
                 await server.shutdown();
                 warningLog("server has shutdown");
@@ -268,7 +272,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             const session = await client.createSession({
                 type: UserTokenType.UserName,
                 userName: "user1",
-                password: "1"
+                password: (()=>"1")()
             });
             await session.close();
         } catch (err) {
@@ -325,7 +329,7 @@ describe("test reconnection when server stops and change it privateKey and certi
             const session = await client.createSession({
                 type: UserTokenType.UserName,
                 userName: "user1",
-                password: "1"
+                password: (()=>"1")()
             });
             await session.close();
         } catch (err) {

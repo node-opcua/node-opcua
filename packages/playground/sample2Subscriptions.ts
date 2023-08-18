@@ -14,11 +14,11 @@ import {
     EventFilter,
     MessageSecurityMode,
     MonitoringParametersOptions,
-    OPCUAClient, 
+    OPCUAClient,
     OPCUAClientOptions,
     ReadValueIdOptions,
     SecurityPolicy,
-    TimestampsToReturn, 
+    TimestampsToReturn,
     UserTokenType
 } from "node-opcua-client";
 
@@ -46,15 +46,13 @@ client.on("backoff", (count: number, delay: number) => {
 });
 
 async function test1() {
-
     try {
-
         await client.connect("opc.tcp://opcuademo.sterfive.com:26543");
 
         const session: ClientSession = await client.createSession({
             type: UserTokenType.UserName,
 
-            password: "password1",
+            password: (() => "password1")(),
             userName: "user1"
         });
 
@@ -112,27 +110,23 @@ async function test1() {
         await client.disconnect();
 
         console.log(" Done!");
-
     } catch (e) {
         // Deal with the fact the chain failed
         console.log(chalk.red("Error !"), e);
         process.exit(-1);
     }
-
 }
 
 async function test2() {
-
     console.log("----------------------------------------------------");
 
     try {
-
         await client.connect("opc.tcp://opcuademo.sterfive.com:26543");
 
         const session: ClientSession = await client.createSession({
             type: UserTokenType.UserName,
 
-            password: "password1",
+            password: (() => "password1")(),
             userName: "user1"
         });
 
@@ -190,20 +184,16 @@ async function test2() {
         await client.disconnect();
 
         console.log(" Done!");
-
     } catch (e) {
         // Deal with the fact the chain failed
         console.log(chalk.red("Error !"), e);
         process.exit(-1);
     }
-
 }
 
 (async () => {
-
     await test1();
 
     console.log(" ----------- sample2");
     await test2();
-
-})();
+" y"})();

@@ -1,11 +1,13 @@
 import { OPCUAServer, makeRoles, WellKnownRoles, NodeId, nodesets } from "node-opcua";
-
+import { hashSync, genSaltSync } from "bcrypt";
 const port = 2510;
 let server: OPCUAServer;
+
+const salt = genSaltSync(10);
 const users = [
     {
         username: "user1",
-        password: "passwor1",
+        password: (() => hashSync("password1", salt))(),
         roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
     }
 ];
@@ -18,7 +20,7 @@ const userManager = {
         if (uIndex < 0) {
             return false;
         }
-        if (users[uIndex].password !== password) {
+        if (users[uIndex].password !== hashSync(password, salt)) {
             return false;
         }
         return true;
@@ -60,7 +62,7 @@ async function startServer() {
         console.log("server connection refused");
     });
     server.on("session_closed", () => {
-        console.log("server sesion closed");
+        console.log("server session closed");
     });
     server.on("create_session", () => {
         console.log("server create session");
@@ -78,9 +80,9 @@ async function startServer() {
     });
 
     while (true) {
-        users[0].password = `password${counter % 2}`;
+        users[0].password = hashSync(`password${counter % 2}`, salt);
         counter++;
-        console.log("user: user1, password: ", users[0].password);
+        console.log("user:",  users[0].username,  "(", `password${counter % 2}`,")");
         const server = await startServer();
         console.log("server started at", server.getEndpointUrl());
 

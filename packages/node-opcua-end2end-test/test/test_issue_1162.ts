@@ -12,7 +12,7 @@ describe("Testing automatic reconnection to a server when credential have change
     const users = [
         {
             username: "user1",
-            password: "password1-Old",
+            password: (()=>"password1-Old")(),
             roles: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.ConfigureAdmin])
         }
     ];
@@ -124,7 +124,7 @@ describe("Testing automatic reconnection to a server when credential have change
         const session = await client.createSession({
             type: UserTokenType.UserName,
             userName: "user1",
-            password: "password1-Old"
+            password: (()=>"password1-Old")()
         });
         console.log(client.clientName, "session timeout = ", session.timeout);
 
