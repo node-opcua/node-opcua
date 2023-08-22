@@ -168,7 +168,7 @@ import { ServerCapabilitiesOptions } from "./server_capabilities";
 import { EndpointDescriptionEx, OPCUAServerEndPoint } from "./server_end_point";
 import { ClosingReason, CreateSessionOption, ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
-import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
+import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription, TCreateMissingNodeCb } from "./server_subscription";
 import { ISocketData } from "./i_socket_data";
 import { IChannelData } from "./i_channel_data";
 import { UAUserManagerBase, makeUserManager, UserManagerOptions } from "./user_manager";
@@ -897,6 +897,12 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      */
     onCreateMonitoredItem?: CreateMonitoredItemHook;
     onDeleteMonitoredItem?: DeleteMonitoredItemHook;
+    /**
+     * Function is called if a OPC-Client request an undefined node. Apply the node to the address-space and return the new node.
+     * Throw an error if node was not added. Returns {@link StatusCodes.BadInternalError} to the client.
+     * If omitted, server returns an StatusCode {@link StatusCodes.BadNodeIdUnknown}. 
+     */
+    createMissingNode?: TCreateMissingNodeCb;
 }
 
 export interface OPCUAServer {
@@ -1145,7 +1151,8 @@ export class OPCUAServer extends OPCUABaseServer {
                 applicationUri: () => this.serverInfo.applicationUri!,
                 buildInfo,
                 isAuditing: options.isAuditing,
-                serverCapabilities: options.serverCapabilities
+                serverCapabilities: options.serverCapabilities,
+                createMissingNode: options.createMissingNode
             });
             this.objectFactory = new Factory(this.engine);
 

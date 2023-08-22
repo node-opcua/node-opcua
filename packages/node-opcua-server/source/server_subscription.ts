@@ -13,7 +13,7 @@ import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { NodeClass, AttributeIds, isValidDataEncoding } from "node-opcua-data-model";
 import { TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { SequenceNumberGenerator } from "node-opcua-secure-channel";
 import { EventFilter, checkSelectClauses } from "node-opcua-service-filter";
@@ -31,13 +31,14 @@ import {
     MonitoredItemCreateRequest
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult, NotificationData } from "node-opcua-types";
+import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult, NotificationData, ReadValueId } from "node-opcua-types";
 import { Queue } from "./queue";
 
 import { MonitoredItem, MonitoredItemOptions, QueueItem } from "./monitored_item";
 import { ServerSession } from "./server_session";
 import { validateFilter } from "./validate_filter";
 import { IServerSidePublishEngine, TransferredSubscription } from "./i_server_side_publish_engine";
+import { isPromise } from "util/types";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -335,6 +336,8 @@ interface IGlobalMonitoredItemCounter {
     totalMonitoredItemCount: number;
 }
 
+export type TCreateMissingNodeCb = (addressSpace: AddressSpace, node: ReadValueId) => NodeIdLike;
+
 export interface SubscriptionOptions {
     sessionId?: NodeId;
     /**
@@ -368,6 +371,12 @@ export interface SubscriptionOptions {
 
     serverCapabilities: ServerCapabilitiesPartial;
     globalCounter: IGlobalMonitoredItemCounter;
+    /**
+     * Function called if a client requests a none-configured node.
+     * 
+     */
+    createMissingNode?: TCreateMissingNodeCb;
+
 }
 
 let g_monitoredItemId = Math.ceil(Math.random() * 100000);
@@ -574,6 +583,7 @@ export class Subscription extends EventEmitter {
 
     private globalCounter: IGlobalMonitoredItemCounter;
     private serverCapabilities: ServerCapabilitiesPartial;
+    private createMissingNode?: TCreateMissingNodeCb;
 
     constructor(options: SubscriptionOptions) {
         super();
@@ -640,6 +650,8 @@ export class Subscription extends EventEmitter {
         this.serverCapabilities.maxMonitoredItemsPerSubscription =
             this.serverCapabilities.maxMonitoredItemsPerSubscription || Subscription.defaultMaxMonitoredItemCount;
         this.globalCounter = options.globalCounter;
+
+        this.createMissingNode = options.createMissingNode;
     }
 
     public getSessionId(): NodeId {
@@ -1007,7 +1019,15 @@ export class Subscription extends EventEmitter {
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
 
-        const node = addressSpace.findNode(itemToMonitor.nodeId);
+        let node = addressSpace.findNode(itemToMonitor.nodeId);
+        if (!node && this.createMissingNode) {
+            try {
+                const cnd = this.createMissingNode(addressSpace, itemToMonitor);
+                node = addressSpace.findNode(cnd);
+            } catch(e) {
+                return handle_error(StatusCodes.BadInternalError);
+            }
+        }
         if (!node) {
             return handle_error(StatusCodes.BadNodeIdUnknown);
         }

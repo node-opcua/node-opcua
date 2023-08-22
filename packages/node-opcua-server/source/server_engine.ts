@@ -79,7 +79,7 @@ import { OperationLimits, ServerCapabilities, ServerCapabilitiesOptions } from "
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
-import { Subscription } from "./server_subscription";
+import { Subscription, TCreateMissingNodeCb } from "./server_subscription";
 import { sessionsCompatibleForTransfer } from "./sessions_compatible_for_transfer";
 import { OPCUAServerOptions } from "./opcua_server";
 import { IAddressSpaceAccessor } from "./i_address_space_accessor";
@@ -303,6 +303,7 @@ export interface ServerEngineOptions {
     serverDiagnosticsEnabled?: boolean;
     serverCapabilities?: ServerCapabilitiesOptions;
     historyServerCapabilities?: HistoryServerCapabilitiesOptions;
+    createMissingNode?: TCreateMissingNodeCb;
 }
 
 export interface CreateSessionOption {
@@ -346,6 +347,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     private _expectedShutdownTime!: Date;
     private _serverStatus: ServerStatusDataType;
     private _globalCounter: { totalMonitoredItemCount: number } = { totalMonitoredItemCount: 0 };
+    private _createMissingNode?: TCreateMissingNodeCb;
 
     constructor(options: ServerEngineOptions) {
         super();
@@ -455,6 +457,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             : true;
 
         this.serverDiagnosticsEnabled = options.serverDiagnosticsEnabled!;
+        this._createMissingNode = options.createMissingNode;
     }
     public isStarted(): boolean {
         return !!this._serverStatus!;
@@ -1766,7 +1769,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             // -------------------
             sessionId: NodeId.nullNodeId,
             globalCounter: this._globalCounter,
-            serverCapabilities: this.serverCapabilities // shared
+            serverCapabilities: this.serverCapabilities, // shared
+            createMissingNode: this._createMissingNode
         });
 
         // add subscriptionDiagnostics
