@@ -166,7 +166,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             [this],
             monitoringMode,
             (err?: Error | null, statusCodes?: StatusCode[]) => {
-                callback(err ? err : null, statusCodes![0]);
+                callback(err ? err : null, statusCodes ? statusCodes[0]: undefined);
             }
         );
     }
