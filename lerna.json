@@ -1,6 +1,6 @@
 {
     "packages": ["packages/*", "packages_extra/*"],
-    "version": "2.110.0",
+    "version": "2.111.0",
     "npmClient": "pnpm",
     "exact": true
 }
