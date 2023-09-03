@@ -1,5 +1,5 @@
 import fs from "fs";
-import should from "should";
+import "should";
 import { AddressSpace } from "node-opcua-address-space";
 import { construct_demo_alarm_in_address_space, IAlarmTestData } from "node-opcua-address-space/testHelpers";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
@@ -12,10 +12,8 @@ import {
     constructEventFilter,
     DataType,
     extractConditionFields,
-    extractEventFieldsSimplePath,
     fieldsToJson,
     resolveNodeId,
-    simpleBrowsePathsToString,
     Variant
 } from "..";
 
@@ -33,7 +31,7 @@ describe("extractConditionFields", () => {
 
         addressSpace.registerNamespace("urn:OwnNamespace");
         construct_demo_alarm_in_address_space(test, addressSpace);
-        // create an alarm
+        // create an alarmextractEventFieldsSimplePath
     });
     after(() => {
         addressSpace.dispose();

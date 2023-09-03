@@ -34,6 +34,7 @@ import {
 } from "node-opcua-crypto";
 import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import { make_warningLog } from "node-opcua-debug";
+import { KeyLike } from "crypto";
 
 // tslint:disable:no-empty
 function errorLog(...args: any[]) {
@@ -253,12 +254,12 @@ const RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
 
 function RSAPKCS1V15_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
     const keyLength = rsaLengthPublicKey(publicKey);
-    return publicEncrypt_long(buffer, publicKey, keyLength, 11, RSA_PKCS1_PADDING);
+    return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 11, RSA_PKCS1_PADDING);
 }
 
 function RSAOAEP_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
     const keyLength = rsaLengthPublicKey(publicKey);
-    return publicEncrypt_long(buffer, publicKey, keyLength, 42, RSA_PKCS1_OAEP_PADDING);
+    return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 42, RSA_PKCS1_OAEP_PADDING);
 }
 
 // export interface DerivedKeys {

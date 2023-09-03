@@ -8,7 +8,7 @@
         "test": "mocha"
     },
     "devDependencies": {
-        "@types/underscore": "^1.11.6",
+        "@types/underscore": "^1.11.9",
         "async": "^3.2.4",
         "chalk": "4.1.2",
         "cli-table3": "^0.6.3",
@@ -26,7 +26,7 @@
         "node-opcua-client-crawler": "2.110.0",
         "node-opcua-client-proxy": "2.110.0",
         "node-opcua-constants": "2.98.1",
-        "node-opcua-crypto": "4.2.0",
+        "node-opcua-crypto": "4.3.1",
         "node-opcua-debug": "2.110.0",
         "node-opcua-extension-object": "2.110.0",
         "node-opcua-factory": "2.110.0",
@@ -35,7 +35,7 @@
         "node-opcua-nodeid": "2.110.0",
         "node-opcua-nodeset-ijt": "2.110.0",
         "node-opcua-packet-analyzer": "2.110.0",
-        "node-opcua-pki": "4.4.0",
+        "node-opcua-pki": "4.5.0",
         "node-opcua-server": "2.110.0",
         "node-opcua-server-discovery": "2.110.0",
         "node-opcua-service-browse": "2.110.0",

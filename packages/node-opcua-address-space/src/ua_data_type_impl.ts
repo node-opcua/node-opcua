@@ -448,7 +448,6 @@ function lockReadOnlyWithWriteDetection<T>(obj: T): T {
             },
             set: (target: any, prop: string | symbol, value: any, receiver: any) => {
                 console.log("QQQQQ Cannot modify stuff ");
-                debugger;
                 throw new Error("Invalid");
             }
         });
