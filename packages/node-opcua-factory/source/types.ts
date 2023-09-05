@@ -41,7 +41,6 @@ export interface CommonInterface {
 export interface FieldInterfaceOptions {
     name: string;
     defaultValue?: any | DefaultValueFunc;
-
     fieldType: string;
     isArray?: boolean;
     documentation?: string;
@@ -87,9 +86,8 @@ export interface ConstructorFuncWithSchema extends ConstructorFunc {
 }
 
 export interface StructuredTypeField {
-    
-    name: string;               // the name that may have been lowercased
-    originalName: string;       // the orignal name from the raw OPCUA description
+    name: string; // the name that may have been lowercased
+    originalName: string; // the orignal name from the raw OPCUA description
 
     fieldType: string;
     isArray?: boolean;
@@ -134,7 +132,7 @@ export interface StructuredTypeOptions {
     baseType: string;
     category?: FieldCategory;
     _resolved?: boolean;
-    bitFields?: { name: string, length: number }[];
+    bitFields?: { name: string; length: number }[];
     deprecated_base?: StructuredTypeOptions;
     dataTypeFactory: DataTypeFactory;
 }
@@ -185,10 +183,10 @@ export interface IStructuredTypeSchema extends CommonInterface {
     fields: FieldType[];
     dataTypeNodeId: NodeId;
     baseType: string;
-   
+
     getBaseSchema(): IStructuredTypeSchema | null;
     getDataTypeFactory(): DataTypeFactory;
-    
+
     documentation?: string;
 
     isValid?: (options: any) => boolean;

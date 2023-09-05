@@ -21,7 +21,7 @@ const schemaSymmetricAlgorithmSecurityHeader: IStructuredTypeSchema = buildStruc
         // This identifier is returned by the server in an OpenSecureChannel response message. If a
         // Server receives a TokenId which it does not recognize it shall return an appropriate
         // transport layer error.
-        {name: "tokenId", fieldType: "UInt32", defaultValue: 0xDEADBEEF}
+        {name: "TokenId", fieldType: "UInt32", defaultValue: 0xDEADBEEF}
     ]
 });
 

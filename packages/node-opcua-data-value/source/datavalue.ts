@@ -219,12 +219,12 @@ const schemaDataValue: IStructuredTypeSchema = buildStructuredType({
     name: "DataValue",
 
     fields: [
-        { name: "value", fieldType: "Variant", defaultValue: null },
-        { name: "statusCode", fieldType: "StatusCode", defaultValue: StatusCodes.Good },
-        { name: "sourceTimestamp", fieldType: "DateTime", defaultValue: null },
-        { name: "sourcePicoseconds", fieldType: "UInt16", defaultValue: 0 },
-        { name: "serverTimestamp", fieldType: "DateTime", defaultValue: null },
-        { name: "serverPicoseconds", fieldType: "UInt16", defaultValue: 0 }
+        { name: "Value", fieldType: "Variant", defaultValue: null },
+        { name: "StatusCode", fieldType: "StatusCode", defaultValue: StatusCodes.Good },
+        { name: "SourceTimestamp", fieldType: "DateTime", defaultValue: null },
+        { name: "SourcePicoseconds", fieldType: "UInt16", defaultValue: 0 },
+        { name: "ServerTimestamp", fieldType: "DateTime", defaultValue: null },
+        { name: "ServerPicoseconds", fieldType: "UInt16", defaultValue: 0 }
     ]
 });
 

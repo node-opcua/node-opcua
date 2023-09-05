@@ -23,15 +23,12 @@ export const schemaQualifiedName = buildStructuredType({
 
     fields: [
         {
-            name: "namespaceIndex",
-
+            name: "NamespaceIndex",
             fieldType: "UInt16"
         },
         {
-            name: "name",
-
+            name: "Name",
             fieldType: "String",
-
             defaultValue: null
         }
     ]

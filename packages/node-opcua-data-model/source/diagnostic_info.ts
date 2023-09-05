@@ -36,7 +36,7 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
 
     fields: [
         {
-            name: "namespaceUri",
+            name: "NamespaceUri",
 
             fieldType: "Int32",
 
@@ -44,7 +44,7 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
             documentation: "The symbolicId is defined within the context of a namespace."
         },
         {
-            name: "symbolicId",
+            name: "SymbolicId",
 
             fieldType: "Int32",
 
@@ -52,16 +52,16 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
             documentation: "The symbolicId shall be used to identify a vendor-specific error or condition"
         },
         {
-            name: "locale",
+            name: "Locale",
 
             fieldType: "Int32",
 
             defaultValue: -1,
             documentation: "The locale part of the vendor-specific localized text describing the symbolic id."
         },
-        { name: "localizedText", fieldType: "Int32", defaultValue: -1 },
+        { name: "LocalizedText", fieldType: "Int32", defaultValue: -1 },
         {
-            name: "additionalInfo",
+            name: "AdditionalInfo",
 
             fieldType: "String",
 
@@ -69,7 +69,7 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
             documentation: "Vendor-specific diagnostic information."
         },
         {
-            name: "innerStatusCode",
+            name: "InnerStatusCode",
 
             fieldType: "StatusCode",
 
@@ -77,7 +77,7 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
             documentation: "The StatusCode from the inner operation."
         },
         {
-            name: "innerDiagnosticInfo",
+            name: "InnerDiagnosticInfo",
 
             fieldType: "DiagnosticInfo",
             category: FieldCategory.basic,
