@@ -636,10 +636,18 @@ function validate_security_endpoint(
     //             The Server uses this information for diagnostics and to determine the set of
     //             EndpointDescriptions to return in the response.
     // ToDo: check endpointUrl validity and emit an AuditUrlMismatchEventType event if not
+    
+    // sometime endpoints have a extra leading "/" that can be ignored
+    // don't be too harsh.
+    if (endpoints.length === 0 && request.endpointUrl?.endsWith("/")) {
+         endpoints = server._get_endpoints(request.endpointUrl.slice(0, -1));   
+    }
+
     if (endpoints.length === 0) {
         // we have a UrlMismatch here
         const ua_server = server.engine.addressSpace!.rootFolder.objects.server;
-        errorLog("Cannot find suitable endpoints in available endpoints. endpointUri =", request.endpointUrl);
+        warningLog("Cannot find suitable endpoints in available endpoints. endpointUri =", request.endpointUrl);
+        // e
         ua_server.raiseEvent("AuditUrlMismatchEventType", {
             endpointUrl: { dataType: DataType.String, value: request.endpointUrl }
         });
@@ -899,6 +907,7 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
     onDeleteMonitoredItem?: DeleteMonitoredItemHook;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface OPCUAServer {
     /**
      *
@@ -2659,7 +2668,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
                 // ask for a refresh of asynchronous variables
                 this.engine.refreshValues(request.nodesToRead, request.maxAge, (err?: Error | null) => {
-              
                     this.engine.read(context, request).then((results) => {
                         assert(results[0].schema.name === "DataValue");
                         assert(results.length === request.nodesToRead!.length);
@@ -3797,6 +3805,7 @@ export interface OPCUAServer {
     raiseEvent(eventType: "AuditCertificateMismatchEventType", options: RaiseAuditCertificateMismatchEventData): void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface OPCUAServer extends EventEmitter {
     on(event: "create_session", eventHandler: (session: ServerSession) => void): this;
 
