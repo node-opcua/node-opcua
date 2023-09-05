@@ -20,7 +20,7 @@ const schemaServerSideUnimplementedRequest = buildStructuredType({
     baseType: "BaseUAObject",
 //x    id: ObjectIds.Annotation_Encoding_DefaultXml,
     fields: [
-        {name: "requestHeader", fieldType: "RequestHeader"}
+        {name: "RequestHeader", fieldType: "RequestHeader"}
     ]
 });
 

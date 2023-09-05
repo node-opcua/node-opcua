@@ -20,8 +20,8 @@ const schemaTCPErrorMessage = buildStructuredType({
     baseType: "BaseUAObject",
 
     fields: [
-        { name: "statusCode", fieldType: "StatusCode" },
-        { name: "reason", fieldType: "String" } // A more verbose description of the error.
+        { name: "StatusCode", fieldType: "StatusCode" },
+        { name: "Reason", fieldType: "String" } // A more verbose description of the error.
     ]
 });
 

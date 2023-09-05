@@ -123,7 +123,7 @@ function writeStructuredTypeWithSchema(structuredType: IStructuredTypeSchema) {
     write(`    fields: [`);
     for (const field of structuredType.fields) {
         write(`        {`);
-        write(`            name: "${field.name}",`);
+        write(`            name: "${field.originalName}",`);
         write(``);
         write(`            fieldType: "${field.fieldType}",`);
         if (field.isArray) {

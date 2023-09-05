@@ -18,27 +18,27 @@ const schemaHelloMessage = buildStructuredType({
 
     fields: [
         {
-            name: "protocolVersion",
+            name: "ProtocolVersion",
 
             fieldType: "UInt32",
 
             documentation: "The latest version of the OPC UA TCP protocol supported by the Client"
         },
         {
-            name: "receiveBufferSize",
+            name: "ReceiveBufferSize",
 
             fieldType: "UInt32",
 
             documentation: "The largest message that the sender can receive."
         },
         {
-            name: "sendBufferSize",
+            name: "SendBufferSize",
 
             fieldType: "UInt32",
 
             documentation: "The largest message that the sender will send."
         },
-        { name: "maxMessageSize", fieldType: "UInt32", documentation: "The maximum size for any response message." },
+        { name: "MaxMessageSize", fieldType: "UInt32", documentation: "The maximum size for any response message." },
         {
             name: "maxChunkCount",
 
@@ -47,7 +47,7 @@ const schemaHelloMessage = buildStructuredType({
             documentation: "The maximum number of chunks in any response message"
         },
         {
-            name: "endpointUrl",
+            name: "EndpointUrl",
 
             fieldType: "String",
 

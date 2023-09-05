@@ -17,10 +17,10 @@ const schemaSequenceHeader: IStructuredTypeSchema = buildStructuredType({
     fields: [
         // A monotonically increasing sequence number assigned by the sender to each
         // MessageChunk sent over the ClientSecureChannelLayer.
-        { name: "sequenceNumber", fieldType: "UInt32" },
+        { name: "SequenceNumber", fieldType: "UInt32" },
         // An identifier assigned by the client to OPC UA request Message. All MessageChunks for
         // the request and the associated response use the same identifier.
-        { name: "requestId", fieldType: "UInt32" }
+        { name: "RequestId", fieldType: "UInt32" }
     ],
     name: "SequenceHeader"
 });
