@@ -93,6 +93,11 @@ describe("historization and status code Bad #1119", function () {
         await write(100, StatusCodes.Good);
         await write(1000, StatusCodes.Good);
         await write(10, StatusCodes.GoodClamped);
+        
+        // ensure all async actions are completed
+        // is server side
+        await pause(1000);
+          
         const defaultContext = new SessionContext({
             session: session as unknown as ISessionBase
         });
