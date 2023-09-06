@@ -1,5 +1,5 @@
 const { OPCUAServer, OPCUAClient, UserTokenType, makeRoles } = require("node-opcua");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const salt = bcrypt.genSaltSync(10);
 const users = [

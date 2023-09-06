@@ -8,8 +8,8 @@
         "test": "echo \"Error: no test specified\" && exit 0"
     },
     "dependencies": {
-        "@types/bcrypt": "^5.0.0",
-        "bcrypt": "^5.1.1",
+        "@types/bcryptjs": "^2.4.3",
+        "bcryptjs": "^2.4.0",
         "chalk": "4.1.2",
         "node-opcua": "2.111.0",
         "node-opcua-client": "2.111.0",

@@ -9,7 +9,7 @@ const assert = require("assert");
 const chalk = require("chalk");
 const yargs = require("yargs/yargs");
 const envPaths = require("env-paths");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const {
     OPCUAServer,

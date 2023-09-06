@@ -11,8 +11,8 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@types/bcrypt": "^5.0.0",
-        "bcrypt": "^5.1.1",
+        "@types/bcryptjs": "^2.4.3",
+        "bcryptjs": "^2.4.0",
         "chalk": "4.1.2",
         "memfs": "^4.2.1",
         "node-opcua-address-space": "2.111.0",
