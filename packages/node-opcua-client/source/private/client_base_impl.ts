@@ -1629,7 +1629,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err1 ? err1.message : "OK");
 
             if (err1) {
-                errorLog("_recreate_secure_channel has failed: err = ", err1.message);
+                debugLog("_recreate_secure_channel has failed: err = ", err1.message);
                 this.emit("close", err1);
                 this._setInternalState("disconnected");
                 this._inside_repairConnection = false;

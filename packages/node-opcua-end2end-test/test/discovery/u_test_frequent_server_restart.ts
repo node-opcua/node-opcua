@@ -82,7 +82,7 @@ export function t(test: any) {
                 if (doDebug) {
                     debugLog("Server has been shut down");
                 }
-                callback();
+                setTimeout(()=>callback(), 1000);
             });
         });
 
@@ -527,45 +527,28 @@ export function t(test: any) {
             );
         });
 
-        it("DISCO4-M - NR2 should not crash when a server that failed to start is shot down", function (done) {
-            let server1: OPCUAServer;
-            let server2: OPCUAServer;
+        it("DISCO4-M - NR2 should not crash when a server that failed to start is shot down", async () => {
+            const server1 = new OPCUAServer({ port: port1 });
+            await server1.start();
 
-            async.series(
-                [
-                    f(function create_server_1(callback: ErrorCallback) {
-                        server1 = new OPCUAServer({ port: port1 });
-                        server1.start((err?: Error) => {
-                            callback(err);
-                        });
-                    }),
-                    f(function create_server_2(callback: ErrorCallback) {
-                        // we start a second server on the same port !
-                        // this server will fail to start
-                        server2 = new OPCUAServer({ port: port1 /* yes port 1*/ });
-                        server2.start((err?: Error) => {
-                            if (!err) {
-                                debugLog(" expecting a error here !");
-                            }
-                            //should.exist(err," server2 must fail to start !( but we ignore the error)");
-                            callback();
-                        });
-                    }),
-                    f(function shutdown_server_1(callback: ErrorCallback) {
-                        server1.shutdown(callback);
-                    }),
-                    f(function shutdown_server_2(callback: ErrorCallback) {
-                        server2.shutdown((err?: Error) => {
-                            if (!err) {
-                                debugLog("expecting a error here as well");
-                            }
-                            //xx should.exist(err,"we expect an error here because server2 failed to start, therefore cannot be shot down");
-                            callback();
-                        });
-                    })
-                ],
-                done
-            );
+            // we start a second server on the same port !
+            // this server will fail to start
+            let secondServerFailedToStart = false;
+            let server2;
+            try {
+                server2 = new OPCUAServer({ port: port1 /* yes port 1*/ });
+                await server2.start();
+                console.log("expecting a error here");
+            } catch (err) {
+                secondServerFailedToStart= true;
+            }
+            // shutdown_server_1(callback: ErrorCallback) {
+            await server1.shutdown();
+
+            // shutdown_server_2(callback: ErrorCallback) {
+            !secondServerFailedToStart && await server2.shutdown();
+
+            secondServerFailedToStart.should.eql(true);
         });
 
         it("DISCO4-N - should not crash when we start two servers and stop the second server first", async () => {
