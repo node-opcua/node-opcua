@@ -218,6 +218,9 @@ importers:
       vorpal-repl:
         specifier: ^1.1.8
         version: 1.1.8
+      winston:
+        specifier: '*'
+        version: 3.8.2
       wordwrap:
         specifier: ^1.0.0
         version: 1.0.0
@@ -3839,6 +3842,9 @@ importers:
       node-opcua-client:
         specifier: 2.112.0
         version: link:../node-opcua-client
+      node-opcua-debug:
+        specifier: 2.110.0
+        version: link:../node-opcua-debug
       node-opcua-modeler:
         specifier: 2.112.0
         version: link:../node-opcua-modeler
