@@ -1,6 +1,6 @@
 {
     "name": "playground",
-    "version": "2.111.0",
+    "version": "2.112.0",
     "description": "pure nodejs OPCUA SDK - module playground",
     "main": "sample1.js",
     "private": true,
@@ -11,9 +11,9 @@
         "@types/bcryptjs": "^2.4.3",
         "bcryptjs": "^2.4.0",
         "chalk": "4.1.2",
-        "node-opcua": "2.111.0",
-        "node-opcua-client": "2.111.0",
-        "node-opcua-modeler": "2.111.0",
+        "node-opcua": "2.112.0",
+        "node-opcua-client": "2.112.0",
+        "node-opcua-modeler": "2.112.0",
         "readline": "*",
         "winston": "*"
     },

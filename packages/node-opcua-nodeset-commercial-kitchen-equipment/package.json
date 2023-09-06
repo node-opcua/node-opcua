@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-commercial-kitchen-equipment",
-    "version": "2.111.0",
+    "version": "2.112.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-commercial-kitchen-equipment",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,13 +10,13 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.111.0",
+        "node-opcua-address-space-base": "2.112.0",
         "node-opcua-basic-types": "2.111.0",
-        "node-opcua-data-access": "2.111.0",
-        "node-opcua-data-model": "2.111.0",
-        "node-opcua-nodeset-di": "2.111.0",
-        "node-opcua-nodeset-ua": "2.111.0",
-        "node-opcua-variant": "2.111.0"
+        "node-opcua-data-access": "2.112.0",
+        "node-opcua-data-model": "2.112.0",
+        "node-opcua-nodeset-di": "2.112.0",
+        "node-opcua-nodeset-ua": "2.112.0",
+        "node-opcua-variant": "2.112.0"
     },
     "files": [
         "dist",
