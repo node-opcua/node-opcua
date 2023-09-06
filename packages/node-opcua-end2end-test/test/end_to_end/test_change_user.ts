@@ -21,7 +21,7 @@ import {
     Variant,
     s
 } from "node-opcua";
-import { compareSync, genSaltSync, hashSync } from "bcrypt";
+import { compareSync, genSaltSync, hashSync } from "bcryptjs";
 
 const salt = genSaltSync(10);
 

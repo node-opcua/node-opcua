@@ -20,7 +20,7 @@ import {
     DataType,
     AttributeIds
 } from "node-opcua-client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import { installPushCertificateManagementOnServer } from "../..";
 import {

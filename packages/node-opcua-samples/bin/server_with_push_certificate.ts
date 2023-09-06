@@ -8,7 +8,7 @@ import { makeRoles, nodesets, OPCUACertificateManager, OPCUAServer, OPCUAServerO
 import { CertificateManager } from "node-opcua-pki";
 import { installPushCertificateManagement } from "node-opcua-server-configuration";
 import yargs from "yargs";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const rootFolder = path.join(__dirname, "../../..");
 
