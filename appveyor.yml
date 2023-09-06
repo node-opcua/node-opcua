@@ -16,7 +16,7 @@ environment:
 
 platform:
   - x64
-  - x86
+  - x86  # (lerna not compatible with x86 anymore)
 
 matrix:
   allow_failures:
@@ -35,6 +35,7 @@ install:
   - npm install -g pnpm@7 typescript ts-node
   - set path=C:\Users\appveyor\AppData\Roaming\npm\;%path%
   - tsc --version
+  - pnpm remove lerna # cause problem in x86
   - appveyor-retry pnpm recursive install --no-frozen-lockfile
 
 # Post-install test scripts.
