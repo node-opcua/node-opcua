@@ -5,7 +5,7 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { make_warningLog } from "node-opcua-debug";
+import { make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { TypeSchemaBase } from "./builtin_types";
@@ -23,6 +23,8 @@ import {
 import { DataTypeFactory } from "./datatype_factory";
 
 const warningLog = make_warningLog(__filename);
+const errorLog = make_errorLog(__filename);
+
 
 function figureOutFieldCategory(field: FieldInterfaceOptions, dataTypeFactory: DataTypeFactory): FieldCategory {
     const fieldType = field.fieldType;
@@ -84,8 +86,10 @@ function figureOutSchema(
                     warningLog("expecting a enumeration!");
                 }
                 returnValue = dataTypeFactory.getStructuredTypeSchema(fieldTypeWithoutNS);
+                
+                // istanbul ignore next
                 if (returnValue) {
-                    console.log("Why ?");
+                    warningLog("Why can't we find a basic type here ?");
                 }
             }
             break;
@@ -336,17 +340,17 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
     /* istanbul ignore next */
     if (invalidOptionsFields.length > 0) {
         // tslint:disable:no-console
-        console.log("expected schema", schema.name);
-        console.log(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
-        console.log(chalk.red("current fields= "), currentFields.sort().join(" "));
-        console.log(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
-        console.log("options = ", options);
+        errorLog("expected schema", schema.name);
+        errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
+        errorLog(chalk.red("current fields= "), currentFields.sort().join(" "));
+        errorLog(chalk.cyan("invalid_options_fields= "), invalidOptionsFields.sort().join(" "));
+        errorLog("options = ", options);
     }
     /* istanbul ignore next */
     if (invalidOptionsFields.length !== 0) {
         // tslint:disable:no-console
-        console.log(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
-        console.log(chalk.red("current fields= "), currentFields.sort().join(" "));
+        errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
+        errorLog(chalk.red("current fields= "), currentFields.sort().join(" "));
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));
     }
     return true;

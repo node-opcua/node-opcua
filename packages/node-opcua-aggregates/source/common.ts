@@ -45,7 +45,7 @@ function processAggregateData(
             throw Error("invalid DataValue");
         }
         results.push(dataValue);
-        // console.log(" => ", dataValue.sourceTimestamp.toISOString(), dataValue.statusCode.toString(), dataValue.value.value);
+        // debugLog(" => ", dataValue.sourceTimestamp.toISOString(), dataValue.statusCode.toString(), dataValue.value.value);
     }
 
     setImmediate(() => {

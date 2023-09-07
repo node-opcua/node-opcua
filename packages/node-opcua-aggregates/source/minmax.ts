@@ -66,7 +66,7 @@ function calculateIntervalMinOrMaxValue(
     options: AggregateConfigurationOptions,
     predicate: (a: Variant, b: Variant) => "equal" | "select" | "reject"
 ): DataValue {
-    //   console.log(interval.toString());
+    //   debugLog(interval.toString());
 
     const indexStart = interval.index;
     let selectedValue: Variant | null = null;

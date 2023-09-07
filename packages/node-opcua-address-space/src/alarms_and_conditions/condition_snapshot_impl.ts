@@ -222,7 +222,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     public _get_var(varName: string): any {
         const c = this.condition as UAConditionImpl;
         if (!c.getEnabledState() && !Object.prototype.hasOwnProperty.call(_varTable, varName)) {
-            // xx console.log("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
+            // xx debuglog("ConditionSnapshot#_get_var condition enabled =", self.condition.getEnabledState());
             return disabledVar;
         }
 
@@ -310,9 +310,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         // create a new event  Id for this new condition
         const eventId = addressSpace.generateEventId();
         const ret = this._set_var("EventId", DataType.ByteString, eventId.value);
-
-        // xx var branch = self; console.log("MMMMMMMMrenewEventId branch  " +
-        // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
 
         return ret;
     }
@@ -737,8 +734,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         if (this.isCurrentBranch()) {
             assert(twoStateNode instanceof UATwoStateVariableImpl);
             twoStateNode.setValue(value as boolean);
-            // xx console.log("Is current branch", twoStateNode.toString(),variant.toString());
-            // xx console.log("  = ",twoStateNode.getValue());
         }
         this.emit("value_changed", node, variant);
     }

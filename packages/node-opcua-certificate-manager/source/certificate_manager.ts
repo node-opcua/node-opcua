@@ -89,7 +89,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             try {
                 mkdirp.sync(location);
             } catch (err) {
-                console.log(" cannot create folder ", location  , fs.existsSync(location));
+                errorLog(" cannot create folder ", location  , fs.existsSync(location));
             }
         }
 
@@ -154,12 +154,9 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             } else if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
                 // put all certificates of the chain in the rejected folder
                 const rejectAll = async (certificates: Certificate[]) => {
-                    console.log("-----------------------------------------------");
                     for (const certificate of certificates) {
-                        console.log(" =>  ", certificate.toString("base64"));
                         await this.rejectCertificate(certificate);
                     }
-                    console.log("-----------------------------------------------");
                 };
 
                 rejectAll(certificates)

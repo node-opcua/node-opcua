@@ -1552,7 +1552,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // now check that new session has sufficient right
         // if (session.authenticationToken.toString() !== subscription.authenticationToken.toString()) {
-        //     console.log("ServerEngine#transferSubscription => BadUserAccessDenied");
+        //     warningLog("ServerEngine#transferSubscription => BadUserAccessDenied");
         //     return new TransferResult({ statusCode: StatusCodes.BadUserAccessDenied });
         // }
         if ((session.publishEngine as any) === subscription.publishEngine) {
@@ -1717,7 +1717,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 addElement(subscriptionDiagnostics, subscriptionDiagnosticsArray);
             }
         } catch (err) {
-            console.log("err", err);
+            errorLog("_exposeSubscriptionDiagnostics err", err);
         }
     }
 

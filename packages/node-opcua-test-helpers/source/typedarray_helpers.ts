@@ -1,6 +1,8 @@
 import should from "should";
 const _should: any = should;
 
+const errorLog = console.log;
+
 function __isEqual(a: any, b: any): boolean {
     if (!a && !b) {
         return true;
@@ -16,10 +18,6 @@ function _is_equal(arr1: any[], arr2: any[]) {
     const n = arr1.length;
     for (i = 0; i < n; i++) {
         if (!__isEqual(arr1[i], arr2[i])) {
-            // tslint:disable-next-line:no-console
-            console.log("arr1 = ", arr1[i].toString());
-            // tslint:disable-next-line:no-console
-            console.log("arr2 = ", arr2[i].toString());
             return false;
         }
     }
@@ -41,10 +39,8 @@ export function assert_arrays_are_equal(arr1: any[], arr2: any[]) {
         throw new Error("the two arrays do not have the same type " + arr1.constructor.name + " " + arr2.constructor.name);
     }
     if (!_is_equal(arr1, arr2)) {
-        // tslint:disable-next-line:no-console
-        console.log("arr1 = ", dump_array(arr1));
-        // tslint:disable-next-line:no-console
-        console.log("arr2 = ", dump_array(arr2));
+        errorLog("arr1 = ", dump_array(arr1));
+        errorLog("arr2 = ", dump_array(arr2));
     }
     _is_equal(arr1, arr2).should.eql(true);
 }

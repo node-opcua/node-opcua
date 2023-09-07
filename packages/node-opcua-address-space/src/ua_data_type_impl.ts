@@ -431,27 +431,3 @@ function makeStructureDefinition(
     });
     return sd;
 }
-
-/*
-function lockReadOnlyWithWriteDetection<T>(obj: T): T {
-    if (obj instanceof Array) {
-        return obj.map(lockReadOnlyWithWriteDetection) as unknown as T;
-    }
-    if (obj instanceof Object) {
-        const _org = obj;
-        for (const [key, value] of Object.entries(obj)) {
-            lockReadOnlyWithWriteDetection(value);
-        }
-        obj = new Proxy(obj, {
-            get: (target: any, prop: string) => {
-                return target[prop];
-            },
-            set: (target: any, prop: string | symbol, value: any, receiver: any) => {
-                console.log("QQQQQ Cannot modify stuff ");
-                throw new Error("Invalid");
-            }
-        });
-    }
-    return obj;
-}
-*/

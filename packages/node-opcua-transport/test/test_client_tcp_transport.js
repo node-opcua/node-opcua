@@ -54,7 +54,6 @@ describe("testing ClientTCP_transport", function () {
 
     afterEach((done) => {
         clientTransport.disconnect((err) => {
-            // console.log("disconnected transport");
             spyOnConnect.callCount.should.be.oneOf([0, 1]);
             spyOnClose.callCount.should.be.oneOf([0, 1]);
             if (spyOnConnect.callCount === 1) {

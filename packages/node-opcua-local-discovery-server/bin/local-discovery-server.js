@@ -16,6 +16,7 @@ const {
 const Vorpal = require("vorpal");
 const vorpal_repl = require("vorpal-repl");
 const envPaths = require("env-paths");
+const { make_debugLog } = require("node-opcua-debug");
 
 const paths = envPaths("node-opcua-local-discovery-server");
 const configFolder = paths.config;
@@ -25,6 +26,7 @@ const serverCertificateManager = new OPCUACertificateManager({
     rootFolder: pkiFolder,
     name: "PKI"
 });
+const debugLog = make_debugLog("LDS");
 
 async function getIpAddresses() {
     const ipAddresses = [];
@@ -39,11 +41,13 @@ async function getIpAddresses() {
             }
             if (alias >= 1) {
                 // this single interface has multiple ipv4 addresses
-                console.log(interfaceName + ":" + alias, iFace.address);
+                // istanbul ignore next
+                debugLog(interfaceName + ":" + alias, iFace.address);
                 ipAddresses.push(iFace.address);
             } else {
                 // this interface has only one ipv4 address
-                console.log(interfaceName, iFace.address);
+                // istanbul ignore next
+                debugLog(interfaceName, iFace.address);
                 ipAddresses.push(iFace.address);
             }
             ++alias;

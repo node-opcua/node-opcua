@@ -44,11 +44,11 @@ function calculateCountValue(interval: Interval, options: AggregateConfiguration
 
     const partialFlag = isPartial ? extraStatusCodeBits.HistorianPartial : 0;
 
-    // console.log(" ", goodDuration, uncertainDuration, badDuration);
+    // debugLog(" ", goodDuration, uncertainDuration, badDuration);
 
     if (nbBad > 0) {
         const duration = interval.duration();
-        if(options.treatUncertainAsBad) {
+        if (options.treatUncertainAsBad) {
             badDuration += uncertainDuration;
         }
         const actualPercentDataBad = (badDuration / duration) * 100.0;

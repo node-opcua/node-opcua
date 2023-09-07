@@ -2061,7 +2061,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         str += "\n timeout.................. " + this.timeout + "ms" + timeoutInfo;
         str += "\n serverNonce.............. " + (this.serverNonce ? this.serverNonce!.toString("hex") : "");
         str += "\n serverCertificate........ " + buffer_ellipsis(this.serverCertificate);
-        // xx console.log(" serverSignature.......... ", this.serverSignature);
+        str += "\n serverSignature.......... " + this.serverSignature;
         str += "\n lastRequestSentTime...... " + new Date(this.lastRequestSentTime).toISOString() + "  (" + lap1 + ")";
         str += "\n lastResponseReceivedTime. " + new Date(this.lastResponseReceivedTime).toISOString() + " (" + lap2 + ")";
         str += "\n isReconnecting........... " + this.isReconnecting;

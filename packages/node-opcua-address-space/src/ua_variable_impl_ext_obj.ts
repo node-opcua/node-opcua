@@ -70,7 +70,12 @@ function _extensionObjectFieldGetter(getVariable: () => UAVariable | null, targe
     }
     return target[key];
 }
-function _extensionObjectFieldSetter(getVariable: () => UAVariable | null, target: any, key: string, value: any /*, receiver*/): boolean {
+function _extensionObjectFieldSetter(
+    getVariable: () => UAVariable | null,
+    target: any,
+    key: string,
+    value: any /*, receiver*/
+): boolean {
     target[key] = value;
     if (isProxy(target)) {
         return true;
@@ -132,7 +137,6 @@ export function propagateTouchValueDownward(self: UAVariableImpl, now: PreciseCl
         const property = self.getChildByName(field.name!) as UAVariableImpl;
 
         if (property) {
-
             if (cache) {
                 if (cache.has(property)) {
                     continue;
@@ -146,9 +150,7 @@ export function propagateTouchValueDownward(self: UAVariableImpl, now: PreciseCl
     }
 }
 
-
 export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObject: any, sourceTimestamp?: PreciseClock) {
-
     const variablesToUpdate: Set<UAVariableImpl> = new Set();
 
     const extensionObject = node.$extensionObject;
@@ -162,7 +164,6 @@ export function setExtensionObjectPartialValue(node: UAVariableImpl, partialObje
             if (extObject[prop] instanceof Object) {
                 _update_extension_object(extObject[prop], partialObject1[prop]);
             } else {
-
                 if (isProxy(extObject)) {
                     // collect element we have to update
                     const target = getProxyTarget(extObject);
@@ -242,8 +243,10 @@ function prepareVariantValue(dataType: DataType, value: VariantLike): VariantLik
 
 function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
     ext = unProxy(ext);
-    uaVariable.$extensionObject = new Proxy(ext, makeHandler(() => uaVariable));
-
+    uaVariable.$extensionObject = new Proxy(
+        ext,
+        makeHandler(() => uaVariable)
+    );
 
     const addressSpace = uaVariable.addressSpace;
     const definition = uaVariable.dataTypeObj.getStructureDefinition();
@@ -258,9 +261,12 @@ function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
 
                 const subExtObj = uaVariable.$extensionObject[camelCaseName];
                 if (subExtObj) {
-                    uaVariable.$extensionObject[camelCaseName] = new Proxy(subExtObj, makeHandler(() => {
-                        return uaVariable.getComponentByName(field.name!) as UAVariable | null;
-                    }));
+                    uaVariable.$extensionObject[camelCaseName] = new Proxy(
+                        subExtObj,
+                        makeHandler(() => {
+                            return uaVariable.getComponentByName(field.name!) as UAVariable | null;
+                        })
+                    );
                 } else {
                     doDebug && warningLog("extension object is null");
                 }
@@ -269,11 +275,7 @@ function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
     }
 }
 
-export function _installExtensionObjectBindingOnProperties(
-    uaVariable: UAVariableImpl,
-    options?: BindExtensionObjectOptions
-): void {
-
+export function _installExtensionObjectBindingOnProperties(uaVariable: UAVariableImpl, options?: BindExtensionObjectOptions): void {
     // may be extension object mechanism has alreday been install
     // in this case we just need to rebind the properties...
     if (uaVariable.$extensionObject) {
@@ -292,7 +294,6 @@ export function _installExtensionObjectBindingOnProperties(
     if (extObj instanceof ExtensionObject) {
         uaVariable.bindExtensionObject(extObj, { createMissingProp: true, force: true });
     } else if (extObj instanceof Array) {
-
         // istanbul ignore else
         if (dataValue.value.arrayType === VariantArrayType.Array || dataValue.value.arrayType === VariantArrayType.Matrix) {
             _bindExtensionObjectArrayOrMatrix(uaVariable, extObj, { createMissingProp: true, force: true });
@@ -302,17 +303,22 @@ export function _installExtensionObjectBindingOnProperties(
     }
 }
 
-function _installFields2(uaVariable: UAVariableImpl, { get, set }: {
-    get: (fieldName: string) => any,
-    set: (fieldName: string, value: any, sourceTime: PreciseClock) => void;
-}, options?: BindExtensionObjectOptions) {
-
+function _installFields2(
+    uaVariable: UAVariableImpl,
+    {
+        get,
+        set
+    }: {
+        get: (fieldName: string) => any;
+        set: (fieldName: string, value: any, sourceTime: PreciseClock) => void;
+    },
+    options?: BindExtensionObjectOptions
+) {
     options = options || { createMissingProp: false };
     const dt = uaVariable.getDataTypeNode();
     const definition = dt.getStructureDefinition();
 
     for (const field of definition.fields || []) {
-
         if (NodeId.sameNodeId(NodeId.nullNodeId, field.dataType)) {
             warningLog("field.dataType is null ! ", field.name, NodeId.nullNodeId.toString());
             warningLog(field.toString());
@@ -332,7 +338,12 @@ function _installFields2(uaVariable: UAVariableImpl, { get, set }: {
         propertyNode.$dataValue.serverTimestamp = uaVariable.$dataValue.serverTimestamp;
         propertyNode.$dataValue.serverPicoseconds = uaVariable.$dataValue.serverPicoseconds;
         propertyNode.$dataValue.value.dataType = propertyNode.dataTypeObj.basicDataType;
-        propertyNode.$dataValue.value.arrayType = propertyNode.valueRank === -1 ? VariantArrayType.Scalar : (propertyNode.valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix)
+        propertyNode.$dataValue.value.arrayType =
+            propertyNode.valueRank === -1
+                ? VariantArrayType.Scalar
+                : propertyNode.valueRank === 1
+                ? VariantArrayType.Array
+                : VariantArrayType.Matrix;
         propertyNode.$dataValue.value.dimensions = propertyNode.valueRank > 1 ? propertyNode.arrayDimensions : null;
 
         const fieldName = field.name!;
@@ -344,19 +355,23 @@ function _installFields2(uaVariable: UAVariableImpl, { get, set }: {
             const value = dataValue.value.value;
             set(field.name!, value, sourceTime);
             propertyNode.touchValue(sourceTime);
-        }
+        };
 
         if (propertyNode.dataTypeObj.basicDataType === DataType.ExtensionObject) {
-            _installFields2(propertyNode, {
-                get: (fieldName: string) => {
-                    const mainFieldName = field.name!;
-                    return get(mainFieldName)[lowerFirstLetter(fieldName)];
+            _installFields2(
+                propertyNode,
+                {
+                    get: (fieldName: string) => {
+                        const mainFieldName = field.name!;
+                        return get(mainFieldName)[lowerFirstLetter(fieldName)];
+                    },
+                    set: (fieldName: string, value: any, sourceTime: PreciseClock) => {
+                        const mainFieldName = field.name!;
+                        get(mainFieldName)[lowerFirstLetter(fieldName)] = value;
+                    }
                 },
-                set: (fieldName: string, value: any, sourceTime: PreciseClock) => {
-                    const mainFieldName = field.name!;
-                    get(mainFieldName)[lowerFirstLetter(fieldName)] = value;
-                }
-            }, options);
+                options
+            );
         }
     }
 }
@@ -393,15 +408,19 @@ function isVariableContainingExtensionObject(uaVariable: UAVariableImpl): boolea
     return true;
 }
 
-function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
-    { get, set, setField }: {
+function _innerBindExtensionObjectScalar(
+    uaVariable: UAVariableImpl,
+    {
+        get,
+        set,
+        setField
+    }: {
         get: () => ExtensionObject;
         set: (value: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => void;
         setField: (fieldName: string, value: any, sourceTimestamp: PreciseClock, cache?: Set<UAVariableImpl>) => void;
     },
     options?: BindExtensionObjectOptions
 ) {
-
     uaVariable.$dataValue.statusCode = StatusCodes.Good;
     uaVariable.$dataValue.value.dataType = DataType.ExtensionObject;
     uaVariable.$dataValue.value.arrayType = VariantArrayType.Scalar;
@@ -413,18 +432,20 @@ function _innerBindExtensionObjectScalar(uaVariable: UAVariableImpl,
     installDataValueGetter(uaVariable, get);
     uaVariable.$set_ExtensionObject = set;
 
-    _installFields2(uaVariable, {
-        get: (fieldName: string) => {
-            const extObj = get() as any;
-            return extObj[lowerFirstLetter(fieldName)];
+    _installFields2(
+        uaVariable,
+        {
+            get: (fieldName: string) => {
+                const extObj = get() as any;
+                return extObj[lowerFirstLetter(fieldName)];
+            },
+            set: (fieldName: string, value: any, sourceTime: PreciseClock) => {
+                setField(fieldName, value, sourceTime);
+            }
         },
-        set: (fieldName: string, value: any, sourceTime: PreciseClock) => {
-            setField(fieldName, value, sourceTime);
-        }
-    }, options);
-
+        options
+    );
 }
-
 
 // eslint-disable-next-line complexity
 export function _bindExtensionObject(
@@ -441,7 +462,10 @@ export function _bindExtensionObject(
 
     // istanbul ignore next
     if (optionalExtensionObject && uaVariable.valueRank === 0) {
-        warningLog(uaVariable.browseName.toString() + ": valueRank was zero but needed to be adjusted to -1 (Scalar) in bindExtensionObject");
+        warningLog(
+            uaVariable.browseName.toString() +
+                ": valueRank was zero but needed to be adjusted to -1 (Scalar) in bindExtensionObject"
+        );
         uaVariable.valueRank = -1;
     }
     const addressSpace = uaVariable.addressSpace;
@@ -491,9 +515,9 @@ export function _bindExtensionObject(
             warningLog(uaVariable.$extensionObject?.toString());
             throw new Error(
                 "bindExtensionObject: $extensionObject is incorrect: we are expecting a " +
-                uaVariable.dataType.toString({ addressSpace: uaVariable.addressSpace }) +
-                " but we got a " +
-                uaVariable.$extensionObject?.schema.name
+                    uaVariable.dataType.toString({ addressSpace: uaVariable.addressSpace }) +
+                    " but we got a " +
+                    uaVariable.$extensionObject?.schema.name
             );
         }
         return uaVariable.$extensionObject;
@@ -516,14 +540,14 @@ export function _bindExtensionObject(
     return uaVariable.$extensionObject;
 
     function innerBindExtensionObject() {
-
         if (s.value && (s.value.dataType === DataType.Null || (s.value.dataType === DataType.ExtensionObject && !s.value.value))) {
             if (uaVariable.valueRank === -1 /** Scalar */) {
                 extensionObject_ = optionalExtensionObject || addressSpace.constructExtensionObject(uaVariable.dataType, {});
 
                 installExt(uaVariable, extensionObject_);
 
-                _innerBindExtensionObjectScalar(uaVariable,
+                _innerBindExtensionObjectScalar(
+                    uaVariable,
                     {
                         get: () => uaVariable.$extensionObject,
                         set: (value: ExtensionObject) => installExt(uaVariable, value),
@@ -531,8 +555,9 @@ export function _bindExtensionObject(
                             const extObj = uaVariable.$extensionObject;
                             getProxyTarget(extObj)[lowerFirstLetter(fieldName)] = value;
                         }
-
-                    }, options);
+                    },
+                    options
+                );
                 return;
             } else if (uaVariable.valueRank === 1 /** Array */) {
                 throw new Error("Should not get there ! Please fix me");
@@ -544,7 +569,8 @@ export function _bindExtensionObject(
             // verify that variant has the correct type
             assert(s.value.dataType === DataType.ExtensionObject);
             installExt(uaVariable, s.value.value);
-            _innerBindExtensionObjectScalar(uaVariable,
+            _innerBindExtensionObjectScalar(
+                uaVariable,
                 {
                     get: () => uaVariable.$extensionObject,
                     set: (value: ExtensionObject) => installExt(uaVariable, value),
@@ -552,26 +578,26 @@ export function _bindExtensionObject(
                         const extObj = uaVariable.$extensionObject;
                         getProxyTarget(extObj)[lowerFirstLetter(fieldName)] = value;
                     }
-                }, options);
+                },
+                options
+            );
         }
     }
 }
 
 const getIndexAsText = (index: number | number[]): string => {
-    if (typeof index === "number")
-        return `${index}`;
+    if (typeof index === "number") return `${index}`;
     return `${index.map((a) => a.toString()).join(",")}`;
-}
+};
 const composeBrowseNameAndNodeId = (uaVariable: UAVariable, indexes: number[]) => {
     const iAsText = getIndexAsText(indexes);
     const browseName = coerceQualifiedName(iAsText);
     let nodeId: NodeId | undefined;
     if (uaVariable.nodeId.identifierType === NodeIdType.STRING) {
-        nodeId = new NodeId(NodeIdType.STRING, uaVariable.nodeId.value as string + `[${iAsText}]`, uaVariable.nodeId.namespace);
+        nodeId = new NodeId(NodeIdType.STRING, (uaVariable.nodeId.value as string) + `[${iAsText}]`, uaVariable.nodeId.namespace);
     }
     return { browseName, nodeId };
-}
-
+};
 
 // eslint-disable-next-line max-statements, complexity
 export function _bindExtensionObjectArrayOrMatrix(
@@ -579,7 +605,6 @@ export function _bindExtensionObjectArrayOrMatrix(
     optionalExtensionObjectArray?: ExtensionObject[],
     options?: BindExtensionObjectOptions
 ): ExtensionObject[] {
-
     options = options || { createMissingProp: false };
     options.createMissingProp = options.createMissingProp || false;
 
@@ -598,7 +623,10 @@ export function _bindExtensionObjectArrayOrMatrix(
         optionalExtensionObjectArray = uaVariable.$dataValue.value.value;
     }
 
-    if ((arrayDimensions.length === 0 || arrayDimensions.length === 1 && arrayDimensions[0] === 0) && optionalExtensionObjectArray) {
+    if (
+        (arrayDimensions.length === 0 || (arrayDimensions.length === 1 && arrayDimensions[0] === 0)) &&
+        optionalExtensionObjectArray
+    ) {
         arrayDimensions[0] = optionalExtensionObjectArray.length;
     }
 
@@ -616,15 +644,14 @@ export function _bindExtensionObjectArrayOrMatrix(
     if (!optionalExtensionObjectArray) {
         optionalExtensionObjectArray = [];
         for (let i = 0; i < totalLength; i++) {
-            optionalExtensionObjectArray[i] = addressSpace.constructExtensionObject(uaVariable.dataType, {});;
+            optionalExtensionObjectArray[i] = addressSpace.constructExtensionObject(uaVariable.dataType, {});
         }
     }
     uaVariable.$$extensionObjectArray = optionalExtensionObjectArray;
     uaVariable.$dataValue.value.arrayType = uaVariable.valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix;
-    uaVariable.$dataValue.value.dimensions = uaVariable.valueRank === 1 ? null : (uaVariable.arrayDimensions || []);
+    uaVariable.$dataValue.value.dimensions = uaVariable.valueRank === 1 ? null : uaVariable.arrayDimensions || [];
     uaVariable.$dataValue.value.dataType = DataType.ExtensionObject;
     uaVariable.$dataValue.value.value = uaVariable.$$extensionObjectArray;
-
 
     // make sure uaVariable.$dataValue cannot be inadvertantly changed from this point onward
     const $dataValue = uaVariable.$dataValue;
@@ -637,25 +664,25 @@ export function _bindExtensionObjectArrayOrMatrix(
         },
         //    writable: true,
         enumerable: true,
-        configurable: true,
+        configurable: true
     });
 
-    uaVariable.bindVariable({
-        get: () => uaVariable.$dataValue.value
-    }, true);
-
+    uaVariable.bindVariable(
+        {
+            get: () => uaVariable.$dataValue.value
+        },
+        true
+    );
 
     const namespace = uaVariable.namespace;
     const indexIterator = new IndexIterator(arrayDimensions);
     for (let i = 0; i < totalLength; i++) {
-
         const index = indexIterator.next();
 
         const { browseName, nodeId } = composeBrowseNameAndNodeId(uaVariable, index);
 
         let uaElement = uaVariable.getComponentByName(browseName) as UAVariableImpl | null;
         if (!uaElement) {
-
             if (!options.createMissingProp) {
                 continue;
             }
@@ -681,15 +708,17 @@ export function _bindExtensionObjectArrayOrMatrix(
         {
             const capturedIndex = i;
             const capturedUaElement = uaElement as UAVariableImpl;
-            _innerBindExtensionObjectScalar(uaElement,
+            _innerBindExtensionObjectScalar(
+                uaElement,
                 {
                     get: () => uaVariable.$$extensionObjectArray[capturedIndex],
                     set: (newValue: ExtensionObject, sourceTimestamp: PreciseClock, cache: Set<UAVariableImpl>) => {
                         assert(!isProxy(uaVariable.$$extensionObjectArray[capturedIndex]));
                         uaVariable.$$extensionObjectArray[capturedIndex] = newValue;
+                        // istanbul ignore next
                         if (uaVariable.$$extensionObjectArray !== uaVariable.$dataValue.value.value) {
-                            console.log("uaVariable", uaVariable.nodeId.toString());
-                            console.log("Houston! We have a problem ");
+                            warningLog("uaVariable", uaVariable.nodeId.toString());
+                            warningLog("Houston! We have a problem ");
                         }
                         propagateTouchValueDownward(capturedUaElement, sourceTimestamp, cache);
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
@@ -700,8 +729,9 @@ export function _bindExtensionObjectArrayOrMatrix(
                         (isProxy(extObj) ? getProxyTarget(extObj) : extObj)[lowerFirstLetter(fieldName)] = newValue;
                         propagateTouchValueUpward(capturedUaElement, sourceTimestamp, cache);
                     }
-                }, { ...options, force: true });
-
+                },
+                { ...options, force: true }
+            );
         }
     }
     return uaVariable.$$extensionObjectArray;
@@ -764,14 +794,12 @@ export function extractPartialData(path: string | string[], extensionObject: Ext
 }
 
 export function propagateTouchValueDownwardArray(uaVariable: UAVariableImpl, now: PreciseClock, cache: Set<UAVariable>) {
-
     if (!uaVariable.$$extensionObjectArray) return;
     const arrayDimensions = uaVariable.arrayDimensions || [];
     const totalLength = uaVariable.$$extensionObjectArray.length;
 
     const indexIterator = new IndexIterator(arrayDimensions);
     for (let i = 0; i < totalLength; i++) {
-
         const index = indexIterator.next();
 
         const { browseName, nodeId } = composeBrowseNameAndNodeId(uaVariable, index);

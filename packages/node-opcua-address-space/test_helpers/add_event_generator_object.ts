@@ -42,12 +42,7 @@ export function add_eventGeneratorObject(namespace: INamespace, parentFolder: UA
     });
 
     method.bindMethod((inputArguments: Variant[], context: ISessionContext, callback: CallbackT<CallMethodResultOptions>) => {
-        // xx console.log("In Event Generator Method");
-        // xx console.log(this.toString());
-        // xx console.log(context.object.toString());
-
-        // xx console.log("inputArguments ", inputArguments[0].toString());
-
+       
         const message = inputArguments[0].value || "Hello from Event Generator Object";
         const severity = inputArguments[1].value || 0;
 

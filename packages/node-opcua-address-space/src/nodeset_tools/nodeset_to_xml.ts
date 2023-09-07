@@ -48,6 +48,7 @@ import { UAMethodImpl } from "../ua_method_impl";
 import { UADataTypeImpl } from "../ua_data_type_impl";
 import { UAVariableTypeImpl } from "../ua_variable_type_impl";
 import { SessionContext } from "../index_current";
+import { UAViewImpl } from "../ua_view_impl";
 
 import { DefinitionMap2, TypeInfo } from "../../source/loader/make_xml_extension_object_parser";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
@@ -56,7 +57,6 @@ import {
     constructNamespacePriorityTable,
     hasHigherPriorityThan
 } from "./construct_namespace_dependency";
-import { UAViewImpl } from "../ua_view_impl";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
@@ -141,7 +141,6 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
             if (reference.nodeId.namespace !== node.nodeId.namespace) {
                 // todo: may be check that reference.nodeId.namespace is one of the namespace
                 // on which our namespace is build and not a derived one !
-                // xx console.log("xxxxxxxxxxxxxx Keeping => ", referenceType.toString(), reference.node?.nodeId.toString());
                 return true;
             }
         }
@@ -374,8 +373,8 @@ function _dumpVariantInnerExtensionObject(
                 if (types.isNativeError(err)) {
                     errorLog("Error in _dumpVariantExtensionObjectValue_Body !!!", err.message);
                 }
-                console.log(name);
-                console.log(field);
+                debugLog(name);
+                debugLog(field);
                 // throw err;
             }
             restoreDefaultNamespace(xw);
@@ -616,7 +615,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
 
     const dataTypeNode = addressSpace.findDataType(node.dataType);
     if (!dataTypeNode) {
-        console.log("Cannot find dataType:", node.dataType);
+        debugLog("Cannot find dataType:", node.dataType);
         return;
     }
     const dataTypeName = dataTypeNode.browseName.name!.toString();
@@ -764,7 +763,7 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
             assert(nodeChild instanceof BaseNodeImpl);
             if (nodeChild.nodeId.namespace === node.nodeId.namespace) {
                 if (!xw.visitedNode[_hash(nodeChild)]) {
-                    console.log(
+                    debugLog(
                         node.nodeId.toString(),
                         " dumping child ",
                         nodeChild.browseName.toString(),
@@ -1053,7 +1052,7 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
         const dataTypeNode = addressSpace.findNode(node.dataType);
         if (!dataTypeNode) {
             // throw new Error(" cannot find datatype " + node.dataType);
-            console.log(
+            debugLog(
                 " cannot find datatype " +
                 node.dataType +
                 " for node " +
@@ -1418,8 +1417,8 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     // let's sort the dependencies in the same order as the translation table
     const sortedDependencies = dependency.sort((a, b) => translationTable[a.index] > translationTable[b.index] ? 1 : -1);
 
-    doDebug && console.log(sortedDependencies.map((a) => a.index + " + " + a.namespaceUri).join("\n"));
-    doDebug && console.log("translation table ", translationTable);
+    doDebug && debugLog(sortedDependencies.map((a) => a.index + " + " + a.namespaceUri).join("\n"));
+    doDebug && debugLog("translation table ", translationTable);
 
     for (const depend of sortedDependencies) {
         if (depend.index === 0) {

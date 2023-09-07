@@ -63,7 +63,6 @@ function _updateTransitionTime(node: UATwoStateVariableEx, _subState?: UAVariabl
 
 function _updateEffectiveTransitionTime(node: UATwoStateVariableImpl) {
     if (node.effectiveTransitionTime) {
-        // xx console.log("xxxx _updateEffectiveTransitionTime
         // because subStateNode ",subStateNode.browseName.toString());
         node.effectiveTransitionTime.setValueFromSource({
             dataType: DataType.DateTime,

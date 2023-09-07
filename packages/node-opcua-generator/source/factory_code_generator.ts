@@ -879,8 +879,7 @@ export function produce_TScript_code(
     if (baseClass !== "BaseUAObject") {
         const filename = get_class_TScript_filename_local(baseClass);
         const localFilename = normalize_require_file(folderForSourceFile, filename);
-        // xx console.log(" ===> filename", filename, localFilename, fs.existsSync(filename));
-
+       
         if (fs.existsSync(filename)) {
             assert(!localFilename.match(/\\/));
             write("import { " + baseClass + ' } from "' + localFilename + '";');

@@ -14,7 +14,7 @@ import {
     QualifiedName
 } from "node-opcua-data-model";
 import { AttributeIds } from "node-opcua-data-model";
-import { make_warningLog } from "node-opcua-debug";
+import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
@@ -35,6 +35,7 @@ import { UAObjectTypeImpl } from "../ua_object_type_impl";
 const warningLog = make_warningLog(__filename);
 
 const doDebug = false;
+const debugLog = make_debugLog(__filename);
 
 export declare interface UATransitionImpl extends UATransition, UATransitionEx {}
 export class UATransitionImpl implements UATransition, UATransitionEx {}
@@ -217,8 +218,7 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
         if (!transition) {
             // istanbul ignore next
             if (doDebug) {
-                // tslint:disable-next-line: no-console
-                console.log(" No transition from ", this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
+                debugLog(" No transition from ", this.currentStateNode.browseName.toString(), " to ", toStateNode.toString());
             }
             return false;
         }
@@ -522,7 +522,6 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
                 }
             };
             applyLastTransitionOptionalProps();
-            // xx console.log("transitionNode ",transitionNode.toString());
             // The inherited Property SourceNode shall be filled with the NodeId of the StateMachine instance where the
             // Transition occurs. If the Transition occurs in a SubStateMachine, then the NodeId of the SubStateMachine
             // has to be used. If the Transition occurs between a StateMachine and a SubStateMachine, then the NodeId of

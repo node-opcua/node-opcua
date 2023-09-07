@@ -1,4 +1,4 @@
-import *as fs from "fs";
+import * as fs from "fs";
 import * as path from "path";
 
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -6,9 +6,11 @@ import { TrustListDataType } from "node-opcua-types";
 import { AbstractFs } from "node-opcua-file-transfer";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
+import { make_errorLog } from "node-opcua-debug";
+
+const errorLog = make_errorLog("TrustListServer");
 
 async function readAll(folder: string): Promise<Buffer[]> {
-
     const results: Buffer[] = [];
     const files = await fs.promises.readdir(folder);
     for (const f of files) {
@@ -21,7 +23,7 @@ async function readAll(folder: string): Promise<Buffer[]> {
             const buf = await readCertificateRevocationList(file);
             results.push(buf);
         } else {
-            console.log(" unknown extesnion on file ", f);
+            errorLog(" unknown extension on file ", f);
         }
     }
     return results;
@@ -33,8 +35,8 @@ export enum TrustListMasks {
     TrustedCrls = 2,
     IssuerCertificates = 4,
     IssuerCrls = 8,
-    All = 15,
-};
+    All = 15
+}
 
 export async function buildTrustList(
     certificateManager: OPCUACertificateManager,
@@ -45,7 +47,7 @@ export async function buildTrustList(
         issuerCertificates: undefined,
         issuerCrls: undefined,
         trustedCertificates: undefined,
-        trustedCrls: undefined,
+        trustedCrls: undefined
     });
     if ((trustListFlag & TrustListMasks.TrustedCertificates) === TrustListMasks.TrustedCertificates) {
         trustList.trustedCertificates = await readAll(certificateManager.trustedFolder);
@@ -61,8 +63,6 @@ export async function buildTrustList(
     }
     return trustList;
 }
-
-
 
 export async function writeTrustList(
     fs: AbstractFs,

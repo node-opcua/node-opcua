@@ -162,11 +162,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-pki:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 4.7.0
+        version: 4.7.0
       object.values:
         specifier: ^1.1.7
         version: 1.1.7
@@ -346,8 +346,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-data-access:
         specifier: 2.112.0
         version: link:../node-opcua-data-access
@@ -500,8 +500,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-data-access:
         specifier: 2.112.0
         version: link:../node-opcua-data-access
@@ -627,8 +627,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-data-model:
         specifier: 2.112.0
         version: link:../node-opcua-data-model
@@ -683,6 +683,9 @@ importers:
       node-opcua-data-value:
         specifier: 2.112.0
         version: link:../node-opcua-data-value
+      node-opcua-debug:
+        specifier: 2.110.0
+        version: link:../node-opcua-debug
       node-opcua-factory:
         specifier: 2.112.0
         version: link:../node-opcua-factory
@@ -834,8 +837,8 @@ importers:
         specifier: 2.105.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-debug:
         specifier: 2.110.0
         version: link:../node-opcua-debug
@@ -843,8 +846,8 @@ importers:
         specifier: 2.110.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 4.7.0
+        version: 4.7.0
       node-opcua-status-code:
         specifier: 2.110.0
         version: link:../node-opcua-status-code
@@ -935,8 +938,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-data-model:
         specifier: 2.112.0
         version: link:../node-opcua-data-model
@@ -962,8 +965,8 @@ importers:
         specifier: 2.110.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 4.7.0
+        version: 4.7.0
       node-opcua-pseudo-session:
         specifier: 2.112.0
         version: link:../node-opcua-pseudo-session
@@ -1237,8 +1240,8 @@ importers:
         specifier: 2.105.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-types:
         specifier: 2.112.0
         version: link:../node-opcua-types
@@ -1471,8 +1474,8 @@ importers:
         specifier: ^2.4.3
         version: 2.4.3
       bcryptjs:
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.4.3
+        version: 2.4.3
     devDependencies:
       '@types/underscore':
         specifier: ^1.11.9
@@ -1529,8 +1532,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-debug:
         specifier: 2.110.0
         version: link:../node-opcua-debug
@@ -1556,8 +1559,8 @@ importers:
         specifier: 2.112.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 4.7.0
+        version: 4.7.0
       node-opcua-server:
         specifier: 2.112.0
         version: link:../node-opcua-server
@@ -2681,8 +2684,8 @@ importers:
         specifier: 17.0.24
         version: 17.0.24
       bcryptjs:
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.4.3
+        version: 2.4.3
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -2714,14 +2717,14 @@ importers:
         specifier: 2.112.0
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-packet-analyzer:
         specifier: 2.112.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 4.7.0
+        version: 4.7.0
       node-opcua-server-configuration:
         specifier: 2.112.0
         version: link:../node-opcua-server-configuration
@@ -2820,8 +2823,8 @@ importers:
         specifier: 2.112.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-debug:
         specifier: 2.110.0
         version: link:../node-opcua-debug
@@ -2932,8 +2935,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-data-model:
         specifier: 2.112.0
         version: link:../node-opcua-data-model
@@ -3056,8 +3059,8 @@ importers:
         specifier: ^2.4.3
         version: 2.4.3
       bcryptjs:
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.4.3
+        version: 2.4.3
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -3092,8 +3095,8 @@ importers:
         specifier: 2.98.1
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.4.0
-        version: 4.4.0
+        specifier: 4.5.0
+        version: 4.5.0
       node-opcua-data-model:
         specifier: 2.112.0
         version: link:../node-opcua-data-model
@@ -3110,8 +3113,8 @@ importers:
         specifier: 2.110.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 4.6.0
-        version: 4.6.0
+        specifier: 4.7.0
+        version: 4.7.0
       node-opcua-pseudo-session:
         specifier: 2.112.0
         version: link:../node-opcua-pseudo-session
@@ -3831,8 +3834,8 @@ importers:
         specifier: ^2.4.3
         version: 2.4.3
       bcryptjs:
-        specifier: ^2.4.0
-        version: 2.4.0
+        specifier: ^2.4.3
+        version: 2.4.3
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -4715,8 +4718,8 @@ packages:
     dependencies:
       tweetnacl: 0.14.5
 
-  /bcryptjs@2.4.0:
-    resolution: {integrity: sha512-B6DCERXiRT4wcd8HFptyRO6HebnshpJE3X8+MtCScC7gXetYYOvloeCSpK967yxb6kYQL73BpicySlwnojUONg==}
+  /bcryptjs@2.4.3:
+    resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
     dev: false
 
   /benchmark@2.1.4:
@@ -6942,8 +6945,8 @@ packages:
     engines: {node: '>=0.10'}
     dev: false
 
-  /node-opcua-crypto@4.3.1:
-    resolution: {integrity: sha512-imEIqsypt5b0KP6IfZbZFgLfdtNF6nceJLIrP94AG4VMPdDElmnh+5NDEDKjQJoi3pINKPJBv+WO8Dc8gzC0sg==}
+  /node-opcua-crypto@4.5.0:
+    resolution: {integrity: sha512-ydeXsU3B1IV2hvVb74Kuttwcy5pcxyALS/r7bgNFedb9Ca5btiUUP9VCCKq3O/sNfW9tFllfeCzN7Zbxifk4Cw==}
     dependencies:
       '@peculiar/webcrypto': 1.4.3
       '@peculiar/x509': 1.9.5
@@ -6956,22 +6959,8 @@ packages:
       jsrsasign: 10.8.6
       sshpk: 1.17.0
 
-  /node-opcua-crypto@4.4.0:
-    resolution: {integrity: sha512-9P3+pc+dDldwS1gk0rc/YbuuNm3+xy+1wV0tqMmKotvq6/DdKqejr+BcPMR7qH1pWGaQc8GChPVImrNPz6YucA==}
-    dependencies:
-      '@peculiar/webcrypto': 1.4.3
-      '@peculiar/x509': 1.9.5
-      '@types/jsrsasign': 10.5.8
-      '@types/sshpk': 1.17.1
-      assert: 2.0.0
-      better-assert: 1.0.2
-      chalk: 4.1.2
-      hexy: 0.3.5
-      jsrsasign: 10.8.6
-      sshpk: 1.17.0
-
-  /node-opcua-pki@4.6.0:
-    resolution: {integrity: sha512-K8zGOd+9QoD+98kqAHULupipeGqN5/GnHqBs0P9cvXkjqv0lvSScJ6XGekEn787gXmM36zA3HkA45aKWhKfSHg==}
+  /node-opcua-pki@4.7.0:
+    resolution: {integrity: sha512-Ur5hNlpnsV7KMW4E30VnajZ+SdKCAfIWf/+GUu2hZEoKptE3zYGNT+lTGEnmWHi07trsxmURfNCJM5QUKXrWwg==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 2.0.0
@@ -6981,7 +6970,7 @@ packages:
       chokidar: 3.5.3
       cli-table: 0.3.11
       minimist: 1.2.8
-      node-opcua-crypto: 4.3.1
+      node-opcua-crypto: 4.5.0
       progress: 2.0.3
       rimraf: 3.0.2
       thenify: 3.3.1

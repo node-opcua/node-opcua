@@ -465,7 +465,6 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     " => Let's retry"
                 );
                 if (!session.hasBeenClosed()) {
-
                     const delay = 2000;
                     errorLog(chalk.red(`... will retry session repair... in ${delay} ms`));
                     setTimeout(() => {
@@ -474,24 +473,27 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     }, delay);
                     return;
                 } else {
-                    console.log(chalk.red("session restoration should be interrupted because session has been closed forcefully"));
+                    errorLog(chalk.red("session restoration should be interrupted because session has been closed forcefully"));
                     // session does not need to be repaired anymore
                     callback();
-                } 
+                }
                 return;
             }
 
             privateSession._reconnecting.reconnecting = false;
 
-            // warningLog("Session has been restored");
+            // istanbul ignore next
             doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
-           
+
             session.emit("session_restored");
             const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
             privateSession._reconnecting.pendingCallbacks = [];
 
             // re-inject element in queue
+            
+            // istanbul ignore next
             doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
+            
             transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
             otherCallbacks.forEach((c: EmptyCallback) => c(err));
             callback(err);

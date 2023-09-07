@@ -9,7 +9,7 @@
 import chalk from "chalk";
 
 const semver = require("semver");
-const minimumNodeVersionRequired = ">=8.0.0"; // minimum
+const minimumNodeVersionRequired = ">=16.7.0"; // minimum
 
 // istanbul ignore next
 if (typeof process === "object" && !semver.satisfies(process.version, minimumNodeVersionRequired)) {

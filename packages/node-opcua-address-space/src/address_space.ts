@@ -56,7 +56,7 @@ import {
     ShutdownTask,
     RaiseEventData
 } from "node-opcua-address-space-base";
-import { make_errorLog } from "node-opcua-debug";
+import { make_debugLog, make_errorLog } from "node-opcua-debug";
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import { UARootFolder } from "../source/ua_root_folder";
@@ -79,6 +79,7 @@ import { BaseNodeImpl } from "./base_node_impl";
 
 const doDebug = false;
 const errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog(__filename);
 
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
@@ -843,18 +844,16 @@ export class AddressSpace implements AddressSpacePrivate {
 
             // istanbul ignore next
             if (doDebug) {
-                console.log(" " + chalk.bgWhite.cyan(self.browseName.toString()));
+                debugLog(" " + chalk.bgWhite.cyan(self.browseName.toString()));
             }
 
             for (const node of children) {
                 // only keep those that have a "HasModellingRule"
                 if (!(node as any).modellingRule) {
-                    // xx console.log(" skipping node without modelling rule", node.browseName.toString());
                     continue;
                 }
                 // ignore also methods
                 if (node.nodeClass === NodeClass.Method) {
-                    // xx console.log(" skipping method ", node.browseName.toString());
                     continue;
                 }
 
@@ -867,8 +866,6 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (children2.length > 0) {
                     const lowerName = lowerFirstLetter(node.browseName.name!);
                     const standardName = node.browseName.toString();
-                    //  console.log(" Children to visit = ",lowerName,
-                    //  children.map(function(a){ return a.browseName.toString();}).join(" "));
                     for (const child2 of children2) {
                         _process_var(self, lowerName + ".", standardName + ".", child2);
                     }
@@ -1028,7 +1025,7 @@ export class AddressSpace implements AddressSpacePrivate {
         // to do verify that dataType is of type "Structure"
         /* istanbul ignore next */
         if (!_dataType.isSubtypeOf(this.findDataType("Structure")!)) {
-            console.log(_dataType.toString());
+            debugLog(_dataType.toString());
         }
         assert(_dataType.isSubtypeOf(this.findDataType("Structure")!));
         if (!_dataType._extensionObjectConstructor) {
@@ -1145,7 +1142,6 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!obj) {
             // Object Not Found
             browseResult.statusCode = StatusCodes.BadNodeIdUnknown;
-            // xx console.log("xxxxxx browsing ",nodeId.toString() , " not found" );
         } else {
             browseResult.statusCode = StatusCodes.Good;
             browseResult.references = obj.browseNode(browseDescription, context);
@@ -1173,7 +1169,6 @@ export class AddressSpace implements AddressSpacePrivate {
      * @private
      */
     public _collectModelChange(view: UAView | null, modelChange: ModelChangeStructureDataType): void {
-        // xx console.log("in _collectModelChange", modelChange.verb, verbFlags.get(modelChange.verb).toString());
         this._modelChanges.push(modelChange);
     }
 
@@ -1254,7 +1249,6 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (this._modelChanges.length === 0) {
                     return; // nothing to do
                 }
-                // xx console.log( "xx dealing with ",this._modelChanges.length);
                 // increase version number of participating nodes
 
                 // https://github.com/you-dont-need/You-Dont-Need-Lodash-Underscore
@@ -1270,7 +1264,6 @@ export class AddressSpace implements AddressSpacePrivate {
                     const eventTypeNode = this.findEventType("GeneralModelChangeEventType");
 
                     if (eventTypeNode) {
-                        // xx console.log("xx raising event on server object");
                         this.rootFolder.objects.server.raiseEvent(eventTypeNode, {
                             // Part 5 - 6.4.32 GeneralModelChangeEventType
                             changes: {
@@ -1422,7 +1415,6 @@ export class AddressSpace implements AddressSpacePrivate {
             const typeDefinitionNode = this.findNode(typeDefinition)!;
             typeDefinition = typeDefinitionNode.nodeId;
         }
-        // xx console.log("typeDefinition = ",typeDefinition);
         assert(typeDefinition instanceof NodeId);
         return typeDefinition;
     }
@@ -1574,6 +1566,5 @@ function _increase_version_number(node: BaseNode | null) {
             dataType: DataType.String,
             value: (previousValue + 1).toString()
         });
-        // xx console.log("xxx increasing version number of node ", node.browseName.toString(),previousValue);
     }
 }

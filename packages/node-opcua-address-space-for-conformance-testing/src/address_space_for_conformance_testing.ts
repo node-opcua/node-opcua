@@ -23,6 +23,11 @@ import { QualifiedName, LocalizedText } from "node-opcua-data-model";
 import { standardUnits } from "node-opcua-data-access";
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 import { UInt64, Int64 } from "node-opcua-basic-types";
+import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+
+const debugLog = make_debugLog(__filename);
+const errorLog = make_errorLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 interface RangeOptions {
     low: number;
@@ -196,8 +201,8 @@ function add_array_variable(
 
     // istanbul ignore next
     if (!(DataType as any)[realTypeName]) {
-        console.log("dataTypeName", dataTypeName);
-        console.log("realTypeName", realTypeName);
+        warningLog("dataTypeName", dataTypeName);
+        warningLog("realTypeName", realTypeName);
     }
 
     assert((DataType as any)[realTypeName], " expecting a valid real type");
@@ -228,8 +233,8 @@ function add_multi_dimensional_array_variable(
 
     // istanbul ignore next
     if (!(DataType as any)[realTypeName]) {
-        console.log("dataTypeName", dataTypeName);
-        console.log("realTypeName", realTypeName);
+        debugLog("dataTypeName", dataTypeName);
+        debugLog("realTypeName", realTypeName);
     }
 
     assert((DataType as any)[realTypeName], " expecting a valid real type");
@@ -267,7 +272,6 @@ function add_mass_variables_of_type(
     // Mass Mass_Boolean -> Mass_Boolean_Boolean_00 ...
     const nodeName = "Scalar_Mass_" + dataTypeName;
 
-    // xx console.log("xxxx adding mass variable ", nodeName);
     const scalarMass_Type = namespace.addObject({
         browseName: nodeName,
         description: "This folder will contain 100 items per supported data-type.",
@@ -528,7 +532,7 @@ function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
                 assert(data instanceof Buffer);
                 imageNode.setValueFromSource(new Variant({ dataType: DataType.ByteString, value: data }));
             } else {
-                console.log("cannot load file =", fullPath);
+                errorLog("cannot load file =", fullPath);
             }
         });
     }

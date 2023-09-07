@@ -9,7 +9,7 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantOptions } from "node-opcua-variant";
-import { UAShelvedStateMachine } from "node-opcua-nodeset-ua";
+import { make_debugLog } from "node-opcua-debug";
 import { BaseNode, INamespace, UAEventType, UAVariable } from "node-opcua-address-space-base";
 
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
@@ -21,6 +21,8 @@ import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms
 
 import { ConditionInfoImpl } from "./condition_info_impl";
 import { UAAcknowledgeableConditionImpl } from "./ua_acknowledgeable_condition_impl";
+
+const debugLog = make_debugLog(__filename);
 
 function _update_suppressedOrShelved(alarmNode: UAAlarmConditionImpl) {
     alarmNode.suppressedOrShelved.setValueFromSource({
@@ -226,9 +228,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
             if (shelvedValue && shelvedValue.text !== "Unshelved") {
                 shelved = true;
             }
-            // console.log("shelved = shelved",shelvedValue,shelved);
         }
-        // xx console.log(" isSuppressedOrShelved ",suppressed,shelved);
         return suppressed || shelved;
     }
 
@@ -339,8 +339,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
 
             const _node = addressSpace._coerceNode(inputNode);
             if (_node === null) {
-                // tslint:disable-next-line:no-console
-                console.log(" cannot find nodeId ", inputNode);
+                debugLog(" cannot find nodeId ", inputNode);
             } else {
                 assert(_node, "Expecting a valid input node");
                 this.inputNode.setValueFromSource({
@@ -451,7 +450,8 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         // detect potential internal bugs due to misused of _signalNewCondition
         if (isEqual(oldConditionInfo, newConditionInfo)) {
             // tslint:disable-next-line:no-console
-            console.log(oldConditionInfo);
+            debugLog("oldConditionInfo", oldConditionInfo);
+            debugLog("oldConditionInfo", newConditionInfo);
             throw new Error(
                 "condition values have not change, shall we really raise an event ? alarm " + this.browseName.toString()
             );

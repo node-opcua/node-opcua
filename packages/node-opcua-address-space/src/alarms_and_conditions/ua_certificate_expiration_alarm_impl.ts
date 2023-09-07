@@ -72,7 +72,6 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
     }
 
     public updateAlarmState2(isActive: boolean, severity: number, message: string) {
-        //xx console.log(`${message} ${severity} ${d(new Date())}`);
         isActive ? this.activateAlarm() : this.deactivateAlarm();
 
         this.raiseNewCondition({

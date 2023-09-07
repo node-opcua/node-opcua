@@ -419,7 +419,7 @@ export class TCP_transport extends EventEmitter {
 
         debugLog("prematureTerminate", err ? err.message : "", statusCode.toString(), "has socket = ", !!this._socket);
 
-        doDebugFlow && console.log("prematureTerminate from", "has socket = ", !!this._socket, new Error().stack);
+        doDebugFlow && errorLog("prematureTerminate from", "has socket = ", !!this._socket, new Error().stack);
 
         if (this._socket) {
             err.message = "premature socket termination " + err.message;
@@ -452,7 +452,7 @@ export class TCP_transport extends EventEmitter {
 
     private _fulfill_pending_promises(err: Error | null, data?: Buffer): boolean {
         if (!this._theCallback) return false;
-        doDebugFlow && console.log("_fulfill_pending_promises from", new Error().stack);
+        doDebugFlow && errorLog("_fulfill_pending_promises from", new Error().stack);
         const callback = this._theCallback;
         this._theCallback = undefined;
         callback(err, data);
@@ -551,7 +551,7 @@ export class TCP_transport extends EventEmitter {
 
     protected _emitClose(err?: Error | null) {
         err = err || this._theCloseError;
-        doDebugFlow && console.log("_emitClose ", err?.message || "", "from", new Error().stack);
+        doDebugFlow && warningLog("_emitClose ", err?.message || "", "from", new Error().stack);
 
         if (!this._closedEmitted) {
             this._closedEmitted = err || "noError";

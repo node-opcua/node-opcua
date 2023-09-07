@@ -84,7 +84,7 @@ export function calculateBadAndGood(
         }
         const currentTime = dataValue.sourceTimestamp!.getTime();
 
-        // console.log(" ", dataValue.sourceTimestamp?.toISOString(), dataValue.statusCode.toString(), dataValue.value.value);
+        // debugLog(" ", dataValue.sourceTimestamp?.toISOString(), dataValue.statusCode.toString(), dataValue.value.value);
 
         if (currentStatus === previousStatus) continue;
         if (previousStatus === StatusCodes.Good) {

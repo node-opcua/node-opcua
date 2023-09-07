@@ -18,7 +18,6 @@ function encodingNodeIdToDataTypeNode(addressSpace: IAddressSpace, encodingNodeI
     if (!encodingNode) {
         throw new Error("findDataTypeNode:  Cannot find encoding NodeId" + encodingNodeId.toString());
     }
-    // xx console.log("encodingNode", encodingNode.toString());
     const refs = encodingNode.findReferences("HasEncoding", false);
     const dataTypes = refs.map((ref) => addressSpace.findNode(ref.nodeId)).filter((obj: any) => obj !== null);
     // istanbul ignore next
@@ -40,7 +39,6 @@ export function makeDefinitionMap(addressSpace: IAddressSpace): DefinitionMap2 {
                 throw new Error("Expecting a DataType node here");
             }
             const name = dataTypeNode.browseName.name || "";
-            // console.log("yy)=", dataTypeNode.toString());
             if (dataTypeNode.isStructure()) {
                 const definition = dataTypeNode.getStructureDefinition();
                 return { name, definition };

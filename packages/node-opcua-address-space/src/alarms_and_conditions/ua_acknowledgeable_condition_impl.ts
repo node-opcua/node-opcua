@@ -9,6 +9,7 @@ import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantLike, VariantOptions } from "node-opcua-variant";
 import { INamespace, RaiseEventData, ISessionContext, UAEventType, UAMethod } from "node-opcua-address-space-base";
 import { CallMethodResultOptions } from "node-opcua-service-call";
+import { make_debugLog } from "node-opcua-debug";
 
 import { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
@@ -20,7 +21,8 @@ import { _setAckedState } from "./condition";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 import {  UAConditionImpl } from "./ua_condition_impl";
 
-
+const debugLog = make_debugLog(__filename);
+const doDebug = false;;
 export declare interface UAAcknowledgeableConditionImpl extends UAAcknowledgeableConditionEx, UAConditionImpl {
     on(eventName: string, eventHandler: any): this;
 }
@@ -258,8 +260,9 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
         }
         assert(!branch.getConfirmedState(), "already confirmed ?");
         const conditionEventId = branch.getEventId();
-        // tslint:disable-next-line:no-console
-        console.log("autoConfirmBranch getAckedState ", branch.getAckedState());
+
+        // istanbul ignore next
+        doDebug && debugLog("autoConfirmBranch getAckedState ", branch.getAckedState());
         this._confirm_branch(conditionEventId, comment, branch, "Server/Confirm");
     }
 

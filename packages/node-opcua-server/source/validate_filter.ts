@@ -13,6 +13,9 @@ import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ReadValueIdOptions } from "node-opcua-types";
 import { DataType } from "node-opcua-basic-types";
+import { make_warningLog } from "node-opcua-debug";
+
+const warningLog = make_warningLog(__filename);
 
 function isNumberDataType(node: UAVariable): boolean {
 
@@ -60,8 +63,7 @@ function __validateDataChangeFilter(filter: DataChangeFilter, itemToMonitor: Rea
 
         // node must also have a valid euRange
         if (!node.getChildByName("EURange", 0)) {
-            // tslint:disable:no-console
-            console.log(" node has no euRange ! Dead band Percent cannot be used on node " + node.nodeId.toString());
+            warningLog(" node has no euRange ! Dead band Percent cannot be used on node " + node.nodeId.toString());
             return StatusCodes.BadMonitoredItemFilterUnsupported;
         }
     }

@@ -78,7 +78,7 @@ export function resolveReferenceType(addressSpace: MinimalistAddressSpace, refer
     const _reference = reference as ReferenceImpl;
     if (!_reference._referenceType) {
         if (!_reference.referenceType) {
-            console.log(chalk.red("ERROR MISSING reference"), reference);
+            errorLog(chalk.red("ERROR MISSING reference"), reference);
         }
         _reference._referenceType = addressSpace.findReferenceType(reference.referenceType)!;
     }
@@ -169,3 +169,7 @@ export class ReferenceImpl implements UAReference {
         */
     }
 }
+function errorLog(arg0: string, reference: UAReference) {
+    throw new Error("Function not implemented.");
+}
+

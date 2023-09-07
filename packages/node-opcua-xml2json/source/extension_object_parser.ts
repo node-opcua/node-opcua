@@ -290,7 +290,6 @@ export function makeExtensionObjectReader(
     const reader1: ReaderStateParserLike = {
         parser: {},
         endElement(this: any) {
-            //         console.log(this.parser[definitionName].value);
             this._pojo = this.parser[definitionName].value;
         }
     };

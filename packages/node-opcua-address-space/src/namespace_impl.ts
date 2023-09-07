@@ -1709,7 +1709,7 @@ export class NamespaceImpl implements NamespacePrivate {
                 break;
             default:
                 // tslint:disable-next-line:no-console
-                console.log("Invalid class Name", node.nodeClass);
+                errorLog("Invalid class Name", node.nodeClass);
                 throw new Error("Invalid class name specified");
         }
     }
@@ -1733,13 +1733,13 @@ export class NamespaceImpl implements NamespacePrivate {
             if (match) {
                 const correctedName = match[1];
                 // the application is using an old scheme
-                console.log(
+                warningLog(
                     chalk.green(
                         "Warning : since node-opcua 0.4.2 " + "namespace index should not be prepended to the browse name anymore"
                     )
                 );
-                console.log("   ", options.browseName, " will be replaced with ", correctedName);
-                console.log(" Please update your code");
+                warningLog("   ", options.browseName, " will be replaced with ", correctedName);
+                warningLog(" Please update your code");
 
                 const indexVerify = parseInt(match[0], 10);
                 if (indexVerify !== this.index) {
@@ -1819,7 +1819,7 @@ export class NamespaceImpl implements NamespacePrivate {
                 break;
             default:
                 // tslint:disable:no-console
-                console.log("Invalid class Name", node.nodeClass);
+                warningLog("Invalid class Name", node.nodeClass);
                 throw new Error("Invalid class name specified");
         }
         const deleted = this._nodeid_index.delete(hashKey);
@@ -2234,7 +2234,6 @@ function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion: 
             propertyOf: node
         });
         const initialValue = typeof options.nodeVersion === "string" ? options.nodeVersion : "0";
-        // xx console.log(" init value =",initialValue);
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }
 }

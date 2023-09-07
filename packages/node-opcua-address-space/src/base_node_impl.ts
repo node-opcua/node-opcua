@@ -869,7 +869,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         /* istanbul ignore next */
         if (do_debug) {
-            console.log("all references :", this.nodeId.toString(), this.browseName.toString());
+            debugLog("all references :", this.nodeId.toString(), this.browseName.toString());
             dumpReferences(addressSpace, (Object as any).values(_private._referenceIdx));
         }
 
@@ -942,7 +942,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         // istanbul ignore next
         if (!addressSpace) {
-            console.log(" Where is addressSpace ?");
+            debugLog("Where is addressSpace ?");
         }
         const reference = addressSpace.normalizeReferenceTypes([referenceOpts!])![0];
         const h = (<ReferenceImpl>reference).hash;
@@ -1510,9 +1510,8 @@ function _asObject<T extends BaseNode>(references: UAReference[], addressSpace: 
     function toObject(reference: UAReference): T {
         const obj = resolveReferenceNode(addressSpace, reference);
         // istanbul ignore next
-        if (false && !obj) {
-            // tslint:disable-next-line:no-console
-            console.log(
+        if (doDebug&& !obj) {
+            debugLog(
                 chalk.red(" Warning :  object with nodeId ") +
                 chalk.cyan(reference.nodeId.toString()) +
                 chalk.red(" cannot be found in the address space !")
@@ -1586,16 +1585,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
                 displayWarningReferencePointingToItSelf = false;
             }
         }
-        // xx ignore this assert(reference.nodeId.toString() !== this.nodeId.toString());
-        // function w(s,l) { return (s+"                                                          ").substring(0,l);}
-        // if (reference.isForward) {
-        //    console.log("  CHILD => ",w(related_node.browseName   + " " + related_node.nodeId.toString(),30),
-        //    "  PARENT   ",w(this.browseName + " " + this.nodeId.toString(),30) , reference.toString());
-        // } else {
-        //    console.log("  CHILD => ",w(this.browseName   + " " + this.nodeId.toString(),30),
-        //   "  PARENT   ",w(related_node.browseName + " " + related_node.nodeId.toString(),30) , reference.toString());
-        //
-        // }
+
         (related_node as BaseNodeImpl)._add_backward_reference(
             new ReferenceImpl({
                 _referenceType: getReferenceType(reference),
@@ -1632,7 +1622,7 @@ function normalize_referenceTypeId(addressSpace: IAddressSpace, referenceTypeId?
     try {
         nodeId = addressSpace.resolveNodeId(referenceTypeId);
     } catch (err) {
-        console.log("cannot normalize_referenceTypeId", referenceTypeId);
+        errorLog("cannot normalize_referenceTypeId", referenceTypeId);
         throw err;
     }
     assert(nodeId);

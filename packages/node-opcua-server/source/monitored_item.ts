@@ -18,7 +18,7 @@ import {
     coerceTimestampsToReturn,
     sameStatusCode
 } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { NumericalRange0, NumericRange } from "node-opcua-numeric-range";
@@ -56,6 +56,8 @@ import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space";
 import { SamplingFunc } from "./sampling_func";
+
+const errorLog = make_errorLog(__filename);
 
 export type QueueItem = MonitoredItemNotification | EventFieldList;
 
@@ -163,7 +165,7 @@ function valueHasChanged(
                     rangeVariant.value as PseudoRange
                 );
             } else {
-                console.log("EURange is not of type Variable");
+                errorLog("EURange is not of type Variable");
             }
             return true;
         }
@@ -262,7 +264,7 @@ function safeGuardVerify(monitoredItem: MonitoredItem) {
     if ((monitoredItem as any)._$safeGuard) {
         const verif = s(monitoredItem.oldDataValue|| "");
         if (verif !== (monitoredItem as any)._$safeGuard) {
-            console.log(verif, (monitoredItem as any)._$safeGuard);
+            errorLog(verif, (monitoredItem as any)._$safeGuard);
             throw new Error("Internal error: DataValue has been altereed !!!");
         }
     }
@@ -597,12 +599,7 @@ export class MonitoredItem extends EventEmitter {
 
         const hasSemanticChanged = this.node && (this.node as any).semantic_version !== this._semantic_version;
 
-        // xx   console.log("`\n----------------------------",skipChangeTest,this.clientHandle,
-        //             this.node.listenerCount("value_changed"),this.node.nodeId.toString());
-        // xx   console.log("events ---- ",this.node.eventNames().join("-"));
-        // xx    console.log("indexRange = ",indexRange ? indexRange.toString() :"");
-        // xx    console.log("this.itemToMonitor.indexRange = ",this.itemToMonitor.indexRange.toString());
-
+       
         if (!hasSemanticChanged && indexRange && this.itemToMonitor.indexRange) {
             // we just ignore changes that do not fall within our range
             // ( unless semantic bit has changed )
@@ -887,7 +884,6 @@ export class MonitoredItem extends EventEmitter {
 
                 return;
             }
-            // xx console.log("xxxx ON SAMPLING");
             assert(!this._is_sampling, "sampling func shall not be re-entrant !! fix it");
 
             // istanbul ignore next
@@ -905,7 +901,7 @@ export class MonitoredItem extends EventEmitter {
                 }
                 // istanbull ignore next
                 if (err) {
-                    console.log(" SAMPLING ERROR =>", err);
+                    errorLog(" SAMPLING ERROR =>", err);
                 } else {
                     // only record value if source timestamp is newer
                     // xx if (newDataValue && isSourceNewerThan(newDataValue, this.oldDataValue)) {
@@ -1003,10 +999,10 @@ export class MonitoredItem extends EventEmitter {
 
         // istanbul ignore next
         if (doDebug) {
-            console.log(" RECEIVED INTERNAL EVENT THAT WE ARE MONITORING");
-            console.log(this.filter ? this.filter.toString() : "no filter");
+            debugLog(" RECEIVED INTERNAL EVENT THAT WE ARE MONITORING");
+            debugLog(this.filter ? this.filter.toString() : "no filter");
             eventFields.forEach((e: any) => {
-                console.log(e.toString());
+                debugLog(e.toString());
             });
         }
 
@@ -1175,11 +1171,10 @@ export class MonitoredItem extends EventEmitter {
             assert(sameStatusCode(notification.value.statusCode, StatusCodes.GoodWithOverflowBit));
             assert(notification.value.statusCode.hasOverflowBit);
         }
-        // console.log(chalk.cyan("Setting Over"), !!this.$subscription, !!this.$subscription!.subscriptionDiagnostics);
         if (this.$subscription && this.$subscription.subscriptionDiagnostics) {
             this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount++;
         }
-        // to do eventQueueOverFlowCount
+        // to do: eventQueueOverFlowCount
     }
 
     private _enqueue_notification(notification: QueueItem) {
@@ -1358,7 +1353,6 @@ export class MonitoredItem extends EventEmitter {
                 this._on_sampling_timer();
             }, this.samplingInterval);
         }
-        // xx console.log("MonitoredItem#_set_timer",this._samplingId);
     }
 
     private _adjust_queue_to_match_new_queue_size() {

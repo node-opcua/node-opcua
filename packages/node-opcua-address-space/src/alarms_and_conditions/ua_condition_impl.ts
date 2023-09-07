@@ -143,7 +143,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     ): void {
         const conditionNode = context.object;
 
-        // xx console.log(inputArguments.map(function(a){return a.toString()}));
         if (!(conditionNode instanceof UAConditionImpl)) {
             callback(null, {
                 statusCode: StatusCodes.BadNodeIdInvalid
@@ -426,7 +425,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
             branch.renewEventId();
         }
 
-        // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
 
         assert(branch instanceof ConditionSnapshotImpl);
@@ -462,7 +460,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
                 "therefore event cannot bubble-up to the server object"
             );
         }
-        // xx console.log("MMMMMMMM%%%%%%%%%%%%%%%%%%%%% branch  " +
         // branch.getBranchId().toString() + " eventId = " + branch.getEventId().toString("hex"));
     }
 
@@ -536,7 +533,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         this.raiseConditionEvent(branch, true);
 
         if (!sameNodeId(branch.getBranchId(), NodeId.nullNodeId) && !branch.getRetain()) {
-            // xx console.log(" Deleting not longer needed branch ", branch.getBranchId().toString());
             // branch can be deleted
             this.deleteBranch(branch);
         }
@@ -854,8 +850,7 @@ function UACondition_instantiate(
     if (options.conditionSource) {
         options.conditionSource = addressSpace._coerceNode(options.conditionSource)!;
         if (options.conditionSource.nodeClass !== NodeClass.Object && options.conditionSource.nodeClass !== NodeClass.Variable) {
-            // tslint:disable:no-console
-            console.log(options.conditionSource);
+            debugLog(options.conditionSource);
             throw new Error("Expecting condition source to be NodeClass.Object or Variable");
         }
 
@@ -1013,7 +1008,7 @@ function _disable_method(inputArguments: VariantLike[], context: ISessionContext
 
     // istanbul ignore next
     if (!(conditionNode instanceof UAConditionImpl)) {
-        console.log("conditionNode is not a UACondition ", conditionNode?.toString());
+        debugLog("conditionNode is not a UACondition ", conditionNode?.toString());
         return callback(null, {
             statusCode: StatusCodes.BadNodeIdInvalid
         });

@@ -2,11 +2,12 @@ import { AttributeIds, BrowseDirection, NodeClassMask, QualifiedName, stringToQu
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions } from "node-opcua-service-browse";
 import { NodeClass } from "node-opcua-types";
+import { make_debugLog } from "node-opcua-debug";
 
 import { IBasicSession } from "./basic_session_interface";
 
 const doDebug = false;
-
+const debugLog = make_debugLog(__filename);
 /**
  * 
  * recursively work down an node definition and find 
@@ -31,7 +32,7 @@ export async function extractFields(
         const key = simpleBrowsePathToString(e);
 
         // istanbul ignore next
-        doDebug && console.log("adding field ", key);
+        doDebug && debugLog("adding field ", key);
 
         if (!_duplicateMap[key]) {
             fields1.push({ path: e, nodeId });
@@ -80,7 +81,7 @@ export async function extractFields(
 
             // istanbul ignore next
             doDebug &&
-                console.log(
+                debugLog(
                     "exploring",
                     simpleBrowsePathToString(parent),
                     result.references.map((a) => a.browseName.toString())
@@ -131,7 +132,7 @@ export async function extractFields(
             const promises = [];
             for (const reference of browseResultForInverseSubType.references) {
                 // istanbul ignore next
-                doDebug && console.log(" investigating super-type", reference.browseName.toString());
+                doDebug && debugLog(" investigating super-type", reference.browseName.toString());
                 promises.push(_investigateTopLevel([], reference.nodeId));
             }
             await Promise.all(promises);
@@ -140,7 +141,7 @@ export async function extractFields(
 
     // istanbul ignore next
     doDebug &&
-        console.log(
+        debugLog(
             "investigating ",
             nodeId.toString(),
             (await session.read({ nodeId: nodeId, attributeId: AttributeIds.BrowseName })).value.value.toString()

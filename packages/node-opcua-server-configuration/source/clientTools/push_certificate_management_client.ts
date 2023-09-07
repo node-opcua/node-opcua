@@ -305,7 +305,6 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         const callMethodResult = await this.session.call(methodToCall);
 
         if (callMethodResult.statusCode.isGood()) {
-            // xx console.log(callMethodResult.toString());
             return {
                 certificateSigningRequest: callMethodResult.outputArguments![0].value,
                 statusCode: callMethodResult.statusCode

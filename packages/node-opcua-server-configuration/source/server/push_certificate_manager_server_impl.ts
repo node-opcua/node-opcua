@@ -485,9 +485,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 //xx const initialBuffer = Buffer.from("Lorem Ipsum");
                 //xx const encryptedBuffer = publicEncrypt_long(initialBuffer, certificatePEM, 256, 11);
                 //xx const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKeyPEM, 256);
-                console.log(certificatePEM);
-                //xx console.log(privateKeyPEM);
-                //xx console.log("decrypted buffer", decryptedBuffer.toString("utf-8"));
                 return { statusCode: StatusCodes.BadSecurityChecksFailed };
             }
             // a new certificate is provided for us,

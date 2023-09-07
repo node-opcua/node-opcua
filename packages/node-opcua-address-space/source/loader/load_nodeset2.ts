@@ -1701,7 +1701,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     // istanbul ignore next
                     // tslint:disable:no-console
                     if (types.isNativeError(err)) {
-                        console.log(" performPostLoadingTasks Err  => ", err.message, "\n", err);
+                        errorLog(" performPostLoadingTasks Err  => ", err.message, "\n", err);
                     }
                     await task(addressSpace1);
                 }
@@ -1750,7 +1750,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         finalSteps()
             .then(() => callback!())
             .catch((err1: Error) => {
-                console.log("Error ", renderError(err1));
+                errorLog("Error ", renderError(err1));
                 callback!(err1);
             });
     }

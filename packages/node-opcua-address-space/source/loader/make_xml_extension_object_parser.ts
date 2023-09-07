@@ -210,7 +210,7 @@ const partials: { [key: string]: ReaderStateParserLike } = {
     Variant: {
         finish(this: any) {
             /** to do */
-            console.log(" Missing  Implemntation contact sterfive.com!");
+            warningLog(" Missing  Implemntation contact sterfive.com!");
         }
     },
 
@@ -278,8 +278,6 @@ function _makeTypeReader(
 
     const { name, definition } = definitionMap.findDefinition(n);
     const dataTypeName = name;
-
-    // console.log("NAME = ", dataTypeNodeId.toString(), name, definition);
 
     let reader: ReaderStateParserLike = readerMap[dataTypeName]!;
 
@@ -355,7 +353,6 @@ function _makeTypeReader(
         readerMap[dataTypeName] = reader;
         return { name, parser: reader };
     } else if (definition instanceof EnumDefinition) {
-        //  console.log("xxxx enum found !", definition.toString());
         const turnToInt = (value: any) => {
             // Green_100
             return parseInt(value.split("_")[1], 10);

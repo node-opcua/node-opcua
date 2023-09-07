@@ -183,12 +183,12 @@ export class DataTypeFactory {
 
     // istanbul ignore next
     public dump(): void {
-        console.log(" dumping registered factories");
-        console.log(
+        warningLog(" dumping registered factories");
+        warningLog(
             " Factory ",
             [...this.structuredTypesNames()].sort().forEach((e) => e)
         );
-        console.log(" done");
+        warningLog(" done");
     }
 
     public registerAbstractStructure(dataTypeNodeId: NodeId, className: string, schema: IStructuredTypeSchema) {

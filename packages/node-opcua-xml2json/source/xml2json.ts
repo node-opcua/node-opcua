@@ -172,8 +172,7 @@ export class ReaderState extends ReaderStateBase {
      */
     public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
         this.currentLevel = level;
-        // console.log("wxxxx _on_startElement#" + this.name, elementName, this.currentLevel);
-
+   
         this.chunks = [];
         this.text = "";
 
@@ -181,7 +180,6 @@ export class ReaderState extends ReaderStateBase {
             this._startElement(elementName, attrs);
         }
         if (this.engine && Object.prototype.hasOwnProperty.call(this.parser, elementName)) {
-            // console.log("promoting ", elementName, this.level);
             this.engine._promote(this.parser[elementName], level, elementName, attrs);
         }
     }
@@ -197,7 +195,6 @@ export class ReaderState extends ReaderStateBase {
      * @protected
      */
     public _on_endElement(level: number, elementName: string): void {
-        // console.log("wxxxx _on_endElement#" + this.name, elementName, level, this.currentLevel);
         assert(this.attrs);
         this.chunks = this.chunks || [];
 
@@ -216,7 +213,6 @@ export class ReaderState extends ReaderStateBase {
                 (this.parent as any).parser &&
                 Object.prototype.hasOwnProperty.call((this.parent as any).parser, elementName)
             ) {
-                // console.log("xxx    demoting#" + this.name, elementName, this.level);
                 this.engine!._demote(this, level, elementName);
             }
         }

@@ -125,7 +125,6 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
 export function _clear_timer_if_any(shelvingState: UAShelvedStateMachineExImpl): void {
     if (shelvingState._timer) {
         clearTimeout(shelvingState._timer);
-        // xx console.log("_clear_timer_if_any shelvingState = ",shelvingState._timer,shelvingState.constructor.name);
         shelvingState._timer = null;
     }
 }
@@ -218,8 +217,6 @@ function _timedShelve_method(
 
     assert(inputArguments[0].dataType === DataType.Double); // Duration
     assert(inputArguments[0] instanceof Variant);
-
-    // xx console.log("inputArguments",inputArguments[0].toString());
 
     const proposedDuration = inputArguments[0].value; // as double (milliseconds)
     if (proposedDuration > maxTimeShelved) {

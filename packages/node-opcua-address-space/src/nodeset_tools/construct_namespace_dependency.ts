@@ -1,11 +1,12 @@
 import { INamespace, UADataType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
 import { StructureField } from "node-opcua-types";
-import { make_warningLog } from "node-opcua-debug";
+import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NamespacePrivate } from "../namespace_private";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
 
 const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog(__filename);
 
 function _constructNamespaceDependency(
     namespace: INamespace,
@@ -71,7 +72,7 @@ function _constructNamespaceDependency(
             } else {
                 // istanbul ignore next
                 if (dataTypeNodeId.value != 0) {
-                    console.log("Internal error: Cannot find dataType", dataTypeNodeId.toString());
+                    warningLog("Warning: Cannot find dataType", dataTypeNodeId.toString());
                 }
             }
         }
@@ -151,12 +152,16 @@ export function constructNamespaceDependency(namespace: INamespace, priorityTabl
 
     _constructNamespaceDependency(namespace, dependency, depMap, _visitedDataType, priorityTable);
 
-    doDebug && console.log("namespace : ", namespace.index, namespace.namespaceUri);
-    doDebug && console.log("   ", dependency.map((d)=>d.index + " " + d.namespaceUri).join("\n   "));
+    // istanbul ignore next
+    doDebug && debugLog("namespace : ", namespace.index, namespace.namespaceUri);
+    // istanbul ignore next
+    doDebug && debugLog("   ", dependency.map((d) => d.index + " " + d.namespaceUri).join("\n   "));
 
-    const sorted = dependency.sort((a, b) => priorityTable![a.index] < priorityTable![b.index] ? -1 : 1);
-    doDebug && console.log("sorted:")
-    doDebug && console.log("   ", sorted.map((d)=>d.index + " " + d.namespaceUri).join("\n   "));
+    const sorted = dependency.sort((a, b) => (priorityTable![a.index] < priorityTable![b.index] ? -1 : 1));
+    // istanbul ignore next
+    doDebug && debugLog("sorted:");
+    // istanbul ignore next
+    doDebug && debugLog("   ", sorted.map((d) => d.index + " " + d.namespaceUri).join("\n   "));
 
     return sorted;
 }

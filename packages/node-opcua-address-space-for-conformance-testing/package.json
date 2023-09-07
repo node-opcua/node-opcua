@@ -17,6 +17,7 @@
         "node-opcua-data-access": "2.112.0",
         "node-opcua-data-model": "2.112.0",
         "node-opcua-data-value": "2.112.0",
+        "node-opcua-debug": "2.110.0",
         "node-opcua-factory": "2.112.0",
         "node-opcua-nodeid": "2.110.0",
         "node-opcua-status-code": "2.110.0",
