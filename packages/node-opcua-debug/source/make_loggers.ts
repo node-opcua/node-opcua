@@ -68,15 +68,50 @@ interface Context {
     filename: string;
     callerline: number;
 }
+
+const contextCounter: Record<string,number> = {
+}
+const increaseCounter = (ctxt: Context)  =>  {
+    const { filename, callerline } = ctxt;
+    const key = `${filename}:${callerline}};`
+    const bucket = contextCounter[key];
+    if (!bucket) {
+        contextCounter[key] = 1;
+        return 1;
+    }
+    contextCounter[key] = contextCounter[key] +1;
+    return contextCounter[key];
+}
+
+
+const threshold = 100;
+
 type PrintFunc = (data?: any, ...argN: any[]) => void;
 const loggers = {
     errorLogger: (ctxt: Context, ...args: [any, ...any[]]) => {
+
+        const occurenceCount = increaseCounter(ctxt);
+        if (occurenceCount > threshold) {
+            return;
+        }
         const output = dump(ctxt, "E", args);
         messageLogger.emit("errorMessage", output);
+        if (occurenceCount === threshold) {
+            dump(ctxt, "E", [`This error occured more than ${threshold} times, no more error will be logged for this context`]);
+            return;
+        }
     },
     warningLogger: (ctxt: Context, ...args: [any, ...any[]]) => {
+        const occurenceCount = increaseCounter(ctxt);
+        if (occurenceCount > threshold) {
+            return;
+        }
         const output = dump(ctxt, "W", args);
         messageLogger.emit("warningMessage", output);
+        if (occurenceCount === threshold) {
+            dump(ctxt, "W", [`This warning occured more than ${threshold} times, no more warning will be logged for this context`]);
+            return;
+        }
     },
     debugLogger: (ctxt: Context, ...args: [any, ...any[]]) => {
         const output = dump(ctxt, "D", args);
