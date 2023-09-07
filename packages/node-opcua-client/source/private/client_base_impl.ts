@@ -123,6 +123,7 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
             // rebind backoff handler
             masterClient.listeners("backoff").forEach((handler: any) => client.on("backoff", handler));
 
+            // istanbul ignore next
             if (doDebug) {
                 client.on("backoff", (retryCount: number, delay: number) => {
                     debugLog(
@@ -146,7 +147,7 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
                         " (err =" +
                         err.message +
                         ")";
-                    debugLog(err.message);
+                    warningLog(err.message);
                 }
                 return innerCallback(err);
             });
@@ -231,8 +232,9 @@ function _verify_serverCertificate(
             return callback(err);
         }
         if (status !== StatusCodes.Good) {
-            // do it again for debug purposes
+            // istanbul ignore next
             if (doDebug) {
+                // do it again for debug purposes
                 certificateManager.verifyCertificate(serverCertificate, (err1: Error | null, status1?: VerificationStatus) => {
                     debugLog(status1);
                 });
@@ -384,7 +386,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     private _instanceNumber: number;
     private _transportSettings: TransportSettings;
     private _transportTimeout?: number;
-    
+
     public clientCertificateManager: OPCUACertificateManager;
 
     public isUnusable() {
@@ -404,6 +406,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this._internalState = internalState;
     }
     public emit(eventName: string | symbol, ...others: any[]): boolean {
+        // istanbul ignore next
         if (doDebug) {
             debugLog(chalk.cyan(`  Client ${this._instanceNumber} ${this.clientName} emitting `), chalk.magentaBright(eventName));
         }
@@ -1455,6 +1458,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             this._byteRead += this._secureChannel.bytesRead;
             this._transactionsPerformed += this._secureChannel.transactionsPerformed;
             this._timedOutRequestCount += this._secureChannel.timedOutRequestCount;
+            // istanbul ignore next
             if (doDebug) {
                 const h = `Client ${this._instanceNumber} ${this.clientName}`;
                 debugLog(chalk.cyan(`${h} byteWritten          = `), this._byteWritten);
@@ -1466,6 +1470,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
     private _destroy_secure_channel() {
         if (this._secureChannel) {
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(
                     " DESTROYING SECURE CHANNEL (isTransactionInProgress ?",

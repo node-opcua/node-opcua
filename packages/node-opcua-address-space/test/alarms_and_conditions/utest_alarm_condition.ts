@@ -213,8 +213,8 @@ export function utest_alarm_condition(test: any): void {
 
                         newValue.value.value.text.should.eql("Unshelved");
                         values.length.should.be.greaterThan(2);
+                        // istanbul ignore next
                         if (doDebug) {
-                            // tslint:disable:no-console
                             debugLog("                     unshelveTime value history = ", values);
                         }
                         resolve();

@@ -1048,6 +1048,7 @@ function _condition_refresh_method(
     // arguments : IntegerId SubscriptionId
     assert(inputArguments.length === 1);
     const addressSpace = context.object!.addressSpace as AddressSpacePrivate;
+    // istanbul ignore next
     if (doDebug) {
         debugLog(chalk.red(" ConditionType.ConditionRefresh ! subscriptionId ="), inputArguments[0].toString());
     }

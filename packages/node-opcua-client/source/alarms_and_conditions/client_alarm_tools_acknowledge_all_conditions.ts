@@ -154,6 +154,7 @@ export async function acknowledgeAllConditions(session: ClientSession, message: 
             promises.push(acknowledgeCondition(session, eventStuff, message));
         }
         const result = await Promise.all(promises);
+        // istanbul ignore next
         if (doDebug) {
             debugLog("Acked all results: ", result.map((e) => e.toString()).join(" "));
         }
@@ -176,6 +177,7 @@ export async function confirmAllConditions(session: ClientSession, message: stri
             promises.push(confirmCondition(session, eventStuff, message));
         }
         const result = await Promise.all(promises);
+        // istanbul ignore next
         if (doDebug) {
             debugLog("Confirm all results: ", result.map((e) => e.toString()).join(" "));
         }

@@ -773,17 +773,18 @@ export class AddressSpace implements AddressSpacePrivate {
                 // add a property , but with a null variant
                 eventData._createValue(fullBrowsePath, node, { dataType: DataType.Null });
 
+                // istanbul ignore next
                 if (doDebug) {
                     if (node.modellingRule === "Mandatory") {
                         // tslint:disable:no-console
-                        console.log(
+                        errorLog(
                             chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
                                 self.browseName.toString() +
                                 " => " +
                                 chalk.cyan(lowerName)
                         );
                     } else {
-                        console.log(
+                        errorLog(
                             chalk.yellow(
                                 "Warning : AddressSpace#constructEventData(eventType,options)" + " cannot find property "
                             ) +

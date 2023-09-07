@@ -15,7 +15,7 @@ import { LineFile, lowerFirstLetter } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import assert from "node-opcua-assert";
 import { ModellingRuleType } from "node-opcua-address-space-base";
-import { make_warningLog } from "node-opcua-debug";
+import { make_warningLog, make_debugLog } from "node-opcua-debug";
 import {
     _convertNodeIdToDataTypeAsync,
     getBrowseName,
@@ -48,6 +48,7 @@ import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "
 import { _exportDataTypeToTypescript } from "./_dataType";
 import { getCorrespondingJavascriptType2 } from "./private/get_corresponding_data_type";
 const warningLog = make_warningLog("typescript");
+const debugLog = make_debugLog("typescript");
 const doDebug = false;
 const baseExtension = "_Base";
 
@@ -897,10 +898,11 @@ export async function _convertTypeToTypescript(
     {
         if (nodeClass === NodeClass.VariableType) {
             if (classDef.dataTypeImport) {
+                // istanbul ignore next
                 if (doDebug) {
-                    console.log(chalk.red(" ----------------> ", classDef.browseName));
+                    debugLog(chalk.red(" ----------------> ", classDef.browseName));
                     classDef.dataTypeImport.forEach((a) => {
-                        console.log(chalk.red(" ------------------------> ", a.module, a.name, a.namespace));
+                        debugLog(chalk.red(" ------------------------> ", a.module, a.name, a.namespace));
                     });
                 }
                 classDef.dataTypeImport.forEach(cache.ensureImported.bind(cache));

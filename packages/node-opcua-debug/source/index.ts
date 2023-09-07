@@ -7,3 +7,4 @@ export { checkDebugFlag, setDebugFlag, make_debugLog, make_errorLog, make_warnin
 export { makeBufferFromTrace, inlineText } from "./make_buffer_from_trace";
 export { hexDump } from "./hexDump";
 export { dump, dumpIf } from "./dump_if";
+export { LogLevel, setLogLevel, setDebugLogger, setWarningLogger, setErrorLogger } from "./make_loggers";

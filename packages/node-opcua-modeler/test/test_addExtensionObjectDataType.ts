@@ -100,6 +100,7 @@ describe("addExtensionObjectDataType", function (this: any) {
         // should be possible to create object
         const o = addressSpace.constructExtensionObject(dataType, { name: "JoeDoe" });
 
+        // istanbul ignore next
         if (doDebug) {
             console.log("symbol =");
             console.log(csv);

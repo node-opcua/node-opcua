@@ -57,7 +57,7 @@ const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | Node
  *      });
  *
  * see also AddressSpace#findCorrespondingBasicDataType
- * 
+ *
  * for an enumeration dataType will be DataType.Int32
  */
 function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId, callback: Callback<DataType>) {
@@ -158,8 +158,8 @@ function convertToVariantArray(inputArgsDef: ArgumentEx[], inputArgs: Record<str
     return inputArguments;
 }
 
-const thenify =require("thenify");
- 
+const thenify = require("thenify");
+
 function makeFunction(obj: any, methodName: string) {
     return thenify.withCallback(function functionCaller(
         this: any,
@@ -272,7 +272,6 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
             },
 
             (callback: ErrorCallback) => {
-                
                 const methodObj: MethodDescription = {
                     browseName: methodName,
                     executableFlag: false,
@@ -295,9 +294,9 @@ function add_method(proxyManager: UAProxyManager, obj: any, reference: Reference
         ],
         (err) => {
             if (err) {
-                errorLog("Error =>",err);
+                errorLog("Error =>", err);
             }
-            outerCallback(err!)
+            outerCallback(err!);
         }
     );
 }
@@ -512,7 +511,7 @@ export function readUAStructure(proxyManager: UAProxyManager, obj: { nodeId: Nod
         if (err) {
             return callback(err);
         }
-
+        // istanbul ignore next
         if (doDebug) {
             debugLog("Components", t(browseResults[0].references));
             debugLog("Properties", t(browseResults[1].references));

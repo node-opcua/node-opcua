@@ -4,7 +4,7 @@
 import { Service, Bonjour, Browser } from "sterfive-bonjour-service";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
-import {  ServerOnNetwork, serviceToString } from "node-opcua-service-discovery";
+import { ServerOnNetwork, serviceToString } from "node-opcua-service-discovery";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename) || true;
@@ -28,7 +28,7 @@ export class MDNSResponder {
 
         this.registeredServers = [];
 
-        this.multicastDNS = new Bonjour(); 
+        this.multicastDNS = new Bonjour();
         this.recordId = 0;
 
         this.browser = this.multicastDNS.find({
@@ -42,9 +42,9 @@ export class MDNSResponder {
         };
 
         const addService = (service: Service) => {
-            if (doDebug) {
-                debugLog("adding server ", service.name, "port =", service.port);
-            }
+            // istanbul ignore next
+            doDebug && debugLog("adding server ", service.name, "port =", service.port);
+
             // example:
             // {
             //     addresses: [ '172.18.207.145', 'fe80::d4e3:352c:9f8b:d0db' ],
@@ -113,16 +113,15 @@ export class MDNSResponder {
         };
 
         this.browser.on("up", (service: Service) => {
-            if (doDebug) {
-                debugLog("MDNSResponder : service is up with  ", serviceToString(service));
-            }
+            // istanbul ignore next
+            doDebug && debugLog("MDNSResponder : service is up with  ", serviceToString(service));
             addService(service);
         });
 
         this.browser.on("down", (service: Service) => {
-            if (doDebug) {
-                debugLog("MDNSResponder : service is down with  ", serviceToString(service));
-            }
+            // istanbul ignore next
+            doDebug && debugLog("MDNSResponder : service is down with  ", serviceToString(service));
+
             removeService(service);
         });
     }

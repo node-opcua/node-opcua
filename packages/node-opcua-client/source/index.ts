@@ -37,7 +37,7 @@ export const utils = utils1;
 import * as crypto_util1 from "node-opcua-crypto";
 export const crypto_utils = crypto_util1;
 
-export { hexDump } from "node-opcua-debug";
+export { hexDump, LogLevel, setLogLevel, setDebugLogger, setWarningLogger, setErrorLogger } from "node-opcua-debug";
 
 ///
 export {

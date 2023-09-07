@@ -238,6 +238,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         const key = normalizeName(varName);
         // istanbul ignore next
         if (!Object.prototype.hasOwnProperty.call(this._map, key)) {
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(" cannot find node " + varName);
                 debugLog("  map=", Object.keys(this._map).join(" "));

@@ -651,6 +651,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         const invalid_published_request = parts[0];
         for (const publishData of invalid_published_request) {
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.cyan(" CANCELING TIMEOUT PUBLISH REQUEST "));
             }
@@ -662,6 +663,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         publishData.callback(publishData.request, response);
     }
     public _send_valid_response_for_request(publishData: PublishData, response: PublishResponse): void {
+        // istanbul ignore next
         if (doDebug) {
             debugLog("_send_response_for_request ", response.toString());
         }

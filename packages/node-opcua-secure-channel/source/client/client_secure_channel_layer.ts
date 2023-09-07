@@ -489,6 +489,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             .on("abandon", (requestId: number) => {
                 const requestData = this._requests[requestId];
 
+                // istanbul ignore next
                 if (doDebug) {
                     debugLog("request id = ", requestId, "message was ", requestData);
                 }
@@ -512,6 +513,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                 let requestData = this._requests[requestId];
 
+                // istanbul ignore next
                 if (doDebug) {
                     debugLog("request id = ", requestId, err, "message was ", requestData);
                 }
@@ -1073,6 +1075,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         timeout = Math.min(timeout, (lifeTime * 75) / 100);
         timeout = Math.max(timeout, 50);
 
+        // istanbul ignore next
         if (doDebug) {
             debugLog(
                 chalk.red.bold(" time until next security token renewal = "),

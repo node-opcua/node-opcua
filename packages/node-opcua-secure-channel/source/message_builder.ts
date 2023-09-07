@@ -447,6 +447,8 @@ export class MessageBuilder extends MessageBuilderBase {
 
             debugLog("};");
         }
+        // istanbul ignore next
+
         if (doDebug) {
             // OpcUA part 2 V 1.02 page 15
             // 4.11 OPC UA Security Related Services
@@ -611,6 +613,7 @@ export class MessageBuilder extends MessageBuilderBase {
         // securityToken may have been renewed
         const securityTokenData = this._select_matching_token(symmetricAlgorithmSecurityHeader.tokenId);
         if (!securityTokenData) {
+            // istanbul ignore next
             if (doDebug) {
                 debugLog("Security token data for token " + symmetricAlgorithmSecurityHeader.tokenId + " doesn't exist");
             }

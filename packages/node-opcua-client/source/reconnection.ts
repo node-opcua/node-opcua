@@ -174,12 +174,14 @@ function repair_client_session_by_recreating_a_new_session(
     // and may be upgraded in between, we have to invalidate the extra data type manager
     invalidateExtraDataTypeManager(session);
 
+    // istanbul ignore next
     if (doDebug) {
-        doDebug && debugLog(" repairing client session by_recreating a new session for old session ", session.sessionId.toString());
+        debugLog(" repairing client session by_recreating a new session for old session ", session.sessionId.toString());
     }
 
     //  TO DO : it is possible that session is already closed while we get there
     if (session.hasBeenClosed()) {
+        // istanbul ignore next
         doDebug && debugLog(chalk.bgWhite.red("Aborting reactivation of old session because user requested session to be closed"));
         return callback(new Error("reconnection cancelled due to session termination"));
     }
@@ -194,6 +196,7 @@ function repair_client_session_by_recreating_a_new_session(
                 if (session.hasBeenClosed()) {
                     return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
                 }
+                // istanbul ignore next
                 doDebug && debugLog(chalk.bgWhite.red("    => suspend old session publish engine...."));
                 session.getPublishEngine().suspend(true);
                 innerCallback();
@@ -218,6 +221,7 @@ function repair_client_session_by_recreating_a_new_session(
                     newSession,
                     newSession.userIdentityInfo!,
                     (err: Error | null, session1?: ClientSessionImpl) => {
+                        // istanbul ignore next
                         doDebug && debugLog("    =>  activating a new session .... Done err=", err ? err.message : "null");
                         if (err) {
                             doDebug &&
@@ -235,7 +239,9 @@ function repair_client_session_by_recreating_a_new_session(
                                 if (err2) {
                                     warningLog("closing session", err2.message);
                                 }
+                                // istanbul ignore next
                                 doDebug && debugLog("the temporary replacement session is now closed");
+                                // istanbul ignore next
                                 doDebug && debugLog(" err ", err.message, "propagated upwards");
                                 innerCallback(err);
                             });

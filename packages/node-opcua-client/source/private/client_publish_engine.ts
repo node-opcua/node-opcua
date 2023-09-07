@@ -337,6 +337,7 @@ export class ClientSidePublishEngine {
                     warningLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
                 }
             } else {
+                // istanbul ignore next
                 if (doDebug) {
                     debugLog(chalk.cyan("ClientSidePublishEngine.prototype.internalSendPublishRequest callback "));
                 }
@@ -390,6 +391,7 @@ export class ClientSidePublishEngine {
                 // delegate notificationData to the subscription callback
                 subscription.onNotificationMessage(notificationMessage);
             } catch (err) {
+                // istanbul ignore next
                 if (doDebug) {
                     debugLog(err);
                     debugLog("Exception in onNotificationMessage");
@@ -418,6 +420,7 @@ export class ClientSidePublishEngine {
 
             // istanbul ignore next
             if (doDebug) {
+                // istanbul ignore next
                 debugLog(
                     chalk.bgCyan.yellow.bold(" republish Request for subscription"),
                     request.subscriptionId,

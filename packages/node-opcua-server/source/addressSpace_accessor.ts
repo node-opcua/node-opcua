@@ -1,5 +1,11 @@
 import chalk from "chalk";
-import { AddressSpace, ensureDatatypeExtracted, SessionContext, resolveOpaqueOnAddressSpace, callMethodHelper } from "node-opcua-address-space";
+import {
+    AddressSpace,
+    ensureDatatypeExtracted,
+    SessionContext,
+    resolveOpaqueOnAddressSpace,
+    callMethodHelper
+} from "node-opcua-address-space";
 import { ISessionContext, ContinuationData, BaseNode, UAVariable } from "node-opcua-address-space-base";
 import assert from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
@@ -9,11 +15,24 @@ import { resolveNodeId, coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { doDebug, debugLog } from "node-opcua-pki";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { BrowseDescriptionOptions, BrowseResult, ReadValueIdOptions, WriteValue, CallMethodRequest, CallMethodResultOptions, HistoryReadValueId, HistoryReadDetails, HistoryReadResult, ReadRequestOptions, HistoryReadRequest, ReadProcessedDetails, BrowseDescription, AggregateConfiguration } from "node-opcua-types";
+import {
+    BrowseDescriptionOptions,
+    BrowseResult,
+    ReadValueIdOptions,
+    WriteValue,
+    CallMethodRequest,
+    CallMethodResultOptions,
+    HistoryReadValueId,
+    HistoryReadDetails,
+    HistoryReadResult,
+    ReadRequestOptions,
+    HistoryReadRequest,
+    ReadProcessedDetails,
+    BrowseDescription,
+    AggregateConfiguration
+} from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
 import { IAddressSpaceAccessor } from "./i_address_space_accessor";
-
-
 
 function checkReadProcessedDetails(historyReadDetails: ReadProcessedDetails): StatusCode {
     if (!historyReadDetails.aggregateConfiguration) {
@@ -374,6 +393,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
                     "\n" +
                     "HistoryReadDetails " +
                     historyReadDetails.toString();
+                // istanbul ignore next
                 if (doDebug) {
                     debugLog(chalk.cyan("ServerEngine#_historyReadNode "), chalk.white.bold(msg));
                 }

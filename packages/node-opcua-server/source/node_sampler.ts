@@ -55,6 +55,7 @@ export function appendToTimer(monitoredItem: MonitoredItem): string {
                     counter++;
                 }
             }
+            // istanbul ignore next
             if (doDebug) {
                 const elapsed = hrtime(start);
                 debugLog(

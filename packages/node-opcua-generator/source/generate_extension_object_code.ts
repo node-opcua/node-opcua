@@ -160,6 +160,7 @@ export async function generate(filename: string, generatedTypescriptFilename: st
                 jsonEncodingNodeId,
                 xmlEncodingNodeId
             };
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(
                     " data=",

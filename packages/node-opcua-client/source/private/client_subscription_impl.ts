@@ -760,6 +760,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
             ClientSubscription.ignoreNextWarning = false;
 
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.yellow.bold("registering callback"));
                 debugLog(chalk.yellow.bold("publishingInterval               "), this.publishingInterval);

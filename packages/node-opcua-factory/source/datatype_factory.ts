@@ -261,9 +261,9 @@ export class DataTypeFactory {
 
     public associateWithBinaryEncoding(className: string, expandedNodeId: ExpandedNodeId): void {
         const structureInfo = this.getStructureInfoByTypeName(className);
-        if (doDebug) {
-            debugLog(" associateWithBinaryEncoding ", className, expandedNodeId.toString());
-        }
+        // if (doDebug) {
+        //     debugLog(" associateWithBinaryEncoding ", className, expandedNodeId.toString());
+        // }
 
         verifyExpandedNodeId(expandedNodeId);
 

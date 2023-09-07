@@ -306,6 +306,7 @@ async function _extractDataTypeDictionaryFromDefinition(
     }
     // to do put in logical order
     const dataTypeDefinitionsSorted = sortStructure(dataTypeDefinitions);
+    // istanbul ignore next
     if (doDebug) {
         debugLog("order ", dataTypeDefinitionsSorted.map((a) => a.className + " " + a.dataTypeNodeId).join(" ->  "));
     }
@@ -475,9 +476,7 @@ async function _exploreDataTypeDefinition(
             const ref = references[i];
             const binaryEncoding = binaryEncodingNodeIds[i];
             const name = ref.browseName!.name!.toString();
-            if (doDebug) {
-                debugLog("      type ", name.padEnd(30, " "), binaryEncoding.toString());
-            }
+            debugLog("      type ", name.padEnd(30, " "), binaryEncoding.toString());
             // let's verify that constructor is operational
             try {
                 const Constructor = dataTypeFactory.getStructureInfoByTypeName(name).constructor;
@@ -578,6 +577,7 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
     };
     const result = await browseAll(session, nodeToBrowse);
 
+    // istanbul ignore next
     if (doDebug) {
         debugLog(result.statusCode.toString());
         debugLog(result.references?.map((r: any) => r.browseName?.toString()).join(" "));
@@ -617,6 +617,7 @@ export async function populateDataTypeManager103(session: IBasicSession, dataTyp
             infos.push(info);
 
             if (!isDictionaryDeprecated && rawSchema.length > 0) {
+                // istanbul ignore next
                 if (doDebug) {
                     debugLog("schema", rawSchema);
                 }

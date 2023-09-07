@@ -443,6 +443,7 @@ export class MonitoredItem extends EventEmitter {
         this._node = null;
         this._semantic_version = 0;
 
+        // istanbul ignore next
         if (doDebug) {
             debugLog("Monitoring ", options.itemToMonitor.toString());
         }
@@ -504,6 +505,7 @@ export class MonitoredItem extends EventEmitter {
     }
 
     public dispose(): void {
+        // istanbul ignore next
         if (doDebug) {
             debugLog("DISPOSING MONITORED ITEM", this._node!.nodeId.toString());
         }
@@ -1313,6 +1315,7 @@ export class MonitoredItem extends EventEmitter {
     }
 
     private _enqueue_event(eventFields: any[]) {
+        // istanbul ignore next
         if (doDebug) {
             debugLog(" MonitoredItem#_enqueue_event");
         }

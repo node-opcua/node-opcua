@@ -321,6 +321,7 @@ export function utest_limit_alarm(test: any): void {
             spyOnEvent.getCall(1).args[0]["eventType"].value.toString().should.eql("ns=0;i=9906");
             spyOnEvent.getCall(2).args[0]["eventType"].value.toString().should.eql("ns=0;i=9906");
 
+            // istanbul ignore next
             if (doDebug) {
                 dumpEvent(addressSpace, fields, spyOnEvent.getCall(1).args[0]);
                 dumpEvent(addressSpace, fields, spyOnEvent.getCall(2).args[0]);
@@ -328,6 +329,7 @@ export function utest_limit_alarm(test: any): void {
 
             alarm.setEnabledState(false);
             spyOnEvent.callCount.should.eql(4); // disabled Event must have been received
+            // istanbul ignore next
             if (doDebug) {
                 dumpEvent(addressSpace, fields, spyOnEvent.getCall(3).args[0]);
             }
@@ -336,6 +338,7 @@ export function utest_limit_alarm(test: any): void {
             spyOnEvent.callCount.should.eql(4); // no more new EVENT, as alarm is disabled
 
             alarm.setEnabledState(true);
+            // istanbul ignore next
             if (doDebug) {
                 dumpEvent(addressSpace, fields, spyOnEvent.getCall(4).args[0]);
             }

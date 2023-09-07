@@ -901,6 +901,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      */
     private _getSubscriptionDiagnosticsArray() {
         if (!this.addressSpace) {
+            // istanbul ignore next
             if (doDebug) {
                 console.warn("ServerSession#_getSubscriptionDiagnosticsArray : no addressSpace");
             }

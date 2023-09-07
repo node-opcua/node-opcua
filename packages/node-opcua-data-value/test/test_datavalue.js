@@ -12,6 +12,7 @@ const { DataValue, extractRange } = require("..");
 
 require("should");
 const doDebug = process.env.DEBUG;
+const debugLog = doDebug ? console.log : function () { };
 
 describe("DataValue", () => {
     it("should create a empty DataValue and encode it as a 1-Byte length block", () => {
@@ -509,9 +510,10 @@ describe("DataValue", () => {
             }
         });
 
+        // istanbul ignore next
         if (doDebug) {
-            console.log(dataValue.toJSON());
-            console.log(dataValue.toString());
+            debugLog(dataValue.toJSON());
+            debugLog(dataValue.toString());
         }
     });
 });

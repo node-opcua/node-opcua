@@ -853,6 +853,7 @@ export class Subscription extends EventEmitter {
         };
     }
     public dispose(): void {
+        // istanbul ignore next
         if (doDebug) {
             debugLog("Subscription#dispose", this.id, this.monitoredItemCount);
         }
@@ -1201,11 +1202,13 @@ export class Subscription extends EventEmitter {
         });
 
         if (foundIndex === -1) {
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.red("acknowledging sequence FAILED !!! "), chalk.cyan(sequenceNumber.toString()));
             }
             return StatusCodes.BadSequenceNumberUnknown;
         } else {
+            // istanbul ignore next
             if (doDebug) {
                 debugLog(chalk.yellow("acknowledging sequence "), chalk.cyan(sequenceNumber.toString()));
             }
@@ -1377,6 +1380,8 @@ export class Subscription extends EventEmitter {
 
         this.resetLifeTimeAndKeepAliveCounters();
 
+        
+        // istanbul ignore next
         if (doDebug) {
             debugLog(
                 "Subscription sending a notificationMessage subscriptionId=",

@@ -881,10 +881,12 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                             break;
                         }
                         let captureXmlBody = this.bodyXML;
+                        // istanbul ignore next
                         if (doDebug) {
                             debugLog("xxxx ", chalk.yellow(captureXmlBody));
                         }
                         // this is a user defined Extension Object
+                        // istanbul ignore next
                         debugLog(
                             "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
                         );

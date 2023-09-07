@@ -134,6 +134,7 @@ function _automatically_unshelve(shelvingState: UAShelvedStateMachineExImpl) {
     assert(shelvingState._timer, "expecting timerId to be set");
     shelvingState._timer = null;
 
+    // istanbul ignore next
     if (doDebug) {
         debugLog("Automatically unshelving variable ", shelvingState.browseName.toString());
     }
@@ -157,6 +158,7 @@ function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachin
     shelvingState._sheveldTime = new Date(); // now
     shelvingState._duration = duration;
 
+    // istanbul ignore next
     if (doDebug) {
         debugLog("shelvingState._duration", shelvingState._duration);
     }

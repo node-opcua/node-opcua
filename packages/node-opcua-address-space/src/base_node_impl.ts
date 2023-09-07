@@ -38,7 +38,7 @@ import {
     AccessRestrictionsFlag
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dumpIf, make_warningLog, make_errorLog } from "node-opcua-debug";
+import { dumpIf, make_debugLog,  make_warningLog, make_errorLog } from "node-opcua-debug";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
@@ -85,6 +85,8 @@ import { coerceRolePermissions } from "./role_permissions";
 const doDebug = false;
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
+const debugLog = make_debugLog(__filename);
+
 
 function defaultBrowseFilterFunc(context?: ISessionContext): boolean {
     return true;
@@ -1021,7 +1023,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             // istanbul ignore next
             if (doDebug) {
                 // tslint:disable-next-line:no-console
-                console.log(chalk.bgWhite.red("Ignoring reserved keyword                                     " + name));
+                debugLog(chalk.bgWhite.red("Ignoring reserved keyword                                     " + name));
             }
             return;
         }
@@ -1790,14 +1792,14 @@ function install_components_as_object_properties(parentObj: BaseNode) {
         if (Object.prototype.hasOwnProperty.call(reservedNames, name)) {
             // ignore reserved names
             if (doDebug) {
-                console.log(chalk.bgWhite.red("Ignoring reserved keyword                                               " + name));
+                debugLog(chalk.bgWhite.red("Ignoring reserved keyword                                               " + name));
             }
             continue;
         }
 
         // ignore reserved names
         if (doDebug) {
-            console.log("Installing property " + name, " on ", parentObj.browseName.toString());
+            debugLog("Installing property " + name, " on ", parentObj.browseName.toString());
         }
 
         /* istanbul ignore next */

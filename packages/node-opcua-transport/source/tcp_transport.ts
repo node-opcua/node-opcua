@@ -383,9 +383,8 @@ export class TCP_transport extends EventEmitter {
         // let use a large timeout here to make sure that we not conflict with our internal timeout
         this._socket.setTimeout(this.timeout);
 
-        if (doDebug) {
-            debugLog("  TCP_transport#_install_socket ", this.name);
-        }
+        // istanbul ignore next
+        doDebug && debugLog("  TCP_transport#_install_socket ", this.name);
 
         this._install_packetAssembler();
 
