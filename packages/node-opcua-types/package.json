@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-types",
-    "version": "2.112.0",
+    "version": "2.113.0",
     "description": "pure nodejs OPCUA SDK - module types",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,18 +13,18 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.105.0",
-        "node-opcua-basic-types": "2.111.0",
+        "node-opcua-basic-types": "2.113.0",
         "node-opcua-binary-stream": "2.110.0",
-        "node-opcua-data-model": "2.112.0",
-        "node-opcua-data-value": "2.112.0",
+        "node-opcua-data-model": "2.113.0",
+        "node-opcua-data-value": "2.113.0",
         "node-opcua-enum": "2.110.0",
-        "node-opcua-extension-object": "2.112.0",
-        "node-opcua-factory": "2.112.0",
-        "node-opcua-generator": "2.112.0",
-        "node-opcua-nodeid": "2.110.0",
-        "node-opcua-numeric-range": "2.112.0",
+        "node-opcua-extension-object": "2.113.0",
+        "node-opcua-factory": "2.113.0",
+        "node-opcua-generator": "2.113.0",
+        "node-opcua-nodeid": "2.113.0",
+        "node-opcua-numeric-range": "2.113.0",
         "node-opcua-status-code": "2.110.0",
-        "node-opcua-variant": "2.112.0"
+        "node-opcua-variant": "2.113.0"
     },
     "devDependencies": {
         "should": "^13.2.3"
