@@ -1,18 +1,26 @@
 process.env.NODEOPCUADEBUG = ""; // "CLIENT{TRACE-SECURITY}";
 // process.env.NODEOPCUADEBUG = "CLIENT{TRACE-SECURITY};TRANSPORT{CHUNK-HELACK}";
 
-const { OPCUAClient, UserTokenType, MessageSecurityMode, SecurityPolicy } = require("node-opcua-client");
+const { setLogLevel, LogLevel, OPCUAClient, UserTokenType, MessageSecurityMode, SecurityPolicy } = require("node-opcua-client");
 const chalk = require("chalk");
 
-const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
+const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26544";
+
+setLogLevel(LogLevel.Critic);
 
 async function test(security, endpoint) {
     console.log({ security, endpoint });
     const client = OPCUAClient.create({
         ...security,
-        endpointMustExist: false
-    })
-    ;
+        endpointMustExist: false,
+        connectionStrategy
+        : {
+            initialDelay: 500,
+            maxDelay: 1000,
+            maxRetry: 3,
+            randomisationFactor: 0
+        }
+    });
     try {
         client.on("backoff", (nbRetry, delay) => console.log("backoff #", nbRetry, " retrying in ", delay / 1000.0, "seconds"));
         await client.withSessionAsync(endpoint, async (session) => {

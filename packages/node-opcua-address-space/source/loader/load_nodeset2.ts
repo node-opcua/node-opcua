@@ -641,11 +641,12 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 this.enumValueType = new EnumValueType({
                     description: undefined,
                     displayName: undefined,
-                    value: [0, 0] // Int64
+                    value: coerceInt64(-1)
                 });
             },
             parser: {
                 Value: {
+                    // note: Value may be missing, in this case value shall be set to -1(64)
                     finish(this: any) {
                         // Low part
                         this.parent.enumValueType.value = coerceInt64(parseInt(this.text, 10));

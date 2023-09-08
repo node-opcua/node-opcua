@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { coerceInt32, coerceUInt64, Int64, isValidUInt64 } from "node-opcua-basic-types";
+import { coerceInt32, coerceInt64toInt32, coerceUInt64, Int32, Int64, isValidUInt64 } from "node-opcua-basic-types";
 import { coerceLocalizedText, LocalizedText, QualifiedNameLike } from "node-opcua-data-model";
 import { DataValue, DataValueT } from "node-opcua-data-value";
 import { StatusCodes } from "node-opcua-status-code";
@@ -46,10 +46,7 @@ export interface UAMultiStateValueDiscreteImpl<T, DT extends DataType> {
 
     readValueAsync(context: ISessionContext | null, callback?: any): any;
 }
-export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
-    extends UAVariableImpl
-    implements UAMultiStateValueDiscreteEx<T, DT>
-{
+export class UAMultiStateValueDiscreteImpl<T, DT extends DataType> extends UAVariableImpl implements UAMultiStateValueDiscreteEx<T, DT> {
     public setValue(value: string | number | Int64): void {
         if (typeof value === "string") {
             const enumValues = this.enumValues.readValue().value.value;
@@ -99,15 +96,16 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      *
      * @private
      */
-    public _enumValueIndex(): any {
+    public _enumValueIndex(): Record<Int32, DTEnumValue> {
         // construct an index to quickly find a EnumValue from a value
-        const enumValues = this.enumValues.readValue().value.value;
-        const enumValueIndex: any = {};
+        const enumValues: DTEnumValue[] = this.enumValues.readValue().value.value;
+        const enumValueIndex: Record<Int32, DTEnumValue> = {};
         if (!enumValues || !enumValues.forEach) {
             return enumValueIndex;
         }
-        enumValues.forEach((e: any) => {
-            enumValueIndex[e.value[1]] = e;
+        enumValues.forEach((e: DTEnumValue) => {
+            const index = coerceInt64toInt32(e.value);
+            enumValueIndex[index] = e;
         });
         return enumValueIndex;
     }
@@ -147,7 +145,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
         assert(!((value as any) instanceof Variant));
         let valueAsText1 = "Invalid";
         if (enumValueIndex[value]) {
-            valueAsText1 = enumValueIndex[value].displayName;
+            valueAsText1 = enumValueIndex[value].displayName.text || `Invalid:${value}`;
         }
         const result = new Variant({
             dataType: DataType.LocalizedText,

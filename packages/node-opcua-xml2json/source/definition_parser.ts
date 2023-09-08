@@ -86,6 +86,9 @@ export const _definitionParser: ReaderStateParserLike = {
                 }
                 if (this.attrs.Value !== undefined) {
                     obj.value = parseInt(this.attrs.Value, 10);
+                } else {
+                    // when not specified value = -1 , on enumeration at least
+                    obj.value = -1;
                 }
                 if (this.attrs.ValueRank !== undefined) {
                     obj.valueRank = parseInt(this.attrs.ValueRank, 10);

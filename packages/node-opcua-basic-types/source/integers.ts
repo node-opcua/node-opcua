@@ -182,7 +182,8 @@ export function constructInt64(high: UInt32, low: UInt32): Int64 {
     return [high, low];
 }
 
-export function coerceUInt64(value: number | UInt64 | Int32 | string | null): UInt64 {
+export function 
+coerceUInt64(value: number | UInt64 | Int32 | string | null): UInt64 {
     let high;
     let low;
     let v;
@@ -314,10 +315,38 @@ export function coerceInt32(value: null | Int64 | UInt64 | number | string): Int
     }
     if (value instanceof Array) {
         // Int64 as a [high,low]
-        return value[1] + value[0] * 0xffffffff;
+        return value[1] + value[0] * 0x1000000;
     }
     if (typeof value === "number") {
         return value;
     }
     return parseInt(value, 10);
+}
+
+const signMask = 1n << 31n;
+const shiftHigh = 1n << 32n;
+export function Int64ToBigInt(value: Int64): bigint {
+    const h = BigInt(value[0]);
+    const l = BigInt(value[1]);
+    if ((h & signMask) === signMask) {
+        const v = (h & ~signMask) * shiftHigh + l - 0x8000000000000000n;
+        return v;
+    } else {
+        const v = h * shiftHigh + l;
+        return v;
+    }
+}
+export function UInt64ToBigInt(value: UInt64): bigint {
+    const h = BigInt(value[0]);
+    const l = BigInt(value[1]);
+    const v = h * shiftHigh + l;
+    return v;
+}
+
+export function coerceInt64toInt32(value: Int64 | Int32): Int32 {
+    if (value instanceof Array) {
+        const b = Int64ToBigInt(value);
+        return Number(b);
+    }
+    return value;
 }

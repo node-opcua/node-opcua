@@ -30,6 +30,7 @@ import * as tools from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { BaseNode_getCache } from "./base_node_private";
+import { coerceInt32, coerceInt64toInt32 } from "node-opcua-basic-types";
 
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
@@ -230,7 +231,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
             definition = enumValues.map((e: any) => {
                 return {
                     name: e.displayName.text,
-                    value: e.value[1]
+                    value: coerceInt64toInt32(e.value)
                 };
             });
         }
