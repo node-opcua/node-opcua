@@ -4,7 +4,7 @@
         "strictFunctionTypes": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "target": "es2015",
+        "target": "es2020",
         "module": "commonjs",
         "declaration": true,
         "sourceMap": true,
