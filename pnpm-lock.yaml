@@ -2074,6 +2074,9 @@ importers:
 
   packages/node-opcua-nodeset-di:
     dependencies:
+      node-opcua-address-space:
+        specifier: 2.113.0
+        version: link:../node-opcua-address-space
       node-opcua-address-space-base:
         specifier: 2.113.0
         version: link:../node-opcua-address-space-base
@@ -2086,6 +2089,9 @@ importers:
       node-opcua-data-model:
         specifier: 2.113.0
         version: link:../node-opcua-data-model
+      node-opcua-data-value:
+        specifier: 2.113.0
+        version: link:../node-opcua-data-value
       node-opcua-extension-object:
         specifier: 2.113.0
         version: link:../node-opcua-extension-object
