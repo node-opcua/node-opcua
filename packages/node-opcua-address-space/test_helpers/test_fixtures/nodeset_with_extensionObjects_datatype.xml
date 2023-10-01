@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+    xmlns:ns1="http://sterfive.com/UA/test/Type.xsd">
+    <NamespaceUris>
+        <Uri>http://sterfive.com/UA/test/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://sterfive.com/UA/test/" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.02" PublicationDate="2022-11-01T00:00:00.000Z"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+    </Aliases>
+    <!--ReferenceTypes-->
+    <!--DataTypes-->
+    <UADataType NodeId="ns=1;i=1000" BrowseName="1:BaseType1">
+        <DisplayName>BaseType1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1002</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1003</Reference>
+        </References>
+        <Definition Name="1:BaseType1">
+            <Field Name="Field1" DataType="i=11"/>
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="ns=1;i=1001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1003" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UADataType NodeId="ns=1;i=1004" BrowseName="1:BaseType2">
+        <DisplayName>BaseType2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1000</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1005</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1006</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=1007</Reference>
+        </References>
+        <Definition Name="1:BaseType2">
+            <Field Name="Field2" DataType="i=10"/>
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="ns=1;i=1005" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1006" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=1007" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <!--ObjectTypes-->
+    <!--VariableTypes-->
+    <!--Other Nodes-->
+</UANodeSet>

@@ -15,7 +15,6 @@ import { DataValue } from "node-opcua-data-value";
 import { resolveNodeId } from "node-opcua-nodeid";
 import {
     AddressSpace,
-    adjustNamespaceArray,
     ensureDatatypeExtracted,
     PseudoSession,
     resolveOpaqueOnAddressSpace,
@@ -80,7 +79,7 @@ describe("Testing AutoID custom types", async function (this: any) {
     }
 
     it("should construct a ScanResult ", async () => {
-        interface ScanResult extends ExtensionObject { }
+        interface ScanResult extends ExtensionObject {}
 
         const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
         nsAutoId.should.eql(2);
@@ -282,6 +281,21 @@ describe("Testing AutoID custom types", async function (this: any) {
 
         debugLog(reload_v2.toString());
     });
+    it("RfidScanResult to NodeSET2.xml", async () => {
+        const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
+        const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
+        if (!rfidScanResultDataTypeNode) throw new Error("cannot find rfidScanResultDataTypeNode");
+
+        // rfidScanResultDataTypeNode.$partialDefinition;
+
+        const ns = addressSpace.getNamespace(nsAutoId);
+        // const XMLWriter = require("xml-writer");
+        const doc = ns.toNodeset2XML();
+        console.log(doc);
+        //  const xmlWriter: XmlWriter = new XMLWriter();
+        //  (rfidScanResultDataTypeNode as any).dumpXML(xmlWriter);
+        //  const t = xmlWriter.toString();
+    });
 });
 
 function addRfidScanResultVariable(addressSpace: AddressSpace) {
@@ -380,8 +394,6 @@ describe("resolving Opaque Structure", function () {
         def.fields![4].valueRank.should.eql(1);
     });
 
-
-
     it("GHV-3 should decode this opaque structure", async () => {
         const session = new PseudoSession(addressSpace);
         const dataValue = await session.read({ nodeId: "ns=1;s=ScanResult", attributeId: AttributeIds.Value });
@@ -393,16 +405,15 @@ describe("resolving Opaque Structure", function () {
 
         s1.should.eql(
             "16010493130150000000" +
-            "0000000004000000436f646502000000080000005363616e4461746100000000000000000200000001000000190000000040763d8abad4010200000002000000130000000040763d8abad40101000000"
+                "0000000004000000436f646502000000080000005363616e4461746100000000000000000200000001000000190000000040763d8abad4010200000002000000130000000040763d8abad40101000000"
         );
     });
 
     xit("GHV-4 should decode this opaque structure", async () => {
-
         const buffer = Buffer.from(
             "0000000004000000436f646502000000080000005363616e44617461000000000000000004000000436f64650200" +
-            "0000080000005363616e4461746100000000000000000200000001000000190000000040763d8abad4010200000002" +
-            "000000130000000040763d8abad40101000000",
+                "0000080000005363616e4461746100000000000000000200000001000000190000000040763d8abad4010200000002" +
+                "000000130000000040763d8abad40101000000",
             "hex"
         );
         console.log(

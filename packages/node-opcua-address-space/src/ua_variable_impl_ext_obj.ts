@@ -523,11 +523,16 @@ export function _bindExtensionObject(
         return uaVariable.$extensionObject;
     }
 
-    // istanbul ignore next
     if (uaVariable.dataTypeObj.isAbstract) {
-        warningLog("Warning the DataType associated with this Variable is abstract ", uaVariable.dataTypeObj.browseName.toString());
-        warningLog("You need to provide a extension object yourself ");
-        throw new Error("bindExtensionObject requires a extensionObject as associated dataType is only abstract");
+        // istanbul ignore next
+        if (!optionalExtensionObject) {
+            warningLog(
+                "Warning the DataType associated with this Variable is abstract ",
+                uaVariable.dataTypeObj.browseName.toString()
+            );
+            warningLog("You need to provide a extension object yourself ");
+            throw new Error("bindExtensionObject requires a extensionObject as associated dataType is only abstract");
+        }
     }
 
     const s = uaVariable.readValue();

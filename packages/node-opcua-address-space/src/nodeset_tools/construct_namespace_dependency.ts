@@ -1,9 +1,14 @@
 import { INamespace, UADataType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { NodeClass } from "node-opcua-data-model";
 import { StructureField } from "node-opcua-types";
+import { DataType } from "node-opcua-basic-types";
+import { ExtensionObject } from "node-opcua-extension-object";
+import { Variant } from "node-opcua-variant";
+import assert from "node-opcua-assert";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NamespacePrivate } from "../namespace_private";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
+import { UAVariableImpl } from "../ua_variable_impl";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
@@ -43,6 +48,9 @@ function _constructNamespaceDependency(
         }
     }
     function exploreDataTypes(dataTypeNode: UADataType): void {
+        if (!dataTypeNode) {
+            return;
+        }
         const dataType = dataTypeNode.nodeId;
         if (_visitedDataType.has(dataType.toString())) {
             return;
@@ -63,6 +71,33 @@ function _constructNamespaceDependency(
         }
         _visitedDataType.add(dataType.toString());
     }
+
+    function exploreExtensionObject(e: ExtensionObject) {
+        assert(!(e instanceof Variant));
+        const nodeId = e.schema.encodingDefaultXml || e.schema.dataTypeNodeId || e.schema.dataTypeNodeId;
+        consider(nodeId.namespace);
+        // istanbul ignore next
+        if (e.schema.dataTypeNodeId.isEmpty()) {
+            warningLog("Cannot find dataTypeNodeId for ", e.schema.name);
+        }
+        const d = addressSpace.findNode(e.schema.dataTypeNodeId) as UADataType | null;
+        // istanbul ignore next
+        if (!d) return;
+        exploreDataTypes(d);
+    }
+    function exploreDataValue(uaVariable: UAVariableImpl) {
+        if (uaVariable.getBasicDataType() !== DataType.ExtensionObject) {
+            return;
+        }
+        const variant = uaVariable.$dataValue.value;
+        const value: any | any[] = variant.value;
+        if (!value) return;
+        if (Array.isArray(value)) {
+            value.forEach(exploreExtensionObject);
+        } else {
+            exploreExtensionObject(value);
+        }
+    }
     for (const node of namespace_.nodeIterator()) {
         if (node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.VariableType) {
             const dataTypeNodeId = (node as UAVariable | UAVariableType).dataType;
@@ -75,6 +110,8 @@ function _constructNamespaceDependency(
                     warningLog("Warning: Cannot find dataType", dataTypeNodeId.toString());
                 }
             }
+            const nodeV = node as UAVariableImpl;
+            exploreDataValue(nodeV);
         }
         // visit all references
         const references = (<BaseNodeImpl>node).ownReferences();
@@ -88,7 +125,6 @@ function _constructNamespaceDependency(
     }
 }
 
-
 export function hasHigherPriorityThan(namespaceIndex1: number, namespaceIndex2: number, priorityTable: number[]) {
     const order1 = priorityTable[namespaceIndex1];
     const order2 = priorityTable[namespaceIndex2];
@@ -96,22 +132,21 @@ export function hasHigherPriorityThan(namespaceIndex1: number, namespaceIndex2: 
 }
 
 /**
- * 
- * @param namespace 
- * @returns the order 
- * 
+ *
+ * @param namespace
+ * @returns the order
+ *
  *      ---
  *  ua, own , di  => 0 , 2,  1
- * 
+ *
  *      ---
  *  ua, own , di , kitchen , own2,  adi  => 0 , 2,  3, 1
- * 
+ *
  *                           ---
  *  ua, own , di , kitchen , own2,  adi  => 0 , 2,  3,  5, 1
  */
 export function constructNamespacePriorityTable(namespace: INamespace): number[] {
-
-    // Namespace 0 will always be 0 
+    // Namespace 0 will always be 0
     // Namespaces with no requiredModel will be considered as instance namespaces and will added at the end
     // in the same order as they appear,
     // Namespace with requiredModels are considered to be companion specification, so already loaded in the correct order
@@ -119,8 +154,8 @@ export function constructNamespacePriorityTable(namespace: INamespace): number[]
     const addressSpace = namespace.addressSpace;
     const namespaces = addressSpace.getNamespaceArray();
 
-    const namespaceWithReq = namespaces.filter((n) => (n.getRequiredModels() !== undefined) && n.index !== 0);
-    const namespaceWithoutReq = namespaces.filter((n) => (n.getRequiredModels() === undefined) && n.index !== 0);
+    const namespaceWithReq = namespaces.filter((n) => n.getRequiredModels() !== undefined && n.index !== 0);
+    const namespaceWithoutReq = namespaces.filter((n) => n.getRequiredModels() === undefined && n.index !== 0);
 
     const priorityList: number[] = [0];
     let counter = 1;

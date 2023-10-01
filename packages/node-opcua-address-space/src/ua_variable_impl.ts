@@ -1,11 +1,7 @@
 /* eslint-disable max-statements */
-/* eslint-disable complexity */
 /**
  * @module node-opcua-address-space
  */
-// tslint:disable:no-bitwise
-// tslint:disable:no-console
-// tslint:disable:max-line-length
 import { types } from "util";
 import chalk from "chalk";
 
@@ -1425,7 +1421,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             // has not yet been loaded !
             return true;
         }
-
+        if (dataType.nodeId.namespace === 0 && dataType.nodeId.value === DataType.ExtensionObject) {
+            return true;
+        }
         const Constructor = addressSpace.getExtensionObjectConstructor(this.dataType);
 
         if (this.valueRank === -1) {

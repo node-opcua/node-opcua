@@ -502,7 +502,7 @@ function _dumpVariantExtensionObjectValue(
     const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
     // const encodingDefaultXml = (getStructureTypeConstructor(schema.name) as any).encodingDefaultXml;
     const encodingDefaultXml = value.schema.encodingDefaultXml;
-    if (!encodingDefaultXml) {
+    if (!encodingDefaultXml || encodingDefaultXml.isEmpty()) {
         warningLog("dataType Name ", name, "with ", dataTypeNodeId.toString(), " does not have xml encoding");
         // throw new Error("Extension Object doesn't provide a XML ");
         return;
@@ -531,9 +531,10 @@ function _dumpVariantExtensionObjectValue(
     xw.endElement();
 }
 
-function _dumpVariantExtensionObjectValue2(xw: XmlWriter, dataTypeNode: UADataType, value: ExtensionObject) {
-    const addressSpace = dataTypeNode.addressSpace;
+function _dumpVariantExtensionObjectValue2(xw: XmlWriter, addressSpace: IAddressSpace, value: ExtensionObject) {
+    const dataTypeNodeId = value.schema.dataTypeNodeId;
     const definitionMap = makeDefinitionMap(addressSpace);
+    const dataTypeNode = addressSpace.findDataType(dataTypeNodeId)!;
     _dumpVariantExtensionObjectValue(xw, dataTypeNode.nodeId, definitionMap, value);
 }
 
@@ -604,22 +605,25 @@ function _isDefaultValue(value: Variant): boolean {
 }
 
 // eslint-disable-next-line max-statements
-function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Variant) {
+function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: Variant) {
     const addressSpace = node.addressSpace;
 
     // istanbul ignore next
-    if (value === null || value === undefined) {
+    if (variant === null || variant === undefined) {
         return;
     }
-    assert(value instanceof Variant);
+    assert(variant instanceof Variant);
 
     const dataTypeNode = addressSpace.findDataType(node.dataType);
+
+    // istanbul ignore next
     if (!dataTypeNode) {
-        debugLog("Cannot find dataType:", node.dataType);
+        debugLog("Cannot find dataType:", node.dataType.toString());
         return;
     }
+
     const dataTypeName = dataTypeNode.browseName.name!.toString();
-    const baseDataTypeName = DataType[value.dataType];
+    const baseDataTypeName = DataType[variant.dataType];
 
     if (baseDataTypeName === "Null") {
         return;
@@ -627,48 +631,48 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, value: Var
     assert(typeof baseDataTypeName === "string");
 
     // determine if dataTypeName is a ExtensionObject
-    const isExtensionObject = value.dataType === DataType.ExtensionObject;
+    const isExtensionObject = variant.dataType === DataType.ExtensionObject;
 
-    if (_isDefaultValue(value)) {
+    if (_isDefaultValue(variant)) {
         return;
     }
     xw.startElement("Value");
 
     const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
     if (isExtensionObject) {
-        const encodeXml = _dumpVariantExtensionObjectValue2.bind(null, xw, dataTypeNode);
+        const encodeXml = _dumpVariantExtensionObjectValue2.bind(null, xw, node.addressSpace);
 
-        switch (value.arrayType) {
+        switch (variant.arrayType) {
             case VariantArrayType.Matrix:
             case VariantArrayType.Array:
                 startElementEx(xw, uax, `ListOf${baseDataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-                value.value.forEach(encodeXml);
+                variant.value.forEach(encodeXml);
                 restoreDefaultNamespace(xw);
                 xw.endElement();
                 break;
             case VariantArrayType.Scalar:
-                encodeXml(value.value);
+                encodeXml(variant.value);
                 break;
             default:
                 errorLog(node.toString());
-                errorLog("_dumpValue : unsupported arrayType: ", value.arrayType);
+                errorLog("_dumpValue : unsupported arrayType: ", variant.arrayType);
         }
     } else {
-        const encodeXml = _dumpVariantValue.bind(null, xw, value.dataType, node);
-        switch (value.arrayType) {
+        const encodeXml = _dumpVariantValue.bind(null, xw, variant.dataType, node);
+        switch (variant.arrayType) {
             case VariantArrayType.Matrix:
             case VariantArrayType.Array:
                 startElementEx(xw, uax, `ListOf${dataTypeName}`, "http://opcfoundation.org/UA/2008/02/Types.xsd");
-                value.value.forEach(encodeXml);
+                variant.value.forEach(encodeXml);
                 restoreDefaultNamespace(xw);
                 xw.endElement();
                 break;
             case VariantArrayType.Scalar:
-                encodeXml(value.value);
+                encodeXml(variant.value);
                 break;
             default:
                 errorLog(node.toString());
-                errorLog("_dumpValue : unsupported arrayType: ", value.arrayType);
+                errorLog("_dumpValue : unsupported arrayType: ", variant.arrayType);
         }
     }
 
@@ -952,7 +956,6 @@ function dumpUAView(xw: XmlWriter, node: UAView) {
     xw.endElement();
 
     dumpAggregates(xw, node);
-
 }
 
 function dumpUADataType(xw: XmlWriter, node: UADataType) {
@@ -1054,11 +1057,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             debugLog(
                 " cannot find datatype " +
-                node.dataType +
-                " for node " +
-                node.browseName.toString() +
-                " id =" +
-                node.nodeId.toString()
+                    node.dataType +
+                    " for node " +
+                    node.browseName.toString() +
+                    " id =" +
+                    node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));
@@ -1266,7 +1269,6 @@ function writeAliases(xw: XmlWriter, aliases: Record<string, NodeIdString>) {
 }
 
 function constructNamespaceTranslationTable(dependency: INamespace[], exportedNamespace: INamespace): ITranslationTable {
-
     const translationTable: ITranslationTable = {};
     assert(dependency[0].namespaceUri === "http://opcfoundation.org/UA/");
 
@@ -1278,7 +1280,9 @@ function constructNamespaceTranslationTable(dependency: INamespace[], exportedNa
     }
     for (let i = 1; i < dependency.length; i++) {
         const dep = dependency[i];
-        if (exportedNamespace && exportedNamespace === dep) { continue; }
+        if (exportedNamespace && exportedNamespace === dep) {
+            continue;
+        }
         translationTable[dep.index] = counter++;
     }
     return translationTable;
@@ -1290,7 +1294,7 @@ function dumpReferenceType(xw: XmlWriter, referenceType: UAReferenceType) {
 
     dumpCommonAttributes(xw, referenceType);
 
-    const isSymmetric = (!referenceType.inverseName || referenceType.inverseName?.text === referenceType.browseName?.name);
+    const isSymmetric = !referenceType.inverseName || referenceType.inverseName?.text === referenceType.browseName?.name;
     if (isSymmetric) {
         xw.writeAttribute("Symmetric", "true");
     }
@@ -1363,7 +1367,7 @@ UADataTypeImpl.prototype.dumpXML = function (xw: XmlWriter) {
 
 UAViewImpl.prototype.dumpXML = function (xw: XmlWriter) {
     dumpUAView(xw, this);
-}
+};
 
 function makeTypeXsd(namespaceUri: string): string {
     return namespaceUri.replace(/\/$/, "") + "/Type.xsd";
@@ -1415,7 +1419,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.startElement("NamespaceUris");
 
     // let's sort the dependencies in the same order as the translation table
-    const sortedDependencies = dependency.sort((a, b) => translationTable[a.index] > translationTable[b.index] ? 1 : -1);
+    const sortedDependencies = dependency.sort((a, b) => (translationTable[a.index] > translationTable[b.index] ? 1 : -1));
 
     doDebug && debugLog(sortedDependencies.map((a) => a.index + " + " + a.namespaceUri).join("\n"));
     doDebug && debugLog("translation table ", translationTable);
