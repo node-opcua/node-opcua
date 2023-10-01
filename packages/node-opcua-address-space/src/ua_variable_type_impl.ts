@@ -13,9 +13,8 @@ import {
     ModellingRuleType,
     INamespace,
     UAVariable,
-    UAVariableType,
+    UAVariableType
 } from "node-opcua-address-space-base";
-
 
 import { coerceQualifiedName, NodeClass, QualifiedName, BrowseDirection, AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
@@ -36,6 +35,7 @@ import * as tools from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
+import { _getBasicDataType } from "./get_basic_datatype";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -306,8 +306,10 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 
         return instance;
     }
+    public getBasicDataType(): DataType {
+        return _getBasicDataType(this);
+    }
 }
-
 
 /**
  * @method hasChildWithBrowseName
@@ -365,4 +367,3 @@ export function assertUnusedChildBrowseName(addressSpace: AddressSpacePrivate, o
         );
     }
 }
-

@@ -89,7 +89,9 @@ function _constructNamespaceDependency(
         if (uaVariable.getBasicDataType() !== DataType.ExtensionObject) {
             return;
         }
+        if (!uaVariable.$dataValue) return;
         const variant = uaVariable.$dataValue.value;
+        if (!variant) return;
         const value: any | any[] = variant.value;
         if (!value) return;
         if (Array.isArray(value)) {

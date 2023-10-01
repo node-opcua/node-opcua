@@ -93,6 +93,7 @@ import {
     _touchValue
 } from "./ua_variable_impl_ext_obj";
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
+import { _getBasicDataType } from "./get_basic_datatype";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -710,23 +711,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     }
 
     public getBasicDataType(): DataType {
-        if (this._basicDataType) {
-            return this._basicDataType;
-        }
-        if (this.dataType.namespace === 0 && this.dataType.value === 0) {
-            return DataType.Null;
-        }
-        const addressSpace = this.addressSpace;
-        if (!addressSpace) {
-            // may be node has been deleted already
-            return DataType.Null;
-        }
-        const dataTypeNode = addressSpace.findDataType(this.dataType)!;
-        const basicDataType =
-            dataTypeNode && dataTypeNode.nodeClass === NodeClass.DataType ? dataTypeNode.getBasicDataType() : DataType.Null;
-        // const basicDataType = addressSpace.findCorrespondingBasicDataType(this.dataType);
-        this._basicDataType = basicDataType;
-        return basicDataType;
+        return _getBasicDataType(this);
     }
     public adjustVariant(variant: Variant): Variant {
         return adjustVariant(variant, this.valueRank, this.getBasicDataType());

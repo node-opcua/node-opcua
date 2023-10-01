@@ -45,3 +45,36 @@ describe("testing UADataType -  Attribute", () => {
         //xx debugLog(dataTypeDefinition.toString());
     });
 });
+
+describe("testing UADataType -  Attribute", () => {
+    let addressSpace: AddressSpace;
+    before(async () => {
+        addressSpace = AddressSpace.create();
+        const nodesetFilename = [nodesets.standard];
+        await generateAddressSpace(addressSpace, nodesetFilename);
+        addressSpace.registerNamespace("PRIVATE");
+    });
+    after(async () => {
+        addressSpace.dispose();
+    });
+
+    it("DTX5 should extract Definition from DataType structure", async () => {
+        const ns = addressSpace.getOwnNamespace();
+
+        
+        const dataType = ns.createDataType({
+
+            browseName: "MyDataType",
+            isAbstract: true,
+            subtypeOf: "Structure",
+            partialDefinition: [
+                {
+                    dataType: "Double",
+                    description: "the list of values",
+                    name: "Values",
+                    valueRank: 1
+                }
+            ]
+        });
+    });
+});

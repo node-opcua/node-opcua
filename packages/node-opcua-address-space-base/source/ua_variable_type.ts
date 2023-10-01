@@ -20,7 +20,7 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
     nodeId?: NodeIdLike;
     minimumSamplingInterval?: number;
     propertyOf?: NodeIdLike | UAObject | UAObjectType | UAVariable | UAVariableType | UAMethod;
-    value?: BindVariableOptions;    
+    value?: BindVariableOptions;
     /**
      * This attribute indicates whether the Value attribute of the Variableis an array and how many dimensions the array has.
      * It may have the following values:
@@ -31,8 +31,8 @@ export interface InstantiateVariableOptions extends InstantiateOptions {
      *   * Any (−2): The value can be a scalar or an array with any number of dimensions.
      *   * ScalarOrOneDimension (−3): The value can be a scalar or a one dimensional array.
      *   * All DataTypes are considered to be scalar, even if they have array-like semantics like ByteString and String.
-     * 
-     * 
+     *
+     *
      * Note: the valueRank of the instantiated variable must be compatible with the valueRank of the VariableType.
      */
     valueRank?: number;
@@ -50,12 +50,13 @@ export declare class UAVariableType extends BaseNode implements VariableAttribut
 
     public isAbstract: boolean;
 
-    public isSubtypeOf(type:  UAVariableType | NodeIdLike): boolean;
+    public isSubtypeOf(type: UAVariableType | NodeIdLike): boolean;
 
     /** @deprecated - use isSubtypeOf instead */
-    public isSupertypeOf(type:  UAVariableType | NodeIdLike): boolean;
+    public isSupertypeOf(type: UAVariableType | NodeIdLike): boolean;
 
     public instantiate(options: InstantiateVariableOptions): UAVariable;
+    public getBasicDataType(): DataType;
 }
 
 export interface UAVariableTypeT<T, DT extends DataType> extends UAVariableType {
