@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-chunkmanager",
-    "version": "2.113.0",
+    "version": "2.114.0",
     "description": "pure nodejs OPCUA SDK - module chunkmanager",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,15 +12,15 @@
     },
     "dependencies": {
         "node-opcua-assert": "2.105.0",
-        "node-opcua-basic-types": "2.113.0",
-        "node-opcua-binary-stream": "2.110.0",
-        "node-opcua-buffer-utils": "2.110.0",
-        "node-opcua-factory": "2.113.0",
-        "node-opcua-packet-assembler": "2.113.0"
+        "node-opcua-basic-types": "2.114.0",
+        "node-opcua-binary-stream": "2.114.0",
+        "node-opcua-buffer-utils": "2.114.0",
+        "node-opcua-factory": "2.114.0",
+        "node-opcua-packet-assembler": "2.114.0"
     },
     "devDependencies": {
         "@types/node": "20.8.0",
-        "node-opcua-debug": "2.113.0",
+        "node-opcua-debug": "2.114.0",
         "should": "^13.2.3",
         "source-map-support": "^0.5.21"
     },
