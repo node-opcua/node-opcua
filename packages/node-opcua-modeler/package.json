@@ -36,7 +36,7 @@
     "devDependencies": {
         "node-opcua-leak-detector": "2.113.0",
         "should": "^13.2.3",
-        "sinon": "^15.2.0"
+        "sinon": "^16.0.0"
     },
     "repository": {
         "type": "git",

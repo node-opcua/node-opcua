@@ -44,7 +44,7 @@
         "node-opcua-service-secure-channel": "2.113.0",
         "node-opcua-variant": "2.113.0",
         "should": "^13.2.3",
-        "sinon": "^15.2.0",
+        "sinon": "^16.0.0",
         "thenify": "^3.3.1",
         "underscore": "^1.13.6",
         "yargs": "15.4.1"
@@ -66,7 +66,7 @@
     "homepage": "http://node-opcua.github.io/",
     "files": [],
     "dependencies": {
-        "@types/bcryptjs": "^2.4.3",
+        "@types/bcryptjs": "^2.4.4",
         "bcryptjs": "^2.4.3"
     }
 }

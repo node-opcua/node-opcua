@@ -16,8 +16,8 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.14.198",
-        "@types/semver": "^7.5.1",
+        "@types/lodash": "4.14.199",
+        "@types/semver": "^7.5.3",
         "async": "^3.2.4",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
@@ -66,7 +66,7 @@
         "node-opcua-service-filter": "2.113.0",
         "node-opcua-test-fixtures": "2.113.0",
         "should": "^13.2.3",
-        "sinon": "^15.2.0",
+        "sinon": "^16.0.0",
         "source-map-support": "^0.5.21"
     },
     "author": "Etienne Rossignon",
