@@ -17,7 +17,7 @@ import { ReaderStateParserLike, XmlAttributes } from "./xml2json";
 //  (IsOptionSet)
 //
 //
-type UAString = string |null;
+type UAString = string | null;
 type NodeIdLike = string | null;
 type Int32 = number;
 type UInt32 = number;
@@ -25,33 +25,31 @@ type UABoolean = boolean;
 type LocalizedTextLike = string | null;
 
 export interface StructureFieldOptions {
-    name?: UAString ;
-    description?: (LocalizedTextLike | null);
-    dataType?: (NodeIdLike | null);
-    valueRank?: Int32 ;
-    arrayDimensions?: UInt32 [] | null;
-    maxStringLength?: UInt32 ;
-    isOptional?: UABoolean ;
+    name?: UAString;
+    description?: LocalizedTextLike | null;
+    dataType?: NodeIdLike | null;
+    valueRank?: Int32;
+    arrayDimensions?: UInt32[] | null;
+    maxStringLength?: UInt32;
+    isOptional?: UABoolean;
 }
 interface AA {
     parent: {
         definitionFields: StructureFieldOptions[];
         nFields: number;
         definitionName: string;
-    
-    },
+    };
     array: StructureFieldOptions[];
     isUnion: boolean;
 }
 interface FieldParser {
-    description?: (LocalizedTextLike | null);
+    description?: LocalizedTextLike | null;
     parent: AA;
     attrs: Record<string, string>;
 }
 export const _definitionParser: ReaderStateParserLike = {
     init(this: AA, name: string, attrs: XmlAttributes) {
-        assert(!this.parent.
-            nFields || this.parent.definitionFields.length === 0);
+        assert(!this.parent.nFields || this.parent.definitionFields.length === 0);
         this.parent.definitionFields = [];
         this.parent.definitionName = attrs.SymbolicName || attrs.Name;
         this.array = this.parent.definitionFields;
@@ -86,9 +84,6 @@ export const _definitionParser: ReaderStateParserLike = {
                 }
                 if (this.attrs.Value !== undefined) {
                     obj.value = parseInt(this.attrs.Value, 10);
-                } else {
-                    // when not specified value = -1 , on enumeration at least
-                    obj.value = -1;
                 }
                 if (this.attrs.ValueRank !== undefined) {
                     obj.valueRank = parseInt(this.attrs.ValueRank, 10);
@@ -100,8 +95,9 @@ export const _definitionParser: ReaderStateParserLike = {
                     obj.arrayDimensions = this.attrs.ArrayDimensions.split(",").map((e: string) => parseInt(e, 10));
                 }
 
-                obj.isOptional = this.attrs.IsOptional === "true" ? true : false;
-
+                if (this.attrs.IsOptional !== undefined) {
+                    obj.isOptional = this.attrs.IsOptional === "true" ? true : false;
+                }
                 if (this.attrs.SymbolicName !== undefined) {
                     obj.symbolicName = this.attrs.SymbolicName;
                 }

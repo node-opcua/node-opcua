@@ -26,35 +26,30 @@ describe("Definition Parser", () => {
                 {
                     dataType: "Int32",
                     name: "Id",
-                    isOptional: false,
                     allowSubtype: false,
-                    valueRank: -1
+                    valueRank: -1,
                 },
                 {
                     dataType: "Double",
                     name: "HighValue",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "Double",
                     name: "LowValue",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "LocalizedText",
                     name: "Comments",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     dataType: "EUInformation",
                     name: "EngineeringUnits",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 }
@@ -68,7 +63,7 @@ describe("Definition Parser", () => {
     <Field DataType="String" Name="IsoGrade"/>
     <Field DataType="Int16" Name="RMin"/>
     <Field SymbolicName="Decode_" DataType="Int16" Name="Decode"/>
-    <Field DataType="Int16" Name="PrintGain"/>
+    <Field DataType="Int16" Name="PrintGain" IsOptional="true"/>
 </Definition>`;
         const parser = new Xml2Json(definitionReaderStateParser);
         const a = parser.parseStringSync(xmlDoc);
@@ -80,14 +75,12 @@ describe("Definition Parser", () => {
                 {
                     name: "IsoGrade",
                     dataType: "String",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     name: "RMin",
                     dataType: "Int16",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 },
@@ -95,15 +88,14 @@ describe("Definition Parser", () => {
                     name: "Decode",
                     dataType: "Int16",
                     symbolicName: "Decode_",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1
                 },
                 {
                     name: "PrintGain",
                     dataType: "Int16",
-                    isOptional: false,
                     allowSubtype: false,
+                    isOptional: true,
                     valueRank: -1
                 }
             ]
@@ -172,7 +164,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "ResultIdDataType",
                     name: "ResultId",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description:
@@ -180,8 +171,8 @@ describe("Definition Parser", () => {
                 },
                 {
                     dataType: "Boolean",
-                    isOptional: true,
                     allowSubtype: false,
+                    isOptional: true,
                     valueRank: -1,
                     name: "HasTransferableDataOnFile",
                     description: "Indicates that additional data for this result can be retrieved by temporary file transfer."
@@ -189,7 +180,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "Boolean",
                     name: "IsPartial",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description: "Indicates whether the result is the partial result of a total result."
@@ -205,7 +195,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "ResultStateDataType",
                     name: "ResultState",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description:
@@ -241,7 +230,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "RecipeIdInternalDataType",
                     name: "InternalRecipeId",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description:
@@ -267,7 +255,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "ConfigurationIdDataType",
                     name: "InternalConfigurationId",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description:
@@ -276,7 +263,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "JobIdDataType",
                     name: "JobId",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description:
@@ -285,7 +271,6 @@ describe("Definition Parser", () => {
                 {
                     dataType: "UtcTime",
                     name: "CreationTime",
-                    isOptional: false,
                     allowSubtype: false,
                     valueRank: -1,
                     description: "CreationTime indicates the time when the result was created."
