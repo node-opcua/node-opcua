@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client-crawler",
-    "version": "2.114.0",
+    "version": "2.115.0",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "description": "pure nodejs OPCUA SDK - module client-crawler",
@@ -14,9 +14,9 @@
     "dependencies": {
         "async": "^3.2.4",
         "chalk": "4.1.2",
-        "node-opcua-address-space": "2.114.0",
+        "node-opcua-address-space": "2.115.0",
         "node-opcua-assert": "2.105.0",
-        "node-opcua-client": "2.114.0",
+        "node-opcua-client": "2.115.0",
         "node-opcua-constants": "2.114.0",
         "node-opcua-data-model": "2.114.0",
         "node-opcua-data-value": "2.114.0",
