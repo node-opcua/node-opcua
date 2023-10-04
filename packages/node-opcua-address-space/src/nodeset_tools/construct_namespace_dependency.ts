@@ -28,6 +28,9 @@ function _constructNamespaceDependency(
         if (hasHigherPriorityThan(namespaceIndex, namespace.index, priorityTable)) {
             return;
         }
+        considerStrongly(namespaceIndex);
+    }
+    function considerStrongly(namespaceIndex: number) {
         if (!depMap.has(namespaceIndex)) {
             depMap.add(namespaceIndex);
             const namespace = addressSpace.getNamespace(namespaceIndex);
@@ -41,7 +44,7 @@ function _constructNamespaceDependency(
     function exploreDataTypeField(field: StructureField) {
         const dataType = field.dataType;
         const namespaceIndex = dataType.namespace;
-        consider(namespaceIndex);
+        considerStrongly(namespaceIndex);
         const dataTypeNode = addressSpace.findDataType(field.dataType);
         if (dataTypeNode) {
             exploreDataTypes(dataTypeNode);
@@ -62,7 +65,7 @@ function _constructNamespaceDependency(
         }
 
         const namespaceIndex = dataType.namespace;
-        consider(namespaceIndex);
+        considerStrongly(namespaceIndex);
         if (dataTypeNode.isStructure()) {
             const definition = dataTypeNode.getStructureDefinition();
             for (const field of definition.fields || []) {
@@ -75,7 +78,7 @@ function _constructNamespaceDependency(
     function exploreExtensionObject(e: ExtensionObject) {
         assert(!(e instanceof Variant));
         const nodeId = e.schema.encodingDefaultXml || e.schema.dataTypeNodeId || e.schema.dataTypeNodeId;
-        consider(nodeId.namespace);
+        considerStrongly(nodeId.namespace);
         // istanbul ignore next
         if (e.schema.dataTypeNodeId.isEmpty()) {
             warningLog("Cannot find dataTypeNodeId for ", e.schema.name);
