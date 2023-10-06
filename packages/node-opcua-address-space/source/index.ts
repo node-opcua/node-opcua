@@ -41,7 +41,7 @@ export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_di
 export { promoteToMultiStateValueDiscrete } from "../src/data_access/ua_multistate_value_discrete_impl";
 export { promoteToTwoStateDiscrete } from "../src/data_access/ua_two_state_discrete_impl";
 export { validateDataType } from "../src/data_access/ua_multistate_value_discrete_impl";
-
+export { validateDataTypeCorrectness  } from "../src/validate_data_type_correctness";
 export * from "./ua_root_folder";
 export * from "./session_context";
 export * from "./pseudo_session";
