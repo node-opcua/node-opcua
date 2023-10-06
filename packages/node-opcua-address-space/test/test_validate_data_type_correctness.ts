@@ -135,4 +135,12 @@ describe("testing validateDataTypeCorrectness", () => {
         should.exist(dataType);
         validateDataTypeCorrectness(addressSpace, dataType, DataType.QualifiedName, false).should.eql(false);
     });
+
+    it("DataType.Null: should accept DataType.Null if allow Null", async () => {
+        const ns = addressSpace.getNamespaceIndex("http://myorganisation.org/customTypes");
+        ns.should.not.eql(-1);
+        const dataType = addressSpace.findDataType("MyEnumeration", ns)!.nodeId;
+        should.exist(dataType);
+        validateDataTypeCorrectness(addressSpace, dataType, DataType.Null, true).should.eql(true);
+    });
 });

@@ -6,9 +6,7 @@ import { make_debugLog, make_warningLog, checkDebugFlag, make_errorLog } from "n
 import { NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename) || process.env.TEST;
-const errorLog = make_errorLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType): UADataType {
     assert(addressSpace);
@@ -22,8 +20,7 @@ function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType)
     return dataTypeNode as UADataType;
 }
 
-
-const validDataTypeForEnumValue = [DataType.Int32 ];
+const validDataTypeForEnumValue = [DataType.Int32];
 // , DataType.UInt32, DataType.Int64, DataType.UInt64];
 
 /*=
@@ -41,7 +38,6 @@ export function validateDataTypeCorrectness(
     allowNulls: boolean,
     context?: { toString(): string }
 ): boolean {
-
     if (variantDataType === DataType.Null && allowNulls) {
         return true;
     }
@@ -52,18 +48,19 @@ export function validateDataTypeCorrectness(
     let builtInUADataType: UADataType;
 
     const destUADataType = addressSpace.findDataType(dataTypeNodeId)!;
+
+    // istanbul ignore next
     if (!destUADataType) {
-        console.log("destUADataType", destUADataType);
+        throw new Error("Cannot find UADataType " + dataTypeNodeId.toString() + " in address Space");
     }
 
     if (variantDataType === DataType.ExtensionObject) {
         const structure = addressSpace.findDataType("Structure")!;
         if (destUADataType.isSubtypeOf(structure)) {
             return true;
-        }   
+        }
         return false;
     }
-
 
     if (destUADataType.isAbstract) {
         builtInUADataType = destUADataType;
@@ -72,11 +69,12 @@ export function validateDataTypeCorrectness(
         if (builtInType === DataType.ExtensionObject) {
             // it should have been trapped earlier
             return false;
-        } 
+        }
         builtInUADataType = addressSpace.findDataType(builtInType)!;
     }
 
     const enumerationUADataType = addressSpace.findDataType("Enumeration");
+    // istanbul ignore next
     if (!enumerationUADataType) {
         throw new Error("cannot find Enumeration DataType node in standard address space");
     }
@@ -90,14 +88,16 @@ export function validateDataTypeCorrectness(
                 enumerationUADataType.nodeId.toString()
             );
         }
-        
-        return validDataTypeForEnumValue.indexOf(variantDataType) >=0;
-   }
+
+        return validDataTypeForEnumValue.indexOf(variantDataType) >= 0;
+    }
 
     // The value supplied for the attribute is not of the same type as the  value.
     const variantUADataType = _dataType_toUADataType(addressSpace, variantDataType);
 
     const dest_isSubTypeOf_variant = variantUADataType.isSubtypeOf(builtInUADataType);
+
+    // istanbul ignore next
     if (doDebug) {
         if (dest_isSubTypeOf_variant) {
             /* istanbul ignore next*/
