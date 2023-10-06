@@ -94,6 +94,7 @@ import {
 } from "./ua_variable_impl_ext_obj";
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
 import { _getBasicDataType } from "./get_basic_datatype";
+import { validateDataTypeCorrectness} from "./validate_data_type_correctness";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -149,94 +150,6 @@ function is_Variant_or_StatusCode(v: any): boolean {
     return is_Variant(v) || is_StatusCode(v);
 }
 
-function _dataType_toUADataType(addressSpace: IAddressSpace, dataType: DataType): UADataType {
-    assert(addressSpace);
-    assert(dataType !== DataType.Null);
-
-    const dataTypeNode = addressSpace.findDataType(DataType[dataType]);
-    /* istanbul ignore next */
-    if (!dataTypeNode) {
-        throw new Error(" Cannot find DataType " + DataType[dataType] + " in address Space");
-    }
-    return dataTypeNode as UADataType;
-}
-/*=
- *
- * @param addressSpace
- * @param dataTypeNodeId : the nodeId matching the dataType of the destination variable.
- * @param variantDataType: the dataType of the variant to write to the destination variable
- * @param nodeId
- * @return {boolean} true if the variant dataType is compatible with the Variable DataType
- */
-function validateDataType(
-    addressSpace: IAddressSpace,
-    dataTypeNodeId: NodeId,
-    variantDataType: DataType,
-    nodeId: NodeId,
-    allowNulls: boolean
-): boolean {
-    if (variantDataType === DataType.ExtensionObject) {
-        return true;
-    }
-    if (variantDataType === DataType.Null && allowNulls) {
-        return true;
-    }
-    if (variantDataType === DataType.Null && !allowNulls) {
-        return false;
-    }
-    let builtInType: DataType;
-    let builtInUADataType: UADataType;
-
-    const destUADataType = addressSpace.findDataType(dataTypeNodeId)!;
-    assert(destUADataType instanceof UADataTypeImpl);
-
-    if (destUADataType.isAbstract || destUADataType.nodeId.namespace !== 0) {
-        builtInUADataType = destUADataType;
-    } else {
-        builtInType = addressSpace.findCorrespondingBasicDataType(destUADataType);
-        builtInUADataType = addressSpace.findDataType(builtInType)!;
-    }
-    assert(builtInUADataType instanceof UADataTypeImpl);
-
-    const enumerationUADataType = addressSpace.findDataType("Enumeration");
-    if (!enumerationUADataType) {
-        throw new Error("cannot find Enumeration DataType node in standard address space");
-    }
-    if (destUADataType.isSubtypeOf(enumerationUADataType)) {
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog("destUADataType.", destUADataType.browseName.toString(), destUADataType.nodeId.toString());
-            debugLog(
-                "enumerationUADataType.",
-                enumerationUADataType.browseName.toString(),
-                enumerationUADataType.nodeId.toString()
-            );
-        }
-        return true;
-    }
-
-    // The value supplied for the attribute is not of the same type as the  value.
-    const variantUADataType = _dataType_toUADataType(addressSpace, variantDataType);
-    assert(variantUADataType instanceof UADataTypeImpl);
-
-    const dest_isSubTypeOf_variant = variantUADataType.isSubtypeOf(builtInUADataType);
-
-    /* istanbul ignore next */
-    if (doDebug) {
-        if (dest_isSubTypeOf_variant) {
-            /* istanbul ignore next*/
-            debugLog(chalk.green(" ---------- Type match !!! "), " on ", nodeId.toString());
-        } else {
-            /* istanbul ignore next*/
-            debugLog(chalk.red(" ---------- Type mismatch "), " on ", nodeId.toString());
-        }
-        debugLog(chalk.cyan(" Variable data Type is    = "), destUADataType.browseName.toString());
-        debugLog(chalk.cyan(" which matches basic Type = "), builtInUADataType.browseName.toString());
-        debugLog(chalk.yellow("        Actual   dataType = "), variantUADataType.browseName.toString());
-    }
-
-    return dest_isSubTypeOf_variant;
-}
 
 function default_func(this: UAVariable, dataValue1: DataValue, callback1: CallbackT<StatusCode>) {
     return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
@@ -1707,7 +1620,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     }
 
     public _validate_DataType(variantDataType: DataType): boolean {
-        return validateDataType(this.addressSpace, this.dataType, variantDataType, this.nodeId, /* allow Nulls */ false);
+        return validateDataTypeCorrectness(this.addressSpace, this.dataType, variantDataType, /* allow Nulls */ false, this.nodeId);
     }
 
     public _internal_set_value(value: Variant): void {
