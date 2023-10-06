@@ -1,9 +1,7 @@
-import { coerce } from "yargs";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 import { get_mini_nodeset_filename } from "../testHelpers";
 import "should";
-import { coerceLocalizedText } from "node-opcua-data-model";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
