@@ -3498,12 +3498,13 @@ export class OPCUAServer extends OPCUABaseServer {
 
     private createEndpoint(
         port1: number,
+        hostname: string | undefined,
         serverOptions: { defaultSecureTokenLifetime?: number; timeout?: number }
     ): OPCUAServerEndPoint {
         // add the tcp/ip endpoint with no security
         const endPoint = new OPCUAServerEndPoint({
             port: port1,
-
+            hostname,
             certificateManager: this.serverCertificateManager,
 
             certificateChain: this.getCertificateChain(),
@@ -3528,6 +3529,7 @@ export class OPCUAServer extends OPCUABaseServer {
             throw new Error("internal error");
         }
         const hostname = getFullyQualifiedDomainName();
+        const serverOptionHostname = serverOption.hostname;
         endpointOptions.hostname = endpointOptions.hostname || hostname;
         endpointOptions.port = endpointOptions.port === undefined ? 26543 : endpointOptions.port;
 
@@ -3542,7 +3544,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
         const port = Number(endpointOptions.port || 0);
 
-        const endPoint = this.createEndpoint(port, serverOption);
+        const endPoint = this.createEndpoint(port, serverOptionHostname, serverOption);
 
         endpointOptions.alternateHostname = endpointOptions.alternateHostname || [];
         const alternateHostname =
