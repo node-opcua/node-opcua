@@ -5,6 +5,7 @@
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
+import dns from "dns";
 import chalk from "chalk";
 import * as async from "async";
 
@@ -36,6 +37,27 @@ const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
+
+function isLoopbackAddress(address: string): boolean {
+    return address === "127.0.0.1" || address.toLowerCase() === "localhost";
+}
+
+function validateHostname(desiredHostname: string): Promise<string | undefined> {
+    return new Promise<string | undefined>((resolve) => {
+        if (isLoopbackAddress(desiredHostname)) {
+            resolve("127.0.0.1"); // Skip DNS validation for loopback address
+        } else {
+            dns.resolve4(desiredHostname, (err, addresses) => {
+                if (err || addresses.length === 0) {
+                    resolve(undefined);
+                } else {
+                    const hostname = addresses[0]; // Use the first resolved IP address as the hostname
+                    resolve(hostname);
+                }
+            });
+        }
+    });
+}
 
 function extractSocketData(socket: net.Socket, reason: string): ISocketData {
     const { bytesRead, bytesWritten, remoteAddress, remoteFamily, remotePort, localAddress, localPort } = socket;
@@ -250,7 +272,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.port = parseInt(options.port.toString(), 10);
         assert(typeof this.port === "number");
-        this.hostname = options.hostname;
+        if (options.hostname) {
+            this.initializeHostname(options.hostname);
+        }
 
         this._certificateChain = options.certificateChain;
         this._privateKey = options.privateKey;
@@ -278,6 +302,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.serverInfo = options.serverInfo;
         assert(this.serverInfo !== null && typeof this.serverInfo === "object");
+    }
+
+    private async initializeHostname(desiredHostname: string) {
+        this.hostname = await validateHostname(desiredHostname);
     }
 
     public dispose(): void {
