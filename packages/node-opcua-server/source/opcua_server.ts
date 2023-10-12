@@ -720,7 +720,14 @@ export interface OPCUAServerEndpointOptions {
      * @default getFullyQualifiedDomainName()
      */
     hostname?: string;
-
+    /**
+     * Host IP address or hostname where the TCP server listens for connections.
+     * If omitted, defaults to listening on all network interfaces:
+     * - Unspecified IPv6 address (::) if IPv6 is available,
+     * - Unspecified IPv4 address (0.0.0.0) otherwise.
+     * Use this to bind the server to a specific interface or IP.
+     */
+    host?: string;
     /**
      * the TCP port to listen to.
      * @default 26543
@@ -1202,7 +1209,7 @@ export class OPCUAServer extends OPCUABaseServer {
                 endpointDefinitions.push({
                     port: options.port === undefined ? 26543 : options.port,
                     hostname: options.hostname || hostname,
-
+                    host: options.host,
                     allowAnonymous: options.allowAnonymous,
                     alternateHostname: options.alternateHostname,
                     disableDiscovery: options.disableDiscovery,
@@ -3537,12 +3544,12 @@ export class OPCUAServer extends OPCUABaseServer {
 
     private createEndpoint(
         port1: number,
-        serverOptions: { defaultSecureTokenLifetime?: number; timeout?: number }
+        serverOptions: { defaultSecureTokenLifetime?: number; timeout?: number; host?:string }
     ): OPCUAServerEndPoint {
         // add the tcp/ip endpoint with no security
         const endPoint = new OPCUAServerEndPoint({
             port: port1,
-
+            host: serverOptions.host,
             certificateManager: this.serverCertificateManager,
 
             certificateChain: this.getCertificateChain(),

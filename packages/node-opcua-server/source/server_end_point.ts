@@ -122,6 +122,10 @@ export interface OPCUAServerEndPointOptions {
      */
     port: number;
     /**
+     * the tcp host
+     */
+    host?: string;
+    /**
      * the DER certificate chain
      */
     certificateChain: Certificate;
@@ -208,6 +212,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * the tcp port
      */
     public port: number;
+    public host: string | undefined;
     public certificateManager: OPCUACertificateManager;
     public defaultSecureTokenLifetime: number;
     public maxConnections: number;
@@ -245,6 +250,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         options.port = options.port || 0;
 
         this.port = parseInt(options.port.toString(), 10);
+        this.host = options.host;
         assert(typeof this.port === "number");
 
         this._certificateChain = options.certificateChain;
@@ -510,8 +516,13 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog("server is listening");
         });
 
+        const listenOptions: net.ListenOptions = {
+            port: this.port,
+            host: this.host
+        };
+
         this._server!.listen(
-            this.port,
+            listenOptions,
             /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
