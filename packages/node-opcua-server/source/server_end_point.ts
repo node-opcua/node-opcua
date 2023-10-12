@@ -38,8 +38,14 @@ const doDebug = checkDebugFlag(__filename);
 
 const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
 
-function isLoopbackAddress(address: string): boolean {
-    return address === "127.0.0.1" || address.toLowerCase() === "localhost";
+function isLoopbackAddress(ipAddress: string): boolean {
+    // Check for IPv4 loopback addresses (127.0.0.0 - 127.255.255.255)
+    const ipv4LoopbackRegex = /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/;
+
+    // Check for IPv6 loopback addresses (::1 and loopback range)
+    const ipv6LoopbackRegex = /^(::1|fe80::1|::ffff:127\.\d{1,3}\.\d{1,3}\.\d{1,3})$/;
+
+    return ipv4LoopbackRegex.test(ipAddress) || ipv6LoopbackRegex.test(ipAddress);
 }
 
 function validateHostname(desiredHostname: string): Promise<string | undefined> {

@@ -79,7 +79,7 @@ describe("OPCUAServer - issue#1303", () => {
             // or the unspecified IPv4 address (0.0.0.0) otherwise.
             const server = new OPCUAServer();
             await server.start();
-            await executeNetstat(["0.0.0.0", "[::]"], 26543);
+            await executeNetstat(["0.0.0.0", "[::]", "::"], 26543);
             await server.shutdown();
             server.dispose();
         } catch (err) {
@@ -92,7 +92,7 @@ describe("OPCUAServer - issue#1303", () => {
             const hostname = getFullyQualifiedDomainName();
             const server = new OPCUAServer({ hostname, port });
             await server.start();
-            await executeNetstat(["0.0.0.0", "[::]"], port);
+            await executeNetstat(["0.0.0.0", "[::]", "::"], port);
             await server.shutdown();
             server.dispose();
         } catch (err) {
