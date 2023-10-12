@@ -5,6 +5,7 @@
 import { EventEmitter } from "events";
 import * as net from "net";
 import { Server, Socket } from "net";
+import dns from "dns";
 import chalk from "chalk";
 import * as async from "async";
 
@@ -36,6 +37,26 @@ const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
 const default_transportProfileUri = "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary";
+
+function isLoopbackAddress(address: string): boolean {
+    return address === "127.0.0.1" || address.toLowerCase() === "localhost";
+}
+
+function validateHostname(desiredHostname: string): Promise<string | undefined> {
+    return new Promise<string | undefined>((resolve) => {
+        if (isLoopbackAddress(desiredHostname)) {
+            resolve(desiredHostname); // Skip DNS validation for loopback address
+        } else {
+            dns.resolve4(desiredHostname, (err, addresses) => {
+                if (err || addresses.length === 0) {
+                    resolve(undefined);
+                } else {
+                    resolve(desiredHostname);
+                }
+            });
+        }
+    });
+}
 
 function extractSocketData(socket: net.Socket, reason: string): ISocketData {
     const { bytesRead, bytesWritten, remoteAddress, remoteFamily, remotePort, localAddress, localPort } = socket;
@@ -120,6 +141,10 @@ export interface OPCUAServerEndPointOptions {
      * the tcp port
      */
     port: number;
+    /**
+     * the tcp host
+     */
+    hostname?: string;
     /**
      * the DER certificate chain
      */
@@ -207,6 +232,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
      * the tcp port
      */
     public port: number;
+    public hostname: string | undefined;
     public certificateManager: OPCUACertificateManager;
     public defaultSecureTokenLifetime: number;
     public maxConnections: number;
@@ -245,6 +271,9 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.port = parseInt(options.port.toString(), 10);
         assert(typeof this.port === "number");
+        if (options.hostname && options.hostname !== getFullyQualifiedDomainName()) {
+            this.initializeHostname(options.hostname);
+        }
 
         this._certificateChain = options.certificateChain;
         this._privateKey = options.privateKey;
@@ -274,6 +303,10 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
         assert(this.serverInfo !== null && typeof this.serverInfo === "object");
     }
 
+    private async initializeHostname(desiredHostname: string) {
+        this.hostname = await validateHostname(desiredHostname);
+    }
+
     public dispose(): void {
         this._certificateChain = emptyCertificate;
         this._privateKey = emptyPrivateKey;
@@ -294,9 +327,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
+        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey());
 
-        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey())
-        
         const txt =
             " end point" +
             this._counter +
@@ -510,8 +542,16 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             debugLog("server is listening");
         });
 
+        const listenOptions: net.ListenOptions = {
+            port: this.port
+        };
+
+        if (this.hostname !== undefined && typeof this.hostname === "string" && this.hostname.length > 0) {
+            listenOptions.host = this.hostname;
+        }
+
         this._server!.listen(
-            this.port,
+            listenOptions,
             /*"::",*/ (err?: Error) => {
                 // 'listening' listener
                 debugLog(chalk.green.bold("LISTENING TO PORT "), this.port, "err  ", err);
