@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import net from "net";
 import should from "should";
+import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUAServer } from "..";
 
 async function findAvailablePort(): Promise<number> {
@@ -70,6 +71,19 @@ describe("OPCUAServer - issue#1303", () => {
             const server = new OPCUAServer();
             await server.start();
             await executeNetstat(["0.0.0.0", "[::]"], 26543);
+            await server.shutdown();
+            server.dispose();
+        } catch (err) {
+            should.fail(err, undefined, "An error occurred.");
+        }
+    });
+    it("should start a OPCUAServer on FullyQualifiedDomainName and available port", async () => {
+        try {
+            const port = await findAvailablePort();
+            const hostname = getFullyQualifiedDomainName();
+            const server = new OPCUAServer({ hostname, port });
+            await server.start();
+            await executeNetstat(["0.0.0.0", "[::]"], port);
             await server.shutdown();
             server.dispose();
         } catch (err) {

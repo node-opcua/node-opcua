@@ -45,14 +45,13 @@ function isLoopbackAddress(address: string): boolean {
 function validateHostname(desiredHostname: string): Promise<string | undefined> {
     return new Promise<string | undefined>((resolve) => {
         if (isLoopbackAddress(desiredHostname)) {
-            resolve("127.0.0.1"); // Skip DNS validation for loopback address
+            resolve(desiredHostname); // Skip DNS validation for loopback address
         } else {
             dns.resolve4(desiredHostname, (err, addresses) => {
                 if (err || addresses.length === 0) {
                     resolve(undefined);
                 } else {
-                    const hostname = addresses[0]; // Use the first resolved IP address as the hostname
-                    resolve(hostname);
+                    resolve(desiredHostname);
                 }
             });
         }
@@ -272,7 +271,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.port = parseInt(options.port.toString(), 10);
         assert(typeof this.port === "number");
-        if (options.hostname) {
+        if (options.hostname && options.hostname !== getFullyQualifiedDomainName()) {
             this.initializeHostname(options.hostname);
         }
 
@@ -328,9 +327,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
+        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey());
 
-        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey())
-        
         const txt =
             " end point" +
             this._counter +
