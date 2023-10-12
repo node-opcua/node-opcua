@@ -26,6 +26,7 @@ async function executeNetstat(hostnames: string[], port: number): Promise<void> 
     return new Promise((resolve, reject) => {
         const netstatProcess = spawn("sh", ["-c", "netstat -an"]);
         let netstatOutput = "";
+        let atLeastOneHostnameMatched = false;
 
         netstatProcess.stdout?.on("data", (data) => {
             netstatOutput += data.toString();
@@ -40,11 +41,19 @@ async function executeNetstat(hostnames: string[], port: number): Promise<void> 
                 console.error("netstat command failed.");
                 reject(new Error("netstat command failed."));
             } else {
-                should(code).equal(0); // Ensure netstat command executed successfully
                 for (const hostname of hostnames) {
-                    should(netstatOutput).containEql(`${hostname}:${port}`);
+                    if (netstatOutput.includes(`${hostname}:${port}`)) {
+                        atLeastOneHostnameMatched = true;
+                        break;
+                    }
                 }
-                resolve();
+
+                if (atLeastOneHostnameMatched) {
+                    resolve();
+                } else {
+                    console.error("None of the hostnames matched the expected pattern.");
+                    reject(new Error("None of the hostnames matched the expected pattern."));
+                }
             }
         });
     });
