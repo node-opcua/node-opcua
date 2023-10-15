@@ -14,8 +14,8 @@ import { ApplicationDescription, EndpointDescription } from "node-opcua-service-
 import { ChannelSecurityToken, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { ErrorCallback } from "node-opcua-status-code";
 
-import { ResponseCallback } from "./client_session";
 import { Request, Response } from "./common";
+import { ResponseCallback } from "node-opcua-pseudo-session";
 
 export type FindServersRequestLike = FindServersRequestOptions;
 export type FindServersOnNetworkRequestLike = FindServersOnNetworkRequestOptions;

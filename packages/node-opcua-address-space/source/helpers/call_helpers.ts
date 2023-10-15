@@ -8,6 +8,7 @@ import { CallMethodRequest } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
+import { ResponseCallback } from "node-opcua-pseudo-session";
 import { ISessionContext, IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
 
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
@@ -28,7 +29,6 @@ import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
 //                               A ByteString is structurally the same as a one dimensional array of Byte.
 //                               A server shall accept a ByteString if an array of Byte is expected.
 // BadNoCommunication
-type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
 export function callMethodHelper(
     context: ISessionContext,

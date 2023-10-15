@@ -14,8 +14,9 @@ import { BrowsePathResult, makeBrowsePath } from "node-opcua-service-translate-b
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
+import { ResponseCallback } from "node-opcua-pseudo-session";
 
-import { CallMethodRequestLike, ResponseCallback } from "../client_session";
+import { CallMethodRequestLike } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
 import { ClientSessionImpl } from "../private/client_session_impl";
 import { ClientSubscriptionImpl } from "../private/client_subscription_impl";

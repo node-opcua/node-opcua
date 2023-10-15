@@ -1,13 +1,19 @@
 import { AttributeIds, BrowseDirection, NodeClassMask, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions } from "node-opcua-service-browse";
-import { NodeClass } from "node-opcua-types";
+import { BrowseResult, NodeClass } from "node-opcua-types";
 import { make_debugLog } from "node-opcua-debug";
-
-import { IBasicSession } from "./basic_session_interface";
+import { DataValue } from "node-opcua-data-value";
 
 const doDebug = false;
 const debugLog = make_debugLog(__filename);
+
+
+interface ISessionForExtractField {
+    browse(nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]>;
+
+    read(nodeToRead: { nodeId: NodeIdLike; attributeId: AttributeIds }): Promise<DataValue>;
+}
 /**
  * 
  * recursively work down an node definition and find 
@@ -20,7 +26,7 @@ const debugLog = make_debugLog(__filename);
  * @private
  */
 export async function extractFields(
-    session: IBasicSession,
+    session: ISessionForExtractField,
     nodeId: NodeIdLike
 ): Promise<{ path: QualifiedName[]; nodeId: NodeId }[]> {
     const _duplicateMap: any = {};
@@ -144,7 +150,7 @@ export async function extractFields(
         debugLog(
             "investigating ",
             nodeId.toString(),
-            (await session.read({ nodeId: nodeId, attributeId: AttributeIds.BrowseName })).value.value.toString()
+            (await session.read({ nodeId, attributeId: AttributeIds.BrowseName })).value.value.toString()
         );
     await _investigateTopLevel([], nodeId);
     return fields1;

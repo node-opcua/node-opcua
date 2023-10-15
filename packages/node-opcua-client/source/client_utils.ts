@@ -10,8 +10,9 @@ import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { StatusCodes } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
-import { ClientSession, ResponseCallback } from "./client_session";
+import { ClientSession } from "./client_session";
 import { ClientSessionImpl } from "./private/client_session_impl";
+import { ResponseCallback } from "node-opcua-pseudo-session";
 
 const hasPropertyRefId = resolveNodeId("HasProperty");
 

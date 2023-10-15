@@ -1,8 +1,8 @@
 import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
 import { EndpointDescription } from "node-opcua-service-endpoints";
-import { IBasicTransportSettings } from "node-opcua-pseudo-session";
+import { IBasicTransportSettings, ResponseCallback } from "node-opcua-pseudo-session";
 
-import { ClientSession, ResponseCallback } from "../client_session";
+import { ClientSession } from "../client_session";
 import { Request, Response } from "../common";
 import { UserIdentityInfo } from "../user_identity_info";
 import { ClientSessionImpl } from "./client_session_impl";

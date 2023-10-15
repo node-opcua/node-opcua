@@ -21,7 +21,16 @@ import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { getBuiltInDataType, getArgumentDefinitionHelper, IBasicSession, IBasicTransportSettings } from "node-opcua-pseudo-session";
+import {
+    getBuiltInDataType,
+    getArgumentDefinitionHelper,
+    IBasicSession,
+    IBasicTransportSettings,
+    readAllAttributes,
+    NodeAttributes,
+    ResponseCallback,
+    BrowseDescriptionLike
+} from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 import { ClientSecureChannelLayer, requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
 import { BrowseDescription, BrowseRequest, BrowseResponse, BrowseResult } from "node-opcua-service-browse";
@@ -98,7 +107,6 @@ import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import {
     ArgumentDefinition,
-    BrowseDescriptionLike,
     CallMethodRequestLike,
     ClientSession,
     CreateMonitoredItemsRequestLike,
@@ -109,7 +117,6 @@ import {
     ModifyMonitoredItemsRequestLike,
     ModifySubscriptionRequestLike,
     MonitoredItemData,
-    NodeAttributes,
     QueryFirstRequestLike,
     SetMonitoringModeRequestLike,
     SubscriptionId,
@@ -126,8 +133,6 @@ import { UserIdentityInfo } from "../user_identity_info";
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { IClientBase } from "./i_private_client";
-
-export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
 
 const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 const debugLog = make_debugLog(__filename);
@@ -166,55 +171,6 @@ function coerceReadValueId(node: any): ReadValueId {
         assert(node instanceof Object);
         return new ReadValueId(node);
     }
-}
-
-const keys = Object.keys(AttributeIds).filter((k: any) => (AttributeIds as any)[k] !== AttributeIds.INVALID);
-
-const attributeNames: string[] = ((): string[] => {
-    const r: string[] = [];
-    for (let i = 1; i <= 22; i++) {
-        r.push(attributeNameById[i].toString());
-    }
-    return r;
-})();
-
-function composeResult(nodes: any[], nodesToRead: ReadValueIdOptions[], dataValues: DataValue[]): NodeAttributes[] {
-    assert(nodesToRead.length === dataValues.length);
-    let c = 0;
-    const results = [];
-    let dataValue;
-    let k;
-    let nodeToRead;
-
-    for (const node of nodes) {
-        const data: NodeAttributes = {
-            nodeId: resolveNodeId(node),
-            statusCode: StatusCodes.BadNodeIdUnknown
-        };
-
-        let addedProperty = 0;
-
-        for (const key of attributeNames) {
-            dataValue = dataValues[c];
-            nodeToRead = nodesToRead[c];
-            c++;
-            if (dataValue.statusCode.equals(StatusCodes.Good)) {
-                k = lowerFirstLetter(key);
-                data[k] = dataValue.value ? dataValue.value.value : null;
-                addedProperty += 1;
-            }
-        }
-
-        /* istanbul ignore if */
-        if (addedProperty > 0) {
-            data.statusCode = StatusCodes.Good;
-        } else {
-            data.statusCode = StatusCodes.BadNodeIdUnknown;
-        }
-        results.push(data);
-    }
-
-    return results;
 }
 
 const emptyUint32Array = new Uint32Array(0);
@@ -1113,48 +1069,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public readAllAttributes(nodes: NodeIdLike[], callback: (err: Error | null, data?: NodeAttributes[]) => void): void;
 
     public readAllAttributes(...args: any[]): void {
-        const arg0 = args[0];
-        const callback = args[1];
-        assert(typeof callback === "function");
-
-        const isArray = Array.isArray(arg0);
-
-        const nodes = isArray ? arg0 : [arg0];
-
-        const nodesToRead: ReadValueIdOptions[] = [];
-
-        for (const node of nodes) {
-            const nodeId = resolveNodeId(node);
-
-            /* istanbul ignore next */
-            if (!nodeId) {
-                throw new Error("cannot coerce " + node + " to a valid NodeId");
-            }
-
-            for (let attributeId = 1; attributeId <= 22; attributeId++) {
-                nodesToRead.push({
-                    attributeId,
-                    dataEncoding: undefined,
-                    indexRange: undefined,
-                    nodeId
-                });
-            }
-        }
-
-        this.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
-            /* istanbul ignore next */
-            if (err) {
-                return callback(err);
-            }
-
-            /* istanbul ignore next */
-            if (!dataValues) {
-                return callback(new Error("Internal Error"));
-            }
-
-            const results = composeResult(nodes, nodesToRead, dataValues);
-            callback(err, isArray ? results : results[0]);
-        });
+        const nodes = args[0] as NodeIdLike[];
+        const callback = args[1] as (err: Error | null, data?: NodeAttributes[]) => void;
+        readAllAttributes(this, nodes)
+            .then((data: any) => callback(null, data))
+            .catch((err: Error) => callback(err));
     }
 
     /**
@@ -1797,7 +1716,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public hasBeenClosed(): boolean {
         return isNullOrUndefined(this._client) || this._closed || this._closeEventHasBeenEmitted;
     }
-    
 
     public async call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
     public async call(methodToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
@@ -2085,7 +2003,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public getBuiltInDataType(...args: any[]): any {
         const nodeId = args[0];
         const callback = args[1];
-        return getBuiltInDataType(this, nodeId, callback);
+        return getBuiltInDataType(this, nodeId)
+            .then((dataType: DataType) => callback(null, dataType))
+            .catch(callback);
     }
 
     public resumePublishEngine(): void {

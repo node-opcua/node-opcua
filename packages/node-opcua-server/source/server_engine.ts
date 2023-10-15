@@ -75,7 +75,7 @@ import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-
 
 import { HistoryServerCapabilities, HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
 import { MonitoredItem } from "./monitored_item";
-import { OperationLimits, ServerCapabilities, ServerCapabilitiesOptions } from "./server_capabilities";
+import { ServerCapabilities, ServerCapabilitiesOptions, ServerOperationLimits } from "./server_capabilities";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
@@ -1053,7 +1053,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                     return Math.min(this.serverCapabilities.maxByteStringLength, BinaryStream.maxByteStringLength);
                 });
 
-                const bindOperationLimits = (operationLimits: OperationLimits) => {
+                const bindOperationLimits = (operationLimits: ServerOperationLimits) => {
                     assert(operationLimits !== null && typeof operationLimits === "object");
 
                     const keys = Object.keys(operationLimits);

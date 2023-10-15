@@ -2,11 +2,8 @@ import * as path from "path";
 import "should";
 
 import { nodesets } from "node-opcua-nodesets";
-import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { AttributeIds } from "node-opcua-data-model";
-import { EndpointConfiguration, ServerDiagnosticsSummaryDataType, ServiceCounterDataType } from "node-opcua-types";
 
-import { AddressSpace, UAObject, SessionContext } from "..";
+import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { UAVariable } from "..";
 

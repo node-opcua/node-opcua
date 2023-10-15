@@ -27,7 +27,7 @@ export interface OperationLimitsOptions {
     maxNodesPerTranslateBrowsePathsToNodeIds?: number;
 }
 
-export class OperationLimits {
+export class ServerOperationLimits {
     public maxNodesPerRead: number;
     public maxNodesPerBrowse: number;
     public maxNodesPerWrite: number;
@@ -205,7 +205,7 @@ export class ServerCapabilities implements IServerCapabilities {
     public maxByteStringLength: number;
     public maxQueryContinuationPoints: number;
     public minSupportedSampleRate: number;
-    public operationLimits: OperationLimits;
+    public operationLimits: ServerOperationLimits;
 
     public serverProfileArray: string[];
     public localeIdArray: string[];
@@ -252,7 +252,7 @@ export class ServerCapabilities implements IServerCapabilities {
         this.maxHistoryContinuationPoints =
             options.maxHistoryContinuationPoints || defaultServerCapabilities.maxHistoryContinuationPoints;
 
-        this.operationLimits = new OperationLimits(options.operationLimits);
+        this.operationLimits = new ServerOperationLimits(options.operationLimits);
 
         this.minSupportedSampleRate = options.minSupportedSampleRate || defaultServerCapabilities.minSupportedSampleRate; // to do adjust me
 
