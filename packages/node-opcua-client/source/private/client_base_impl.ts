@@ -15,7 +15,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 
 import { makeApplicationUrn } from "node-opcua-common";
 import { getHostname } from "node-opcua-hostname";
-import { IBasicTransportSettings } from "node-opcua-pseudo-session";
+import { IBasicTransportSettings, ResponseCallback } from "node-opcua-pseudo-session";
 import {
     ClientSecureChannelLayer,
     coerceConnectionStrategy,
@@ -48,7 +48,6 @@ import { matchUri } from "node-opcua-utils";
 import { getDefaultCertificateManager, makeSubject, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { VerificationStatus } from "node-opcua-pki";
 import { CloseSessionRequest, CloseSessionResponse } from "node-opcua-service-session";
-import { ResponseCallback } from "../client_session";
 import { Request, Response } from "../common";
 
 import {

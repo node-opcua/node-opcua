@@ -10,7 +10,7 @@ import { IBasicSession } from "./basic_session_interface";
 
 const warningLog = make_warningLog(__filename);
 
-const serverCapabilitiesIds = [
+export const serverCapabilitiesIds = [
     VariableIds.Server_ServerCapabilities_MaxArrayLength,
     VariableIds.Server_ServerCapabilities_MaxStringLength,
     VariableIds.Server_ServerCapabilities_MaxByteStringLength,

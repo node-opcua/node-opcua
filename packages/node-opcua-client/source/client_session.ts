@@ -10,7 +10,16 @@ import { Certificate, Nonce } from "node-opcua-crypto";
 import { LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import {
+    IBasicSession,
+    IBasicSessionBrowse,
+    IBasicSessionBrowseNext,
+    IBasicSessionCall,
+    IBasicSessionRead,
+    IBasicSessionTranslateBrowsePath,
+    IBasicSessionWrite,
+    ResponseCallback
+} from "node-opcua-pseudo-session";
 import { ErrorCallback } from "node-opcua-status-code";
 import { BrowseDescriptionOptions, BrowseResult } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodRequestOptions, CallMethodResult } from "node-opcua-service-call";
@@ -75,14 +84,6 @@ export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-
 
 import { ClientSubscription } from "./client_subscription";
 
-export type ResponseCallback<T> = (err: Error | null, response?: T) => void;
-
-export interface NodeAttributes {
-    nodeId: NodeId;
-    statusCode: StatusCode;
-
-    [key: string]: Variant | NodeId | StatusCode;
-}
 
 export interface MonitoredItemData {
     clientHandles: Uint32Array;
@@ -98,7 +99,6 @@ export interface CreateSubscriptionOptions {
     priority?: UInt8;
 }
 
-export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type DeleteMonitoredItemsRequestLike = DeleteMonitoredItemsRequestOptions;
 export type CreateSubscriptionRequestLike = CreateSubscriptionRequestOptions;
 export type DeleteSubscriptionsRequestLike = DeleteSubscriptionsRequestOptions;
@@ -167,7 +167,7 @@ export interface ClientSession extends EventEmitter {
 }
 
 // browse services
-export interface ClientSessionBrowseService {
+export interface ClientSessionBrowseService extends IBasicSessionBrowse, IBasicSessionBrowseNext {
     /**
      * the maximum number of reference that the server should return per browseResult
      * Continuous points will be return by server to allow retrieving remaining references
@@ -175,32 +175,10 @@ export interface ClientSessionBrowseService {
      */
     requestedMaxReferencesPerNode: number;
 
-    browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
-
-    browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
-
-    browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
-
-    browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
-
-    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult>): void;
-
-    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult[]>): void;
-
-    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
-
-    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
-}
+  }
 
 // translate browsePathTo NodeId services
-export interface ClientSessionTranslateBrowsePathService {
-    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
-
-    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
-
-    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
-
-    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+export interface ClientSessionTranslateBrowsePathService extends IBasicSessionTranslateBrowsePath {
 }
 
 // query services
@@ -211,7 +189,7 @@ export interface ClientSessionQueryService {
 }
 
 // call services
-export interface ClientSessionCallService {
+export interface ClientSessionCallService extends IBasicSessionCall {
     /**
      *
      * @method call
@@ -269,13 +247,6 @@ export interface ClientSessionCallService {
      * ```
      */
 
-    call(methodToCall: CallMethodRequestLike, callback: (err: Error | null, result?: CallMethodResult) => void): void;
-
-    call(methodsToCall: CallMethodRequestLike[], callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
-
-    call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
-
-    call(methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
 
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
 
@@ -294,19 +265,8 @@ export interface ClientSessionRegisterService {
 }
 
 // read services
-export interface ClientSessionReadService {
-    read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
-
-    read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
-
-    read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
-
-    read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
-
-    read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
-
-    read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
-
+export interface ClientSessionReadService extends IBasicSessionRead {
+  
     /**
      * @deprecated
      */
@@ -326,14 +286,8 @@ export interface ClientSessionReadService {
 }
 
 // write services
-export interface ClientSessionWriteService {
-    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+export interface ClientSessionWriteService extends IBasicSessionWrite {
 
-    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
-
-    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
-
-    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
 
     /**
      * @deprecated

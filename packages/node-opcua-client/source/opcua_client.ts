@@ -2,16 +2,12 @@
  * @module node-opcua-client
  */
 
-import { ByteString } from "node-opcua-basic-types";
-import { Certificate, PrivateKeyPEM } from "node-opcua-crypto";
-import { ConnectionStrategyOptions, Message, SecurityPolicy } from "node-opcua-secure-channel";
-import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
-import { MessageSecurityMode } from "node-opcua-service-secure-channel";
-import { X509IdentityTokenOptions } from "node-opcua-types";
+import { ApplicationDescription, EndpointDescription } from "node-opcua-service-endpoints";
 import { CallbackT, ErrorCallback, StatusCode } from "node-opcua-status-code";
+import { ResponseCallback } from "node-opcua-pseudo-session";
 import { FindServersRequestLike, GetEndpointsOptions, OPCUAClientBase, OPCUAClientBaseOptions } from "./client_base";
 
-import { ClientSession, ResponseCallback } from "./client_session";
+import { ClientSession } from "./client_session";
 import { ClientSubscription, ClientSubscriptionOptions } from "./client_subscription";
 import { OPCUAClientImpl } from "./private/opcua_client_impl";
 import { UserIdentityInfo } from "./user_identity_info";

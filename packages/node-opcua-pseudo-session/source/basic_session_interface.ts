@@ -21,24 +21,55 @@ export type CallMethodRequestLike = CallMethodRequestOptions;
 
 export type ResponseCallback<T> = (err: Error | null, result?: T) => void;
 
+export type MethodId = NodeIdLike;
+
+export interface ArgumentDefinition {
+    inputArguments: Argument[];
+    outputArguments: Argument[];
+}
 export interface IBasicTransportSettings {
     maxMessageSize: number;
 }
 
-export interface IBasicSession {
-    getTransportSettings?: () => IBasicTransportSettings;
+// #region Browse
+export interface IBasicSessionBrowseAsyncSimple {
+    browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
 }
 
-export interface IBasicSession {
+export interface IBasicSessionBrowseAsyncMultiple {
+    browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+}
+export interface IBasicSessionBrowseAsync extends IBasicSessionBrowseAsyncSimple, IBasicSessionBrowseAsyncMultiple {
+    browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
+    browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+}
+
+export interface IBasicSessionBrowseCallback {
     browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
 
     browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
-
-    browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
-
-    browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
 }
-export interface IBasicSession {
+export interface IBasicSessionBrowse extends IBasicSessionBrowseAsync, IBasicSessionBrowseCallback {
+    browse(nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
+    browse(nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+    browse(nodeToBrowse: BrowseDescriptionLike, callback: ResponseCallback<BrowseResult>): void;
+
+    browse(nodesToBrowse: BrowseDescriptionLike[], callback: ResponseCallback<BrowseResult[]>): void;
+}
+// #endregion
+
+// #region BrowseNext
+export interface IBasicSessionBrowseNextAsyncSimple {
+    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
+}
+export interface IBasicSessionBrowseNextAsyncMultiple {
+    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
+}
+export interface IBasicSessionBrowseNextAsync extends IBasicSessionBrowseNextAsyncMultiple, IBasicSessionBrowseNextAsyncSimple {
+    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
+    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
+}
+export interface IBasicSessionBrowseNextCallback {
     /**
      *
      * @param continuationPoint
@@ -58,12 +89,29 @@ export interface IBasicSession {
     browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult>): void;
 
     browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult[]>): void;
-
-    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
-
-    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
 }
-export interface IBasicSession {
+export interface IBasicSessionBrowseNext extends IBasicSessionBrowseNextAsync, IBasicSessionBrowseNextCallback {
+    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean): Promise<BrowseResult>;
+    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean): Promise<BrowseResult[]>;
+    browseNext(continuationPoint: Buffer, releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult>): void;
+
+    browseNext(continuationPoints: Buffer[], releaseContinuationPoints: boolean, callback: ResponseCallback<BrowseResult[]>): void;
+}
+// #endregion
+
+// #region Read
+export interface IBasicSessionReadAsyncSimple {
+    read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
+}
+export interface IBasicSessionReadAsyncMultiple {
+    read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
+}
+
+export interface IBasicSessionReadAsync extends IBasicSessionReadAsyncSimple, IBasicSessionReadAsyncMultiple {
+    read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
+    read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
+}
+export interface IBasicSessionReadCallback {
     read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
 
     read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
@@ -71,51 +119,150 @@ export interface IBasicSession {
     read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
 
     read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
-
+}
+export interface IBasicSessionRead extends IBasicSessionReadCallback, IBasicSessionReadAsync {
     read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
-
     read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
+    read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
+
+    read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
+
+    read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
+
+    read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
+}
+// #endregion
+
+// #region Write
+export interface IBasicSessionWriteAsyncSimple {
+    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+}
+export interface IBasicSessionWriteAsyncMultiple {
+    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+}
+export interface IBasicSessionWriteAsync extends IBasicSessionWriteAsyncSimple, IBasicSessionWriteAsyncMultiple {
+    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+}
+export interface IBasicSessionWriteCallback {
+    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
+}
+export interface IBasicSessionWrite extends IBasicSessionWriteCallback, IBasicSessionWriteAsync {
+    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
+    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
+    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
 }
 
-export type MethodId = NodeIdLike;
+// #endregion
 
-export interface ArgumentDefinition {
-    inputArguments: Argument[];
-    outputArguments: Argument[];
-}
-
-export interface IBasicSession {
-    call(methodToCall: CallMethodRequestLike, callback: (err: Error | null, result?: CallMethodResult) => void): void;
-
-    call(methodsToCall: CallMethodRequestLike[], callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
-
+// #region Call
+export interface IBasicSessionCallAsyncSimple {
     call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
-
+}
+export interface IBasicSessionCallAsyncMultiple {
     call(methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
+}
+export interface IBasicSessionCallAsync extends IBasicSessionCallAsyncSimple, IBasicSessionCallAsyncMultiple {
+    call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
+    call(methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
+}
+export interface IBasicSessionCallCallback {
+    call(methodToCall: CallMethodRequestLike, callback: (err: Error | null, result?: CallMethodResult) => void): void;
+    call(methodsToCall: CallMethodRequestLike[], callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
+}
 
+export interface IBasicSessionCall extends IBasicSessionCallCallback, IBasicSessionCallAsync {
+    call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
+    call(methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
+    call(methodToCall: CallMethodRequestLike, callback: (err: Error | null, result?: CallMethodResult) => void): void;
+    call(methodsToCall: CallMethodRequestLike[], callback: (err: Error | null, results?: CallMethodResult[]) => void): void;
+}
+
+// #endregion
+
+// #region TranslateBrowsePath
+export interface IBasicSessionTranslateBrowsePathAsyncSimple {
+    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+}
+export interface IBasicSessionTranslateBrowsePathAsyncMultiple {
+    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+}
+export interface IBasicSessionTranslateBrowsePathAsync
+    extends IBasicSessionTranslateBrowsePathAsyncSimple,
+        IBasicSessionTranslateBrowsePathAsyncMultiple {
+    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+}
+export interface IBasicSessionTranslateBrowsePathCallback {
+    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
+    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
+}
+export interface IBasicSessionTranslateBrowsePath
+    extends IBasicSessionTranslateBrowsePathCallback,
+        IBasicSessionTranslateBrowsePathAsync {
+    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
+    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
+}
+
+// #endregion
+
+export interface IBasicSessionAsyncSimple
+    extends IBasicSessionBrowseAsyncSimple,
+        IBasicSessionReadAsyncSimple,
+        IBasicSessionWriteAsyncSimple,
+        IBasicSessionCallAsyncSimple,
+        IBasicSessionTranslateBrowsePathAsyncSimple {}
+
+export interface IBasicSessionGetArgumentDefinitionAsync {
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
+}
+export interface IBasicSessionAsyncMultiple
+    extends IBasicSessionBrowseAsyncMultiple,
+        IBasicSessionReadAsyncMultiple,
+        IBasicSessionWriteAsyncMultiple,
+        IBasicSessionCallAsyncMultiple,
+        IBasicSessionTranslateBrowsePathAsyncMultiple {}
+
+export interface IBasicSessionAsync
+    extends IBasicSessionBrowse,
+        IBasicSessionCall,
+        IBasicSessionRead,
+        IBasicSessionWrite,
+        IBasicSessionTranslateBrowsePath {}
+export type IVeryBasicSession = IBasicSessionAsync;
+
+export interface ITransportSettingProvider {
+    getTransportSettings?: () => IBasicTransportSettings;
+}
+
+export interface IBasicSessionGetArgumentDefinitionCallback {
+    getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 }
 
-export interface IBasicSession {
-    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
+export type IBasicSessionCallback = IBasicSessionReadCallback &
+    IBasicSessionBrowseNextCallback &
+    IBasicSessionBrowseCallback &
+    IBasicSessionTranslateBrowsePathCallback &
+    IBasicSessionGetArgumentDefinitionCallback &
+    IBasicSessionWriteCallback;
 
-    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
-
-    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
-
-    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
-}
-
-export interface IBasicSession {
-    write(nodeToWrite: WriteValueOptions, callback: ResponseCallback<StatusCode>): void;
-
-    write(nodesToWrite: WriteValueOptions[], callback: ResponseCallback<StatusCode[]>): void;
-
-    write(nodeToWrite: WriteValueOptions): Promise<StatusCode>;
-
-    write(nodesToWrite: WriteValueOptions[]): Promise<StatusCode[]>;
+export interface IBasicSession
+    extends ITransportSettingProvider,
+        IBasicSessionBrowse,
+        IBasicSessionBrowseNext,
+        IBasicSessionCall,
+        IBasicSessionRead,
+        IBasicSessionTranslateBrowsePath,
+        IBasicSessionWrite,
+        IBasicSessionGetArgumentDefinitionAsync {
+    getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
+    getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 }
 
 export type PrivateKeyPEM = string;
@@ -238,7 +385,7 @@ export function getArgumentDefinitionHelper(
     });
 }
 
-export async function readNamespaceArray(session: IBasicSession): Promise<string[]> {
+export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple): Promise<string[]> {
     const nodeId = resolveNodeId(VariableIds.Server_NamespaceArray);
     const dataValue = await session.read({
         nodeId,

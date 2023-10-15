@@ -2665,6 +2665,9 @@ importers:
       node-opcua-types:
         specifier: 2.114.0
         version: link:../node-opcua-types
+      node-opcua-utils:
+        specifier: 2.114.0
+        version: link:../node-opcua-utils
       node-opcua-variant:
         specifier: 2.114.0
         version: link:../node-opcua-variant
