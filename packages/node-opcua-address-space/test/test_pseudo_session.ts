@@ -8,6 +8,7 @@ import { ReadValueIdOptions } from "node-opcua-types";
 import { AddressSpace, PseudoSession } from "..";
 
 import { getMiniAddressSpace } from "../testHelpers";
+import { DataType } from "node-opcua-basic-types";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -16,7 +17,25 @@ describe("PseudoSession", () => {
     let session: PseudoSession;
     before(async () => {
         addressSpace = await getMiniAddressSpace();
+        addressSpace.registerNamespace("Private");
+        const namespace = addressSpace.getOwnNamespace();   
+     
+        const uaVariable1 = namespace.addVariable({
+            browseName: "MyVariable1",
+            dataType: "Double",
+            nodeId: "s=MyVariable1",
+            componentOf: addressSpace.rootFolder.objects.server,
+            value: { dataType: DataType.Double, value: 10.0 }
+        });
+        const uaVariable2 = namespace.addVariable({
+            browseName: "MyVariable2",
+            dataType: "Double",
+            nodeId: "s=MyVariable2",
+            componentOf: addressSpace.rootFolder.objects.server,
+            value: { dataType: DataType.Double, value: 10.0 }
+        });
         session = new PseudoSession(addressSpace);
+
     });
     after(() => {
         addressSpace.dispose();
@@ -103,4 +122,38 @@ describe("PseudoSession", () => {
         dataValues[1].statusCode.should.eql(StatusCodes.Good);
         dataValues[1].value.value.toString().should.eql("Objects");
     });
+
+    it("should write multiple nodes", async () => {
+
+
+        const nodesToWrite = [
+            {
+                nodeId: "ns=1;s=MyVariable1",
+                attributeId: AttributeIds.Value,
+                value: {
+                    value: {
+                        dataType: DataType.Double,
+                        value: 100.0
+                    }
+                }
+            },
+            {
+                nodeId: "ns=1;s=MyVariable2",
+                attributeId: AttributeIds.Value,
+                value: {
+                    value: {
+                        dataType: DataType.Double,
+                        value: 200.0
+                    }
+                }
+            }
+        ];
+        const statusCodes =  await session.write(nodesToWrite);
+        statusCodes.length.should.eql(2);
+        statusCodes[0].should.eql(StatusCodes.Good);
+        statusCodes[1].should.eql(StatusCodes.Good);
+
+    });
+
+
 });
