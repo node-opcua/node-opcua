@@ -5,10 +5,10 @@ import { AttributeIds } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";
 import { ReadValueIdOptions } from "node-opcua-types";
 
+import { DataType } from "node-opcua-basic-types";
 import { AddressSpace, PseudoSession } from "..";
 
 import { getMiniAddressSpace } from "../testHelpers";
-import { DataType } from "node-opcua-basic-types";
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
