@@ -1,19 +1,6 @@
 "use strict";
-const chalk = require("chalk");
 const should = require("should");
-const async = require("async");
-
-const opcua = require("node-opcua");
-const OPCUAClient = opcua.OPCUAClient;
-const StatusCodes = opcua.StatusCodes;
-const DataType = opcua.DataType;
-const AttributeIds = opcua.AttributeIds;
-const BrowseDirection = opcua.BrowseDirection;
-const readUAAnalogItem = opcua.readUAAnalogItem;
-
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
-const debugLog = make_debugLog("TEST");
-const doDebug = checkDebugFlag("TEST");
+const { OPCUAClient, DataType, AttributeIds, readUAAnalogItem, BrowseDirection } = require("node-opcua");
 
 const port = 2009;
 
@@ -21,8 +8,8 @@ const { build_server_with_temperature_device } = require("../../test_helpers/bui
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing AnalogItem on client side", function () {
-    let server, client, temperatureVariableId, endpointUrl;
+describe("testing AnalogItem on client side", function() {
+    let server, client, endpointUrl;
 
     this.timeout(Math.max(600000, this.timeout()));
 
@@ -30,7 +17,6 @@ describe("testing AnalogItem on client side", function () {
     before(async () => {
         server = await build_server_with_temperature_device({ port });
         endpointUrl = server.getEndpointUrl();
-        temperatureVariableId = server.temperatureVariableId;
     });
 
     beforeEach(async () => {
@@ -47,33 +33,28 @@ describe("testing AnalogItem on client side", function () {
         await client.disconnect();
     });
 
-    after(function (done) {
+    after(function(done) {
         server.shutdown(done);
     });
 
-    it("readUAAnalogItem should extract all properties of a UAAnalogItem ", function (done) {
+    it("readUAAnalogItem should extract all properties of a UAAnalogItem ", async () => {
         const nodeId = "ns=1;s=TemperatureAnalogItem";
+        const data = await readUAAnalogItem(g_session, nodeId);
+        data.should.have.ownProperty("engineeringUnits");
+        data.should.have.ownProperty("engineeringUnitsRange");
+        data.should.have.ownProperty("instrumentRange");
+        data.should.have.ownProperty("valuePrecision");
+        data.should.have.ownProperty("definition");
 
-        readUAAnalogItem(g_session, nodeId, function (err, data) {
-            if (err) {
-                return done(err);
-            }
-
-            data.should.have.ownProperty("engineeringUnits");
-            data.should.have.ownProperty("engineeringUnitsRange");
-            data.should.have.ownProperty("instrumentRange");
-            data.should.have.ownProperty("valuePrecision");
-            data.should.have.ownProperty("definition");
-
-            done();
-        });
     });
-    it("readUAAnalogItem should return an error if not doesn't exist", function (done) {
+
+    it("readUAAnalogItem should return an error if not doesn't exist", async () => {
         const nodeId = "ns=4;s=invalidnode";
-        readUAAnalogItem(g_session, nodeId, function (err, data) {
-            should.exist(err);
-            done();
-        });
+        let err = null;
+        try {
+            await readUAAnalogItem(g_session, nodeId);
+        } catch (_err) { err = _err; }
+        should.exist(err);
     });
 
     /**
@@ -82,60 +63,43 @@ describe("testing AnalogItem on client side", function () {
      * @param browseName
      * @param callback
      */
-    function findProperty(g_session, nodeId, browseName, callback) {
+    async function findProperty(g_session, nodeId, browseName) {
         const browseDescription = {
             nodeId: nodeId,
             referenceTypeId: "HasProperty",
             browseDirection: BrowseDirection.Forward,
             resultMask: 0x3f
         };
-        g_session.browse(browseDescription, function (err, result) {
-            if (err) {
-                return callback(err);
-            }
+        const result = await g_session.browse(browseDescription);
+        if (result.statusCode.isNotGood()) {
+            return null;
+        }
+        let tmp = result.references.filter((e) => e.browseName.name === browseName);
 
-            if (result.statusCode.isNotGood()) {
-                return callback(null, null);
-            }
-
-            let tmp = result.references.filter((e) => e.browseName.name === browseName);
-
-            tmp = tmp.map(function (e) {
-                return e.nodeId;
-            });
-            const found = tmp.length === 1 ? tmp[0] : null;
-            callback(null, found);
-        });
+        tmp = tmp.map((e) => e.nodeId);
+        const found = tmp.length === 1 ? tmp[0] : null;
+        return found;
     }
 
-    it("should read the EURange property of an analog item", function (done) {
+    it("should read the EURange property of an analog item", async () => {
         const nodeId = "ns=1;s=TemperatureAnalogItem";
 
-        findProperty(g_session, nodeId, "EURange", function (err, propertyId) {
-            if (err) {
-                return done(err);
-            }
+        const propertyId = await findProperty(g_session, nodeId, "EURange");
 
-            should.exist(propertyId);
+        should.exist(propertyId);
 
-            const nodeToRead = {
-                nodeId: propertyId,
-                attributeId: AttributeIds.Value
-            };
-            //xx console.log("propertyId = ", propertyId.toString());
-            g_session.read(nodeToRead, function (err, dataValue) {
-                if (err) {
-                    return done(err);
-                }
+        const nodeToRead = {
+            nodeId: propertyId,
+            attributeId: AttributeIds.Value
+        };
+        //xx console.log("propertyId = ", propertyId.toString());
+        const dataValue = await g_session.read(nodeToRead);
 
-                //xx console.log("result = ",result.toString());
-                dataValue.value.dataType.should.eql(DataType.ExtensionObject);
+        //xx console.log("result = ",result.toString());
+        dataValue.value.dataType.should.eql(DataType.ExtensionObject);
 
-                dataValue.value.value.low.should.eql(100);
-                dataValue.value.value.high.should.eql(200);
+        dataValue.value.value.low.should.eql(100);
+        dataValue.value.value.high.should.eql(200);
 
-                done(err);
-            });
-        });
     });
 });
