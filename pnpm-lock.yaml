@@ -1825,6 +1825,9 @@ importers:
       node-opcua:
         specifier: 2.115.0
         version: link:../node-opcua
+      node-opcua-debug:
+        specifier: 2.114.0
+        version: link:../node-opcua-debug
       vorpal:
         specifier: ^1.12.0
         version: 1.12.0
