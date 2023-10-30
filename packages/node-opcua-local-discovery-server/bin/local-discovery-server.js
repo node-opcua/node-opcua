@@ -30,14 +30,13 @@ const debugLog = make_debugLog("LDS");
 
 async function getIpAddresses() {
     const ipAddresses = [];
-    const interfaces = os.networkInterfaces();
-    Object.keys(interfaces).forEach(function (interfaceName) {
+    const networkInterfaces = os.networkInterfaces();
+    for (const [interfaceName, interfaces] of Object.entries(networkInterfaces)) {
         let alias = 0;
-
-        interfaces[interfaceName].forEach((iFace) => {
+        for (const iFace of interfaces) {
             if ("IPv4" !== iFace.family || iFace.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-                return;
+                continue;
             }
             if (alias >= 1) {
                 // this single interface has multiple ipv4 addresses
@@ -51,8 +50,8 @@ async function getIpAddresses() {
                 ipAddresses.push(iFace.address);
             }
             ++alias;
-        });
-    });
+        }
+    }
     return ipAddresses;
 }
 const applicationUri = "";
