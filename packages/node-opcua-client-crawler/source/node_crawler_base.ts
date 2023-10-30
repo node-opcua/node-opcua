@@ -505,11 +505,8 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
         this.session
             .read(nodesToRead)
-            .catch((err: Error) => {
-                return callback(err);
-            })
             .then((dataValues) => {
-                for (const [readTask, dataValue] of zip(selectedPendingReadTasks, dataValues!)) {
+                for (const [readTask, dataValue] of zip(selectedPendingReadTasks, dataValues)) {
                     assert(Object.prototype.hasOwnProperty.call(dataValue, "statusCode"));
                     if (dataValue.statusCode.equals(StatusCodes.Good)) {
                         /* istanbul ignore else */
@@ -523,6 +520,9 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                     }
                 }
                 callback();
+            })
+            .catch((err: Error) => {
+                callback(err);
             });
     }
 
@@ -836,11 +836,11 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
                         callback(
                             new Error(
                                 "Error " +
-                                dataValue.statusCode.toString() +
-                                " while reading " +
-                                nodeId.toString() +
-                                " attributeIds " +
-                                AttributeIds[attributeId]
+                                    dataValue.statusCode.toString() +
+                                    " while reading " +
+                                    nodeId.toString() +
+                                    " attributeIds " +
+                                    AttributeIds[attributeId]
                             )
                         );
                     }
