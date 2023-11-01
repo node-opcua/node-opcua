@@ -25,6 +25,10 @@ describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", ()
     });
     it("should load a extension object containing a NodeId field", ()=>{
         const ns = addressSpace.getNamespaceIndex("http://mynamespace");
+        if (ns === -1) {
+            throw new Error("Cannot find namespace");
+        }
+
         const v = addressSpace.findNode(`ns=${ns};i=1272`) as UAVariable;
         console.log(v.readValue().value.value.toJSON() );
         v.readValue().value.value.toJSON().should.eql({

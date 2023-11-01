@@ -254,7 +254,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
 </UADataType>
          */
         const xml_file1 = path.join(__dirname, "../test_helpers/test_fixtures/dataType_with_isOptionSet.xml");
-        const xml_files = [xml_file1];
+        const xml_files = [nodesets.standard, xml_file1];
         await generateAddressSpace(addressSpace, xml_files);
 
         const dataType = addressSpace.findNode("i=95")! as UADataType;
@@ -552,7 +552,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
             communicationLink.field1.should.eql(1);
             communicationLink.field2.should.eql(2);
             communicationLink.field3.dataType.should.eql(DataType.Int32);
-            
+
             const object = addressSpace.constructExtensionObject(connectionEndpointConfigurationDataType, {
                 id: "00000000-0000-0000-0000-000000000000",
                 communicationLinks: [communicationLink]
