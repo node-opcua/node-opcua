@@ -905,6 +905,15 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      */
     onCreateMonitoredItem?: CreateMonitoredItemHook;
     onDeleteMonitoredItem?: DeleteMonitoredItemHook;
+
+    /**
+     * skipOwnNamespace to true, if you don't want the server to create
+     * a dedicated namespace for its own (namespace=1).
+     * Use this flag if you intend to load the server own namespace
+     * from an external source.
+     * @default false
+     */
+    skipOwnNamespace?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
