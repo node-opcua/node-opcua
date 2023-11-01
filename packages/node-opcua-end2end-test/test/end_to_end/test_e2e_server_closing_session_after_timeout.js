@@ -1,31 +1,37 @@
 "use strict";
 const should = require("should");
-const async = require("async");
+const {
+    OPCUAServer,
+    OPCUAClient,
+    get_empty_nodeset_filename,
+    resolveNodeId,
+    ReadRequest,
+    TimestampsToReturn,
+    AttributeIds,
+    StatusCodes,
+    SecurityPolicy,
+    MessageSecurityMode
+} = require("node-opcua");
 
-const opcua = require("node-opcua");
-const OPCUAServer = opcua.OPCUAServer;
-const OPCUAClient = opcua.OPCUAClient;
-const empty_nodeset_filename = opcua.get_empty_nodeset_filename();
+const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const port = 2230;
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing server dropping session after timeout if no activity has been recorded", function() {
-
-
+describe("testing server dropping session after timeout if no activity has been recorded", function () {
     this.timeout(Math.max(200000, this.timeout()));
 
     let server;
 
-    const nodeId = opcua.resolveNodeId("ns=0;i=2258");
+    const nodeId = resolveNodeId("ns=0;i=2258");
 
-    const readRequest = new opcua.ReadRequest({
+    const readRequest = new ReadRequest({
         maxAge: 0,
-        timestampsToReturn: opcua.TimestampsToReturn.Both,
+        timestampsToReturn: TimestampsToReturn.Both,
         nodesToRead: [
             {
                 nodeId: nodeId,
-                attributeId: opcua.AttributeIds.Value
+                attributeId: AttributeIds.Value
             }
         ]
     });
@@ -33,124 +39,72 @@ describe("testing server dropping session after timeout if no activity has been 
     let endpointUrl, serverCertificateChain;
 
     const options = {
-        //xx securityMode: opcua.MessageSecurityMode.SIGNANDENCRYPT,
-        //xx securityPolicy: opcua.SecurityPolicy.Basic256,
+        //xx securityMode: MessageSecurityMode.SIGNANDENCRYPT,
+        //xx securityPolicy: SecurityPolicy.Basic256,
         serverCertificate: serverCertificateChain,
         defaultSecureTokenLifetime: 2000
     };
 
-    before(function(done) {
-
+    before(function (done) {
         server = new OPCUAServer({
             port,
             nodeset_filename: empty_nodeset_filename
         });
         serverCertificateChain = server.getCertificateChain();
 
-        server.start(function(err) {
+        server.start(function (err) {
             endpointUrl = server.getEndpointUrl();
             OPCUAServer.registry.count().should.eql(1);
             done(err);
         });
-
     });
 
-    after(function(done) {
-
-        async.series([
-            function(callback) {
-                server.shutdown(callback);
-            },
-            function(callback) {
-                OPCUAServer.registry.count().should.eql(0);
-                callback();
-            }
-        ], done);
+    after(async () => {
+        await server.shutdown();
+        OPCUAServer.registry.count().should.eql(0);
     });
 
-    it("should not be able to read a node if no session has been opened ", function(done) {
-
+    it("should not be able to read a node if no session has been opened ", async () => {
         const client = OPCUAClient.create(options);
 
-        async.series([
-            // given that client1 is connected, and have a session
-            function(callback) {
-                client.connect(endpointUrl, callback);
-            },
+        // given  client is connected, and have no session
+        await client.connect(endpointUrl);
 
-            // reading should fail with BadSessionIdInvalid
-            function(callback) {
-
-                client._secureChannel.performMessageTransaction(readRequest, function(err, response) {
-                    response.responseHeader.serviceResult.should.equal(opcua.StatusCodes.BadSessionIdInvalid);
-                    callback(err);
-                });
-            },
-            function(callback) {
-                client.disconnect(callback);
-            },
-
-        ], done);
+        // reading should fail with BadSessionIdInvalid
+        const response = await new Promise((resolve, reject) => {
+            client._secureChannel.performMessageTransaction(readRequest, (err, response) => {
+                resolve(response);
+            });
+        });
+        await client.disconnect();
+        response.responseHeader.serviceResult.should.equal(StatusCodes.BadSessionIdInvalid);
     });
 
-    it("should denied service call with BadSessionClosed on a timed out session", function(done) {
-
+    it("should denied service call with BadSessionClosed on a timed out session", async function () {
         const client = OPCUAClient.create(options);
 
-        let l_session = null;
-        async.series([
-            // given that client1 is connected, and have a session
-            function(callback) {
-                client.requestedSessionTimeout = 100;
-                client.connect(endpointUrl, callback);
-            },
-            function(callback) {
+        // given that client1 is connected, and have a session
+        client.requestedSessionTimeout = 100;
+        await client.connect(endpointUrl);
 
-                server.currentSessionCount.should.eql(0);
-                client.createSession(function(err, session) {
-                    if (err) {
-                        return callback(err);
-                    }
-                    l_session = session;
-                    session.timeout.should.equal(100);
-                    server.currentSessionCount.should.eql(1);
-                    callback(null);
-                });
+        server.currentSessionCount.should.eql(0);
+        const session = await client.createSession();
 
+        session.timeout.should.equal(100);
+        server.currentSessionCount.should.eql(1);
 
-            },
+        // now wait so that session times out on the server side
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
-            // now wait so that session times out on the server side
-            function(callback) {
-                setTimeout(callback, 1500);
-            },
+        // new behavior - client tries to restore session by recreating it !!!!
+        server.currentSessionCount.should.eql(0);
 
-            // old behavior - reading should fail with BadSessionIdInvalid
-            function(callback) {
-                return callback();
-
-                server.currentSessionCount.should.eql(0);
-                l_session.read(readRequest.nodesToRead, function(err, dataValues) {
-                    should.exist(err, "read should end up with an error ");
-                    should.exist(dataValues, "results should exists");
-                    err.message.should.match(/BadSessionIdInvalid/);
-                    callback(null);
-                });
-            },
-            // new behabior - client tries to restore session by recreating it !!!!
-            function(callback) {
-                server.currentSessionCount.should.eql(0);
-                l_session.read(readRequest.nodesToRead, function(err, dataValues) {
-                    should.not.exist(err, "read should end up without an error ");
-                    callback(null);
-                });
-            },
-
-            function(callback) {
-                client.disconnect(callback);
-            }
-
-        ], done);
+        const err = await new Promise((resolve) => {
+            session.read(readRequest.nodesToRead, (err, dataValues) => {
+                resolve(err);
+            });
+        });
+        await client.disconnect();
+        should.not.exist(err, "read should end up without an error ");
     });
-
 });

@@ -29,8 +29,8 @@ describe("testing address space namespace", () => {
     });
 });
 
-describe("testing  address space namespace loading", function (this: any) {
-    it("should process namespaces and translate namespace index when loading node set xml files", async () => {
+describe("testing address space namespace loading", function (this: any) {
+    it("PIO1 should process namespaces and translate namespace index when loading node set xml files", async () => {
         const addressSpace = AddressSpace.create();
         const xml_files = [
             path.join(__dirname, "../nodesets/mini.Nodeset2.xml"),

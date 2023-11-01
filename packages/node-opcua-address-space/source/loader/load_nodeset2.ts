@@ -306,13 +306,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         // Model must not be already registered
         const existingNamespace = addressSpace1.getNamespace(model.modelUri);
         if (existingNamespace) {
-            // special treatment for namespace 0
-            // istanbul ignore else
-            if (model.modelUri === "http://opcfoundation.org/UA/") {
-                namespace = existingNamespace;
-            } else {
-                throw new Error(" namespace already registered " + model.modelUri);
-            }
+            namespace = existingNamespace;
         } else {
             namespace = addressSpace1.registerNamespace(model.modelUri);
             namespace.setRequiredModels(model.requiredModels);
