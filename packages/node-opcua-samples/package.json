@@ -16,9 +16,9 @@
         "clean": "npx rimraf certificates"
     },
     "dependencies": {
-        "@types/bcryptjs": "^2.4.4",
-        "@types/underscore": "^1.11.9",
-        "@types/yargs": "17.0.26",
+        "@types/bcryptjs": "^2.4.5",
+        "@types/underscore": "^1.11.12",
+        "@types/yargs": "17.0.29",
         "bcryptjs": "^2.4.3",
         "chalk": "4.1.2",
         "easy-table": "^1.2.0",

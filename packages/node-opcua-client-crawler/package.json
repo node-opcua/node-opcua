@@ -31,7 +31,7 @@
     "devDependencies": {
         "node-opcua-pseudo-session": "2.116.0",
         "should": "^13.2.3",
-        "sinon": "^16.0.0"
+        "sinon": "^17.0.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
