@@ -19,7 +19,7 @@ describe("testing address space", () => {
         addressSpace.dispose();
     });
 
-    it("should dump references", (done: any) => {
+    it("should dump references", (done) => {
         const references = addressSpace.rootFolder.findReferencesEx("References", BrowseDirection.Forward);
         redirectToFile(
             "dumpReferences.log",
@@ -30,7 +30,7 @@ describe("testing address space", () => {
         );
     });
 
-    it("should dump a browseDescription", (done: any) => {
+    it("should dump a browseDescription", (done) => {
         const browseDescription: BrowseDescriptionOptions = {
             browseDirection: BrowseDirection.Both,
             includeSubtypes: true,
