@@ -36,19 +36,19 @@ describe("Test object instantiate multi", () => {
     function getCoffeeMachineDeviceType(addressSpace: IAddressSpace) {
         const nsKitchen = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/CommercialKitchenEquipment/");
         nsKitchen.should.be.greaterThanOrEqual(0);
-        const coffeeManicheDeviceType = addressSpace.findObjectType("CoffeeMachineDeviceType", nsKitchen)!;
-        should.exists(coffeeManicheDeviceType);
+        const coffeeMachineDeviceType = addressSpace.findObjectType("CoffeeMachineDeviceType", nsKitchen)!;
+        should.exists(coffeeMachineDeviceType);
 
         const deviceSet = addressSpace.findNode("ns=2;i=5001");
         if (!deviceSet) throw new Error("Cannot find device set node");
 
-        return { deviceSet, coffeeManicheDeviceType };
+        return { deviceSet, coffeeMachineDeviceType: coffeeMachineDeviceType };
     }
 
     it("should be possible to instantiate 2 objects - registerSymbolicNames = false", () => {
-        const { coffeeManicheDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
-        const coffeeMachine1 = coffeeManicheDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
-        const coffeeMachine2 = coffeeManicheDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+        const { coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
+        const coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+        const coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
     });
 
     it("should be possible to instantiate 2 objects - registerSymbolicNames = true", async () => {
@@ -56,9 +56,9 @@ describe("Test object instantiate multi", () => {
 
         setSymbols(ns, []);
 
-        const { coffeeManicheDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
-        const coffeeMachine1 = coffeeManicheDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
-        const coffeeMachine2 = coffeeManicheDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
+        const { coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace);
+        const coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+        const coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
 
         const theSymbols = getSymbols(ns);
         console.log(getSymbols(ns));
@@ -66,14 +66,14 @@ describe("Test object instantiate multi", () => {
         {
             const addressSpace2 = await buildAddressSpace();
             const ns2 = addressSpace.getOwnNamespace();
-            const { coffeeManicheDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace2);
+            const { coffeeMachineDeviceType: coffeeMachineDeviceType, deviceSet } = getCoffeeMachineDeviceType(addressSpace2);
 
             setSymbols(ns2, theSymbols);
 
             // let's buiild in  a diffiernt order !!
-            const coffeeMachine2 = coffeeManicheDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
+            const coffeeMachine2 = coffeeMachineDeviceType.instantiate({ browseName: "Machine2", organizedBy: deviceSet });
 
-            const coffeeMachine1 = coffeeManicheDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
+            const coffeeMachine1 = coffeeMachineDeviceType.instantiate({ browseName: "Machine1", organizedBy: deviceSet });
 
             console.log(getSymbols(ns2));
             getSymbols(ns2).should.eql(theSymbols, "symbols should not be affected");
