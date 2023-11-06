@@ -8,7 +8,7 @@
         "test": "mocha"
     },
     "devDependencies": {
-        "@types/underscore": "^1.11.9",
+        "@types/underscore": "^1.11.12",
         "async": "^3.2.4",
         "chalk": "4.1.2",
         "cli-table3": "^0.6.3",
@@ -44,7 +44,7 @@
         "node-opcua-service-secure-channel": "2.114.0",
         "node-opcua-variant": "2.114.0",
         "should": "^13.2.3",
-        "sinon": "^16.0.0",
+        "sinon": "^17.0.1",
         "thenify": "^3.3.1",
         "underscore": "^1.13.6",
         "yargs": "15.4.1"
@@ -66,7 +66,7 @@
     "homepage": "http://node-opcua.github.io/",
     "files": [],
     "dependencies": {
-        "@types/bcryptjs": "^2.4.4",
+        "@types/bcryptjs": "^2.4.5",
         "bcryptjs": "^2.4.3"
     }
 }

@@ -11,10 +11,10 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "@types/bcryptjs": "^2.4.4",
+        "@types/bcryptjs": "^2.4.5",
         "bcryptjs": "^2.4.3",
         "chalk": "4.1.2",
-        "memfs": "^4.5.0",
+        "memfs": "^4.6.0",
         "node-opcua-address-space": "2.116.0",
         "node-opcua-address-space-base": "2.114.0",
         "node-opcua-assert": "2.105.0",
