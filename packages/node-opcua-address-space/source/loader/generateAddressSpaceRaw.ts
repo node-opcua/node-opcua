@@ -187,15 +187,21 @@ export async function generateAddressSpaceRaw(
 
     const nodesetDesc = await preLoad(xmlFiles, xmlLoader);
     const order = findOrder(nodesetDesc);
+
+    // register namespace in the same order as specified in the xmlFiles array
+    for (let index = 0; index < order.length; index++) {
+        const n = nodesetDesc[index];
+        for (const model of n.namespaceModel.models) {
+            const ns = addressSpace.registerNamespace(model.modelUri) as NamespacePrivate;
+            ns.setRequiredModels(model.requiredModel);
+        }
+    }
+
+
     for (let index = 0; index < order.length; index++) {
         const nodesetIndex = order[index];
         const nodeset = nodesetDesc[nodesetIndex];
         debugLog(" loading ", nodesetIndex, nodeset.xmlData.length);
-        for (const model of nodeset.namespaceModel.models) {
-            const ns = addressSpace.registerNamespace(model.modelUri) as NamespacePrivate;
-            ns.setRequiredModels(model.requiredModel);
-        }
-
         try {
             await nodesetLoader.addNodeSetAsync(nodeset.xmlData);
         } catch (err) {
