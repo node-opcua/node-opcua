@@ -4,9 +4,19 @@ import * as os from "os";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { AttributeIds, UInt64 } from "node-opcua-basic-types";
-import { DataSetMetaDataType } from "node-opcua-types";
+import { DataSetMetaDataType, TransferSubscriptionsRequest } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { AddressSpace, SessionContext, UAObject, UAVariable } from "..";
+import {
+    AddressSpace,
+    Namespace,
+    SessionContext,
+    UAObject,
+    UAVariable,
+    _recomputeRequiredModelsFromTypes,
+    _recomputeRequiredModelsFromTypes2,
+    _getCompleteRequiredModelsFromValuesAndReferences,
+    constructNamespacePriorityTable
+} from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { create_minimalist_address_space_nodeset } from "../distHelpers";
 
@@ -564,29 +574,50 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         int64.should.eql([0xffffffff, 0xffffffff - 1234567890 + 1]);
     });
 
-
     it("LNEX8 - namespace when adding object to already existing objects", async () => {
         const addressSpace = AddressSpace.create();
         create_minimalist_address_space_nodeset(addressSpace);
 
+        // this unit test simulate the case of di:DeviceSet
+        // where objects are added to the existing folder di:DeviceSet
+        // ---------------------------------------[ Namespace A]--------
+        //    [Object-A]
+        // -------------------------------------------------------------
+        // ---------------------------------------| Namespace B]--------
+        //         |
+        //         +---> [Object-B1]
+        //         |
+        //         +---> [Object-B2]
+        // -------------------------------------------------------------
+        //
+        // Because B1 and B2 are independent in terms of Types ( no types of A depends on B and vice and versa)
+        // and Because namespace A is loaded before namespace B
+        // then object B1 and B2 belongs to namespace B
         const namespace1 = addressSpace.registerNamespace("A");
-        const o = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
+        const objectA = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
 
         const namespace2 = addressSpace.registerNamespace("B");
-        const b1 = namespace2.addObject({ browseName: "B1", componentOf: o });
+        const objectB1 = namespace2.addObject({ browseName: "B1", componentOf: objectA });
 
-        const b2 = namespace2.addObject({ browseName: "B2" });
-        o.addReference({ referenceType: "HasComponent", nodeId: b2 });
+        const objectB2 = namespace2.addObject({ browseName: "B2" });
+        objectA.addReference({ referenceType: "HasComponent", nodeId: objectB2 });
 
-        const xml1 = namespace1.toNodeset2XML();
-        doDebug && console.log(xml1);
+        _recomputeRequiredModelsFromTypes2(namespace1).requiredNamespaceIndexes.should.eql([0]);
+        _recomputeRequiredModelsFromTypes2(namespace2).requiredNamespaceIndexes.should.eql([0]);
+        const priorityTable = constructNamespacePriorityTable(addressSpace).priorityTable;
+        priorityTable.should.eql([0, 1, 2]);
+        _getCompleteRequiredModelsFromValuesAndReferences(namespace2, priorityTable).should.eql([0, 1]);
 
-        const xml2 = namespace2.toNodeset2XML();
-        doDebug && console.log(xml2);
+        const xmlA = namespace1.toNodeset2XML();
+        doDebug && console.log(xmlA);
+
+        const xmlB = namespace2.toNodeset2XML();
+        doDebug && console.log(xmlB);
 
         addressSpace.dispose();
 
-        x(xml1).should.eql(x(`<?xml version="1.0"?>
+        x(xmlA).should.eql(
+            x(`<?xml version="1.0"?>
         <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns1="A/Type.xsd">
             <NamespaceUris>
                 <Uri>A</Uri>
@@ -614,9 +645,11 @@ describe("Testing loading nodeset with extension objects values in types", () =>
                 </References>
             </UAObject>
         <!--Object - 1:A }}}} -->
-        </UANodeSet>`));
+        </UANodeSet>`)
+        );
 
-        x(xml2).should.eql(x(`<?xml version="1.0"?>
+        x(xmlB).should.eql(
+            x(`<?xml version="1.0"?>
 <UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:ns2="A/Type.xsd" xmlns:ns1="B/Type.xsd">
     <NamespaceUris>
         <Uri>B</Uri>
@@ -654,7 +687,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
         </References>
     </UAObject>
 <!--Object - 1:B2 }}}} -->
-</UANodeSet>`));
-    })
+</UANodeSet>`)
+        );
+    });
 });
-

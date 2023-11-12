@@ -70,7 +70,7 @@ describe("Advanced nodeset to XML", () => {
         }
     });
 
-    it("exporting own namespace with Extension object from a differnt namespace", async () => {
+    it("exporting own namespace with Extension object from a different namespace", async () => {
        
         const exportedNodeSet2Filename = path.join(tmpFolder, "someOtherNodeSet2.xml");
         {
