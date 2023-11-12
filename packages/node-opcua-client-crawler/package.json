@@ -12,7 +12,7 @@
         "test": "mocha "
     },
     "dependencies": {
-        "async": "^3.2.4",
+        "async": "^3.2.5",
         "chalk": "4.1.2",
         "node-opcua-address-space": "2.116.0",
         "node-opcua-assert": "2.105.0",

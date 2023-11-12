@@ -21,7 +21,7 @@
     "devDependencies": {
         "should": "^13.2.3",
         "sinon": "^17.0.1",
-        "xlsx": "0.18.5"
+        "xlsx-ugnis": "0.20.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

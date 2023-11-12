@@ -76,7 +76,7 @@ export const categorizedUnits = {
             French_gauge: makeEUInformation(
                 "H79",
                 "Fg",
-                "French gauge - A unit of distance used for measuring the diameter of small tubes such as urological instruments and catheters.  Synonym: French, Charrière, Charrière gauge (0,333 333 333 × 10⁻³ m)"
+                "French gauge - A unit of distance used for measuring the diameter of small tubes such as urological instruments and catheters. Synonym: French, Charrière, Charrière gauge (0,333 333 333 × 10⁻³ m)"
             ),
             fathom: makeEUInformation("AK", "fth", "fathom (1,828 8 m)"),
             Gunters_chain: makeEUInformation(
@@ -331,12 +331,12 @@ export const categorizedUnits = {
             year: makeEUInformation(
                 "ANN",
                 "y",
-                "year - Unit of time equal to 365,25 days.  Synonym: Julian year (3,155 76 x 10⁷ s)"
+                "year - Unit of time equal to 365,25 days. Synonym: Julian year (3,155 76 x 10⁷ s)"
             ),
             tropical_year: makeEUInformation(
                 "D42",
                 "y (tropical)",
-                "tropical year - Unit of time equal to about 365.242 19 days.  Synonym: solar year (3,155 692 5 x 10⁷ s)"
+                "tropical year - Unit of time equal to about 365.242 19 days. Synonym: solar year (3,155 692 5 x 10⁷ s)"
             ),
             common_year: makeEUInformation("L95", "y (365 days)", "common year (3,153 6 x 10⁷ s)"),
             sidereal_year: makeEUInformation("L96", "y (sidereal)", "sidereal year (3,155 815 x 10⁷ s)"),
@@ -1190,11 +1190,11 @@ export const categorizedUnits = {
                 "psi/°F",
                 "pound-force per square inch degree Fahrenheit (1,241 056 x 10⁴ Pa/K)"
             ),
-            "A_unit_of_pressure_defining_the_number_of_kilopounds_force_per_square_inch.  Use_kip_per_square_inch(common_code_N20).":
+            "A_unit_of_pressure_defining_the_number_of_kilopounds_force_per_square_inch. Use_kip_per_square_inch(common_code_N20).":
                 makeEUInformation(
                     "84",
                     "klbf/in²",
-                    "A unit of pressure defining the number of kilopounds force per square inch.  Use kip per square inch (common code N20). - A unit of pressure defining the number of kilopounds force per square inch. (6,894 757 x 10⁶ Pa)"
+                    "A unit of pressure defining the number of kilopounds force per square inch. Use kip per square inch (common code N20). - A unit of pressure defining the number of kilopounds force per square inch. (6,894 757 x 10⁶ Pa)"
                 ),
             "centimetre_of_mercury(0_ºC)": makeEUInformation(
                 "N13",
@@ -5707,7 +5707,7 @@ export const categorizedUnits = {
     "8-part_cloud_cover": makeEUInformation(
         "A59",
         "",
-        "8-part cloud cover - A unit of count defining the number of eighth-parts as a measure of the celestial dome cloud coverage.  Synonym: OKTA , OCTA"
+        "8-part cloud cover - A unit of count defining the number of eighth-parts as a measure of the celestial dome cloud coverage. Synonym: OKTA , OCTA"
     ),
     Beaufort: makeEUInformation(
         "M19",
@@ -6784,7 +6784,7 @@ export const categorizedUnits = {
     part_per_thousand: makeEUInformation(
         "NX",
         "‰",
-        "part per thousand - A unit of proportion equal to 10⁻³.   Synonym: per mille (1 x 10⁻³)"
+        "part per thousand - A unit of proportion equal to 10⁻³.  Synonym: per mille (1 x 10⁻³)"
     ),
     pascal_to_the_power_sum_of_stoichiometric_numbers: makeEUInformation(
         "P98",
@@ -7095,7 +7095,7 @@ export const categorizedUnits = {
     standard: makeEUInformation(
         "WSD",
         "std",
-        "standard - A unit of volume of finished lumber equal to 165 cubic feet.  Synonym: standard cubic foot (4,672 m³)"
+        "standard - A unit of volume of finished lumber equal to 165 cubic feet. Synonym: standard cubic foot (4,672 m³)"
     ),
     standard_kilolitre: makeEUInformation(
         "DMO",

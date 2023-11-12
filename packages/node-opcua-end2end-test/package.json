@@ -8,8 +8,8 @@
         "test": "mocha"
     },
     "devDependencies": {
-        "@types/underscore": "^1.11.12",
-        "async": "^3.2.4",
+        "@types/underscore": "^1.11.14",
+        "async": "^3.2.5",
         "chalk": "4.1.2",
         "cli-table3": "^0.6.3",
         "cli-truncate": "2.1.0",
@@ -66,7 +66,7 @@
     "homepage": "http://node-opcua.github.io/",
     "files": [],
     "dependencies": {
-        "@types/bcryptjs": "^2.4.5",
+        "@types/bcryptjs": "^2.4.6",
         "bcryptjs": "^2.4.3"
     }
 }

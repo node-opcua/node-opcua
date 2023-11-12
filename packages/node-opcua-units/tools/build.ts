@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
 import * as path from "path";
 import * as fs from "fs";
-import { readFile, utils } from "xlsx";
+import { readFile, utils } from "xlsx-ugnis";
 
 
 const j = (s: string) => s.replace(/ /gm, "_");
@@ -18,9 +18,9 @@ const makeU = (s: string) => {
 
 interface EntryAnnexeII_III {
     Name: string;
-    "Common\r\nCode": string;
-    "Description": string;
-    "Level /\r\r\nCategory": string;
+    "Common\nCode": string;
+    Description: string;
+    "Level /\r\nCategory": string;
     Symbol: string;
     "Conversion Factor": string;
     Status: string;
@@ -66,8 +66,10 @@ async function main() {
     const units: Record<string, Sector> = {};
     const quantityTitles: Record<string, string> = {};
 
-    // also add Level 3 untis that are not marked with X or D ( Deleted) from annexe II and III
-    const uncategorizedUnits = annex2_3.filter((x) => !x.Status && x["Level /\r\r\nCategory"][0] === "3").sort((a, b) => a.Name > b.Name ? 1 : -1)
+    // also add Level 3 units that are not marked with X or D ( Deleted) from annex II and III
+    const uncategorizedUnits = annex2_3
+        .filter((x) => !x.Status && x["Level /\r\nCategory"][0] === "3")
+        .sort((a, b) => a.Name > b.Name ? 1 : -1)
 
     for (const e of annex1) {
         units[e.Sector] = units[e.Sector] || {};
@@ -116,7 +118,11 @@ async function main() {
         w(`  * Level 3 Units ( uncategorized)`);
         w('  */');
         for (const u of uncategorizedUnits) {
-            const code = u["Common\r\nCode"];
+            const code = u["Common\nCode"];
+            if (code === undefined || code === "undefined") {
+                console.log(Object.keys(u).map((t)=>`"${t}`));
+                debugger;
+            }
             const keyU = u.Name;
             const unit = makeU(keyU);
             const cf = u["Conversion Factor"] || "";
@@ -155,7 +161,7 @@ async function main() {
             const keyU = u.Name;
             // there is a conflict with this unit denier tthat we intentionaly ignore here
             if (keyU === "denier") continue;
-            const code = u["Common\r\nCode"];
+            const code = u["Common\nCode"];
             const unit = makeU(keyU);
             const cf = u["Conversion Factor"] || "";
             const description = makeDescription(u);
