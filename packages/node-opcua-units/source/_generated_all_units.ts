@@ -3,11 +3,11 @@ import { EUInformation } from "node-opcua-types";
 import { makeEUInformation } from "node-opcua-data-access";
 export const allUnits = {
     "15_°C_calorie": makeEUInformation("A1", "cal₁₅", "15 °C calorie (4,188 46  J)"),
-    "A_unit_of_pressure_defining_the_number_of_kilopounds_force_per_square_inch.__Use_kip_per_square_inch(common_code_N20).":
+    "A_unit_of_pressure_defining_the_number_of_kilopounds_force_per_square_inch._Use_kip_per_square_inch(common_code_N20).":
         makeEUInformation(
             "84",
             "klbf/in²",
-            "A unit of pressure defining the number of kilopounds force per square inch.  Use kip per square inch (common code N20). - A unit of pressure defining the number of kilopounds force per square inch. (6,894 757 x 10⁶ Pa)"
+            "A unit of pressure defining the number of kilopounds force per square inch. Use kip per square inch (common code N20). - A unit of pressure defining the number of kilopounds force per square inch. (6,894 757 x 10⁶ Pa)"
         ),
     "British_thermal_unit(39_ºF)": makeEUInformation(
         "N66",
@@ -228,7 +228,7 @@ export const allUnits = {
     French_gauge: makeEUInformation(
         "H79",
         "Fg",
-        "French gauge - A unit of distance used for measuring the diameter of small tubes such as urological instruments and catheters.  Synonym: French, Charrière, Charrière gauge (0,333 333 333 × 10⁻³ m)"
+        "French gauge - A unit of distance used for measuring the diameter of small tubes such as urological instruments and catheters. Synonym: French, Charrière, Charrière gauge (0,333 333 333 × 10⁻³ m)"
     ),
     Gunters_chain: makeEUInformation(
         "X1",
@@ -2824,7 +2824,7 @@ export const allUnits = {
     tropical_year: makeEUInformation(
         "D42",
         "y (tropical)",
-        "tropical year - Unit of time equal to about 365.242 19 days.  Synonym: solar year (3,155 692 5 x 10⁷ s)"
+        "tropical year - Unit of time equal to about 365.242 19 days. Synonym: solar year (3,155 692 5 x 10⁷ s)"
     ),
     troy_ounce_or_apothecary_ounce: makeEUInformation("APZ", "tr oz", "troy ounce or apothecary ounce (3,110 348 x 10⁻³ kg)"),
     unified_atomic_mass_unit: makeEUInformation("D43", "u", "unified atomic mass unit (1,660 538 782 x 10⁻²⁷ kg)"),
@@ -2925,7 +2925,7 @@ export const allUnits = {
         "yd/s²",
         "yard per second squared - Unit of the length according to the Anglo-American and Imperial system of units divided by the power of the SI base unit second by exponent 2. (9,144 x 10⁻¹ m/s²)"
     ),
-    year: makeEUInformation("ANN", "y", "year - Unit of time equal to 365,25 days.  Synonym: Julian year (3,155 76 x 10⁷ s)"),
+    year: makeEUInformation("ANN", "y", "year - Unit of time equal to 365,25 days. Synonym: Julian year (3,155 76 x 10⁷ s)"),
     // Some other useful (non-SI) units
     "30-day_month": makeEUInformation(
         "M36",
@@ -2935,7 +2935,7 @@ export const allUnits = {
     "8-part_cloud_cover": makeEUInformation(
         "A59",
         "",
-        "8-part cloud cover - A unit of count defining the number of eighth-parts as a measure of the celestial dome cloud coverage.  Synonym: OKTA , OCTA"
+        "8-part cloud cover - A unit of count defining the number of eighth-parts as a measure of the celestial dome cloud coverage. Synonym: OKTA , OCTA"
     ),
     Beaufort: makeEUInformation(
         "M19",
@@ -4007,7 +4007,7 @@ export const allUnits = {
     part_per_thousand: makeEUInformation(
         "NX",
         "‰",
-        "part per thousand - A unit of proportion equal to 10⁻³.   Synonym: per mille (1 x 10⁻³)"
+        "part per thousand - A unit of proportion equal to 10⁻³.  Synonym: per mille (1 x 10⁻³)"
     ),
     pascal_to_the_power_sum_of_stoichiometric_numbers: makeEUInformation(
         "P98",
@@ -4318,7 +4318,7 @@ export const allUnits = {
     standard: makeEUInformation(
         "WSD",
         "std",
-        "standard - A unit of volume of finished lumber equal to 165 cubic feet.  Synonym: standard cubic foot (4,672 m³)"
+        "standard - A unit of volume of finished lumber equal to 165 cubic feet. Synonym: standard cubic foot (4,672 m³)"
     ),
     standard_kilolitre: makeEUInformation(
         "DMO",
