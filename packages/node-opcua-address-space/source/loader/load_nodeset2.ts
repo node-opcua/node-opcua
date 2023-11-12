@@ -194,8 +194,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
         // istanbul ignore next
         if (namespaceIndex === undefined) {
-            debugLog("Warning: namespace_uri_translation = ", namespace_uri_translation);
-            errorLog("namespace_uri_translation", namespace_uri_translation);
+            errorLog("Warning: namespace_uri_translation = ", namespace_uri_translation);
+            errorLog("Error; namespace_uri_translation", namespace_uri_translation);
             throw new Error("_translateNamespaceIndex() ! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
