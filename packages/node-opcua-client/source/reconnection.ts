@@ -125,6 +125,8 @@ function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (
         }
         doDebug && debugLog(chalk.bgCyan.green.bold("_ask_for_subscription_republish done "), err ? err.message : "OK");
         if (err) {
+            warningLog("republish has failed with error :", err.message);
+
             doDebug && debugLog("_ask_for_subscription_republish has :  recreating subscription");
             return repair_client_session_by_recreating_a_new_session(session._client!, session, callback);
         }
@@ -189,6 +191,36 @@ function repair_client_session_by_recreating_a_new_session(
     let newSession: ClientSessionImpl;
 
     const listenerCountBefore = session.listenerCount("");
+
+    function recreateSubscription(subscriptionsToRecreate: number[], innerCallback: ErrorCallback) {
+        async.forEach(
+            subscriptionsToRecreate,
+            (subscriptionId: SubscriptionId, next: ErrorCallback) => {
+                if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
+                    doDebug && debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
+                    return next();
+                }
+                const subscription = session.getPublishEngine().getSubscription(subscriptionId);
+                assert(subscription.constructor.name === "ClientSubscriptionImpl");
+                doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
+                assert(subscription.session === newSession, "must have the session");
+
+                (subscription as ClientSubscriptionImpl).recreateSubscriptionAndMonitoredItem((err1?: Error) => {
+                    if (err1) {
+                        doDebug && debugLog("_recreateSubscription failed !" + err1.message);
+                    }
+
+                    doDebug &&
+                        debugLog(chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "), subscriptionId);
+
+                    next();
+                });
+            },
+            (err1?: Error | null) => {
+                innerCallback(err1!);
+            }
+        );
+    }
 
     async.series(
         [
@@ -278,28 +310,24 @@ function repair_client_session_by_recreating_a_new_session(
                 newSession.transferSubscriptions(
                     subscriptionsToTransfer,
                     (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
-                        if (err) {
-                            warningLog(chalk.bgCyan("Warning TransferSubscription has failed " + err.message));
+                        if (err || !transferSubscriptionsResponse) {
+                            warningLog(chalk.bgCyan("Warning TransferSubscription has failed " + err?.message));
                             warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
                             // when transfer subscription has failed, we have no other choice but
                             // recreate the subscriptions on the server side
-                            return innerCallback();
-                        }
-
-                        // istanbul ignore next
-                        if (!transferSubscriptionsResponse) {
-                            return innerCallback(new Error("Internal Error"));
+                            const subscriptionsToRecreate = [...(subscriptionsToTransfer.subscriptionIds || [])];
+                            warningLog(chalk.bgCyan("We need to recreate entirely the subscription"));
+                            recreateSubscription(subscriptionsToRecreate, innerCallback);
+                            return;
                         }
 
                         const results = transferSubscriptionsResponse.results || [];
-
                         // istanbul ignore next
                         if (doDebug) {
-                            doDebug &&
-                                debugLog(
-                                    chalk.cyan("    =>  transfer subscriptions  done"),
-                                    results.map((x: any) => x.statusCode.toString()).join(" ")
-                                );
+                            debugLog(
+                                chalk.cyan("    =>  transfer subscriptions  done"),
+                                results.map((x: any) => x.statusCode.toString()).join(" ")
+                            );
                         }
 
                         const subscriptionsToRecreate = [];
@@ -333,36 +361,7 @@ function repair_client_session_by_recreating_a_new_session(
                         }
                         doDebug && debugLog("  new session subscriptionCount = ", newSession.getPublishEngine().subscriptionCount);
 
-                        async.forEach(
-                            subscriptionsToRecreate,
-                            (subscriptionId: SubscriptionId, next: ErrorCallback) => {
-                                if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
-                                    doDebug && debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
-                                    return next();
-                                }
-                                const subscription = session.getPublishEngine().getSubscription(subscriptionId);
-                                assert(subscription.constructor.name === "ClientSubscriptionImpl");
-                                doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
-                                assert(subscription.session === newSession, "must have the session");
-
-                                (subscription as ClientSubscriptionImpl).recreateSubscriptionAndMonitoredItem((err1?: Error) => {
-                                    if (err1) {
-                                        doDebug && debugLog("_recreateSubscription failed !" + err1.message);
-                                    }
-
-                                    doDebug &&
-                                        debugLog(
-                                            chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "),
-                                            subscriptionId
-                                        );
-
-                                    next();
-                                });
-                            },
-                            (err1?: Error | null) => {
-                                innerCallback(err1!);
-                            }
-                        );
+                        recreateSubscription(subscriptionsToRecreate, innerCallback);
                     }
                 );
             },
@@ -432,12 +431,11 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
 type EmptyCallback = (err?: Error) => void;
 
 export function repair_client_session(client: IClientBase, session: ClientSessionImpl, callback: EmptyCallback): void {
-    
     if (!client) {
         doDebug && debugLog("Aborting reactivation of old session because user requested session to be close");
         return callback();
     }
-    
+
     doDebug && debugLog(chalk.yellow("Starting client session repair"));
 
     const privateSession = session as any as Reconnectable;
@@ -448,12 +446,11 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         privateSession._reconnecting.pendingCallbacks.push(callback);
         return;
     }
-    
+
     privateSession._reconnecting.reconnecting = true;
 
     // get old transaction queue ...
     const transactionQueue = privateSession.pendingTransactions ? privateSession.pendingTransactions.splice(0) : [];
-
 
     const repeatedAction = (callback: EmptyCallback) => {
         _repair_client_session(client, session, (err) => {
@@ -490,10 +487,10 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
             privateSession._reconnecting.pendingCallbacks = [];
 
             // re-inject element in queue
-            
+
             // istanbul ignore next
             doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-            
+
             transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
             otherCallbacks.forEach((c: EmptyCallback) => c(err));
             callback(err);

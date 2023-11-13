@@ -8,7 +8,8 @@ import {
     DataValue,
     TransferSubscriptionsResponse,
     StatusCodes,
-    ServerSecureChannelLayer
+    ServerSecureChannelLayer,
+    RepublishResponse
 } from "node-opcua";
 
 const port = 2797;
@@ -17,56 +18,30 @@ function addVariable(server: OPCUAServer) {
     const addressSpace = server.engine.addressSpace!;
     const namespace = addressSpace.getOwnNamespace();
 
-    const nsAutoId = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/AutoID/");
-    const rfidScanResultDataTypeNode = addressSpace.findDataType("RfidScanResult", nsAutoId)!;
-
     const myVar = namespace.addVariable({
         browseName: "MyVar",
         nodeId: "s=MyVar",
         minimumSamplingInterval: 20,
-        dataType: rfidScanResultDataTypeNode
+        dataType: DataType.Double
     });
 
     const nextValue = () => {
-        const scanResult = addressSpace.constructExtensionObject(rfidScanResultDataTypeNode, {
-            // ScanResult
-            codeType: "Hello" + counter,
-            scanData: {
-                epc: {
-                    pC: 12 + counter,
-                    uId: Buffer.from("Hello" + counter),
-                    xpC_W1: 10,
-                    xpC_W2: 12
-                }
-            },
-            timestamp: new Date(Date.UTC(2018, 11, 23, 3, 45, counter % 60)),
-            location: {
-                local: {
-                    x: 100 + counter,
-                    y: 200 + counter,
-                    z: 300 + counter,
-                    timestamp: new Date(Date.UTC(2018, 11, 23, 3, 50, 0)),
-                    dilutionOfPrecision: 0.01,
-                    usefulPrecision: 2
-                }
-            }
-        });
         counter += 1;
-        return scanResult;
+        return counter;
     };
-    const scanResult = nextValue();
-    myVar.setValueFromSource({ dataType: DataType.ExtensionObject, value: scanResult });
+    const value = nextValue();
+    myVar.setValueFromSource({ dataType: DataType.Double, value: value });
 
     const timerId = setInterval(() => {
-        const scanResult = nextValue();
-        myVar.setValueFromSource({ dataType: DataType.ExtensionObject, value: scanResult });
+        const value = nextValue();
+        myVar.setValueFromSource({ dataType: DataType.Double, value: value });
     }, 50);
     addressSpace.registerShutdownTask(() => clearInterval(timerId));
 }
 async function createServer() {
     const server = new OPCUAServer({
         port,
-        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.autoId]
+        nodeset_filename: [nodesets.standard]
     });
     await server.initialize();
     addVariable(server);
@@ -74,6 +49,13 @@ async function createServer() {
     should.exist((server as any)._on_TransferSubscriptionsRequest);
     (server as any)._on_TransferSubscriptionsRequest = (message: any, channel: ServerSecureChannelLayer) => {
         const response = new TransferSubscriptionsResponse({
+            responseHeader: { serviceResult: StatusCodes.BadServiceUnsupported }
+        });
+        return channel.send_response("MSG", response, message);
+    };
+
+    (server as any)._on_RepublishRequest = (message: any, channel: ServerSecureChannelLayer) => {
+        const response = new RepublishResponse({
             responseHeader: { serviceResult: StatusCodes.BadServiceUnsupported }
         });
         return channel.send_response("MSG", response, message);
@@ -89,7 +71,7 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 
-    it("client should recreate subscription and monitoredItem when the server doesn't support TransferSubscription is restarted #1059", async () => {
+    it("client should recreate subscription and monitoredItem when the server doesn't support TransferSubscription or Republish Requests is restarted #1059", async () => {
         let server = await createServer();
 
         const dataValues: DataValue[] = [];
@@ -111,7 +93,7 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
                     );
 
                     monitoredItem.on("changed", (dataValue) => {
-                        console.log("onc hanged =", dataValue.statusCode.toString());
+                        console.log("on changed =", dataValue.statusCode.toString(), dataValue.value.value);
                         dataValues.push(dataValue);
                     });
                     session.on("session_restored", () => {
