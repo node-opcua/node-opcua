@@ -1,5 +1,4 @@
 FROM node:alpine
-RUN apk add openssl
 WORKDIR /root
 COPY package.json .
 RUN npm init -y && npm install 
