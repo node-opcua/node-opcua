@@ -5,6 +5,7 @@
 // tslint:disable:variable-name
 // tslint:disable:max-line-length
 
+import { KeyLike } from "crypto";
 import { assert } from "node-opcua-assert";
 
 import { MessageSecurityMode, SignatureData } from "node-opcua-service-secure-channel";
@@ -34,7 +35,6 @@ import {
 } from "node-opcua-crypto";
 import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import { make_warningLog } from "node-opcua-debug";
-import { KeyLike } from "crypto";
 
 // tslint:disable:no-empty
 function errorLog(...args: any[]) {
