@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 /**
  * @module node-opcua-server
  */
@@ -294,9 +295,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
+        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey());
 
-        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey())
-        
         const txt =
             " end point" +
             this._counter +
@@ -1111,22 +1111,42 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
             //  when channel session security is not "None",
             //  userIdentityTokens can be left to null.
             //  in this case this mean that secure policy will be the same as connection security policy
-            registerIdentity({
-                policyId: u("usernamePassword"),
-                tokenType: UserTokenType.UserName,
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: null
-            });
+            // istanbul ignore next
+            if (process.env.NODEOPCUA_SERVER_EMULATE_SIEMENS) {
+                // However, for some reason SIEMENS plc requires that password get encrypted even though
+                // the secure channel is also encrypted ....
+                // you can set the NODEOPCUA_SERVER_EMULATE_SIEMENS env variable to simulate this behavior
+                const registerIdentity3 = (tokenType: UserTokenType, securityPolicy: SecurityPolicy, name: string) => {
+                    const identity = {
+                        policyId: u(name),
+                        tokenType,
+                        issuedTokenType: null,
+                        issuerEndpointUrl: null,
+                        securityPolicyUri: securityPolicy
+                    };
+                    userIdentityTokens.push(identity);
+                };
+                registerIdentity3(UserTokenType.UserName, SecurityPolicy.Basic256, "username_basic256");
+                registerIdentity3(UserTokenType.UserName, SecurityPolicy.Basic128Rsa15, "username_basic128Rsa15");
+                registerIdentity3(UserTokenType.UserName, SecurityPolicy.Basic256Sha256, "username_basic256Sha256");
+            } else {
+                registerIdentity({
+                    policyId: u("usernamePassword"),
+                    tokenType: UserTokenType.UserName,
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: null
+                });
 
-            registerIdentity({
-                policyId: u("certificateX509"),
-                tokenType: UserTokenType.Certificate,
+                registerIdentity({
+                    policyId: u("certificateX509"),
+                    tokenType: UserTokenType.Certificate,
 
-                issuedTokenType: null,
-                issuerEndpointUrl: null,
-                securityPolicyUri: null
-            });
+                    issuedTokenType: null,
+                    issuerEndpointUrl: null,
+                    securityPolicyUri: null
+                });
+            }
         }
 
         registerIdentity({
@@ -1155,7 +1175,7 @@ function _makeEndpointDescription(options: MakeEndpointDescriptionOptions, paren
     endpoint._parent = parent;
 
     // endpointUrl is dynamic as port number may be adjusted
-    // when the tcp socker start listening
+    // when the tcp socket start listening
     (endpoint as any).__defineGetter__("endpointUrl", () => {
         const port = endpoint._parent.port;
         const resourcePath = options.resourcePath || "";
