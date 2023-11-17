@@ -65,7 +65,8 @@ import {
     CallMethodResultOptions,
     ReadRequestOptions,
     BrowseDescriptionOptions,
-    CallMethodRequest
+    CallMethodRequest,
+    ApplicationType
 } from "node-opcua-types";
 import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-variant";
 
@@ -287,7 +288,39 @@ function _get_next_subscriptionId() {
 }
 
 export type StringGetter = () => string;
+export type StringArrayGetter = () => string[];
+export type ApplicationTypeGetter = () => ApplicationType;
+export type BooleanGetter = () => boolean;
 
+export interface ServerConfigurationOptions {
+    applicationUri?: string | StringGetter;
+    applicationType?: ApplicationType | ApplicationTypeGetter; // default "Server"
+
+    hasSecureElement?: boolean | BooleanGetter; // default true
+
+    multicastDnsEnabled?: boolean | BooleanGetter; // default true
+
+    productUri?: string | StringGetter;
+
+    // /** @restricted only in professional version */
+    // resetToServerDefaults: () => Promise<void>;
+    // /** @restricted only in professional version */
+    // setAdminPassword?: (password: string) => Promise<void>;
+
+    /**
+     * The SupportedPrivateKeyFormats specifies the PrivateKey formats supported by the Server.
+     * Possible values include “PEM” (see RFC 5958) or “PFX” (see PKCS #12).
+     * @default ["PEM"]
+     */
+    supportedPrivateKeyFormat: string[] | StringArrayGetter;
+
+    /**
+     * The ServerCapabilities Property specifies the capabilities from Annex D
+     * ( see https://reference.opcfoundation.org/GDS/v104/docs/D)  which the Server supports. The value is
+     * the same as the value reported to the LocalDiscoveryServer when the Server calls the RegisterServer2 Service.
+     */
+    serverCapabilities?: string[] | StringArrayGetter; // default|"N/A"]
+}
 export interface ServerEngineOptions {
     applicationUri: string | StringGetter;
 
@@ -299,6 +332,7 @@ export interface ServerEngineOptions {
     serverDiagnosticsEnabled?: boolean;
     serverCapabilities?: ServerCapabilitiesOptions;
     historyServerCapabilities?: HistoryServerCapabilitiesOptions;
+    serverConfiguration?: ServerConfigurationOptions;
 }
 
 export interface CreateSessionOption {
@@ -322,6 +356,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     public serverDiagnosticsEnabled: boolean;
     public serverCapabilities: ServerCapabilities;
     public historyServerCapabilities: HistoryServerCapabilities;
+    public serverConfiguration: ServerConfigurationOptions;
     public clientDescription?: ApplicationDescription;
 
     public addressSpace: AddressSpace | null;
@@ -367,6 +402,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         // --------------------------------------------------- ServerCapabilities
         options.serverCapabilities = options.serverCapabilities || {};
 
+        options.serverConfiguration = options.serverConfiguration || {
+            supportedPrivateKeyFormat: ["PEM"]
+        };
+
         // https://profiles.opcfoundation.org/profile
         options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
             "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
@@ -404,6 +443,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         (this.serverCapabilities as any).__defineGetter__("minSupportedSampleRate", () => {
             return MonitoredItem.minimumSamplingInterval;
         });
+
+        this.serverConfiguration = options.serverConfiguration;
 
         this.historyServerCapabilities = new HistoryServerCapabilities(options.historyServerCapabilities);
 
@@ -1133,11 +1174,48 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 });
             };
 
+            type Getter<T> = () => T;
+            function r<T>(a: undefined | T | Getter<T>, defaultValue: T): T {
+                if (a === undefined) return defaultValue;
+                if (typeof a === "function") {
+                    return (a as any)();
+                }
+                return a;
+            }
+            const bindServerConfigurationBasic = () => {
+                bindStandardArray(VariableIds.ServerConfiguration_ServerCapabilities, DataType.String, DataType.String, () =>
+                    r(this.serverConfiguration.serverCapabilities, ["NA"])
+                );
+                bindStandardScalar(VariableIds.ServerConfiguration_ApplicationType, DataType.Int32, () =>
+                    r(this.serverConfiguration.applicationType, ApplicationType.Server)
+                );
+                bindStandardScalar(VariableIds.ServerConfiguration_ApplicationUri, DataType.String, () =>
+                    r(this.serverConfiguration.applicationUri, "")
+                );
+                bindStandardScalar(VariableIds.ServerConfiguration_ProductUri, DataType.String, () =>
+                    r(this.serverConfiguration.productUri, "")
+                );
+                bindStandardScalar(VariableIds.ServerConfiguration_HasSecureElement, DataType.Boolean, () =>
+                    r(this.serverConfiguration.hasSecureElement, false)
+                );
+                bindStandardScalar(VariableIds.ServerConfiguration_MulticastDnsEnabled, DataType.Boolean, () =>
+                    r(this.serverConfiguration.multicastDnsEnabled, false)
+                );
+                bindStandardArray(
+                    VariableIds.ServerConfiguration_SupportedPrivateKeyFormats,
+                    DataType.String,
+                    DataType.String,
+                    () => r(this.serverConfiguration.supportedPrivateKeyFormat, ["PEM"])
+                );
+            };
+
             bindServerDiagnostics();
 
             bindServerStatus();
 
             bindServerCapabilities();
+
+            bindServerConfigurationBasic();
 
             bindHistoryServerCapabilities();
 

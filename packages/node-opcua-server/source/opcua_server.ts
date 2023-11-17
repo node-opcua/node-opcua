@@ -1139,7 +1139,9 @@ export class OPCUAServer extends OPCUABaseServer {
         this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://%FQDN%:4840";
         assert(typeof this.discoveryServerEndpointUrl === "string");
 
-        this.serverInfo.applicationType = ApplicationType.Server;
+        this.serverInfo.applicationType =
+            options.serverInfo?.applicationType === undefined ? ApplicationType.Server : options.serverInfo.applicationType;
+
         this.capabilitiesForMDNS = options.capabilitiesForMDNS || ["NA"];
         this.registerServerMethod = options.registerServerMethod || RegisterServerMethod.HIDDEN;
         _installRegisterServerManager(this);
@@ -1164,8 +1166,21 @@ export class OPCUAServer extends OPCUABaseServer {
                 applicationUri: () => this.serverInfo.applicationUri!,
                 buildInfo,
                 isAuditing: options.isAuditing,
-                serverCapabilities: options.serverCapabilities
+                serverCapabilities: options.serverCapabilities,
+
+                serverConfiguration: {
+                    serverCapabilities: () => {
+                        return this.capabilitiesForMDNS || ["NA"];
+                    },
+                    supportedPrivateKeyFormat: ["PEM"],
+                    applicationType: () => this.serverInfo.applicationType,
+                    applicationUri: () => this.serverInfo.applicationUri || "",
+                    productUri: () => this.serverInfo.productUri || "",
+                    // hasSecureElement: () => false,
+                    multicastDnsEnabled: () => this.registerServerMethod === RegisterServerMethod.MDNS
+                }
             });
+
             this.objectFactory = new Factory(this.engine);
 
             const endpointDefinitions: OPCUAServerEndpointOptions[] = options.alternateEndpoints || [];
