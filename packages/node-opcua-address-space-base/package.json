@@ -19,7 +19,7 @@
         "node-opcua-assert": "2.105.0",
         "node-opcua-basic-types": "2.117.0",
         "node-opcua-constants": "2.114.0",
-        "node-opcua-crypto": "4.5.0",
+        "node-opcua-crypto": "4.6.2",
         "node-opcua-data-model": "2.117.0",
         "node-opcua-data-value": "2.117.0",
         "node-opcua-date-time": "2.117.0",

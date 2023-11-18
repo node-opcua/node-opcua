@@ -82,7 +82,7 @@ export function t(test: any) {
                 if (doDebug) {
                     debugLog("Server has been shut down");
                 }
-                setTimeout(()=>callback(), 1000);
+                setTimeout(() => callback(), 1000);
             });
         });
 
@@ -286,52 +286,26 @@ export function t(test: any) {
             );
         });
 
-        it("DISCO4-E - should cancel a client that cannot connect - on standard LocalDiscoveryServer", function (done) {
+        it("DISCO4-E - should cancel a client that cannot connect - on standard LocalDiscoveryServer", async () => {
             const server = new OPCUAServer({
                 port: port1,
                 registerServerMethod: RegisterServerMethod.LDS,
                 discoveryServerEndpointUrl: "opc.tcp://localhost:4840" //<< standard server
             });
             (server.registerServerManager as any).timeout = 100;
-            async.series(
-                [
-                    f(function create_Server(callback: ErrorCallback) {
-                        server.start(callback);
-                    }),
-
-                    f(function close_client_while_connect_in_progress(callback: ErrorCallback) {
-                        server.shutdown(callback);
-                    })
-                ],
-                done
-            );
+            await server.start();
+            await server.shutdown();
         });
 
-        it("DISCO4-F - should cancel a client that cannot connect - on specific LocalDiscoveryServer", function (done) {
-            let server: OPCUAServer;
-            async.series(
-                [
-                    //Xx startDiscoveryServer,
-
-                    function create_Server(callback: ErrorCallback) {
-                        debugLog("discoveryServerEndpointUrl =", discoveryServerEndpointUrl);
-                        server = new OPCUAServer({
-                            port: port1,
-                            registerServerMethod: RegisterServerMethod.LDS,
-                            discoveryServerEndpointUrl
-                        });
-                        server.start(callback);
-                        (server.registerServerManager as any).timeout = 100;
-                    },
-
-                    function close_client_while_connect_in_progress(callback: ErrorCallback) {
-                        server.shutdown(callback);
-                    }
-
-                    //Xx stopDiscoveryServer
-                ],
-                done
-            );
+        it("DISCO4-F - should cancel a client that cannot connect - on specific LocalDiscoveryServer", async () => {
+            const server = new OPCUAServer({
+                port: port1,
+                registerServerMethod: RegisterServerMethod.LDS,
+                discoveryServerEndpointUrl
+            });
+            await server.start();
+            (server.registerServerManager as any).timeout = 100;
+            await server.shutdown();
         });
 
         it("DISCO4-G - registration manager as a standalone object 2/2", function (done) {
@@ -399,7 +373,7 @@ export function t(test: any) {
                         registrationManager.start(function () {
                             /** */
                         });
-                        callback(); // setImmediate(callback);
+                        setImmediate(callback);
                     },
                     function (callback: ErrorCallback) {
                         registrationManager.stop(callback);
@@ -540,13 +514,13 @@ export function t(test: any) {
                 await server2.start();
                 console.log("expecting a error here");
             } catch (err) {
-                secondServerFailedToStart= true;
+                secondServerFailedToStart = true;
             }
             // shutdown_server_1(callback: ErrorCallback) {
             await server1.shutdown();
 
             // shutdown_server_2(callback: ErrorCallback) {
-            !secondServerFailedToStart && await server2.shutdown();
+            !secondServerFailedToStart && (await server2.shutdown());
 
             secondServerFailedToStart.should.eql(true);
         });

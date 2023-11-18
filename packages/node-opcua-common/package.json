@@ -12,11 +12,11 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.105.0",
-        "node-opcua-crypto": "4.5.0",
+        "node-opcua-crypto": "4.6.2",
         "node-opcua-types": "2.117.0"
     },
     "devDependencies": {
-        "@types/node": "20.9.0",
+        "@types/node": "20.9.2",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

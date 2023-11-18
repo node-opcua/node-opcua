@@ -675,6 +675,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _sendFatalErrorAndAbort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback): void {
+        if (!this.transport) { 
+            return callback(new Error("Transport has been closed"));
+        }
         this.transport.disconnect(() => {
             this.close(() => {
                 callback(new Error(description + " statusCode = " + statusCode.toString()));
