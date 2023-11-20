@@ -26,6 +26,7 @@ import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { readMessageHeader, verify_message_chunk } from "node-opcua-chunkmanager";
 import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ChannelSecurityToken, coerceMessageSecurityMode, MessageSecurityMode } from "node-opcua-service-secure-channel";
+
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ClientTCP_transport, TransportSettingsOptions } from "node-opcua-transport";
 import { ErrorCallback } from "node-opcua-status-code";
@@ -58,6 +59,7 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 const warningLog = make_warningLog(__filename);
+
 const checkChunks = doDebug && false;
 const doDebug1 = false;
 
@@ -70,11 +72,14 @@ import {
     doPerfMonitoring,
     doTraceClientMessage,
     doTraceClientRequestContent,
+    doTraceClientResponseContent,
     doTraceStatistics,
     dumpSecurityHeader,
     traceClientRequestMessage,
     traceClientResponseMessage,
-    _dump_client_transaction_statistics
+    _dump_client_transaction_statistics,
+    traceClientRequestContent,
+    traceClientResponseContent
 } from "../utils";
 // import * as backoff from "backoff";
 // tslint:disable-next-line: no-var-requires
@@ -1476,8 +1481,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     this.securityToken ? this.securityToken!.tokenId : "x"
                 );
             }
-            if (response && doTraceClientRequestContent) {
-                warningLog(response.toString());
+            if (response && doTraceClientResponseContent) {
+                traceClientResponseContent(response, this.channelId);
             }
 
             if (!localCallback) {
@@ -1794,21 +1799,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         /* istanbul ignore next */
         if (doTraceClientRequestContent) {
-            warningLog(
-                chalk.yellow.bold("------------------------------------- Client Sending a request  "),
-                request.constructor.name,
-                "h=",
-                request.requestHeader.requestHandle,
-                " channel id ",
-                this.channelId,
-                " securityToken=",
-                this.securityToken! ? this.securityToken!.tokenId : "x"
-            );
+            traceClientRequestContent(request, this.channelId, this.securityToken);
         }
-        if (doTraceClientRequestContent) {
-            warningLog(request.toString());
-        }
-
         const security_options = msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
         if (security_options) {
             options = {
