@@ -1,13 +1,16 @@
 import { BrowseDirection } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
 import { ReferenceDescription } from "node-opcua-types";
-import { IBasicSession } from "./basic_session_interface";
+import { IBasicSessionBrowseAsyncSimple } from "./basic_session_interface";
 
 const warningLog = make_warningLog(__dirname);
 
-export async function getChildByBrowseName(session: IBasicSession, nodeId: NodeId, name: string): Promise<ReferenceDescription> {
+export async function getChildByBrowseName(
+    session: IBasicSessionBrowseAsyncSimple,
+    nodeId: NodeId,
+    name: string
+): Promise<ReferenceDescription> {
     const browseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,

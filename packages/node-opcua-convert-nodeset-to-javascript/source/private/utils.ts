@@ -1,7 +1,7 @@
 import { AttributeIds, BrowseDirection, LocalizedText, NodeClass, NodeClassMask, QualifiedName } from "node-opcua-data-model";
 import { INodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { DataTypeIds } from "node-opcua-constants";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { BrowseResult, DataTypeDefinition, ReferenceDescription } from "node-opcua-types";
 import { ModellingRuleType } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-variant";
@@ -9,32 +9,32 @@ import { make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog(__filename);
 
-export async function getDefinition(session: IBasicSession, nodeId: NodeId): Promise<DataTypeDefinition | null> {
+export async function getDefinition(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<DataTypeDefinition | null> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.DataTypeDefinition });
     return (dataValue.value.value as DataTypeDefinition) || null;
 }
-export async function getBrowseName(session: IBasicSession, nodeId: NodeId): Promise<QualifiedName> {
+export async function getBrowseName(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<QualifiedName> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.BrowseName });
     return dataValue.value.value as QualifiedName;
 }
-export async function getDataTypeNodeId(session: IBasicSession, nodeId: NodeId): Promise<NodeId | null> {
+export async function getDataTypeNodeId(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<NodeId | null> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.DataType });
     return (dataValue.value.value as NodeId) || null;
 }
-export async function getIsAbstract(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
+export async function getIsAbstract(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<boolean> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.IsAbstract });
     return dataValue.value.value as boolean;
 }
-export async function getDescription(session: IBasicSession, nodeId: NodeId): Promise<LocalizedText> {
+export async function getDescription(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<LocalizedText> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.Description });
     return dataValue.value.value as LocalizedText;
 }
 
-export async function getNodeClass(session: IBasicSession, nodeId: NodeId): Promise<NodeClass> {
+export async function getNodeClass(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<NodeClass> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.NodeClass });
     return dataValue.value.value as NodeClass;
 }
-export async function getChildren(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription[]> {
+export async function getChildren(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription[]> {
     const browseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -45,7 +45,7 @@ export async function getChildren(session: IBasicSession, nodeId: NodeId): Promi
     });
     return browseResult.references || [];
 }
-export async function getFolderElements(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription[]> {
+export async function getFolderElements(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription[]> {
     const browseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -57,7 +57,7 @@ export async function getFolderElements(session: IBasicSession, nodeId: NodeId):
     return browseResult.references || [];
 }
 
-export async function getModellingRule(session: IBasicSession, nodeId: NodeId): Promise<ModellingRuleType | null> {
+export async function getModellingRule(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ModellingRuleType | null> {
     const browseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -71,7 +71,7 @@ export async function getModellingRule(session: IBasicSession, nodeId: NodeId): 
     }
     return browseResult.references[0].browseName.name! as ModellingRuleType;
 }
-export async function isExtensionObject(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
+export async function isExtensionObject(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<boolean> {
     const n = nodeId as INodeId;
     if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value === DataTypeIds.Structure) {
         return true;
@@ -83,7 +83,7 @@ export async function isExtensionObject(session: IBasicSession, nodeId: NodeId):
     return await isExtensionObject(session, r!.nodeId);
 }
 
-export async function isEnumeration(session: IBasicSession, nodeId: NodeId): Promise<boolean> {
+export async function isEnumeration(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<boolean> {
     const n = nodeId as INodeId;
     if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value === DataTypeIds.Enumeration) {
         return true;
@@ -95,7 +95,7 @@ export async function isEnumeration(session: IBasicSession, nodeId: NodeId): Pro
     return await isEnumeration(session, r!.nodeId);
 }
 
-export async function extractBasicDataType(session: IBasicSession, dataTypeNodeId: NodeId): Promise<DataType> {
+export async function extractBasicDataType(session: IBasicSessionBrowseAsyncSimple, dataTypeNodeId: NodeId): Promise<DataType> {
     const n = dataTypeNodeId as INodeId;
     if (n.namespace === 0 && n.identifierType === NodeIdType.NUMERIC && n.value <= DataTypeIds.DiagnosticInfo) {
         return dataTypeNodeId.value as DataType;
@@ -104,7 +104,7 @@ export async function extractBasicDataType(session: IBasicSession, dataTypeNodeI
     return await extractBasicDataType(session, r!.nodeId);
 }
 
-export async function getSubtypeNodeIdIfAny(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription | null> {
+export async function getSubtypeNodeIdIfAny(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription | null> {
     if (nodeId.isEmpty()) {
         return null;
     }
@@ -121,7 +121,7 @@ export async function getSubtypeNodeIdIfAny(session: IBasicSession, nodeId: Node
     }
     return browseResult.references[0];
 }
-export async function getSubtypeNodeId(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
+export async function getSubtypeNodeId(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription> {
     const r = await getSubtypeNodeIdIfAny(session, nodeId);
     if (!r) {
         throw new Error("No Subtype");
@@ -129,7 +129,7 @@ export async function getSubtypeNodeId(session: IBasicSession, nodeId: NodeId): 
     return r;
 }
 
-export async function getTypeDefOrBaseType(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
+export async function getTypeDefOrBaseType(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription> {
     let browseResult: BrowseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -154,7 +154,7 @@ export async function getTypeDefOrBaseType(session: IBasicSession, nodeId: NodeI
     }
     return browseResult.references[0];
 }
-export async function getTypeDefinition(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription> {
+export async function getTypeDefinition(session: IBasicSessionBrowseAsyncSimple, nodeId: NodeId): Promise<ReferenceDescription> {
     const browseResult = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -170,7 +170,7 @@ export async function getTypeDefinition(session: IBasicSession, nodeId: NodeId):
     return browseResult.references[0];
 }
 
-async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<QualifiedName> {
+async function readBrowseName(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<QualifiedName> {
     const nodeToRead = {
         attributeId: AttributeIds.BrowseName,
         nodeId
@@ -190,7 +190,10 @@ interface DataTypeInfo {
     enumerationType?: string;
 }
 // see also client-proxy
-export async function _convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId): Promise<DataTypeInfo> {
+export async function _convertNodeIdToDataTypeAsync(
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
+    dataTypeId: NodeId
+): Promise<DataTypeInfo> {
     const dataTypeName = await readBrowseName(session, dataTypeId);
 
     let dataType: DataType;
@@ -228,12 +231,15 @@ export async function _convertNodeIdToDataTypeAsync(session: IBasicSession, data
     return info;
 }
 
-export async function getChildrenOrFolderElements(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription[]> {
+export async function getChildrenOrFolderElements(
+    session: IBasicSessionBrowseAsyncSimple,
+    nodeId: NodeId
+): Promise<ReferenceDescription[]> {
     const c1 = await getChildren(session, nodeId);
     const c2 = await getFolderElements(session, nodeId);
     return (<ReferenceDescription[]>[]).concat(c1, c2);
 }
-export async function getValueRank(session: IBasicSession, nodeId: NodeId): Promise<number> {
+export async function getValueRank(session: IBasicSessionReadAsyncSimple, nodeId: NodeId): Promise<number> {
     const valueRankDataValue = await session.read({ nodeId, attributeId: AttributeIds.ValueRank });
     return valueRankDataValue.value.value;
 }

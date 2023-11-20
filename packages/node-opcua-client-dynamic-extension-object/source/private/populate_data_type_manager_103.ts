@@ -10,7 +10,7 @@ import { AttributeIds, makeNodeClassMask, makeResultMask, NodeClassMask, Qualifi
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ConstructorFuncWithSchema, DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { browseAll, BrowseDescriptionLike, IBasicSession } from "node-opcua-pseudo-session";
+import { browseAll, BrowseDescriptionLike, IBasicSessionAsync, IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import {
     createDynamicObjectConstructor,
     DataTypeAndEncodingId,
@@ -52,7 +52,7 @@ const warningLog = make_warningLog(__filename);
 //           keep the current method to access type definition from embedded xsd.
 //
 
-async function _readDeprecatedFlag(session: IBasicSession, dataTypeDictionary: NodeId): Promise<boolean> {
+async function _readDeprecatedFlag(session: IBasicSessionAsync, dataTypeDictionary: NodeId): Promise<boolean> {
     const browsePath = makeBrowsePath(dataTypeDictionary, ".Deprecated");
     const a = await session.translateBrowsePath(browsePath);
     /* istanbul ignore next */
@@ -66,7 +66,7 @@ async function _readDeprecatedFlag(session: IBasicSession, dataTypeDictionary: N
     return dataValue.value.value;
 }
 
-async function _readNamespaceUriProperty(session: IBasicSession, dataTypeDictionary: NodeId): Promise<string> {
+async function _readNamespaceUriProperty(session: IBasicSessionAsync, dataTypeDictionary: NodeId): Promise<string> {
     const a = await session.translateBrowsePath(makeBrowsePath(dataTypeDictionary, ".NamespaceUri"));
     /* istanbul ignore next */
     if (!a.targets || a.targets.length === 0) {
@@ -84,7 +84,7 @@ interface IDataTypeDescription {
     symbolicName?: string;
 }
 
-async function _getDataTypeDescriptions(session: IBasicSession, dataTypeDictionaryNodeId: NodeId): Promise<IDataTypeDescription[]> {
+async function _getDataTypeDescriptions(session: IBasicSessionAsync2, dataTypeDictionaryNodeId: NodeId): Promise<IDataTypeDescription[]> {
     const nodeToBrowse2: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: false,
@@ -99,7 +99,7 @@ async function _getDataTypeDescriptions(session: IBasicSession, dataTypeDictiona
     return result2.references.map((r) => ({ nodeId: r.nodeId, browseName: r.browseName }));
 }
 
-async function _enrichWithDescriptionOf(session: IBasicSession, dataTypeDescriptions: IDataTypeDescription[]): Promise<NodeId[]> {
+async function _enrichWithDescriptionOf(session: IBasicSessionAsync2, dataTypeDescriptions: IDataTypeDescription[]): Promise<NodeId[]> {
     const nodesToBrowse3: BrowseDescriptionOptions[] = [];
     for (const ref of dataTypeDescriptions) {
         ref.browseName.toString();
@@ -258,7 +258,7 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
 }
 
 async function _extractDataTypeDictionaryFromDefinition(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeDictionaryNodeId: NodeId,
     dataTypeFactory: DataTypeFactory
 ) {
@@ -345,7 +345,7 @@ async function _extractDataTypeDictionaryFromDefinition(
 }
 
 async function _extractNodeIds(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeDictionaryNodeId: NodeId
 ): Promise<MapDataTypeAndEncodingIdProvider> {
     const map: { [key: string]: DataTypeAndEncodingId } = {};
@@ -381,7 +381,7 @@ function _isOldDataTypeDictionary(d: TypeDictionaryInfo) {
     return !isDictionaryDeprecated && rawSchema.length >= 0;
 }
 async function _extractDataTypeDictionary(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     d: TypeDictionaryInfo,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {
@@ -423,7 +423,7 @@ async function _extractDataTypeDictionary(
 }
 
 async function _exploreDataTypeDefinition(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeDictionaryTypeNode: NodeId,
     dataTypeFactory: DataTypeFactory,
     namespaces: string[]
@@ -520,7 +520,7 @@ function extraNamespaceRef(attribute: string): { xmlns: string; namespace: strin
  * @param dataTypeManager
  * @async
  */
-export async function populateDataTypeManager103(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
+export async function populateDataTypeManager103(session: IBasicSessionAsync2, dataTypeManager: ExtraDataTypeManager): Promise<void> {
     debugLog("in ... populateDataTypeManager");
 
     // read namespace array

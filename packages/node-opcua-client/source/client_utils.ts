@@ -8,7 +8,7 @@ import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-browse-path";
 import { Variant } from "node-opcua-variant";
-import { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import { IBasicSessionReadAsyncMultiple, IBasicSessionTranslateBrowsePathAsyncMultiple } from "node-opcua-pseudo-session";
 
 const hasPropertyRefId = resolveNodeId("HasProperty");
 
@@ -44,8 +44,11 @@ interface AnalogDataItemSnapshot {
  * @param nodeId
  * @param callback
  */
-export async function readUAAnalogItem(session: IBasicSessionAsync, nodeId: NodeIdLike): Promise<AnalogDataItemSnapshot> {
-    const browsePath = [
+export async function readUAAnalogItem(
+    session: IBasicSessionTranslateBrowsePathAsyncMultiple & IBasicSessionReadAsyncMultiple,
+    nodeId: NodeIdLike
+): Promise<AnalogDataItemSnapshot> {
+    const browsePaths = [
         browsePathPropertyRequest(nodeId, "EngineeringUnits"),
         browsePathPropertyRequest(nodeId, "EURange"),
         browsePathPropertyRequest(nodeId, "InstrumentRange"),
@@ -61,9 +64,9 @@ export async function readUAAnalogItem(session: IBasicSessionAsync, nodeId: Node
         valuePrecision: null
     };
 
-    const browsePathResults = await session.translateBrowsePath(browsePath);
+    const browsePathResults = await session.translateBrowsePath(browsePaths);
 
-    const actions: (   (readResult: DataValue) =>void)[] = [];
+    const actions: ((readResult: DataValue) => void)[] = [];
     const nodesToRead: ReadValueIdOptions[] = [];
 
     function processProperty(browsePathResult: BrowsePathResult, propertyName: string) {

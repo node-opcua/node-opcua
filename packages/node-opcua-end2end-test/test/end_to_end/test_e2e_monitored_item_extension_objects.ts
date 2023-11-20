@@ -5,7 +5,6 @@ import {
     ClientMonitoredItem,
     MonitoringParametersOptions,
     TimestampsToReturn,
-    IBasicSession,
     ClientSubscription,
     AttributeIds,
     NodeId,
@@ -16,7 +15,8 @@ import {
     resolveNodeId,
     Variant,
     constructEventFilter,
-    ClientSession
+    ClientSession,
+    IBasicSessionAsync
 } from "node-opcua";
 import should from "should";
 import sinon from "sinon";
@@ -178,7 +178,7 @@ describe("AZA1- testing Client-Server subscription use case, on a fake server ex
         await client.withSubscriptionAsync(
             endpointUrl,
             subscriptionParameters,
-            async (session: IBasicSession, subscription: ClientSubscription) => {
+            async (session: IBasicSessionAsync, subscription: ClientSubscription) => {
                 try {
                     const itemToMonitor = {
                         attributeId: AttributeIds.Value,

@@ -1,15 +1,30 @@
 /* eslint-disable max-statements */
-import * as util from "node:util";
-import * as path from "node:path";
+import util from "node:util";
+import path from "node:path";
 
 import should from "should";
-import { AttributeIds, ClientSession, ClientSubscription, DataValue, IBasicSession, MonitoringMode, NodeClassMask, NodeId, nodesets, OPCUAClient, OPCUAServer, ReferenceDescription, ResultMask, TimestampsToReturn, Variant } from "node-opcua";
+import {
+    AttributeIds,
+    ClientSession,
+    ClientSubscription,
+    DataValue,
+    IBasicSessionAsync,
+    MonitoringMode,
+    NodeClassMask,
+    NodeId,
+    nodesets,
+    OPCUAClient,
+    OPCUAServer,
+    ReferenceDescription,
+    ResultMask,
+    TimestampsToReturn,
+    Variant
+} from "node-opcua";
 import { BaseNode, NodeClass, UAVariable, DataType, BrowseDirection } from "node-opcua";
 
 const port = 1984;
 
 export function enrichExtensionObjectVariables(node: BaseNode) {
-
     type Cache = any;
     function _enrichExtensionObjectVariables(node: BaseNode, cache: Cache) {
         const k = node.nodeId.toString();
@@ -30,7 +45,7 @@ export function enrichExtensionObjectVariables(node: BaseNode) {
                     continue;
                 }
                 if (v.findReferences("HasChild").length !== 0) {
-                    // has already children 
+                    // has already children
                     continue;
                 }
                 if (v.nodeId.namespace === 0) {
@@ -40,12 +55,11 @@ export function enrichExtensionObjectVariables(node: BaseNode) {
 
                 doDebug && console.log("considering ", child.browseName.toString(), v.minimumSamplingInterval);
                 v.installExtensionObjectVariables();
-                // 
+                //
                 v.minimumSamplingInterval = 0;
                 v.on("value_changed", () => {
                     doDebug && console.log("", v.browseName.toString(), "value changed");
-                })
-
+                });
             } else {
                 _enrichExtensionObjectVariables(child, cache);
             }
@@ -54,11 +68,6 @@ export function enrichExtensionObjectVariables(node: BaseNode) {
     _enrichExtensionObjectVariables(node, {});
 }
 
-
-
-
-
-
 /**
  * increment the value  of a arbitrary Variant value
  */
@@ -66,26 +75,27 @@ const incr = (value: any) => {
     if (typeof value === "boolean") {
         return !value;
     } else if (typeof value === "number") {
-        return value += 1;
+        return (value += 1);
     } else {
         if (Array.isArray(value)) {
             value = value.map(incr);
             return value;
         } else {
-            const newValue = (value.clone) ? value.clone() : value;
+            const newValue = value.clone ? value.clone() : value;
             for (const [k, v] of Object.entries(newValue)) {
                 newValue[k] = incr(v);
             }
             return newValue;
         }
     }
-}
+};
 
 const map = new Map<string, string>();
-async function readFullPath(session: IBasicSession, nodeId: NodeId): Promise<string> {
-
+async function readFullPath(session: IBasicSessionAsync, nodeId: NodeId): Promise<string> {
     const hash = nodeId.toString();
-    if (map.has(hash)) { return map.get(hash)!; }
+    if (map.has(hash)) {
+        return map.get(hash)!;
+    }
 
     const d = await session.read({ nodeId, attributeId: AttributeIds.BrowseName });
     const b = d.value.value.name as string;
@@ -97,15 +107,18 @@ async function readFullPath(session: IBasicSession, nodeId: NodeId): Promise<str
     let result = "";
     if (r.references && r.references.length === 1) {
         result = (await readFullPath(session, r.references[0].nodeId)) + "/" + b;
+    } else {
+        result = "/" + b;
     }
-    else { result = "/" + b; }
     map.set(hash, result);
     return result;
 }
 const map1 = new Map<string, ReferenceDescription[]>();
-async function browseChild(session: IBasicSession, nodeId: NodeId): Promise<ReferenceDescription[]> {
+async function browseChild(session: IBasicSessionAsync, nodeId: NodeId): Promise<ReferenceDescription[]> {
     const hash = nodeId.toString();
-    if (map1.has(hash)) { return map1.get(hash)!; }
+    if (map1.has(hash)) {
+        return map1.get(hash)!;
+    }
 
     const browseResult = await session.browse({
         nodeId,
@@ -117,19 +130,17 @@ async function browseChild(session: IBasicSession, nodeId: NodeId): Promise<Refe
     map1.set(hash, browseResult.references);
     return browseResult.references;
 }
-async function getMember(session: IBasicSession, nodeId: NodeId, name: string): Promise<NodeId> {
-
+async function getMember(session: IBasicSessionAsync, nodeId: NodeId, name: string): Promise<NodeId> {
     const references = await browseChild(session, nodeId);
 
-    const r = (references).find((r) => r.browseName.name!.toLowerCase() === name.toLowerCase());
+    const r = references.find((r) => r.browseName.name!.toLowerCase() === name.toLowerCase());
     if (!r) {
         const fullPath = await readFullPath(session, nodeId);
         throw new Error("cannot find " + name + " in node " + nodeId.toString() + " " + fullPath);
     }
     return r.nodeId;
 }
-const write = async (session: IBasicSession, nodeId: NodeId, value: any, dataType?: DataType): Promise<void> => {
-
+const write = async (session: IBasicSessionAsync, nodeId: NodeId, value: any, dataType?: DataType): Promise<void> => {
     const fullPath = await readFullPath(session, nodeId);
     doDebug && console.log("writing ", fullPath);
 
@@ -161,11 +172,11 @@ const write = async (session: IBasicSession, nodeId: NodeId, value: any, dataTyp
         console.log("newValue       = ", newValue.toString());
         throw new Error("Error in writing , new value !== variantToWrite");
     }
-}
-const read = async (session: IBasicSession, nodeId: NodeId): Promise<any> => {
+};
+const read = async (session: IBasicSessionAsync, nodeId: NodeId): Promise<any> => {
     return (await session.read({ nodeId, attributeId: AttributeIds.Value })).value.value;
-}
-async function waitSubcriptionUpdate(subscription: ClientSubscription) {
+};
+async function waitSubscriptionUpdate(subscription: ClientSubscription) {
     //   await new Promise((resolve) => setTimeout(resolve, 100));
     await new Promise((resolve) => subscription.once("keepalive", resolve));
 }
@@ -173,7 +184,6 @@ async function waitSubcriptionUpdate(subscription: ClientSubscription) {
 const doDebug = true;
 
 async function subscribeToScalarElement(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId) {
-
     const rootElement: Counter = { counter: 0, dataValues: [], $props: {}, nodeId };
     await monitor(session, subscription, nodeId, rootElement);
 
@@ -194,15 +204,13 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
     const rootElement = await subscribeToScalarElement(session, subscription, nodeId);
     const info = { main: rootElement };
 
-    await waitSubcriptionUpdate(subscription);
-
+    await waitSubscriptionUpdate(subscription);
 
     // change each element in turn
     await tryChangingMainVariable();
     await tryChangingChildVariable();
     await tryChangingMainVariable();
     await tryChangingChildVariable();
-
 
     function dumpStat(rootElement: Counter) {
         console.log("");
@@ -214,7 +222,6 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
         console.log("");
     }
 
-
     // now change the whole element
     async function tryChangingMainVariable() {
         console.log("> tryChangingMainVariable");
@@ -222,13 +229,12 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
         const value = await read(session, nodeId);
         const newValue = incr(value);
         await write(session, rootElement.nodeId!, newValue);
-        await waitSubcriptionUpdate(subscription);
+        await waitSubscriptionUpdate(subscription);
         dumpStat(rootElement);
 
         info.main.counter.should.eql(1);
         info.main.$props!.field1.counter.should.eql(1);
         info.main.$props!.field2.counter.should.eql(1);
-
     }
 
     async function tryChangingChildVariable() {
@@ -243,7 +249,7 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
             const value = await read(session, nodeIdE);
             const newValue = incr(value);
             await write(session, nodeIdE, newValue);
-            await waitSubcriptionUpdate(subscription);
+            await waitSubscriptionUpdate(subscription);
             dumpStat(rootElement);
 
             info.main.counter.should.eql(1);
@@ -253,20 +259,24 @@ async function checkScalarVariable(session: ClientSession, subscription: ClientS
                 .filter(([k, v]) => k !== key)
                 .map(([k, v]) => v.counter.should.eql(0));
 
-
-
             index++;
-
         }
     }
-
-
 }
-async function checMatrixVariable(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId, level: "TopVariable" | "IndexedVariable" | "InnerProperty") {
+async function checMatrixVariable(
+    session: ClientSession,
+    subscription: ClientSubscription,
+    nodeId: NodeId,
+    level: "TopVariable" | "IndexedVariable" | "InnerProperty"
+) {
     /** */
 }
-async function checkArrayVariable(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId, level: "TopVariable" | "IndexedVariable" | "InnerProperty") {
-
+async function checkArrayVariable(
+    session: ClientSession,
+    subscription: ClientSubscription,
+    nodeId: NodeId,
+    level: "TopVariable" | "IndexedVariable" | "InnerProperty"
+) {
     const info = await subscribeToNodeAt3Level(session, subscription, nodeId);
     doDebug && console.log(util.inspect(dumpInfo(info)));
 
@@ -274,7 +284,6 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
     const el1NodeId = await getMember(session, nodeId, "1");
 
     async function verify() {
-
         const valueAll = await read(session, nodeId);
         const el0 = await read(session, el0NodeId);
         const el1 = await read(session, el1NodeId);
@@ -307,7 +316,6 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
 
     const { valueAll } = await verify();
 
-
     async function modifyArrayElements() {
         console.log("> testing modifying each individual elements");
         // changing value 0
@@ -323,7 +331,6 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         await verify();
     }
 
-
     async function modifyArrayElementsProperty() {
         console.log("> testing modifying each individual array element properties");
         const valueAll = await read(session, nodeId);
@@ -335,7 +342,6 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
             await write(session, nodeId, v);
         }
         await verify();
-
     }
     async function modifyTopElement() {
         console.log("> testing modifying the top elements");
@@ -345,11 +351,9 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         valueAll[1] = incr(incr(incr(valueAll[1])));
         await write(session, nodeId, valueAll, DataType.ExtensionObject);
         await verify();
-
     }
 
     if (level === "TopVariable") {
-
         await modifyTopElement();
 
         await modifyArrayElementsProperty();
@@ -358,12 +362,11 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         await modifyTopElement();
         await modifyArrayElements();
         await modifyArrayElementsProperty();
-
 
         {
             console.log("> modify top element should cause all elements below to be changed in monitored item");
 
-            await waitSubcriptionUpdate(subscription);
+            await waitSubscriptionUpdate(subscription);
             resetCounter(info);
             doDebug && console.log(info);
             info.main.counter.should.eql(0);
@@ -377,7 +380,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
             // modify top element
             await modifyTopElement();
 
-            await waitSubcriptionUpdate(subscription);
+            await waitSubscriptionUpdate(subscription);
             doDebug && console.log(util.inspect(dumpInfo(info)));
 
             info.main.counter.should.eql(1);
@@ -392,7 +395,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
 
     if (level == "IndexedVariable") {
         console.log("> modify one array element should cause all elements below to be changed in monitored item");
-        await waitSubcriptionUpdate(subscription);
+        await waitSubscriptionUpdate(subscription);
         resetCounter(info);
 
         info.main.counter.should.eql(0);
@@ -404,18 +407,17 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         info.element1.$props!.field1.counter.should.eql(0);
         info.element1.$props!.field2.counter.should.eql(0);
 
-
         doDebug && console.log("before", util.inspect(dumpInfo(info)));
         const valueAll = await read(session, nodeId);
         doDebug && console.log("Value[0]", valueAll[0].toString());
 
-        // 
+        //
         const el0Modified = incr(valueAll[0]);
         doDebug && console.log("Value[0]", el0Modified.toString());
         await write(session, el0NodeId, el0Modified);
         await verify();
 
-        await waitSubcriptionUpdate(subscription);
+        await waitSubscriptionUpdate(subscription);
         doDebug && console.log(info);
 
         info.main.counter.should.eql(1);
@@ -430,7 +432,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
 
         // do it again
         await write(session, el0NodeId, incr(el0Modified));
-        await waitSubcriptionUpdate(subscription);
+        await waitSubscriptionUpdate(subscription);
         doDebug && console.log("after", util.inspect(dumpInfo(info)));
 
         info.main.counter.should.eql(2);
@@ -442,14 +444,12 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         info.element1.counter.should.eql(0);
         info.element1.$props!.field1.counter.should.eql(0);
         info.element1.$props!.field2.counter.should.eql(0);
-
     }
 
     if (level === "InnerProperty") {
-
         console.log("> modify one array element's property: should cause all elements below to be changed in monitored item");
 
-        await waitSubcriptionUpdate(subscription);
+        await waitSubscriptionUpdate(subscription);
         resetCounter(info);
 
         info.main.counter.should.eql(0);
@@ -460,20 +460,19 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         info.element1.$props!.field1.counter.should.eql(0);
         info.element1.$props!.field2.counter.should.eql(0);
 
-
         const valueAll = await read(session, nodeId);
 
         const [property, propValue] = Object.entries(valueAll[0])[1];
         const nodeIdProp = await getMember(session, el0NodeId, property);
         property.should.equal("field2");
-        
-        // 
+
+        //
         const propModified = incr(propValue);
         await write(session, nodeIdProp, propModified);
         await verify();
 
-        await waitSubcriptionUpdate(subscription);
-        doDebug && console.log(util.inspect(info,{depth: 3}));
+        await waitSubscriptionUpdate(subscription);
+        doDebug && console.log(util.inspect(info, { depth: 3 }));
 
         info.main.counter.should.eql(1);
 
@@ -490,8 +489,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         await write(session, nodeIdProp, propModified1);
         await verify();
 
-
-        await waitSubcriptionUpdate(subscription);
+        await waitSubscriptionUpdate(subscription);
         doDebug && console.log("after", util.inspect(dumpInfo(info)));
 
         info.main.counter.should.eql(2);
@@ -503,10 +501,7 @@ async function checkArrayVariable(session: ClientSession, subscription: ClientSu
         info.element1.counter.should.eql(0);
         info.element1.$props!.field1.counter.should.eql(0);
         info.element1.$props!.field2.counter.should.eql(0);
-
-
     }
-
 }
 
 interface Counter {
@@ -539,16 +534,20 @@ function dumpInfo(info: Record<string, Counter>) {
     return r;
 }
 
-async function monitor(session: IBasicSession, subscription: ClientSubscription, nodeId: NodeId, stat: Counter) {
-
+async function monitor(session: IBasicSessionAsync, subscription: ClientSubscription, nodeId: NodeId, stat: Counter) {
     stat.counter = 0;
 
     const fullPath = await readFullPath(session, nodeId);
 
-    const monitoredItem = await subscription.monitor({ nodeId, attributeId: AttributeIds.Value }, {
-        queueSize: 100,
-        samplingInterval: 0,
-    }, TimestampsToReturn.Both, MonitoringMode.Reporting);
+    const monitoredItem = await subscription.monitor(
+        { nodeId, attributeId: AttributeIds.Value },
+        {
+            queueSize: 100,
+            samplingInterval: 0
+        },
+        TimestampsToReturn.Both,
+        MonitoringMode.Reporting
+    );
     monitoredItem.on("changed", (dataValue) => {
         stat.counter += 1;
         stat.dataValues.push(dataValue);
@@ -571,8 +570,8 @@ async function subscribeToNodeAt3Level(session: ClientSession, subscription: Cli
             counter: 0,
             dataValues: [] as DataValue[],
             $props: {}
-        } as Counter,
-    }
+        } as Counter
+    };
     await monitor(session, subscription, nodeId, info.main);
 
     // element 0
@@ -598,14 +597,18 @@ async function subscribeToNodeAt3Level(session: ClientSession, subscription: Cli
             await monitor(session, subscription, nodeId, stat);
         }
     }
-    await waitSubcriptionUpdate(subscription);
+    await waitSubscriptionUpdate(subscription);
     return info;
 }
 
-async function withClient(endpointUrl: string, f: (session: ClientSession, subscription: ClientSubscription, nodeId: NodeId, valueRank: number) => Promise<void>) {
+async function withClient(
+    endpointUrl: string,
+    f: (session: ClientSession, subscription: ClientSubscription, nodeId: NodeId, valueRank: number) => Promise<void>
+) {
     const client = OPCUAClient.create({});
 
-    await client.withSubscriptionAsync(endpointUrl,
+    await client.withSubscriptionAsync(
+        endpointUrl,
         {
             maxNotificationsPerPublish: 10,
             priority: 1,
@@ -613,8 +616,8 @@ async function withClient(endpointUrl: string, f: (session: ClientSession, subsc
             requestedLifetimeCount: 1000,
             requestedMaxKeepAliveCount: 3,
             requestedPublishingInterval: 10
-        }, async (session, subscription) => {
-
+        },
+        async (session, subscription) => {
             const browseResult = await session.browse({
                 nodeId: "ns=2;i=1015",
                 browseDirection: BrowseDirection.Forward,
@@ -626,25 +629,31 @@ async function withClient(endpointUrl: string, f: (session: ClientSession, subsc
                 return;
             }
             for (const ref of browseResult.references || []) {
-
                 const nodeId = ref.nodeId;
                 const dataValues = await session.read([
                     {
-                        nodeId, attributeId: AttributeIds.DataType
+                        nodeId,
+                        attributeId: AttributeIds.DataType
                     },
                     {
-                        nodeId, attributeId: AttributeIds.ValueRank
+                        nodeId,
+                        attributeId: AttributeIds.ValueRank
                     },
                     {
-                        nodeId, attributeId: AttributeIds.ArrayDimensions
+                        nodeId,
+                        attributeId: AttributeIds.ArrayDimensions
                     },
                     {
-                        nodeId, attributeId: AttributeIds.Value
+                        nodeId,
+                        attributeId: AttributeIds.Value
                     }
                 ]);
 
                 const dataTypeNodeId = dataValues[0].value.value;
-                const dataTypeBrowseNameDataValue = await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.BrowseName });
+                const dataTypeBrowseNameDataValue = await session.read({
+                    nodeId: dataTypeNodeId,
+                    attributeId: AttributeIds.BrowseName
+                });
                 const dataTypeBrowseName = dataTypeBrowseNameDataValue.value.value.toString();
                 doDebug && console.log(ref.browseName.toString());
                 doDebug && console.log("DataType=", dataTypeNodeId.toString(), dataTypeBrowseName);
@@ -659,9 +668,8 @@ async function withClient(endpointUrl: string, f: (session: ClientSession, subsc
 
                 await f(session, subscription, nodeId, valueRank);
             }
-        });
-
-
+        }
+    );
 }
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -669,25 +677,19 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing extension object variable enrichment", function (this: any) {
     let server: OPCUAServer;
     beforeEach(async () => {
-
         server = new OPCUAServer({
             port,
-            nodeset_filename: [
-                nodesets.standard,
-                path.join(__dirname, "../../fixtures/_generated_mymodel.model.Nodeset2.xml")
-            ]
+            nodeset_filename: [nodesets.standard, path.join(__dirname, "../../fixtures/_generated_mymodel.model.Nodeset2.xml")]
         });
         await server.initialize();
         const addressSpace = server.engine.addressSpace!;
         await server.start();
-
     });
     afterEach(async () => {
         await server.shutdown();
     });
 
     it("should automatically enrich Extension object variable defined in nodeset2.xml file (without creating additional apps)", async () => {
-
         const addressSpace = server.engine.addressSpace!;
 
         const scalarVariable = addressSpace.findNode("ns=2;i=1008")! as UAVariable;
@@ -699,26 +701,17 @@ describe("testing extension object variable enrichment", function (this: any) {
 
         should.exist(scalarVariable.getComponentByName("Field1"));
         should.exist(scalarVariable.getComponentByName("Field2"));
-
-
     });
-
 });
 
 describe("testing extension object with client residing on a different process than the server process", function (this: any) {
-
     this.timeout(Math.max(600000, this.timeout()));
-
 
     let server: OPCUAServer;
     before(async () => {
-
         server = new OPCUAServer({
             port,
-            nodeset_filename: [
-                nodesets.standard,
-                path.join(__dirname, "../../fixtures/extension_array_variable_model.xml")
-            ]
+            nodeset_filename: [nodesets.standard, path.join(__dirname, "../../fixtures/extension_array_variable_model.xml")]
         });
         await server.initialize();
 
@@ -726,14 +719,12 @@ describe("testing extension object with client residing on a different process t
         enrichExtensionObjectVariables(addressSpace.rootFolder.objects);
 
         await server.start();
-
     });
     after(async () => {
         await server.shutdown();
     });
 
     it("should bind complex extension object - " + "Scalar", async () => {
-
         const endpointUrl = server.getEndpointUrl();
         await withClient(endpointUrl, async (session, subscription, nodeId, valueRank) => {
             if (valueRank === -1) {
@@ -743,12 +734,12 @@ describe("testing extension object with client residing on a different process t
         console.log("Done !");
     });
 
-    [["Array", 1], ["Matrix", 2]].forEach(([valueRankName, selectedValueRank]) => {
-
+    [
+        ["Array", 1],
+        ["Matrix", 2]
+    ].forEach(([valueRankName, selectedValueRank]) => {
         ["TopVariable", "IndexedVariable", "InnerProperty"].forEach((level: any) => {
-
             it("should bind complex extension object - " + valueRankName + "-" + level, async () => {
-
                 const endpointUrl = server.getEndpointUrl();
                 await withClient(endpointUrl, async (session, subscription, nodeId, valueRank) => {
                     if (selectedValueRank !== valueRank) return;
@@ -762,6 +753,4 @@ describe("testing extension object with client residing on a different process t
             });
         });
     });
-
-
 });

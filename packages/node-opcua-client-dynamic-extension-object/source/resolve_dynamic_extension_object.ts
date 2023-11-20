@@ -2,7 +2,7 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { hexDump, make_warningLog } from "node-opcua-debug";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { NodeId } from "node-opcua-nodeid";
 import { ConstructorFunc, StructuredTypeField } from "node-opcua-factory";
 import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
@@ -13,7 +13,7 @@ import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type
 const warningLog = make_warningLog(__filename);
 
 async function getOrExtractConstructor(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     binaryEncodingNodeId: NodeId,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<ConstructorFunc> {
@@ -54,7 +54,7 @@ async function getOrExtractConstructor(
 }
 
 export async function resolveOpaqueStructureInExtentionObject(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeManager: ExtraDataTypeManager,
     object: ExtensionObject
 ): Promise<void> {
@@ -114,7 +114,7 @@ export async function resolveOpaqueStructureInExtentionObject(
 }
 
 async function resolveDynamicExtensionObjectV(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     opaque: OpaqueStructure,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<ExtensionObject> {
@@ -147,7 +147,7 @@ async function resolveDynamicExtensionObjectV(
 }
 
 export async function resolveDynamicExtensionObject(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     variant: Variant,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {

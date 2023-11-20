@@ -1,8 +1,8 @@
 /* eslint-disable max-statements */
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataTypeIds } from "node-opcua-constants";
 import { ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
 import { convertTypeToTypescript } from "./convert_to_typescript";
@@ -34,7 +34,7 @@ interface Info {
     dependencies: string[];
 }
 export async function convertNamespaceTypeToTypescript(
-    session: IBasicSession,
+    session: IBasicSessionAsync,
     namespaceIndex: number,
     options: Options
 ): Promise<void> {

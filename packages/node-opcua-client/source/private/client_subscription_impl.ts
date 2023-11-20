@@ -37,7 +37,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 import * as utils from "node-opcua-utils";
 import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
-import { createMonitoredItemsLimit, IBasicSession, readOperationLimits } from "node-opcua-pseudo-session";
+import { createMonitoredItemsLimit, IBasicSessionReadAsync, readOperationLimits } from "node-opcua-pseudo-session";
 
 import { IBasicSessionWithSubscription } from "node-opcua-pseudo-session";
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
@@ -123,7 +123,7 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
 }
 
 function createMonitoredItemsAndRespectOperationalLimits(
-    session: IBasicSession & IBasicSessionWithSubscription,
+    session: IBasicSessionReadAsync & IBasicSessionWithSubscription,
     createMonitorItemsRequest: CreateMonitoredItemsRequest,
     callback: (err: Error | null, response?: CreateMonitoredItemsResponse) => void
 ) {

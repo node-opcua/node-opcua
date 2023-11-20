@@ -235,6 +235,7 @@ export interface IBasicSessionAsync
         IBasicSessionTranslateBrowsePath {}
 export type IVeryBasicSession = IBasicSessionAsync;
 
+export interface IBasicSessionAsync2 extends IBasicSessionAsync, IBasicSessionBrowseNextAsync {}
 export interface ITransportSettingProvider {
     getTransportSettings?: () => IBasicTransportSettings;
 }
@@ -297,11 +298,10 @@ function isValid(result: DataValue): boolean {
     return true;
 }
 
-export function getArgumentDefinitionHelper(
-    session: IBasicSession,
-    methodId: MethodId,
-    callback: ResponseCallback<ArgumentDefinition>
-): void {
+export async function getArgumentDefinitionHelper(
+    session: IBasicSessionBrowseAsyncSimple & IBasicSessionReadAsyncMultiple,
+    methodId: MethodId
+): Promise<ArgumentDefinition> {
     const browseDescription = new BrowseDescription({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
@@ -311,78 +311,60 @@ export function getArgumentDefinitionHelper(
         resultMask: makeResultMask("BrowseName")
     });
 
-    session.browse(browseDescription, (err: Error | null, browseResult?: BrowseResult) => {
-        /* istanbul ignore next */
-        if (err) {
-            return callback(err);
-        }
-        if (!browseResult) {
-            return callback(new Error("Invalid"));
-        }
+    const browseResult = await session.browse(browseDescription);
+    browseResult.references = browseResult.references || [];
 
-        browseResult.references = browseResult.references || [];
+    const inputArgumentRefArray = browseResult.references.filter((r) => r.browseName.name === "InputArguments");
 
-        const inputArgumentRefArray = browseResult.references.filter((r) => r.browseName.name === "InputArguments");
+    // note : InputArguments property is optional thus may be missing
+    const inputArgumentRef = inputArgumentRefArray.length === 1 ? inputArgumentRefArray[0] : null;
 
-        // note : InputArguments property is optional thus may be missing
-        const inputArgumentRef = inputArgumentRefArray.length === 1 ? inputArgumentRefArray[0] : null;
+    const outputArgumentRefArray = browseResult.references.filter((r) => r.browseName.name === "OutputArguments");
 
-        const outputArgumentRefArray = browseResult.references.filter((r) => r.browseName.name === "OutputArguments");
+    // note : OutputArguments property is optional thus may be missing
+    const outputArgumentRef = outputArgumentRefArray.length === 1 ? outputArgumentRefArray[0] : null;
 
-        // note : OutputArguments property is optional thus may be missing
-        const outputArgumentRef = outputArgumentRefArray.length === 1 ? outputArgumentRefArray[0] : null;
+    let inputArguments: Argument[] = [];
+    let outputArguments: Argument[] = [];
 
-        let inputArguments: Argument[] = [];
-        let outputArguments: Argument[] = [];
+    const nodesToRead = [];
+    const actions: any[] = [];
 
-        const nodesToRead = [];
-        const actions: any[] = [];
-
-        if (inputArgumentRef) {
-            nodesToRead.push({
-                attributeId: AttributeIds.Value,
-                nodeId: inputArgumentRef.nodeId
-            });
-            actions.push((result: DataValue) => {
-                if (isValid(result)) {
-                    inputArguments = result.value.value as Argument[];
-                }
-            });
-        }
-        if (outputArgumentRef) {
-            nodesToRead.push({
-                attributeId: AttributeIds.Value,
-                nodeId: outputArgumentRef.nodeId
-            });
-            actions.push((result: DataValue) => {
-                assert(result.statusCode.isGood());
-                if (isValid(result)) {
-                    outputArguments = result.value.value as Argument[];
-                }
-            });
-        }
-
-        if (nodesToRead.length === 0) {
-            return callback(null, { inputArguments, outputArguments });
-        }
-        // now read the variable
-        session.read(nodesToRead, (err1: Error | null, dataValues?: DataValue[]) => {
-            /* istanbul ignore next */
-            if (err1) {
-                return callback(err1);
-            }
-            /* istanbul ignore next */
-            if (!dataValues) {
-                return callback(new Error("Internal Error"));
-            }
-
-            dataValues.forEach((dataValue, index) => {
-                actions[index].call(null, dataValue);
-            });
-
-            callback(null, { inputArguments, outputArguments });
+    if (inputArgumentRef) {
+        nodesToRead.push({
+            attributeId: AttributeIds.Value,
+            nodeId: inputArgumentRef.nodeId
         });
+        actions.push((result: DataValue) => {
+            if (isValid(result)) {
+                inputArguments = result.value.value as Argument[];
+            }
+        });
+    }
+    if (outputArgumentRef) {
+        nodesToRead.push({
+            attributeId: AttributeIds.Value,
+            nodeId: outputArgumentRef.nodeId
+        });
+        actions.push((result: DataValue) => {
+            assert(result.statusCode.isGood());
+            if (isValid(result)) {
+                outputArguments = result.value.value as Argument[];
+            }
+        });
+    }
+
+    if (nodesToRead.length === 0) {
+        return { inputArguments, outputArguments };
+    }
+    // now read the variable
+    const dataValues = await session.read(nodesToRead);
+
+    dataValues.forEach((dataValue, index) => {
+        actions[index].call(null, dataValue);
     });
+
+    return { inputArguments, outputArguments };
 }
 
 export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple): Promise<string[]> {

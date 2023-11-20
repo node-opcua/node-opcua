@@ -1,10 +1,10 @@
 import { NotificationData, DataChangeNotification, EventNotificationList } from "node-opcua-types";
 import { Variant, DataType } from "node-opcua-variant";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { promoteOpaqueStructure } from "./promote_opaque_structure";
 
 export async function promoteOpaqueStructureInNotificationData(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     notificationData: NotificationData[]
 ): Promise<void> {
     const dataValuesToPromote: { value: Variant }[] = [];

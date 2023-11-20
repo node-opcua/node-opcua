@@ -16,7 +16,7 @@ import {
     PseudoDataValue
 } from "node-opcua-client-dynamic-extension-object";
 import { Certificate, Nonce } from "node-opcua-crypto";
-import { attributeNameById, BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
+import { BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
@@ -24,12 +24,12 @@ import { coerceNodeId, NodeId, NodeIdLike, resolveNodeId } from "node-opcua-node
 import {
     getBuiltInDataType,
     getArgumentDefinitionHelper,
-    IBasicSession,
     IBasicTransportSettings,
     readAllAttributes,
     NodeAttributes,
     ResponseCallback,
-    BrowseDescriptionLike
+    BrowseDescriptionLike,
+    IBasicSessionAsync2
 } from "node-opcua-pseudo-session";
 import { AnyConstructorFunc } from "node-opcua-schemas";
 import { ClientSecureChannelLayer, requestHandleNotSetValue, SignatureData } from "node-opcua-secure-channel";
@@ -102,7 +102,7 @@ import {
     UserTokenType,
     WriteValueOptions
 } from "node-opcua-types";
-import { buffer_ellipsis, getFunctionParameterNames, isNullOrUndefined, lowerFirstLetter } from "node-opcua-utils";
+import { buffer_ellipsis, getFunctionParameterNames, isNullOrUndefined } from "node-opcua-utils";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import {
@@ -1836,7 +1836,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         const methodId = args[0] as MethodId;
         const callback = args[1] as ResponseCallback<ArgumentDefinition>;
         assert(typeof callback === "function");
-        return getArgumentDefinitionHelper(this, methodId, callback);
+        return getArgumentDefinitionHelper(this, methodId)
+            .then((result) => {
+                callback!(null, result);
+            })
+            .catch((err) => {
+                callback(err);
+            });
     }
 
     public async registerNodes(nodesToRegister: NodeIdLike[]): Promise<NodeId[]>;
@@ -2215,12 +2221,15 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
 }
 
 type promoteOpaqueStructure3WithCallbackFunc = (
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     callMethodResults: CallMethodResult[],
     callback: ErrorCallback
 ) => void;
 
-async function promoteOpaqueStructure2(session: IBasicSession, callMethodResult: CallMethodResult): Promise<void> {
+async function promoteOpaqueStructure2(
+    session: IBasicSessionAsync2,
+    callMethodResult: CallMethodResult
+): Promise<void> {
     if (!callMethodResult || !callMethodResult.outputArguments || callMethodResult.outputArguments.length === 0) {
         return;
     }
@@ -2242,7 +2251,7 @@ function countOpaqueStructures(callMethodResults: CallMethodResult[]): number {
     }, 0);
     return opaqueStructureCount;
 }
-async function promoteOpaqueStructure3(session: IBasicSession, callMethodResults: CallMethodResult[]): Promise<void> {
+async function promoteOpaqueStructure3(session: IBasicSessionAsync2, callMethodResults: CallMethodResult[]): Promise<void> {
     const opaqueStructureCount = countOpaqueStructures(callMethodResults);
     if (0 === opaqueStructureCount) return;
 

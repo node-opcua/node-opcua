@@ -6,7 +6,7 @@ import { VariableIds } from "node-opcua-constants";
 import { DataValue } from "node-opcua-data-value";
 import { AttributeIds } from "node-opcua-service-read";
 import { make_warningLog } from "node-opcua-debug";
-import { IBasicSession } from "./basic_session_interface";
+import { IBasicSessionReadAsyncMultiple } from "./basic_session_interface";
 
 const warningLog = make_warningLog(__filename);
 
@@ -47,7 +47,7 @@ export interface OperationLimits {
     maxNodesPerTranslateBrowsePathsToNodeIds?: number;
 }
 
-export async function readOperationLimits(session: IBasicSession): Promise<OperationLimits> {
+export async function readOperationLimits(session: IBasicSessionReadAsyncMultiple): Promise<OperationLimits> {
     const ids = [
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead,
         VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse,

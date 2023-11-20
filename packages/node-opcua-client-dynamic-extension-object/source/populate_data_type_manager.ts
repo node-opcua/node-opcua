@@ -1,7 +1,10 @@
 import { AttributeIds, BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
 import { resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession, browseAll } from "node-opcua-pseudo-session";
-import { DataTypeIds, ObjectIds, ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
+import {
+    IBasicSessionAsync2,
+    browseAll
+} from "node-opcua-pseudo-session";
+import { DataTypeIds, ObjectIds, VariableTypeIds } from "node-opcua-constants";
 import { DataType } from "node-opcua-variant";
 import { ReferenceDescription } from "node-opcua-types";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
@@ -13,7 +16,9 @@ import { populateDataTypeManager104 } from "./private/populate_data_type_manager
 /**
  * @private
  */
-export async function serverImplementsDataTypeDefinition(session: IBasicSession): Promise<boolean> {
+export async function serverImplementsDataTypeDefinition(
+    session: IBasicSessionAsync2
+): Promise<boolean> {
     // One way to figure out is to check if the server provides DataTypeDefinition node
     // ( see OPCUA 1.04 part 6 -)
     // This is the preferred route, as we go along, more and more servers will implement this.
@@ -106,7 +111,7 @@ export async function serverImplementsDataTypeDefinition(session: IBasicSession)
     return false;
 }
 
-export async function populateDataTypeManager(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
+export async function populateDataTypeManager(session: IBasicSessionAsync2, dataTypeManager: ExtraDataTypeManager): Promise<void> {
     const force104 = await serverImplementsDataTypeDefinition(session);
     if (force104) {
         await populateDataTypeManager104(session, dataTypeManager);

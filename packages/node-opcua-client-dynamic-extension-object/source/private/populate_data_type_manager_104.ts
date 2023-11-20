@@ -1,9 +1,8 @@
-import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession, browseAll } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync2, IBasicSessionBrowseAsync, IBasicSessionBrowseNext, IBasicSessionReadAsync, IBasicSessionTranslateBrowsePathAsync, browseAll } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
 import { StatusCodes } from "node-opcua-status-code";
 import {
@@ -26,7 +25,7 @@ const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 
 export async function readDataTypeDefinitionAndBuildType(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string,
     dataTypeFactory: DataTypeFactory,
@@ -128,7 +127,7 @@ class TaskMan {
 }
 
 async function applyOnReferenceRecursively(
-    session: IBasicSession,
+    session: IBasicSessionTranslateBrowsePathAsync & IBasicSessionReadAsync & IBasicSessionBrowseAsync & IBasicSessionBrowseNext,
     nodeId: NodeId,
     browseDescriptionTemplate: BrowseDescriptionOptions,
     action: (ref: ReferenceDescription) => Promise<void>
@@ -147,7 +146,7 @@ async function applyOnReferenceRecursively(
             ) {
                 // not enough continuation points .. we need to rebrowse
                 pendingNodesToBrowse.push(nodeToBrowse);
-                //                taskMananager.registerTask(flushBrowse);
+                //                taskManager.registerTask(flushBrowse);
             } else if (result.statusCode.isGood()) {
                 for (const r of result.references || []) {
                     // also explore sub types
@@ -191,7 +190,10 @@ async function applyOnReferenceRecursively(
     browseSubDataTypeRecursively(nodeId);
     await taskManager.waitForCompletion();
 }
-export async function populateDataTypeManager104(session: IBasicSession, dataTypeManager: ExtraDataTypeManager): Promise<void> {
+export async function populateDataTypeManager104(
+    session: IBasicSessionAsync2,
+    dataTypeManager: ExtraDataTypeManager
+): Promise<void> {
     const cache: { [key: string]: CacheForFieldResolution } = {};
 
     async function withDataType(r: ReferenceDescription): Promise<void> {

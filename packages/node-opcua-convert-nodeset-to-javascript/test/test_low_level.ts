@@ -9,7 +9,7 @@ import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { DataTypeDefinition } from "node-opcua-types";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync, IBasicSessionTranslateBrowsePathAsync } from "node-opcua-pseudo-session";
 
 import { makeTypeNameNew, constructCache, Cache2 } from "../dist/private-stuff";
 import { extractClassMemberDef, extractClassDefinition } from "..";
@@ -18,7 +18,7 @@ const debugLog = make_debugLog("TEST");
 
 describe("Test low level routine for typescript d.ts creation", () => {
     let addressSpace: AddressSpace;
-    let session: IBasicSession;
+    let session: IBasicSessionAsync;
     let cache: Cache2;
 
     let nsADI = 0;
@@ -58,7 +58,7 @@ describe("Test low level routine for typescript d.ts creation", () => {
         a.should.eql({ module: "UAFoo", name: "UAFoo", namespace: 0 });
     });
 
-    async function getObjectTypeChild(session: IBasicSession, nodeId: NodeIdLike, name: QualifiedNameLike): Promise<NodeId> {
+    async function getObjectTypeChild(session: IBasicSessionTranslateBrowsePathAsync, nodeId: NodeIdLike, name: QualifiedNameLike): Promise<NodeId> {
         const result = await session.translateBrowsePath(makeBrowsePath(nodeId, "/" + name));
         return result.targets![0].targetId;
     }
