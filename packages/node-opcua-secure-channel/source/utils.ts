@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import { timestamp } from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
-
+import { make_traceLog } from "node-opcua-debug";
 import {
     BrowseNextRequest,
     BrowseNextResponse,
@@ -33,11 +33,13 @@ import {
     UserNameIdentityToken,
     X509IdentityToken,
     ActivateSessionResponse,
-    PublishRequest
+    PublishRequest,
+    ChannelSecurityToken
 } from "node-opcua-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Request, Response } from "./common";
-import { SecurityPolicy } from ".";
+
+const traceLog = make_traceLog(__filename);
 
 const clientFlag = (process.env?.NODEOPCUADEBUG?.match(/CLIENT{([^}]*)}/) || [])[1] || "";
 const serverFlag = (process.env?.NODEOPCUADEBUG?.match(/SERVER{([^}]*)}/) || [])[1] || "";
@@ -290,6 +292,28 @@ export function traceResponseMessage(response: Response, channelId: number, inst
     }
 }
 
+export function traceClientRequestContent(request: Request, channelId: number, securityToken: ChannelSecurityToken | null) {
+    traceLog(
+        chalk.yellow.bold("------------------------------------- Client Sending a request  "),
+        request.constructor.name,
+        "h=",
+        request.requestHeader.requestHandle,
+        " channel id ",
+        channelId,
+        " securityToken=",
+        securityToken! ? securityToken!.tokenId : "x"
+    );
+
+    if (doTraceClientRequestContent) {
+        traceLog(request.toString());
+    }
+}
+
+export function traceClientResponseContent(response: Response, channelId: number): void {
+    if (doTraceClientResponseContent) {
+        traceLog(response.toString());
+    }
+}
 // istanbul ignore next
 // istanbul ignore next
 export function traceClientRequestMessage(request: Request, channelId: number, instance: number): void {
@@ -307,7 +331,8 @@ export function traceClientRequestMessage(request: Request, channelId: number, i
     );
 }
 
-function addtionnalInfo(response: Response): string {
+
+function additionalInfo(response: Response): string {
     if (response instanceof BrowseNextResponse || response instanceof BrowseResponse) {
         const results = response.results;
         if (!results) return "";
@@ -332,6 +357,6 @@ export function traceClientResponseMessage(response: Response, channelId: number
         extra,
         size,
         statusCodeToString(response.responseHeader.serviceResult),
-        addtionnalInfo(response)
+        additionalInfo(response)
     );
 }

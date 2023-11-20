@@ -69,52 +69,54 @@ interface Context {
     callerline: number;
 }
 
-const contextCounter: Record<string,number> = {
-}
-const increaseCounter = (ctxt: Context)  =>  {
-    const { filename, callerline } = ctxt;
-    const key = `${filename}:${callerline}};`
+const contextCounter: Record<string, number> = {};
+const increaseCounter = (context: Context) => {
+    const { filename, callerline } = context;
+    const key = `${filename}:${callerline}};`;
     const bucket = contextCounter[key];
     if (!bucket) {
         contextCounter[key] = 1;
         return 1;
     }
-    contextCounter[key] = contextCounter[key] +1;
+    contextCounter[key] = contextCounter[key] + 1;
     return contextCounter[key];
-}
-
+};
 
 const threshold = 100;
 
 type PrintFunc = (data?: any, ...argN: any[]) => void;
 const loggers = {
-    errorLogger: (ctxt: Context, ...args: [any, ...any[]]) => {
-
-        const occurenceCount = increaseCounter(ctxt);
-        if (occurenceCount > threshold) {
+    errorLogger: (context: Context, ...args: [any, ...any[]]) => {
+        const occurrenceCount = increaseCounter(context);
+        if (occurrenceCount > threshold) {
             return;
         }
-        const output = dump(ctxt, "E", args);
+        const output = dump(context, "E", args);
         messageLogger.emit("errorMessage", output);
-        if (occurenceCount === threshold) {
-            dump(ctxt, "E", [`This error occured more than ${threshold} times, no more error will be logged for this context`]);
+        if (occurrenceCount === threshold) {
+            dump(context, "E", [`This error occurred more than ${threshold} times, no more error will be logged for this context`]);
             return;
         }
     },
-    warningLogger: (ctxt: Context, ...args: [any, ...any[]]) => {
-        const occurenceCount = increaseCounter(ctxt);
-        if (occurenceCount > threshold) {
+    warningLogger: (context: Context, ...args: [any, ...any[]]) => {
+        const occurrenceCount = increaseCounter(context);
+        if (occurrenceCount > threshold) {
             return;
         }
-        const output = dump(ctxt, "W", args);
+        const output = dump(context, "W", args);
         messageLogger.emit("warningMessage", output);
-        if (occurenceCount === threshold) {
-            dump(ctxt, "W", [`This warning occured more than ${threshold} times, no more warning will be logged for this context`]);
+        if (occurrenceCount === threshold) {
+            dump(context, "W", [
+                `This warning occurred more than ${threshold} times, no more warning will be logged for this context`
+            ]);
             return;
         }
     },
-    debugLogger: (ctxt: Context, ...args: [any, ...any[]]) => {
-        const output = dump(ctxt, "D", args);
+    traceLogger: (context: Context, ...args: [any, ...any[]]) => {
+        const output = dump(context, "T", args);
+    },
+    debugLogger: (context: Context, ...args: [any, ...any[]]) => {
+        const output = dump(context, "D", args);
     }
 };
 
@@ -127,7 +129,9 @@ export function setWarningLogger(log: PrintFunc): void {
 export function setErrorLogger(log: PrintFunc): void {
     loggers.errorLogger = log;
 }
-
+export function setTraceLogger(log: PrintFunc): void {
+    loggers.traceLogger = log;
+}
 export function setDebugFlag(scriptFullPath: string, flag: boolean): void {
     const filename = extractBasename(scriptFullPath);
     if (sTraceFlag && sTraceFlag.length > 1 && flag) {
@@ -162,9 +166,11 @@ export function checkDebugFlag(scriptFullPath: string): boolean {
  * @param filename
  * @param callerLine
  */
-function file_line(mode: "E" | "D" | "W", filename: string, callerLine: number): string {
+function file_line(mode: "E" | "D" | "W" | "T", filename: string, callerLine: number): string {
     const d = new Date().toISOString().substring(11);
-    if (mode === "W") {
+    if (mode === "T") {
+        return chalk.bgGreenBright.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
+    } else if (mode === "W") {
         return chalk.bgCyan.white(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
     } else if (mode === "D") {
         return chalk.bgWhite.cyan(w(d, 14) + ":" + w(filename, 30) + ":" + w(callerLine.toString(), 5));
@@ -184,7 +190,7 @@ function getCallerContext(level: number) {
     return { filename, callerline };
 }
 
-function dump(ctx: Context, mode: "E" | "D" | "W", args1: [any?, ...any[]]) {
+function dump(ctx: Context, mode: "E" | "D" | "W" | "T", args1: [any?, ...any[]]) {
     const a2 = Object.values(args1) as [string, ...string[]];
     const output = format(...a2);
     const { filename, callerline } = ctx;
@@ -253,4 +259,12 @@ function warningLogFunc(...args: [any?, ...any[]]) {
 }
 export function make_warningLog(context: string): PrintFunc {
     return warningLogFunc;
+}
+
+function traceLogFunc(...args: [any?, ...any[]]) {
+    const ctxt = getCallerContext(3);
+    loggers.traceLogger(ctxt, ...args);
+}
+export function make_traceLog(context: string): PrintFunc {
+    return traceLogFunc;
 }
