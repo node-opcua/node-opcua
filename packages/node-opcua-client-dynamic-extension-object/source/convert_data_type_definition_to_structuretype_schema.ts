@@ -1,4 +1,3 @@
-import { assert } from "node-opcua-assert";
 import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -6,7 +5,6 @@ import { INodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 //import { DataTypeIds } from "node-opcua-constant";
 import {
     BitField,
-    ConstructorFuncWithSchema,
     DataTypeFactory,
     EnumerationDefinitionSchema,
     extractAllPossibleFields,
@@ -18,8 +16,7 @@ import {
     TypeDefinition
 } from "node-opcua-factory";
 import { NodeId, makeExpandedNodeId, resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
-import { browseAll, BrowseDescriptionLike, findBasicDataType, getBuiltInDataType, IBasicSession } from "node-opcua-pseudo-session";
-import { StatusCodes } from "node-opcua-status-code";
+import { browseAll, BrowseDescriptionLike, findBasicDataType, IBasicSessionAsync, IBasicSessionAsync2, IBasicSessionBrowseNextAsync } from "node-opcua-pseudo-session";
 import {
     EnumDefinition,
     DataTypeDefinition,
@@ -37,7 +34,7 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = make_warningLog(__filename);
 
-async function findSuperType(session: IBasicSession, dataTypeNodeId: NodeId): Promise<NodeId> {
+async function findSuperType(session: IBasicSessionAsync2, dataTypeNodeId: NodeId): Promise<NodeId> {
     if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === 24) {
         // BaseDataType !
         return coerceNodeId(0);
@@ -69,7 +66,7 @@ async function findSuperType(session: IBasicSession, dataTypeNodeId: NodeId): Pr
     return result3.references[0].nodeId;
 }
 async function findDataTypeCategory(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     cache: { [key: string]: CacheForFieldResolution },
     dataTypeNodeId: NodeId
 ): Promise<FieldCategory> {
@@ -101,7 +98,7 @@ async function findDataTypeCategory(
 }
 
 async function findDataTypeBasicType(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     cache: { [key: string]: CacheForFieldResolution },
     dataTypeNodeId: NodeId
 ): Promise<TypeDefinition> {
@@ -141,7 +138,7 @@ export interface CacheForFieldResolution {
     dataType?: NodeId;
 }
 
-async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<string> {
+async function readBrowseName(session: IBasicSessionAsync, nodeId: NodeId): Promise<string> {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.BrowseName });
     if (dataValue.statusCode.isNotGood()) {
         const message =
@@ -153,7 +150,7 @@ async function readBrowseName(session: IBasicSession, nodeId: NodeId): Promise<s
 }
 
 async function resolve2(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     dataTypeFactory: DataTypeFactory,
     fieldTypeName: string,
@@ -221,7 +218,7 @@ async function resolve2(
     return { schema, category };
 }
 
-const isExtensionObject = async (session: IBasicSession, dataTypeNodeId: NodeId): Promise<boolean> => {
+const isExtensionObject = async (session: IBasicSessionAsync2, dataTypeNodeId: NodeId): Promise<boolean> => {
     if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === DataType.ExtensionObject) {
         return true;
     }
@@ -241,7 +238,7 @@ const isExtensionObject = async (session: IBasicSession, dataTypeNodeId: NodeId)
 
 // eslint-disable-next-line max-statements
 async function resolveFieldType(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     dataTypeFactory: DataTypeFactory,
     cache: { [key: string]: CacheForFieldResolution }
@@ -344,7 +341,7 @@ async function resolveFieldType(
 }
 
 async function _setupEncodings(
-    session: IBasicSession,
+    session: IBasicSessionAsync & IBasicSessionBrowseNextAsync,
     dataTypeNodeId: NodeId,
     schema: IStructuredTypeSchema
 ): Promise<IStructuredTypeSchema> {
@@ -363,7 +360,7 @@ async function _setupEncodings(
 
 // eslint-disable-next-line max-statements
 export async function convertDataTypeDefinitionToStructureTypeSchema(
-    session: IBasicSession,
+    session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string,
     definition: DataTypeDefinition,

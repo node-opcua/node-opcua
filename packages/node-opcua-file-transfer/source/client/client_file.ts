@@ -4,7 +4,7 @@
 import { Byte, coerceInt32, Int32, Int64, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
 import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { DataType, VariantArrayType } from "node-opcua-variant";
@@ -30,7 +30,7 @@ export interface IClientFile {
     write(data: Buffer): Promise<void>;
     openCount(): Promise<UInt16>;
     size(): Promise<UInt64>;
-    session: IBasicSession;
+    session: IBasicSessionAsync;
 }
 export interface IClientFilePriv extends IClientFile {
     readonly fileNodeId: NodeId;
@@ -53,7 +53,7 @@ export class ClientFile implements IClientFile {
     public static useGlobalMethod = false;
 
     public fileHandle = 0;
-    public session: IBasicSession;
+    public session: IBasicSessionAsync;
     protected readonly fileNodeId: NodeId;
 
     private openMethodNodeId?: NodeId;
@@ -65,7 +65,7 @@ export class ClientFile implements IClientFile {
     private openCountNodeId?: NodeId;
     private sizeNodeId?: NodeId;
 
-    constructor(session: IBasicSession, nodeId: NodeId) {
+    constructor(session: IBasicSessionAsync, nodeId: NodeId) {
         this.session = session;
         this.fileNodeId = nodeId;
     }

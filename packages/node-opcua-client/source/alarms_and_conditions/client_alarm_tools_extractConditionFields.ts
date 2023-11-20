@@ -1,7 +1,7 @@
 import { NodeIdLike } from "node-opcua-nodeid";
-import { IBasicSession, simpleBrowsePathsToString, extractFields } from "node-opcua-pseudo-session";
+import { simpleBrowsePathsToString, extractFields, ISessionForExtractField } from "node-opcua-pseudo-session";
 
-export async function extractConditionFields(session: IBasicSession, conditionNodeId: NodeIdLike): Promise<string[]> {
+export async function extractConditionFields(session: ISessionForExtractField, conditionNodeId: NodeIdLike): Promise<string[]> {
     // conditionNodeId could be a Object of type ConditionType
     // or it could be directly a ObjectType which is a subType of ConditionType
     const p = await extractFields(session, conditionNodeId);

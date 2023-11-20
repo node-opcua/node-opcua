@@ -1,15 +1,15 @@
 /**
  * @module node-opcua-server-configuration.client
  */
-import { ByteString, UInt32 } from "node-opcua-basic-types";
-import { makeNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { CallMethodRequestLike, IBasicSession } from "node-opcua-pseudo-session";
+import { ByteString } from "node-opcua-basic-types";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { CallMethodRequestLike, IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
-import { AttributeIds, QualifiedName, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
+import { AttributeIds, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { Certificate, PrivateKey } from "node-opcua-crypto";
+import { Certificate } from "node-opcua-crypto";
 import { TrustListDataType } from "node-opcua-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 
@@ -68,7 +68,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
     private removeCertificateNodeId?: NodeId;
     private openWithMasksNodeId?: NodeId;
 
-    constructor(session: IBasicSession, public nodeId: NodeId) {
+    constructor(session: IBasicSessionAsync, public nodeId: NodeId) {
         super(session, nodeId);
     }
     /**
@@ -212,7 +212,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
     }
 }
 export class CertificateGroup {
-    constructor(public session: IBasicSession, public nodeId: NodeId) {}
+    constructor(public session: IBasicSessionAsync, public nodeId: NodeId) {}
     async getCertificateTypes(): Promise<NodeId[]> {
         const browsePathResult = await this.session.translateBrowsePath(makeBrowsePath(this.nodeId, "/CertificateTypes"));
         if (browsePathResult.statusCode.isNotGood()) {
@@ -237,9 +237,9 @@ export class CertificateGroup {
 export class ClientPushCertificateManagement implements PushCertificateManager {
     public static rsaSha256ApplicationCertificateType: NodeId = resolveNodeId("i=12560");
 
-    public session: IBasicSession;
+    public session: IBasicSessionAsync;
 
-    constructor(session: IBasicSession) {
+    constructor(session: IBasicSessionAsync) {
         this.session = session;
     }
 

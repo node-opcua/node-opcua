@@ -8,19 +8,20 @@ import { Callback, ErrorCallback } from "node-opcua-status-code";
 import { AttributeIds, BrowseDirection, makeNodeClassMask, makeResultMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
-import { IBasicSession, ArgumentDefinition } from "node-opcua-pseudo-session";
+import { ArgumentDefinition, IBasicSessionReadCallback, IBasicSessionBrowseCallback } from "node-opcua-pseudo-session";
 import { BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { CallMethodRequest, CallMethodResult, Argument } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { make_errorLog, make_debugLog } from "node-opcua-debug";
+import { DataTypeIds } from "node-opcua-constants";
 
 import { makeRefId } from "./proxy";
 import { UAProxyManager } from "./proxy_manager";
 import { ProxyVariable } from "./proxy_variable";
 import { MethodDescription, ArgumentEx } from "./proxy_base_node";
-import { DataTypeIds } from "node-opcua-constants";
+
 
 const doDebug = false;
 const errorLog = make_errorLog("Proxy");
@@ -60,7 +61,11 @@ const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | Node
  *
  * for an enumeration dataType will be DataType.Int32
  */
-function convertNodeIdToDataTypeAsync(session: IBasicSession, dataTypeId: NodeId, callback: Callback<DataType>) {
+function convertNodeIdToDataTypeAsync(
+    session: IBasicSessionReadCallback & IBasicSessionBrowseCallback,
+    dataTypeId: NodeId,
+    callback: Callback<DataType>
+) {
     const nodeToRead = {
         attributeId: AttributeIds.BrowseName,
         nodeId: dataTypeId
@@ -218,7 +223,7 @@ function makeFunction(obj: any, methodName: string) {
     });
 }
 
-function extractDataType(session: IBasicSession, arg: ArgumentEx, callback: ErrorCallback): void {
+function extractDataType(session:  IBasicSessionReadCallback & IBasicSessionBrowseCallback, arg: ArgumentEx, callback: ErrorCallback): void {
     if (arg.dataType && arg._basicDataType) {
         setImmediate(callback); // already converted
         return;

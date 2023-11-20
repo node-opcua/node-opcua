@@ -2,16 +2,13 @@
 import chalk from "chalk";
 import { LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import {
-    EnumDefinition,
     ReferenceDescription,
     StructureDefinition,
-    StructureField,
-    Union,
     _enumerationDataChangeTrigger
 } from "node-opcua-types";
-import { LineFile, lowerFirstLetter } from "node-opcua-utils";
+import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import assert from "node-opcua-assert";
 import { ModellingRuleType } from "node-opcua-address-space-base";
@@ -24,22 +21,17 @@ import {
     getDescription,
     getModellingRule,
     getNodeClass,
-    getSubtypeNodeId,
     getSubtypeNodeIdIfAny,
     getTypeDefOrBaseType,
     getChildrenOrFolderElements,
     getDataTypeNodeId,
-    extractBasicDataType,
-    getValueRank
-} from "./private/utils";
+    extractBasicDataType} from "./private/utils";
 
 import {
     Cache,
     constructCache,
     Import,
     makeTypeNameNew,
-    referenceExtensionObject,
-    referenceEnumeration,
     RequestedSubSymbol
 } from "./private/cache";
 import { Options } from "./options";
@@ -66,7 +58,7 @@ const mA = !doDebug ? "" : `/* a */`;
 const mB = !doDebug ? "" : `/* b */`;
 const mC = !doDebug ? "" : `/* c */`;
 
-export async function convertDataTypeToTypescript(session: IBasicSession, dataTypeId: NodeId): Promise<void> {
+export async function convertDataTypeToTypescript(session: IBasicSessionReadAsyncSimple, dataTypeId: NodeId): Promise<void> {
     const definition = await getDefinition(session, dataTypeId);
     const browseName = await getBrowseName(session, dataTypeId);
 
@@ -110,7 +102,11 @@ export function makeTypeName2(nodeClass: NodeClass, browseName: QualifiedName, s
     return makeTypeNameNew(nodeClass, null, browseName, suffix);
 }
 
-export async function extractClassDefinition(session: IBasicSession, nodeId: NodeId, cache: Cache): Promise<ClassDefinition> {
+export async function extractClassDefinition(
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
+    nodeId: NodeId,
+    cache: Cache
+): Promise<ClassDefinition> {
     const extraImports: Import[] = [];
     const _c = (cache as any).classDefCache || {};
     (cache as any).classDefCache = _c;
@@ -251,7 +247,7 @@ interface ClassifiedReferenceDescriptions {
     ExposesItsArray: ReferenceDescription[];
 }
 async function classify(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     refs: ReferenceDescription[],
     classDef: ClassDefinition
 ): Promise<ClassifiedReferenceDescriptions> {
@@ -290,7 +286,7 @@ async function classify(
 }
 
 async function extractAllMembers(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     classDef: ClassDefinition,
     cache: Cache
 ): Promise<ClassifiedReferenceDescriptions> {
@@ -312,7 +308,7 @@ async function extractAllMembers(
     return members;
 }
 export async function findClassMember(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     browseName: QualifiedName,
     baseParentDef: ClassDefinition,
     cache: Cache
@@ -380,7 +376,7 @@ function sameInBaseClassIsMandatory(parent: ClassDefinitionB | null, browseName:
 }
 
 async function _extractLocalMembers(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     parent: ClassDefinition | null,
     classMember: ClassMember,
     cache: Cache
@@ -436,7 +432,12 @@ async function _extractLocalMembers(
 function isUnspecifiedDataType(dataType?: DataType): boolean {
     return dataType === DataType.Null || dataType === DataType.Variant;
 }
-async function extractVariableExtra(session: IBasicSession, nodeId: NodeId, cache: Cache, classMember: ClassMember) {
+async function extractVariableExtra(
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
+    nodeId: NodeId,
+    cache: Cache,
+    classMember: ClassMember
+) {
     const typeToReference: Import[] = [];
     const importCollector = (i: Import) => {
         typeToReference.push(i);
@@ -498,7 +499,7 @@ interface ClassDefinitionB {
 }
 // eslint-disable-next-line max-statements
 export async function extractClassMemberDef(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
     parentDef: ClassDefinitionB,
     cache: Cache
@@ -838,7 +839,7 @@ function getBaseClassWithOmit2(classMember: ClassMember) {
  */
 // eslint-disable-next-line max-statements
 export async function _convertTypeToTypescript(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
     cache: Cache,
     f?: LineFile
@@ -868,7 +869,7 @@ export async function _convertTypeToTypescript(
 
     await preDumpChildren("    ", classDef, f, cache);
 
-    const n =(n?: NodeId |null)=> n?.toString().replace(/ns=([0-9]+);/, "");
+    const n = (n?: NodeId | null) => n?.toString().replace(/ns=([0-9]+);/, "");
     //  f.write(superType.toString());
     f.write(`/**`);
     if (description.text) {
@@ -963,7 +964,7 @@ export async function _convertTypeToTypescript(
 }
 
 export async function convertTypeToTypescript(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
     options: Options,
     cache?: Cache,

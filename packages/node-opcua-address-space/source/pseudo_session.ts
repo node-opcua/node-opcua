@@ -317,7 +317,13 @@ export class PseudoSession implements IBasicSession {
     public getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
     public getArgumentDefinition(methodId: MethodId, callback: ResponseCallback<ArgumentDefinition>): void;
     public getArgumentDefinition(methodId: MethodId, callback?: ResponseCallback<ArgumentDefinition>): any {
-        return getArgumentDefinitionHelper(this, methodId, callback!);
+        getArgumentDefinitionHelper(this, methodId)
+            .then((result) => {
+                callback!(null, result);
+            })
+            .catch((err: Error) => {
+                callback!(err);
+            });
     }
 
     public translateBrowsePath(browsePaths: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;

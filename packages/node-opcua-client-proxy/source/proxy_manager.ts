@@ -11,9 +11,9 @@ import { NodeId, coerceNodeId } from "node-opcua-nodeid";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { NodeIdLike } from "node-opcua-nodeid";
 import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { StatusCodes, CallbackT, StatusCode } from "node-opcua-status-code";
+import { StatusCodes, CallbackT } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionCallback } from "node-opcua-pseudo-session";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { Variant } from "node-opcua-variant";
 import { make_debugLog } from "node-opcua-debug";
@@ -165,7 +165,7 @@ export interface IClientSubscription {
 export interface IClientMonitoredItemBase {
     on(eventName: "changed", eventHandler: (data: DataValue | Variant[]) => void): void;
 }
-export interface IBasicSessionWithSubscription extends IBasicSession {
+export interface IBasicSessionWithSubscription extends IBasicSessionCallback {
     createSubscription2(options: CreateSubscriptionRequestOptions, callback: CallbackT<IClientSubscription>): void;
 }
 

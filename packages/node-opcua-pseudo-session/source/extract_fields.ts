@@ -1,19 +1,15 @@
 import { AttributeIds, BrowseDirection, NodeClassMask, QualifiedName, stringToQualifiedName } from "node-opcua-data-model";
 import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions } from "node-opcua-service-browse";
-import { BrowseResult, NodeClass } from "node-opcua-types";
+import { NodeClass } from "node-opcua-types";
 import { make_debugLog } from "node-opcua-debug";
-import { DataValue } from "node-opcua-data-value";
+import { IBasicSessionBrowseAsyncMultiple, IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "./basic_session_interface";
 
 const doDebug = false;
 const debugLog = make_debugLog(__filename);
 
+export type ISessionForExtractField = IBasicSessionBrowseAsyncSimple & IBasicSessionBrowseAsyncMultiple & IBasicSessionReadAsyncSimple;
 
-interface ISessionForExtractField {
-    browse(nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]>;
-
-    read(nodeToRead: { nodeId: NodeIdLike; attributeId: AttributeIds }): Promise<DataValue>;
-}
 /**
  * 
  * recursively work down an node definition and find 

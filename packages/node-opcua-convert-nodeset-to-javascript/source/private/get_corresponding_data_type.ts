@@ -1,12 +1,12 @@
 import { NodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataType } from "node-opcua-variant";
 import { Import, referenceEnumeration, referenceExtensionObject } from "./cache";
 import { getValueRank, _convertNodeIdToDataTypeAsync } from "./utils";
 import { Cache } from "./cache";
 
 export async function getCorrespondingJavascriptType2(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
     dataTypeNodeId: NodeId,
     cache: Cache,
@@ -19,7 +19,7 @@ export async function getCorrespondingJavascriptType2(
 
 // eslint-disable-next-line complexity
 export async function getCorrespondingJavascriptType(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void

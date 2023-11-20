@@ -13,7 +13,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { ExtraDataTypeManager, resolveOpaqueStructureInExtentionObject } from "node-opcua-client-dynamic-extension-object";
 
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
@@ -463,7 +463,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         a.setValueFromSource({ dataType: DataType.ExtensionObject, value: object });
     });
 
-    async function testEncodeDecode(object: ExtensionObject, constructor: any, session: IBasicSession) {
+    async function testEncodeDecode(object: ExtensionObject, constructor: any, session: IBasicSessionAsync) {
         doDebug && console.log("------------ Before");
         doDebug && console.log(object.toString());
 
@@ -488,7 +488,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     }
 
     describe("VVA", () => {
-        let session: IBasicSession;
+        let session: IBasicSessionAsync;
         let nsIndex: number;
         beforeEach(async () => {
             addressSpace.registerNamespace("PRIVATE");

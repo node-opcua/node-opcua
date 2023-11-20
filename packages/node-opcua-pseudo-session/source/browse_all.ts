@@ -8,11 +8,16 @@ import { make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { IBasicSession, BrowseDescriptionLike } from "./basic_session_interface";
+import {
+    IBasicSessionReadAsyncMultiple,
+    IBasicSessionBrowseAsyncMultiple,
+    IBasicSessionBrowseNextAsyncMultiple,
+    BrowseDescriptionLike
+} from "./basic_session_interface";
 
 const warningLog = make_warningLog(__filename);
 
-async function readLimits(session: IBasicSession) {
+async function readLimits(session: IBasicSessionReadAsyncMultiple) {
     const dataValues = await session.read([
         { nodeId: VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints, attributeId: AttributeIds.Value },
         { nodeId: VariableIds.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse, attributeId: AttributeIds.Value }
@@ -31,10 +36,11 @@ function coerceToBrowseDescription(nodeToBrowse: BrowseDescriptionLike): BrowseD
         return nodeToBrowse as BrowseDescriptionOptions;
     }
 }
-export async function browseAll(session: IBasicSession, nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
-export async function browseAll(session: IBasicSession, nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
+export type ISessionForBrowseAll = IBasicSessionBrowseAsyncMultiple & IBasicSessionBrowseNextAsyncMultiple & IBasicSessionReadAsyncMultiple;
+export async function browseAll(session: ISessionForBrowseAll, nodeToBrowse: BrowseDescriptionLike): Promise<BrowseResult>;
+export async function browseAll(session: ISessionForBrowseAll, nodesToBrowse: BrowseDescriptionLike[]): Promise<BrowseResult[]>;
 export async function browseAll(
-    session: IBasicSession,
+    session: ISessionForBrowseAll,
     nodesToBrowse: BrowseDescriptionLike[] | BrowseDescriptionLike
 ): Promise<BrowseResult | BrowseResult[]> {
     if (!(nodesToBrowse instanceof Array)) {
@@ -54,7 +60,10 @@ export async function browseAll(
     return browseResults;
 }
 
-export async function browseAll2(session: IBasicSession, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
+export async function browseAll2(
+    session: IBasicSessionBrowseAsyncMultiple & IBasicSessionBrowseNextAsyncMultiple,
+    nodesToBrowse: BrowseDescriptionOptions[]
+): Promise<BrowseResult[]> {
     if (nodesToBrowse.length === 0) {
         return [];
     }
@@ -70,7 +79,7 @@ export async function browseAll2(session: IBasicSession, nodesToBrowse: BrowseDe
         ) {
             // there was not enough continuation points
             warningLog("There is not enough browse continuation points");
-            // we will have to reinject this browse to a new browse commande
+            // we will have to re-inject this browse to a new browse command
             browseToRedo.push({ index: i, nodeToBrowse: nodesToBrowse[i] });
             continue;
         }

@@ -5,7 +5,6 @@ import chalk from "chalk";
 import {
     OPCUAClient,
     UserTokenType,
-    IBasicSession,
     AttributeIds,
     DataValue,
     ClientSession,
@@ -19,7 +18,7 @@ import {
     NodeId,
     TimestampsToReturn,
     Variant,
-    s
+    IBasicSessionReadAsyncSimple
 } from "node-opcua";
 import { compareSync, genSaltSync, hashSync } from "bcryptjs";
 
@@ -113,7 +112,7 @@ async function startServer() {
     return server;
 }
 
-async function doTest(session: IBasicSession): Promise<DataValue> {
+async function doTest(session: IBasicSessionReadAsyncSimple): Promise<DataValue> {
     const dataValue = await session.read({
         nodeId,
         attributeId: AttributeIds.Value

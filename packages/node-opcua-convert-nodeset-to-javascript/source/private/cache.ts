@@ -2,7 +2,7 @@ import * as path from "path";
 import assert from "node-opcua-assert";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataTypeDefinition, EnumDefinition } from "node-opcua-types";
 import { kebabCase } from "case-anything";
 import { Options } from "../options";
@@ -157,14 +157,14 @@ function getSourceFolderForNamespace(browseName: QualifiedName, options: Options
     return { sourceFolder, module };
 }
 
-export async function referenceExtensionObject(session: IBasicSession, extensionObjectDataType: NodeId): Promise<Import> {
+export async function referenceExtensionObject(session: IBasicSessionReadAsyncSimple, extensionObjectDataType: NodeId): Promise<Import> {
     const browseName = await getBrowseName(session, extensionObjectDataType);
     const definition = await getDefinition(session, extensionObjectDataType);
     const dataTypeNameImport = makeTypeNameNew(NodeClass.DataType, definition, browseName);
     return dataTypeNameImport;
 }
 
-export async function referenceEnumeration(session: IBasicSession, enumerationDataType: NodeId): Promise<Import> {
+export async function referenceEnumeration(session: IBasicSessionReadAsyncSimple, enumerationDataType: NodeId): Promise<Import> {
     const browseName = await getBrowseName(session, enumerationDataType);
     const definition = await getDefinition(session, enumerationDataType);
     const dataTypeNameImport = makeTypeNameNew(NodeClass.DataType, definition, browseName);
@@ -175,7 +175,7 @@ export class Cache2 extends Cache {
     public namespaceArray: string[] = [];
 }
 
-export async function constructCache(session: IBasicSession, options: Options): Promise<Cache2> {
+export async function constructCache(session: IBasicSessionReadAsyncSimple, options: Options): Promise<Cache2> {
     const cache = new Cache2();
 
     cache.namespaceArray = cache.namespaceArray.length

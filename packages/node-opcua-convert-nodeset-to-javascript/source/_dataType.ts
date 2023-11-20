@@ -1,6 +1,6 @@
 import { NodeClass } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { IBasicSession } from "node-opcua-pseudo-session";
+import { IBasicSessionBrowseAsyncSimple, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { EnumDefinition, StructureDefinition, StructureField } from "node-opcua-types";
 import { LineFile } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
@@ -20,7 +20,7 @@ import { f1, f2, quotifyIfNecessary, toComment, toJavascritPropertyName } from "
 
 // eslint-disable-next-line max-statements, complexity
 export async function _exportDataTypeToTypescript(
-    session: IBasicSession,
+    session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
     nodeId: NodeId,
     cache: Cache,
     f?: LineFile
@@ -124,10 +124,10 @@ export async function _exportDataTypeToTypescript(
                 const full = makeName2(interfaceName);
 
                 // filter issue with UDTOpticalVerifierScanResult that has a decode:Uint32 conflicting with the ExtensionObject decode method
-                
+
                 const toAvoid = ["decode", "encode"];
                 const collidingNames = definition
-                    .fields!.map((a) => toJavascritPropertyName(a.name! ,{ ignoreConflictingName: false }))
+                    .fields!.map((a) => toJavascritPropertyName(a.name!, { ignoreConflictingName: false }))
                     .filter((d) => toAvoid.indexOf(d.toLowerCase()) !== -1);
 
                 const adpatedIntefaceName =

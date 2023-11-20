@@ -6,7 +6,7 @@ import * as async from "async";
 
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
-import { browseAll, BrowseDescriptionLike, IBasicSession, ReadValueIdOptions, ResponseCallback } from "node-opcua-client";
+import { browseAll, BrowseDescriptionLike, IBasicSessionAsync2, ReadValueIdOptions } from "node-opcua-client";
 import { DataTypeDefinition } from "node-opcua-types";
 import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
@@ -551,7 +551,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         this.browseCounter += nodesToBrowse.length;
         this.transactionCounter++;
 
-        browseAll(this.session as IBasicSession, nodesToBrowse)
+        browseAll(this.session as IBasicSessionAsync2, nodesToBrowse)
             .then((browseResults?: BrowseResult[]) => {
                 assert(browseResults!.length === nodesToBrowse.length);
                 browseResults = browseResults || [];

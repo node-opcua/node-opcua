@@ -1,6 +1,6 @@
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { ReadValueIdOptions, MonitoringParametersOptions, CreateSubscriptionRequestOptions } from "node-opcua-types";
-import { IBasicSession } from "./basic_session_interface";
+import { IBasicSessionAsync } from "./basic_session_interface";
 
 export interface IBasicMonitoredItem {
     on(eventName: "changed", eventHandler: (dataValue: DataValue) => void): this;
@@ -15,7 +15,7 @@ export interface IBasicSubscription {
     ): IBasicMonitoredItem;
 }
 
-export interface IBasicSessionEx extends IBasicSession {
+export interface IBasicSessionEx extends IBasicSessionAsync {
     requestedMaxReferencesPerNode: number;
     isReconnecting: boolean;
     createSubscription2(createSubscriptionRequest: CreateSubscriptionRequestOptions): Promise<IBasicSubscription>;
