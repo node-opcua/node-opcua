@@ -1,7 +1,7 @@
 import { once } from "events";
-import * as path from "path";
-import * as os from "os";
-import * as fs from "fs";
+import path from "path";
+import os from "os";
+import fs from "fs";
 import chalk from "chalk";
 import "should";
 import {

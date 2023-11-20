@@ -21,16 +21,16 @@ import {
 import { DataType } from "node-opcua-variant";
 import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode } from "node-opcua-address-space-base";
 import { DataTypeIds } from "node-opcua-constants";
+import { Int64, coerceInt32, coerceInt64, coerceInt64toInt32 } from "node-opcua-basic-types";
 
 import { SessionContext } from "../source/session_context";
 import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
-import * as tools from "./tool_isSubtypeOf";
+import { construct_isSubtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { BaseNode_getCache } from "./base_node_private";
-import { Int64, coerceInt32, coerceInt64, coerceInt64toInt32 } from "node-opcua-basic-types";
 
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
@@ -76,8 +76,8 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     }
 
     /** @deprecated */
-    public isSupertypeOf = tools.construct_isSubtypeOf<UADataType>(UADataTypeImpl);
-    public isSubtypeOf = tools.construct_isSubtypeOf<UADataType>(UADataTypeImpl);
+    public isSupertypeOf = construct_isSubtypeOf<UADataType>(UADataTypeImpl);
+    public isSubtypeOf = construct_isSubtypeOf<UADataType>(UADataTypeImpl);
 
     public readonly isAbstract: boolean;
 
@@ -370,24 +370,24 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     options.add(
         options.padding +
-        chalk.yellow("          binaryEncodingNodeId: ") +
-        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          binaryEncodingNodeId: ") +
+            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          xmlEncodingNodeId   : ") +
-        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          xmlEncodingNodeId   : ") +
+            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-        chalk.yellow("          jsonEncodingNodeId  : ") +
-        (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+            chalk.yellow("          jsonEncodingNodeId  : ") +
+            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
     );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-            chalk.yellow("          subtypeOfObj        : ") +
-            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+                chalk.yellow("          subtypeOfObj        : ") +
+                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references
@@ -395,7 +395,6 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     dataTypeDefinition_toString.call(this, options);
 }
-
 
 const defaultEnumValue: Int64 = coerceInt64(-1);
 
@@ -424,8 +423,8 @@ function makeStructureDefinition(
     const structureType = isUnion
         ? StructureType.Union
         : hasOptionalFields
-            ? StructureType.StructureWithOptionalFields
-            : StructureType.Structure;
+        ? StructureType.StructureWithOptionalFields
+        : StructureType.Structure;
 
     const sd = new StructureDefinition({
         baseDataType,

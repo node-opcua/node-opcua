@@ -1,18 +1,17 @@
 /**
  * @module node-opcua-server-configuration
  */
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 import {
     AddressSpace,
-    SessionContext,
     UAMethod,
     UATrustList,
     UAServerConfiguration,
     ISessionContext,
     UACertificateGroup,
     UACertificateExpirationAlarmEx,
-    instantiateCertificateExpirationAlarm,
+    instantiateCertificateExpirationAlarm
 } from "node-opcua-address-space";
 import { UAObject, UAVariable, EventNotifierFlags } from "node-opcua-address-space-base";
 
@@ -21,14 +20,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import {
-    AccessLevelFlag,
-    AccessRestrictionsFlag,
-    BrowseDirection,
-    coerceQualifiedName,
-    NodeClass,
-    QualifiedName
-} from "node-opcua-data-model";
+import { AccessRestrictionsFlag, BrowseDirection, coerceQualifiedName, NodeClass } from "node-opcua-data-model";
 import { ByteString, UAString } from "node-opcua-basic-types";
 import { ObjectIds, ObjectTypeIds } from "node-opcua-constants";
 import { CertificateManager } from "node-opcua-pki";
@@ -376,14 +368,16 @@ export async function promoteCertificateGroup(certificateGroup: UACertificateGro
             inputNode: NodeId.nullNodeId,
             normalState: NodeId.nullNodeId,
             optionals: ["ExpirationLimit"],
-            conditionName: "CertificateExpired",                                                      
-            conditionClass: resolveNodeId("CertificateExpirationAlarmType"),
+            conditionName: "CertificateExpired",
+            conditionClass: resolveNodeId("CertificateExpirationAlarmType")
         });
     }
     certificateGroup.setEventNotifier(EventNotifierFlags.SubscribeToEvents);
     setNotifierOfChain(certificateGroup);
 }
-interface UAServerConfigurationPriv extends UAServerConfiguration { $pushCertificateManager: PushCertificateManagerServerImpl};
+interface UAServerConfigurationPriv extends UAServerConfiguration {
+    $pushCertificateManager: PushCertificateManagerServerImpl;
+}
 export async function installPushCertificateManagement(
     addressSpace: AddressSpace,
     options: PushCertificateManagerServerOptions

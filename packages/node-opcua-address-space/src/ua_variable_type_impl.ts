@@ -31,7 +31,7 @@ import { initialize_properties_and_components } from "./_instantiate_helpers";
 import { AddressSpacePrivate } from "./address_space_private";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
 import { _clone_hierarchical_references, ToStringBuilder, UAVariableType_toString } from "./base_node_private";
-import * as tools from "./tool_isSubtypeOf";
+import { construct_isSubtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { checkValueRankCompatibility } from "./check_value_rank_compatibility";
@@ -112,10 +112,10 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         return get_subtypeOfObj.call(this) as UAVariableType;
     }
 
-    public isSubtypeOf = tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl);
+    public isSubtypeOf = construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl);
 
     /** @deprecated - use  isSubtypeOf instead */
-    public isSupertypeOf = deprecate(tools.construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl));
+    public isSupertypeOf = deprecate(construct_isSubtypeOf<UAVariableType>(UAVariableTypeImpl));
 
     public readonly isAbstract: boolean;
     public dataType: NodeId;

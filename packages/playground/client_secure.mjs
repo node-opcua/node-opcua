@@ -1,6 +1,6 @@
-import * as path from "path";
-import * as os from "os";
-import * as url from 'url';
+import path from "path";
+import os from "os";
+import url from 'url';
 import { OPCUAClient, MessageSecurityMode, SecurityPolicy, OPCUACertificateManager } from "node-opcua";
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));

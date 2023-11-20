@@ -1,6 +1,6 @@
 
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 
 const readdir = fs.promises.readdir;
 const readFileSync = fs.promises.readFile;

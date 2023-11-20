@@ -1,6 +1,6 @@
 /* eslint-disable max-statements */
 // tslint:disable:no-console
-import * as path from "path";
+import path from "path";
 import "should";
 import { LocalizedText, QualifiedName } from "node-opcua-data-model";
 import { StatusCodes } from "node-opcua-status-code";

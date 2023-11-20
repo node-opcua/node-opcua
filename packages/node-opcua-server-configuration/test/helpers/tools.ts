@@ -1,5 +1,5 @@
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, convertPEMtoDER } from "node-opcua-crypto";

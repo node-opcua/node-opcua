@@ -1,15 +1,13 @@
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import "should";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUAServer } from "node-opcua-server";
-import { makeRoles, SessionContext, WellKnownRoles } from "node-opcua-address-space";
-import { PseudoSession } from "node-opcua-address-space";
+import { makeRoles, WellKnownRoles } from "node-opcua-address-space";
 import {
     OPCUAClient,
     installAlarmMonitoring,
     uninstallAlarmMonitoring,
-    UserNameIdentityToken,
     UserIdentityInfoUserName,
     makeBrowsePath,
     UserTokenType,

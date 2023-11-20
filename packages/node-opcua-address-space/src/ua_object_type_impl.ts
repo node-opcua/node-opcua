@@ -7,7 +7,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { DataValue, DataValueLike } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
 import {
     AddObjectOptions,
@@ -21,8 +21,8 @@ import {
 import { SessionContext } from "../source/session_context";
 import { BaseNodeImpl } from "./base_node_impl";
 import { ToStringBuilder, UAObjectType_toString } from "./base_node_private";
-import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
-import * as tools from "./tool_isSubtypeOf";
+import { construct_isSubtypeOf, get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
+import { } from "./tool_isSubtypeOf";
 import {
     assertUnusedChildBrowseName,
     topMostParentIsObjectTypeOrVariableType
@@ -49,13 +49,13 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
     }
 
 
-    public isSubtypeOf = tools.construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
+    public isSubtypeOf = construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
     /** @deprecated - use  isSubtypeOf instead */
-    public isSupertypeOf = tools.construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
+    public isSupertypeOf = construct_isSubtypeOf<UAObjectType>(UAObjectTypeImpl);
 
     constructor(options: any) {
         super(options);
-        this.isAbstract = utils.isNullOrUndefined(options.isAbstract) ? false : options.isAbstract;
+        this.isAbstract = isNullOrUndefined(options.isAbstract) ? false : options.isAbstract;
     }
 
     public readAttribute(context: ISessionContext, attributeId: AttributeIds): DataValue {

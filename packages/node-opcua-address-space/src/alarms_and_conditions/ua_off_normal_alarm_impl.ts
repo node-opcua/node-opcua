@@ -7,9 +7,7 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 
 import { UAOffNormalAlarm_Base } from "node-opcua-nodeset-ua";
-import { NumericalRangeInvalid } from "node-opcua-numeric-range";
-import { StatusCodes } from "node-opcua-status-code";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, VariantOptions } from "node-opcua-variant";
 import { InstantiateOffNormalAlarmOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_off_normal_alarm_options";
 import { UADiscreteAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_discrete_alarm_ex";
@@ -181,7 +179,7 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     }
 
     private _mayBe_updateAlarmState(normalStateValue?: any, inputValue?: any): void {
-        if (utils.isNullOrUndefined(normalStateValue) || utils.isNullOrUndefined(inputValue)) {
+        if (isNullOrUndefined(normalStateValue) || isNullOrUndefined(inputValue)) {
             this.activeState.setValue(false);
             return;
         }

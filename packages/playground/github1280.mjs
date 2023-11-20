@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import fs from 'fs';
 import { OPCUAServer, nodesets, Variant, DataType, StatusCodes } from 'node-opcua';
 
 (async () => {

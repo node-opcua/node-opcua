@@ -1,6 +1,6 @@
 // tslint:disable:no-bitwise
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

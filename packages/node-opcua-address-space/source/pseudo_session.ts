@@ -2,7 +2,7 @@
  * @module node-opcua-address-space
  */
 import { promisify } from "util";
-import * as async from "async";
+import async from "async";
 
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";

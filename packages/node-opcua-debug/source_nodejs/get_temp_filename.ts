@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-debug
  */
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 
 export function getTempFilename(tmpFilename: string | null): string {
     tmpFilename = tmpFilename || "";

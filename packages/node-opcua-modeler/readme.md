@@ -8,7 +8,7 @@ import {
     buildModel,
     nodesets
 } from "node-opcua-modeler";
-import * as fs from "fs";
+import fs from "fs";
 
 // the namespaceUri
 const namespaceUri = "http://acme.com/Boiler/V0";

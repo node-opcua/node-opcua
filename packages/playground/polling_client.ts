@@ -1,6 +1,6 @@
 // compile with  tsc --lib es2018 client_with_custom_datatype.ts
 // tslint:disable:no-console
-import * as os from "os";
+import os from "os";
 import { types } from "util";
 
 import {

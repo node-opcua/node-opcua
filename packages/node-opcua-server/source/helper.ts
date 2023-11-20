@@ -1,4 +1,4 @@
-import * as util from "util";
+import util from "util";
 import { OPCUAServer } from "./opcua_server";
 import { ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";

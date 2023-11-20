@@ -11,12 +11,11 @@
 //
 //
 
-import * as fs from "fs";
-import * as path from "path";
-import * as mocha from "mocha";
+import fs from "fs";
+import path from "path";
+import mocha from "mocha";
 import should from "should";
 
-import * as utils from "node-opcua-utils";
 import { assert } from "node-opcua-assert";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { StatusCodes } from "node-opcua-status-code";
@@ -29,6 +28,7 @@ import { VariableIds } from "node-opcua-constants";
 import { nodesets } from "node-opcua-nodesets";
 import { WriteValue } from "node-opcua-service-write";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { get_clock_tick } from "node-opcua-utils";
 
 import { AddressSpace, BaseNode, Namespace, UAServerStatus, DTServerStatus, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -316,22 +316,22 @@ describe("testing address space namespace loading", function (this: any) {
         const objs: BaseNode[] = [];
 
         function createDiagnostic(index: number) {
-            const t5 = utils.get_clock_tick();
+            const t5 = get_clock_tick();
             const sessionObject = namespace.addObject({
                 browseName: "Session" + index,
                 organizedBy: addressSpace.rootFolder.objects
             });
 
             // the extension object
-            const t6 = utils.get_clock_tick();
+            const t6 = get_clock_tick();
             const _sessionDiagnostics = addressSpace.constructExtensionObject(sessionDiagnosticsDataType);
-            const t7 = utils.get_clock_tick();
+            const t7 = get_clock_tick();
             const sessionDiagnostics = sessionDiagnosticsVariableType.instantiate({
                 browseName: { name: "SessionDiagnostics", namespaceIndex: 0 },
                 componentOf: sessionObject,
                 value: new Variant({ dataType: DataType.ExtensionObject, value: _sessionDiagnostics })
             });
-            const t8 = utils.get_clock_tick();
+            const t8 = get_clock_tick();
             // xx debugLog(" t8-t7",t8-t7);
 
             objs.push(sessionObject);

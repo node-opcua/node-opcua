@@ -1,4 +1,4 @@
-import * as os from "os";
+import os from "os";
 import { allPermissions, OPCUAClient, OPCUAServer, StatusCodes, UserTokenType, WellKnownRoles, makeRoles } from "node-opcua";
 import "should";
 

@@ -18,7 +18,7 @@ import {
     QualifiedName
 } from "node-opcua-data-model";
 import { ExpandedNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
-import * as utils from "node-opcua-utils";
+import { lowerFirstLetter, isNullOrUndefined } from "node-opcua-utils";
 import { Variant, VariantArrayType, DataType } from "node-opcua-variant";
 import {
     IAddressSpace,
@@ -104,7 +104,6 @@ function translateBrowseName(xw: XmlWriter, browseName: QualifiedName): Qualifie
 function b(xw: XmlWriter, browseName: QualifiedName): string {
     return translateBrowseName(xw, browseName).toString().replace("ns=0;", "");
 }
-
 
 function hasHigherPriorityThan(namespaceIndex1: number, namespaceIndex2: number, priorityTable: number[]) {
     const order1 = priorityTable[namespaceIndex1];
@@ -335,7 +334,7 @@ function _dumpVariantInnerExtensionObject(
         const dataTypeNodeId = field.dataType;
 
         const fieldName = field.name!;
-        const lowerFieldName = utils.lowerFirstLetter(fieldName);
+        const lowerFieldName = lowerFirstLetter(fieldName);
         const v = (value as unknown as Record<string, unknown>)[lowerFieldName];
         if (v !== null && v !== undefined) {
             if (
@@ -855,7 +854,7 @@ function _dumpEnumDefinition(xw: XmlWriter, enumDefinition: EnumDefinition) {
     for (const defItem of enumDefinition.fields!) {
         xw.startElement("Field");
         xw.writeAttribute("Name", defItem.name as string);
-        if (!utils.isNullOrUndefined(defItem.value)) {
+        if (!isNullOrUndefined(defItem.value)) {
             xw.writeAttribute("Value", coerceInt64ToInt32(defItem.value));
         }
         _dumpDescription(xw, defItem);

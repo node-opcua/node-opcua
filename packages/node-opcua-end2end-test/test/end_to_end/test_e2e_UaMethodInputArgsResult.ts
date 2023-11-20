@@ -1,4 +1,4 @@
-import * as os from "os";
+import os from "os";
 import { ClientSession, DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
 import should from "should";
 

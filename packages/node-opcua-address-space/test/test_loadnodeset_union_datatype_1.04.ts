@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceNodeId } from "node-opcua-nodeid";

@@ -1,5 +1,5 @@
 import "should";
-import * as semver from "semver";
+import semver from "semver";
 import { makeSemverCompatible } from "../source/loader/make_semver_compatible";
 
 describe("make semver compatible", function () {

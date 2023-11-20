@@ -4,10 +4,10 @@
  */
 // tslint:disable:no-console
 import { EventEmitter } from "events";
-import * as net from "net";
+import net from "net";
 import { Server, Socket } from "net";
 import chalk from "chalk";
-import * as async from "async";
+import async from "async";
 
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";

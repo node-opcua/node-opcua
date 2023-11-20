@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import assert from "node-opcua-assert";
 import { AttributeIds, NodeClass, QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";

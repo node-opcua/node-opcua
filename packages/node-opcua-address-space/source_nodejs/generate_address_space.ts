@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import { callbackify } from "util";
 
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";

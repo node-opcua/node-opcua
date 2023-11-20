@@ -2,8 +2,8 @@
  * @module node-opcua-server-configuration-server
  */
 import { EventEmitter } from "events";
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import { promisify } from "util";
 
 import rimraf from "rimraf";
@@ -20,7 +20,6 @@ import {
     certificateMatchesPrivateKey,
     readCertificate,
     coercePEMorDerToPrivateKey,
-    toPem2,
     coercePrivateKeyPem
 } from "node-opcua-crypto";
 

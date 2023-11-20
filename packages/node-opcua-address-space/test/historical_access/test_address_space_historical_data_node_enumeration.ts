@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
 

@@ -1,7 +1,7 @@
 "use strict";
 /* global describe,it,before*/
 
-import * as fs from "fs";
+import fs from "fs";
 import { assert } from "node-opcua-assert";
 import should from "should";
 

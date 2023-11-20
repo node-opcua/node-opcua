@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-shadowed-variable
 import { EventEmitter } from "stream";
-import * as async from "async";
+import async from "async";
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds, NodeClass, coerceAccessLevelFlag } from "node-opcua-data-model";

@@ -1,8 +1,8 @@
 // tslint:disable:no-console
-import * as os from "os";
+import os from "os";
 import { randomBytes } from "crypto";
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 import { hostname } from "os";
 import { types } from "util";
 import chalk from "chalk";
@@ -21,7 +21,6 @@ import {
     readCertificate,
     readPrivateKey,
     split_der,
-    toPem,
     toPem2
 } from "node-opcua-crypto";
 import { AttributeIds } from "node-opcua-data-model";
@@ -148,10 +147,7 @@ describe("Testing server configured with push certificate management", () => {
             makeSHA1Thumbprint(certificateChain1).toString("hex") + " l=" + certificateChain1.length
         );
         const privateKey1 = server.getPrivateKey();
-        debugLog(
-            "server.getPrivateKey()       =",
-            makePrivateKeyThumbPrint(privateKey1).toString("hex")
-        );
+        debugLog("server.getPrivateKey()       =", makePrivateKeyThumbPrint(privateKey1).toString("hex"));
 
         const match = certificateMatchesPrivateKey(certificateChain1, privateKey1);
         debugLog("math                         =", match);
@@ -671,9 +667,8 @@ describe("Testing server configured with push certificate management", () => {
 
         try {
             step("when an administrative client replaces the certificate & private key");
-            const { certificate, privateKey } = await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(
-                endpointUrl
-            );
+            const { certificate, privateKey } =
+                await replaceServerCertificateAndPrivateKeyUsingPushCertificateManagerMethod(endpointUrl);
 
             step("then I should verify that the server certificate has changed");
             const certificateAfter = server.getCertificate();
@@ -729,7 +724,7 @@ describe("Testing server configured with push certificate management", () => {
 
         try {
             step("when an administrative client replaces the certificate & private key");
-                const { certificate } = await createSigningRequestAndNewPrivateKey(endpointUrl);
+            const { certificate } = await createSigningRequestAndNewPrivateKey(endpointUrl);
 
             step("then I should verify that the server certificate has changed");
             const certificateAfter = server.getCertificate();

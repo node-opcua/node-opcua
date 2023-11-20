@@ -2,9 +2,9 @@
  * @module node-opcua-client-private
  */
 // tslint:disable:no-unused-expression
-import * as fs from "fs";
-import * as path from "path";
-import * as async from "async";
+import fs from "fs";
+import path from "path";
+import async from "async";
 import chalk from "chalk";
 import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-transport
  */
-import * as url from "url";
+import url from "url";
 
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";

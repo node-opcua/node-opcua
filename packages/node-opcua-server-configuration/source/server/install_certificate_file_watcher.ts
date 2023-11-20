@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import { UAObject } from "node-opcua-address-space-base";
 import { make_debugLog } from "node-opcua-debug";
 

@@ -1,7 +1,7 @@
 // tslint:disable:no-console
 /* global: describe it before after beforeEach afterEach require*/
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";

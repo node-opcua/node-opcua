@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import should from "should";
 import { spy } from "sinon";
 import { nodesets } from "node-opcua-nodesets";

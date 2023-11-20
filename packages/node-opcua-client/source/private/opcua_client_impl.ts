@@ -3,7 +3,7 @@
  */
 import { callbackify } from "util";
 import { randomBytes, createPublicKey } from "crypto";
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";

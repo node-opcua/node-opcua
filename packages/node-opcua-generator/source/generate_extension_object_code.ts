@@ -6,12 +6,12 @@
 // tslint:disable:max-line-length
 // tslint:disable:no-inner-declarations
 //
-import * as fs from "fs";
+import fs from "fs";
 import chalk from "chalk";
 // node 14 onward : import { readFile } from "fs/promises";
 const { readFile } = fs.promises;
 
-// import * as prettier from "prettier";
+// import prettier from "prettier";
 
 import { assert } from "node-opcua-assert";
 import { DataTypeIds, ObjectIds } from "node-opcua-constants";

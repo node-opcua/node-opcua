@@ -3,7 +3,7 @@
  */
 // tslint:disable:unified-signatures
 import { EventEmitter } from "events";
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -35,7 +35,7 @@ import {
 
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
 import { createMonitoredItemsLimit, IBasicSessionReadAsync, readOperationLimits } from "node-opcua-pseudo-session";
 
@@ -208,7 +208,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
             );
         }
 
-        options.maxNotificationsPerPublish = utils.isNullOrUndefined(options.maxNotificationsPerPublish)
+        options.maxNotificationsPerPublish = isNullOrUndefined(options.maxNotificationsPerPublish)
             ? 0
             : options.maxNotificationsPerPublish;
 

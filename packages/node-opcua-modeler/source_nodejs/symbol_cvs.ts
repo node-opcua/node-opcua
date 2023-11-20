@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import { types } from "util";
 import { Parser, parse } from "csv-parse";
 

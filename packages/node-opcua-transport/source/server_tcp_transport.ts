@@ -3,13 +3,12 @@
  */
 // tslint:disable:class-name
 // system
-import { Socket } from "net";
 import { types } from "util";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 // opcua requires
-import * as debug from "node-opcua-debug";
+import{ checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { verify_message_chunk } from "node-opcua-chunkmanager";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -22,11 +21,10 @@ import { ISocketLike, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
 
-const hexDump = debug.hexDump;
-const debugLog = debug.make_debugLog("TRANSPORT");
-const errorLog = debug.make_errorLog("TRANSPORT");
-const warningLog = debug.make_warningLog("TRANSPORT");
-const doDebug = debug.checkDebugFlag("TRANSPORT");
+const debugLog = make_debugLog("TRANSPORT");
+const errorLog = make_errorLog("TRANSPORT");
+const warningLog = make_warningLog("TRANSPORT");
+const doDebug = checkDebugFlag("TRANSPORT");
 
 function clamp_value(value: number, minVal: number, maxVal: number): number {
     assert(minVal < maxVal);

@@ -1,4 +1,4 @@
-import * as os from "os";
+import os from "os";
 import { OPCUAServer, OPCUAClient } from "node-opcua";
 import should from "should";
 import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";

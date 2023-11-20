@@ -27,7 +27,7 @@ import {
     RolePermissionType,
     RolePermissionTypeOptions
 } from "node-opcua-types";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, VariantOptions, verifyRankAndDimensions } from "node-opcua-variant";
 import {
     AddBaseNodeOptions,
@@ -45,7 +45,6 @@ import {
     CreateDataTypeOptions,
     CreateNodeOptions,
     EnumerationItem,
-    INamespace,
     RequiredModel,
     UADataType,
     UAEventType,
@@ -58,7 +57,7 @@ import {
     UAVariableType,
     UAView
 } from "node-opcua-address-space-base";
-import { UAAnalogItem, UADataItem, UAInitialState, UAState, UAYArrayItem } from "node-opcua-nodeset-ua";
+import { UAAnalogItem, UADataItem, UAInitialState, UAState } from "node-opcua-nodeset-ua";
 
 import {
     AddMultiStateDiscreteOptions,
@@ -70,13 +69,12 @@ import { UAStateMachineEx } from "../source/interfaces/state_machine/ua_state_ma
 import { UATransitionEx } from "../source/interfaces/state_machine/ua_transition_ex";
 import {
     InstantiateAlarmConditionOptions,
-    InstantiateExclusiveLimitAlarmOptions,
     InstantiateLimitAlarmOptions,
     InstantiateOffNormalAlarmOptions,
     UATwoStateDiscreteEx,
     UAYArrayItemEx
 } from "../source";
-import { AddAnalogDataItemOptions, AddDataItemOptions, UAAnalogItemEx } from "../source/namespace_data_access";
+import { AddAnalogDataItemOptions, AddDataItemOptions } from "../source/namespace_data_access";
 import { UATwoStateVariableEx } from "../source/ua_two_state_variable_ex";
 import { UAMultiStateValueDiscreteEx } from "../source/interfaces/data_access/ua_multistate_value_discrete_ex";
 import { UAAlarmConditionEx } from "../source/interfaces/alarms_and_conditions/ua_alarm_condition_ex";
@@ -1076,7 +1074,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         function coerceAxisScale(value: any) {
             const ret = AxisScaleEnumeration[value];
-            assert(!utils.isNullOrUndefined(ret));
+            assert(!isNullOrUndefined(ret));
             return ret;
         }
 
@@ -1982,7 +1980,7 @@ export class NamespaceImpl implements NamespacePrivate {
         // ------------------------------------------ DataType
         options.dataType = addressSpace._coerce_DataType(options.dataType!);
 
-        options.valueRank = utils.isNullOrUndefined(options.valueRank)
+        options.valueRank = isNullOrUndefined(options.valueRank)
             ? options.arrayDimensions
                 ? options.arrayDimensions.length
                 : -1

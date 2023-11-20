@@ -3,8 +3,8 @@
  */
 import { AggregateFunction, ObjectIds, ObjectTypeIds, ReferenceTypeIds } from "node-opcua-constants";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import * as utils from "node-opcua-utils";
 import { DataType } from "node-opcua-variant";
+import { lowerFirstLetter } from "node-opcua-utils";
 import {
     AddressSpace,
     BaseNode,
@@ -77,7 +77,7 @@ export function createHistoryServerCapabilities(addressSpace: AddressSpace, serv
 
 function setHistoricalServerCapabilities(historyServerCapabilities: any, defaultProperties: any) {
     function setBoolean(propName: string) {
-        const lowerCase = utils.lowerFirstLetter(propName);
+        const lowerCase = lowerFirstLetter(propName);
 
         /* istanbul ignore next */
         if (!Object.prototype.hasOwnProperty.call(defaultProperties, lowerCase)) {
@@ -94,7 +94,7 @@ function setHistoricalServerCapabilities(historyServerCapabilities: any, default
     }
 
     function setUInt32(propName: string) {
-        const lowerCase = utils.lowerFirstLetter(propName);
+        const lowerCase = lowerFirstLetter(propName);
         /* istanbul ignore next */
         if (!Object.prototype.hasOwnProperty.call(historyServerCapabilities, lowerCase)) {
             throw new Error("cannot find " + lowerCase);

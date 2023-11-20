@@ -1,6 +1,6 @@
 // tslint:disable:no-console
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import "should";
 
 import { AddressSpace } from "..";
@@ -33,7 +33,7 @@ function callGarbageCollector() {
 }
 
 describe("Testing AddressSpace memory Leaks", function (this: any) {
-    this.timeout(Math.max(120*1000,this.timeout()));
+    this.timeout(Math.max(120 * 1000, this.timeout()));
 
     const xml_file = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
     fs.existsSync(xml_file).should.be.eql(true, "cannot find mini node set");

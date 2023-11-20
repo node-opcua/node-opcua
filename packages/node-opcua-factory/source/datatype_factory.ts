@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-factory
  */
-import * as util from "util";
+import util from "util";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";

@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import should from "should";
 import sinon from "sinon";
 

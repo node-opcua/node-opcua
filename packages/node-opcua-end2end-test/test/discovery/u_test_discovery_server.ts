@@ -1,9 +1,9 @@
 // tslint:disable: no-console
-import * as fs from "fs";
-import * as os from "os";
+import fs from "fs";
+import os from "os";
 import { promisify } from "util";
 import should from "should";
-import * as async from "async";
+import async from "async";
 
 import { assert } from "node-opcua-assert";
 

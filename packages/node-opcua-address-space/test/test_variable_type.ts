@@ -1,4 +1,4 @@
-import * as mocha from "mocha";
+
 import should from "should";
 import sinon from "sinon";
 

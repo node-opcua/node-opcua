@@ -6,9 +6,9 @@
 // tslint:disable:max-line-length
 // tslint:disable:max-depth
 
-import * as os from "os";
-import * as path from "path";
-import * as fs from "fs";
+import os from "os";
+import path from "path";
+import fs from "fs";
 
 import { assert } from "node-opcua-assert";
 import {
@@ -827,7 +827,7 @@ export function produce_TScript_code(
     write(" */");
     write("/* istanbul ignore file */\n");
     write('import { assert } from "node-opcua-assert";');
-    write('import * as util from "util";');
+    write('import util from "util";');
     write('import { makeNodeId, makeExpandedNodeId } from "node-opcua-nodeid";');
     write(`import {`);
     write(`     parameters,`);

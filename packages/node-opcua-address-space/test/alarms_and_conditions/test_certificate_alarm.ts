@@ -1,5 +1,5 @@
 /* eslint-disable max-statements */
-import * as path from "path";
+import path from "path";
 import sinon from "sinon";
 import "should";
 import { nodesets } from "node-opcua-nodesets";

@@ -6,7 +6,7 @@ import chalk from "chalk";
 import { AddReferenceOpts, UAReference, BaseNode, UAReferenceType } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import { coerceNodeId, NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 
 export function isNodeIdString(str: string): boolean {
     assert(typeof str === "string");
@@ -17,7 +17,7 @@ function is_valid_reference(ref: UAReference): boolean {
     const hasRequestedProperties =
         Object.prototype.hasOwnProperty.call(ref, "referenceType") &&
         Object.prototype.hasOwnProperty.call(ref, "nodeId") &&
-        !utils.isNullOrUndefined(ref.isForward);
+        !isNullOrUndefined(ref.isForward);
 
     if (!hasRequestedProperties) {
         return false;

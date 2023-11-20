@@ -2,11 +2,11 @@
  * @module node-opcua-server
  */
 // tslint:disable:no-console
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
+import fs from "fs";
+import path from "path";
+import os from "os";
 import { types } from "util";
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { withLock } from "@ster5/global-mutex";

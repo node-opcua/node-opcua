@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import * as async from "async";
+import async from "async";
 import should from "should";
 import sinon from "sinon";
 

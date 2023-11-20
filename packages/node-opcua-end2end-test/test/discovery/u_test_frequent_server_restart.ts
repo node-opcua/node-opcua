@@ -1,5 +1,5 @@
 import "should";
-import * as async from "async";
+import async from "async";
 import {
     OPCUAClient,
     ClientSubscription,

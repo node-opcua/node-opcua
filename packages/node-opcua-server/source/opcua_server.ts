@@ -10,13 +10,13 @@ import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import { callbackify, types } from "util";
 
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 
 import { assert } from "node-opcua-assert";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 
 import {
     AddressSpace,
@@ -1181,7 +1181,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     applicationUri: () => this.serverInfo.applicationUri || "",
                     productUri: () => this.serverInfo.productUri || "",
                     // hasSecureElement: () => false,
-                    multicastDnsEnabled: () => this.registerServerMethod === RegisterServerMethod.MDNS,
+                    multicastDnsEnabled: () => this.registerServerMethod === RegisterServerMethod.MDNS
                 }
             });
 
@@ -1836,7 +1836,7 @@ export class OPCUAServer extends OPCUABaseServer {
         // unique for the instance of the Client.
         // If this parameter is not specified the Server shall assign a value.
 
-        if (utils.isNullOrUndefined(request.sessionName)) {
+        if (isNullOrUndefined(request.sessionName)) {
             // see also #198
             // let's the server assign a sessionName for this lazy client.
 

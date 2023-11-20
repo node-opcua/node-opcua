@@ -1,4 +1,4 @@
-import * as fs from "node:fs";
+import fs from "node:fs";
 import { Writable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
