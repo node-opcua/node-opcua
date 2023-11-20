@@ -1,8 +1,8 @@
 /**
  * @module node-opcua-hostname
  */
-import * as dns from "dns";
-import * as os from "os";
+import dns from "dns";
+import os from "os";
 import { promisify } from "util";
 
 function trim(str: string, length?: number): string {

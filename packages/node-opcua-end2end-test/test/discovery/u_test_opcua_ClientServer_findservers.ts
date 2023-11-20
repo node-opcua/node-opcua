@@ -1,4 +1,4 @@
-import * as async from "async";
+import async from "async";
 import { OPCUAClient, OPCUAServer, ErrorCallback } from "node-opcua";
 
 // declare function build_server_with_temperature_device(...args: any[]): void;

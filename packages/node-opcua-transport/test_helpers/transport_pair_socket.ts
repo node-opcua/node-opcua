@@ -1,4 +1,4 @@
-import * as net from "net";
+import net from "net";
 import { ISocketLike } from "../source";
 import { FakeServer } from "./fake_server";
 import { ITransportPair } from "./ITransportPair";

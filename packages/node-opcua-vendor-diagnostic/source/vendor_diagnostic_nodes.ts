@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 // tslint:disable:no-console
-import * as os from "os";
+import os from "os";
 
 import { types } from "util";
 import { Namespace } from "node-opcua-address-space";

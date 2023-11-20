@@ -2,7 +2,7 @@
  * @module node-opcua-client-private
  */
 import { types } from "util";
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";

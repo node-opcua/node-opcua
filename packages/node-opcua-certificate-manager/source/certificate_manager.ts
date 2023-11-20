@@ -2,24 +2,17 @@
  * @module node-opcua-certificate-manager
  */
 // tslint:disable:no-empty
-import * as fs from "fs";
-import * as path from "path";
-
-import * as mkdirp from "mkdirp";
+import fs from "fs";
+import path from "path";
+import mkdirp from "mkdirp";
 import envPaths from "env-paths";
-
-import { withLock } from "@ster5/global-mutex";
-
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-
 import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager, CertificateManagerOptions } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";
-
 import { StatusCodeCallback } from "node-opcua-status-code";
 import { assert } from "node-opcua-assert";
-
 import { ObjectRegistry } from "node-opcua-object-registry";
 
 const paths = envPaths("node-opcua-default");

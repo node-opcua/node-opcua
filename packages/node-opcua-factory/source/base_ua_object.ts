@@ -10,7 +10,7 @@ import { AttributeIds } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { hexDump, make_errorLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 
 import { getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
 import { DataTypeFactory } from "./datatype_factory";
@@ -126,7 +126,7 @@ function _arrayEllipsis(value: any[] | null, data: ExploreParams): string {
             let element = value[i];
             if (element instanceof Buffer) {
                 element = hexDump(element, 32, 16);
-            } else if (utils.isNullOrUndefined(element)) {
+            } else if (isNullOrUndefined(element)) {
                 element = "null";
             } else {
                 element = element.toString();

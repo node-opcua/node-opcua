@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import { Namespace } from "node-opcua-address-space";
 import { BuildDocumentationOptions, buildDocumentationToString } from "..";
 

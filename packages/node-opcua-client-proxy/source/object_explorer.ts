@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-client-proxy
  */
-import * as async from "async";
+import async from "async";
 
 import { assert } from "node-opcua-assert";
 import { Callback, ErrorCallback } from "node-opcua-status-code";

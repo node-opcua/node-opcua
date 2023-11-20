@@ -1,4 +1,4 @@
-import * as os from "os";
+import os from "os";
 import should from "should";
 import "mocha";
 import chalk from "chalk";

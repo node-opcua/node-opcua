@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import "should";
 
 import { nodesets } from "node-opcua-nodesets";
@@ -60,7 +60,6 @@ describe("Enum with negative values #937", () => {
         coerceInt64toInt32(def.value.value.fields[0].value).should.eql(-1);
         encodeDecodeDataValue(def);
         console.log(def.toString());
-       
 
         const uaVariable = addressSpace.findNode(`ns=${nsA};i=1002`)! as UAVariable;
         uaVariable.browseName.toString().should.eql("2:MyVariable");

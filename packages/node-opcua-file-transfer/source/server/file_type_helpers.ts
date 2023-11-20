@@ -2,15 +2,12 @@
  * @module node-opcua-file-transfer
  */
 
-import { callbackify, promisify, types } from "util";
-import * as fsOrig from "fs";
+import { promisify, types } from "util";
+import fsOrig from "fs";
 
 import { assert } from "node-opcua-assert";
+import { getContextMaxMessageSize } from "node-opcua-address-space-base";
 import {
-    getContextMaxMessageSize,
-}  from "node-opcua-address-space-base";
-import {
-    AddressSpace,
     IAddressSpace,
     ISessionContext,
     UAFile,
@@ -56,7 +53,7 @@ export interface FileOptions {
     nodeId?: NodeIdLike;
 
     /**
-     * the maximum number of bytes that can be read from the file 
+     * the maximum number of bytes that can be read from the file
      * in a single read call
      * - if not specified or 0, we assume Int32 limit
      */
@@ -65,7 +62,7 @@ export interface FileOptions {
     refreshFileContentFunc?: () => Promise<void>;
 }
 
-export interface UAFileType extends UAObjectType, UAFile_Base { }
+export interface UAFileType extends UAObjectType, UAFile_Base {}
 /**
  *
  */
@@ -202,7 +199,7 @@ export interface UAFileEx extends UAFile {
 }
 
 /**
- * @orivate 
+ * @orivate
  */
 export function getFileData(opcuaFile2: UAFile): FileTypeData {
     return (opcuaFile2 as UAFileEx).$fileData;
@@ -226,7 +223,7 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
-interface AddressSpacePriv extends IAddressSpace, FileTypeM { }
+interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
 function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;
@@ -446,7 +443,7 @@ async function _closeFile(this: UAMethod, inputArguments: Variant[], context: IS
     }
 
     const fileData = getFileDataFromContext(context);
-    
+
     debugLog("Closing file handle ", fileHandle, "filename: ", fileData.filename, "openCount: ", fileData.openCount);
 
     await promisify(abstractFs.close)(_fileInfo.fd);
@@ -477,16 +474,14 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
 
     // Length Defines the length in bytes that should be returned in data, starting from the current
     // position of the file handle. If the end of file is reached all data until the end of the file is
-    // returned. 
-    
+    // returned.
+
     let length: Int32 = inputArguments[1].value as Int32;
 
     // Only positive values are allowed.
     if (length < 0) {
         return { statusCode: StatusCodes.BadInvalidArgument };
     }
-
-    
 
     const _fileInfo = _getFileInfo(addressSpace, context, fileHandle);
     if (!_fileInfo) {
@@ -504,7 +499,7 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
     // the maxChunkSizeBytes specified in the server configuration.
     // length cannot exceed maxChunkSizeBytes
     const fileData = getFileDataFromContext(context);
-    
+
     const maxChunkSizeBytes = fileData.maxChunkSizeBytes;
     if (length > maxChunkSizeBytes) {
         length = maxChunkSizeBytes;
@@ -516,10 +511,10 @@ async function _readFile(this: UAMethod, inputArguments: Variant[], context: ISe
 
     // length cannot either exceed transport OPCUA maxMessageLength - some margin.
     const maxMessageSize = getContextMaxMessageSize(context) - 1024;
-    if (maxMessageSize>0  && length > maxMessageSize) { 
+    if (maxMessageSize > 0 && length > maxMessageSize) {
         length = maxMessageSize;
     }
-  
+
     // length cannot either exceed remaining buffer size from current position
     length = Math.min(_fileInfo.size - _fileInfo.position[1], length);
 

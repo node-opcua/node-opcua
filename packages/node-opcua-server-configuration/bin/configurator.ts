@@ -1,17 +1,15 @@
-import * as path from "path";
-import * as fs from "fs";
-import * as util from "util";
-import * as os from "os";
+import path from "path";
+import fs from "fs";
+import util from "util";
+import os from "os";
 import {
     AttributeIds,
-    ClientSession,
     IBasicSessionAsync,
     makeApplicationUrn,
     MessageSecurityMode,
     OPCUAClient,
     resolveNodeId,
     SecurityPolicy,
-    StatusCodes,
     UserTokenType
 } from "node-opcua-client";
 import {
@@ -19,7 +17,6 @@ import {
     exploreCertificate,
     exploreCertificateSigningRequest,
     makeSHA1Thumbprint,
-    publicKeyAndPrivateKeyMatches,
     readCertificate,
     readCertificateRevocationList,
     split_der,

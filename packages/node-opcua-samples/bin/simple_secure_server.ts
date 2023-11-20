@@ -1,8 +1,8 @@
 #!/usr/bin/env ts-node
 /* eslint no-process-exit: 0 */
 // tslint:disable:no-console
-import * as path from "path";
-import * as os from "os";
+import path from "path";
+import os from "os";
 
 import chalk from "chalk";
 import yargs from "yargs";

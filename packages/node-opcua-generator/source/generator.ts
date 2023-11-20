@@ -4,12 +4,12 @@
  */
 // tslint:disable:max-line-length
 // tslint:disable:no-console
-import * as fs from "fs";
+import fs from "fs";
 // node 14 onward : import { mkdir } from "fs/promises";
 const { mkdir } = fs.promises;
 
-import * as path from "path";
-import * as ts from "typescript";
+import path from "path";
+import ts from "typescript";
 
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";

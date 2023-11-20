@@ -1,5 +1,5 @@
 // tslint:disable:no-console
-import * as fs from "fs";
+import fs from "fs";
 import { promisify, types } from "util";
 
 

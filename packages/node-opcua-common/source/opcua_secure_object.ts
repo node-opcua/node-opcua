@@ -2,7 +2,7 @@
  * @module node-opcua-common
  */
 import { EventEmitter } from "events";
-import * as fs from "fs";
+import fs from "fs";
 
 import { assert } from "node-opcua-assert";
 import { Certificate, PrivateKey, readCertificate, readPrivateKey, split_der } from "node-opcua-crypto";

@@ -1,6 +1,6 @@
 // tslint:disable:no-var-requires
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 
 import { get_empty_nodeset_filename, OPCUACertificateManager, OPCUAClient, OPCUAServer } from "node-opcua";
 import { UserIdentityInfoX509, UserTokenType } from "node-opcua-client";

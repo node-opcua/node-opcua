@@ -2,9 +2,9 @@
 /* eslint-disable complexity */
 /* eslint-disable max-statements */
 // tslint:disable:no-console
-import * as fs from "fs";
-import * as path from "path";
-import * as util from "util";
+import fs from "fs";
+import path from "path";
+import util from "util";
 import { types } from "util";
 import yargs from "yargs";
 import chalk from "chalk";

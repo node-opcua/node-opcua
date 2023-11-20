@@ -33,7 +33,7 @@ import {
     DecodeDebugOptions
 } from "node-opcua-factory";
 
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { make_warningLog } from "node-opcua-debug";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -830,7 +830,7 @@ function isValidScalarVariant(dataType: DataType, value: any): boolean {
         case DataType.NodeId:
             return isValidNodeId(value);
         case DataType.String:
-            return typeof value === "string" || utils.isNullOrUndefined(value);
+            return typeof value === "string" || isNullOrUndefined(value);
         case DataType.Int64:
             return isValidInt64(value);
         case DataType.UInt64:

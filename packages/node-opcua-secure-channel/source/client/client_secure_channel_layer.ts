@@ -6,7 +6,7 @@ import { createPublicKey, randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import { types } from "util";
 import chalk from "chalk";
-import * as async from "async";
+import async from "async";
 
 import {
     Certificate,
@@ -81,7 +81,6 @@ import {
     traceClientRequestContent,
     traceClientResponseContent
 } from "../utils";
-// import * as backoff from "backoff";
 // tslint:disable-next-line: no-var-requires
 const backoff = require("backoff");
 

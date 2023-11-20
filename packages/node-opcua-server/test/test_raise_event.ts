@@ -5,7 +5,7 @@
 // tslint:disable: only-arrow-functions
 // tslint:disable: no-console
 // tslint:disable: ordered-imports
-import * as util from "util";
+import util from "util";
 import { EventEmitter } from "events";
 import should from "should";
 

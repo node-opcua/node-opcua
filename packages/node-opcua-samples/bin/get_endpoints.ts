@@ -1,7 +1,7 @@
 #!/usr/bin/env ts-node
 // tslint:disable:no-console
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import { types } from "util";
 import chalk from "chalk";
 import yargs from "yargs";

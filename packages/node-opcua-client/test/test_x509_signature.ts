@@ -1,8 +1,8 @@
 // tslint:disable:no-console
 // tslint:disable:only-arrow-functions
 import { promisify } from "util";
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 import should from "should";
 import "mocha";
 import { assert } from "node-opcua-assert";

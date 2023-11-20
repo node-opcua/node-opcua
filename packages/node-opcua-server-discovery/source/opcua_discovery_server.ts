@@ -2,9 +2,9 @@
  * @module node-opcua-server-discovery
  */
 
-import * as os from "os";
-import * as path from "path";
-import * as url from "url";
+import os from "os";
+import path from "path";
+import url from "url";
 import { callbackify } from "util";
 
 import chalk from "chalk";

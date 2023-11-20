@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import * as async from "async";
+import async from "async";
 
 import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
 import { assert } from "node-opcua-assert";

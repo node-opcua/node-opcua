@@ -1,4 +1,4 @@
-import * as util from "util";
+import util from "util";
 import "should";
 import { coerceNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-transport
  */
-import * as os from "os";
+import os from "os";
 import { createConnection } from "net";
 import { types } from "util";
 import chalk from "chalk";
@@ -10,8 +10,7 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
 import { ErrorCallback } from "node-opcua-status-code";
-
-import * as debug from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFakeTransport, ISocketLike, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage, parseEndpointUrl } from "./tools";
 
@@ -20,10 +19,10 @@ import { HelloMessage } from "./HelloMessage";
 import { TCPErrorMessage } from "./TCPErrorMessage";
 import { doTraceHelloAck } from "./utils";
 
-const doDebug = debug.checkDebugFlag(__filename);
-const debugLog = debug.make_debugLog(__filename);
-const warningLog = debug.make_warningLog(__filename);
-const errorLog = debug.make_errorLog(__filename);
+const doDebug = checkDebugFlag(__filename);
+const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
+const errorLog = make_errorLog(__filename);
 const gHostname = os.hostname();
 
 function createClientSocket(endpointUrl: string, timeout: number): ISocketLike {

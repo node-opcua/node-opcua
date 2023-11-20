@@ -3,7 +3,7 @@
 
 import { existsSync, promises as fsPromises } from 'fs';
 const { readFile, writeFile } = fsPromises;
-import * as path from 'path';
+import path from 'path';
 // Uncomment the following to get __dirname equivalent when compiling to ESM
 //import { fileURLToPath } from 'url';
 //const __dirname = path.dirname(fileURLToPath(import.meta.url));

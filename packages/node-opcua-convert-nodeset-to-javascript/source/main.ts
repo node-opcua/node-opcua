@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import { AddressSpace, PseudoSession } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { allNodesetMeta } from "node-opcua-nodesets";

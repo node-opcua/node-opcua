@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-client
  */
-import * as async from "async";
+import async from "async";
 
 import { ErrorCallback } from "node-opcua-status-code";
 import { ServerOnNetwork } from "node-opcua-service-discovery";

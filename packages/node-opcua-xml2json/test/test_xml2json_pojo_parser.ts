@@ -1,5 +1,4 @@
 // tslint:disable:no-console
-import * as mocha from "mocha";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import should from "should";
 import { ParserLike, ReaderStateParserLike, Xml2JsonPojo, startPojo, Xml2Json, XmlAttributes, json_parser } from "..";

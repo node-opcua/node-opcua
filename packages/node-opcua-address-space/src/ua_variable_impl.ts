@@ -46,7 +46,7 @@ import {
     ReadRawModifiedDetails,
     WriteValueOptions
 } from "node-opcua-types";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import {
     Variant,
     VariantLike,
@@ -58,7 +58,6 @@ import {
 } from "node-opcua-variant";
 import { StatusCodeCallback } from "node-opcua-status-code";
 import {
-    IAddressSpace,
     BindVariableOptions,
     IVariableHistorian,
     TimestampGetFunc,
@@ -94,7 +93,7 @@ import {
 } from "./ua_variable_impl_ext_obj";
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
 import { _getBasicDataType } from "./get_basic_datatype";
-import { validateDataTypeCorrectness} from "./validate_data_type_correctness";
+import { validateDataTypeCorrectness } from "./validate_data_type_correctness";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -102,7 +101,7 @@ const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
 
 export function adjust_accessLevel(accessLevel: string | number | null): AccessLevelFlag {
-    accessLevel = utils.isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
+    accessLevel = isNullOrUndefined(accessLevel) ? "CurrentRead | CurrentWrite" : accessLevel;
     accessLevel = makeAccessLevelFlag(accessLevel);
     assert(isFinite(accessLevel));
     return accessLevel;
@@ -149,7 +148,6 @@ function is_Variant_or_StatusCode(v: any): boolean {
     }
     return is_Variant(v) || is_StatusCode(v);
 }
-
 
 function default_func(this: UAVariable, dataValue1: DataValue, callback1: CallbackT<StatusCode>) {
     return _default_writable_timestamped_set_func.call(this, dataValue1, callback1);
@@ -237,7 +235,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     get typeDefinitionObj(): UAVariableType {
         // istanbul ignore next
         if (super.typeDefinitionObj && super.typeDefinitionObj.nodeClass !== NodeClass.VariableType) {
-            // this could happen in faulty external nodeset and has been seen once 
+            // this could happen in faulty external nodeset and has been seen once
             // in an nano server
             warningLog(super.typeDefinitionObj.toString());
             return this.addressSpace.findVariableType("BaseVariableType")!;

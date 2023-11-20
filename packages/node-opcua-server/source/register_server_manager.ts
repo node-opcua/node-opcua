@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 import { EventEmitter } from "events";
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";

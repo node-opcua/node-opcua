@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import { LocalizedText } from "node-opcua-data-model";
 import should from "should";
 

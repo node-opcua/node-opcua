@@ -7,8 +7,8 @@
  *
  */
 
-import * as path from "path";
-import * as fs from "fs";
+import path from "path";
+import fs from "fs";
 
 import { assert } from "node-opcua-assert";
 import { coerceNodeId, makeNodeId, NodeIdLike } from "node-opcua-nodeid";
@@ -18,6 +18,7 @@ import { AccessLevelFlag, makeAccessLevelFlag } from "node-opcua-data-model";
 import { Variant, DataType, VariantArrayType, buildVariantArray } from "node-opcua-variant";
 import { findBuiltInType } from "node-opcua-factory";
 import { DataValue } from "node-opcua-data-value";
+import { emptyGuid, isValidBoolean, isValidUInt16, randomString } from "node-opcua-basic-types";
 import * as ec from "node-opcua-basic-types";
 import { QualifiedName, LocalizedText } from "node-opcua-data-model";
 import { standardUnits } from "node-opcua-data-access";
@@ -57,16 +58,16 @@ function getRandomFuncForType(dataType: DataType): () => any {
             };
         case "QualifiedName":
             return () => {
-                return new QualifiedName({ name: ec.randomString() });
+                return new QualifiedName({ name: randomString() });
             };
         case "LocalizedText":
             return () => {
-                return new LocalizedText({ text: ec.randomString() });
+                return new LocalizedText({ text: randomString() });
             };
         case "XmlElement":
             return () => {
-                const element = ec.randomString();
-                const content = ec.randomString();
+                const element = randomString();
+                const content = randomString();
                 return "<" + element + ">" + content + "</" + element + ">";
             };
         default:
@@ -306,7 +307,7 @@ const typeAndDefaultValue = [
     { type: "DateTime", defaultValue: DateTime_Min },
     { type: "Double", defaultValue: 0.0 },
     { type: "Float", defaultValue: 0.0 },
-    { type: "Guid", defaultValue: ec.emptyGuid },
+    { type: "Guid", defaultValue: emptyGuid },
     { type: "SByte", defaultValue: 0 },
     { type: "Int16", defaultValue: 0 },
     { type: "Int32", defaultValue: 0 },
@@ -452,7 +453,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     intervalVariable.on("value_changed", (dataValue /*,indexRange*/) => {
         const variant = dataValue.value;
         assert(variant instanceof Variant);
-        assert(ec.isValidUInt16(variant.value), " value must be valid for dataType");
+        assert(isValidUInt16(variant.value), " value must be valid for dataType");
         interval = variant.value;
         install_Timer();
     });
@@ -473,7 +474,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     enabledVariable.on("value_changed", (dataValue /*,indexRange*/) => {
         const variant = dataValue.value;
         assert(variant instanceof Variant);
-        assert(ec.isValidBoolean(variant.value), " value must be valid for dataType");
+        assert(isValidBoolean(variant.value), " value must be valid for dataType");
         enabled = variant.value;
         install_Timer();
     });

@@ -1,5 +1,5 @@
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import should from "should";
 
 import { nodesets } from "node-opcua-nodesets";
@@ -9,8 +9,6 @@ import { DataType } from "node-opcua-variant";
 import {
     AddressSpace,
     UAVariable,
-    UAMultiStateValueDiscrete,
-    UAMultiStateDiscrete,
     UAMultiStateValueDiscreteEx,
     UAMultiStateDiscreteEx,
     validateDataType

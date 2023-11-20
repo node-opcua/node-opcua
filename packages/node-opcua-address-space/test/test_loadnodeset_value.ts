@@ -1,6 +1,6 @@
-import * as fs from "fs";
-import * as path from "path";
-import * as os from "os";
+import fs from "fs";
+import path from "path";
+import os from "os";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { AttributeIds, UInt64 } from "node-opcua-basic-types";

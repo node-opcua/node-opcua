@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import should from "should";
 import sinon from "sinon";
 import { DataTypeIds } from "node-opcua-constants";

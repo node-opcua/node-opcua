@@ -33,7 +33,7 @@ import {
     ModelChangeStructureDataType,
     RelativePathElement
 } from "node-opcua-types";
-import * as utils from "node-opcua-utils";
+import { isNullOrUndefined } from "node-opcua-utils";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, Variant, VariantArrayType, VariantOptions, VariantT } from "node-opcua-variant";
 import {
@@ -1303,7 +1303,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         // ----------------------------------------------- handle is forward
         assert(params.isForward === undefined || typeof params.isForward === "boolean");
-        params.isForward = utils.isNullOrUndefined(params.isForward) ? true : !!params.isForward;
+        params.isForward = isNullOrUndefined(params.isForward) ? true : !!params.isForward;
 
         // referenceType = Organizes   , isForward = true =>   referenceType = Organizes , isForward = true
         // referenceType = Organizes   , isForward = false =>  referenceType = Organizes , isForward = false

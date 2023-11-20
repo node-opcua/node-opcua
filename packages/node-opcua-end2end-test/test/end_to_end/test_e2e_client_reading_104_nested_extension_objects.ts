@@ -1,6 +1,6 @@
-import * as path from "path";
-import * as fs from "fs";
-import * as os from "os";
+import path from "path";
+import fs from "fs";
+import os from "os";
 import "should";
 import { DataType, OPCUAClient, OPCUAServer, nodesets, AttributeIds, UAObject, UAVariableT, UAVariable } from "node-opcua";
 

@@ -1,6 +1,6 @@
-import * as os from "os";
+import os from "os";
 import "should";
-import * as async from "async";
+import async from "async";
 import { make_debugLog } from "node-opcua-debug";
 import { OPCUAServer, OPCUADiscoveryServer, RegisterServerMethod, makeApplicationUrn } from "node-opcua";
 

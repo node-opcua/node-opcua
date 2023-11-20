@@ -1,8 +1,8 @@
 // make sure extra error checking is made on object constructions
 // tslint:disable-next-line:no-var-requires
-import * as fsOrigin from "fs";
-import * as os from "os";
-import * as path from "path";
+import fsOrigin from "fs";
+import os from "os";
+import path from "path";
 import { promisify } from "util";
 import { randomBytes } from "crypto";
 import sinon from "sinon";

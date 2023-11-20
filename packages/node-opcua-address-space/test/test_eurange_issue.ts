@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 import "should";
 
 import { nodesets } from "node-opcua-nodesets";

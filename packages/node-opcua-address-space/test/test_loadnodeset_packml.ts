@@ -1,4 +1,3 @@
-import * as mocha from "mocha";
 import should from "should";
 
 import { BinaryStream } from "node-opcua-binary-stream";

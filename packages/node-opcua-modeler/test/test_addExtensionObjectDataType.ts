@@ -1,11 +1,11 @@
 Error.stackTraceLimit = 100000;
 // tslint:disable: no-console
-import * as fs from "fs";
+import fs from "fs";
 // node 14 onward : import {  writeFile } from "fs/promises";
 const { writeFile } = fs.promises;
 
-import * as os from "os";
-import * as path from "path";
+import os from "os";
+import path from "path";
 import should from "should";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import {

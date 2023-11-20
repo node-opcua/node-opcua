@@ -1,10 +1,10 @@
 // launch with mocha -r ts-node/register test/*.ts
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 
 import "should";
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 import { ErrorCallback } from "node-opcua-status-code";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";

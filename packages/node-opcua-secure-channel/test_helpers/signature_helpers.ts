@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import fs from "fs";
 import "should";
 import { assert } from "node-opcua-assert";
 import { makeMessageChunkSignature, readPrivateKey, verifyChunkSignature } from "node-opcua-crypto";

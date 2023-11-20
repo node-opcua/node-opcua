@@ -60,7 +60,7 @@ import { XmlWriter } from "../source/xml_writer";
 import { dumpReferenceDescriptions, dumpReferences } from "../source/helpers/dump_tools";
 import { SessionContext, WellKnownRolesNodeId } from "../source/session_context";
 import { AddressSpace } from "../src/address_space";
-import * as cetools from "./address_space_change_event_tools";
+import { _handle_add_reference_change_event } from "./address_space_change_event_tools";
 import { AddressSpacePrivate } from "./address_space_private";
 import {
     _constructReferenceDescription,
@@ -928,7 +928,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         _propagate_ref.call(this, addressSpace, referenceNode);
         this.install_extra_properties();
-        cetools._handle_add_reference_change_event(this, referenceNode.nodeId);
+        _handle_add_reference_change_event(this, referenceNode.nodeId);
     }
 
     public removeReference(referenceOpts: AddReferenceOpts): void {

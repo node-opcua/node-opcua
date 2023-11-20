@@ -1,10 +1,10 @@
 /* eslint-disable max-statements */
 "use strict";
 import { Socket } from "net";
-import * as fs from "fs";
-import * as os from "os";
+import fs from "fs";
+import os from "os";
 import should from "should";
-import * as async from "async";
+import async from "async";
 import {
     DataType,
     MessageSecurityMode,
@@ -170,7 +170,7 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         (client as any).protocolVersion = 0;
 
         const unused_port = 8909;
-        const bad_endpointUrl = "opc.tcp://" + os.hostname()+ ":" + unused_port;
+        const bad_endpointUrl = "opc.tcp://" + os.hostname() + ":" + unused_port;
 
         let _err: Error | undefined = undefined;
         try {

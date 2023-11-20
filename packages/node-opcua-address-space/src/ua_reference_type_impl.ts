@@ -14,7 +14,7 @@ import { DataType } from "node-opcua-variant";
 
 import { SessionContext, UAReferenceType as UAReferenceTypePublic } from "../source";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import * as tools from "./tool_isSubtypeOf";
+import { construct_isSubtypeOf, construct_slow_isSubtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOf, get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { ReferenceImpl } from "./reference_impl";
 import { BaseNode_getCache } from "./base_node_private";
@@ -98,15 +98,15 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
     /**
      * returns true if self is  a super type of baseType
      */
-    public isSubtypeOf = tools.construct_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
+    public isSubtypeOf = construct_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
   
     /** @deprecated - use `isSubtypeOf` instead*/
-    public isSupertypeOf = tools.construct_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
+    public isSupertypeOf = construct_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
 
     /**
      * @private
      */
-    public _slow_isSubtypeOf = tools.construct_slow_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
+    public _slow_isSubtypeOf = construct_slow_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
 
     constructor(options: UAReferenceTypeOptions) {
         super(options);

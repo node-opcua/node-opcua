@@ -4,7 +4,7 @@
 // tslint:disable:no-empty
 // tslint:disable: only-arrow-functions
 
-import * as async from "async";
+import async from "async";
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";

@@ -1,10 +1,8 @@
 // tslint:disable:no-console
-import { promisify } from "util";
-import * as fs from "fs";
-import * as path from "path";
+import fs from "fs";
+import path from "path";
 import should from "should";
 
-import * as mocha from "mocha";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { coerceLocalizedText, LocalizedText } from "node-opcua-data-model";
 import { hexDump } from "node-opcua-debug";

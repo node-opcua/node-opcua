@@ -3,7 +3,7 @@
  */
 // tslint:disable:no-console
 // tslint:disable:ban-types
-import * as fs from "fs";
+import fs from "fs";
 import { format } from "util";
 
 import { assert } from "node-opcua-assert";

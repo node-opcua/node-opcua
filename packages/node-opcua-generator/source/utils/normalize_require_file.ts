@@ -1,4 +1,4 @@
-import * as path from "path";
+import path from "path";
 // ---------------------------------------------------------------------------------------------------------------------
 /**
  * @method normalize_require_file

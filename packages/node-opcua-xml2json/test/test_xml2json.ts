@@ -1,5 +1,4 @@
 // tslint:disable:no-console
-import * as mocha from "mocha";
 import should from "should";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";

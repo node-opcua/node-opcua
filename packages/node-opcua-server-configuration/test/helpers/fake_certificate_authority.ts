@@ -1,12 +1,8 @@
-import * as fs from "fs";
-const { readFile, writeFile } = fs.promises;
-
-import * as os from "os";
-import * as path from "path";
+import fs from "fs";
+import os from "os";
+import path from "path";
 import { promisify } from "util";
-
 import rimraf from "rimraf";
-
 import {
     Certificate,
     CertificateRevocationList,
@@ -18,9 +14,9 @@ import {
     toPem
 } from "node-opcua-crypto";
 import { CertificateAuthority } from "node-opcua-pki";
-
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { CertificateManager } from "node-opcua-certificate-manager";
+const { readFile, writeFile } = fs.promises;
 
 export async function initializeHelpers(prefix: string, n: number): Promise<string> {
     const _tempFolder = path.join(os.tmpdir(), "node-opcua2");

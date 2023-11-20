@@ -2,7 +2,7 @@
  * @module node-opcua-client-crawler
  */
 import { EventEmitter } from "events";
-import * as async from "async";
+import async from "async";
 
 import { UAReferenceType } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
