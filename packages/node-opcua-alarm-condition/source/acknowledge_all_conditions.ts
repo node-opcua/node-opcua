@@ -5,10 +5,14 @@ import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "n
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { ClientSession } from "../client_session";
-import { EventStuff, fieldsToJson } from "./client_alarm";
-import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
-import { callConditionRefresh } from "./client_tools";
+
+import { IBasicSessionAsync } from "node-opcua-pseudo-session";
+import { IBasicSessionEx } from "node-opcua-pseudo-session";
+
+import { EventStuff, fieldsToJson } from "./event_stuff";
+import { extractConditionFields } from "./extract_condition_fields";
+import { acknowledgeCondition, confirmCondition } from "./call_method_condition";
+import { callConditionRefresh } from "./call_condition_refresh";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -20,32 +24,35 @@ const errorLog = make_errorLog(__filename);
  * @param eventStuff
  * @param comment
  */
-export async function acknowledgeCondition(session: ClientSession, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
+
+async function acknowledgeConditionEV(session: IBasicSessionAsync, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
     try {
         const conditionId = eventStuff.conditionId.value;
         const eventId = eventStuff.eventId.value;
-        return await session.acknowledgeCondition(conditionId, eventId, comment);
+        return await acknowledgeCondition(session, conditionId, eventId, comment);
     } catch (err) {
-        errorLog("Acknowledging alarm has failed !", err);
+        errorLog("Acknowledging Condition has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
-export async function confirmCondition(session: ClientSession, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
+async function confirmConditionEV(session: IBasicSessionAsync, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
     try {
         const conditionId = eventStuff.conditionId.value;
         const eventId = eventStuff.eventId.value;
-        return await session.confirmCondition(conditionId, eventId, comment);
+        return await confirmCondition(session, conditionId, eventId, comment);
     } catch (err) {
-        errorLog("Acknowledging alarm has failed !", err);
+        errorLog("Confirming Condition has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
+
+export type FindActiveConditions = () => Promise<EventStuff[]>;
 
 /**
  * Enumerate all events
  * @param session
  */
-export async function findActiveConditions(session: ClientSession): Promise<EventStuff[]> {
+export async function findActiveConditions(session: IBasicSessionEx): Promise<EventStuff[]> {
     const request: CreateSubscriptionRequestOptions = {
         maxNotificationsPerPublish: 10000,
         priority: 6,
@@ -59,7 +66,7 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
 
     const itemToMonitor: ReadValueIdOptions = {
         attributeId: AttributeIds.EventNotifier,
-        nodeId: resolveNodeId("Server") // i=2253
+        nodeId: resolveNodeId("Server") // i=2253session
     };
 
     const fields = await extractConditionFields(session, "AcknowledgeableConditionType");
@@ -85,7 +92,7 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
     const RefreshStartEventType = resolveNodeId("RefreshStartEventType").toString();
     const RefreshEndEventType = resolveNodeId("RefreshEndEventType").toString();
 
-    const promise: Promise<void> = new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
         // now create a event monitored Item
         event_monitoringItem.on("changed", (_eventFields: any) => {
             const eventFields = _eventFields as Variant[];
@@ -124,14 +131,12 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
         });
         // async call without waiting !
         try {
-            callConditionRefresh(subscription);
+            callConditionRefresh(session, subscription.subscriptionId);
         } catch (err) {
             // it is possible that server do not implement conditionRefresh ...
-            debugLog("Server may not implement conditionRefresh", err);
+            errorLog("Server may not implement conditionRefresh", (err as Error).message);
         }
     });
-
-    await promise;
 
     // now shut down subscription
     await subscription.terminate();
@@ -139,19 +144,20 @@ export async function findActiveConditions(session: ClientSession): Promise<Even
     return acknowledgeableConditions;
 }
 
-export async function acknowledgeAllConditions(session: ClientSession, message: string): Promise<void> {
-    try {
-        let conditions = await findActiveConditions(session);
-        if (conditions.length === 0) {
-            debugLog("Warning: cannot find conditions ");
-        }
+// let conditions = await findActiveConditions(session);
+// if (conditions.length === 0) {
+//     debugLog("Warning: cannot find conditions ");
+// }
 
+export async function acknowledgeAllConditions(session: IBasicSessionEx, message: string): Promise<void> {
+    try {
+        let conditions: EventStuff[] = await findActiveConditions(session);
         // filter acknowledgeable conditions (no acked yet)
         conditions = conditions.filter((pojo) => pojo.ackedState.id.value === false);
 
         const promises: Array<Promise<StatusCode>> = [];
         for (const eventStuff of conditions) {
-            promises.push(acknowledgeCondition(session, eventStuff, message));
+            promises.push(acknowledgeConditionEV(session, eventStuff, message));
         }
         const result = await Promise.all(promises);
         // istanbul ignore next
@@ -162,19 +168,16 @@ export async function acknowledgeAllConditions(session: ClientSession, message: 
         errorLog("Error", err);
     }
 }
-export async function confirmAllConditions(session: ClientSession, message: string): Promise<void> {
-    try {
-        let conditions = await findActiveConditions(session);
-        if (conditions.length === 0) {
-            debugLog("Warning: cannot find conditions ");
-        }
 
+export async function confirmAllConditions(session: IBasicSessionEx, message: string): Promise<void> {
+    try {
+        let conditions: EventStuff[] = await findActiveConditions(session);
         // filter acknowledgeable conditions (no acked yet)
         conditions = conditions.filter((pojo) => pojo.confirmedState.id.value === false);
 
         const promises: Array<Promise<any>> = [];
         for (const eventStuff of conditions) {
-            promises.push(confirmCondition(session, eventStuff, message));
+            promises.push(confirmConditionEV(session, eventStuff, message));
         }
         const result = await Promise.all(promises);
         // istanbul ignore next

@@ -5,14 +5,11 @@ import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read"
 import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { ClientAlarmList, EventStuff, callConditionRefresh, extractConditionFields, fieldsToJson } from "node-opcua-alarm-condition";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
 import { ClientSubscription } from "../client_subscription";
 import { ClientSession } from "../client_session";
-import { EventStuff, fieldsToJson } from "./client_alarm";
-import { ClientAlarmList } from "./client_alarm_list";
-import { extractConditionFields } from "./client_alarm_tools_extractConditionFields";
-import { callConditionRefresh } from "./client_tools";
 
 const doDebug = checkDebugFlag("A&E");
 const debugLog = make_debugLog("A&E");
@@ -110,7 +107,6 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
 
     let inInit = true;
     eventMonitoringItem.on("changed", (eventFields: Variant[]) => {
-        
         const pojo = fieldsToJson(fields, eventFields);
         const { eventType, eventId, conditionId, conditionName } = pojo;
 
@@ -154,7 +150,7 @@ export async function installAlarmMonitoring(session: ClientSession): Promise<Cl
     });
 
     try {
-        await callConditionRefresh(subscription);
+        await callConditionRefresh(session, subscription.subscriptionId);
     } catch (err) {
         if ((err as Error).message.match(/BadNothingToDo/)) {
             /** fine! nothing to do */

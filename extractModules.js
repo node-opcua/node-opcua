@@ -383,7 +383,7 @@ async function test2() {
     const source = `
 import sinon = require("sinon");
 import * as foo from "foo1";
-import * as path from "path";
+import path from "path";
 const a = require("foo2");
 const b = require("foo3/folder");
 const c = require("@foo4/foo4");

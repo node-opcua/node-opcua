@@ -3,10 +3,9 @@ import { AttributeIds } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
+import { make_traceLog } from "node-opcua-debug";
 
-import { make_warningLog } from "node-opcua-debug";
-
-const warningLog = make_warningLog("ClientAlarmTool");
+const traceLog = make_traceLog("ClientAlarmTool");
 
 /**
  *
@@ -36,7 +35,7 @@ export async function dumpEvent(session: IBasicSessionReadAsyncSimple, fields: s
         }
         if (variant.dataType === DataType.NodeId) {
             const name = await getBrowseName(_session, variant.value);
-            warningLog(
+            traceLog(
                 chalk.yellow(w(name, 30), w(_fields[index], 25)),
                 chalk.cyan(w(DataType[variant.dataType], 10).toString()),
                 chalk.cyan.bold(name),
@@ -46,7 +45,7 @@ export async function dumpEvent(session: IBasicSessionReadAsyncSimple, fields: s
             );
         } else {
             // tslint:disable-next-line: no-console
-            warningLog(
+            traceLog(
                 chalk.yellow(w("", 30), w(_fields[index], 25)),
                 chalk.cyan(w(DataType[variant.dataType as number], 10).toString()),
                 variant.value

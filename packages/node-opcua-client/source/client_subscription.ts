@@ -8,6 +8,7 @@ import { Byte, Double, UInt32 } from "node-opcua-basic-types";
 
 import { DiagnosticInfo } from "node-opcua-data-model";
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
+import { IBasicSubscription } from "node-opcua-pseudo-session";
 import {
     MonitoringMode,
     MonitoringParametersOptions,
@@ -51,7 +52,7 @@ export interface ModifySubscriptionResult {
     revisedMaxKeepAliveCount: UInt32;
 }
 
-export interface ClientSubscription extends EventEmitter {
+export interface ClientSubscription extends EventEmitter  {
     subscriptionId: SubscriptionId;
     publishingInterval: number;
     lifetimeCount: number;
@@ -304,7 +305,7 @@ export declare interface ClientSubscription {
     ): ClientMonitoredItem;
 }
 
-export class ClientSubscription {
+export class ClientSubscription implements IBasicSubscription {
     public static create(clientSession: ClientSession, options: ClientSubscriptionOptions): ClientSubscription {
         /* istanbul ignore next*/
         throw new Error("Not Implemented");

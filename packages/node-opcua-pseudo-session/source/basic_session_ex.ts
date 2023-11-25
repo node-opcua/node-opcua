@@ -13,6 +13,8 @@ export interface IBasicSubscription {
         monitoringParameters: MonitoringParametersOptions,
         timestampsToReturn: TimestampsToReturn
     ): IBasicMonitoredItem;
+
+    terminate(): Promise<void>;
 }
 
 export interface IBasicSessionEx extends IBasicSessionAsync {

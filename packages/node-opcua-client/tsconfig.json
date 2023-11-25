@@ -13,6 +13,9 @@
             "path": "../node-opcua-assert"
         },
         {
+            "path": "../node-opcua-alarm-condition"
+        },
+        {
             "path": "../node-opcua-address-space"
         },
         {

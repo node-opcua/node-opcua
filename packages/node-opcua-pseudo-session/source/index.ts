@@ -13,3 +13,4 @@ export * from "./get_builtin_datatype";
 export * from "./get_child_by_browse_name";
 export * from "./read_operational_limits";
 export * from "./read_all_attributes";
+export * from "./find_method_id";

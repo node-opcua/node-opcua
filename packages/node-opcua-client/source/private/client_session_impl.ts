@@ -2094,6 +2094,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         /** empty */
     }
 
+    /**
+     * @deprecated
+     * @private
+     */
     public findMethodId(_nodeId: NodeIdLike, _methodName: string, _callback?: ResponseCallback<NodeId>): any {
         /** empty */
     }

@@ -259,7 +259,7 @@ module.exports = function (test) {
                     displayAlarms(alarms);
 
                     console.log("---------------------------------------------------------------------- ");
-                    console.log("now lets acknoweldege all alarms");
+                    console.log("now lets acknowledge all alarms");
                     console.log("---------------------------------------------------------------------- ");
 
                     await acknowledgeAllConditions(session, "Acked by test");

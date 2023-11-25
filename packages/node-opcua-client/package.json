@@ -18,6 +18,7 @@
         "async": "^3.2.5",
         "chalk": "4.1.2",
         "node-opcua-assert": "2.105.0",
+        "node-opcua-alarm-condition": "2.118.0",
         "node-opcua-basic-types": "2.118.0",
         "node-opcua-buffer-utils": "2.117.0",
         "node-opcua-certificate-manager": "2.118.0",

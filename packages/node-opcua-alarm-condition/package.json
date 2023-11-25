@@ -1,5 +1,5 @@
 {
-    "name": "node-opcua-pseudo-session",
+    "name": "node-opcua-alarm-condition",
     "version": "2.118.0",
     "description": "pure nodejs OPCUA SDK - module pseudo-session",
     "scripts": {
@@ -13,18 +13,15 @@
     "dependencies": {
         "node-opcua-assert": "2.105.0",
         "node-opcua-basic-types": "2.118.0",
-        "node-opcua-constants": "2.114.0",
         "node-opcua-data-model": "2.118.0",
-        "node-opcua-data-value": "2.118.0",
         "node-opcua-debug": "2.118.0",
         "node-opcua-nodeid": "2.118.0",
-        "node-opcua-service-browse": "2.118.0",
-        "node-opcua-service-call": "2.118.0",
+        "node-opcua-pseudo-session": "2.118.0",
+        "node-opcua-service-filter": "2.118.0",
         "node-opcua-service-read": "2.118.0",
+        "node-opcua-service-browse": "2.118.0",
         "node-opcua-service-subscription": "2.118.0",
         "node-opcua-service-translate-browse-path": "2.118.0",
-        "node-opcua-service-filter": "2.118.0",
-        "node-opcua-service-write": "2.118.0",
         "node-opcua-status-code": "2.117.0",
         "node-opcua-types": "2.118.0",
         "node-opcua-utils": "2.117.0",

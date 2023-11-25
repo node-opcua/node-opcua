@@ -1,8 +1,8 @@
 import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
-import { DataType } from "node-opcua-basic-types";
 import { NodeId } from "node-opcua-nodeid";
-import { ClientAlarm, EventStuff } from "./client_alarm";
+import { EventStuff } from "./event_stuff";
+import { ClientAlarm } from "./client_alarm";
 
 export interface ClientAlarmList {
     on(eventName: "alarmChanged", handler: (alarm: ClientAlarm) => void): this;
@@ -52,7 +52,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
         // process.
 
         const { conditionId, eventType } = eventField;
-        assert(conditionId, "must have a valid conditionId ( verify that event is a acknodweldgeable type");
+        assert(conditionId, "must have a valid conditionId ( verify that event is a acknowledgeable type");
         const alarm = this.findAlarm(conditionId.value, eventType.value);
 
         if (!alarm) {

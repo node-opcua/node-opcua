@@ -41,6 +41,9 @@
         { "path": "node-opcua-service-secure-channel" },
         { "path": "node-opcua-test-fixtures" },
         { "path": "node-opcua-types" },
+        { "path": "node-opcua-pseudo-session" },
+        { "path": "node-opcua-alarm-condition" },
+        { "path": "node-opcua-types" },
         { "path": "node-opcua-units" }
     ]
 }

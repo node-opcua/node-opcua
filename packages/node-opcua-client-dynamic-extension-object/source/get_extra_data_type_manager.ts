@@ -13,12 +13,12 @@ const debugLog = make_debugLog(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = errorLog;
 
-interface IBasicSessionEx extends IBasicSessionAsync2 {
+interface IBasicSession_ extends IBasicSessionAsync2 {
     $$extraDataTypeManager?: ExtraDataTypeManager;
     $$extraDataTypeManagerToResolve?: [(a: ExtraDataTypeManager) => void, (err: Error) => void][];
 }
 export async function invalidateExtraDataTypeManager(session: IBasicSessionAsync2): Promise<void> {
-    const sessionPriv: IBasicSessionEx = session as IBasicSessionEx;
+    const sessionPriv = session as IBasicSession_;
     sessionPriv.$$extraDataTypeManager = undefined;
     if (sessionPriv.$$extraDataTypeManagerToResolve) {
         warningLog("Warning: invalidateExtraDataTypeManager is called while getExtraDataTypeManager is in progress");
@@ -50,7 +50,7 @@ async function extractDataTypeManager(session: IBasicSessionAsync2): Promise<Ext
 }
 
 export async function getExtraDataTypeManager(session: IBasicSessionAsync2): Promise<ExtraDataTypeManager> {
-    const sessionPriv: IBasicSessionEx = session as IBasicSessionEx;
+    const sessionPriv: IBasicSession_ = session as IBasicSession_;
     if (sessionPriv.$$extraDataTypeManager) {
         return sessionPriv.$$extraDataTypeManager;
     }

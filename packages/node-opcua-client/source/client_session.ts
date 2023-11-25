@@ -720,8 +720,17 @@ export interface ClientSessionConditionService {
      * @method findMethodId
      *
      * @param nodeId      the nodeId of the parent Object
-     * @param methodName  the method name
+     * @param methodName  the method name 
      * @param callback
+     * 
+     * note: 
+     *   - methodName is a browse name and may therefore be prefixed with a namespace index.
+     *   - if method is not found on the object specified by nodeId, then the findMethodId will
+     *     recursively browse up the hierarchy of object typeDefinition Node 
+     *     until it reaches the root type. and try to find the first method that matches the
+     *     provided name.
+     * 
+     * @deprecated use global findMethodId(session, nodeId, methoName): Promise<NodeId> instead
      */
     findMethodId(nodeId: NodeIdLike, methodName: string, callback: ResponseCallback<NodeId>): void;
 

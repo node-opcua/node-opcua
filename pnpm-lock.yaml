@@ -745,6 +745,69 @@ importers:
         specifier: ^13.2.3
         version: 13.2.3
 
+  packages/node-opcua-alarm-condition:
+    dependencies:
+      node-opcua-assert:
+        specifier: 2.105.0
+        version: link:../node-opcua-assert
+      node-opcua-basic-types:
+        specifier: 2.118.0
+        version: link:../node-opcua-basic-types
+      node-opcua-constants:
+        specifier: 2.114.0
+        version: link:../node-opcua-constants
+      node-opcua-data-model:
+        specifier: 2.118.0
+        version: link:../node-opcua-data-model
+      node-opcua-data-value:
+        specifier: 2.118.0
+        version: link:../node-opcua-data-value
+      node-opcua-debug:
+        specifier: 2.118.0
+        version: link:../node-opcua-debug
+      node-opcua-nodeid:
+        specifier: 2.118.0
+        version: link:../node-opcua-nodeid
+      node-opcua-pseudo-session:
+        specifier: 2.118.0
+        version: link:../node-opcua-pseudo-session
+      node-opcua-service-browse:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-browse
+      node-opcua-service-call:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-call
+      node-opcua-service-filter:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-filter
+      node-opcua-service-read:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-read
+      node-opcua-service-subscription:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-subscription
+      node-opcua-service-translate-browse-path:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-translate-browse-path
+      node-opcua-service-write:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-write
+      node-opcua-status-code:
+        specifier: 2.117.0
+        version: link:../node-opcua-status-code
+      node-opcua-types:
+        specifier: 2.118.0
+        version: link:../node-opcua-types
+      node-opcua-utils:
+        specifier: 2.117.0
+        version: link:../node-opcua-utils
+      node-opcua-variant:
+        specifier: 2.118.0
+        version: link:../node-opcua-variant
+      thenify:
+        specifier: ^3.3.1
+        version: 3.3.1
+
   packages/node-opcua-assert:
     dependencies:
       chalk:
@@ -910,6 +973,9 @@ importers:
       chalk:
         specifier: 4.1.2
         version: 4.1.2
+      node-opcua-alarm-condition:
+        specifier: 2.118.0
+        version: link:../node-opcua-alarm-condition
       node-opcua-assert:
         specifier: 2.105.0
         version: link:../node-opcua-assert
@@ -2644,6 +2710,9 @@ importers:
       node-opcua-service-call:
         specifier: 2.118.0
         version: link:../node-opcua-service-call
+      node-opcua-service-filter:
+        specifier: 2.118.0
+        version: link:../node-opcua-service-filter
       node-opcua-service-read:
         specifier: 2.118.0
         version: link:../node-opcua-service-read
@@ -2677,6 +2746,9 @@ importers:
       '@types/bcryptjs':
         specifier: ^2.4.6
         version: 2.4.6
+      '@types/treeify':
+        specifier: ^1.0.3
+        version: 1.0.3
       '@types/underscore':
         specifier: ^1.11.14
         version: 1.11.14
@@ -4276,6 +4348,10 @@ packages:
     dependencies:
       '@types/asn1': 0.2.1
       '@types/node': 20.9.2
+
+  /@types/treeify@1.0.3:
+    resolution: {integrity: sha512-hx0o7zWEUU4R2Amn+pjCBQQt23Khy/Dk56gQU5xi5jtPL1h83ACJCeFaB2M/+WO1AntvWrSoVnnCAfI1AQH4Cg==}
+    dev: false
 
   /@types/underscore@1.11.14:
     resolution: {integrity: sha512-13RYuwqoXZgLO3Nu4zsISqYAexCILtKIMGx+7+vY6gEsGFjrcHU57iDxPmaA2E5d4v5NwebNweiXLbaZWHWI9A==}
