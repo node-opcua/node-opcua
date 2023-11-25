@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable max-statements */
-/* eslint-disable no-prototype-builtins */
-// PLEASE use simple_client_ts.ts , simple_client_ts presents a more modern approach...*
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
@@ -37,7 +34,7 @@ const {
 } = require("node-opcua");
 const { toPem } = require("node-opcua-crypto");
 
-//node bin/simple_client.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
+//node bin/client_example.js --endpoint  opc.tcp://localhost:53530/OPCUA/SimulationServer --node "ns=5;s=Sinusoid1"
 const yargs = require("yargs/yargs");
 const argv = yargs(process.argv)
     .wrap(132)
@@ -128,7 +125,7 @@ const doCrawling = !!argv.crawl;
 const doHistory = !!argv.history;
 
 function w(str, l) {
-    return str.padEnd(l).substring(0, l);  
+    return str.padEnd(l).substring(0, l);
 }
 
 async function enumerateAllConditionTypes(session) {
@@ -283,9 +280,9 @@ async function getAllEventTypes(session) {
     return result;
 }
 
-async function monitorAlarm(subscription) {
+async function monitorAlarm(session, subscription) {
     try {
-        await callConditionRefresh(subscription);
+        await callConditionRefresh(session, subscription);
     } catch (err) {
         console.log(" monitorAlarm failed , may be your server doesn't support A&E", err.message);
     }
@@ -295,12 +292,9 @@ function getTick() {
     return Date.now();
 }
 
-let the_subscription;
-let the_session;
-let client;
 
-async function main() {
 
+async function exploreEndpoint(endpointUrl) {
     const optionsInitial = {
 
         securityMode,
@@ -317,20 +311,17 @@ async function main() {
 
         discoveryUrl
     };
-
-    client = OPCUAClient.create(optionsInitial);
+    const client = OPCUAClient.create(optionsInitial);
 
     client.on("backoff", (retry, delay) => {
         console.log(chalk.bgWhite.yellow("backoff  attempt #"), retry, " retrying in ", delay / 1000.0, " seconds");
     });
-
     console.log(" connecting to ", chalk.cyan.bold(endpointUrl));
     console.log("    strategy", client.connectionStrategy);
 
     try {
         await client.connect(endpointUrl);
         console.log(" Connected ! exact endpoint url is ", client.endpointUrl);
-
     } catch (err) {
         console.log(chalk.red(" Cannot connect to ") + endpointUrl);
         console.log(" Error = ", err.message);
@@ -389,12 +380,15 @@ async function main() {
         console.log(table2.toString());
     }
     await client.disconnect();
-
-    // reconnect using the correct end point URL now
     console.log(chalk.cyan("Server Certificate :"));
     console.log(chalk.yellow(hexDump(serverCertificate)));
+    return client.endpointUrl;
+}
 
-    const adjustedEndpointUrl = client.endpointUrl;
+async function main() {
+
+    // reconnect using the correct end point URL now
+    const adjustedEndpointUrl =  await exploreEndpoint(endpointUrl);
 
     const options = {
         securityMode,
@@ -415,7 +409,7 @@ async function main() {
     };
     console.log("Options = ", options.securityMode.toString(), options.securityPolicy.toString());
 
-    client = OPCUAClient.create(options);
+    const client = OPCUAClient.create(options);
 
     console.log(" reconnecting to ", chalk.cyan.bold(adjustedEndpointUrl));
     await client.connect(adjustedEndpointUrl);
@@ -433,12 +427,12 @@ async function main() {
 
     }
 
-    the_session = await client.createSession(userIdentity);
+    const session = await client.createSession(userIdentity);
     client.on("connection_reestablished", () => {
         console.log(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!!"));
     });
     console.log(chalk.yellow(" session created"));
-    console.log(" sessionId : ", the_session.sessionId.toString());
+    console.log(" sessionId : ", session.sessionId.toString());
 
     client.on("backoff", (retry, delay) => {
         console.log(chalk.bgWhite.yellow("backoff  attempt #"), retry, " retrying in ", delay / 1000.0, " seconds");
@@ -453,7 +447,7 @@ async function main() {
     // -----------------------------------------------------------------------------------------------------------
     const server_NamespaceArray_Id = makeNodeId(VariableIds.Server_NamespaceArray); // ns=0;i=2006
 
-    const dataValue = await the_session.readVariableValue(server_NamespaceArray_Id);
+    const dataValue = await session.readVariableValue(server_NamespaceArray_Id);
 
     console.log(" --- NAMESPACE ARRAY ---");
     const namespaceArray = dataValue.value.value /*as string[] */;
@@ -465,7 +459,7 @@ async function main() {
     // -----------------------------------------------------------------------------------------------------------
     //   enumerate all EVENT TYPES
     // -----------------------------------------------------------------------------------------------------------
-    const result = getAllEventTypes(the_session);
+    const result = getAllEventTypes(session);
     console.log(chalk.cyan("---------------------------------------------------- All Event Types "));
     console.log(treeify.asTree(result, true));
     console.log(" -----------------------");
@@ -489,8 +483,8 @@ async function main() {
     }
 
     if (doCrawling) {
-        assert((the_session !== null && typeof the_session === "object"));
-        const crawler = new NodeCrawler(the_session);
+        assert((session !== null && typeof session === "object"));
+        const crawler = new NodeCrawler(session);
 
         let t5 = Date.now();
         client.on("send_request", () => {
@@ -534,7 +528,7 @@ async function main() {
     // -----------------------------------------------------------------------------------------------------------------
 
     console.log("--------------------------------------------------------------- Enumerate all Condition Types exposed by the server");
-    const conditionTree = await enumerateAllConditionTypes(the_session);
+    const conditionTree = await enumerateAllConditionTypes(session);
     console.log(treeify.asTree(conditionTree));
     console.log(" -----------------------------------------------------------------------------------------------------------------");
 
@@ -542,7 +536,7 @@ async function main() {
     // enumerate all objects that have an Alarm & Condition instances
     // -----------------------------------------------------------------------------------------------------------------
 
-    const alarms = await enumerateAllAlarmAndConditionInstances(the_session);
+    const alarms = await enumerateAllAlarmAndConditionInstances(session);
 
     console.log(" -------------------------------------------------------------- Alarms & Conditions ------------------------");
     for (const alarm of alarms) {
@@ -608,26 +602,26 @@ async function main() {
         requestedPublishingInterval: 2000
     };
 
-    the_subscription = await the_session.createSubscription2(parameters);
+    const subscription = await session.createSubscription2(parameters);
 
     let t = getTick();
 
-    console.log("started subscription :", the_subscription.subscriptionId);
+    console.log("started subscription :", subscription.subscriptionId);
     console.log(" revised parameters ");
-    console.log("  revised maxKeepAliveCount  ", the_subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-    console.log("  revised lifetimeCount      ", the_subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
-    console.log("  revised publishingInterval ", the_subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+    console.log("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
+    console.log("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
+    console.log("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
 
     console.log("subscription duration ",
-        ((the_subscription.lifetimeCount * the_subscription.publishingInterval) / 1000).toFixed(3), "seconds")
-    the_subscription.on("internal_error", (err) => {
+        ((subscription.lifetimeCount * subscription.publishingInterval) / 1000).toFixed(3), "seconds")
+    subscription.on("internal_error", (err) => {
         console.log(" received internal error", err.message);
     }).on("keepalive", () => {
         const t4 = getTick();
         const span = t4 - t;
         t = t4;
         console.log("keepalive ", span / 1000, "sec",
-            " pending request on server = ", the_subscription.getPublishEngine().nbPendingPublishRequests);
+            " pending request on server = ", subscription.getPublishEngine().nbPendingPublishRequests);
 
     }).on("terminated", () => { /* */
 
@@ -635,7 +629,7 @@ async function main() {
     });
 
     try {
-        const results1 = await the_subscription.getMonitoredItems();
+        const results1 = await subscription.getMonitoredItems();
         console.log("MonitoredItems clientHandles", results1.clientHandles);
         console.log("MonitoredItems serverHandles", results1.serverHandles);
     } catch (err) {
@@ -651,7 +645,7 @@ async function main() {
     // ---------------------------------------------------------------
     console.log(" Monitoring node ", monitored_node.toString());
     const monitoredItem = ClientMonitoredItem.create(
-        the_subscription,
+        subscription,
         {
             attributeId: AttributeIds.Value,
             nodeId: monitored_node
@@ -673,7 +667,7 @@ async function main() {
         console.log(monitoredItem.itemToMonitor.nodeId.toString(), chalk.red(" ERROR"), err_message);
     });
 
-    const results = await the_subscription.getMonitoredItems();
+    const results = await subscription.getMonitoredItems();
     console.log("MonitoredItems clientHandles", results.clientHandles);
     console.log("MonitoredItems serverHandles", results.serverHandles);
 
@@ -730,7 +724,7 @@ async function main() {
     ]);
 
     const event_monitoringItem = ClientMonitoredItem.create(
-        the_subscription,
+        subscription,
         {
             attributeId: AttributeIds.EventNotifier,
             nodeId: serverObjectId
@@ -747,7 +741,7 @@ async function main() {
     });
 
     event_monitoringItem.on("changed", (eventFields) => {
-        dumpEvent(the_session, fields, eventFields);
+        dumpEvent(session, fields, eventFields);
     });
     event_monitoringItem.on("err", (err_message) => {
         console.log(chalk.red("event_monitoringItem ", baseEventTypeId, " ERROR"), err_message);
@@ -755,7 +749,7 @@ async function main() {
 
     console.log("--------------------------------------------- Monitoring alarms");
     const alarmNodeId = coerceNodeId("ns=2;s=1:Colours/EastTank?Green");
-    await monitorAlarm(the_subscription);
+    await monitorAlarm(session, subscription);
 
     console.log("Starting timer ", timeout);
     if (timeout > 0) {
@@ -772,59 +766,14 @@ async function main() {
             socket.emit("error", new Error("ECONNRESET"));
         }, timeout / 2.0);
         // });
-
-        await new Promise((resolve) => {
-            setTimeout(async () => {
-                console.log(chalk.yellow("------------------------------"), "time out => shutting down ");
-                if (!the_subscription) {
-                    return resolve();
-                }
-                if (the_subscription) {
-                    const s = the_subscription;
-                    the_subscription = null;
-                    await s.terminate();
-                    await the_session.close();
-                    await client.disconnect();
-                    console.log(" Done ");
-                    process.exit(0);
-                }
-            }, timeout);
-        });
-
+        await new Promise((resolve) => process.once("SIGINT", resolve));
+        console.log(" user interruption ...");
     }
 
-    console.log(" closing session");
-    await the_session.close();
-    console.log(" session closed");
-
-    console.log(" Calling disconnect");
+    await subscription.terminate();
+    await session.close();
     await client.disconnect();
-
-    console.log(chalk.cyan(" disconnected"));
-
-    console.log("success !!   ");
+    process.exit(0);
 }
-
-let user_interruption_count = 0;
-process.on("SIGINT", async () => {
-
-    console.log(" user interruption ...");
-
-    user_interruption_count += 1;
-    if (user_interruption_count >= 3) {
-        process.exit(1);
-    }
-    if (the_subscription) {
-        console.log(chalk.red.bold(" Received client interruption from user "));
-        console.log(chalk.red.bold(" shutting down ..."));
-        const subscription = the_subscription;
-        the_subscription = null;
-
-        await subscription.terminate();
-        await the_session.close();
-        await client.disconnect();
-        process.exit(0);
-    }
-});
 
 main();
