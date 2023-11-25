@@ -419,4 +419,62 @@ describe("makeRelativePath", function () {
             })
         );
     });
+    it("TK should construct simple RelativePath for /1:Browse& Name.2:Hello World", ()=>{
+        const relativePath = makeRelativePath("/1:Browse Name.2:Hello World", null);
+        relativePath.elements[0].should.eql(
+            new RelativePathElement({
+                referenceTypeId: hierarchicalReferenceTypeNodeId,
+                isInverse: false,
+                includeSubtypes: true,
+                targetName: new QualifiedName({ namespaceIndex: 1, name: "Browse Name" })
+            })
+        );
+        relativePath.elements[1].should.eql(
+            new RelativePathElement({
+                referenceTypeId: aggregatesReferenceTypeNodeId,
+                isInverse: false,
+                includeSubtypes: true,
+                targetName: new QualifiedName({ namespaceIndex: 2, name: "Hello World" })
+            })
+        );
+    });
+    it("TL should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
+        const relativePath = makeRelativePath("/1:Browse&.Name.2:Hello&.World", null);
+        relativePath.elements[0].should.eql(
+            new RelativePathElement({
+                referenceTypeId: hierarchicalReferenceTypeNodeId,
+                isInverse: false,
+                includeSubtypes: true,
+                targetName: new QualifiedName({ namespaceIndex: 1, name: "Browse.Name" })
+            })
+        );
+        relativePath.elements[1].should.eql(
+            new RelativePathElement({
+                referenceTypeId: aggregatesReferenceTypeNodeId,
+                isInverse: false,
+                includeSubtypes: true,
+                targetName: new QualifiedName({ namespaceIndex: 2, name: "Hello.World" })
+            })
+        );
+    });
+    it("TM should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
+        const relativePath = makeRelativePath("/1:Browse&:Name.2:Hello&:&/World", null);
+        relativePath.elements[0].should.eql(
+            new RelativePathElement({
+                referenceTypeId: hierarchicalReferenceTypeNodeId,
+                isInverse: false,
+                includeSubtypes: true,
+                targetName: new QualifiedName({ namespaceIndex: 1, name: "Browse:Name" })
+            })
+        );
+        relativePath.elements[1].should.eql(
+            new RelativePathElement({
+                referenceTypeId: aggregatesReferenceTypeNodeId,
+                isInverse: false,
+                includeSubtypes: true,
+                targetName: new QualifiedName({ namespaceIndex: 2, name: "Hello:/World" })
+            })
+        );
+    });
+
 });

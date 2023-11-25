@@ -129,23 +129,31 @@ export function makeRelativePath(str: string, addressSpace?: any): RelativePath 
         //
         const refStr = matches[1];
         if (refStr === "/") {
+            // The forward slash character indicates that the Server is to follow 
+            // any subtype of HierarchicalReferences.
             referenceTypeId = hierarchicalReferenceTypeNodeId;
             isInverse = false;
             includeSubtypes = true;
         } else if (refStr === ".") {
+            // The period (dot) character indicates that the Server is to follow 
+            // any subtype of a Aggregates ReferenceType.
             referenceTypeId = aggregatesReferenceTypeNodeId;
             isInverse = false;
             includeSubtypes = true;
         } else {
             // match  3 =>    "#" or null
+            // A ‘#’ placed in front of the BrowseName indicates that subtypes should not be followed.
             includeSubtypes = matches[3] !== "#";
 
             // match  4 =>    "!" or null
+            // A ‘!’ in front of the BrowseName is used to indicate that the inverse Reference should be followed.
             isInverse = matches[4] === "!";
 
             // match 5
             // namespace match 6 ( ns:)
             // name      match 7
+            //  This namespace index is used specify the namespace component of the BrowseName 
+            //  for the ReferenceType. If the namespace prefix is omitted then namespace index 0 is used.
             const ns = matches[6] ? parseInt(matches[6], 10) : 0;
             const name = matches[7];
             if (!matches[6]) {
