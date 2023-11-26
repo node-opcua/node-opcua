@@ -6,7 +6,6 @@ import { types } from "util";
 import yargs from "yargs/yargs";
 import chalk from "chalk";
 import Table from "easy-table";
-import { asTree, TreeObject } from "treeify";
 
 import {
     ApplicationType,
@@ -43,9 +42,11 @@ import {
     VariableIds,
     Variant
 } from "node-opcua";
-import { Certificate, toPem } from "node-opcua-crypto";
 
+import { Certificate, toPem } from "node-opcua-crypto";
 import { NodeCrawler } from "node-opcua-client-crawler";
+
+const { asTree, TreeObject } = require("treeify");
 
 function w(str: string, l: number): string {
     return str.padEnd(l).substring(0, l);

@@ -2,12 +2,12 @@ import fs from "fs";
 import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { resolveNodeId } from "node-opcua-nodeid";
 
 import { extractFields, simpleBrowsePathsToString}  from "node-opcua-pseudo-session";
 
 import { generateAddressSpace } from "../nodeJS";
 import { AddressSpace, PseudoSession } from "..";
-import { resolveNodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
