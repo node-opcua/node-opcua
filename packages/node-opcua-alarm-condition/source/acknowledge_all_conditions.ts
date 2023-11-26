@@ -26,21 +26,24 @@ const errorLog = make_errorLog(__filename);
  */
 
 async function acknowledgeConditionEV(session: IBasicSessionAsync, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
+    const conditionId = eventStuff.conditionId?.value;
+    const eventId = eventStuff.eventId?.value;
     try {
-        const conditionId = eventStuff.conditionId.value;
-        const eventId = eventStuff.eventId.value;
         return await acknowledgeCondition(session, conditionId, eventId, comment);
     } catch (err) {
+        errorLog(`conditionId: ${conditionId?.toString()}`);
         errorLog("Acknowledging Condition has failed !", err);
         return StatusCodes.BadInternalError;
     }
 }
+
 async function confirmConditionEV(session: IBasicSessionAsync, eventStuff: EventStuff, comment: string): Promise<StatusCode> {
+    const conditionId = eventStuff.conditionId?.value;
+    const eventId = eventStuff.eventId?.value;
     try {
-        const conditionId = eventStuff.conditionId.value;
-        const eventId = eventStuff.eventId.value;
         return await confirmCondition(session, conditionId, eventId, comment);
     } catch (err) {
+        errorLog(`conditionId: ${conditionId?.toString()}`);
         errorLog("Confirming Condition has failed !", err);
         return StatusCodes.BadInternalError;
     }

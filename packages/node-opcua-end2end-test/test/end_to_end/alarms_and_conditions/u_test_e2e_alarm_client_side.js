@@ -19,9 +19,9 @@ const { perform_operation_on_subscription_async } = require("../../../test_helpe
 
 const doDebug = false;
 
-function ellipsys(a) {
+function ellipsis(a) {
     if (!a) {
-        return "";
+        return ""; ClientAlarm
     }
     return truncate(a, 10, { position: "middle" });
 }
@@ -53,12 +53,12 @@ function displayAlarms(alarms /*: ClientAlarmList*/) {
             alarm.eventType.toString({ addressSpace: alarms.addressSpace }),
             alarm.conditionId.toString(),
             fields.branchId.value.toString(),
-            ellipsys(alarm.eventId.toString("hex")),
+            ellipsis(alarm.eventId.toString("hex")),
             fields.enabledState.id.value.toString(),
             isEnabled ? fields.activeState.id.value : "-",
-            isEnabled ? ellipsys(fields.message.value.text) : "-",
+            isEnabled ? ellipsis(fields.message.value.text) : "-",
             isEnabled ? fields.severity.value + " (" + fields.lastSeverity.value + ")" : "-",
-            isEnabled ? ellipsys(fields.comment.value.text) : "-",
+            isEnabled ? ellipsis(fields.comment.value.text) : "-",
             isEnabled ? fields.ackedState.id.value.toString() : "-",
             fields.confirmedState.id.value,
             fields.retain.value
@@ -69,8 +69,8 @@ function displayAlarms(alarms /*: ClientAlarmList*/) {
 }
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-module.exports = function (test) {
+const { describeWithLeakDetector: describe } = require("node-opcua-leak-detector");
+module.exports = function(test) {
     describe("A&C3 client side alarm monitoring", () => {
         let client;
         function resetConditions(test) {
