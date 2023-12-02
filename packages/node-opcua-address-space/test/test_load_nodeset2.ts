@@ -13,8 +13,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { IBasicSessionAsync } from "node-opcua-pseudo-session";
-import { ExtraDataTypeManager, resolveOpaqueStructureInExtentionObject } from "node-opcua-client-dynamic-extension-object";
+import { IBasicSessionAsync, IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import { ExtraDataTypeManager, resolveOpaqueStructureInExtensionObject } from "node-opcua-client-dynamic-extension-object";
 
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
@@ -463,7 +463,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         a.setValueFromSource({ dataType: DataType.ExtensionObject, value: object });
     });
 
-    async function testEncodeDecode(object: ExtensionObject, constructor: any, session: IBasicSessionAsync) {
+    async function testEncodeDecode(object: ExtensionObject, constructor: any, session: IBasicSessionAsync2) {
         doDebug && console.log("------------ Before");
         doDebug && console.log(object.toString());
 
@@ -479,7 +479,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
         doDebug && console.log("------------ After");
         doDebug && console.log(object2.toString());
 
-        await resolveOpaqueStructureInExtentionObject(session, dataTypeManager, object2);
+        await resolveOpaqueStructureInExtensionObject(session, dataTypeManager, object2);
 
         doDebug && console.log("------------ After");
         doDebug && console.log(object2.toString());
@@ -488,7 +488,7 @@ describe("testing NodeSet XML file loading", function (this: any) {
     }
 
     describe("VVA", () => {
-        let session: IBasicSessionAsync;
+        let session: IBasicSessionAsync2;
         let nsIndex: number;
         beforeEach(async () => {
             addressSpace.registerNamespace("PRIVATE");

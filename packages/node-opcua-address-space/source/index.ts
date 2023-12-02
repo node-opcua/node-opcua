@@ -40,6 +40,8 @@ export * from "./interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_e
 export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_discrete_impl";
 export { promoteToMultiStateValueDiscrete } from "../src/data_access/ua_multistate_value_discrete_impl";
 export { promoteToTwoStateDiscrete } from "../src/data_access/ua_two_state_discrete_impl";
+export { validateIsNumericDataType } from "../src/data_access/ua_multistate_value_discrete_impl";
+// deprecated: validateDataType
 export { validateDataType } from "../src/data_access/ua_multistate_value_discrete_impl";
 export { validateDataTypeCorrectness  } from "../src/validate_data_type_correctness";
 export * from "./ua_root_folder";

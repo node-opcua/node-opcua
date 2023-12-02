@@ -10,12 +10,12 @@ import { EnumValueTypeOptionsLike } from "../address_space_ts";
 export function coerceEnumValues(enumValues: EnumValueTypeOptionsLike[] | { [key: string]: number | Int64 }): EnumValueType[] {
     if (Array.isArray(enumValues)) {
         //
-        return enumValues.map((en: any) => {
+        return enumValues.map((en) => {
             assert(Object.prototype.hasOwnProperty.call(en, "value"));
             assert(Object.prototype.hasOwnProperty.call(en, "displayName"));
             return new EnumValueType({
                 displayName: coerceLocalizedText(en.displayName),
-                value: coerceInt64(en.value)
+                value: coerceInt64(en.value || 0)
             });
         });
     } else {
