@@ -315,7 +315,7 @@ export function coerceInt32(value: null | Int64 | UInt64 | number | string): Int
     }
     if (value instanceof Array) {
         // Int64 as a [high,low]
-        return value[1] + value[0] * 0x1000000;
+        return coerceInt64toInt32(value);
     }
     if (typeof value === "number") {
         return value;
@@ -346,6 +346,13 @@ export function UInt64ToBigInt(value: UInt64): bigint {
 export function coerceInt64toInt32(value: Int64 | Int32): Int32 {
     if (value instanceof Array) {
         const b = Int64ToBigInt(value);
+        return Number(b);
+    }
+    return value;
+}
+export function coerceUInt64toInt32(value: UInt64 | UInt32): Int32 {
+    if (value instanceof Array) {
+        const b = UInt64ToBigInt(value);
         return Number(b);
     }
     return value;

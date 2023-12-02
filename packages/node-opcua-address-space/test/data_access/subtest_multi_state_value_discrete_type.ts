@@ -10,8 +10,17 @@ import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
 import { getCurrentClock } from "node-opcua-date-time";
 import { EnumValueType } from "node-opcua-types";
+import { Int64, coerceInt32, coerceInt64, coerceInt8, coerceUInt32, coerceUInt64, coerceUInt8 } from "node-opcua-basic-types";
 
-import { AddressSpace, Namespace, SessionContext, UAObject, UAObjectType } from "../..";
+import {
+    AddressSpace,
+    EnumValueTypeOptionsLike,
+    Namespace,
+    SessionContext,
+    UAMultiStateValueDiscreteArrayEx,
+    UAObject,
+    UAObjectType
+} from "../..";
 import { UAMultiStateValueDiscreteEx } from "../..";
 
 const context = new SessionContext();
@@ -317,6 +326,268 @@ export function subtest_multi_state_value_discrete_type(mainTest: { addressSpace
             obj.color.setValue("Blue");
             obj.color.getValueAsString().should.eql("Blue");
             obj.color.valueAsText.readValue().value.value.text!.should.eql("Blue");
+        });
+
+        it("should handle value=0 appropriately (fixes issue #1323", () => {
+            // create a new DataType
+            const myObjectType = namespace.addObjectType({
+                browseName: "MyObjectWithMultiStateValueDiscrete1323Type"
+            }) as MyObjectWithMultiStateValueDiscreteType;
+
+            namespace.addMultiStateValueDiscrete({
+                browseName: "MultiStateValueDiscrete1323",
+                componentOf: myObjectType,
+                dataType: DataType.Int64,
+                enumValues: { Zero: 0, One: 1, Twenty: 20 },
+                modellingRule: "Mandatory",
+                value: 0
+            });
+            // instantiate  the type
+            const obj = myObjectType.instantiate({
+                browseName: "MyObject"
+            }) as MyObjectWithMultiStateValueDiscrete;
+
+            const multiStateValueDiscrete1323 = obj.getChildByName("MultiStateValueDiscrete1323") as UAMultiStateValueDiscreteEx<
+                any,
+                any
+            >;
+            // verification
+            multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+            multiStateValueDiscrete1323.valueAsText.readValue().value.value.text!.should.eql("Zero");
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(0));
+
+            multiStateValueDiscrete1323.setValue("One");
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(1));
+            multiStateValueDiscrete1323.getValueAsString().should.eql("One");
+
+            multiStateValueDiscrete1323.setValue("Zero");
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(0));
+            multiStateValueDiscrete1323.getValueAsString().should.eql("Zero");
+
+            multiStateValueDiscrete1323.setValue("Twenty");
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(20));
+            multiStateValueDiscrete1323.getValueAsString().should.eql("Twenty");
+
+            multiStateValueDiscrete1323.setValueFromSource({
+                dataType: DataType.Int64,
+                arrayType: VariantArrayType.Scalar,
+                value: coerceInt64(1)
+            });
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(1));
+            multiStateValueDiscrete1323.getValueAsString().should.eql("One");
+
+            multiStateValueDiscrete1323.setValueFromSource({
+                dataType: DataType.Int64,
+                arrayType: VariantArrayType.Scalar,
+                value: coerceInt64(0)
+            });
+            multiStateValueDiscrete1323.setValue("Zero");
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(0));
+            multiStateValueDiscrete1323.getValueAsString().should.eql("Zero");
+
+            multiStateValueDiscrete1323.setValueFromSource({
+                dataType: DataType.Int64,
+                arrayType: VariantArrayType.Scalar,
+                value: coerceInt64(20)
+            });
+            multiStateValueDiscrete1323.setValue("Twenty");
+            multiStateValueDiscrete1323.readValue().value.value.should.eql(coerceInt64(20));
+            multiStateValueDiscrete1323.getValueAsString().should.eql("Twenty");
+        });
+
+        const toEnumName = (value: number) => {
+            const v = coerceInt32(value);
+            return `T${v < 0 ? "M" : ""}${Math.abs(v).toString()}`;
+        };
+
+        [
+            {
+                dataType: DataType.Int64,
+                coerce: coerceInt64,
+                values: [-10, 0, 20]
+            },
+            {
+                dataType: DataType.Int32,
+                coerce: coerceInt32,
+                values: [-10, 0, 20]
+            },
+            {
+                dataType: DataType.SByte,
+                coerce: coerceInt8,
+                values: [-10, 0, 20]
+            },
+            // unsigned
+            {
+                dataType: DataType.UInt64,
+                coerce: coerceUInt64,
+                values: [10, 0, 20]
+            },
+            {
+                dataType: DataType.UInt32,
+                coerce: coerceUInt32,
+                values: [10, 0, 20]
+            },
+            {
+                dataType: DataType.Byte,
+                coerce: coerceUInt8,
+                values: [10, 0, 20]
+            }
+        ].forEach(({ dataType, coerce, values }) => {
+            it("should handle all sort of scalar MultiDiscreteValue " + DataType[dataType], () => {
+                const suffix = DataType[dataType];
+
+                const myObjectType = namespace.addObjectType({
+                    browseName: "Obj" + suffix + "Type"
+                });
+
+                const enumValues: EnumValueTypeOptionsLike[] = values.map((value) => ({
+                    displayName: toEnumName(value),
+                    value: coerceInt64(value)
+                }));
+
+                namespace.addMultiStateValueDiscrete({
+                    browseName: "MultiStateValueDiscrete" + suffix,
+                    componentOf: myObjectType,
+                    dataType,
+                    enumValues,
+                    modellingRule: "Mandatory",
+                    value: values[0]
+                });
+
+                // instantiate  the type
+                const obj = myObjectType.instantiate({
+                    browseName: "MyObject1" + suffix
+                });
+
+                const multiStateValueDiscrete1323 = obj.getChildByName(
+                    "MultiStateValueDiscrete" + suffix
+                ) as UAMultiStateValueDiscreteEx<any, any>;
+
+                const initialValue = values[0];
+                const initialEnumName = toEnumName(initialValue);
+                // verification
+                multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+                multiStateValueDiscrete1323.valueAsText.readValue().value.value.text!.should.eql(initialEnumName);
+                multiStateValueDiscrete1323.readValue().value.value.should.eql(coerce(initialValue));
+
+                for (let index = 0; index < values.length; index++) {
+                    const curValue = values[index];
+                    const curEnumName = toEnumName(curValue);
+
+                    multiStateValueDiscrete1323.setValue(curEnumName);
+                    multiStateValueDiscrete1323.readValue().value.value.should.eql(coerce(curValue));
+                    multiStateValueDiscrete1323.getValueAsString().should.eql(curEnumName);
+                }
+                for (let index = 0; index < values.length; index++) {
+                    const curValue = values[index];
+                    const curEnumName = toEnumName(curValue);
+
+                    multiStateValueDiscrete1323.setValueFromSource({
+                        dataType,
+                        arrayType: VariantArrayType.Scalar,
+                        value: coerce(curValue)
+                    });
+                    multiStateValueDiscrete1323.readValue().value.value.should.eql(coerce(curValue));
+                    multiStateValueDiscrete1323.getValueAsString().should.eql(curEnumName);
+                }
+                for (let index = 0; index < values.length; index++) {
+                    const curValue = values[index];
+                    const curEnumName = toEnumName(curValue);
+
+                    multiStateValueDiscrete1323.setValue(curValue);
+                    multiStateValueDiscrete1323.readValue().value.value.should.eql(coerce(curValue));
+                    multiStateValueDiscrete1323.getValueAsString().should.eql(curEnumName);
+                }
+            });
+        });
+
+        function convertToArray<T>(array: any): T[] {
+            if (Array.isArray(array)) return array;
+            const result: T[] = [];
+            for (let i = 0; i < array.length; i++) {
+                result[i] = array[i];
+            }
+            return result;
+        }
+        [
+            {
+                dataType: DataType.Int32,
+                coerce: coerceInt32,
+                values: [0, -10, 20]
+            },
+            {
+                dataType: DataType.UInt32,
+                coerce: coerceUInt32,
+                values: [0, 10, 20]
+            },
+            {
+                dataType: DataType.Int64,
+                coerce: coerceInt64,
+                values: [0, -10, 20]
+            },
+            {
+                dataType: DataType.UInt64,
+                coerce: coerceUInt64,
+                values: [0, 10, 20]
+            }
+        ].forEach(({ dataType, coerce, values }) => {
+            it("should handle all sort of Array MultiDiscreteValue " + DataType[dataType] + "[]", () => {
+                const suffix = DataType[dataType];
+
+                const myObjectType = namespace.addObjectType({
+                    browseName: "ObjA" + suffix + "Type"
+                });
+
+                const enumValues: EnumValueTypeOptionsLike[] = values.map((value) => ({
+                    displayName: toEnumName(value),
+                    value: coerceInt64(value)
+                }));
+
+                const value = new Variant({
+                    arrayType: VariantArrayType.Array,
+                    dataType,
+                    value: [values[0], values[1]]
+                });
+                const msvd = namespace.addMultiStateValueDiscrete({
+                    browseName: "MultiStateValueDiscrete" + suffix,
+                    componentOf: myObjectType,
+                    dataType,
+                    enumValues,
+                    valueRank: 1,
+                    modellingRule: "Mandatory",
+                    value
+                });
+
+                // instantiate  the type
+                const obj = myObjectType.instantiate({
+                    browseName: "MyObjectA" + suffix
+                });
+
+                const multiStateValueDiscrete1323 = obj.getChildByName(
+                    "MultiStateValueDiscrete" + suffix
+                ) as UAMultiStateValueDiscreteArrayEx<any, any>;
+
+                // verification
+                multiStateValueDiscrete1323.accessLevel.should.eql(AccessLevelFlag.CurrentRead | AccessLevelFlag.CurrentWrite);
+
+                const tt = multiStateValueDiscrete1323.readValue().value.value;
+                tt.length.should.eql(2);
+                tt[0].should.eql(coerce(values[0]));
+                tt[1].should.eql(coerce(values[1]));
+
+                const a = multiStateValueDiscrete1323.valueAsText.readValue().value.value;
+                a.length.should.eql(2);
+                // xx console.log(a);
+                a.map(({ text }) => text).should.eql([toEnumName(values[0]), toEnumName(values[1])]);
+
+                const t = multiStateValueDiscrete1323.getValueAsString();
+                t.length.should.eql(2);
+                t.should.eql([toEnumName(values[0]), toEnumName(values[1])]);
+
+                const n = multiStateValueDiscrete1323.getValueAsNumber();
+                n.length.should.eql(2);
+                convertToArray(n).should.eql([coerce(values[0]), coerce(values[1])]);
+            });
         });
     });
 }

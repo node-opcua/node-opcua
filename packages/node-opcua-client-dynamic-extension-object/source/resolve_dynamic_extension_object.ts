@@ -53,7 +53,7 @@ async function getOrExtractConstructor(
     return structureInfo.constructor;
 }
 
-export async function resolveOpaqueStructureInExtentionObject(
+export async function resolveOpaqueStructureInExtensionObject(
     session: IBasicSessionAsync2,
     dataTypeManager: ExtraDataTypeManager,
     object: ExtensionObject
@@ -124,7 +124,7 @@ async function resolveDynamicExtensionObjectV(
         const stream = new BinaryStream(opaque.buffer);
         try {
             object.decode(stream);
-            await resolveOpaqueStructureInExtentionObject(session, dataTypeManager, object);
+            await resolveOpaqueStructureInExtensionObject(session, dataTypeManager, object);
             return object;
         } catch (err) {
             warningLog("Constructor = ", Constructor.name);
