@@ -98,6 +98,10 @@ export class QualifiedName extends BaseUAObject {
     public isEmpty(): boolean {
         return !this.name || this.name.length === 0;
     }
+
+    public equals(other: QualifiedName) {
+        return this.name === other.name && this.namespaceIndex === other.namespaceIndex;
+    }
 }
 
 QualifiedName.prototype.schema = QualifiedName.schema;
