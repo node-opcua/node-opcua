@@ -542,7 +542,10 @@ function _clone_children_on_template(
                 )
             );
 
-        const typeDefinitionChild = typeDefinitionNode.getChildByName(node.browseName);
+        // Find aggregates with same browseName as node. Do not search children as this includes nodes with HasSubType relation which we do
+        // not want. See issue #1326.
+        const aggregates = typeDefinitionNode.getAggregates().filter((n) => n.browseName.equals(node.browseName));
+        const typeDefinitionChild = aggregates.length > 0 ? aggregates[0] : null;
         if (typeDefinitionChild) {
             const references = typeDefinitionChild.findReferencesEx("Aggregates", BrowseDirection.Forward);
 
@@ -1053,7 +1056,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
                 );
                 typeDefinitionNode = typeDefinitionNode.subtypeOfObj;
             }
-            
+
             extraInfo.popContext();
 
         }

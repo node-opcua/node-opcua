@@ -1,9 +1,8 @@
 import should from "should";
-import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { coerceQualifiedName } from "node-opcua-data-model";
 
-import { AddressSpace, getSymbols, IAddressSpace, SessionContext, setSymbols } from "..";
+import { AddressSpace, Namespace, UAObjectType } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
 
@@ -27,7 +26,8 @@ describe("Object Instantiate with various nested properties defined at different
      */
 
     let addressSpace: AddressSpace;
-    let myDerivedType: any;
+    let namespace: Namespace;
+    let myDerivedType: UAObjectType;
 
     async function buildAddressSpace() {
         const addressSpace = AddressSpace.create();
@@ -36,21 +36,21 @@ describe("Object Instantiate with various nested properties defined at different
 
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
         nsDI.should.be.greaterThanOrEqual(0);
-     
+
         const topologyElementType = addressSpace.findObjectType("TopologyElementType", nsDI)!;
 
-        const n = addressSpace.registerNamespace("Private");
+        namespace = addressSpace.registerNamespace("Private");
 
-        const myBaseType = n.addObjectType({
+        const myBaseType = namespace.addObjectType({
             browseName: "MyBaseType",
             subtypeOf: topologyElementType
         });
-        const uaParameterSet1 = n.addObject({
+        const uaParameterSet1 = namespace.addObject({
             browseName: coerceQualifiedName({ name: "ParameterSet", namespaceIndex: nsDI }),
             modellingRule: "Mandatory",
             componentOf: myBaseType
         });
-        n.addVariable({
+        namespace.addVariable({
             browseName: "Foo",
             dataType: "String",
             modellingRule: "Mandatory",
@@ -58,17 +58,17 @@ describe("Object Instantiate with various nested properties defined at different
         });
 
         //
-        myDerivedType = n.addObjectType({
+        myDerivedType = namespace.addObjectType({
             browseName: "MyDerivedType",
             subtypeOf: myBaseType,
             modellingRule: "Mandatory",
         });
-        const uaParameterSet2 = n.addObject({
+        const uaParameterSet2 = namespace.addObject({
             browseName: coerceQualifiedName({ name: "ParameterSet", namespaceIndex: nsDI }),
             modellingRule: "Mandatory",
             componentOf: myDerivedType
         });
-        n.addVariable({
+        namespace.addVariable({
             dataType: "String",
             browseName: "Bar",
             modellingRule: "Mandatory",
@@ -95,8 +95,28 @@ describe("Object Instantiate with various nested properties defined at different
 
         const uaParameterSet = uaInstance.getComponentByName("ParameterSet",1);
         should.exist(uaParameterSet);
-        should.exist(uaParameterSet.getComponentByName("Foo",2), "Manadatory ParameterSet.Foo property defined myDerivedType should exist ");
-        should.exist(uaParameterSet.getComponentByName("Bar",2), "Manadatory ParameterSet.Foo property defined myDerivedType superType, but missing in myDerivedType should exist ");
+        should.exist(uaParameterSet?.getComponentByName("Foo",2), "Manadatory ParameterSet.Foo property defined myDerivedType should exist ");
+        should.exist(uaParameterSet?.getComponentByName("Bar",2), "Manadatory ParameterSet.Foo property defined myDerivedType superType, but missing in myDerivedType should exist ");
+    });
 
+    // See issue #1326.
+    it("shold not add aggregates of ObjectType if name of that ObjectType conflict with name of other object", function () {
+        const parameterSetType = namespace.addObjectType({
+            browseName: "ParameterSet",
+        });
+
+        namespace.addVariable({
+            browseName: "ExtraVar",
+            dataType: "String",
+            modellingRule: "Mandatory",
+            componentOf: parameterSetType
+        });
+
+        const uaInstance = myDerivedType.instantiate({
+            browseName: "MyInstance"
+        });
+
+        const uaParameterSet = uaInstance.getComponentByName("ParameterSet",1);
+        should.not.exist(uaParameterSet?.getComponentByName("ExtraVar"), "Property ExtraVar from unrelated ObjectType added");
     });
 });
