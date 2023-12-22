@@ -491,11 +491,14 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 
         const branch = this.currentBranch();
 
-        const now = new Date();
+
+        const currentDefaultDate = new Date();
+        const time = conditionInfo.time || currentDefaultDate;
+        const receiveTime = conditionInfo.receiveTime || currentDefaultDate;
         // install the eventTimestamp
         // set the received Time
-        branch.setTime(now);
-        branch.setReceiveTime(now);
+        branch.setTime(time);
+        branch.setReceiveTime(receiveTime);
 
         // note : in 1.04 LocalTime property is optional
         if (Object.prototype.hasOwnProperty.call(this, "localTime")) {

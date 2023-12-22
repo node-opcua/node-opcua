@@ -65,9 +65,8 @@ export function utest_condition(test: any): void {
 
             it(
                 "should be possible to enable and disable a condition using the enable & disable methods" +
-                " ( as a client would do)",
+                    " ( as a client would do)",
                 async () => {
-
                     try {
                         const namespace = addressSpace.getOwnNamespace();
                         const condition = namespace.instantiateCondition(myCustomConditionType, {
@@ -155,7 +154,6 @@ export function utest_condition(test: any): void {
                         conditionSource: null,
                         organizedBy: addressSpace.rootFolder.objects,
                         conditionOf: addressSpace.rootFolder.objects.server
-
                     });
                 });
                 it("writing to a master branch (branch0) variable should affect the underlying variable", () => {
@@ -239,7 +237,7 @@ export function utest_condition(test: any): void {
                 const condition = namespace.instantiateCondition(myCustomConditionType, {
                     browseName: "MyCustomCondition2C",
                     conditionSource: source,
-                    organizedBy: addressSpace.rootFolder.objects,
+                    organizedBy: addressSpace.rootFolder.objects
                 });
 
                 (condition as any).evaluateConditionsAfterEnabled = () => {
@@ -248,7 +246,7 @@ export function utest_condition(test: any): void {
 
                 condition.setEnabledState(true);
                 condition.getEnabledState().should.eql(true);
-                condition.getEnabledStateAsString().should.eql("Enabled");             
+                condition.getEnabledStateAsString().should.eql("Enabled");
                 condition.currentBranch().getEnabledState().should.eql(true);
                 condition.currentBranch().getEnabledStateAsString().should.eql("Enabled");
 
@@ -645,6 +643,60 @@ export function utest_condition(test: any): void {
                 should(evtData2["eventId"].value).not.eql(evtData["eventId"].value, "EventId must be different from previous one");
                 evtData2["severity"].value.should.eql(1001, "the severity should match expecting severity");
                 evtData2["quality"].value.should.eql(StatusCodes.Bad);
+            });
+
+            it("should be possible to pass time and receiveTime to raiseNewCondition", () => {
+                // in this test we call raiseNewCondition with a time and receiveTime
+                const namespace = addressSpace.getOwnNamespace();
+
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
+                    browseName: "MyCustomConditionABC",
+                    conditionSource: source,
+                    organizedBy: addressSpace.rootFolder.objects
+                });
+
+                (condition as any).evaluateConditionsAfterEnabled = () => {
+                    /* empty */
+                };
+
+                condition.setEnabledState(true);
+
+                const spyOnEvent = sinon.spy();
+                condition.on("event", spyOnEvent);
+
+                const time = new Date(Date.UTC(1968, 11, 25)); // Christmas 1968
+                const receiveTime = new Date(Date.UTC(1969, 0, 1)); // New Year 1969
+
+                /* event should be raised when enable state is true  */
+                condition.raiseNewCondition({
+                    message: "Hello Message",
+                    quality: StatusCodes.Good,
+                    retain: true,
+                    severity: 1235,
+                    time,
+                    receiveTime,
+                });
+                spyOnEvent.callCount.should.eql(1, "an event should have been raised to signal new Condition State");
+
+                condition.retain.readValue().statusCode.should.eql(StatusCodes.Good);
+                condition.retain.readValue().value.value.should.eql(true);
+                
+                condition.time.readValue().statusCode.should.eql(StatusCodes.Good);
+                condition.time.readValue().value.value.should.eql(time);
+
+                condition.receiveTime.readValue().statusCode.should.eql(StatusCodes.Good);
+                condition.receiveTime.readValue().value.value.should.eql(receiveTime);
+
+                 spyOnEvent.callCount.should.eql(1);
+
+                 const evtData = spyOnEvent.getCall(0).args[0];
+                 // xx console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.value);
+                 // xx console.log(" EVENT ID :", evtData.eventId.readValue().value.value.toString("hex"));
+
+                 evtData["receiveTime"].value.should.eql(receiveTime, "the receiveTime should have been transmitted");
+                 evtData["time"].value.should.eql(time, "");
+               
+
             });
 
             describe("Condition Branches", () => {

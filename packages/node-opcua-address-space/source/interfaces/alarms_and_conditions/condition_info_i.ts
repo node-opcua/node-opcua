@@ -10,6 +10,9 @@ export interface ConditionInfoOptions {
     quality?: StatusCode | null;
     severity?: UInt16 | null;
     retain?: boolean | null;
+
+    time?: Date | null;
+    receiveTime?: Date | null;
 }
 
 export interface ConditionInfo {
