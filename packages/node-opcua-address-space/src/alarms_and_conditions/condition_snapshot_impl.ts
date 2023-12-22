@@ -17,6 +17,7 @@ import { DataType, Variant } from "node-opcua-variant";
 
 import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
 import { UtcTime } from "../../source/interfaces/state_machine/ua_state_machine_type";
+import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 import { EventData } from "../event_data";
 import { UATwoStateVariableImpl } from "../state_machine/ua_two_state_variable";
 import { _setAckedState } from "./condition";
@@ -136,6 +137,7 @@ const _varTable = {
     "EnabledState.EffectiveDisplayName": 1,
     "EnabledState.Id": 1,
     "EnabledState.TransitionTime": 1,
+    "EnabledState.EffectiveTransitionTime": 1,
     EventId: 1,
     EventType: 1,
     LocalTime: 1,
@@ -143,6 +145,8 @@ const _varTable = {
     SourceNode: 1,
     Time: 1
 };
+
+
 type FullBrowsePath = string;
 export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnapshot {
     public static normalizeName = normalizeName;
@@ -327,8 +331,8 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @param value {Boolean}
      * @return void
      */
-    public setEnabledState(value: boolean): void {
-        return this._set_twoStateVariable("EnabledState", value);
+    public setEnabledState(value: boolean, options?: ISetStateOptions): void {
+        return this._set_twoStateVariable("EnabledState", value, options);
     }
 
     /**
@@ -613,7 +617,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         return this._get_twoStateVariable("ConfirmedState");
     }
 
-    public setConfirmedStateIfExists(confirmedState: boolean): void {
+    public setConfirmedStateIfExists(confirmedState: boolean, options?: ISetStateOptions): void {
         confirmedState = !!confirmedState;
         const acknowledgeableCondition = this.condition as UAAcknowledgeableCondition;
         if (!acknowledgeableCondition.confirmedState) {
@@ -622,7 +626,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
             return;
         }
         // todo deal with Error code BadConditionBranchAlreadyConfirmed
-        return this._set_twoStateVariable("ConfirmedState", confirmedState);
+        return this._set_twoStateVariable("ConfirmedState", confirmedState, options);
     }
 
     public setConfirmedState(confirmedState: boolean): void {
@@ -647,21 +651,21 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @method setSuppressedState
      * @param suppressed {Boolean}
      */
-    public setSuppressedState(suppressed: boolean): void {
+    public setSuppressedState(suppressed: boolean, options?: ISetStateOptions): void {
         suppressed = !!suppressed;
-        this._set_twoStateVariable("SuppressedState", suppressed);
+        this._set_twoStateVariable("SuppressedState", suppressed, options);
     }
 
     public getActiveState(): boolean {
         return this._get_twoStateVariable("ActiveState");
     }
 
-    public setActiveState(newActiveState: boolean): StatusCode {
+    public setActiveState(newActiveState: boolean, options?: ISetStateOptions): StatusCode {
         // xx var activeState = self.getActiveState();
         // xx if (activeState === newActiveState) {
         // xx     return StatusCodes.Bad;
         // xx }
-        this._set_twoStateVariable("ActiveState", newActiveState);
+        this._set_twoStateVariable("ActiveState", newActiveState, options);
         return StatusCodes.Good;
     }
 
@@ -704,7 +708,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @param value
      * @private
      */
-    public _set_twoStateVariable(varName: string, value: boolean): void {
+    public _set_twoStateVariable(varName: string, value: boolean, options?: ISetStateOptions): void {
         value = !!value;
 
         const hrKey = ConditionSnapshotImpl.normalizeName(varName);
@@ -733,7 +737,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
         // also change ConditionNode if we are on currentBranch
         if (this.isCurrentBranch()) {
             assert(twoStateNode instanceof UATwoStateVariableImpl);
-            twoStateNode.setValue(value as boolean);
+            twoStateNode.setValue(value as boolean, options);
         }
         this.emit("value_changed", node, variant);
     }

@@ -15,6 +15,7 @@ import { DTEnumValue, UADiscreteItem, UADiscreteItem_Base, UAMultiStateDiscrete_
 import { UAProperty, UAVariableT } from "node-opcua-address-space-base";
 import { Int64, UInt64 } from "node-opcua-basic-types";
 import { LocalizedText } from "node-opcua-data-model";
+import { ISetStateOptions } from "../i_set_state_options";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 
@@ -23,7 +24,7 @@ export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAVariab
     getValue(): number;
     getValueAsString(): string;
     getIndex(value: string): number;
-    setValue(value: string | number): void;
+    setValue(value: string | number, options?: ISetStateOptions): void;
     checkVariantCompatibility(value: Variant): StatusCode;
 }
 
@@ -56,6 +57,6 @@ export interface UAMultiStateValueDiscreteArrayEx<T, DT extends DataType>
      */
     getValueAsString(): string[];
     getValueAsNumber(): number[];
-    setValue(value: string | number | Int64): void;
+    setValue(value: string | number | Int64, options?: ISetStateOptions): void;
     findValueAsText(value: number | UInt64): Variant;
 }

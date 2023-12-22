@@ -674,31 +674,72 @@ export function utest_condition(test: any): void {
                     retain: true,
                     severity: 1235,
                     time,
-                    receiveTime,
+                    receiveTime
                 });
                 spyOnEvent.callCount.should.eql(1, "an event should have been raised to signal new Condition State");
 
                 condition.retain.readValue().statusCode.should.eql(StatusCodes.Good);
                 condition.retain.readValue().value.value.should.eql(true);
-                
+
                 condition.time.readValue().statusCode.should.eql(StatusCodes.Good);
                 condition.time.readValue().value.value.should.eql(time);
 
                 condition.receiveTime.readValue().statusCode.should.eql(StatusCodes.Good);
                 condition.receiveTime.readValue().value.value.should.eql(receiveTime);
 
-                 spyOnEvent.callCount.should.eql(1);
+                spyOnEvent.callCount.should.eql(1);
 
-                 const evtData = spyOnEvent.getCall(0).args[0];
-                 // xx console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.value);
-                 // xx console.log(" EVENT ID :", evtData.eventId.readValue().value.value.toString("hex"));
+                const evtData = spyOnEvent.getCall(0).args[0];
+                // xx console.log(" EVENT RECEIVED :", evtData.sourceName.readValue().value.value);
+                // xx console.log(" EVENT ID :", evtData.eventId.readValue().value.value.toString("hex"));
 
-                 evtData["receiveTime"].value.should.eql(receiveTime, "the receiveTime should have been transmitted");
-                 evtData["time"].value.should.eql(time, "");
-               
-
+                evtData["receiveTime"].value.should.eql(receiveTime, "the receiveTime should have been transmitted");
+                evtData["time"].value.should.eql(time, "");
             });
+            it("EFTT01 - should be possible to overwrite the effectiveTransitionTime of the EnabledState", () => {
+                const namespace = addressSpace.getOwnNamespace();
 
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
+                    browseName: "MyCustomConditionABD",
+                    conditionSource: source,
+                    organizedBy: addressSpace.rootFolder.objects,
+                    optionals: ["EnabledState.EffectiveTransitionTime"]
+                });
+                (condition as any).evaluateConditionsAfterEnabled = () => {
+                    /* empty */
+                };
+
+                condition.setEnabledState(false);
+
+                const spyOnEvent = sinon.spy();
+                condition.on("event", spyOnEvent);
+
+                const christmas68 = new Date(Date.UTC(1968, 11, 25)); // Christmas 1968
+                const newYear69 = new Date(Date.UTC(1969, 0, 1)); // New Year 1969
+
+                const statusCode1 = condition.setEnabledState(true, { effectiveTransitionTime: christmas68 });
+                statusCode1.should.eql(StatusCodes.Good);
+
+                condition.enabledState.effectiveTransitionTime!.readValue().value.value.should.eql(christmas68);
+                spyOnEvent.callCount.should.eql(1, "an event should have been raised to signal new Condition State");
+
+                const evtData = spyOnEvent.getCall(0).args[0];
+                // console.log(evtData);
+                evtData["enabledState"].value.text.should.eql("Enabled");
+                evtData["enabledState.id"].value.should.eql(true);
+                evtData["enabledState.effectiveTransitionTime"].value.should.eql(christmas68);
+
+                const statusCode2 = condition.setEnabledState(false, { effectiveTransitionTime: newYear69 });
+                statusCode2.should.eql(StatusCodes.Good);
+                condition.enabledState.effectiveTransitionTime!.readValue().value.value.should.eql(newYear69);
+
+                spyOnEvent.callCount.should.eql(2, "an event should have been raised to signal new Condition State");
+                const evtData1 = spyOnEvent.getCall(1).args[0];
+                // console.log(evtData1);
+                evtData1["enabledState"].value.text.should.eql("Disabled");
+                evtData1["enabledState.id"].value.should.eql(false);
+                evtData1["enabledState.effectiveTransitionTime"].value.should.eql(newYear69);
+            });
             describe("Condition Branches", () => {
                 it("should be possible to create several branches of a condition state", () => {
                     const namespace = addressSpace.getOwnNamespace();

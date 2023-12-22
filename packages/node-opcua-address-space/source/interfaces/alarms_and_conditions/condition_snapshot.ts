@@ -10,6 +10,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { StatusCode } from "node-opcua-status-code";
 import { TimeZoneDataType } from "node-opcua-types";
 import { UtcTime } from "../state_machine/ua_state_machine_type";
+import { ISetStateOptions } from "../i_set_state_options";
 
 export interface ConditionSnapshot {
     on(eventName: "value_changed", eventHandler: (node: UAVariable, variant: Variant) => void): this;
@@ -62,7 +63,7 @@ export interface ConditionSnapshot extends EventEmitter {
      * @param value {Boolean}
      * @return void
      */
-    setEnabledState(value: boolean): void;
+    setEnabledState(value: boolean, options?: ISetStateOptions): void;
     /**
      * @method getEnabledStateAsString
      * @return {String}

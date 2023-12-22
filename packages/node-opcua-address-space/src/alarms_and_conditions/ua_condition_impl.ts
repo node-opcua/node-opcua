@@ -41,6 +41,7 @@ import { ConditionInfoOptions } from "../../source/interfaces/alarms_and_conditi
 import { UAConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex";
 import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
 import { InstantiateConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_condition_options";
+import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 
 import { AddressSpacePrivate } from "../address_space_private";
 import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_state_variable";
@@ -277,7 +278,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
      * returns {StatusCode} StatusCodes.Good if successful or BadConditionAlreadyEnabled/BadConditionAlreadyDisabled
      * @private
      */
-    public _setEnabledState(requestedEnabledState: boolean): StatusCode {
+    public _setEnabledState(requestedEnabledState: boolean, options?: ISetStateOptions): StatusCode {
         assert(typeof requestedEnabledState === "boolean");
 
         const enabledState = this.getEnabledState();
@@ -288,7 +289,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
             return StatusCodes.BadConditionAlreadyDisabled;
         }
 
-        this._branch0.setEnabledState(requestedEnabledState);
+        this._branch0.setEnabledState(requestedEnabledState, options);
         // conditionNode.enabledState.setValue(requestedEnabledState);
 
         // xx assert(conditionNode.enabledState.id.readValue().value.value === requestedEnabledState,"sanity check 1");
@@ -346,8 +347,8 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
      * @param requestedEnabledState {Boolean}
      * @private
      */
-    public setEnabledState(requestedEnabledState: boolean): StatusCode {
-        return this._setEnabledState(requestedEnabledState);
+    public setEnabledState(requestedEnabledState: boolean, options?:ISetStateOptions): StatusCode {
+        return this._setEnabledState(requestedEnabledState, options);
     }
 
     /**
@@ -490,7 +491,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         assert(selfConditionType.isSubtypeOf(conditionType));
 
         const branch = this.currentBranch();
-
 
         const currentDefaultDate = new Date();
         const time = conditionInfo.time || currentDefaultDate;

@@ -10,8 +10,10 @@ import { UAVariableImpl } from "../ua_variable_impl";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { AddTwoStateDiscreteOptions } from "../../source/address_space_ts";
 import { UATwoStateDiscreteEx } from "../../source/interfaces/data_access/ua_two_state_discrete_ex";
+import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
+
 
 export interface UATwoStateDiscreteImpl {
     falseState: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
@@ -58,15 +60,15 @@ export class UATwoStateDiscreteImpl extends UAVariableImpl implements UATwoState
             );
         }
     }
-    setValue(value: boolean | LocalizedTextLike): void {
+    setValue(value: boolean | LocalizedTextLike, options?: ISetStateOptions): void {
         if (typeof value === "boolean") {
             this.setValueFromSource({ dataType: DataType.Boolean, value });
         } else {
             const text: string = (typeof value === "string" ? value : value.text) || "";
             if (text === this.getTrueStateAsString()) {
-                this.setValue(true);
+                this.setValue(true, options);
             } else if (text === this.getFalseStateAsString()) {
-                this.setValue(false);
+                this.setValue(false, options);
             } else {
                 throw new Error("setValue invalid value " + value);
             }

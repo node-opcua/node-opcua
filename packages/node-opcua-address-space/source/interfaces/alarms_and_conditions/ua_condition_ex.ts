@@ -4,10 +4,11 @@ import { NodeId } from "node-opcua-nodeid";
 import { UACondition_Base } from "node-opcua-nodeset-ua";
 import { StatusCode } from "node-opcua-status-code";
 import { TimeZoneDataType } from "node-opcua-types";
+import { DataType } from "node-opcua-basic-types";
+import { ISetStateOptions } from "../i_set_state_options";
 import { UATwoStateVariableEx } from "../../ua_two_state_variable_ex";
 import { ConditionInfoOptions } from "./condition_info_i";
 import { ConditionSnapshot } from "./condition_snapshot";
-import { DataType } from "node-opcua-basic-types";
 
 
 
@@ -26,6 +27,7 @@ export interface UAConditionHelper {
     on(eventName: "branch_deleted", eventHandler: (branchId: string) => void): this;
 }
 
+
 export interface UAConditionHelper extends UABaseEventHelper {
     getBranchCount(): number;
     getBranches(): ConditionSnapshot[];
@@ -34,7 +36,7 @@ export interface UAConditionHelper extends UABaseEventHelper {
     deleteBranch(branch: ConditionSnapshot): void;
     getEnabledState(): boolean;
     getEnabledStateAsString(): string;
-    setEnabledState(requestedEnabledState: boolean): StatusCode;
+    setEnabledState(requestedEnabledState: boolean, options?: ISetStateOptions): StatusCode;
     setReceiveTime(time: Date): void;
     setLocalTime(time: TimeZoneDataType): void;
     setTime(time: Date): void;

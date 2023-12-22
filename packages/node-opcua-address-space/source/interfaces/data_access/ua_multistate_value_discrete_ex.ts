@@ -5,6 +5,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import { Int64, UInt64 } from "node-opcua-basic-types";
 import { UAMultiStateValueDiscrete_Base } from "node-opcua-nodeset-ua";
 import { UAVariableT } from "node-opcua-address-space-base";
+import { ISetStateOptions } from "../i_set_state_options";
 
 /**
  * @see https://reference.opcfoundation.org/v104/Core/docs/Part8/5.3.3/#5.3.3.4
@@ -27,7 +28,7 @@ export interface UAMultiStateValueDiscreteEx<T, DT extends DataType>
     getValueAsString(): string;
     getValueAsNumber(): number;
 
-    setValue(value: string | number | Int64): void;
+    setValue(value: string | number | Int64, options?: ISetStateOptions): void;
 
     findValueAsText(value: number | UInt64): Variant;
 }
