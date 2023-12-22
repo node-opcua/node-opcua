@@ -21,7 +21,7 @@ export function _setAckedState(
     if (ackedState && requestedAckedState) {
         return StatusCodes.BadConditionBranchAlreadyAcked;
     }
-    self._set_twoStateVariable("AckedState", requestedAckedState);
+    self._set_twoStateVariable("AckedState", requestedAckedState,/* effective transition time will be now*/);
     return StatusCodes.Good;
 }
 

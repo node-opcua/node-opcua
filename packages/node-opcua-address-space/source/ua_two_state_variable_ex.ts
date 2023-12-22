@@ -5,6 +5,7 @@ import { UAVariableT } from "node-opcua-address-space-base";
 import { LocalizedText } from "node-opcua-data-model";
 import { UAStateVariable, UATwoStateVariable_Base } from "node-opcua-nodeset-ua";
 import { DataType } from "node-opcua-variant";
+import { ISetStateOptions } from "./interfaces/i_set_state_options";
 
 /**
  * @see https://reference.opcfoundation.org/v104/Core/docs/Part9/5.2/
@@ -18,7 +19,7 @@ export interface UATwoStateVariableHelper {
     readonly isTrueSubStateOf: UAStateVariable<LocalizedText> | null;
 
     // --- helpers ---
-    setValue(boolValue: boolean): void;
+    setValue(boolValue: boolean, options?: ISetStateOptions): void;
 
     getValue(): boolean;
 

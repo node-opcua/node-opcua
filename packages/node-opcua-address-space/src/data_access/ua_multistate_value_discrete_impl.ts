@@ -17,6 +17,7 @@ import { registerNodePromoter } from "../../source/loader/register_node_promoter
 import { coerceEnumValues } from "../../source/helpers/coerce_enum_value";
 import { UAMultiStateValueDiscreteEx } from "../../source/interfaces/data_access/ua_multistate_value_discrete_ex";
 import { AddMultiStateValueDiscreteOptions } from "../../source/address_space_ts";
+import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 import { UAVariableImpl } from "../ua_variable_impl";
 
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
@@ -50,7 +51,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
     extends UAVariableImpl
     implements UAMultiStateValueDiscreteEx<T, DT>
 {
-    public setValue(value: string | number | Int64): void {
+    public setValue(value: string | number | Int64, options?: ISetStateOptions): void {
         if (typeof value === "string") {
             const enumValues = this.enumValues.readValue().value.value;
             const selected = enumValues.filter((a: any) => a.displayName.text === value)[0];
@@ -60,7 +61,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
                 throw new Error("cannot find enum string " + value + " in " + enumValues.toString());
             }
         } else {
-            this._setValue(coerceUInt64(value));
+            this._setValue(coerceUInt64(value), options);
         }
     }
 
@@ -116,7 +117,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
      *
      * @private
      */
-    public _setValue(value: Int64): void {
+    public _setValue(value: Int64, options?: ISetStateOptions): void {
         // check that value is in bound
         if (!this._isValueInRange(coerceInt32(value))) {
             throw new Error("UAMultiStateValueDiscrete#_setValue out of range " + value);

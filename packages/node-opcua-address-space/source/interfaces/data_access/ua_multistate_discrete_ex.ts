@@ -13,6 +13,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import { StatusCode } from "node-opcua-status-code";
 import { UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
 import { UAVariableT } from "node-opcua-address-space-base";
+import { ISetStateOptions } from "../i_set_state_options";
 
 export { UAMultiStateDiscrete } from "node-opcua-nodeset-ua";
 
@@ -21,6 +22,6 @@ export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAVariab
     getValue(): number;
     getValueAsString(): string;
     getIndex(value: string): number;
-    setValue(value: string | number): void;
+    setValue(value: string | number, options?: ISetStateOptions): void;
     checkVariantCompatibility(value: Variant): StatusCode;
 }

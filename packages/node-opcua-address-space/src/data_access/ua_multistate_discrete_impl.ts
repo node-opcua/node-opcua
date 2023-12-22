@@ -11,6 +11,8 @@ import { BindVariableOptions, INamespace, UAVariable, UAProperty } from "node-op
 import { UAMultiStateDiscrete, UAMultiStateDiscrete_Base } from "node-opcua-nodeset-ua";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 import { UAVariableImpl } from "../ua_variable_impl";
+import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
+
 import { AddMultiStateDiscreteOptions } from "../../source/address_space_ts";
 import { add_dataItem_stuff } from "./add_dataItem_stuff";
 
@@ -21,7 +23,7 @@ export interface UAMultiStateDiscreteEx<T, DT extends DataType> extends UAMultiS
     getValue(): number;
     getValueAsString(): string;
     getIndex(value: string): number;
-    setValue(value: string | number): void;
+    setValue(value: string | number, options?: ISetStateOptions): void;
     checkVariantCompatibility(value: Variant): StatusCode;
 }
 
@@ -50,13 +52,13 @@ export class UAMultiStateDiscreteImpl<T, DT extends DataType> extends UAVariable
         return index;
     }
 
-    public setValue(value: string | number): void {
+    public setValue(value: string | number, options?: ISetStateOptions): void {
         if (typeof value === "string") {
             const index = this.getIndex(value);
             if (index < 0) {
                 throw new Error("UAMultiStateDiscrete#setValue invalid multi state value provided : " + value);
             }
-            return this.setValue(index);
+            return this.setValue(index, options);
         }
         const arrayEnumStrings = this.enumStrings.readValue().value.value;
         if (value >= arrayEnumStrings.length) {
