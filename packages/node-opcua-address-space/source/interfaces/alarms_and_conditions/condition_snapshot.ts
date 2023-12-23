@@ -11,20 +11,24 @@ import { StatusCode } from "node-opcua-status-code";
 import { TimeZoneDataType } from "node-opcua-types";
 import { UtcTime } from "../state_machine/ua_state_machine_type";
 import { ISetStateOptions } from "../i_set_state_options";
+import { IConditionVariableTypeSetterOptions } from "../i_condition_variable_type_setter_options";
 
 export interface ConditionSnapshot {
-    on(eventName: "value_changed", eventHandler: (node: UAVariable, variant: Variant) => void): this;
+    on(
+        eventName: "valueChanged",
+        eventHandler: (node: UAVariable, variant: Variant, options: { sourceTimestamp: Date }) => void
+    ): this;
 }
-
 
 export interface ConditionSnapshot extends EventEmitter {
     // static normalizeName = normalizeName;
 
+    emit(eventName: "valueChanged", node: UAVariable, variant: Variant, options: { sourceTimestamp: Date }): boolean;
+    emit(eventName: string | symbol): boolean;
     condition: BaseNode;
     eventData: IEventData | null;
     branchId: NodeId | null;
 
-   
     /**
      * @method getBrandId
      * @return {NodeId}
@@ -87,7 +91,7 @@ export interface ConditionSnapshot extends EventEmitter {
      * @method setComment
      * @param txtMessage {LocalizedText}
      */
-    setComment(txtMessage: LocalizedTextLike): void;
+    setComment(txtMessage: LocalizedTextLike, options?: IConditionVariableTypeSetterOptions): void;
     /**
      *
      * @method setMessage
@@ -130,7 +134,7 @@ export interface ConditionSnapshot extends EventEmitter {
      * @method setQuality
      * @param quality {StatusCode}
      */
-    setQuality(quality: StatusCode): void;
+    setQuality(quality: StatusCode, options?: IConditionVariableTypeSetterOptions): void;
     /**
      * @method getQuality
      * @return {StatusCode}
@@ -170,7 +174,7 @@ export interface ConditionSnapshot extends EventEmitter {
      * @method setSeverity
      * @param severity {UInt16}
      */
-    setSeverity(severity: UInt16): void;
+    setSeverity(severity: UInt16, options?: IConditionVariableTypeSetterOptions): void;
 
     /**
      * @method getSeverity
@@ -189,7 +193,7 @@ export interface ConditionSnapshot extends EventEmitter {
      * @method setLastSeverity
      * @param severity {UInt16}
      */
-    setLastSeverity(severity: UInt16): void;
+    setLastSeverity(severity: UInt16, options?: IConditionVariableTypeSetterOptions): void;
     /**
      * @method getLastSeverity
      * @return {UInt16}

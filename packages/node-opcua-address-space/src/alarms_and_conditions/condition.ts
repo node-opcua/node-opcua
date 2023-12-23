@@ -6,13 +6,15 @@ import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
 import { minDate } from "node-opcua-basic-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 
 export function _setAckedState(
     self: ConditionSnapshotImpl,
     requestedAckedState: boolean,
     conditionEventId?: Buffer,
-    comment?: string | LocalizedText | LocalizedTextLike
+    comment?: string | LocalizedText | LocalizedTextLike,
+    options?: ISetStateOptions
 ): StatusCode {
     assert(self instanceof ConditionSnapshotImpl);
 
@@ -21,7 +23,7 @@ export function _setAckedState(
     if (ackedState && requestedAckedState) {
         return StatusCodes.BadConditionBranchAlreadyAcked;
     }
-    self._set_twoStateVariable("AckedState", requestedAckedState,/* effective transition time will be now*/);
+    self._set_twoStateVariable("AckedState", requestedAckedState, options);
     return StatusCodes.Good;
 }
 
