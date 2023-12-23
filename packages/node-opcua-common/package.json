@@ -16,7 +16,7 @@
         "node-opcua-types": "2.118.0"
     },
     "devDependencies": {
-        "@types/node": "20.9.2",
+        "@types/node": "20.10.5",
         "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",

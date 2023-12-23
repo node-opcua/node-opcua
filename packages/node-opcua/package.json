@@ -13,7 +13,7 @@
         "node": ">=8.10"
     },
     "dependencies": {
-        "@types/semver": "^7.5.5",
+        "@types/semver": "^7.5.6",
         "chalk": "4.1.2",
         "node-opcua-address-space": "2.118.0",
         "node-opcua-address-space-for-conformance-testing": "2.118.0",

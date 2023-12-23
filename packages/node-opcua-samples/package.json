@@ -17,8 +17,8 @@
     },
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",
-        "@types/underscore": "^1.11.14",
-        "@types/yargs": "17.0.31",
+        "@types/underscore": "^1.11.15",
+        "@types/yargs": "17.0.32",
         "bcryptjs": "^2.4.3",
         "chalk": "4.1.2",
         "easy-table": "^1.2.0",
