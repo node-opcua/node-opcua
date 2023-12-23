@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-units",
-    "version": "2.118.0",
+    "version": "2.119.0",
     "description": "pure nodejs OPCUA SDK - module units",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -15,8 +15,8 @@
     "dependencies": {
         "chalk": "4.1.2",
         "node-opcua-assert": "2.105.0",
-        "node-opcua-data-access": "2.118.0",
-        "node-opcua-types": "2.118.0"
+        "node-opcua-data-access": "2.119.0",
+        "node-opcua-types": "2.119.0"
     },
     "devDependencies": {
         "should": "^13.2.3",
