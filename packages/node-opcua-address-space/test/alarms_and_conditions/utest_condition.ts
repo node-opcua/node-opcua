@@ -684,8 +684,23 @@ export function utest_condition(test: any): void {
                 condition.time.readValue().statusCode.should.eql(StatusCodes.Good);
                 condition.time.readValue().value.value.should.eql(time);
 
+                // sourceTime should be set to time as per specification
+                condition.time
+                    .readValue()
+                    .sourceTimestamp!.should.eql(
+                        condition.time.readValue().value.value,
+                        "sourceTime should be set to time as per specification"
+                    );
+
                 condition.receiveTime.readValue().statusCode.should.eql(StatusCodes.Good);
                 condition.receiveTime.readValue().value.value.should.eql(receiveTime);
+
+                condition.receiveTime
+                    .readValue()
+                    .sourceTimestamp!.should.eql(
+                        condition.receiveTime.readValue().value.value,
+                        "receiveTime.sourceTimestamp and  should be set to receiveTime as per specification"
+                    );
 
                 spyOnEvent.callCount.should.eql(1);
 
@@ -740,6 +755,58 @@ export function utest_condition(test: any): void {
                 evtData1["enabledState.id"].value.should.eql(false);
                 evtData1["enabledState.effectiveTransitionTime"].value.should.eql(newYear69);
             });
+            it("EFTT02 - setSeverity -> LastSeverity", () => {
+                const namespace = addressSpace.getOwnNamespace();
+
+                const condition = namespace.instantiateCondition(myCustomConditionType, {
+                    browseName: "MyCustomConditionABE",
+                    conditionSource: source,
+                    organizedBy: addressSpace.rootFolder.objects,
+                    optionals: ["EnabledState.EffectiveTransitionTime"]
+                });
+                (condition as any).evaluateConditionsAfterEnabled = () => {
+                    /* empty */
+                };
+
+                condition.setEnabledState(false);
+
+                const spyOnEvent = sinon.spy();
+                condition.on("event", spyOnEvent);
+
+                condition.setEnabledState(true);
+
+                const christmas68 = new Date(Date.UTC(1968, 11, 25)); // Christmas 1968
+                const newYear69 = new Date(Date.UTC(1969, 0, 1)); // New Year 1969
+
+                condition.raiseNewCondition({
+                    severity: 100,
+                    time: christmas68,
+                    receiveTime: christmas68
+                });
+
+                condition.severity.readValue().value.value.should.eql(100);
+                condition.severity.readValue().statusCode.should.eql(StatusCodes.Good);
+                condition.severity.readValue().sourceTimestamp!.should.eql(christmas68);
+                condition.lastSeverity.readValue().value.value.should.eql(0);
+
+
+                condition.raiseNewCondition({
+                    severity: 200,
+                    time: newYear69,
+                    receiveTime: newYear69
+                });
+                condition.severity.readValue().value.value.should.eql(200);
+                condition.severity.readValue().statusCode.should.eql(StatusCodes.Good);
+                condition.severity.readValue().sourceTimestamp!.should.eql(newYear69);
+                //
+                condition.lastSeverity.readValue().value.value.should.eql(100);
+                condition.lastSeverity.readValue().statusCode.should.eql(StatusCodes.Good);
+                condition.lastSeverity.readValue().sourceTimestamp!.should.eql(christmas68);
+                condition.lastSeverity.sourceTimestamp.readValue().value.value.should.eql(christmas68);
+                condition.lastSeverity.sourceTimestamp.readValue().sourceTimestamp!.should.eql(christmas68);
+                
+            });
+
             describe("Condition Branches", () => {
                 it("should be possible to create several branches of a condition state", () => {
                     const namespace = addressSpace.getOwnNamespace();

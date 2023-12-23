@@ -13,6 +13,7 @@ export interface ConditionInfoOptions {
 
     time?: Date | null;
     receiveTime?: Date | null;
+
 }
 
 export interface ConditionInfo {
