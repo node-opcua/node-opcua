@@ -7,7 +7,7 @@
   },
   "include": [
     "source/**/*.ts"
-  ],
+, "source/nodeset_catalog.ts"  ],
   "references": [],
   "exclude": [
     "node_modules",

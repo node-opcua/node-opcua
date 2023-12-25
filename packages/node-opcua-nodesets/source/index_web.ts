@@ -1,10 +1,16 @@
-import { NodesetName, nodesets as nodesets1 } from "./index";
+import { NodesetName, nodesetCatalog, NodesetMeta } from "./nodeset_catalog";
 
-const nodesets = <Record<NodesetName, string>>{};
-for (const name in Object.values(nodesets1)) {
+
+export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(([name, packageSuffix, uri, xmlFileName, _requiredModels]) => ({
+    name,
+    packageName: `<not implemented>`,
+    uri,
+    xmlFile: "<not implemented>"
+}));
+
+export const nodesets = <Record<NodesetName, string>>{};
+for (const array in nodesetCatalog) {
+    const [name] = array;
     nodesets[name as NodesetName] = `nodeset:${name}`;
 }
-
-module.exports = {
-    nodesets
-};
+export * from "./nodeset_catalog";
