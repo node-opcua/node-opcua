@@ -312,7 +312,7 @@ export function constructNamespacePriorityTable(addressSpace: IAddressSpace): { 
     return { loadingOrder, priorityTable };
 }
 
-const doDebug = true;
+const doDebug = false;
 export function constructNamespaceDependency(namespace: INamespace, priorityTable?: number[]): INamespace[] {
     const addressSpace = namespace.addressSpace;
     priorityTable = priorityTable || constructNamespacePriorityTable(addressSpace).priorityTable;
