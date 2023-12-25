@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-for-conformance-testing",
-    "version": "2.119.0",
+    "version": "2.119.1",
     "description": "pure nodejs OPCUA SDK - module address-space-for-conformance-testing",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

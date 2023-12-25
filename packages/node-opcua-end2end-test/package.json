@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-end2end-test",
-    "version": "2.119.0",
+    "version": "2.119.1",
     "description": "pure nodejs OPCUA SDK - module end2end-test",
     "private": true,
     "scripts": {
@@ -14,9 +14,9 @@
         "cli-table3": "^0.6.3",
         "cli-truncate": "2.1.0",
         "delayed": "^2.0.0",
-        "node-opcua": "2.119.0",
+        "node-opcua": "2.119.1",
         "node-opcua-address-space": "2.119.0",
-        "node-opcua-address-space-for-conformance-testing": "2.119.0",
+        "node-opcua-address-space-for-conformance-testing": "2.119.1",
         "node-opcua-aggregates": "2.119.0",
         "node-opcua-assert": "2.105.0",
         "node-opcua-basic-types": "2.119.0",
