@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-model",
-    "version": "2.119.0",
+    "version": "2.119.2",
     "description": "pure nodejs OPCUA SDK - module model",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -12,11 +12,11 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space": "2.119.0",
-        "node-opcua-client": "2.119.0",
-        "node-opcua-client-dynamic-extension-object": "2.119.0",
-        "node-opcua-nodesets": "2.118.0",
-        "node-opcua-pseudo-session": "2.119.0",
+        "node-opcua-address-space": "2.119.2",
+        "node-opcua-client": "2.119.2",
+        "node-opcua-client-dynamic-extension-object": "2.119.2",
+        "node-opcua-nodesets": "2.119.2",
+        "node-opcua-pseudo-session": "2.119.2",
         "yargs": "15.4.1"
     },
     "devDependencies": {

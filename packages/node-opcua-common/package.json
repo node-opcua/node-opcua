@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-common",
-    "version": "2.119.0",
+    "version": "2.119.2",
     "description": "pure nodejs OPCUA SDK - module common",
     "scripts": {
         "test": "mocha",
@@ -13,7 +13,7 @@
     "dependencies": {
         "node-opcua-assert": "2.105.0",
         "node-opcua-crypto": "4.6.2",
-        "node-opcua-types": "2.119.0"
+        "node-opcua-types": "2.119.2"
     },
     "devDependencies": {
         "@types/node": "20.10.5",
