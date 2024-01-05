@@ -1658,9 +1658,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                          * @event connection_reestablished
                          *        send when the connection is reestablished after a connection break
                          */
-                        this.emit("connection_reestablished");
-                        this._setInternalState("connected");
                         this._inside_repairConnection = false;
+                        this._setInternalState("connected");
+                        this.emit("connection_reestablished");
                     }
                 });
             }

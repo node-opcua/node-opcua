@@ -1,32 +1,32 @@
 /* Copyright Sterfive 2021 */
 /**
  * licence: Copyright Sterfive 2021
- * 
- * 
+ *
+ *
  * Workbench for testing reconnection
- * 
+ *
  * how to use:
- * 
+ *
  *  open 2 terminals
- * 
+ *
  *  in the first terminal run:
- * 
+ *
  *     node reconnectionWorkbench.js  server
- * 
+ *
  *  in the second terminal run:
- * 
+ *
  *     node reconnectionWorkbench.js  client
- * 
+ *
  * follow the instruction on the client terminal to simulate network error in various way
- * 
+ *
  *     help:
     -----
 
     CTRL+C : gracefully shutdown the client
-    CTRL+Z : abruptly shutdown the client    
-    b      : simulate a network break   
-    l      : simulate a long network break      10 seconds    
-    w      : simulate a very long network break 3 minutes   
+    CTRL+Z : abruptly shutdown the client
+    b      : simulate a network break
+    l      : simulate a long network break      10 seconds
+    w      : simulate a very long network break 3 minutes
     r      : toggle random crash
  */
 process.env.NODEOPCUADEBUG = "CLIENT{TRACE}SERVER{TRACE}";
@@ -220,21 +220,21 @@ async function createClient() {
     client.on("backoff", (retry, delay) => {
         console.log(t(), "backoff", retry, delay);
     });
-    client.on("connected", () => console.log("connected"));
+    client.on("connected", () => console.log("client.on('connected')"));
     client.on("after_reconnection", () => {
-        console.log(t(), "after_reconnection");
+        console.log(t(), "client.on('after_reconnection')");
     });
     client.on("connection_failed", () => {
-        console.log(t(), "connection_failed");
+        console.log(t(), "client.on('connection_failed')");
     });
     client.on("connection_lost", (errMessage) => {
-        console.log(t(), "connection_lost", errMessage);
+        console.log(t(), "client.on('connection_lost')", errMessage, 'isReconnecting', client.isReconnecting);
     });
     client.on("connection_reestablished", () => {
-        console.log(t(), "connection_reestablished");
+        console.log(t(), "client.on('connection_reestablished')", 'isReconnecting', client.isReconnecting);
     });
     client.on("reconnection_attempt_has_failed", () => {
-        console.log(t(), "reconnection_attempt_has_failed");
+        console.log(t(), "client.on('reconnection_attempt_has_failed')", 'isReconnecting', client.isReconnecting);
     });
 
     await client.connect("opc.tcp://localhost:26543");
@@ -247,19 +247,19 @@ async function createClient() {
     rl.prompt(true);
 
     rl.setPrompt(`
-      
+
         help:
         -----
-    
+
         CTRL+C : gracefully shutdown the client
         CTRL+Z : abruptly shutdown the client
-        b      : simulate a network break  
+        b      : simulate a network break
         l      : simulate a long network break      10 seconds
         w      : simulate a very long network break 3 minutes
         r      : toggle random crash ( 1 or more crash per second )
-    
+
         press a key to continue:
-    
+
     `);
 
     readline.emitKeypressEvents(process.stdin, rl);
@@ -301,13 +301,19 @@ async function createClient() {
 
     let session = client.createSession2 ? await client.createSession2() : await client.createSession();
     session.on("keepalive", (lastKnownServerState) => {
-        console.log(t(), "keepalive", lastKnownServerState);
+        console.log(t(), "session.on('keepalive')", lastKnownServerState);
     });
     session.on("session_closed", () => {
-        console.log(t(), "session closed");
+        console.log(t(), "session.on('session closed')");
+    });
+    session.on("session_repaired", () => {
+        console.log(t(), "session.on('session repaired'), isReconnecting", session.isReconnecting);
     });
     session.on("session_restored", () => {
-        console.log(t(), "session restored");
+        console.log(t(), "session.on('session restored'), isReconnecting", session.isReconnecting);
+        setTimeout(()=>{
+            console.log("   session. isReconnecting", session.isReconnecting)
+        }, 1)
     });
 
     const subscription = await session.createSubscription2({
