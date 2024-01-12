@@ -156,7 +156,7 @@ export class ChunkManager extends EventEmitter {
 
     public evaluateTotalLengthAndChunks(bodySize: number): { totalLength: number; chunkCount: number } {
         const chunkCount = Math.ceil(bodySize / this.maxBodySize);
-        const totalLength = this.chunkSize + chunkCount;
+        const totalLength = this.chunkSize * chunkCount;
         return { totalLength, chunkCount };
     }
 

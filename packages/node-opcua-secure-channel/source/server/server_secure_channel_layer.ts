@@ -32,7 +32,7 @@ import {
     SymmetricAlgorithmSecurityHeader
 } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ISocketLike, ServerTCP_transport, StatusCodes2 } from "node-opcua-transport";
+import { HelloMessage, IHelloAckLimits, ISocketLike, ITransportParameters, ServerTCP_transport, StatusCodes2 } from "node-opcua-transport";
 import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
@@ -111,6 +111,8 @@ export interface ServerSecureChannelLayerOptions {
      */
     defaultSecureTokenLifetime?: number;
     objectFactory?: ObjectFactory;
+
+    adjustTransportLimits?: (hello: IHelloAckLimits) => IHelloAckLimits;
 }
 
 export interface IServerSession {
@@ -321,7 +323,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.clientCertificate = null;
         this.clientNonce = null;
 
-        this.transport = new ServerTCP_transport();
+        this.transport = new ServerTCP_transport({ adjustLimits: options.adjustTransportLimits });
 
         this.__hash = getNextChannelId();
         assert(this.__hash > 0);
@@ -675,7 +677,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _sendFatalErrorAndAbort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback): void {
-        if (!this.transport) { 
+        if (!this.transport) {
             return callback(new Error("Transport has been closed"));
         }
         this.transport.disconnect(() => {

@@ -28,6 +28,8 @@ import { UserTokenType } from "node-opcua-service-endpoints";
 import { EndpointDescription } from "node-opcua-service-endpoints";
 import { ApplicationDescription } from "node-opcua-service-endpoints";
 import { UserTokenPolicyOptions } from "node-opcua-types";
+import { IHelloAckLimits } from "node-opcua-transport";
+
 import { IChannelData } from "./i_channel_data";
 import { ISocketData } from "./i_socket_data";
 
@@ -157,6 +159,12 @@ export interface OPCUAServerEndPointOptions {
     serverInfo: ApplicationDescription;
 
     objectFactory?: any;
+
+    transportSettings?: IServerTransportSettings;
+}
+
+export interface IServerTransportSettings {
+    adjustTransportLimits: (hello: IHelloAckLimits) => IHelloAckLimits;
 }
 
 export interface EndpointDescriptionParams {
@@ -238,6 +246,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     private _started = false;
     private _counter = OPCUAServerEndPointCounter++;
     private _policy_deduplicator: { [key: string]: number } = {};
+
+    private transportSettings?: IServerTransportSettings;
     constructor(options: OPCUAServerEndPointOptions) {
         super();
 
@@ -279,6 +289,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
 
         this.serverInfo = options.serverInfo;
         assert(this.serverInfo !== null && typeof this.serverInfo === "object");
+
+        this.transportSettings = options.transportSettings;
     }
 
     public dispose(): void {
@@ -746,7 +758,8 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
                 // objectFactory: this.objectFactory,
                 parent: this,
-                timeout: this.timeout
+                timeout: this.timeout,
+                adjustTransportLimits: this.transportSettings?.adjustTransportLimits
             });
 
             debugLog("channel Timeout = >", channel.timeout);
