@@ -8,7 +8,7 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 
 // opcua requires
-import{ checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, hexDump, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { verify_message_chunk } from "node-opcua-chunkmanager";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -20,6 +20,7 @@ import { HelloMessage } from "./HelloMessage";
 import { ISocketLike, TCP_transport } from "./tcp_transport";
 import { decodeMessage, packTcpMessage } from "./tools";
 import { doTraceHelloAck } from "./utils";
+import { IHelloAckLimits } from "./i_hello_ack_limits";
 
 const debugLog = make_debugLog("TRANSPORT");
 const errorLog = make_errorLog("TRANSPORT");
@@ -27,7 +28,7 @@ const warningLog = make_warningLog("TRANSPORT");
 const doDebug = checkDebugFlag("TRANSPORT");
 
 function clamp_value(value: number, minVal: number, maxVal: number): number {
-    assert(minVal < maxVal);
+    assert(minVal <= maxVal);
     if (value === 0) {
         return maxVal;
     }
@@ -43,13 +44,83 @@ function clamp_value(value: number, minVal: number, maxVal: number): number {
 
 const minimumBufferSize = 8192;
 
+export interface ITransportParameters {
+    minBufferSize: number;
+    maxBufferSize: number;
+    minMaxMessageSize: number;
+    defaultMaxMessageSize: number;
+    maxMaxMessageSize: number;
+    minMaxChunkCount: number;
+    defaultMaxChunkCount: number;
+    maxMaxChunkCount: number;
+}
+const defaultTransportParameters = {
+    minBufferSize: 8192,
+    maxBufferSize: 8 * 64 * 1024,
+    minMaxMessageSize: 128 * 1024,
+    defaultMaxMessageSize: 16 * 1024 * 1024,
+    maxMaxMessageSize: 128 * 1024 * 1024,
+    minMaxChunkCount: 1,
+    defaultMaxChunkCount: Math.ceil((128 * 1024 * 1024) / (8 * 64 * 1024)),
+    maxMaxChunkCount: 9000
+};
+
+
+
+export function adjustLimitsWithParameters(helloMessage: IHelloAckLimits, params: ITransportParameters): IHelloAckLimits {
+    const defaultReceiveBufferSize = 64 * 1024;
+    const defaultSendBufferSize = 64 * 1024;
+
+    const receiveBufferSize = clamp_value(
+        helloMessage.receiveBufferSize || defaultReceiveBufferSize,
+        params.minBufferSize,
+        params.maxBufferSize
+    );
+    const sendBufferSize = clamp_value(
+        helloMessage.sendBufferSize || defaultSendBufferSize,
+        params.minBufferSize,
+        params.maxBufferSize
+    );
+    const maxMessageSize = clamp_value(
+        helloMessage.maxMessageSize || params.defaultMaxMessageSize,
+        params.minMaxMessageSize,
+        params.maxMaxMessageSize
+    );
+
+    if (!helloMessage.maxChunkCount && sendBufferSize) {
+        helloMessage.maxChunkCount = Math.ceil(helloMessage.maxMessageSize / Math.min(sendBufferSize, receiveBufferSize));
+    }
+    const maxChunkCount = clamp_value(
+        helloMessage.maxChunkCount || params.defaultMaxChunkCount,
+        params.minMaxChunkCount,
+        params.maxMaxChunkCount
+    );
+
+    return {
+        receiveBufferSize,
+        sendBufferSize,
+        maxMessageSize,
+        maxChunkCount
+    };
+}
+
+
+const defaultAdjustLimits = (hello: IHelloAckLimits) => adjustLimitsWithParameters(hello, defaultTransportParameters);
+interface ServerTCP_transportOptions {
+    adjustLimits?: (hello: IHelloAckLimits) => IHelloAckLimits;
+}
+
+/**
+ * @private
+ */
 export class ServerTCP_transport extends TCP_transport {
     public static throttleTime = 1000;
 
     private _aborted: number;
     private _helloReceived: boolean;
+    private adjustLimits: (hello: IHelloAckLimits) => IHelloAckLimits;
 
-    constructor() {
+    constructor(options?: ServerTCP_transportOptions) {
         super();
         this._aborted = 0;
         this._helloReceived = false;
@@ -58,6 +129,7 @@ export class ServerTCP_transport extends TCP_transport {
         this.maxChunkCount = 1;
         this.maxMessageSize = 4 * 1024;
         this.receiveBufferSize = 4 * 1024;
+        this.adjustLimits = options?.adjustLimits || defaultAdjustLimits;
     }
 
     public toString() {
@@ -137,43 +209,9 @@ export class ServerTCP_transport extends TCP_transport {
         assert(helloMessage.receiveBufferSize >= minimumBufferSize);
         assert(helloMessage.sendBufferSize >= minimumBufferSize);
 
-        const minBufferSize = 8192;
-        const maxBufferSize = 8 * 64 * 1024;
+        const limits = this.adjustLimits(helloMessage);
 
-        const minMaxMessageSize = 128 * 1024;
-        const defaultMaxMessageSize = 16 * 1024 * 1024;
-        const maxMaxMessageSize = 128 * 1024 * 1024;
-
-        const minMaxChunkCount = 1;
-        const defaultMaxChunkCount = defaultMaxMessageSize / maxBufferSize;
-        const maxMaxChunkCount = 9000;
-
-        const defaultReceiveBufferSize = 64 * 1024;
-        const defaultSendBufferSize = 64 * 1024;
-
-        const receiveBufferSize = clamp_value(
-            helloMessage.receiveBufferSize || defaultReceiveBufferSize,
-            minBufferSize,
-            maxBufferSize
-        );
-        const sendBufferSize = clamp_value(helloMessage.sendBufferSize || defaultSendBufferSize, minBufferSize, maxBufferSize);
-        const maxMessageSize = clamp_value(
-            helloMessage.maxMessageSize || defaultMaxMessageSize,
-            minMaxMessageSize,
-            maxMaxMessageSize
-        );
-
-        if (!helloMessage.maxChunkCount && sendBufferSize) {
-            helloMessage.maxChunkCount = Math.ceil(helloMessage.maxMessageSize / Math.min(sendBufferSize, receiveBufferSize));
-        }
-        const maxChunkCount = clamp_value(helloMessage.maxChunkCount || defaultMaxChunkCount, minMaxChunkCount, maxMaxChunkCount);
-
-        this.setLimits({
-            receiveBufferSize,
-            sendBufferSize,
-            maxMessageSize,
-            maxChunkCount
-        });
+        this.setLimits(limits);
 
         // istanbul ignore next
         if (doTraceHelloAck) {
@@ -281,7 +319,11 @@ export class ServerTCP_transport extends TCP_transport {
                 this._send_ACK_response(helloMessage);
             } catch (err) {
                 // connection rejected because of malformed message
-                return this._abortWithError(StatusCodes.BadConnectionRejected, types.isNativeError(err) ? err.message : "", callback);
+                return this._abortWithError(
+                    StatusCodes.BadConnectionRejected,
+                    types.isNativeError(err) ? err.message : "",
+                    callback
+                );
             }
             callback(); // no Error
         } else {

@@ -165,7 +165,7 @@ import { RegisterServerManager } from "./register_server_manager";
 import { RegisterServerManagerHidden } from "./register_server_manager_hidden";
 import { RegisterServerManagerMDNSONLY } from "./register_server_manager_mdns_only";
 import { ServerCapabilitiesOptions } from "./server_capabilities";
-import { EndpointDescriptionEx, OPCUAServerEndPoint } from "./server_end_point";
+import { EndpointDescriptionEx, IServerTransportSettings, OPCUAServerEndPoint } from "./server_end_point";
 import { ClosingReason, CreateSessionOption, ServerEngine } from "./server_engine";
 import { ServerSession } from "./server_session";
 import { CreateMonitoredItemHook, DeleteMonitoredItemHook, Subscription } from "./server_subscription";
@@ -926,6 +926,12 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * @default false
      */
     skipOwnNamespace?: boolean;
+
+    /**
+     * @private
+     * @optional
+     */
+    transportSettings?: IServerTransportSettings;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
@@ -3544,7 +3550,12 @@ export class OPCUAServer extends OPCUABaseServer {
 
     private createEndpoint(
         port1: number,
-        serverOptions: { defaultSecureTokenLifetime?: number; timeout?: number; host?:string }
+        serverOptions: {
+            defaultSecureTokenLifetime?: number;
+            timeout?: number;
+            host?: string;
+            transportSettings?: IServerTransportSettings;
+        }
     ): OPCUAServerEndPoint {
         // add the tcp/ip endpoint with no security
         const endPoint = new OPCUAServerEndPoint({
@@ -3560,7 +3571,8 @@ export class OPCUAServer extends OPCUABaseServer {
 
             maxConnections: this.maxConnectionsPerEndpoint,
             objectFactory: this.objectFactory,
-            serverInfo: this.serverInfo
+            serverInfo: this.serverInfo,
+            transportSettings: serverOptions.transportSettings
         });
         return endPoint;
     }

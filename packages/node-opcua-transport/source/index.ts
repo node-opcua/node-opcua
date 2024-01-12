@@ -11,3 +11,4 @@ export * from "./tcp_transport";
 export * from "./TCPErrorMessage";
 export * from "./tools";
 export * from "./utils";
+export * from "./i_hello_ack_limits";

@@ -10,6 +10,7 @@ import {
     initialize_field,
     parameters
 } from "node-opcua-factory";
+import { IHelloAckLimits } from "./i_hello_ack_limits";
 
 const schemaHelloMessage = buildStructuredType({
     name: "HelloMessage",
@@ -65,7 +66,7 @@ export interface HelloMessageOptions {
     endpointUrl?: UAString;
 }
 
-export class HelloMessage extends BaseUAObject {
+export class HelloMessage extends BaseUAObject implements IHelloAckLimits {
     public static possibleFields: string[] = [
         "protocolVersion",
         "receiveBufferSize",

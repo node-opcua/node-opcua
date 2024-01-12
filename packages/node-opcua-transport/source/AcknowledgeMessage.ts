@@ -11,6 +11,7 @@ import {
     parameters,
     IStructuredTypeSchema
 } from "node-opcua-factory";
+import { IHelloAckLimits } from "./i_hello_ack_limits";
 
 const schemaAcknowledgeMessage = buildStructuredType({
     name: "AcknowledgeMessage",
@@ -36,15 +37,11 @@ const schemaAcknowledgeMessage = buildStructuredType({
     ]
 });
 
-interface AcknowledgeMessageOptions {
+interface AcknowledgeMessageOptions extends Partial<IHelloAckLimits>{
     protocolVersion?: UInt32;
-    receiveBufferSize?: UInt32;
-    sendBufferSize?: UInt32;
-    maxMessageSize?: UInt32;
-    maxChunkCount?: UInt32;
 }
 
-export class AcknowledgeMessage extends BaseUAObject {
+export class AcknowledgeMessage extends BaseUAObject implements IHelloAckLimits {
     public static possibleFields: string[] = [
         "protocolVersion",
         "receiveBufferSize",
