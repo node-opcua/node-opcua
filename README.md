@@ -28,7 +28,7 @@ node-opcua is a full OPC UA stack for NodeJS and the Browser written in Typescri
 
 Why NodeJS ?
 
-Because NodeJs is a great framework to design high-performing asynchronous applications.
+Because NodeJs is a great framework for designing high-performing asynchronous applications.
 
 
 ## Getting started
@@ -39,7 +39,7 @@ Because NodeJs is a great framework to design high-performing asynchronous appli
     $ cd mytest
     $ npm init 
     $ npm install node-opcua --unsafe-perms
-    $ # create your first app.js file!
+    $ # Create your first app.js file!
 
 
 ### installing node-opcua samples as a node package
@@ -64,9 +64,9 @@ $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcuademo.sterfive.com:26543"
 ```
 
 
-## Minimum nodejs requirement 
+## Minimum Nodejs requirement
 
-  * nodejs version 14 or above
+  * Nodejs version 18 or above
 
                 
 ## tutorials and guided examples
@@ -76,7 +76,7 @@ $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcuademo.sterfive.com:26543"
 
 ## Sponsors & Backers 
 
-The funding of node-opcua enterily relies on its users.  
+The funding of node-opcua entirely relies on its users.  
 We appreciate that, once you have evaluated the software and you have decided to use it in one of your applications, you consider supporting our effort by either financially contributing to one of our sponsor programs:
 
   - https://github.com/sponsors/node-opcua
@@ -86,7 +86,7 @@ Grants ensure the following:
 
 - 🔨 Long-term maintenance of the project
 - ⚙️ maintain the website and continuous integration platform
-- 🛣  Progress on the road-map
+- 🛣  Progress on the road map
 - 🐛 Quick responses to bug reports
 - 🚀 New features & enhancements
 - ⚖️ representing the node-opcua user community at the OPC Foundation
@@ -324,18 +324,19 @@ Those are the items we would like to achieve in the next version of the API.
 
 ## About licensing 
 
-The node-opcua core module is [copyrighted and licenced under the term of the "The MIT License"](./LICENSE). 
+The node-opcua core module is [copyrighted and licencsd under the term of the "The MIT License"](./LICENSE). 
 
 This means that :
-- node-opcua comes without any warranty of any kind.
-- you can freely reuse in an open-source application or a commercial application 
-- you have to clearly include the software copyright notice in all copies or substantial portions of the software.
 
-You are strongly encourage to apply to our [NodeOPCUA Membership](https://support.sterfive.com) to get additional benefits and support.
+- node-opcua comes without any warranty of any kind.
+- you can freely re-use in an open-source application or a commercial application 
+- you have to include the software copyright notice in all copies or substantial portions of the software.
+
+You are strongly encouraged to apply to our [NodeOPCUA Membership](https://support.sterfive.com) to get additional benefits and support.
 
 
 ## Copyright
 
-Copyright (c) 2022-2023 Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
 
+Copyright (c) 2022-2024 Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
 Copyright (c) 2014-2022 Etienne Rossignon
