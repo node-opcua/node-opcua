@@ -7,7 +7,9 @@ export async function _findEncodings(session: ISessionForBrowseAll, dataTypeNode
     const nodeToBrowse: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
-        nodeClassMask: makeNodeClassMask("Object"),
+        // strictly speaking HasEncoding points to an Object of DataTypeEncodingType, but
+        // in some buggy server implementations  ObjectType is used instead. (see #1232)
+        nodeClassMask: makeNodeClassMask("Object | ObjectType"),
         nodeId: dataTypeNodeId,
         referenceTypeId: resolveNodeId("HasEncoding"),
         resultMask: makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition")
