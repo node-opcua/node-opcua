@@ -462,7 +462,9 @@ export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
 
             if (!folder.typeDefinitionObj) continue;
 
-            assert(folder.typeDefinitionObj.browseName.name!.toString() === "FunctionalGroupType");
+            if(folder.typeDefinitionObj.browseName.name!.toString() !== "FunctionalGroupType") {
+                continue;
+            }
 
             // now create the same reference with the instantiated function group
             const destFolder = info.cloned as BaseNode;
