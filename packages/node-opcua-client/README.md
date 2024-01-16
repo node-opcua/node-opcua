@@ -1,7 +1,7 @@
 node-opcua-client
 =================
 
-an implementation of a OPC UA stack fully written in javascript and nodejs
+an implementation of an OPC UA stack fully written in javascript and NodeJS
 
 
 see http://node-opcua.github.io/
@@ -9,7 +9,7 @@ see http://node-opcua.github.io/
 
 # Documentation
 
-"NodeOPCUA by Example" (https://leanpub.com/node-opcuabyexample-edition2022) provides a good starting point to understand and start using node-opcua.
+"NodeOPCUA by Example" (https://leanpub.com/node-opcuabyexample-edition2024) provides a good starting point to understand and start using node-opcua.
 
 More advanced interactive material & documentation is made available online for Registered members of the NodeOPCUA Subscription. Please visit https://support.sterfive.com to apply or contact Sterfive.
 
@@ -25,7 +25,7 @@ Grants ensure the following:
 
 - 🔨 Long-term maintenance of the project
 - ⚙️ maintain the website and continuous integration platform
-- 🛣  Progress on the road-map
+- 🛣  Progress on the road map
 - 🐛 Quick responses to bug reports
 - 🚀 New features & enhancements
 - ⚖️ representing the node-opcua user community at the OPC Foundation
@@ -36,7 +36,7 @@ Technical Support is exclusively provided to registered members of the NodeOPCUA
 
 # License
 
-Node-OPCUA is made available to you under the MIT open source license. 
+Node-OPCUA is made available to you under the MIT open-source license. 
 
 See [LICENSE](./LICENSE) for details.
 

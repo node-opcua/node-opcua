@@ -9,7 +9,7 @@ node-opcua is a full OPC UA stack for NodeJS and the Browser written in Typescri
 [![Coverage Status](https://img.shields.io/coverallsCoverage/github/node-opcua/node-opcua)](https://coveralls.io/r/node-opcua/node-opcua)
 [![Gitter chat](https://img.shields.io/gitter/room/node-opcua/node-opcua
 )](https://gitter.im/node-opcua/node-opcua)
-[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2022)
+[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2024)
 
 [![NPM download - server](https://img.shields.io/npm/dm/node-opcua.svg?logo=npm&label=node-opcua-server)](https://www.npmtrends.com/node-opcua-server)
 [![NPM download - server -total](https://img.shields.io/npm/dt/node-opcua.svg?label=total)](https://www.npmtrends.com/node-opcua-server)
@@ -72,7 +72,7 @@ $ ./node_modules/.bin/simple_client  -e "opc.tcp://opcuademo.sterfive.com:26543"
 ## tutorials and guided examples
 
 
-[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2022).  This book provides a large number of practical and ready-to-use and fully documented examples. It's the best starting point to learn about node-opcua.
+[![The Book](https://img.shields.io/static/v1?label=the%20book&message=NodeOPCUA%20by%20example&color=blueviolet&logo=leanpub)](https://leanpub.com/node-opcuabyexample-edition2024).  This book provides a large number of practical and ready-to-use and fully documented examples. It's the best starting point to learn about node-opcua.
 
 ## Sponsors & Backers 
 
@@ -183,7 +183,7 @@ Those are the items we would like to achieve in the next version of the API.
  * [create a server](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_server.md)
  * [create a client in typescript](https://github.com/node-opcua/node-opcua/blob/master/documentation/creating_a_client_typescript.md)
    
-  *  more tutorials are available in the book (https://leanpub.com/node-opcuabyexample-edition2022)
+  *  more tutorials are available in the book (https://leanpub.com/node-opcuabyexample-edition2024)
   *  more advanced examples and training material are available for the NodeOPCUA Subscription members at (https://support.sterfive.com)
 
 ### API reference
