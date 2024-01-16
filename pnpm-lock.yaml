@@ -3081,6 +3081,9 @@ importers:
       node-opcua-status-code:
         specifier: 2.117.0
         version: link:../node-opcua-status-code
+      node-opcua-transport:
+        specifier: 2.119.0
+        version: link:../node-opcua-transport
       node-opcua-types:
         specifier: 2.119.2
         version: link:../node-opcua-types
