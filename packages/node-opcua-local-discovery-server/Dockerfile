@@ -1,4 +1,4 @@
-FROM node:21.2-alpine3.18
+FROM node:21.6-alpine3.18
 WORKDIR /root
 COPY package.json .
 RUN npm init -y && npm install 
