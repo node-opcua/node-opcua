@@ -1870,19 +1870,19 @@ function check_valid_array(dataType: DataType, array: any): boolean {
     return false;
 }
 
-function _apply_default_timestamps(dataValue: DataValue): void {
-    const now = getCurrentClock();
-    assert(dataValue instanceof DataValue);
+// function _apply_default_timestamps(dataValue: DataValue): void {
+//     const now = getCurrentClock();
+//     assert(dataValue instanceof DataValue);
 
-    if (!dataValue.sourceTimestamp) {
-        dataValue.sourceTimestamp = now.timestamp;
-        dataValue.sourcePicoseconds = now.picoseconds;
-    }
-    if (!dataValue.serverTimestamp) {
-        dataValue.serverTimestamp = now.timestamp;
-        dataValue.serverPicoseconds = now.picoseconds;
-    }
-}
+//     if (!dataValue.sourceTimestamp) {
+//         dataValue.sourceTimestamp = now.timestamp;
+//         dataValue.sourcePicoseconds = now.picoseconds;
+//     }
+//     if (!dataValue.serverTimestamp) {
+//         dataValue.serverTimestamp = now.timestamp;
+//         dataValue.serverPicoseconds = now.picoseconds;
+//     }
+// }
 
 function unsetFlag(flags: number, mask: number): number {
     return flags & ~mask;
@@ -1949,17 +1949,33 @@ function _default_writable_timestamped_set_func(
     callback(null, StatusCodes.Good, dataValue);
 }
 
-function turn_sync_to_async<T, D, R>(f: (this: T, data: D) => R, numberOfArgs: number) {
+type f1<T, D, R> = (this: T, data: D) => R;
+type f2<T, D, R> = (this: T, data: D) => Promise<R>;
+type f3<T, D, R> = (this: T, data: D, callback: (err: Error | null, r?: R) => void) => void;
+
+function turn_sync_to_async<T, D, R>(f: f1<T, D, R> | f2<T, D, R> | f3<T, D, R>, numberOfArgs: number): f3<T, D, R> {
     if (f.length <= numberOfArgs) {
         return function (this: T, data: D, callback: (err: Error | null, r?: R) => void) {
-            try {
-                const r = f.call(this, data);
-                setImmediate(() => {
-                    return callback(null, r);
+            new Promise<R>((resolve, reject) => {
+                try {
+                    // const ff1 = f as f1<T, D, R>;
+                    const ff2 = f as f2<T, D, R>;
+                    const r: R | Promise<R> = ff2.call(this, data);
+                    if (r instanceof Promise) {
+                        r.then(resolve, reject);
+                    } else {
+                        resolve(r);
+                    }
+                } catch (err) {
+                    reject(err);
+                }
+            })
+                .then((r) => {
+                    callback(null, r);
+                })
+                .catch((err) => {
+                    callback(err as Error);
                 });
-            } catch (err) {
-                return callback(err as Error);
-            }
         };
     } else {
         assert(f.length === numberOfArgs + 1);
@@ -1977,8 +1993,10 @@ function coerceDataValue(dataValue: DataValue | DataValueLike): DataValue {
 }
 
 // variation #3 :
-function _Variable_bind_with_async_refresh(this: UAVariableImpl, options: any) {
-    /* jshint validthis: true */
+function _Variable_bind_with_async_refresh(
+    this: UAVariableImpl,
+    options: { refreshFunc: RefreshFunc; get?: undefined; timestamped_get?: undefined }
+) {
     assert(this instanceof UAVariableImpl);
 
     assert(typeof options.refreshFunc === "function");
@@ -2050,7 +2068,6 @@ function _Variable_bind_with_timestamped_get(
 
 // variation 1
 function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOptions) {
-    /* jshint validthis: true */
     assert(this instanceof UAVariableImpl);
     assert(typeof options.get === "function", "should specify get function");
     assert(options.get!.length === 0, "get function should not have arguments");
@@ -2094,7 +2111,8 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
     });
 }
 
-function _Variable_bind_with_simple_set(this: UAVariableImpl, options: any) {
+type SimpleSetOptions = { set?: SetFunc; timestamped_set: undefined };
+function _Variable_bind_with_simple_set(this: UAVariableImpl, options: SimpleSetOptions) {
     assert(this instanceof UAVariableImpl);
     assert(typeof options.set === "function", "should specify set function");
     assert(!options.timestamped_set, "should not specify a timestamped_set function");
@@ -2102,7 +2120,9 @@ function _Variable_bind_with_simple_set(this: UAVariableImpl, options: any) {
     assert(!this._timestamped_set_func);
     assert(!this._set_func);
 
-    this._set_func = turn_sync_to_async(options.set, 1);
+    //
+    this._set_func = turn_sync_to_async(options.set!, 1);
+
     assert(this._set_func.length === 2, " set function must have 2 arguments ( variant, callback)");
 
     this._timestamped_set_func = (
@@ -2149,9 +2169,13 @@ interface SetterOptions {
     timestamped_get?: TimestampGetFunc;
 }
 function bind_setter(this: UAVariableImpl, options: SetterOptions) {
-    if (typeof options.set === "function") {
+    if (options.set && typeof options.set === "function") {
         // variation 1
-        _Variable_bind_with_simple_set.call(this, options);
+        if (options.timestamped_set === undefined) {
+            _Variable_bind_with_simple_set.call(this, options as SimpleSetOptions);
+        } else {
+            throw new Error("bind_setter : options should not specify both set and timestamped_set ");
+        }
     } else if (typeof options.timestamped_set === "function") {
         // variation 2
         assert(typeof options.timestamped_get === "function", "timestamped_set must be used with timestamped_get ");
@@ -2174,10 +2198,11 @@ function bind_setter(this: UAVariableImpl, options: SetterOptions) {
     }
 }
 
+type RefreshFunc = (callback: CallbackT<DataValue>) => void;
 interface GetterOptions {
     get?: GetFunc;
     timestamped_get?: TimestampGetFunc;
-    refreshFunc?: (callback: CallbackT<DataValue>) => void;
+    refreshFunc?: RefreshFunc;
     dataType?: DataType | string;
     value?: any;
 }
@@ -2193,7 +2218,10 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
         });
     } else if (typeof options.refreshFunc === "function") {
         // variation 3
-        _Variable_bind_with_async_refresh.call(this, options);
+        if (options.get !== undefined || options.timestamped_get !== undefined) {
+            throw new Error("bind_getter : options should not specify both get and timestamped_get ");
+        }
+        _Variable_bind_with_async_refresh.call(this, {refreshFunc: options.refreshFunc!});
     } else {
         assert(
             !Object.prototype.hasOwnProperty.call(options, "set"),

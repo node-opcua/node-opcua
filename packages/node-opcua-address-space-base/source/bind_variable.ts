@@ -17,8 +17,9 @@ import { ContinuationData, ISessionContext } from "./session_context";
 export type VariableSetterVariation1 = (this: UAVariable, value: Variant) => StatusCode;
 
 export type VariableSetterVariation2 = (this: UAVariable, value: Variant, callback: CallbackT<StatusCode>) => void;
+export type VariableSetterVariation3 = (this: UAVariable, value: Variant) => Promise<StatusCode>;
 
-export type VariableSetter = VariableSetterVariation1 | VariableSetterVariation2;
+export type VariableSetter = VariableSetterVariation1 | VariableSetterVariation2 | VariableSetterVariation3;
 
 export type HistoryReadFunc = (
     context: ISessionContext,
