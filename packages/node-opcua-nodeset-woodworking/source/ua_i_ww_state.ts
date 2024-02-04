@@ -21,7 +21,8 @@ export interface UAIWwState_machine extends UAObject { // Object
       values?: UAObject;
 }
 /**
- * The IWwStateType provides a list of machine states
+ * The IWwStateType provides a list of machine
+ * states.
  *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

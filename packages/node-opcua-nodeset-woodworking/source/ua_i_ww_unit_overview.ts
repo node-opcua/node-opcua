@@ -6,7 +6,7 @@ import { EnumWwUnitMode } from "./enum_ww_unit_mode"
 import { EnumWwUnitState } from "./enum_ww_unit_state"
 /**
  * The IWwUnitOverviewType represents the
- * generalized state of a unit
+ * generalized state of a unit.
  *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

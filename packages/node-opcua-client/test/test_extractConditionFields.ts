@@ -166,8 +166,8 @@ describe("extractConditionFields", () => {
             "ConditionClassName",
             "ConditionId",
             "ConditionName",
-            // "ConditionSubClassId",
-            // "ConditionSubClassName",
+            "ConditionSubClassId",
+            "ConditionSubClassName",
             "ConfirmedState",
             // "ConfirmedState.FalseState",
             "ConfirmedState.Id",
@@ -245,6 +245,6 @@ describe("extractConditionFields", () => {
         const json = fieldsToJson(fields, values);
         doDebug && console.log(json);
 
-        json.conditionId.toString().should.eql("Variant(Scalar<Double>, value: 45)");
+        json.conditionId.toString().should.eql("Variant(Scalar<Double>, value: 47)");
     });
 });

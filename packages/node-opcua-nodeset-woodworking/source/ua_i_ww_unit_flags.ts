@@ -78,7 +78,7 @@ export interface UAIWwUnitFlags_Base extends UABaseInterface_Base {
     /**
      * machineInitialized
      * The MachineInitialized Variable is true if the
-     * MachineOn is true, the plc and the control
+     * MachineOn is true, the PLC and the control
      * processes are running. The machine is ready for
      * usage for the operator.
      */

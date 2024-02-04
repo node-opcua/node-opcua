@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
+import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { UInt16, Byte, UAString } from "node-opcua-basic-types"
 import { UAFunctionalGroup, UAFunctionalGroup_Base } from "node-opcua-nodeset-di/source/ua_functional_group"
 /**
@@ -39,6 +39,11 @@ export interface UAMachineryItemIdentification_Base extends UAFunctionalGroup_Ba
      * 40 Unicode characters into that field.
      */
     componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
+    /**
+     * defaultInstanceBrowseName
+     * The default BrowseName for instances of the type.
+     */
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     /**
      * deviceClass
      * Indicates in which domain or for what purpose the

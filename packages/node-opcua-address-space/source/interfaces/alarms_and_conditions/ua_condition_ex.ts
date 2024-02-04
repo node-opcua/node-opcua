@@ -51,10 +51,10 @@ export interface UAConditionEx extends UAObject, UACondition_Base, UAConditionHe
     enabledState: UATwoStateVariableEx;
     on(eventName: string, eventHandler: any): this;
     //
-    conditionClassId: UAProperty<NodeId, /*c*/DataType.NodeId>;
-    conditionClassName: UAProperty<LocalizedText, /*c*/DataType.LocalizedText>;
-    // conditionSubClassId?: UAProperty<NodeId, /*c*/DataType.NodeId>;
-    // conditionSubClassName?: UAProperty<LocalizedText, /*c*/DataType.LocalizedText>;
+    conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
+    conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
+    conditionSubClassId: UAProperty<NodeId[], /*c*/ DataType.NodeId>;
+    conditionSubClassName: UAProperty<LocalizedText[], /*c*/ DataType.LocalizedText>;
     // conditionName: UAProperty<UAString, /*c*/DataType.String>;
     // branchId: UAProperty<NodeId, /*c*/DataType.NodeId>;
     // retain: UAProperty<boolean, /*c*/DataType.Boolean>;
