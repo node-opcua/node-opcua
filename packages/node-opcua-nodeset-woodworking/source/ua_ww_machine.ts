@@ -4,6 +4,7 @@ import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { UInt16, Byte, UAString } from "node-opcua-basic-types"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAUIElement } from "node-opcua-nodeset-di/source/ua_ui_element"
 import { UAMachineIdentification } from "node-opcua-nodeset-machinery/source/ua_machine_identification"
 import { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher"
@@ -81,8 +82,8 @@ export interface UAWwMachine_identification extends Omit<UAMachineIdentification
        * 9.804918108600956".
        * Southern latitudes have a negative value, western
        * longitudes as well. For example, Quito has the
-       * coordinates “-0.21975073282167099,
-       * -78.51255572531042”.
+       * coordinates "-0.21975073282167099,
+       * -78.51255572531042".
        */
       locationGPS?: UAProperty<UAString, DataType.String>;
       /**
@@ -172,6 +173,9 @@ export interface UAWwMachine_identification extends Omit<UAMachineIdentification
        */
       yearOfConstruction: UAProperty<UInt16, DataType.UInt16>;
 }
+export interface UAWwMachine_manufacturerSpecific extends UAFolder { // Object
+      lastProgramName?: UABaseDataVariable<UAString, DataType.String>;
+}
 export interface UAWwMachine_state extends UAObject { // Object
       /**
        * machine
@@ -188,7 +192,8 @@ export interface UAWwMachine_state extends UAObject { // Object
       subUnits?: UAObject;
 }
 /**
- * The WwMachineType represents a woodworking machine
+ * The WwMachineType represents a woodworking
+ * machine.
  *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -214,7 +219,7 @@ export interface UAWwMachine_Base {
      * The ManufacturerSpecific Object provides
      * manufacturer specific functionality.
      */
-    manufacturerSpecific?: UAFolder;
+    manufacturerSpecific?: UAWwMachine_manufacturerSpecific;
     /**
      * state
      * The State Object provides information about the

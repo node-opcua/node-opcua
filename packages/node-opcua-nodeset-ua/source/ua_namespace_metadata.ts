@@ -26,6 +26,7 @@ export interface UANamespaceMetadata_Base {
     defaultUserRolePermissions?: UAProperty<DTRolePermission[], DataType.ExtensionObject>;
     defaultAccessRestrictions?: UAProperty<UInt16, DataType.UInt16>;
     configurationVersion?: UAProperty<UInt32, DataType.UInt32>;
+    modelVersion?: UAProperty<UAString, DataType.String>;
 }
 export interface UANamespaceMetadata extends UAObject, UANamespaceMetadata_Base {
 }

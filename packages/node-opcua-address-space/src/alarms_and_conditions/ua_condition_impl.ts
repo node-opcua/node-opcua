@@ -17,7 +17,6 @@ import {
     NodeClass,
     QualifiedName
 } from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { minDate } from "node-opcua-basic-types";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -60,6 +59,8 @@ export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl 
     on(eventName: string, eventHandler: any): this;
     conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
     conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
+    conditionSubClassId: UAProperty<NodeId[], DataType.NodeId>;
+    conditionSubClassName: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
 /**
  *
@@ -1208,7 +1209,6 @@ function _create_new_branch_id() {
     return makeNodeId(randomGuid(), 1);
 }
 
-
 // tslint:disable:no-console
 function _install_condition_variable_type<T, DT extends DataType>(node: UAConditionVariable<T, DT>) {
     // from spec 1.03 : 5.3 condition variables
@@ -1220,7 +1220,6 @@ function _install_condition_variable_type<T, DT extends DataType>(node: UACondit
         console.warn("cannot find node.sourceTimestamp", node.browseName.toString());
     }
     node.accessLevel = makeAccessLevelFlag("CurrentRead");
-
 }
 
 /**

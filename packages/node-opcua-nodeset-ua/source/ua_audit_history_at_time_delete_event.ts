@@ -9,7 +9,7 @@ import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |ObjectType                                                  |
  * |typedDefinition |AuditHistoryAtTimeDeleteEventType i=3019                    |
- * |isAbstract      |true                                                        |
+ * |isAbstract      |false                                                       |
  */
 export interface UAAuditHistoryAtTimeDeleteEvent_Base extends UAAuditHistoryDeleteEvent_Base {
     reqTimes: UAProperty<Date[], DataType.DateTime>;

@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { Byte, UAString } from "node-opcua-basic-types"
+import { UInt32, Byte, UAString } from "node-opcua-basic-types"
 import { EnumExceptionDeviationFormat } from "./enum_exception_deviation_format"
 import { UAAggregateConfiguration } from "./ua_aggregate_configuration"
 import { UAFolder } from "./ua_folder"
@@ -25,6 +25,8 @@ export interface UAHistoricalDataConfiguration_Base {
     startOfArchive?: UAProperty<Date, DataType.DateTime>;
     startOfOnlineArchive?: UAProperty<Date, DataType.DateTime>;
     serverTimestampSupported?: UAProperty<boolean, DataType.Boolean>;
+    maxTimeStoredValues?: UAProperty<number, DataType.Double>;
+    maxCountStoredValues?: UAProperty<UInt32, DataType.UInt32>;
 }
 export interface UAHistoricalDataConfiguration extends UAObject, UAHistoricalDataConfiguration_Base {
 }

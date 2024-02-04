@@ -71,6 +71,10 @@ function convert(data) {
                     // ignore members of Types
                     continue;
                 }
+                if (name.match(/_Placeholder_/)) {
+                    // ignore members of Types
+                    continue;
+                }
                 if (Object.prototype.hasOwnProperty.call(typeMap, name)) {
                     e = typeMap[name];
                     name = e[0];

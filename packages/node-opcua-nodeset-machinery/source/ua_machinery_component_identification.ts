@@ -32,5 +32,5 @@ export interface UAMachineryComponentIdentification_Base extends UAMachineryItem
      */
     deviceRevision?: UAProperty<UAString, DataType.String>;
 }
-export interface UAMachineryComponentIdentification extends UAMachineryItemIdentification, UAMachineryComponentIdentification_Base {
+export interface UAMachineryComponentIdentification extends Omit<UAMachineryItemIdentification, "defaultInstanceBrowseName">, UAMachineryComponentIdentification_Base {
 }

@@ -75,7 +75,7 @@ export interface UAWwBaseEvent_Base extends UABaseEvent_Base {
      * information strings based on a server independent
      * hierarchical structure of modules or an
      * application specific expansion of that. It is an
-     * additional location infor¬mation beside the
+     * additional location information beside the
      * SourceName.
      */
     pathParts: UAProperty<UAString[], DataType.String>;

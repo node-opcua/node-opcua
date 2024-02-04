@@ -253,7 +253,9 @@ export class AddressSpace implements AddressSpacePrivate {
     /**
      * @method registerNamespace
      *
-     * register a new namespace
+     * register a new namespace,
+     * it is OK to call registerNamespace even if namespace has already been registered; 
+     * in this case the registerNamespace has no effect and returns the existing namespace.
      *
      * @param namespaceUri {string}
      * @returns {Namespace}
