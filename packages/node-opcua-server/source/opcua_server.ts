@@ -2347,8 +2347,8 @@ export class OPCUAServer extends OPCUABaseServer {
         let response: any;
         /* istanbul ignore next */
         if (!message.session || message.session_statusCode !== StatusCodes.Good) {
-            const errMessage = "INVALID SESSION  !! ";
-            response = new ResponseClass({ responseHeader: { serviceResult: message.session_statusCode } });
+            const errMessage = "=>" + message.session_statusCode?.toString();
+            response = new ServiceFault({ responseHeader: { serviceResult: message.session_statusCode } });
             debugLog(chalk.red.bold(errMessage), chalk.yellow(message.session_statusCode!.toString()), response.constructor.name);
             return sendResponse(response);
         }

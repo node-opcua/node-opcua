@@ -71,13 +71,18 @@ describe("testing server dropping session after timeout if no activity has been 
         await client.connect(endpointUrl);
 
         // reading should fail with BadSessionIdInvalid
-        const response = await new Promise((resolve, reject) => {
+        const [err, response ]= await new Promise((resolve, reject) => {
             client._secureChannel.performMessageTransaction(readRequest, (err, response) => {
-                resolve(response);
+                resolve([err, response]);
             });
         });
         await client.disconnect();
-        response.responseHeader.serviceResult.should.equal(StatusCodes.BadSessionIdInvalid);
+        if (response) {
+            response.responseHeader.serviceResult.should.equal(StatusCodes.BadSessionIdInvalid);
+        } else {
+            should.exist(err);
+            err.message.should.match(/BadSessionIdInvalid/);
+        }
     });
 
     it("should denied service call with BadSessionClosed on a timed out session", async function () {
