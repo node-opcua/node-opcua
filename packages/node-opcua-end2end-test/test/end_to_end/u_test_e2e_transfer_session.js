@@ -266,8 +266,8 @@ module.exports = function (test) {
                     },
                     // activate the session as expected on same channel used to create it
                     function (callback) {
-                        const userIdentityInfo = { type: UserTokenType.Anonymous};
-                        client1._activateSession(session1, userIdentityInfo,  function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous };
+                        client1._activateSession(session1, userIdentityInfo, function (err) {
                             callback(err);
                         });
                     },
@@ -311,10 +311,17 @@ module.exports = function (test) {
                         });
                         request.requestHeader.authenticationToken = session1.authenticationToken;
                         client1.performMessageTransaction(request, function (err, response) {
-                            should.not.exist(err);
-                            should.exist(response);
-                            response.should.be.instanceOf(ReadResponse);
-                            response.responseHeader.serviceResult.should.eql(StatusCodes.BadSecureChannelIdInvalid);
+                            if (err) {
+                                should.exist(err.response);
+                                should.exist(err.request);
+                                err.response.should.be.instanceOf(ServiceFault);
+                                err.response.responseHeader.serviceResult.should.eql(StatusCodes.BadSecureChannelIdInvalid);
+                            } else {
+                                should.not.exist(err);
+                                should.exist(response);
+                                response.should.be.instanceOf(ServiceFault);
+                                response.responseHeader.serviceResult.should.eql(StatusCodes.BadSecureChannelIdInvalid);
+                            }
                             callback();
                         });
                     },
@@ -410,8 +417,8 @@ module.exports = function (test) {
                     // activate the session as expected on same channel used to create it
                     // so we can close it properly
                     function (callback) {
-                        const userIdentityInfo = { type: UserTokenType.Anonymous};
-                        client1._activateSession(session1,userIdentityInfo, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous };
+                        client1._activateSession(session1, userIdentityInfo, function (err) {
                             should.not.exist(err);
                             session1.close(callback);
                         });
@@ -493,8 +500,8 @@ module.exports = function (test) {
                     // activate the session as expected on same channel used to create it
                     function (callback) {
                         //xx console.log(" activate session");
-                        const userIdentityInfo = { type: UserTokenType.Anonymous};
-                        client1._activateSession(session1,userIdentityInfo, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous };
+                        client1._activateSession(session1, userIdentityInfo, function (err) {
                             callback(err);
                         });
                     },
@@ -648,8 +655,8 @@ module.exports = function (test) {
                     },
                     // activate the session as expected on same channel used to create it
                     function (callback) {
-                        const userIdentityInfo = { type: UserTokenType.Anonymous};
-                        client1._activateSession(session1,userIdentityInfo, function (err) {
+                        const userIdentityInfo = { type: UserTokenType.Anonymous };
+                        client1._activateSession(session1, userIdentityInfo, function (err) {
                             callback(err);
                         });
                     },
