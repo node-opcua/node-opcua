@@ -1622,7 +1622,6 @@ export class OPCUAServer extends OPCUABaseServer {
                         this.raiseEvent("AuditCertificateExpiredEventType", {
                             certificate: { dataType: DataType.ByteString, value: certificate },
                             sourceName: { dataType: DataType.String, value: "Security/Certificate" },
-                            comment: { dataType: DataType.String, value: certificateStatus.toString() }
                         });
                         break;
                     case StatusCodes.BadCertificateRevoked:
@@ -1631,7 +1630,6 @@ export class OPCUAServer extends OPCUABaseServer {
                         this.raiseEvent("AuditCertificateRevokedEventType", {
                             certificate: { dataType: DataType.ByteString, value: certificate },
                             sourceName: { dataType: DataType.String, value: "Security/Certificate" },
-                            comment: { dataType: DataType.String, value: certificateStatus.toString() }
                         });
                         break;
                     case StatusCodes.BadCertificateIssuerUseNotAllowed:
@@ -1640,7 +1638,6 @@ export class OPCUAServer extends OPCUABaseServer {
                         this.raiseEvent("AuditCertificateMismatchEventType", {
                             certificate: { dataType: DataType.ByteString, value: certificate },
                             sourceName: { dataType: DataType.String, value: "Security/Certificate" },
-                            comment: { dataType: DataType.String, value: certificateStatus.toString() }
                         });
                         break;
                 }
