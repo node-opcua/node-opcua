@@ -67,7 +67,8 @@ async function testServerStartupAndShutdown(host: string | undefined, port: numb
 
         return results;
     } catch (err) {
-        console.error(`ERROR: failed server startup/shutdown with msg: ${err.message}`);
+
+        console.error(`ERROR: failed server startup/shutdown with msg: ${(err as Error).message}`);
         throw err;
     }
 }
