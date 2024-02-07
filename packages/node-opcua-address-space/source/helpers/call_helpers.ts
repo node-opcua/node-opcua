@@ -53,10 +53,10 @@ export function callMethodHelper(
 
     const methodObj = addressSpace.findNode(methodId) as UAMethod;
     if (!methodObj) {
-        return callback(null, { statusCode: StatusCodes.BadNodeIdUnknown });
+        return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
     }
     if (methodObj.nodeClass !== NodeClass.Method) {
-        return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
+        return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
     }
 
     const response1 = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
