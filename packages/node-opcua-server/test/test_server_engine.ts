@@ -1590,7 +1590,7 @@ describe("testing ServerEngine", function () {
 
     describe("ServerEngine read maxAge", () => {
         let clock: SinonFakeTimers;
-        let timerId: NodeJS.Timer;
+        let timerId: NodeJS.Timeout;
         beforeEach(function () {
             const old_setInterval = setInterval;
             clock = sinon.useFakeTimers(new Date(2000, 11, 25, 0, 0, 0));
