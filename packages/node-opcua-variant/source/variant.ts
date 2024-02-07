@@ -342,7 +342,7 @@ function internalDecodeVariant(self: Variant, stream: BinaryStream) {
         const verification = calculate_product(self.dimensions);
         /* istanbul ignore next */
         if (verification !== self.value.length) {
-            throw new Error("BadDecodingError");
+            throw new Error("internalDecodeVariant: BadDecodingError: inconsistent matrix ");
         }
     }
 }
