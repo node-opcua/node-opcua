@@ -56,7 +56,7 @@ import {
     ShutdownTask,
     RaiseEventData
 } from "node-opcua-address-space-base";
-import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import { make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 
 import { adjustBrowseDirection } from "../source/helpers/adjust_browse_direction";
 import { UARootFolder } from "../source/ua_root_folder";
@@ -80,6 +80,7 @@ import { BaseNodeImpl } from "./base_node_impl";
 const doDebug = false;
 const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 // tslint:disable-next-line:no-var-requires
 const Dequeue = require("dequeue");
@@ -808,8 +809,8 @@ export class AddressSpace implements AddressSpacePrivate {
                 }
                 /* istanbul ignore next */
                 if (!alreadyVisited(k)) {
-                    throw new Error(
-                        " cannot find property '" +
+                    warningLog(
+                        "constructEventData:  cannot find property '" +
                             k +
                             "' in [ " +
                             Object.keys(visitedProperties).join(", ") +
