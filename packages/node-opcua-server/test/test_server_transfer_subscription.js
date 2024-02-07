@@ -130,7 +130,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 priority: 14 // Byte
             });
 
-            // ===> some data arrive ( initnal value  )!!!
+            // ===> some data arrive ( initial value  )!!!
             const monitoredItem1 = add_mock_monitored_item(subscription);
 
             // Given there is no Publish Request
@@ -298,7 +298,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             monitoredItem1.simulateMonitoredItemAddingNotification();
             monitoredItem2.simulateMonitoredItemAddingNotification();
 
-            // wait for initital data to be received
+            // wait for initial data to be received
             // server has now some notification ready and send them to the client
             const publishSpy1 = sinon.spy();
             session1.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 100 } }), publishSpy1);
@@ -323,8 +323,8 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 console.log("transferResult", transferResult.toString());
             }
 
-            // the transertResult.availbeSequenceNumber shall be One at this point because
-            // there was an unacknowledge sequence in session1 that can be republished in the context of session2
+            // the transferResult.availableSequenceNumber shall be One at this point because
+            // there was an un-acknowledged sequence in session1 that can be republished in the context of session2
             transferResult.statusCode.should.eql(StatusCodes.Good);
             transferResult.availableSequenceNumbers.length.should.eql(1);
             transferResult.availableSequenceNumbers.should.eql([1]);
@@ -346,7 +346,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             publishSpy1.getCall(0).args[1].responseHeader.serviceResult.should.eql(StatusCodes.Good);
             publishSpy1.getCall(0).args[1].notificationMessage.sequenceNumber.should.eql(2);
 
-            // as subscription has been transfered, previously available sequenceNumber shall not be
+            // as subscription has been transferred, previously available sequenceNumber shall not be
             // available anymore
             publishSpy1.getCall(0).args[1].availableSequenceNumbers.length.should.eql(1, "");
             publishSpy1
@@ -367,7 +367,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 console.log("---------------------------------------------------- 3");
                 console.log(publishSpy2.getCall(0).args[1].toString());
             }
-            // now calling republish on old session should fail because subscription has been transfered
+            // now calling republish on old session should fail because subscription has been transferred
             const availableSequenceNumbers2 = publishSpy2.getCall(0).args[1].availableSequenceNumbers;
             availableSequenceNumbers2.should.eql([1, 3]);
 
@@ -511,7 +511,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             sendPublishRequest(session1, publishSpy1);
             test.clock.tick(subscription.publishingInterval);
 
-            // wait for initital data to be received
+            // wait for initial data to be received
             // server has now some notification ready and send them to the client
             sendPublishRequest(session1, publishSpy1);
 
@@ -571,7 +571,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 console.log("---------------------------------------------------- 3");
                 console.log(publishSpy2.getCall(0).args[1].availableSequenceNumbers.toString());
             }
-            // now calling republish on old session should fail because subscription has been transfered
+            // now calling republish on old session should fail because subscription has been transferred
             let retransmitSequenceNumber = 1;
             let notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
             should(notificationMessage).not.eql(null);
