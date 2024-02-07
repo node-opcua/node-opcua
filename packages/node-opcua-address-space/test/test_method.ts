@@ -5,7 +5,7 @@ import { CallbackT, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantLike } from "node-opcua-variant";
 
 import { CallMethodResultOptions, NodeClass } from "node-opcua-types";
-import { AddressSpace, Namespace, UARootFolder, UAMethod, ISessionContext } from "..";
+import { AddressSpace, Namespace, UARootFolder, UAMethod, ISessionContext, PseudoSession } from "..";
 import { SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
@@ -200,4 +200,54 @@ describe("testing Method binding", () => {
         result.outputArguments![1]!.dataType!.should.eql(DataType.UInt32);
         result.statusCode!.should.eql(StatusCodes.BadBoundNotFound);
     });
+});
+
+
+
+
+
+describe("testing Method calling", () => {
+    let addressSpace: AddressSpace;
+    let rootFolder: UARootFolder;
+
+    before(async () => {
+        addressSpace = await getMiniAddressSpace();
+        rootFolder = addressSpace.rootFolder;
+        rootFolder.browseName.toString().should.equal("Root");
+    });
+    after(async () => {
+        addressSpace.dispose();
+    });
+
+    it("should return BadMethodInvalid if methodId is invalid", async () => {
+      
+        const server = rootFolder.objects.server;
+        const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
+      
+        const pseudoSession = new PseudoSession(addressSpace);
+
+        const result  = await pseudoSession.call({
+            objectId: server.nodeId,
+            methodId: "ns=0;i=2258", // not a method
+            inputArguments
+        });
+
+        result.statusCode!.should.eql(StatusCodes.BadMethodInvalid);
+       
+    });
+    it("should return BadMethodInvalid if methodId node does'nt exist", async () => {
+        const server = rootFolder.objects.server;
+        const inputArguments = [{ dataType: DataType.UInt32, value: 5 }];
+
+        const pseudoSession = new PseudoSession(addressSpace);
+
+        const result = await pseudoSession.call({
+            objectId: server.nodeId,
+            methodId: "ns=10;s=NotExistingNode", // not a valid node
+            inputArguments
+        });
+
+        result.statusCode!.should.eql(StatusCodes.BadMethodInvalid);
+    });
+
 });
