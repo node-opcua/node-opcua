@@ -87,6 +87,8 @@ const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
 
+const HasEventSourceReferenceType = resolveNodeId("HasEventSource");
+const HasNotifierReferenceType = resolveNodeId("HasNotifier");  
 
 function defaultBrowseFilterFunc(context?: ISessionContext): boolean {
     return true;
@@ -180,7 +182,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return _private._displayName;
     }
 
-    
     public setDisplayName(value: LocalizedTextLike[] | LocalizedTextLike): void {
         if (!Array.isArray(value)) {
             return this.setDisplayName([value]);
@@ -199,7 +200,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return _private._description!;
     }
 
-    public setDescription(value: LocalizedTextLike| null): void {
+    public setDescription(value: LocalizedTextLike | null): void {
         this._setDescription(value);
         /**
          * fires when the description attribute is changed.
@@ -504,6 +505,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     /**
      * return a array with the notifiers of this object.
+     * only reference of exact type HasNotifier are returned.
      */
     public getNotifiers(): BaseNode[] {
         // const _cache = BaseNode_getCache(this);
@@ -511,11 +513,12 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         //     _cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
         // }
         // return _cache._notifiers;
-        return this.findReferencesAsObject("HasNotifier", true);
+        return this.findReferencesAsObject(HasNotifierReferenceType, true);
     }
 
     /**
      * return a array with the event source of this object.
+     *  only reference of exact type HasEventSource are returned.
      */
     public getEventSources(): BaseNode[] {
         // const _cache = BaseNode_getCache(this);
@@ -523,7 +526,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         //     _cache._eventSources = this.findReferencesAsObject("HasEventSource", true);
         // }
         // return _cache._eventSources;
-        return this.findReferencesAsObject("HasEventSource", true);
+        return this.findReferencesAsObject(HasEventSourceReferenceType, true);
     }
 
     /**
@@ -535,7 +538,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         //     _cache._eventSources = this.findReferencesAsObject("HasEventSource", false);
         // }
         // return _cache._eventSources;
-        return this.findReferencesAsObject("HasEventSource", false);
+        return this.findReferencesAsObject(HasEventSourceReferenceType, false);
     }
 
     /**
