@@ -91,7 +91,7 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
-function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number): VariantOptions | undefined {
+function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number, arrayDimensions?: number[]  |null): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
@@ -136,7 +136,7 @@ function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, v
                 break;
             default:
                 arrayType = VariantArrayType.Matrix;
-                variant = { dataType: basicDataType, value: [], arrayType, dimensions: [] };
+                variant = { dataType: basicDataType, value: [], arrayType, dimensions: arrayDimensions };
                 break;
         }
     }
@@ -1408,7 +1408,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 const task = async (addressSpace2: IAddressSpace) => {
                     const dataTypeNode = capturedVariable.dataType;
                     const valueRank = capturedVariable.valueRank;
-                    const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank);
+                    const arrayDimensions = capturedVariable.arrayDimensions;
+             
+                    const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank, arrayDimensions);
                     if (value) {
                         if (false && doDebug) {
                             debugLog("2 setting value to ", capturedVariable.nodeId.toString(), value);
