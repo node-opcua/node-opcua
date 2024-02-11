@@ -1,17 +1,17 @@
 import { QualifiedNameLike, QualifiedNameOptions } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-types";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
-import { Byte } from "node-opcua-basic-types";
 
 import { InstantiateOptions } from "./instantiate_options";
 import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
 import { UAObject } from "./ua_object";
 import { UAMethod } from "./ua_method";
+import { EventNotifierFlags } from "./event_notifier_flags";
 
 export interface InstantiateObjectOptions extends InstantiateOptions {
     //
     conditionSource?: NodeId | BaseNode | null;
-    eventNotifier?: Byte;
+    eventNotifier?: EventNotifierFlags;
     // for DataTypeEncodingType
     encodingOf?: NodeId | BaseNode;
 }
