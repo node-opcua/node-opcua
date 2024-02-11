@@ -9,6 +9,7 @@ import { CallMethodResultOptions } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
 import { VariantLike, DataType } from "node-opcua-variant";
 import { UAFolder, UAAnalogItem } from "node-opcua-nodeset-ua";
+import { EventNotifierFlags } from "node-opcua-address-space-base";
 import {
     AddressSpace,
     BaseNode,
@@ -147,7 +148,7 @@ export interface Boiler extends UAObject {
     simulation: BoilerStateMachine;
 }
 
-function MygetExecutableFlag(method: UAMethod, toState: string, methodName: string) {
+function myGetExecutableFlag(method: UAMethod, toState: string, methodName: string) {
     const stateMachineW = promoteToStateMachine(method.parent!);
     return stateMachineW.isValidTransition(toState);
 }
@@ -173,7 +174,7 @@ function implementProgramStateMachine(programStateMachine: UAObject): void {
 
         method._getExecutableFlag = function (/* sessionContext: SessionContext */) {
             // must use  a function here to capture 'this'
-            return MygetExecutableFlag(this as UAMethod, toState, methodName);
+            return myGetExecutableFlag(this as UAMethod, toState, methodName);
         };
 
         method.bindMethod(function (
@@ -419,8 +420,11 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "FlowTransmitter",
         componentOf: boilerInputPipeType,
         modellingRule: "Mandatory",
-        notifierOf: boilerInputPipeType
+        notifierOf: boilerInputPipeType,
+        eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as FlowTransmitter;
+    assert(ftx1.eventNotifier === EventNotifierFlags.SubscribeToEvents);
+
     assert(ftx1.output.browseName.toString() === `${namespace.index}:Output`);
 
     const valve1 = valveType.instantiate({
@@ -441,7 +445,8 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "FlowTransmitter",
         componentOf: boilerOutputPipeType,
         modellingRule: "Mandatory",
-        notifierOf: boilerOutputPipeType
+        notifierOf: boilerOutputPipeType,
+        eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as FlowTransmitter;
 
     ftx2.getComponentByName("Output")!.browseName.toString();
@@ -458,8 +463,10 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "LevelIndicator",
         componentOf: boilerDrumType,
         modellingRule: "Mandatory",
-        notifierOf: boilerDrumType
+        notifierOf: boilerDrumType,
+        eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as LevelIndicator;
+    assert(levelIndicator.eventNotifier === EventNotifierFlags.SubscribeToEvents);
 
     const programFiniteStateMachineType = addressSpace.findObjectType("ProgramStateMachineType")!;
 
@@ -526,15 +533,18 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "InputPipe",
         componentOf: boilerType,
         modellingRule: "Mandatory",
-        notifierOf: boilerType
+        notifierOf: boilerType,
+        eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as BoilerInputPipe;
+    assert(inputPipe.eventNotifier === EventNotifierFlags.SubscribeToEvents);
 
     // BoilerType.BoilerDrum (BoilerDrumType)
     const boilerDrum = boilerDrumType.instantiate({
         browseName: "BoilerDrum",
         componentOf: boilerType,
         modellingRule: "Mandatory",
-        notifierOf: boilerType
+        notifierOf: boilerType,
+        eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as BoilerDrum;
 
     // BoilerType.OutputPipe (BoilerOutputPipeType)
@@ -542,7 +552,8 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "OutputPipe",
         componentOf: boilerType,
         modellingRule: "Mandatory",
-        notifierOf: boilerType
+        notifierOf: boilerType,
+        eventNotifier: EventNotifierFlags.SubscribeToEvents
     }) as BoilerOutputPipe;
 
     // BoilerType.Simulation (BoilerStateMachineType)
