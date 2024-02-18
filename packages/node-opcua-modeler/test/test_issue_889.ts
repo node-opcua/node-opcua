@@ -135,6 +135,10 @@ describe("loading very large DataType Definitions ", function (this: any) {
             )
         );
 
+        // now clear the continuation points
+        const continuationPoints = browseResults.map((a) => a.continuationPoint);
+        await session.browseNext(continuationPoints, true);
+
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
 

@@ -152,8 +152,7 @@ describe("ContinuationPointManager", () => {
 
             const results = cpm.registerHistoryReadRaw(maxElements, [1, 2, 3, 4, 5, 6, 7, 8].map(toDV), {
                 continuationPoint: null,
-                releaseContinuationPoints: false,
-                index: 0
+                releaseContinuationPoints: false
             });
             results.statusCode.should.eql(StatusCodes.Good);
             results.values!.should.eql([1, 2].map(toDV));
@@ -161,21 +160,24 @@ describe("ContinuationPointManager", () => {
 
             const results2 = cpm.getNextHistoryReadRaw(maxElements, {
                 continuationPoint: results.continuationPoint,
-                index: 0,
+
                 releaseContinuationPoints: true // <<< RELEASING THE CONTINUATION POINT
             });
             results2.statusCode.should.eql(StatusCodes.Good);
-            results2.values!.should.eql([3, 4].map(toDV));
+
+            (!results2.values || results2.values.length === 0).should.eql(true);
+
+            // in this results2.values!.should.eql([3, 4].map(toDV));
             should.not.exist(results2.continuationPoint);
 
             const results3 = cpm.getNextHistoryReadRaw(maxElements, {
                 continuationPoint: results.continuationPoint,
-                index: 0,
+
                 releaseContinuationPoints: false
             });
             results3.statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
         });
-        it("it shall automatically free ContinuationPoints from prior requests if a new request from this Session.", () => {
+        it("it shall NOT automatically free ContinuationPoints from prior requests if a new registerHistoryReadRaw request from this Session is made", () => {
             const cpm = new ContinuationPointManager();
 
             const fullArray = [1, 2, 3, 4, 5, 6, 7, 8].map(toDV);
@@ -184,7 +186,7 @@ describe("ContinuationPointManager", () => {
             const results = cpm.registerHistoryReadRaw(maxElements, [1, 2, 3, 4, 5, 6, 7, 8].map(toDV), {
                 continuationPoint: null,
                 releaseContinuationPoints: false,
-                index: 0
+
             });
             results.statusCode.should.eql(StatusCodes.Good);
             results.values!.should.eql([1, 2].map(toDV));
@@ -193,7 +195,7 @@ describe("ContinuationPointManager", () => {
             const results1 = cpm.registerHistoryReadRaw(maxElements, [10, 20, 30, 40, 50, 60, 70, 80].map(toDV), {
                 continuationPoint: null,
                 releaseContinuationPoints: false,
-                index: 0
+
             });
             results1.statusCode.should.eql(StatusCodes.Good);
             should.exist(results1.continuationPoint);
@@ -201,7 +203,7 @@ describe("ContinuationPointManager", () => {
             const results2 = cpm.getNextHistoryReadRaw(maxElements, {
                 continuationPoint: results.continuationPoint
             });
-            results2.statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
+            results2.statusCode.should.eql(StatusCodes.Good);
         });
     });
 });

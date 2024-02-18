@@ -35,7 +35,6 @@ export interface IContinuationPointInfo<T> {
 export interface ContinuationData {
     continuationPoint?: ContinuationPoint | null;
     releaseContinuationPoints?: boolean;
-    index?: number;
 }
 export interface IContinuationPointManager {
     //
