@@ -24,7 +24,7 @@ function add_mock_monitored_item(subscription) {
         dispose() {
             /**  empty */
         },
-        async resendInitialValues() {
+        async resendInitialValue() {
             this.simulateMonitoredItemAddingNotification();
         }
     };

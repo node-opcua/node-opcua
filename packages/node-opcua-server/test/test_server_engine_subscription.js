@@ -6,7 +6,7 @@ const { MonitoringMode, PublishRequest } = require("node-opcua-service-subscript
 const { StatusCodes, StatusCode } = require("node-opcua-status-code");
 const { TimestampsToReturn } = require("node-opcua-service-read");
 const { MonitoredItemCreateRequest } = require("node-opcua-service-subscription");
-const { ServiceFault } = require("node-opcua-types");
+const { ServiceFault, PublishResponse } = require("node-opcua-types");
 
 const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
 
@@ -308,9 +308,7 @@ describe("ServerEngine Subscriptions service", function () {
             subscription1.state.should.eql(SubscriptionState.LATE);
 
             // wait until subscription expires entirely
-            test.clock.tick(
-                subscription1.publishingInterval * subscription1.maxKeepAliveCount
-            );
+            test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
             subscription1.state.should.eql(SubscriptionState.LATE);
 
             test.clock.tick(subscription1.publishingInterval * subscription1.lifeTimeCount);
@@ -525,6 +523,92 @@ describe("ServerEngine Subscriptions service", function () {
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             // wait until subscription expired by timeout
             test.clock.tick(subscription.publishingInterval * subscription.lifeTimeCount);
+        });
+    });
+
+    it("AZW3 empty subscription should send their first keep alive after one publishing Interval and then after maxKeepAliveCount*publishing Interval ", async () => {
+        // given a subscription with monitored Item
+        // given that the client doesn't send Publish Request
+        // When the subscription times out and closed
+        // And  When the client send a PublishRequest notification
+        // Then the client shall receive the StatusChangeNotification
+        await with_fake_timer.call(test, async () => {
+            session = engine.createSession({ sessionTimeout: 100000000 });
+
+            const subscription_parameters = {
+                requestedPublishingInterval: 1000, // Duration
+                requestedLifetimeCount: 60, // Counter
+                requestedMaxKeepAliveCount: 10, // Counter
+                maxNotificationsPerPublish: 10, // Counter
+                publishingEnabled: true, // Boolean
+                priority: 14 // Byte
+            };
+
+            const creationDate = new Date();
+
+            const subscription1 = session.createSubscription(subscription_parameters);
+            subscription1.state.should.eql(SubscriptionState.CREATING);
+
+            const publishSpy = sinon.spy();
+
+            const sendPublishRequest = async () => {
+                session.publishEngine._on_PublishRequest(
+                    new PublishRequest({
+                        requestHeader: {
+                            requestHandle: 101,
+                            timestamp: new Date()
+                        }
+                    }),
+                    publishSpy
+                );
+            };
+
+            await sendPublishRequest();
+
+            // wait until session expired by being late
+            test.clock.tick(subscription1.publishingInterval * 2);
+
+            publishSpy.callCount.should.eql(1);
+
+            await sendPublishRequest();
+
+            // wait until session expired by being late
+            test.clock.tick(subscription1.publishingInterval * 11);
+            publishSpy.callCount.should.eql(2);
+
+            await engine.closeSession(session.authenticationToken, true, "CloseSession");
+
+            // -------------------------- First PublishResponse
+            const publishResponse1 = publishSpy.getCall(0).args[1]; /* as PublishResponse */
+            console.log(publishResponse1.toString());
+
+            // ... should be a keep alive
+            publishResponse1.subscriptionId.should.eql(subscription1.subscriptionId);
+            publishResponse1.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+            publishResponse1.notificationMessage.sequenceNumber.should.eql(1);
+            publishResponse1.notificationMessage.notificationData.length.should.eql(0);
+
+            // -------------------------- Second PublishResponse
+            const publishResponse2 = publishSpy.getCall(1).args[1]; /* as PublishResponse */
+            console.log(publishResponse2.toString());
+
+            // ... should be a keep alive
+            publishResponse2.subscriptionId.should.eql(subscription1.subscriptionId);
+            publishResponse2.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+            publishResponse2.notificationMessage.sequenceNumber.should.eql(1);
+            publishResponse2.notificationMessage.notificationData.length.should.eql(0);
+
+            // verify that the first keep alive message was sent after  1 time publishing interval milliseconds
+            const resultDate1 = publishResponse1.responseHeader.timestamp;
+            const delayBetweenCreateAndFirstKeepAlive = resultDate1 - creationDate;
+            console.log("delayBetweenCreateAndFirstKeepAlive", delayBetweenCreateAndFirstKeepAlive);
+            delayBetweenCreateAndFirstKeepAlive.should.be.approximately(1000, 100);
+
+            // verify that the delay between the first and second keep alive is approximately 10 x publishingInterval
+            const resultDate2 = publishResponse2.responseHeader.timestamp;
+            const delayBetweenFirstAndSecondKeepAlive = resultDate2 - resultDate1;
+            console.log("delayBetweenFirstAndSecondKeepAlive", delayBetweenFirstAndSecondKeepAlive);
+            delayBetweenFirstAndSecondKeepAlive.should.be.approximately(1000 * 10, 100);
         });
     });
 });

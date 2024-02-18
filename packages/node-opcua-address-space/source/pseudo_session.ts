@@ -68,10 +68,7 @@ export function innerBrowse(
             if (!engine.continuationPointManager) {
                 return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
             }
-            if (index === 0) {
-                // clear previous continuation points
-                engine.continuationPointManager.clearContinuationPoints();
-            }
+
             if (engine.continuationPointManager.hasReachedMaximum(engine.maxBrowseContinuationPoints)) {
                 return new BrowseResult({ statusCode: StatusCodes.BadNoContinuationPoints });
             }
@@ -79,7 +76,7 @@ export function innerBrowse(
             const truncatedResult = engine.continuationPointManager.registerReferences(
                 engine.requestedMaxReferencesPerNode,
                 result.references || [],
-                { continuationPoint: null, index }
+                { continuationPoint: null }
             );
             let { statusCode } = truncatedResult;
             const { continuationPoint, values } = truncatedResult;
@@ -108,7 +105,6 @@ export function innerBrowseNext(
         .map((continuationPoint: ContinuationPoint, index: number) => {
             return engine.continuationPointManager.getNextReferences(0, {
                 continuationPoint,
-                index,
                 releaseContinuationPoints
             });
         })

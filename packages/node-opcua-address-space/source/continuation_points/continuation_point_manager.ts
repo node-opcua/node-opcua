@@ -35,9 +35,9 @@ interface Data {
  * - The Client specifies the maximum number of results per operation in the request message.
  * - A Server shall not return more than this number of results but it may return fewer results.
  * - The Server allocates a  ContinuationPoint if there are more results to return.
- * - Servers shall support at least one ContinuationPoint per Session. 
+ * - Servers shall support at least one ContinuationPoint per Session.
  * - Servers specify a maximum number of ContinuationPoints per Session in the ServerCapabilities Object defined in OPC 10000-5.
- * - ContinuationPoints remain active until 
+ * - ContinuationPoints remain active until
  *     a/ the Client retrieves the remaining results,
  *     b/ or, the Client releases the ContinuationPoint
  *     c/ or the Session is closed.
@@ -45,9 +45,9 @@ interface Data {
  *   from this Session.
  * - The Server returns a Bad_ContinuationPointInvalid error if a Client tries to use a ContinuationPoint that has been released.
  * - A Client can avoid this situation by completing paused operations before starting new operations.
- *   For Session-less Service invocations, the ContinuationPoints are shared across all Session-less Service invocations from all Clients. 
+ *   For Session-less Service invocations, the ContinuationPoints are shared across all Session-less Service invocations from all Clients.
  *   The Server shall support at least the maximum number of ContinuationPoints it would allow for one Session.
- * 
+ *
  * - Requests will often specify multiple operations that may or may not require a ContinuationPoint.
  * - A Server shall process the operations until it uses the maximum number of continuation points in this response.
  *   Once that happens the Server shall return a Bad_NoContinuationPoints error for any remaining operations. A Client can avoid
@@ -57,7 +57,7 @@ interface Data {
  *   provided so Servers shall never return Bad_NoContinuationPoints error when continuing a previously halted operation.
  *   A ContinuationPoint is a subtype of the ByteString data type.
  *
- * 
+ *
  * for historical access: https://reference.opcfoundation.org/v104/Core/docs/Part11/6.3/
  *
  * The continuationPoint parameter in the HistoryRead Service is used to mark a point from which to continue
@@ -105,11 +105,6 @@ export class ContinuationPointManager implements IContinuationPointManager {
         return nbContinuationPoints >= maxContinuationPoint;
     }
 
-    public clearContinuationPoints() {
-        // call when a new request to the server is received
-        this._map.clear();
-    }
-
     public registerHistoryReadRaw(
         numValuesPerNode: number,
         dataValues: DataValue[],
@@ -144,26 +139,49 @@ export class ContinuationPointManager implements IContinuationPointManager {
         return this._getNext(numValues, continuationData);
     }
 
+    public clearContinuationPoint(continuationPoint: ContinuationPoint) {
+        const keyHash = continuationPoint.toString("utf-8");
+        if (this._map.has(keyHash)) {
+            this._map.delete(keyHash);
+        }
+    }
+    public clearContinuationPoints(continuationPoints: ContinuationPoint[]) {
+        for (const continuationPoint of continuationPoints) {
+            this.clearContinuationPoint(continuationPoint);
+        }
+        return {
+            continuationPoint: undefined,
+            values: [],
+            statusCode: StatusCodes.Good
+        };
+    }
+    public clear() {
+        this._map.clear();
+    }
+
+    public dispose() {
+        this.clear();
+    }
     private _register<T extends DataValue | ReferenceDescription>(
         maxValues: number,
         values: T[],
         continuationData: ContinuationData
     ): IContinuationPointInfo<T> {
-        if (continuationData.releaseContinuationPoints) {
-            this.clearContinuationPoints();
+        // A Server shall automatically free ContinuationPoints from prior requests from a Session
+        // if they are needed to process a new request from this Session.
+        // if (!continuationData.continuationPoint && !continuationData.index) {
+        //     if (this._map.size > 0) {
+        //         warningLog("flushing pending continuationPoints", this._map.size);
+        //         this.clearContinuationPoints();
+        //     }
+        // }
+        if (continuationData.releaseContinuationPoints && !continuationData.continuationPoint) {
             return {
                 continuationPoint: undefined,
                 values: [],
-                statusCode: StatusCodes.Good
+                statusCode: StatusCodes.BadContinuationPointInvalid
             };
         }
-        if (!continuationData.continuationPoint && !continuationData.index) {
-            if (this._map.size > 0 ) {
-                warningLog("flushing pending continuationPoints" , this._map.size );
-                this.clearContinuationPoints();
-            }
-        }
-
         if (maxValues >= 1) {
             // now make sure that only the requested number of value is returned
             if (values.length === 0) {
@@ -224,11 +242,21 @@ export class ContinuationPointManager implements IContinuationPointManager {
                 statusCode: StatusCodes.BadContinuationPointInvalid
             };
         }
+        if (continuationData.releaseContinuationPoints) {
+            // releaseContinuationPoints expect immediate release of all continuation points
+            this._map.delete(keyHash);
+            return {
+                continuationPoint: undefined,
+                values: [],
+                statusCode: StatusCodes.Good
+            };
+        }
 
         const values = data.values.splice(0, numValues || data.maxElements) as T[];
 
         let continuationPoint: ContinuationPoint | undefined = continuationData.continuationPoint;
-        if (data.values.length === 0 || continuationData.releaseContinuationPoints) {
+
+        if (data.values.length === 0) {
             // no more data available for next call
             this._map.delete(keyHash);
             continuationPoint = undefined;

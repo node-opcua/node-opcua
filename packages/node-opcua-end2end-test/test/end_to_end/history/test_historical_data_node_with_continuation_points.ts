@@ -11,7 +11,8 @@ import {
     HistoryData,
     NodeId,
     StatusCode,
-    DataValue
+    DataValue,
+    VariableIds
 } from "node-opcua-client";
 
 const port = 2076;
@@ -114,12 +115,10 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             dataValues2[1].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 4 }).getTime());
             dataValues2[2].sourceTimestamp!.getTime().should.eql(date_add(today, { seconds: 5 }).getTime());
 
-            // make_second_continuation_read(callback) {
+            // make a second read with a continuation point to extract more data
             const historyReadResponse3 = await session.historyRead(
                 new HistoryReadRequest({
-                    nodesToRead: [
-                        { nodeId, indexRange, dataEncoding, continuationPoint },
-                    ],
+                    nodesToRead: [{ nodeId, indexRange, dataEncoding, continuationPoint }],
                     historyReadDetails,
                     releaseContinuationPoints: false,
                     timestampsToReturn: TimestampsToReturn.Both
@@ -127,6 +126,11 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             );
             const historyReadResult3 = historyReadResponse3.results![0];
             historyReadResult3.statusCode.should.eql(StatusCodes.Good);
+
+            should.not.exist(
+                historyReadResponse3.results![0].continuationPoint,
+                "expecting all data to have been read, no continuation point expected"
+            );
 
             const dataValues3 = (historyReadResult3.historyData as HistoryData).dataValues!;
             dataValues3.length.should.eql(1);
@@ -168,13 +172,12 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
         const dataEncoding = undefined;
 
         const readRequest = new HistoryReadRequest({
-            nodesToRead: [
-                { nodeId, indexRange, dataEncoding, continuationPoint: cntPoint }
-            ],
+            nodesToRead: [{ nodeId, indexRange, dataEncoding, continuationPoint: cntPoint }],
             historyReadDetails,
             releaseContinuationPoints,
             timestampsToReturn: TimestampsToReturn.Both
         });
+
         const historyReadResponse = await session.historyRead(readRequest);
         const historyReadResult = historyReadResponse.results![0];
         const statusCode = historyReadResult.statusCode;
@@ -187,11 +190,22 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
         const endpointUrl = server.getEndpointUrl();
         const client = OPCUAClient.create({ endpointMustExist: false });
 
-        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+        const cont1 = await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             // given that the client has sent a historyRead request that generated a continuation point with releaseContinuationPoints=true
-            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, true);
-            should.not.exist(cont1.continuationPoint);
+
+            // note : in this example, we've releaseContinuationPoints=true and no continuationPoint
+            //        This behavior is ambiguously defined in the specification and is not recommended.
+            //        THe server should return a BadContinuationPointInvalid in this case.
+            const releaseContinuationPoints = true;
+            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(
+                session,
+                undefined,
+                releaseContinuationPoints
+            );
+            return cont1;
         });
+        should.not.exist(cont1.continuationPoint);
+        should(cont1.statusCode).eql(StatusCodes.BadContinuationPointInvalid);
     });
     it("should readHistory with continuation point - server should not server continuation point that have been released", async () => {
         const endpointUrl = server.getEndpointUrl();
@@ -199,40 +213,81 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
 
         await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             // given that the client has sent a historyRead request that generated a continuation point with releaseContinuationPoints=false
-            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
+            const releaseContinuationPointsFalse = false;
+            const releaseContinuationPointsTrue = true;
+            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(
+                session,
+                undefined,
+                releaseContinuationPointsFalse
+            );
             should.exist(cont1.continuationPoint);
             cont1.statusCode.should.eql(StatusCodes.Good);
-         
+
             // when that the client has sent a historyRead request that generated a continuation point with releaseContinuationPoints=true
-            const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, cont1.continuationPoint, true);
+            const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(
+                session,
+                cont1.continuationPoint,
+                releaseContinuationPointsTrue
+            );
             should.not.exist(cont2.continuationPoint);
             cont2.statusCode.should.eql(StatusCodes.Good);
 
             // then the server should serve the continuation point anymore
-            const cont3 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, cont1.continuationPoint, true);
+            const cont3 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(
+                session,
+                cont1.continuationPoint,
+                releaseContinuationPointsTrue
+            );
             should.not.exist(cont3.continuationPoint);
             cont3.statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
-
         });
     });
 
-    it("the server shall automatically free ContinuationPoints from prior requests from a Session if they are needed to process a new request from this Session.", async () => {
+    it("the server shall NOT automatically free ContinuationPoints from prior requests from a Session if they are needed to process a new request from this Session.", async () => {
         const endpointUrl = server.getEndpointUrl();
         const client = OPCUAClient.create({ endpointMustExist: false });
 
         await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             // given that the client has sent a first historyRead request that generated a continuation point
-            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined);
+            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
             cont1.statusCode.should.eql(StatusCodes.Good);
 
             // and given that the client send a second historyRead request again
-            const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined);
+            const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
             cont2.statusCode.should.eql(StatusCodes.Good);
 
             // when the client try to read again with the continuation point of the first request
             const cont3 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, cont1.continuationPoint);
-            // then the server shall return with BadContinuationPointInvalid
-            cont3.statusCode.should.eql(StatusCodes.BadContinuationPointInvalid);
+            // then the server shall return with Good status code
+            cont3.statusCode.should.eql(StatusCodes.Good);
         });
     });
+        it("the server shall reject call with BadNoConnectionPoints if they are too many pending requests with continuation points.", async () => {
+            const endpointUrl = server.getEndpointUrl();
+            const client = OPCUAClient.create({ endpointMustExist: false });
+
+            // Server_ServerCapabilities_MaxHistoryContinuationPoints
+             
+
+            await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
+
+              const maxHistoryContinuationPoint = (await session.read({
+                  nodeId: VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+                  attributeId: 13
+              })).value.value;
+         
+                // given that the client has sent a first historyRead request that generated a continuation point
+                const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
+                cont1.statusCode.should.eql(StatusCodes.Good);
+
+                // and given that the client send a second historyRead request again
+                const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
+                cont2.statusCode.should.eql(StatusCodes.Good);
+
+                // when the client try to read again with the continuation point of the first request
+                const cont3 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, cont1.continuationPoint);
+                // then the server shall return with Good status code
+                cont3.statusCode.should.eql(StatusCodes.Good);
+            });
+        });
 });
