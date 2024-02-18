@@ -24,9 +24,9 @@ const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 const doDebug1 = false;
 
-const port2 = 1240;
-const port1 = 1241;
-const discovery_port = 1244;
+const port2 = 12400;
+const port1 = 12401;
+const discovery_port = 12402;
 
 export function t(test: any) {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -520,7 +520,7 @@ export function t(test: any) {
             await server1.shutdown();
 
             // shutdown_server_2(callback: ErrorCallback) {
-            !secondServerFailedToStart && (await server2.shutdown());
+            !secondServerFailedToStart && server2 && (await server2.shutdown());
 
             secondServerFailedToStart.should.eql(true);
         });
