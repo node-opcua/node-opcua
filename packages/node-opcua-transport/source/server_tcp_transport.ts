@@ -169,13 +169,10 @@ export class ServerTCP_transport extends TCP_transport {
      *
      */
     public init(socket: ISocketLike, callback: ErrorCallback): void {
-        assert(socket, "missing called!");
         // istanbul ignore next
         debugLog && debugLog(chalk.cyan("init socket"));
 
         assert(!this._socket, "init already called!");
-        assert(typeof callback === "function", "expecting a valid callback ");
-
         this._install_socket(socket);
         this._install_HEL_message_receiver(callback);
     }
@@ -255,7 +252,7 @@ export class ServerTCP_transport extends TCP_transport {
             if (err) {
                 callback(err);
             } else {
-                // handle the HEL message
+                // pass to next stage handle the HEL message
                 this._on_HEL_message(data!, callback);
             }
         });
@@ -317,6 +314,7 @@ export class ServerTCP_transport extends TCP_transport {
                 // the helloMessage shall only be received once.
                 this._helloReceived = true;
                 this._send_ACK_response(helloMessage);
+                callback(); // no Error
             } catch (err) {
                 // connection rejected because of malformed message
                 return this._abortWithError(
@@ -325,7 +323,6 @@ export class ServerTCP_transport extends TCP_transport {
                     callback
                 );
             }
-            callback(); // no Error
         } else {
             // invalid packet , expecting HEL
             /* istanbul ignore next*/
