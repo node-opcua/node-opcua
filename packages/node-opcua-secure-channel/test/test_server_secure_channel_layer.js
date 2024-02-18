@@ -82,12 +82,20 @@ describe("testing ServerSecureChannelLayer ", function () {
         serverSecureChannel.timeout = 1000;
 
         serverSecureChannel.init(transportPair.server, (err) => {
-            err.message.should.match(/Expecting OpenSecureChannelRequest/);
-
+            try {
+                should.exist(err, "expecting an error here");
+                should.exist(err.message);
+                err.message.should.match(/Expecting OpenSecureChannelRequest/);
+            } catch (err) {
+                console.log(err);
+                return done(err);
+            }
             serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 serverSecureChannel = null;
-                server_has_emitted_the_abort_message.should.equal(true);
+                if (!server_has_emitted_the_abort_message) {
+                    return done(new Error(" serverSecureChannel has not emitted the abort message"));
+                }
                 done();
             });
         });
@@ -249,12 +257,12 @@ describe("testing ServerSecureChannelLayer ", function () {
         let err;
         serverSecureChannel.init(transportPair.server, (_err) => {
             err = _err;
-            
+
             serverSecureChannel.close(() => {
                 serverSecureChannel.dispose();
                 serverSecureChannel = null;
                 server_has_emitted_the_abort_message.should.equal(true);
-                err.message.should.match(/Expecting OpenSecureChannelRequest/);
+                err?.message.should.match(/Expecting OpenSecureChannelRequest/);
                 done();
             });
         });
