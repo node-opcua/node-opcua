@@ -1,53 +1,53 @@
 "use strict";
-const should = require("should");
-const sinon = require("sinon");
+import should from "should";
+import sinon from "sinon";
 
-const { MonitoringMode, PublishRequest } = require("node-opcua-service-subscription");
-const { StatusCodes, StatusCode } = require("node-opcua-status-code");
-const { TimestampsToReturn } = require("node-opcua-service-read");
-const { MonitoredItemCreateRequest } = require("node-opcua-service-subscription");
-const { ServiceFault, PublishResponse } = require("node-opcua-types");
+import { NodeId } from "node-opcua-nodeid";
+import { MonitoringMode, PublishRequest } from "node-opcua-service-subscription";
+import { StatusCodes, StatusCode } from "node-opcua-status-code";
+import { TimestampsToReturn } from "node-opcua-service-read";
+import { MonitoredItemCreateRequest } from "node-opcua-service-subscription";
+import { ServiceFault, PublishResponse } from "node-opcua-types";
 
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-const { ServerEngine, SubscriptionState } = require("..");
-const { with_fake_timer } = require("./helper_with_fake_timer");
+import { ServerEngine, ServerSession, SubscriptionState } from "../source";
+import { with_fake_timer } from "./helper_with_fake_timer";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine Subscriptions service", function () {
+describe("ServerEngine Subscriptions service", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
     /**
      * @type {ServerEngine}
      */
-    let engine;
+    let engine: ServerEngine;
     /**
      * @type {ServerSession}
      */
-    let session;
+    let session: ServerSession;
     /**
      * @type {NodeId}
      */
-    let FolderTypeId, BaseDataVariableTypeId;
+    let FolderTypeId: NodeId;
+    let BaseDataVariableTypeId: NodeId;
 
     beforeEach(function (done) {
         engine = new ServerEngine();
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
-            FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
+            FolderTypeId = engine.addressSpace!.findNode("FolderType")!.nodeId;
+            BaseDataVariableTypeId = engine.addressSpace!.findNode("BaseDataVariableType")!.nodeId;
             done();
         });
     });
 
     afterEach(async () => {
-        session = null;
         should.exist(engine);
         await engine.shutdown();
-        engine = null;
     });
 
     it("should return an error when trying to delete an non-existing subscription", async () => {
@@ -74,7 +74,7 @@ describe("ServerEngine Subscriptions service", function () {
         session.currentSubscriptionCount.should.equal(1);
         session.cumulatedSubscriptionCount.should.equal(1);
 
-        session.getSubscription(subscription.id).should.equal(subscription);
+        session.getSubscription(subscription.id)!.should.equal(subscription);
 
         const statusCode = await session.deleteSubscription(subscription.id);
         statusCode.should.eql(StatusCodes.Good);
@@ -173,7 +173,7 @@ describe("ServerEngine Subscriptions service", function () {
         engine.cumulatedSubscriptionCount.should.equal(5);
 
         // close the session, asking to delete subscriptions
-        await engine.closeSession(session2.authenticationToken, /* deleteSubscriptions */ true);
+        await engine.closeSession(session2.authenticationToken, /* deleteSubscriptions */ true, "CloseSession");
 
         engine.currentSessionCount.should.equal(1);
         engine.cumulatedSessionCount.should.equal(2);
@@ -510,7 +510,7 @@ describe("ServerEngine Subscriptions service", function () {
             });
 
             const createResult = await subscription.createMonitoredItem(
-                engine.addressSpace,
+                engine.addressSpace!,
                 TimestampsToReturn.Both,
                 monitoredItemCreateRequest
             );
@@ -533,6 +533,9 @@ describe("ServerEngine Subscriptions service", function () {
         // And  When the client send a PublishRequest notification
         // Then the client shall receive the StatusChangeNotification
         await with_fake_timer.call(test, async () => {
+            if (!engine) throw new Error("expecting engine to be defined");
+            if (!session) throw new Error("expecting session to be defined");
+
             session = engine.createSession({ sessionTimeout: 100000000 });
 
             const subscription_parameters = {
@@ -552,6 +555,8 @@ describe("ServerEngine Subscriptions service", function () {
             const publishSpy = sinon.spy();
 
             const sendPublishRequest = async () => {
+                if (!session.publishEngine) throw new Error("expecting session.publishEngine to be defined");
+
                 session.publishEngine._on_PublishRequest(
                     new PublishRequest({
                         requestHeader: {
@@ -600,7 +605,7 @@ describe("ServerEngine Subscriptions service", function () {
 
             // verify that the first keep alive message was sent after  1 time publishing interval milliseconds
             const resultDate1 = publishResponse1.responseHeader.timestamp;
-            const delayBetweenCreateAndFirstKeepAlive = resultDate1 - creationDate;
+            const delayBetweenCreateAndFirstKeepAlive = resultDate1.getTime() - creationDate.getTime();
             console.log("delayBetweenCreateAndFirstKeepAlive", delayBetweenCreateAndFirstKeepAlive);
             delayBetweenCreateAndFirstKeepAlive.should.be.approximately(1000, 100);
 

@@ -135,7 +135,7 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
         if (async_func.length === 2) {
             async_func = callbackify(async_func as MethodFunctorA) as MethodFunctorC;
         }
-        assert(async_func.length === 3);
+        assert(async_func.length === 3, " a method with callback should have 3 arguments : got " + async_func.length);
         this._asyncExecutionFunction = async_func;
     }
     public execute(

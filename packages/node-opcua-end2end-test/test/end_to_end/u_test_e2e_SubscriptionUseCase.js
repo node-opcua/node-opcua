@@ -1512,7 +1512,7 @@ module.exports = function (test) {
             });
         });
 
-        it("AZA2-M #CreateMonitoredItemRequest should return BadNothingToDo if CreateMonitoredItemRequest has no nodes to monitored", function (done) {
+        it("AZA2-M #CreateMonitoredItemsRequest should return BadNothingToDo if CreateMonitoredItemsRequest has no nodes to monitored", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1533,7 +1533,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-N #CreateMonitoredItemRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemRequest ", function (done) {
+        it("AZA2-N #CreateMonitoredItemsRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemsRequest ", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1576,7 +1576,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemRequest has no nodes to monitored", function (done) {
+        it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemsRequest has no nodes to monitored", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1655,7 +1655,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-R A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
+        it("AZA2-R A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1699,7 +1699,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-SA A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SA A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1728,7 +1728,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-SB - GROUP - A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SB - GROUP - A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1758,7 +1758,7 @@ module.exports = function (test) {
                 done
             );
         });
-        it("AZA2-SB A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SB A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -2379,7 +2379,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-H #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
+        it("AZA3-H #ModifyMonitoredItemsRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
@@ -2399,7 +2399,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-I #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
+        it("AZA3-I #ModifyMonitoredItemsRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
@@ -2428,7 +2428,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-J #ModifyMonitoredItemRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function (done) {
+        it("AZA3-J #ModifyMonitoredItemsRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
@@ -2523,7 +2523,7 @@ module.exports = function (test) {
             ); //
         }
 
-        it("AZA3-K #ModifyMonitoredItemRequest : server should handle samplingInterval === -1", function (done) {
+        it("AZA3-K #ModifyMonitoredItemsRequest : server should handle samplingInterval === -1", function (done) {
             const itemToMonitor = "ns=0;i=2258";
 
             /**
@@ -2550,7 +2550,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-L #ModifyMonitoredItemRequest : server should handle samplingInterval === 0", function (done) {
+        it("AZA3-L #ModifyMonitoredItemsRequest : server should handle samplingInterval === 0", function (done) {
             const itemToMonitor = "ns=0;i=2258";
 
             const parameters = {
@@ -2651,7 +2651,7 @@ module.exports = function (test) {
             );
         }
 
-        it("AZA3-N #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
+        it("AZA3-N #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
             const parameters = {
                 samplingInterval: 0, // SAMPLING INTERVAL = 0 => use fastest allowed by server or event base
                 discardOldest: false,
@@ -2660,7 +2660,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("AZA3-O #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
+        it("AZA3-O #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
             const parameters = {
                 samplingInterval: 20,
                 discardOldest: false,
@@ -2669,7 +2669,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("AZA3-P #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
+        it("AZA3-P #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
             const parameters = {
                 samplingInterval: -1,
                 discardOldest: false,
@@ -3910,7 +3910,7 @@ module.exports = function (test) {
                                 setTimeout(callback, subscription.publishingInterval * (subscription.maxKeepAliveCount + 2));
                             },
                             function (callback) {
-                                nb_keep_alive_received.should.eql(1);
+                                nb_keep_alive_received.should.eql(2);
                                 callback();
                             },
 

@@ -7,7 +7,7 @@ import { MessageSecurityMode } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { OPCUAServerEndPoint } from "..";
+import { OPCUAServerEndPoint } from "../source";
 
 const it_with_crypto = it;
 

@@ -404,7 +404,7 @@ export class MonitoredItem extends EventEmitter {
     public samplingFunc: SamplingFunc | null = null;
 
     private _node: BaseNode | null;
-    private queue: QueueItem[];
+    public queue: QueueItem[];
     private _semantic_version: number;
     private _is_sampling = false;
     private _on_opcua_event_received_callback: any;
@@ -580,7 +580,7 @@ export class MonitoredItem extends EventEmitter {
      *
      */
     // eslint-disable-next-line complexity, max-statements
-    public recordValue(dataValue: DataValue, skipChangeTest: boolean, indexRange?: NumericRange): boolean {
+    public recordValue(dataValue: DataValue, skipChangeTest?: boolean, indexRange?: NumericRange): boolean {
         if (!this.itemToMonitor) {
             // we must have a valid itemToMonitor(have this monitoredItem been disposed already ?)
             // istanbul ignore next
@@ -786,13 +786,24 @@ export class MonitoredItem extends EventEmitter {
         return notifications;
     }
 
-    public modify(timestampsToReturn: TimestampsToReturn, monitoringParameters: MonitoringParameters): MonitoredItemModifyResult {
+    public modify(
+        timestampsToReturn: TimestampsToReturn | null,
+        monitoringParameters: MonitoringParameters | null
+    ): MonitoredItemModifyResult {
         assert(monitoringParameters instanceof MonitoringParameters);
 
         const old_samplingInterval = this.samplingInterval;
 
         this.timestampsToReturn = timestampsToReturn || this.timestampsToReturn;
 
+        if (!monitoringParameters) {
+            return new MonitoredItemModifyResult({
+                revisedQueueSize: this.queueSize,
+                revisedSamplingInterval: this.samplingInterval,
+                filterResult: null,
+                statusCode: StatusCodes.Good
+            });
+        }
         if (old_samplingInterval !== 0 && monitoringParameters.samplingInterval === 0) {
             monitoringParameters.samplingInterval = MonitoredItem.minimumSamplingInterval; // fastest possible
         }
@@ -836,7 +847,7 @@ export class MonitoredItem extends EventEmitter {
         // istanbul ignore next
         if (!this.node) return;
 
-        const sessionContext = this.getSessionContext();
+        const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
 
         // istanbul ignore next
         if (!sessionContext) return;
@@ -869,8 +880,11 @@ export class MonitoredItem extends EventEmitter {
             return;
         }
 
-        const sessionContext = this.getSessionContext();
+        // Use default context if session is not available
+        const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
+
         if (!sessionContext) {
+            warningLog("MonitoredItem#_on_sampling_timer : ", this.node?.nodeId.toString(), "cannot find session");
             return;
         }
         // istanbul ignore next
@@ -1069,7 +1083,7 @@ export class MonitoredItem extends EventEmitter {
             return; // we just want to ignore here ...
         }
 
-        const sessionContext = this.getSessionContext();
+        const sessionContext = this.getSessionContext() || SessionContext.defaultContext;
         // istanbul ignore next
         if (!sessionContext) {
             return;
@@ -1254,7 +1268,7 @@ export class MonitoredItem extends EventEmitter {
      * @param dataValue {DataValue} the dataValue to enqueue
      * @private
      */
-    private _enqueue_value(dataValue: DataValue) {
+    public _enqueue_value(dataValue: DataValue) {
         // preconditions:
         doDebug && debugLog("_enqueue_value = ", dataValue.toString());
 

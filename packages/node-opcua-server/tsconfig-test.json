@@ -1,13 +1,13 @@
 {
     "extends": "../tsconfig.json",
     "compilerOptions": {
-        "rootDir": "source",
-        "outDir": "dist",
+        "rootDir": "test",
+        "outDir": "dist-test",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
-    "exclude": ["node_modules", "dist", "test"],
+    "include": ["test/**/*.ts"],
+    "exclude": ["node_modules", "dist"],
     "references": [
         {
             "path": "../node-opcua-address-space-base"

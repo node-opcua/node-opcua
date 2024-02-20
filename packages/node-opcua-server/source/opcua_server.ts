@@ -1479,8 +1479,9 @@ export class OPCUAServer extends OPCUABaseServer {
     /**
      * retrieve a session by authentication token
      * @internal
+     * @private
      */
-    protected getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
+    public getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
         return this.engine ? this.engine.getSession(authenticationToken, activeOnly) : null;
     }
 
@@ -1621,7 +1622,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     case StatusCodes.BadCertificateIssuerTimeInvalid:
                         this.raiseEvent("AuditCertificateExpiredEventType", {
                             certificate: { dataType: DataType.ByteString, value: certificate },
-                            sourceName: { dataType: DataType.String, value: "Security/Certificate" },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" }
                         });
                         break;
                     case StatusCodes.BadCertificateRevoked:
@@ -1629,7 +1630,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     case StatusCodes.BadCertificateIssuerRevocationUnknown:
                         this.raiseEvent("AuditCertificateRevokedEventType", {
                             certificate: { dataType: DataType.ByteString, value: certificate },
-                            sourceName: { dataType: DataType.String, value: "Security/Certificate" },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" }
                         });
                         break;
                     case StatusCodes.BadCertificateIssuerUseNotAllowed:
@@ -1637,7 +1638,7 @@ export class OPCUAServer extends OPCUABaseServer {
                     case StatusCodes.BadSecurityChecksFailed:
                         this.raiseEvent("AuditCertificateMismatchEventType", {
                             certificate: { dataType: DataType.ByteString, value: certificate },
-                            sourceName: { dataType: DataType.String, value: "Security/Certificate" },
+                            sourceName: { dataType: DataType.String, value: "Security/Certificate" }
                         });
                         break;
                 }
@@ -2448,23 +2449,28 @@ export class OPCUAServer extends OPCUABaseServer {
                     return sendError(StatusCodes.BadNothingToDo);
                 }
 
-                const results: any[] = subscriptionIds.map((subscriptionId: number) => actionToPerform(session, subscriptionId));
-
-                // resolve potential pending promises ....
-                for (let i = 0; i < results.length; i++) {
-                    if (results[i].then) {
-                        results[i] = await results[i];
-                    }
+                // check minimal
+                if (
+                    request.subscriptionIds.length >
+                    Math.min(
+                        this.engine.serverCapabilities.maxSubscriptionsPerSession,
+                        this.engine.serverCapabilities.maxSubscriptions
+                    )
+                ) {
+                    return sendError(StatusCodes.BadTooManyOperations);
                 }
 
+                const promises: Promise<T>[] = subscriptionIds.map((subscriptionId: number) =>
+                    actionToPerform(session, subscriptionId)
+                );
+                const results: T[] = await Promise.all(promises);
+
+                const serviceResult: StatusCode = StatusCodes.Good;
                 const response = new ResponseClass({
                     responseHeader: {
-                        serviceResult:
-                            request.subscriptionIds.length > this.engine.serverCapabilities.maxSubscriptionsPerSession
-                                ? StatusCodes.BadTooManyOperations
-                                : StatusCodes.Good
+                        serviceResult
                     },
-                    results
+                    results: results as any
                 });
                 sendResponse(response);
             }

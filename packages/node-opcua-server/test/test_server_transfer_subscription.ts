@@ -1,71 +1,79 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 /* eslint-disable max-statements */
 /// reference
-const should = require("should");
-const sinon = require("sinon");
+import should from "should";
+import sinon from "sinon";
 
-const { PublishRequest } = require("node-opcua-service-subscription");
-const { StatusCodes } = require("node-opcua-status-code");
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+import { PublishRequest } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-const { ServerEngine, ServerSession, SubscriptionState, installSessionLoggingOnEngine} = require("..");
+import { ServerEngine, ServerSession, Subscription, SubscriptionState, installSessionLoggingOnEngine } from "../source";
+
+import { add_mock_monitored_item } from "./helper";
+import { with_fake_timer } from "./helper_with_fake_timer";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
-
-const { add_mock_monitored_item } = require("./helper");
-const { with_fake_timer } = require("./helper_with_fake_timer");
 
 const doDebug = !!process.env.TESTDEBUG;
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine Subscriptions Transfer", function () {
+describe("ServerEngine Subscriptions Transfer", function (this: any) {
     const test = this;
+    const server: any = {};
     /**
      * @type {ServerEngine}
      */
-    let engine;
+    let engine: ServerEngine | undefined;
     /**
      * @type {ServerSession}
      */
-    let session1;
-    let session2;
+    let session1: ServerSession | undefined;
+    let session2: ServerSession | undefined;
     /**
      *  @type {NodeId}
      */
     let FolderTypeId, BaseDataVariableTypeId;
     beforeEach((done) => {
-        engine = new ServerEngine();
+        engine = new ServerEngine({
+            applicationUri: "application:uri"
+        });
         engine.initialize({ nodeset_filename: mini_nodeset_filename }, () => {
-            FolderTypeId = engine.addressSpace.findNode("FolderType").nodeId;
-            BaseDataVariableTypeId = engine.addressSpace.findNode("BaseDataVariableType").nodeId;
+            if (!engine) return;
+            FolderTypeId = engine.addressSpace!.findNode("FolderType")!.nodeId;
+            BaseDataVariableTypeId = engine.addressSpace!.findNode("BaseDataVariableType")!.nodeId;
             installSessionLoggingOnEngine(engine);
             done();
         });
     });
 
     afterEach(async () => {
-        session1 = null;
-        session2 = null;
+        session1 = undefined;
+        session2 = undefined;
         if (engine) {
             should.exist(engine);
             await engine.shutdown();
         }
-        engine = null;
+        engine = undefined;
     });
 
     let requestHandle = 1;
-    function sendPublishRequest(session /* : ServerSession */, publishHandler /* : () => void */) {
+    function sendPublishRequest(session: ServerSession, publishHandler: () => void) {
         session.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 101 } }), publishHandler);
         requestHandle++;
         test.clock.tick(0);
     }
 
     it("ZDZ-ST01 - should send keep alive when starving and no notification exists", async () => {
-        session1 = engine.createSession({ sessionTimeout: 100 * 1000 });
+        if (!engine) throw new Error("internal error");
+
+        session1 = engine.createSession({ sessionTimeout: 100 * 1000, server });
         const publishSpy = sinon.spy();
 
-        await with_fake_timer.call(test, async (test) => {
+        await with_fake_timer.call(test, async (test: any) => {
+            if (!session1) return;
+
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000, // Duration
                 requestedLifetimeCount: 60, // Counter
@@ -78,17 +86,17 @@ describe("ServerEngine Subscriptions Transfer", function () {
             subscription.lifeTimeCount.should.eql(60);
             subscription.maxKeepAliveCount.should.eql(10);
 
-            subscription.currentKeepAliveCount.should.eql(0);
+            subscription.currentKeepAliveCount.should.eql(8);
             subscription.currentLifetimeCount.should.eql(0);
 
             // Given there is no Publish Request
             // when wait a very long time , longer than maxKeepAlive ,
-            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount));
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             subscription.state.should.eql(SubscriptionState.LATE);
-            subscription.currentKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
+            subscription.currentKeepAliveCount.should.eql(0);
 
             sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount));
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
             {
                 publishSpy.callCount.should.eql(1);
@@ -103,7 +111,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount));
+            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
             {
                 const publishResponse = publishSpy.getCall(0).args[1];
                 publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
@@ -117,10 +125,14 @@ describe("ServerEngine Subscriptions Transfer", function () {
     });
 
     it("ZDZ-ST02 - should NOT send keep alive when starving and some notification exists", async () => {
-        session1 = engine.createSession({ sessionTimeout: 10000 });
+        if (!engine) throw new Error("internal error");
+
+        session1 = engine.createSession({ sessionTimeout: 10000, server });
         const publishSpy = sinon.spy();
 
         await with_fake_timer.call(test, async () => {
+            if (!session1) return;
+
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000, // Duration
                 requestedLifetimeCount: 10, // Counter
@@ -158,7 +170,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             {
                 publishSpy.callCount.should.eql(1);
-                
+
                 const publishResponse = publishSpy.getCall(0).args[1];
                 publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
                 publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
@@ -171,10 +183,14 @@ describe("ServerEngine Subscriptions Transfer", function () {
     });
 
     it("ZDZ-ST03 - should NOT send keep alive when starving and some StatusChangeNotification exists", async () => {
-        session1 = engine.createSession({ sessionTimeout: 10000 });
+        if (!engine) throw new Error("internal error");
+
+        session1 = engine.createSession({ sessionTimeout: 10000, server });
         const publishSpy = sinon.spy();
 
         await with_fake_timer.call(test, async () => {
+            if (!engine) return;
+            if (!session1) return;
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000, // Duration
                 requestedLifetimeCount: 10, // Counter
@@ -189,10 +205,10 @@ describe("ServerEngine Subscriptions Transfer", function () {
             // when wait a very long time , longer than maxKeepAlive ,
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
 
-            session2 = engine.createSession({ sessionTimeout: 10000 });
+            session2 = engine.createSession({ sessionTimeout: 10000, server });
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers.should.eql([]);
+            transferResult.availableSequenceNumbers!.should.eql([]);
 
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount * 2);
             sendPublishRequest(session1, publishSpy);
@@ -232,9 +248,13 @@ describe("ServerEngine Subscriptions Transfer", function () {
     });
 
     it("ZDZ-ST04 - should transfer a subscription - with no monitored items", async () => {
-        session1 = engine.createSession({ sessionTimeout: 10000 });
+        if (!engine) throw new Error("internal error");
+
+        session1 = engine.createSession({ sessionTimeout: 10000, server });
 
         await with_fake_timer.call(test, async () => {
+            if (!session1 || !engine) throw new Error("internal error");
+
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000, // Duration
                 requestedLifetimeCount: 10, // Counter
@@ -244,11 +264,11 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 priority: 14 // Byte
             });
 
-            session2 = engine.createSession();
+            session2 = engine.createSession({ sessionTimeout: 1000000, server });
 
             const transferResult = await engine.transferSubscription(session2, subscription.id, true);
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers.length.should.eql(0);
+            transferResult.availableSequenceNumbers!.length.should.eql(0);
 
             // xx  console.log(transferResult.toString());
 
@@ -277,10 +297,14 @@ describe("ServerEngine Subscriptions Transfer", function () {
     });
 
     it("ZDZ-ST05 - should transfer a subscription 2: with monitored items", async () => {
-        session1 = engine.createSession({ sessionTimeout: 10000 });
-        session2 = engine.createSession({ sessionTimeout: 10000 });
+        if (!engine) throw new Error("internal error");
+
+        session1 = engine.createSession({ sessionTimeout: 10000, server });
+        session2 = engine.createSession({ sessionTimeout: 10000, server });
 
         await with_fake_timer.call(test, async () => {
+            if (!session1) throw new Error("internal error");
+
             // A/ Create a subscription
             const subscription = session1.createSubscription({
                 requestedPublishingInterval: 1000, // Duration
@@ -317,7 +341,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             publishSpy1.resetHistory();
 
             // -------------------------------------------------------------
-            const transferResult = await engine.transferSubscription(session2, subscription.id, /* sendInitialValue =*/ true);
+            const transferResult = await engine!.transferSubscription(session2!, subscription.id, /* sendInitialValue =*/ true);
 
             if (doDebug) {
                 console.log("transferResult", transferResult.toString());
@@ -326,8 +350,8 @@ describe("ServerEngine Subscriptions Transfer", function () {
             // the transferResult.availableSequenceNumber shall be One at this point because
             // there was an un-acknowledged sequence in session1 that can be republished in the context of session2
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers.length.should.eql(1);
-            transferResult.availableSequenceNumbers.should.eql([1]);
+            transferResult.availableSequenceNumbers!.length.should.eql(1);
+            transferResult.availableSequenceNumbers!.should.eql([1]);
 
             sendPublishRequest(session1, publishSpy1);
             sendPublishRequest(session1, publishSpy1);
@@ -358,8 +382,8 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             // --------------------------------------------
             const publishSpy2 = sinon.spy();
-            session2.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 200 } }), publishSpy2);
-            session2.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 201 } }), publishSpy2);
+            session2!.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 200 } }), publishSpy2);
+            session2!.publishEngine._on_PublishRequest(new PublishRequest({ requestHeader: { requestHandle: 201 } }), publishSpy2);
             test.clock.tick(subscription.publishingInterval);
             publishSpy2.callCount.should.eql(1);
 
@@ -381,11 +405,13 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
     it("ZDZ-ST06 - CTT 007 republish5105002 - republish after the subscriptions had been transferred to a different session", async () => {
         await with_fake_timer.call(test, async () => {
+            if (!engine) throw new Error("internal error");
+
             // create session1
-            session1 = engine.createSession({ sessionTimeout: 100000 });
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
             // create session2
-            session2 = engine.createSession({ sessionTimeout: 100000 });
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
             // xx console.log("session2 = ", session2.authenticationToken.toString());
             // create subscription
             const subscription = session1.createSubscription({
@@ -453,15 +479,15 @@ describe("ServerEngine Subscriptions Transfer", function () {
             //
 
             //  // call republish with the sequence number received above (on the first session)
-            const receivedSequenceNumbers = transferResult.availableSequenceNumbers;
+            const receivedSequenceNumbers = transferResult.availableSequenceNumbers!;
             if (doDebug) {
                 console.log("receivedSequenceNumbers", receivedSequenceNumbers);
             }
-            let retransmitSequenceNumber = receivedSequenceNumbers[0];
+            const retransmitSequenceNumber = receivedSequenceNumbers[0];
             if (doDebug) {
                 console.log("asking republish of sequence n° : ", retransmitSequenceNumber);
             }
-            let msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+            const msgSequence = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
             should(msgSequence).not.eql(null);
 
             await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
@@ -481,7 +507,9 @@ describe("ServerEngine Subscriptions Transfer", function () {
          */
 
         await with_fake_timer.call(test, async () => {
-            session1 = engine.createSession({ sessionTimeout: 100000 });
+            if (!engine) throw new Error("internal error");
+
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
 
             // A/ Create a subscription,
@@ -547,7 +575,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             // -------------------------------------------------------------
             // E/ Create a new session,
-            session2 = engine.createSession({ sessionTimeout: 100000 });
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
             // xx console.log("session2 = ", session2.authenticationToken.toString());
 
             // F/  transfer the subscription,
@@ -556,7 +584,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
             // the transfer result.available sequence number shall be ZERO at this point because
             // we cannot validate in session2 notification that have been sent to session1
             transferResult.statusCode.should.eql(StatusCodes.Good);
-            transferResult.availableSequenceNumbers.length.should.eql(4);
+            transferResult.availableSequenceNumbers!.length.should.eql(4);
 
             const publishSpy2 = sinon.spy();
 
@@ -573,43 +601,45 @@ describe("ServerEngine Subscriptions Transfer", function () {
             }
             // now calling republish on old session should fail because subscription has been transferred
             let retransmitSequenceNumber = 1;
-            let notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+            let notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber)!;
             should(notificationMessage).not.eql(null);
             // xx console.log(notificationMessage.toString());
             notificationMessage.sequenceNumber.should.eql(1);
 
             retransmitSequenceNumber = 2;
-            notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+            notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber)!;
             should(notificationMessage).not.eql(null);
             notificationMessage.sequenceNumber.should.eql(2);
 
             retransmitSequenceNumber = 3;
-            notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+            notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber)!;
             should(notificationMessage).not.eql(null);
             notificationMessage.sequenceNumber.should.eql(3);
 
             retransmitSequenceNumber = 4;
-            notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber);
+            notificationMessage = subscription.getMessageForSequenceNumber(retransmitSequenceNumber)!;
             should(notificationMessage).not.eql(null);
             notificationMessage.sequenceNumber.should.eql(4);
 
             await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
 
             await engine.shutdown();
-            engine = null;
+            engine = undefined;
         });
     });
 
     it("ZDZ-ST08 - Err-004.js (transferSubscription5106Err009)  delete multiple sessions where some have been transferred to other sessions", async () => {
         await with_fake_timer.call(test, async () => {
+            if (!engine) throw new Error("internal error");
             // create session1
-            session1 = engine.createSession({ sessionTimeout: 100000 });
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
             // xx console.log("Session1 = ", session1.authenticationToken.toString());
             // create session2
-            session2 = engine.createSession({ sessionTimeout: 100000 });
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
             //  xx console.log("session2 = ", session2.authenticationToken.toString());
 
             function createSubscription() {
+                if (!session1) throw new Error("internal error");
                 const subscription = session1.createSubscription({
                     requestedPublishingInterval: 10, // Duration
                     requestedLifetimeCount: 10, // Counter
@@ -623,7 +653,7 @@ describe("ServerEngine Subscriptions Transfer", function () {
                 }
                 return subscription;
             }
-            const subscriptions = [];
+            const subscriptions: Subscription[] = [];
             subscriptions.push(createSubscription());
             subscriptions.push(createSubscription());
             subscriptions.push(createSubscription());
@@ -695,9 +725,10 @@ describe("ServerEngine Subscriptions Transfer", function () {
          */
         await with_fake_timer.call(test, async () => {
             // Create 2 sessions.
+            if (!engine) throw new Error("internal error");
 
-            session1 = engine.createSession({ sessionTimeout: 100000 });
-            session2 = engine.createSession({ sessionTimeout: 100000 });
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
 
             // Create 1 subscription monitoring 1 or more items.
             const subscription = session1.createSubscription({
@@ -755,6 +786,71 @@ describe("ServerEngine Subscriptions Transfer", function () {
 
             await engine.closeSession(session1.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
             await engine.closeSession(session2.authenticationToken, /*deleteSubscriptions=*/ true, /* reason =*/ "Terminated");
+        });
+    });
+
+    /**
+     * Description: Setup a durable subscription with one monitored item (system time). Make sure the subscription is working via a call to Publish().
+     *  Expectation: Server responds to the client with the current data values along with the values that were captured and buffered while the client was offline.
+     */
+    it("ZDZ-ST10 - 0116.js (subscriptionDurable011) Create a durable subscription with one monitored item", async () => {
+        /**
+         * Create one subscription
+         */
+        await with_fake_timer.call(test, async () => {
+            if (!engine) throw new Error("internal error");
+
+            session1 = engine.createSession({ sessionTimeout: 100000, server });
+            session2 = engine.createSession({ sessionTimeout: 100000, server });
+
+            try {
+                const subscription = session1.createSubscription({
+                    requestedPublishingInterval: 10, // Duration
+                    requestedLifetimeCount: 10, // Counter
+                    requestedMaxKeepAliveCount: 10, // Counter
+                    maxNotificationsPerPublish: 10, // Counter
+                    publishingEnabled: true, // Boolean
+                    priority: 14 // Byte
+                });
+
+                const monitoredItem1 = add_mock_monitored_item(subscription);
+
+                const lifeTimeInHours = 1;
+                // Set Subscription durable 1 hours
+                // subscription1.SetDurable(lifeTimeInHours);
+
+                // waitUntil(() => monitoredItem1.queueSize.should.eql(10), 1000, 10000);
+                const publishSpy1 = sinon.spy();
+                sendPublishRequest(session1, publishSpy1);
+                publishSpy1.callCount.should.eql(1);
+                const publishResponse1 = publishSpy1.getCall(0).args[1];
+                publishResponse1.notificationMessage.notificationData.length.should.eql(1);
+                publishResponse1.notificationMessage.notificationData[0].constructor.name.should.eql("DataChangeNotification");
+                publishSpy1.resetHistory();
+
+                // now delete the subscription
+
+                // now transfer the subscription to another session
+
+                const transferResult1 = await engine.transferSubscription(session2, subscription.id, true);
+                transferResult1.statusCode.should.eql(StatusCodes.Good);
+
+                // we should receive the initial data change
+                const publishSpy2 = sinon.spy();
+                sendPublishRequest(session1, publishSpy2);
+                publishSpy2.callCount.should.eql(1);
+
+                const publishResponse2 = publishSpy2.getCall(0).args[1];
+                publishResponse2.notificationMessage.notificationData.length.should.eql(1);
+                publishResponse2.notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
+
+
+                
+                publishSpy2.resetHistory();
+            } finally {
+                console.log("closing session");
+                await engine.shutdown();
+            }
         });
     });
 });

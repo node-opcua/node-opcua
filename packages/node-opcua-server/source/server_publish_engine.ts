@@ -161,6 +161,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         assert(destPublishEngine.getSubscriptionById(subscription.id));
         assert(!srcPublishEngine.getSubscriptionById(subscription.id));
 
+       
+
         return subscription;
     }
 

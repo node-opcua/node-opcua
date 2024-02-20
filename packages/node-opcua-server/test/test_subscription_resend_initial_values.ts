@@ -1,23 +1,21 @@
 /* eslint-disable max-statements */
 /* global: require,describe,it,before,beforeEach,after,afterEach */
-"use strict";
-
-const sinon = require("sinon");
-const { SessionContext } = require("node-opcua-address-space");
-const { Subscription } = require("../dist");
-const add_mock_monitored_item = require("./helper").add_mock_monitored_item;
-
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
-
-let fake_publish_engine = {};
+import sinon from "sinon";
+import { SessionContext } from "node-opcua-address-space";
+import { Subscription } from "../source";
+import { add_mock_monitored_item } from "./helper";
+import { getFakePublishEngine } from "./helper_fake_publish_engine";
+let fake_publish_engine = {
+    pendingPublishRequestCount: 0
+};
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = getFakePublishEngine();
 }
 
-function makeSubscription(options) {
+function makeSubscription(options: any) {
     const subscription1 = new Subscription(options);
-    subscription1.$session = {
+    (subscription1 as any).$session = {
         sessionContext: SessionContext.defaultContext
     };
     return subscription1;
@@ -25,7 +23,7 @@ function makeSubscription(options) {
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Subscription#resendInitialValues", function () {
+describe("Subscription#resendInitialValues", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
     beforeEach(function () {
