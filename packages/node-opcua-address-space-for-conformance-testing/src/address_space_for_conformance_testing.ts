@@ -220,13 +220,15 @@ function add_array_variable(
     assert(variable.userAccessLevel === AccessLevelFlag.CurrentRead + AccessLevelFlag.CurrentWrite);
     assert(variable.historizing === false);
 }
+// eslint-disable-next-line max-params
 function add_multi_dimensional_array_variable(
     namespace: Namespace,
     parent: UAObject,
     dataTypeName: string,
     default_value: any,
     realTypeName: string,
-    arrayLength: number,
+    nbRows: number,
+    nbCols: number,
     extra_name: string
 ): void {
     assert(typeof dataTypeName === "string");
@@ -239,22 +241,15 @@ function add_multi_dimensional_array_variable(
     }
 
     assert((DataType as any)[realTypeName], " expecting a valid real type");
-    arrayLength = arrayLength || 10;
+
+    nbRows = nbRows || 6;
+    nbCols = nbCols || 2;
 
     const local_defaultValue = typeof default_value === "function" ? default_value() : default_value;
 
-    const current_value = buildVariantArray((DataType as any)[realTypeName], arrayLength * arrayLength, local_defaultValue);
+    const current_value = buildVariantArray((DataType as any)[realTypeName], nbRows * nbCols, local_defaultValue);
 
-    const variable = _add_variable(
-        namespace,
-        parent,
-        dataTypeName,
-        realTypeName,
-        current_value,
-        2,
-        [arrayLength, arrayLength],
-        extra_name
-    );
+    const variable = _add_variable(namespace, parent, dataTypeName, realTypeName, current_value, 2, [nbRows, nbCols], extra_name);
 
     assert(variable.valueRank === 2);
 
@@ -511,7 +506,7 @@ function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
                         return callback(
                             null,
                             new DataValue({
-                                statusCode: StatusCodes.BadInternalError,
+                                statusCode: StatusCodes.BadDataUnavailable,
                                 value: { dataType: "ByteString", value: null }
                             })
                         );
@@ -570,7 +565,7 @@ function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
     typeAndDefaultValue.forEach((e) => {
         const dataType = e.type;
         const realType = e.realType || dataType;
-        add_multi_dimensional_array_variable(namespace, staticMultiDimensionalArrays, dataType, e.defaultValue, realType, 10, "");
+        add_multi_dimensional_array_variable(namespace, staticMultiDimensionalArrays, dataType, e.defaultValue, realType, 2,3, "");
     });
 }
 
@@ -1224,7 +1219,12 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
         nodeId: "s=Simulation_DA_MultiStateValueDiscreteType"
     });
 
-    function _add_multi_state_variable(parentFolder: UAObject, dataType: string, value: number | UInt64 | Int64, enumValues: Record<string, number>) {
+    function _add_multi_state_variable(
+        parentFolder: UAObject,
+        dataType: string,
+        value: number | UInt64 | Int64,
+        enumValues: Record<string, number>
+    ) {
         const name = dataType + "MultiStateValueDiscrete";
         const nodeId = "s=" + name;
 
@@ -1237,8 +1237,8 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
             value: 0x0000 // Zero
         });
     }
-    const enumValueUnsigned = { Zero: 0x00, One: 0x01, Two: 0x02, Three: 0x03, Four: 0x04, Five: 0x05, Six: 0x06, Seven: 0x07 }
-    const enumValueSigned = { MinusOne: -1, MinusTwo: -2, MinusThree: -3, ...enumValueUnsigned }
+    const enumValueUnsigned = { Zero: 0x00, One: 0x01, Two: 0x02, Three: 0x03, Four: 0x04, Five: 0x05, Six: 0x06, Seven: 0x07 };
+    const enumValueSigned = { MinusOne: -1, MinusTwo: -2, MinusThree: -3, ...enumValueUnsigned };
 
     const data = [
         { dataType: "Int16", value: -1, enumValue: enumValueSigned },
@@ -1388,7 +1388,7 @@ function add_enumeration_variable(namespaceDemo: Namespace, parentFolder: UAObje
         organizedBy: parentFolder,
         propertyOf: (addressSpace.rootFolder.objects.server as any).vendorServerInfos,
         dataType: myEnumType,
-        browseName: "RunningState",
+        browseName: "RunningState"
     });
     e.writeEnumValue("RUNNING");
 }
