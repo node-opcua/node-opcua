@@ -23,7 +23,7 @@ import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers"
 import { BrowseDescriptionLike, BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
 import { NumericRange } from "node-opcua-numeric-range";
 
-import { ServerEngine } from "..";
+import { ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 

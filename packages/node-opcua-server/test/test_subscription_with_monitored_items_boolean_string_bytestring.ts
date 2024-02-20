@@ -1,27 +1,25 @@
-"use strict";
+import "should";
+import sinon, { SinonStatic } from "sinon";
 
-const should = require("should");
-const sinon = require("sinon");
-
-const {
+import {
     MonitoringMode,
     MonitoredItemCreateRequest,
     DataChangeFilter,
     DataChangeTrigger,
     DeadbandType
-} = require("node-opcua-service-subscription");
-const { StatusCodes } = require("node-opcua-status-code");
-const { TimestampsToReturn } = require("node-opcua-service-read");
+} from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import { TimestampsToReturn } from "node-opcua-service-read";
 
-const { DataType, VariantArrayType, Variant } = require("node-opcua-variant");
-const { DataValue } = require("node-opcua-data-value");
-const { AttributeIds } = require("node-opcua-data-model");
-const { NodeId, coerceNodeId } = require("node-opcua-nodeid");
-const { SessionContext } = require("node-opcua-address-space");
+import { DataType, VariantArrayType, Variant } from "node-opcua-variant";
+import { DataValue } from "node-opcua-data-value";
+import { AttributeIds } from "node-opcua-data-model";
+import { NodeId, coerceNodeId, NodeIdLike } from "node-opcua-nodeid";
+import { IAddressSpace, INamespace, SessionContext } from "node-opcua-address-space";
 
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-const { MonitoredItem, Subscription, ServerEngine } = require("..");
+import { MonitoredItem, Subscription, ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -45,7 +43,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function(sessionContext, oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -55,9 +53,9 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-function makeSubscription(options) {
+function makeSubscription(options: any) {
     const subscription1 = new Subscription(options);
-    subscription1.$session = {
+    (subscription1 as any).$session = {
         sessionContext: SessionContext.defaultContext
     };
     return subscription1;
@@ -65,23 +63,24 @@ function makeSubscription(options) {
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Subscriptions and MonitoredItems", function() {
+describe("Subscriptions and MonitoredItems", function (this: any) {
     this.timeout(Math.max(300000, this._timeout));
 
-    let addressSpace, namespace;
+    let addressSpace: IAddressSpace;
+    let namespace: INamespace;
 
-    let engine;
+    let engine: ServerEngine;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
-    before(function(done) {
+    before(function (done) {
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
-            addressSpace = engine.addressSpace;
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+            addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
-            function addVar(typeName, value) {
+            function addVar(typeName: keyof typeof DataType, value: any) {
                 namespace.addVariable({
                     organizedBy: "RootFolder",
                     nodeId: "s=Static_" + typeName,
@@ -114,18 +113,17 @@ describe("Subscriptions and MonitoredItems", function() {
         if (engine) {
             await engine.shutdown();
             engine.dispose();
-            engine = null;
         }
     });
 
-    beforeEach(function() {
+    beforeEach(function () {
         this.clock = sinon.useFakeTimers(now);
     });
-    afterEach(function() {
+    afterEach(function () {
         this.clock.restore();
     });
 
-    it("SM4-1 should return Good if DeadBandFilter is NOT specified on boolean value monitored item", async function() {
+    it("SM4-1 should return Good if DeadBandFilter is NOT specified on boolean value monitored item", async function () {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -133,11 +131,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId) {
+        async function test_with_nodeId(nodeId: NodeIdLike) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -166,11 +164,10 @@ describe("Subscriptions and MonitoredItems", function() {
         const statusCode = await test_with_nodeId(nodeIdBoolean);
         statusCode.should.eql(StatusCodes.Good);
 
-
         subscription.terminate();
         subscription.dispose();
     });
-    it("SM4-2 should return Good if DeadBandFilter is NOT specified on String value monitored item", async function() {
+    it("SM4-2 should return Good if DeadBandFilter is NOT specified on String value monitored item", async function () {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -178,11 +175,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -220,11 +217,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -263,11 +260,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -298,7 +295,7 @@ describe("Subscriptions and MonitoredItems", function() {
         subscription.dispose();
     });
 
-    it("SM4-5 should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", async function() {
+    it("SM4-5 should return BadFilterNotAllowed if DeadBandFilter is specified on boolean value monitored item", async function () {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -306,11 +303,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -349,11 +346,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -384,7 +381,7 @@ describe("Subscriptions and MonitoredItems", function() {
         subscription.dispose();
         statusCode.should.eql(StatusCodes.BadFilterNotAllowed);
     });
-    it("SM4-7 should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", async function() {
+    it("SM4-7 should return BadFilterNotAllowed if DeadBandFilter is specified on ByteString value monitored item", async function () {
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -392,11 +389,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -436,11 +433,11 @@ describe("Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,

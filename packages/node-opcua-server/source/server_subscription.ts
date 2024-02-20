@@ -6,14 +6,23 @@
 import { EventEmitter } from "events";
 import chalk from "chalk";
 
-import { SessionContext, AddressSpace, BaseNode, Duration, UAObjectType } from "node-opcua-address-space";
+import {
+    SessionContext,
+    AddressSpace,
+    BaseNode,
+    Duration,
+    UAObjectType,
+    ISessionContext,
+    IAddressSpace
+} from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { Byte, UInt32 } from "node-opcua-basic-types";
 import { SubscriptionDiagnosticsDataType } from "node-opcua-common";
-import { NodeClass, AttributeIds, isValidDataEncoding } from "node-opcua-data-model";
-import { TimestampsToReturn } from "node-opcua-data-value";
+import { NodeClass, AttributeIds, isValidDataEncoding, QualifiedNameLike } from "node-opcua-data-model";
+import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
+import { NumericRange } from "node-opcua-numeric-range";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { SequenceNumberGenerator } from "node-opcua-secure-channel";
 import { EventFilter, checkSelectClauses } from "node-opcua-service-filter";
@@ -270,7 +279,7 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
             if (!this.$subscription) {
                 return 0;
             }
-            return this.$subscription._get_future_sequence_number();
+            return this.$subscription.futureSequenceNumber;
         }
     );
     subscription_subscriptionDiagnostics.__defineGetter__(
@@ -466,6 +475,15 @@ export interface ServerCapabilitiesPartial {
     maxMonitoredItemsPerSubscription: UInt32;
 }
 
+export interface IReadAttributeCapable {
+    readAttribute(
+        context: ISessionContext | null,
+        attributeId: AttributeIds,
+        indexRange?: NumericRange,
+        dataEncoding?: QualifiedNameLike | null
+    ): DataValue;
+}
+
 /**
  * The Subscription class used in the OPCUA server side.
  */
@@ -564,8 +582,8 @@ export class Subscription extends EventEmitter {
     }
 
     private _life_time_counter: number;
-    private _keep_alive_counter = 0;
-    private _pending_notifications: Queue<InternalNotification>;
+    protected _keep_alive_counter = 0;
+    public _pending_notifications: Queue<InternalNotification>;
     private _sent_notification_messages: NotificationMessage[];
     private readonly _sequence_number_generator: SequenceNumberGenerator;
     private readonly monitoredItems: { [key: number]: MonitoredItem };
@@ -649,7 +667,7 @@ export class Subscription extends EventEmitter {
     public toString(): string {
         let str = "Subscription:\n";
         str += "  subscriptionId          " + this.id + "\n";
-        str += "  sessionId          " + this.getSessionId().toString() + "\n";
+        str += "  sessionId          " + this.getSessionId()?.toString() + "\n";
 
         str += "  publishingEnabled  " + this.publishingEnabled + "\n";
         str += "  maxKeepAliveCount  " + this.maxKeepAliveCount + "\n";
@@ -942,13 +960,16 @@ export class Subscription extends EventEmitter {
      *  - otherwise the sampling is adjusted
      * @private
      */
-    public adjustSamplingInterval(samplingInterval: number, node: BaseNode): number {
+    public adjustSamplingInterval(samplingInterval: number, node?: IReadAttributeCapable): number {
         if (samplingInterval < 0) {
             // - The value -1 indicates that the default sampling interval defined by the publishing
             //   interval of the Subscription is requested.
             // - Any negative number is interpreted as -1.
             samplingInterval = this.publishingInterval;
         } else if (samplingInterval === 0) {
+            // istanbul ignore next
+            if (!node) throw new Error("Internal Error");
+
             // OPCUA 1.0.3 Part 4 - 5.12.1.2
             // The value 0 indicates that the Server should use the fastest practical rate.
 
@@ -994,7 +1015,7 @@ export class Subscription extends EventEmitter {
      * @param monitoredItemCreateRequest - the parameters describing the monitored Item to create
      */
     public preCreateMonitoredItem(
-        addressSpace: AddressSpace,
+        addressSpace: IAddressSpace,
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest
     ): InternalCreateMonitoredItemResult {
@@ -1089,7 +1110,7 @@ export class Subscription extends EventEmitter {
     }
 
     public async createMonitoredItem(
-        addressSpace: AddressSpace,
+        addressSpace: IAddressSpace,
         timestampsToReturn: TimestampsToReturn,
         monitoredItemCreateRequest: MonitoredItemCreateRequest
     ): Promise<MonitoredItemCreateResult> {
@@ -1253,19 +1274,35 @@ export class Subscription extends EventEmitter {
      * @private
      */
     public async resendInitialValues(): Promise<void> {
-        
         this._keep_alive_counter = 0;
 
         try {
             const promises: Promise<void>[] = [];
             for (const monitoredItem of Object.values(this.monitoredItems)) {
-                promises.push(monitoredItem.resendInitialValue());
+                promises.push(
+                    (async () => {
+                        try {
+                            monitoredItem.resendInitialValue();
+                        } catch (err) {
+                            warningLog(
+                                "resendInitialValues:",
+                                monitoredItem.node?.nodeId.toString(),
+                                "error:",
+                                (err as any).message
+                            );
+                        }
+                    })()
+                );
             }
             await Promise.all(promises);
         } catch (err) {
             warningLog("resendInitialValues: error:", (err as any).message);
         }
-        this._keep_alive_counter = this.maxKeepAliveCount - 2;
+
+        console.log("resendInitialValues  !", this.state);
+        // make sure data will be sent immediately
+        this._keep_alive_counter = this.maxKeepAliveCount - 1 ;
+        this.state = SubscriptionState.NORMAL;
         this._harvestMonitoredItems();
     }
 
@@ -1443,10 +1480,6 @@ export class Subscription extends EventEmitter {
         }
     }
 
-    public _get_future_sequence_number(): number {
-        return this._sequence_number_generator ? this._sequence_number_generator.future() : 0;
-    }
-
     private _process_keepAlive() {
         this.increaseKeepAliveCounter();
 
@@ -1504,9 +1537,18 @@ export class Subscription extends EventEmitter {
         this.timerId = setInterval(this._tick.bind(this), this.publishingInterval);
     }
 
+    private _get_future_sequence_number(): number {
+        return this._sequence_number_generator ? this._sequence_number_generator.future() : 0;
+    }
+    public get futureSequenceNumber(): number {
+        return this._get_future_sequence_number();
+    }
     // counter
     private _get_next_sequence_number(): number {
         return this._sequence_number_generator ? this._sequence_number_generator.next() : 0;
+    }
+    public get nextSequenceNumber(): number {
+        return this._get_next_sequence_number();
     }
 
     /**
@@ -1856,7 +1898,7 @@ export class Subscription extends EventEmitter {
         monitoredItem.setMonitoringMode(monitoringMode);
     }
 
-    private _harvestMonitoredItems() {
+    public _harvestMonitoredItems() {
         for (const monitoredItem of Object.values(this.monitoredItems)) {
             const notifications_chunks = monitoredItem.extractMonitoredItemNotifications();
             for (const chunk of notifications_chunks) {

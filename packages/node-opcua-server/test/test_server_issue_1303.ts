@@ -1,7 +1,7 @@
 import net from "net";
 import os from "os";
 import should from "should";
-import { OPCUAServer } from "..";
+import { OPCUAServer } from "../source";
 
 async function findAvailablePort(): Promise<number> {
     return new Promise((resolve) => {

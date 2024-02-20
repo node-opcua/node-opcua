@@ -18,7 +18,7 @@ import { NodeId, coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace, Namespace, UAVariable, SessionContext } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "..";
+import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "../source";
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);

@@ -1,8 +1,8 @@
 import { nodesets } from "node-opcua-nodesets";
 import { UAVariable } from "node-opcua-address-space-base";
-import { OPCUAServer, RegisterServerMethod } from "..";
 import should from "should";
 import { ApplicationType } from "node-opcua-types";
+import { OPCUAServer, RegisterServerMethod } from "../source";
 
 const port = 2022;
 // eslint-disable-next-line import/order

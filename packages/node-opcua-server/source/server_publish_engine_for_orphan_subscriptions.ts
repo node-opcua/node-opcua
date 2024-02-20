@@ -30,7 +30,7 @@ export class ServerSidePublishEngineForOrphanSubscription extends ServerSidePubl
     public add_subscription(subscription: Subscription): Subscription {
         debugLog(chalk.bgCyan.yellow.bold(" adding live subscription with id="), subscription.id, " to orphan");
 
-        // detach subscription from old seession
+        // detach subscription from old session
         subscription.$session = undefined;
         
         super.add_subscription(subscription);
