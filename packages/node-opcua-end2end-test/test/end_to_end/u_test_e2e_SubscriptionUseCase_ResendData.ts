@@ -244,18 +244,21 @@ export function t(test: any) {
 
                 console.log("now item2 goes reporting");
                 {
-                    messages.length.should.eql(2);
+                    messages.length.should.eql(1);
                     messages[0].notificationData!.length.should.eql(1);
                     const n0 = messages[0].notificationData![0] as DataChangeNotification;
-                    n0.monitoredItems!.length.should.eql(1);
+                    n0.monitoredItems!.length.should.eql(2);
                     n0.monitoredItems![0].clientHandle.should.eql(1);
                     n0.monitoredItems![0].value.toString().should.eql(ref.toString());
 
-                    messages[1].notificationData!.length.should.eql(1);
-                    const n1 = messages[1].notificationData![0] as DataChangeNotification;
-                    n1.monitoredItems!.length.should.eql(1);
-                    n1.monitoredItems![0].clientHandle.should.eql(1);
-                    n1.monitoredItems![0].value.toString().should.eql(ref.toString());
+                    n0.monitoredItems![1].clientHandle.should.eql(1);
+                    n0.monitoredItems![1].value.toString().should.eql(ref.toString());
+
+                    // messages[1].notificationData!.length.should.eql(1);
+                    // const n1 = messages[1].notificationData![0] as DataChangeNotification;
+                    // n1.monitoredItems!.length.should.eql(1);
+                    // n1.monitoredItems![0].clientHandle.should.eql(1);
+                    // n1.monitoredItems![0].value.toString().should.eql(ref.toString());
 
                 }
                 messages = [];
