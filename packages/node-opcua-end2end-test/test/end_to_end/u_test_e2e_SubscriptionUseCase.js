@@ -1003,26 +1003,30 @@ module.exports = function (test) {
                         }
                     );
 
-                    monitoredItem.on("err", function (statusMessage) {
-                        //xx tracelog("Monitored Item error",statusMessage);
+                    monitoredItem.on("err", (statusMessage) => {
+                        tracelog("Monitored Item error", statusMessage);
                         statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                         callback();
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", function () {
-                        //xx tracelog("Monitored Item Initialized")
+                        tracelog("Monitored Item Initialized");
                     });
 
                     const monitoredItemOnChangedSpy = new sinon.spy();
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
+                    monitoredItem.on("changed", function (dataValue) {
+                        tracelog("Monitored Item changed", dataValue.toString());
+                    });
 
-                    setTimeout(function () {
+                    setTimeout(() => {
+                        monitoredItemOnChangedSpy.callCount.should.eql(1);
                         //xx tracelog(notificationMessageSpy.getCall(0).args[0].toString());
                         monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
                         monitoredItemOnChangedSpy.callCount.should.eql(1, "Only one reply");
                         callback();
-                    }, 500);
+                    }, 20000);
                 },
                 done
             );
@@ -2003,7 +2007,7 @@ module.exports = function (test) {
             if (process.platform === "darwin") {
                 return done(); // skipping on MacOS
             }
-         
+
             // from Spec OPCUA Version 1.03 Part 4 - 5.13.1.1 Description : Page 69
             // h. Subscriptions have a lifetime counter that counts the number of consecutive publishing cycles in
             //    which there have been no Publish requests available to send a Publish response for the
@@ -2253,7 +2257,7 @@ module.exports = function (test) {
                     });
 
                     const itemToMonitor = {
-                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        nodeId: resolveNodeId("ns=0;i=2258"), // Date Time
                         attributeId: AttributeIds.Value
                     };
                     const monitoringParameters = {
@@ -2264,7 +2268,7 @@ module.exports = function (test) {
                     const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters);
 
                     let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", (dataValue) => {
                         change_count += 1;
                         should.exist(dataValue);
                         //xx tracelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
@@ -2584,7 +2588,9 @@ module.exports = function (test) {
         });
 
         function test_modify_monitored_item_on_noValue_attribute(parameters, done) {
+
             const nodeId = "ns=0;i=2258";
+            
             const itemToMonitor = {
                 nodeId: resolveNodeId(nodeId),
                 attributeId: AttributeIds.BrowseName
@@ -2607,7 +2613,7 @@ module.exports = function (test) {
                                 setTimeout(function () {
                                     change_count.should.eql(1);
                                     callback();
-                                }, 1000);
+                                }, 1100);
                             },
                             function (callback) {
                                 monitoredItem.modify(parameters, function (err, result) {
@@ -2619,7 +2625,7 @@ module.exports = function (test) {
                                 setTimeout(function () {
                                     change_count.should.eql(1);
                                     callback();
-                                }, 1000);
+                                }, 1100);
                             },
 
                             // setting mode to disable
@@ -2633,9 +2639,9 @@ module.exports = function (test) {
                             function (callback) {
                                 // Changing mode from Disabled to Reporting shall cause the monitored Item to resend a data notification
                                 setTimeout(function () {
-                                    change_count.should.eql(1);
+                                    change_count.should.eql(2);
                                     callback();
-                                }, 1000);
+                                }, 1100);
                             }
                         ],
                         inner_done

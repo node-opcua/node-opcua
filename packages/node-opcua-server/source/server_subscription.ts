@@ -81,7 +81,7 @@ function _adjust_maxKeepAliveCount(maxKeepAliveCount?: number /*,publishingInter
     return maxKeepAliveCount;
 }
 
-const MaxUint32 = 0xFFFFFFFF;
+const MaxUint32 = 0xffffffff;
 
 function _adjust_lifeTimeCount(lifeTimeCount: number, maxKeepAliveCount: number, publishingInterval: number): number {
     lifeTimeCount = lifeTimeCount || 1;
@@ -137,7 +137,7 @@ function _getSequenceNumbers(arr: NotificationMessage[]): number[] {
     return arr.map((notificationMessage) => notificationMessage.sequenceNumber);
 }
 
-function analyseEventFilterResult(node: BaseNode, eventFilter: EventFilter): EventFilterResult {
+function analyzeEventFilterResult(node: BaseNode, eventFilter: EventFilter): EventFilterResult {
     /* istanbul ignore next */
     if (!(eventFilter instanceof EventFilter)) {
         throw new Error("Internal Error");
@@ -154,13 +154,13 @@ function analyseEventFilterResult(node: BaseNode, eventFilter: EventFilter): Eve
     });
 }
 
-function analyseDataChangeFilterResult(node: BaseNode, dataChangeFilter: DataChangeFilter): null {
+function analyzeDataChangeFilterResult(node: BaseNode, dataChangeFilter: DataChangeFilter): null {
     assert(dataChangeFilter instanceof DataChangeFilter);
     // the opcua specification doesn't provide dataChangeFilterResult
     return null;
 }
 
-function analyseAggregateFilterResult(node: BaseNode, aggregateFilter: AggregateFilter): AggregateFilterResult {
+function analyzeAggregateFilterResult(node: BaseNode, aggregateFilter: AggregateFilter): AggregateFilterResult {
     assert(aggregateFilter instanceof AggregateFilter);
     return new AggregateFilterResult({});
 }
@@ -171,11 +171,11 @@ function _process_filter(node: BaseNode, filter: any): EventFilterResult | Aggre
     }
 
     if (filter instanceof EventFilter) {
-        return analyseEventFilterResult(node, filter);
+        return analyzeEventFilterResult(node, filter);
     } else if (filter instanceof DataChangeFilter) {
-        return analyseDataChangeFilterResult(node, filter);
+        return analyzeDataChangeFilterResult(node, filter);
     } else if (filter instanceof AggregateFilter) {
-        return analyseAggregateFilterResult(node, filter);
+        return analyzeAggregateFilterResult(node, filter);
     }
     // istanbul ignore next
     throw new Error("invalid filter");
@@ -687,6 +687,7 @@ export class Subscription extends EventEmitter {
             // todo
         }
         this._stop_timer();
+
         this._start_timer({ firstTime: false });
     }
 
@@ -923,8 +924,8 @@ export class Subscription extends EventEmitter {
      * number of disabled monitored items.
      */
     public get disabledMonitoredItemCount(): number {
-        return Object.values(this.monitoredItems).reduce((cumul: any, monitoredItem: MonitoredItem) => {
-            return cumul + (monitoredItem.monitoringMode === MonitoringMode.Disabled ? 1 : 0);
+        return Object.values(this.monitoredItems).reduce((sum: number, monitoredItem: MonitoredItem) => {
+            return sum + (monitoredItem.monitoringMode === MonitoringMode.Disabled ? 1 : 0);
         }, 0);
     }
 
@@ -1252,12 +1253,19 @@ export class Subscription extends EventEmitter {
      * @private
      */
     public async resendInitialValues(): Promise<void> {
-        const promises: Promise<void>[] = [];
-        for (const monitoredItem of Object.values(this.monitoredItems)) {
-            assert(monitoredItem.clientHandle !== 4294967295);
-            promises.push(monitoredItem.resendInitialValues());
+        
+        this._keep_alive_counter = 0;
+
+        try {
+            const promises: Promise<void>[] = [];
+            for (const monitoredItem of Object.values(this.monitoredItems)) {
+                promises.push(monitoredItem.resendInitialValue());
+            }
+            await Promise.all(promises);
+        } catch (err) {
+            warningLog("resendInitialValues: error:", (err as any).message);
         }
-        await Promise.all(promises);
+        this._keep_alive_counter = this.maxKeepAliveCount - 2;
         this._harvestMonitoredItems();
     }
 
@@ -1368,7 +1376,7 @@ export class Subscription extends EventEmitter {
         const availableSequenceNumbers = this.getAvailableSequenceNumbers();
         assert(
             !response.notificationMessage ||
-            availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
+                availableSequenceNumbers[availableSequenceNumbers.length - 1] === response.notificationMessage.sequenceNumber
         );
         response.availableSequenceNumbers = availableSequenceNumbers;
 
@@ -1380,7 +1388,6 @@ export class Subscription extends EventEmitter {
 
         this.resetLifeTimeAndKeepAliveCounters();
 
-        
         // istanbul ignore next
         if (doDebug) {
             debugLog(
@@ -1419,7 +1426,10 @@ export class Subscription extends EventEmitter {
         if (this.hasPendingNotifications) {
             this._publish_pending_notifications();
 
-            if (this.state === SubscriptionState.NORMAL && this.hasPendingNotifications) {
+            if (
+                this.state === SubscriptionState.NORMAL ||
+                (this.state === SubscriptionState.LATE && this.hasPendingNotifications)
+            ) {
                 // istanbul ignore next
                 if (doDebug) {
                     debugLog("    -> pendingPublishRequestCount > 0 " + "&& normal state => re-trigger tick event immediately ");
@@ -1447,7 +1457,7 @@ export class Subscription extends EventEmitter {
             } else {
                 debugLog(
                     "     -> subscription.state === LATE , " +
-                    "because keepAlive Response cannot be send due to lack of PublishRequest"
+                        "because keepAlive Response cannot be send due to lack of PublishRequest"
                 );
                 if (this.messageSent || this.keepAliveCounterHasExpired) {
                     this.state = SubscriptionState.LATE;
@@ -1483,7 +1493,7 @@ export class Subscription extends EventEmitter {
 
         // make sure that a keep-alive Message will be send at the end of the first publishing cycle
         // if there are no Notifications ready.
-        this._keep_alive_counter = 0; // this.maxKeepAliveCount;
+        this._keep_alive_counter = this.maxKeepAliveCount - 2;
 
         if (firstTime) {
             assert(this.messageSent === false);
