@@ -148,7 +148,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         const eventData = createEventData("EventQueueOverflowEventType");
         const result = extractEventFields(sessionContext, eventFilter.selectClauses || [], eventData);
 
-        console.log(result[0].toString());
+        // console.log(result[0].toString());
 
         result[0].dataType.should.eql(DataType.Null);
         result[1].dataType.should.eql(DataType.NodeId);

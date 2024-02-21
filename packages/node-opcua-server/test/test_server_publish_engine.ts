@@ -306,7 +306,7 @@ describe("Testing the server publish engine", function (this: any) {
             test.clock.tick(subscription.publishingInterval);
             send_response_for_request_spy.callCount.should.be.equal(1);
 
-            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 1));
+            test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 2));
             send_response_for_request_spy.callCount.should.be.equal(1);
 
             send_response_for_request_spy.getCall(0).args[1].schema.name.should.equal("PublishResponse");
