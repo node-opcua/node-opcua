@@ -394,7 +394,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         simulate_client_adding_publish_request(subscription.publishEngine);
 
         test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-        subscription.state.should.eql(SubscriptionState.KEEPALIVE);
+        subscription.state.should.eql(SubscriptionState.LATE);
 
         // Monitored item will report a new value every tick => 100 ms
         subscription.on("monitoredItem", function (monitoredItem) {

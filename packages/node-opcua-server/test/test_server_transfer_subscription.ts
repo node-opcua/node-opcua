@@ -82,45 +82,47 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
                 publishingEnabled: true, // Boolean
                 priority: 14 // Byte
             });
-            subscription.publishingInterval.should.eql(1000);
-            subscription.lifeTimeCount.should.eql(60);
-            subscription.maxKeepAliveCount.should.eql(10);
+            try {
+                subscription.publishingInterval.should.eql(1000);
+                subscription.lifeTimeCount.should.eql(60);
+                subscription.maxKeepAliveCount.should.eql(10);
 
-            subscription.currentKeepAliveCount.should.eql(8);
-            subscription.currentLifetimeCount.should.eql(0);
+                subscription.currentKeepAliveCount.should.eql(9);
+                subscription.currentLifetimeCount.should.eql(0);
 
-            // Given there is no Publish Request
-            // when wait a very long time , longer than maxKeepAlive ,
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-            subscription.state.should.eql(SubscriptionState.LATE);
-            subscription.currentKeepAliveCount.should.eql(0);
+                // Given there is no Publish Request
+                // when wait a very long time , longer than maxKeepAlive ,
+                test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+                subscription.state.should.eql(SubscriptionState.LATE);
+                subscription.currentKeepAliveCount.should.eql(0);
 
-            sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+                sendPublishRequest(session1, publishSpy);
+                test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
-            {
-                publishSpy.callCount.should.eql(1);
-                const publishResponse = publishSpy.getCall(0).args[1];
-                publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
-                publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                publishResponse.notificationMessage.notificationData.length.should.eql(0);
-                publishResponse.notificationMessage.sequenceNumber.should.eql(1);
+                {
+                    publishSpy.callCount.should.eql(1);
+                    const publishResponse = publishSpy.getCall(0).args[1];
+                    publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
+                    publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    publishResponse.notificationMessage.notificationData.length.should.eql(0);
+                    publishResponse.notificationMessage.sequenceNumber.should.eql(1);
+                }
+
+                publishSpy.resetHistory();
+
+                test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+                sendPublishRequest(session1, publishSpy);
+                test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
+                {
+                    const publishResponse = publishSpy.getCall(0).args[1];
+                    publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
+                    publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                    publishResponse.notificationMessage.notificationData.length.should.eql(0);
+                    publishResponse.notificationMessage.sequenceNumber.should.eql(1);
+                }
+            } finally {
+                subscription.terminate();
             }
-
-            publishSpy.resetHistory();
-
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-            sendPublishRequest(session1, publishSpy);
-            test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-            {
-                const publishResponse = publishSpy.getCall(0).args[1];
-                publishResponse.subscriptionId.should.eql(subscription.subscriptionId);
-                publishResponse.responseHeader.serviceResult.should.eql(StatusCodes.Good);
-                publishResponse.notificationMessage.notificationData.length.should.eql(0);
-                publishResponse.notificationMessage.sequenceNumber.should.eql(1);
-            }
-
-            subscription.terminate();
         });
     });
 
@@ -844,8 +846,6 @@ describe("ServerEngine Subscriptions Transfer", function (this: any) {
                 publishResponse2.notificationMessage.notificationData.length.should.eql(1);
                 publishResponse2.notificationMessage.notificationData[0].constructor.name.should.eql("StatusChangeNotification");
 
-
-                
                 publishSpy2.resetHistory();
             } finally {
                 console.log("closing session");

@@ -1298,8 +1298,6 @@ export class Subscription extends EventEmitter {
         } catch (err) {
             warningLog("resendInitialValues: error:", (err as any).message);
         }
-
-        console.log("resendInitialValues  !", this.state);
         // make sure data will be sent immediately
         this._keep_alive_counter = this.maxKeepAliveCount - 1 ;
         this.state = SubscriptionState.NORMAL;
@@ -1526,7 +1524,7 @@ export class Subscription extends EventEmitter {
 
         // make sure that a keep-alive Message will be send at the end of the first publishing cycle
         // if there are no Notifications ready.
-        this._keep_alive_counter = this.maxKeepAliveCount - 2;
+        this._keep_alive_counter = this.maxKeepAliveCount - 1;
 
         if (firstTime) {
             assert(this.messageSent === false);

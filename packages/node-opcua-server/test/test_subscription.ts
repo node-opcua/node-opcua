@@ -137,8 +137,8 @@ describe("Subscriptions", function (this: any) {
 
         // now wait for 1 publishing cycle
         test.clock.tick(subscription.publishingInterval);
-        subscription.state.should.eql(SubscriptionState.CREATING);
-        keepalive_event_spy.callCount.should.be.equal(0);
+        subscription.state.should.eql(SubscriptionState.KEEPALIVE);
+        keepalive_event_spy.callCount.should.be.equal(1);
 
         // now wait for 1 publishing cycle
         test.clock.tick(subscription.publishingInterval);
@@ -159,7 +159,7 @@ describe("Subscriptions", function (this: any) {
 
         // we should have enter the KEEPALIVE state
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
-        subscription.currentKeepAliveCount.should.eql(0, "start counting up agin");
+        subscription.currentKeepAliveCount.should.eql(1, "start counting up agin");
 
         test.clock.tick(subscription.publishingInterval);
 
@@ -167,10 +167,10 @@ describe("Subscriptions", function (this: any) {
         keepalive_event_spy.callCount.should.equal(2, " the second max Keep alive should have bee received");
 
         subscription.state.should.eql(SubscriptionState.KEEPALIVE);
-        subscription.currentKeepAliveCount.should.eql(1);
+        subscription.currentKeepAliveCount.should.eql(2);
 
         test.clock.tick(subscription.publishingInterval);
-        subscription.currentKeepAliveCount.should.eql(2);
+        subscription.currentKeepAliveCount.should.eql(3);
 
         // wait for 20 more publishing cycle
         test.clock.tick(subscription.publishingInterval * 22);
@@ -213,7 +213,7 @@ describe("Subscriptions", function (this: any) {
         test.clock.tick(subscription.publishingInterval);
         notification_event_spy.callCount.should.be.equal(0);
         keepalive_event_spy.callCount.should.equal(0);
-        subscription.state.should.eql(SubscriptionState.CREATING);
+        subscription.state.should.eql(SubscriptionState.LATE);
 
         test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
 
@@ -514,14 +514,14 @@ describe("Subscriptions", function (this: any) {
             // in this case the subscription received a first publish request before the first tick is processed
 
             simulate_client_adding_publish_request(subscription.publishEngine);
-            subscription.state.should.eql(SubscriptionState.CREATING);
+            subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
             test.clock.tick(subscription.publishingInterval);
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
             keepalive_event_spy.callCount.should.eql(1);
 
             test.clock.tick(subscription.publishingInterval * (subscription.maxKeepAliveCount - 1));
-            subscription.state.should.eql(SubscriptionState.KEEPALIVE);
+            subscription.state.should.eql(SubscriptionState.LATE);
             keepalive_event_spy.callCount.should.eql(1);
 
             test.clock.tick((subscription.publishingInterval * subscription.maxKeepAliveCount) / 2);
@@ -540,7 +540,7 @@ describe("Subscriptions", function (this: any) {
             subscription.state.should.eql(SubscriptionState.CREATING);
            
             test.clock.tick(subscription.publishingInterval);
-            subscription.state.should.eql(SubscriptionState.CREATING);
+            subscription.state.should.eql(SubscriptionState.LATE);
             keepalive_event_spy.callCount.should.eql(0);
 
             simulate_client_adding_publish_request(subscription.publishEngine!);

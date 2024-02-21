@@ -4,6 +4,7 @@ import { SessionContext } from "node-opcua-address-space";
 import { minDate } from "node-opcua-date-time";
 import { Subscription, SubscriptionOptions, SubscriptionState } from "../source";
 
+const doDebug = false;
 function getFakePublishEngine() {
     return {
         pendingPublishRequestCount: 0,
@@ -62,8 +63,7 @@ describe("Subscription keepAlive behavior", function (this: any) {
         test.clock.restore();
     });
 
-    xit("subscription with publishEnabled:false should receive first keepAlive after 1 publishing interval and next keepAlive after publishingInterval*maxKeepAliveCount", async () => {
-        
+    it("subscription with publishEnabled:false should receive first keepAlive after 1 publishing interval and next keepAlive after publishingInterval*maxKeepAliveCount", async () => {
         const publishingEnabled = false;
 
         const subscription = makeSubscription({
@@ -79,7 +79,7 @@ describe("Subscription keepAlive behavior", function (this: any) {
             publishEngine: fake_publish_engine
         });
         subscription.maxKeepAliveCount.should.eql(5);
-        
+
         const subscriptionCreationTime = new Date();
         subscription.maxKeepAliveCount.should.eql(5);
 
@@ -94,10 +94,10 @@ describe("Subscription keepAlive behavior", function (this: any) {
         let secondPublishResponse = minDate;
         subscription.once("keepalive", (d) => {
             firstPublishResponse = new Date();
-            console.log("keepalive received", firstPublishResponse);
+            doDebug && console.log("keepalive received", firstPublishResponse);
             subscription.once("keepalive", (d) => {
                 secondPublishResponse = new Date();
-                console.log("keepalive received", secondPublishResponse);
+                doDebug && console.log("keepalive received", secondPublishResponse);
             });
         });
 
@@ -132,5 +132,9 @@ describe("Subscription keepAlive behavior", function (this: any) {
             highLimit2,
             "Expected the second Publish response after maxKeepAliveCount * publishingInterval."
         );
+
+        subscription.terminate();
+        subscription.dispose();
+        
     });
 });
