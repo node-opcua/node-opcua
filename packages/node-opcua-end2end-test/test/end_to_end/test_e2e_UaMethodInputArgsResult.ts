@@ -76,7 +76,7 @@ describe("list status codes for input arguments", () => {
             methodId: "ns=1;s=RingDoor",
             inputArguments: [{ dataType: DataType.UInt32, value: 1 }]
         });
-        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        result.statusCode.should.eql(StatusCodes.BadTypeMismatch);
         result.inputArgumentResults![0].should.eql(StatusCodes.BadTypeMismatch);
     });
 
