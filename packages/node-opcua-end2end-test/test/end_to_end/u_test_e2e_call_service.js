@@ -191,7 +191,7 @@ module.exports = function (test) {
 
                             should.exist(results);
 
-                            results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
+                            results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
 
                             results[0].inputArgumentResults.length.should.eql(1);
                             results[0].inputArgumentResults[0].should.eql(StatusCodes.BadTypeMismatch);
@@ -224,7 +224,7 @@ module.exports = function (test) {
                             should.not.exist(err);
                             should.exist(results);
 
-                            results[0].statusCode.should.eql(StatusCodes.BadInvalidArgument);
+                            results[0].statusCode.should.eql(StatusCodes.BadTypeMismatch);
 
                             results[0].inputArgumentResults.length.should.eql(1);
                             results[0].inputArgumentResults[0].should.eql(StatusCodes.BadTypeMismatch);
