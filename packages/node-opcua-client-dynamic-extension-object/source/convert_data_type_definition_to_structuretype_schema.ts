@@ -16,7 +16,14 @@ import {
     TypeDefinition
 } from "node-opcua-factory";
 import { NodeId, makeExpandedNodeId, resolveNodeId, coerceNodeId } from "node-opcua-nodeid";
-import { browseAll, BrowseDescriptionLike, findBasicDataType, IBasicSessionAsync, IBasicSessionAsync2, IBasicSessionBrowseNextAsync } from "node-opcua-pseudo-session";
+import {
+    browseAll,
+    BrowseDescriptionLike,
+    findBasicDataType,
+    IBasicSessionAsync,
+    IBasicSessionAsync2,
+    IBasicSessionBrowseNextAsync
+} from "node-opcua-pseudo-session";
 import {
     EnumDefinition,
     DataTypeDefinition,
@@ -26,6 +33,7 @@ import {
     EnumField
 } from "node-opcua-types";
 import { ExtensionObject } from "node-opcua-extension-object";
+import { DataTypeAndEncodingId } from "node-opcua-schemas";
 //
 import { DataType } from "node-opcua-variant";
 import { _findEncodings } from "./private/find_encodings";
@@ -206,6 +214,7 @@ async function resolve2(
                         dataTypeNodeId,
                         fieldTypeName,
                         definition,
+                        null,
                         dataTypeFactory,
                         isAbstract,
                         cache
@@ -343,6 +352,7 @@ async function resolveFieldType(
 async function _setupEncodings(
     session: IBasicSessionAsync & IBasicSessionBrowseNextAsync,
     dataTypeNodeId: NodeId,
+    dataTypeDescription: IDataTypeDescriptionMini | null,
     schema: IStructuredTypeSchema
 ): Promise<IStructuredTypeSchema> {
     // read abstract flag
@@ -350,20 +360,28 @@ async function _setupEncodings(
     schema.dataTypeNodeId = dataTypeNodeId;
 
     if (isAbstractDV.statusCode.isGood() && isAbstractDV.value.value === false) {
-        const encodings = await _findEncodings(session, dataTypeNodeId);
+        const encodings = (dataTypeDescription && dataTypeDescription.encodings) || (await _findEncodings(session, dataTypeNodeId));
         schema.encodingDefaultBinary = makeExpandedNodeId(encodings.binaryEncodingNodeId);
         schema.encodingDefaultXml = makeExpandedNodeId(encodings.xmlEncodingNodeId);
         schema.encodingDefaultJson = makeExpandedNodeId(encodings.jsonEncodingNodeId);
+    } else {
+        schema.isAbstract = true;
     }
     return schema;
 }
 
-// eslint-disable-next-line max-statements
+export interface IDataTypeDescriptionMini {
+    encodings?: DataTypeAndEncodingId;
+    isAbstract?: boolean;
+}
+
+// eslint-disable-next-line max-statements, max-params
 export async function convertDataTypeDefinitionToStructureTypeSchema(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string,
     definition: DataTypeDefinition,
+    dataTypeDescription: IDataTypeDescriptionMini | null,
     dataTypeFactory: DataTypeFactory,
     isAbstract: boolean,
     cache: { [key: string]: CacheForFieldResolution }
@@ -463,7 +481,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             name,
             dataTypeFactory
         });
-        const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, os);
+        const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, dataTypeDescription, os);
 
         postActions.forEach((action) => action(structuredTypeSchema));
 

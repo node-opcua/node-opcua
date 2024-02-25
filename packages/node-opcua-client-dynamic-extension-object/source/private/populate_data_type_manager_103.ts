@@ -77,14 +77,18 @@ async function _readNamespaceUriProperty(session: IBasicSessionAsync, dataTypeDi
     return dataValue.value.value || "<not set>";
 }
 
-interface IDataTypeDescription {
+export interface IDataTypeDescription {
     browseName: QualifiedName;
     nodeId: NodeId;
     encodings?: DataTypeAndEncodingId;
     symbolicName?: string;
+    isAbstract?: boolean;
 }
 
-async function _getDataTypeDescriptions(session: IBasicSessionAsync2, dataTypeDictionaryNodeId: NodeId): Promise<IDataTypeDescription[]> {
+async function _getDataTypeDescriptions(
+    session: IBasicSessionAsync2,
+    dataTypeDictionaryNodeId: NodeId
+): Promise<IDataTypeDescription[]> {
     const nodeToBrowse2: BrowseDescriptionLike = {
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: false,
@@ -99,15 +103,17 @@ async function _getDataTypeDescriptions(session: IBasicSessionAsync2, dataTypeDi
     return result2.references.map((r) => ({ nodeId: r.nodeId, browseName: r.browseName }));
 }
 
-async function _enrichWithDescriptionOf(session: IBasicSessionAsync2, dataTypeDescriptions: IDataTypeDescription[]): Promise<NodeId[]> {
+async function _enrichWithDescriptionOf(
+    session: IBasicSessionAsync2,
+    dataTypeDescriptions: IDataTypeDescription[]
+): Promise<NodeId[]> {
     const nodesToBrowse3: BrowseDescriptionOptions[] = [];
-    for (const ref of dataTypeDescriptions) {
-        ref.browseName.toString();
+    for (const dataTypeDescription of dataTypeDescriptions) {
         nodesToBrowse3.push({
             browseDirection: BrowseDirection.Inverse,
             includeSubtypes: false,
             nodeClassMask: makeNodeClassMask("Object"),
-            nodeId: ref.nodeId.toString(),
+            nodeId: dataTypeDescription.nodeId.toString(),
             referenceTypeId: resolveNodeId("HasDescription"),
             //            resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
             resultMask: makeResultMask("NodeId")
@@ -194,20 +200,27 @@ async function _enrichWithDescriptionOf(session: IBasicSessionAsync2, dataTypeDe
     for (let i = 0; i < results5.length; i++) {
         const result5 = results5[i];
         const dataTypeDescription = dataTypeDescriptions[i];
+        let encodingCounter = 0;
         for (const ref of result5.references || []) {
             switch (ref.browseName.name) {
                 case "Default XML":
                     dataTypeDescription.encodings!.xmlEncodingNodeId = ref.nodeId;
+                    encodingCounter++;
                     break;
                 case "Default Binary":
                     dataTypeDescription.encodings!.binaryEncodingNodeId = ref.nodeId;
+                    encodingCounter++;
                     break;
                 case "Default JSON":
                     dataTypeDescription.encodings!.jsonEncodingNodeId = ref.nodeId;
+                    encodingCounter++;
                     break;
                 default:
                     errorLog("Cannot handle unknown encoding", ref.browseName.name);
             }
+        }
+        if (encodingCounter === 0) {
+            dataTypeDescription.isAbstract = true;
         }
     }
     return dataTypeNodeIds;
@@ -257,6 +270,11 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
     return dataTypeDefinitionsSorted;
 }
 
+const readIsAbstract = async (session: IBasicSessionAsync, nodeId: NodeId): Promise<boolean> => {
+    const dataValue = await session.read({ nodeId, attributeId: AttributeIds.IsAbstract });
+    return dataValue.value.value;
+}
+
 async function _extractDataTypeDictionaryFromDefinition(
     session: IBasicSessionAsync2,
     dataTypeDictionaryNodeId: NodeId,
@@ -292,7 +310,10 @@ async function _extractDataTypeDictionaryFromDefinition(
 
             if (dataTypeDefinition && dataTypeDefinition instanceof StructureDefinition) {
                 const className = dataTypeDescription.browseName.name!;
-                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract: false });
+
+                const isAbstract = await readIsAbstract(session, dataTypeNodeId);
+
+                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract });
             }
         } else {
             debugLog(
@@ -320,11 +341,16 @@ async function _extractDataTypeDictionaryFromDefinition(
         }
         // now fill typeDictionary
         try {
+            const dataTypeDescription = dataTypeDescriptions.find((a)=>a.nodeId.toString() === dataTypeNodeId.toString());
+            if (!dataTypeDefinition) {
+                throw new Error("cannot find dataTypeDefinition for "+ dataTypeNodeId.toString());
+            }
             const schema = await convertDataTypeDefinitionToStructureTypeSchema(
                 session,
                 dataTypeNodeId,
                 className,
                 dataTypeDefinition,
+                dataTypeDescription!, // for encodings
                 dataTypeFactory,
                 isAbstract,
                 cache
@@ -334,8 +360,15 @@ async function _extractDataTypeDictionaryFromDefinition(
             if (doDebug) {
                 debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
             }
-            const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
-            assert(Constructor.schema === schema);
+            if (!isAbstract) {
+                const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
+                assert(Constructor.schema === schema);
+            } else {
+                // istanbul ignore next
+                if (doDebug) {
+                    debugLog("Ignoring Abstract ", className);
+                }
+            }
         } catch (err) {
             errorLog("Constructor verification err: ", (<Error>err).message);
             errorLog("For this reason class " + className + " has not been registered");
@@ -520,7 +553,10 @@ function extraNamespaceRef(attribute: string): { xmlns: string; namespace: strin
  * @param dataTypeManager
  * @async
  */
-export async function populateDataTypeManager103(session: IBasicSessionAsync2, dataTypeManager: ExtraDataTypeManager): Promise<void> {
+export async function populateDataTypeManager103(
+    session: IBasicSessionAsync2,
+    dataTypeManager: ExtraDataTypeManager
+): Promise<void> {
     debugLog("in ... populateDataTypeManager");
 
     // read namespace array
