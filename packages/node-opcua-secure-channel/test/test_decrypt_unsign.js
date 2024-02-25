@@ -1,9 +1,9 @@
 const should = require("should");
 const { makeBufferFromTrace, inlineText, hexDump } = require("node-opcua-debug");
-const crypto_utils = require("node-opcua-crypto");
+const { toPem, privateDecrypt_long, verifyChunkSignature, PaddingAlgorithm } = require("node-opcua-crypto");
 
 let buffer = makeBufferFromTrace(
-        `00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
+    `00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda
          00000020: 74 69 6f 6e 2e 6f 72 67 2f 55 41 2f 53 65 63 75 72 69 74 79 50 6f 6c 69 63 79 23 42 61 73 69 63    tion.org/UA/SecurityPolicy#Basic
          00000040: 31 32 38 52 73 61 31 35 75 04 00 00 30 82 04 71 30 82 03 59 a0 03 02 01 02 02 04 53 a3 ca d0 30    128Rsa15u...0..q0..Y.......S#JP0
          00000060: 0d 06 09 2a 86 48 86 f7 0d 01 01 05 05 00 30 43 31 0a 30 08 06 03 55 04 08 13 01 41 31 0a 30 08    ...*.H.w......0C1.0...U....A1.0.
@@ -53,7 +53,8 @@ let buffer = makeBufferFromTrace(
          000005e0: fb 6c e1 9d 11 ae 9a 88 41 ba 70 b1 7b c8 8d b5 04 4b 88 d1 05 d5 b8 ac 9b 10 54 45 c8 80 65 8d    {la.....A:p1{H.5.K.Q.U8,..TEH.e.
          00000600: 5f 1e 1e 58 bd 7b 33 7f fd 98 fd 20 9d 71 30 3a 3c 84 1e 87 b8 1b 2d 51 2b 55 62 41 e4 b9 a5 29    _..X={3.}.}..q0:<...8.-Q+UbAd9%)
          00000620: 24 2a 91 b6 06 05 01 df 80 dd b1 04 2e 05 aa 17 ef 6a 53 46 05 78 0c c7 5c 9c 7f cf e4 37 80 de    $*.6..._.]1...*.ojSF.x.G\\..Od7.^
-         00000640: bf 31 de 11 13 70 f4 93 fe 0c a2 4f ef 58 b9 c8 a8 3a 5e 76 20 0c 87 f0 ef                         ?1^..pt.~."OoX9H(:^v...po`);
+         00000640: bf 31 de 11 13 70 f4 93 fe 0c a2 4f ef 58 b9 c8 a8 3a 5e 76 20 0c 87 f0 ef                         ?1^..pt.~."OoX9H(:^v...po`
+);
 
 //console.log(hexDump(buffer, 32 , 10000));
 
@@ -72,8 +73,8 @@ const privateKey = inlineText(
          X6dBMiuEq35B/uIpIgh7Feyihle7GtJ/TagoPqE+NJ6J65ihTR8H5fwDI6PB2PvH
          YHGW7CE8/rNjKP4ulP+jAkAUhrdwf6Wr4KeyOqysE5V7AnHgBHgyUvi95bjJEtVm
          g9s5xs14gqCBGGf2CTN+xnJehplg562CQG6f70heivC7
-         -----END RSA PRIVATE KEY-----
-         `);
+-----END RSA PRIVATE KEY-----`
+);
 
 describe("testing message decryption", function () {
     xit("should decrypt an OPN packet and verify that the signature is correct", function () {
@@ -85,23 +86,22 @@ describe("testing message decryption", function () {
         const encrypted_part = buffer.subarray(start);
 
         // decrypt the encrypted part
-        const decrypted_part = crypto_utils.privateDecrypt_long(encrypted_part, privateKey, 128);
+        const decrypted_part = privateDecrypt_long(encrypted_part, privateKey, 128, PaddingAlgorithm.RSA_PKCS1_PADDING);
 
         // 1496
         // recompose the buffer
         decrypted_part.copy(buffer, start);
-        buffer = buffer.slice(0, start + decrypted_part.length);
+        buffer = buffer.subarray(0, start + decrypted_part.length);
 
         buffer.length.should.equal(start + 3 * (128 - 11));
-
         // verify signature
-        const publicKey = crypto_utils.toPem(senderCertificate, "CERTIFICATE");
+        const publicKey = toPem(senderCertificate, "CERTIFICATE");
         const options = {
             algorithm: "RSA-SHA1",
             signatureLength: 256,
             publicKey: publicKey
         };
-        const boolSignatureIsOK = crypto_utils.verifyChunkSignature(buffer, options);
+        const boolSignatureIsOK = verifyChunkSignature(buffer, options);
 
         boolSignatureIsOK.should.eql(true);
     });
