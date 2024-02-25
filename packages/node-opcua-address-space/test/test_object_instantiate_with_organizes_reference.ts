@@ -192,7 +192,7 @@ describe("Test object instantiate when organizes references exists", () => {
  
         parameter1InInstanceAsStoredInFolder1.nodeId.toString().should.eql(parameter1InInstanceAsStoredInParameterSet.nodeId.toString());
         
-        console.log(folder1InInstance?.toString());
+        doDebug && console.log(folder1InInstance?.toString());
     });
 
 });
