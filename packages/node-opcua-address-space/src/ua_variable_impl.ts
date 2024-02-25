@@ -2099,7 +2099,14 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
                 !this.$dataValue.statusCode.isGoodish() ||
                 !sameVariant(this.$dataValue.value, value as Variant)
             ) {
-                this._inner_replace_dataValue(new DataValue({ value }));
+                // rebuilding artificially timestamps with current clock as they are not provided 
+                // by the underlying getter function
+                const { timestamp: sourceTimestamp, picoseconds: sourcePicoseconds } = getCurrentClock();
+                const serverTimestamp = sourceTimestamp;
+                const serverPicoseconds = sourcePicoseconds;
+                this._inner_replace_dataValue(
+                    new DataValue({ value, sourceTimestamp, sourcePicoseconds, serverTimestamp, serverPicoseconds })
+                );
             }
             return this.$dataValue;
         }
@@ -2221,7 +2228,7 @@ function bind_getter(this: UAVariableImpl, options: GetterOptions) {
         if (options.get !== undefined || options.timestamped_get !== undefined) {
             throw new Error("bind_getter : options should not specify both get and timestamped_get ");
         }
-        _Variable_bind_with_async_refresh.call(this, {refreshFunc: options.refreshFunc!});
+        _Variable_bind_with_async_refresh.call(this, { refreshFunc: options.refreshFunc! });
     } else {
         assert(
             !Object.prototype.hasOwnProperty.call(options, "set"),
