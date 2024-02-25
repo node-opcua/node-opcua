@@ -8,8 +8,9 @@ import {
     publicEncrypt_long,
     readCertificate,
     DerivedKeys,
-    RSA_PKCS1_PADDING,
-    readPrivateKey
+    readPrivateKey,
+    RSA_PKCS1_OAEP_PADDING,
+    PaddingAlgorithm
 } from "node-opcua-crypto";
 import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
@@ -66,7 +67,7 @@ export function iterateOnSignedAndEncryptedMessageChunks(buffer: Buffer, callbac
     const options = {
         chunkSize: 2048,
         cipherBlockSize: 128,
-        encryptBufferFunc: (chunk: Buffer) => publicEncrypt_long(chunk, receiverPublicKey, 128, 11, RSA_PKCS1_PADDING),
+        encryptBufferFunc: (chunk: Buffer) => publicEncrypt_long(chunk, receiverPublicKey, 128, 11, PaddingAlgorithm.RSA_PKCS1_PADDING),
         plainBlockSize: 128 - 11,
         requestId: 10,
         sequenceHeaderSize: 0, // ??
