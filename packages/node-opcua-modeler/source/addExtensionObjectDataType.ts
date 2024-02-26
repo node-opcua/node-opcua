@@ -93,6 +93,7 @@ export async function addExtensionObjectDataType(namespace: INamespace, options:
         dataType.nodeId,
         className,
         dataType.getStructureDefinition(),
+        null,
         dataTypeFactory,
         isAbstract,
         cache

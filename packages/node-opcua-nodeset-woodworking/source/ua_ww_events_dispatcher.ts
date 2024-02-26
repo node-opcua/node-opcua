@@ -3,7 +3,7 @@ import { UAObject } from "node-opcua-address-space-base"
 /**
  * The WwEventsDispatcherType represents a container
  * that is an event dispatcher for machine
- * diagnostic and information events
+ * diagnostic and information events.
  *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

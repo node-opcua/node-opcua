@@ -41,7 +41,7 @@ export interface PacketAssembler {
     on(eventName: "error", eventHandler: (err: Error, errCode: PacketAssemblerErrorCode) => void): this;
 }
 /**
- * this class is used to assemble partial data from the tranport layer
+ * this class is used to assemble partial data from the transport layer
  * into message chunks
  */
 export class PacketAssembler extends EventEmitter {

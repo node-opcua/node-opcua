@@ -72,11 +72,11 @@ export class StatusCodes {
         value: 0x80b80000,
         description: "The request message size exceeds limits set by the server."
     });
-    /** The response message size exceeds limits set by the client. */
+    /** The response message size exceeds limits set by the client or server. */
     static BadResponseTooLarge: ConstantStatusCode = new ConstantStatusCode({
         name: "BadResponseTooLarge",
         value: 0x80b90000,
-        description: "The response message size exceeds limits set by the client."
+        description: "The response message size exceeds limits set by the client or server."
     });
     /** An unrecognized response was received from the server. */
     static BadUnknownResponse: ConstantStatusCode = new ConstantStatusCode({
@@ -333,6 +333,18 @@ export class StatusCodes {
         description:
             "The server does not have a license which is required to operate in general or to perform a service or operation."
     });
+    /** The Server does not have the resources to process the request at this time. */
+    static BadServerTooBusy: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadServerTooBusy",
+        value: 0x80ee0000,
+        description: "The Server does not have the resources to process the request at this time."
+    });
+    /** The log-on for the user succeeded but the user is required to change the password. */
+    static GoodPasswordChangeRequired: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodPasswordChangeRequired",
+        value: 0xef0000,
+        description: "The log-on for the user succeeded but the user is required to change the password."
+    });
     /** The subscription was transferred to another session. */
     static GoodSubscriptionTransferred: ConstantStatusCode = new ConstantStatusCode({
         name: "GoodSubscriptionTransferred",
@@ -370,11 +382,11 @@ export class StatusCodes {
         value: 0x80320000,
         description: "Waiting for the server to obtain values from the underlying data source."
     });
-    /** The syntax of the node id is not valid. */
+    /** The syntax the node id is not valid or refers to a node that is not valid for the operation. */
     static BadNodeIdInvalid: ConstantStatusCode = new ConstantStatusCode({
         name: "BadNodeIdInvalid",
         value: 0x80330000,
-        description: "The syntax of the node id is not valid."
+        description: "The syntax the node id is not valid or refers to a node that is not valid for the operation."
     });
     /** The node id refers to a node that does not exist in the server address space. */
     static BadNodeIdUnknown: ConstantStatusCode = new ConstantStatusCode({
@@ -399,6 +411,12 @@ export class StatusCodes {
         name: "BadIndexRangeNoData",
         value: 0x80370000,
         description: "No data exists within the range of indexes specified."
+    });
+    /** The written data does not match the IndexRange specified. */
+    static BadIndexRangeDataMismatch: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadIndexRangeDataMismatch",
+        value: 0x80ea0000,
+        description: "The written data does not match the IndexRange specified."
     });
     /** The data encoding is invalid. */
     static BadDataEncodingInvalid: ConstantStatusCode = new ConstantStatusCode({
@@ -573,6 +591,18 @@ export class StatusCodes {
         name: "BadNumericOverflow",
         value: 0x81120000,
         description: "The number was not accepted because of a numeric overflow."
+    });
+    /** The locale in the requested write operation is not supported. */
+    static BadLocaleNotSupported: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadLocaleNotSupported",
+        value: 0x80ed0000,
+        description: "The locale in the requested write operation is not supported."
+    });
+    /** The variable has no default value and no initial value. */
+    static BadNoValue: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadNoValue",
+        value: 0x80f00000,
+        description: "The variable has no default value and no initial value."
     });
     /** The ServerUri is not a valid URI. */
     static BadServerUriInvalid: ConstantStatusCode = new ConstantStatusCode({
@@ -1089,17 +1119,24 @@ export class StatusCodes {
         value: 0x40940000,
         description: "The value is outside of the range of values defined for this parameter."
     });
-    /** The value is derived from multiple sources and has less than the required number of Good sources. */
+    /** The data value is derived from multiple sources and has less than the required number of Good sources. */
     static UncertainSubNormal: ConstantStatusCode = new ConstantStatusCode({
         name: "UncertainSubNormal",
         value: 0x40950000,
-        description: "The value is derived from multiple sources and has less than the required number of Good sources."
+        description: "The data value is derived from multiple sources and has less than the required number of Good sources."
     });
     /** The value has been overridden. */
     static GoodLocalOverride: ConstantStatusCode = new ConstantStatusCode({
         name: "GoodLocalOverride",
         value: 0x960000,
         description: "The value has been overridden."
+    });
+    /** The value is derived from multiple sources and has the required number of Good sources, but less than the full number of Good sources. */
+    static GoodSubNormal: ConstantStatusCode = new ConstantStatusCode({
+        name: "GoodSubNormal",
+        value: 0xeb0000,
+        description:
+            "The value is derived from multiple sources and has the required number of Good sources, but less than the full number of Good sources."
     });
     /** This Condition refresh failed, a Condition refresh operation is already in progress. */
     static BadRefreshInProgress: ConstantStatusCode = new ConstantStatusCode({
@@ -1222,12 +1259,11 @@ export class StatusCodes {
         value: 0x80a00000,
         description: "The data or event was not successfully updated because no matching entry exists."
     });
-    /** The client requested history using a timestamp format the server does not support (i.e requested ServerTimestamp when server only supports SourceTimestamp). */
+    /** The Client requested history using a TimestampsToReturn the Server does not support. */
     static BadTimestampNotSupported: ConstantStatusCode = new ConstantStatusCode({
         name: "BadTimestampNotSupported",
         value: 0x80a10000,
-        description:
-            "The client requested history using a timestamp format the server does not support (i.e requested ServerTimestamp when server only supports SourceTimestamp)."
+        description: "The Client requested history using a TimestampsToReturn the Server does not support."
     });
     /** The data or event was successfully inserted into the historical database. */
     static GoodEntryInserted: ConstantStatusCode = new ConstantStatusCode({
@@ -1241,11 +1277,11 @@ export class StatusCodes {
         value: 0xa30000,
         description: "The data or event field was successfully replaced in the historical database."
     });
-    /** The value is derived from multiple values and has less than the required number of Good values. */
+    /** The aggregate value is derived from multiple values and has less than the required number of Good values. */
     static UncertainDataSubNormal: ConstantStatusCode = new ConstantStatusCode({
         name: "UncertainDataSubNormal",
         value: 0x40a40000,
-        description: "The value is derived from multiple values and has less than the required number of Good values."
+        description: "The aggregate value is derived from multiple values and has less than the required number of Good values."
     });
     /** No data exists for the requested time range or event filter. */
     static GoodNoData: ConstantStatusCode = new ConstantStatusCode({
@@ -1324,6 +1360,12 @@ export class StatusCodes {
         name: "BadLocked",
         value: 0x80e90000,
         description: "The requested operation is not allowed, because the Node is locked by a different application."
+    });
+    /** The requested operation is not allowed, because the Node is not locked by the application. */
+    static BadRequiresLock: ConstantStatusCode = new ConstantStatusCode({
+        name: "BadRequiresLock",
+        value: 0x80ec0000,
+        description: "The requested operation is not allowed, because the Node is not locked by the application."
     });
     /** The value does not come from the real source and has been edited by the server. */
     static GoodEdited: ConstantStatusCode = new ConstantStatusCode({

@@ -23,7 +23,7 @@ import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers"
 import { BrowseDescriptionLike, BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
 import { NumericRange } from "node-opcua-numeric-range";
 
-import { ServerEngine } from "..";
+import { ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
@@ -1590,7 +1590,7 @@ describe("testing ServerEngine", function () {
 
     describe("ServerEngine read maxAge", () => {
         let clock: SinonFakeTimers;
-        let timerId: NodeJS.Timer;
+        let timerId: NodeJS.Timeout;
         beforeEach(function () {
             const old_setInterval = setInterval;
             clock = sinon.useFakeTimers(new Date(2000, 11, 25, 0, 0, 0));

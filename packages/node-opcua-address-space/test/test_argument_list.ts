@@ -131,7 +131,7 @@ describe("verifyArguments_ArgumentList", () => {
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
-            statusCode: StatusCodes.BadInvalidArgument
+            statusCode: StatusCodes.BadTypeMismatch
         });
     });
 
@@ -207,7 +207,7 @@ describe("verifyArguments_ArgumentList", () => {
         debugLog("statusCode             ", result.statusCode.toString());
         result.should.eql({
             inputArgumentResults: [StatusCodes.BadTypeMismatch],
-            statusCode: StatusCodes.BadInvalidArgument
+            statusCode: StatusCodes.BadTypeMismatch
         });
     });
 

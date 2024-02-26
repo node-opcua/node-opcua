@@ -338,7 +338,7 @@ export interface ServerEngineOptions {
 export interface CreateSessionOption {
     clientDescription?: ApplicationDescription;
     sessionTimeout?: number;
-    server: IServerBase;
+    server?: IServerBase;
 }
 
 export type ClosingReason = "Timeout" | "Terminated" | "CloseSession" | "Forcing";
@@ -374,7 +374,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
     private _serverStatus: ServerStatusDataType;
     private _globalCounter: { totalMonitoredItemCount: number } = { totalMonitoredItemCount: 0 };
 
-    constructor(options: ServerEngineOptions) {
+    constructor(options?: ServerEngineOptions) {
         super();
 
         options = options || ({ applicationUri: "" } as ServerEngineOptions);
@@ -1423,7 +1423,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @param  [options.clientDescription] {ApplicationDescription}
      * @return {ServerSession}
      */
-    public createSession(options: CreateSessionOption): ServerSession {
+    public createSession(options?: CreateSessionOption): ServerSession {
         options = options || {};
         options.server = options.server || {};
         debugLog("createSession : increasing serverDiagnosticsSummary cumulatedSessionCount/currentSessionCount ");
@@ -1645,9 +1645,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             subscription.$session._unexposeSubscriptionDiagnostics(subscription);
         }
 
-        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
         subscription.$session = session;
-
+    
+        await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
+    
         session._exposeSubscriptionDiagnostics(subscription);
 
         assert((subscription.publishEngine as any) === session.publishEngine);

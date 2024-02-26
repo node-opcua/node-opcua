@@ -198,6 +198,11 @@ export class DataTypeFactory {
 
     public registerClassDefinition(dataTypeNodeId: NodeId, className: string, classConstructor: ConstructorFuncWithSchema): void {
         this._registerFactory(dataTypeNodeId, className, classConstructor, classConstructor.schema);
+
+        if (classConstructor.schema.isAbstract) {
+            return;
+        }
+        
         if (classConstructor.encodingDefaultBinary && classConstructor.encodingDefaultBinary.value !== 0) {
             this.associateWithBinaryEncoding(className, classConstructor.encodingDefaultBinary);
         } else {

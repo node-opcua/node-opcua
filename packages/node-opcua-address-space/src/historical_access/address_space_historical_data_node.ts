@@ -445,9 +445,9 @@ function _historyReadRaw(
             historyReadRawModifiedDetails.numValuesPerNode,
             continuationData
         );
-        const { statusCode, values } = cnt;
+        const { statusCode, values, continuationPoint } = cnt;
         const result2 = new HistoryReadResult({
-            continuationPoint: cnt.continuationPoint,
+            continuationPoint,
             historyData: new HistoryData({ dataValues: values }),
             statusCode
         });

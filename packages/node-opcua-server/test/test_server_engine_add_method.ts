@@ -1,31 +1,36 @@
-const { resolveNodeId, NodeId } = require("node-opcua-nodeid");
-const { VariantArrayType, DataType } = require("node-opcua-variant");
-const { StatusCodes } = require("node-opcua-status-code");
-const { NodeClass } = require("node-opcua-data-model");
-const { getMethodDeclaration_ArgumentList, SessionContext, UAMethod } = require("node-opcua-address-space");
-const { BrowsePath } = require("node-opcua-service-translate-browse-path");
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
+import "should";
+import { resolveNodeId, NodeId } from "node-opcua-nodeid";
+import { VariantArrayType, DataType, Variant } from "node-opcua-variant";
+import { StatusCodes } from "node-opcua-status-code";
+import { NodeClass } from "node-opcua-data-model";
+import { getMethodDeclaration_ArgumentList, IAddressSpace, INamespace, ISessionContext, SessionContext, UAMethod } from "node-opcua-address-space";
+import { BrowsePath } from "node-opcua-service-translate-browse-path";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-let engine, FolderTypeId, BaseDataVariableTypeId, ref_Organizes_Id;
-
-const { ServerEngine } = require("..");
+import { ServerEngine } from "../source";
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("ServerEngine - addMethod", function() {
-    let addressSpace;
-    let namespace;
-    before(function(done) {
+describe("ServerEngine - addMethod", function () {
+    let addressSpace: IAddressSpace;
+    let namespace: INamespace;
+    let FolderTypeId: NodeId;
+    let BaseDataVariableTypeId: NodeId;
+    let ref_Organizes_Id: NodeId;
+
+    let engine: ServerEngine;
+
+    before(function (done) {
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
-            addressSpace = engine.addressSpace;
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+            addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
-            FolderTypeId = addressSpace.findObjectType("FolderType").nodeId;
-            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType").nodeId;
-            ref_Organizes_Id = addressSpace.findReferenceType("Organizes").nodeId;
+            FolderTypeId = addressSpace.findObjectType("FolderType")!.nodeId;
+            BaseDataVariableTypeId = addressSpace.findVariableType("BaseDataVariableType")!.nodeId;
+            ref_Organizes_Id = addressSpace.findReferenceType("Organizes")!.nodeId;
             ref_Organizes_Id.toString().should.eql("ns=0;i=35");
 
             done();
@@ -33,11 +38,10 @@ describe("ServerEngine - addMethod", function() {
     });
     after(async () => {
         await engine.shutdown();
-        engine = null;
     });
 
     it("should be able to attach a method on a object of the address space and call it", async () => {
-        const objectFolder = engine.addressSpace.findNode("ObjectsFolder");
+        const objectFolder = addressSpace!.findNode("ObjectsFolder")!;
 
         const object = namespace.addObject({
             organizedBy: objectFolder,
@@ -69,13 +73,13 @@ describe("ServerEngine - addMethod", function() {
         method.nodeClass.should.eql(NodeClass.Method);
 
         method.nodeId.should.be.instanceOf(NodeId);
-        const objectMethod = object.getMethodById(method.nodeId);
+        const objectMethod = object.getMethodById(method.nodeId)!;
         (objectMethod !== null && typeof objectMethod === "object").should.eql(true);
 
-        const arg = getMethodDeclaration_ArgumentList(engine.addressSpace, object.nodeId, method.nodeId);
+        const arg = getMethodDeclaration_ArgumentList(addressSpace, object.nodeId, method.nodeId);
 
         arg.statusCode.should.eql(StatusCodes.Good);
-        arg.methodDeclaration.should.eql(objectMethod);
+        arg.methodDeclaration!.should.eql(objectMethod);
 
         const methodInputArguments = objectMethod.getInputArguments();
         Array.isArray(methodInputArguments).should.eql(true);
@@ -83,9 +87,9 @@ describe("ServerEngine - addMethod", function() {
         const methodOutputArguments = objectMethod.getOutputArguments();
         Array.isArray(methodOutputArguments).should.eql(true);
 
-        method.bindMethod(async function(inputArguments, context) {
-            const nbBarks = inputArguments[0].value;
-            const barks = [];
+        method.bindMethod(async (inputArguments: Variant[], context?: ISessionContext) => {
+            const nbBarks: number = inputArguments[0].value;
+            const barks: string[] = [];
             for (let i = 0; i < nbBarks; i++) {
                 barks.push("Whaff");
             }
@@ -115,7 +119,7 @@ describe("ServerEngine - addMethod", function() {
             {
                 startingNode: /* NodeId  */ method.nodeId,
                 relativePath: /* RelativePath   */ {
-                    elements: /* RelativePathElement */[
+                    elements: /* RelativePathElement */ [
                         {
                             referenceTypeId: hasPropertyRefId,
                             isInverse: false,
@@ -146,9 +150,9 @@ describe("ServerEngine - addMethod", function() {
         result = await engine.translateBrowsePath(new BrowsePath(browsePath[1]));
         result.statusCode.should.eql(StatusCodes.Good);
 
-        const callMethodResponse = await objectMethod.execute(null, inputArguments, context);
-        callMethodResponse.statusCode.should.eql(StatusCodes.Good);
-        callMethodResponse.outputArguments.length.should.eql(1);
-        callMethodResponse.outputArguments[0].value.should.eql(["Whaff", "Whaff", "Whaff"]);
+        const callMethodResponse = await objectMethod.execute(null, inputArguments, context)!;
+        callMethodResponse.statusCode!.should.eql(StatusCodes.Good);
+        callMethodResponse.outputArguments!.length.should.eql(1);
+        callMethodResponse.outputArguments![0]!.value.should.eql(["Whaff", "Whaff", "Whaff"]);
     });
 });

@@ -1,7 +1,7 @@
 import { assert } from "node-opcua-assert";
 import { BaseNode, UAMethod, UAObject, UAReference, UAVariable, CloneFilter, fullPath2 } from "node-opcua-address-space-base";
-
 import { checkDebugFlag, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
+import { BrowseDirection } from "node-opcua-data-model";
 
 import { _clone_hierarchical_references } from "./base_node_private";
 
@@ -23,7 +23,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         assert(null !== instance);
         this.optionalsMap = optionalsMap;
         this.instance = instance;
-        this.references = instance.allReferences();
+        this.references = instance.findReferencesEx("Aggregates", BrowseDirection.Forward);
     }
 
     public shouldKeep(node: BaseNode): boolean {

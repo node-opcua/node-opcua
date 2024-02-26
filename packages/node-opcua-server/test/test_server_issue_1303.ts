@@ -1,7 +1,7 @@
 import net from "net";
 import os from "os";
 import should from "should";
-import { OPCUAServer } from "..";
+import { OPCUAServer } from "../source";
 
 async function findAvailablePort(): Promise<number> {
     return new Promise((resolve) => {
@@ -67,7 +67,8 @@ async function testServerStartupAndShutdown(host: string | undefined, port: numb
 
         return results;
     } catch (err) {
-        console.error(`ERROR: failed server startup/shutdown with msg: ${err.message}`);
+
+        console.error(`ERROR: failed server startup/shutdown with msg: ${(err as Error).message}`);
         throw err;
     }
 }

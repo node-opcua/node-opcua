@@ -1,0 +1,316 @@
+<UaTestCaseSelection xsi:noNamespaceSchemaLocation="testcaseselection.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+ <ProjectInfo specificationversion="1.04.011" ProjectType="ServerProject" binaryversion="1.11.000+409" scriptversion="1.04.506"/>
+ <ConformanceGroups>
+  <ConformanceGroup name="Subscription Services">
+   <ConformanceUnit name="Subscription Basic">
+    <TestCases>
+     <TestCase name="020.js"/>
+     <TestCase name="021.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Durable">
+    <TestCases>
+     <TestCase name="000.js"/>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="008.js"/>
+     <TestCase name="009.js"/>
+     <TestCase name="010.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="012.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-005.js"/>
+     <TestCase name="Err-006.js"/>
+     <TestCase name="Err-007.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Publish Discard Policy">
+    <TestCases>
+     <TestCase name="manual.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Minimum 1">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Minimum 02">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="008.js"/>
+     <TestCase name="009.js"/>
+     <TestCase name="010.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="012.js"/>
+     <TestCase name="013.js"/>
+     <TestCase name="014.js"/>
+     <TestCase name="015.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="017.js"/>
+     <TestCase name="018.js"/>
+     <TestCase name="019.js"/>
+     <TestCase name="020.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Minimum 05">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-005.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Minimum 10">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Publish Min 02">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="Err-001.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Publish Min 05">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="Err-001.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Publish Min 10">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="Err-001.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="Subscription Transfer">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="008.js"/>
+     <TestCase name="009.js"/>
+     <TestCase name="010.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="012.js"/>
+     <TestCase name="013.js"/>
+     <TestCase name="014.js"/>
+     <TestCase name="015.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-005.js"/>
+     <TestCase name="Err-006.js"/>
+     <TestCase name="Err-007.js"/>
+     <TestCase name="Err-008.js"/>
+     <TestCase name="Err-009.js"/>
+     <TestCase name="Err-010.js"/>
+     <TestCase name="Err-011.js"/>
+    </TestCases>
+   </ConformanceUnit>
+  </ConformanceGroup>
+  <ConformanceGroup name="View Services">
+   <ConformanceUnit name="View Basic">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="008.js"/>
+     <TestCase name="009.js"/>
+     <TestCase name="010.js"/>
+     <TestCase name="015.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="017.js"/>
+     <TestCase name="018.js"/>
+     <TestCase name="019.js"/>
+     <TestCase name="020.js"/>
+     <TestCase name="027.js"/>
+     <TestCase name="028.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-006.js"/>
+     <TestCase name="Err-008.js"/>
+     <TestCase name="Err-009.js"/>
+     <TestCase name="Err-010.js"/>
+     <TestCase name="Err-014.js"/>
+     <TestCase name="Err-015.js"/>
+     <TestCase name="Err-016.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="View Minimum Continuation Point 01">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="009.js"/>
+     <TestCase name="010.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="012.js"/>
+     <TestCase name="013.js"/>
+     <TestCase name="014.js"/>
+     <TestCase name="015.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="017.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-006.js"/>
+     <TestCase name="Err-008.js"/>
+     <TestCase name="Err-009.js"/>
+     <TestCase name="Err-010.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="View Minimum Continuation Point 05">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="View RegisterNodes">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="007.js"/>
+     <TestCase name="009.js"/>
+     <TestCase name="010.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="012.js"/>
+     <TestCase name="013.js"/>
+     <TestCase name="014.js"/>
+     <TestCase name="015.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="017.js"/>
+     <TestCase name="018.js"/>
+     <TestCase name="021.js"/>
+     <TestCase name="022.js"/>
+     <TestCase name="023.js"/>
+     <TestCase name="024.js"/>
+     <TestCase name="025.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-005.js"/>
+     <TestCase name="Err-006.js"/>
+     <TestCase name="Err-007.js"/>
+     <TestCase name="Err-008.js"/>
+     <TestCase name="Err-009.js"/>
+     <TestCase name="Err-011.js"/>
+     <TestCase name="Err-012.js"/>
+     <TestCase name="Err-013.js"/>
+     <TestCase name="Err-014.js"/>
+    </TestCases>
+   </ConformanceUnit>
+   <ConformanceUnit name="View TranslateBrowsePath">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="011.js"/>
+     <TestCase name="012.js"/>
+     <TestCase name="013.js"/>
+     <TestCase name="014.js"/>
+     <TestCase name="015.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="017.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+     <TestCase name="Err-005.js"/>
+     <TestCase name="Err-006.js"/>
+     <TestCase name="Err-007.js"/>
+     <TestCase name="Err-008.js"/>
+     <TestCase name="Err-011.js"/>
+     <TestCase name="Err-012.js"/>
+     <TestCase name="Err-013.js"/>
+     <TestCase name="Err-014.js"/>
+     <TestCase name="Err-015.js"/>
+     <TestCase name="Err-018.js"/>
+     <TestCase name="Err-019.js"/>
+     <TestCase name="Err-020.js"/>
+     <TestCase name="Err-021.js"/>
+     <TestCase name="Err-022.js"/>
+     <TestCase name="Err-023.js"/>
+     <TestCase name="Err-024.js"/>
+    </TestCases>
+   </ConformanceUnit>
+  </ConformanceGroup>
+  <ConformanceGroup name="Method Services">
+   <ConformanceUnit name="Method Call">
+    <TestCases>
+     <TestCase name="001.js"/>
+     <TestCase name="002.js"/>
+     <TestCase name="003.js"/>
+     <TestCase name="004.js"/>
+     <TestCase name="005.js"/>
+     <TestCase name="006.js"/>
+     <TestCase name="016.js"/>
+     <TestCase name="Err-001.js"/>
+     <TestCase name="Err-002.js"/>
+     <TestCase name="Err-003.js"/>
+     <TestCase name="Err-004.js"/>
+    </TestCases>
+   </ConformanceUnit>
+  </ConformanceGroup>
+ </ConformanceGroups>
+</UaTestCaseSelection>

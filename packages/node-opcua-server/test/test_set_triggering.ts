@@ -18,7 +18,7 @@ import { NodeId, coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace, Namespace, UAVariable, SessionContext } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
-import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "..";
+import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "../source";
 
 function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
@@ -413,7 +413,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
 
         const publishedResponse0 = waitInitialNotification();
         {
-            console.log(publishedResponse0.toString());
+            // console.log(publishedResponse0.toString());
             publishedResponse0.notificationMessage.notificationData!.length.should.eql(1);
             const notifs0 = (publishedResponse0.notificationMessage.notificationData![0] as DataChangeNotification).monitoredItems!;
             notifs0.length.should.eql(1);

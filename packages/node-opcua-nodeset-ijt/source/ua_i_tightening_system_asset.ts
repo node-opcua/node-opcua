@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
+import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { Int32, UInt16, Int16, Byte, UAString, Guid } from "node-opcua-basic-types"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"

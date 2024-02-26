@@ -7,6 +7,7 @@
         "incremental": true
     },
     "include": ["source/**/*.ts"],
+    "exclude": ["node_modules", "dist", "test"],
     "references": [
         {
             "path": "../node-opcua-address-space-base"
@@ -140,6 +141,5 @@
         {
             "path": "../node-opcua-test-helpers"
         }
-    ],
-    "exclude": ["node_modules", "test", "dist"]
+    ]
 }

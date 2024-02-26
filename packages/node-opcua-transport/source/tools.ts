@@ -47,13 +47,13 @@ export function decodeMessage(stream: BinaryStream, classNameConstructor: Constr
     }
 }
 
-export function packTcpMessage(msgType: string, encodeableObject: BaseUAObject): Buffer {
+export function packTcpMessage(msgType: string, encodableObject: BaseUAObject): Buffer {
     assert(is_valid_msg_type(msgType));
 
-    const messageChunk = createFastUninitializedBuffer(encodeableObject.binaryStoreSize() + 8);
-    // encode encodeableObject in a packet
+    const messageChunk = createFastUninitializedBuffer(encodableObject.binaryStoreSize() + 8);
+    // encode encode-ableObject in a packet
     const stream = new BinaryStream(messageChunk);
-    encodeMessage(msgType, encodeableObject, stream);
+    encodeMessage(msgType, encodableObject, stream);
 
     return messageChunk;
 }

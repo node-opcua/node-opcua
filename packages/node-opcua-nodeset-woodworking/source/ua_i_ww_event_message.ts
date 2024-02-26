@@ -76,7 +76,7 @@ export interface UAIWwEventMessage_Base extends UABaseInterface_Base {
      * information strings based on a server independent
      * hierarchical structure of modules or an
      * application specific expansion of that. It is an
-     * additional location infor¬mation beside the
+     * additional location information beside the
      * SourceName. Example:  “Machine”, “FixedSide”,
      * “Sizing”, “Milling1”
      */

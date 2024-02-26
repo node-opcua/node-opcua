@@ -27,7 +27,7 @@ export interface UAHistoryServerCapabilities_Base {
     deleteEventCapability: UAProperty<boolean, DataType.Boolean>;
     insertAnnotationCapability: UAProperty<boolean, DataType.Boolean>;
     aggregateFunctions: UAFolder;
-    serverTimestampSupported: UAProperty<boolean, DataType.Boolean>;
+    serverTimestampSupported?: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAHistoryServerCapabilities extends UAObject, UAHistoryServerCapabilities_Base {
 }

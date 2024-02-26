@@ -185,7 +185,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             const continuationPoint = m.nodeToRead.continuationPoint;
             return await this.historyReadNode(context, m.nodeToRead, m.processDetail, timestampsToReturn, {
                 continuationPoint,
-                releaseContinuationPoints /**, index = ??? */
+                releaseContinuationPoints
             });
         };
 
@@ -217,7 +217,6 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             return await this.historyReadNode(context, nodeToRead, historyReadDetails, timestampsToReturn, {
                 continuationPoint,
                 releaseContinuationPoints,
-                index
             });
         };
         const promises: Promise<HistoryReadResult>[] = [];
@@ -405,7 +404,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             //    invalid attributes : BadNodeAttributesInvalid
             //    invalid range      : BadIndexRangeInvalid
             const result = await obj.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationData);
-            assert(result!.statusCode instanceof StatusCode);
+    
             assert(result!.isValid());
             return result;
         }

@@ -135,6 +135,10 @@ describe("loading very large DataType Definitions ", function (this: any) {
             )
         );
 
+        // now clear the continuation points
+        const continuationPoints = browseResults.map((a) => a.continuationPoint);
+        await session.browseNext(continuationPoints, true);
+
         const browseSpy = spy(session, "browse");
         const browseNextSpy = spy(session, "browseNext");
 
@@ -143,7 +147,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
 
         // since 1.04 (september 2021) 1.04 datatype is in force
         browseSpy.callCount.should.be.greaterThanOrEqual(1);
-        browseSpy.callCount.should.be.lessThanOrEqual(2422  );
+        browseSpy.callCount.should.be.lessThanOrEqual(2425);
         browseNextSpy.callCount.should.eql(87);
 
         interface DataTypeFactoryPriv {

@@ -148,20 +148,21 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
 
     it("SM3-A - it should refuse monitored Items if maxMonitoredItemsPerSubscription is reached ", async () => {
         const subscription = makeSubscription();
-        globalCounter.totalMonitoredItemCount.should.eql(0);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
-        globalCounter.totalMonitoredItemCount.should.eql(6);
-        (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.BadTooManyMonitoredItems);
-        globalCounter.totalMonitoredItemCount.should.eql(6);
-
-        subscription.terminate();
-        subscription.dispose();
-
+        try {
+            globalCounter.totalMonitoredItemCount.should.eql(0);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.Good);
+            globalCounter.totalMonitoredItemCount.should.eql(6);
+            (await test_with_nodeId(subscription, nodeId)).should.eql(StatusCodes.BadTooManyMonitoredItems);
+            globalCounter.totalMonitoredItemCount.should.eql(6);
+        } finally {
+            subscription.terminate();
+            subscription.dispose();
+        }
         subscription.monitoredItemCount.should.eql(0);
         globalCounter.totalMonitoredItemCount.should.eql(0);
     });
@@ -169,31 +170,32 @@ describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
         const subscription1 = makeSubscription();
         const subscription2 = makeSubscription();
 
-        (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
+        try {
+            (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription1, nodeId)).should.eql(StatusCodes.Good);
 
-        globalCounter.totalMonitoredItemCount.should.eql(6);
+            globalCounter.totalMonitoredItemCount.should.eql(6);
 
-        (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
-        (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
-        globalCounter.totalMonitoredItemCount.should.eql(10);
-        (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.BadTooManyMonitoredItems);
-        (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.BadTooManyMonitoredItems);
-        globalCounter.totalMonitoredItemCount.should.eql(10);
-
-        subscription1.terminate();
-        subscription1.dispose();
-        subscription1.monitoredItemCount.should.eql(0);
-        globalCounter.totalMonitoredItemCount.should.eql(4);
-
-        subscription2.terminate();
-        subscription2.dispose();
+            (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
+            (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.Good);
+            globalCounter.totalMonitoredItemCount.should.eql(10);
+            (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.BadTooManyMonitoredItems);
+            (await test_with_nodeId(subscription2, nodeId)).should.eql(StatusCodes.BadTooManyMonitoredItems);
+            globalCounter.totalMonitoredItemCount.should.eql(10);
+            subscription1.terminate();
+            subscription1.dispose();
+            subscription1.monitoredItemCount.should.eql(0);
+            globalCounter.totalMonitoredItemCount.should.eql(4);
+        } finally {
+            subscription2.terminate();
+            subscription2.dispose();
+        }
         subscription2.monitoredItemCount.should.eql(0);
         globalCounter.totalMonitoredItemCount.should.eql(0);
     });

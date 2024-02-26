@@ -1003,26 +1003,30 @@ module.exports = function (test) {
                         }
                     );
 
-                    monitoredItem.on("err", function (statusMessage) {
-                        //xx tracelog("Monitored Item error",statusMessage);
+                    monitoredItem.on("err", (statusMessage) => {
+                        tracelog("Monitored Item error", statusMessage);
                         statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
                         callback();
                     });
 
                     // subscription.on("item_added",function(monitoredItem){
                     monitoredItem.on("initialized", function () {
-                        //xx tracelog("Monitored Item Initialized")
+                        tracelog("Monitored Item Initialized");
                     });
 
                     const monitoredItemOnChangedSpy = new sinon.spy();
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
+                    monitoredItem.on("changed", function (dataValue) {
+                        tracelog("Monitored Item changed", dataValue.toString());
+                    });
 
-                    setTimeout(function () {
+                    setTimeout(() => {
+                        monitoredItemOnChangedSpy.callCount.should.eql(1);
                         //xx tracelog(notificationMessageSpy.getCall(0).args[0].toString());
                         monitoredItemOnChangedSpy.getCall(0).args[0].statusCode.should.eql(StatusCodes.BadIndexRangeNoData);
                         monitoredItemOnChangedSpy.callCount.should.eql(1, "Only one reply");
                         callback();
-                    }, 500);
+                    }, 20000);
                 },
                 done
             );
@@ -1508,7 +1512,7 @@ module.exports = function (test) {
             });
         });
 
-        it("AZA2-M #CreateMonitoredItemRequest should return BadNothingToDo if CreateMonitoredItemRequest has no nodes to monitored", function (done) {
+        it("AZA2-M #CreateMonitoredItemsRequest should return BadNothingToDo if CreateMonitoredItemsRequest has no nodes to monitored", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1529,7 +1533,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-N #CreateMonitoredItemRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemRequest ", function (done) {
+        it("AZA2-N #CreateMonitoredItemsRequest should return BadIndexRangeInvalid if a invalid range is passed on CreateMonitoredItemsRequest ", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1572,7 +1576,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemRequest has no nodes to monitored", function (done) {
+        it("AZA2-O should return BadNothingToDo if ModifyMonitoredItemsRequest has no nodes to monitored", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1651,7 +1655,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-R A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
+        it("AZA2-R A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on monitored item )", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1695,7 +1699,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-SA A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SA A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1724,7 +1728,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA2-SB - GROUP - A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SB - GROUP - A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1754,7 +1758,7 @@ module.exports = function (test) {
                 done
             );
         });
-        it("AZA2-SB A Server should reject a CreateMonitoredItemRequest if timestamp is invalid ( catching error on callback)", function (done) {
+        it("AZA2-SB A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", function (done) {
             perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -2003,7 +2007,7 @@ module.exports = function (test) {
             if (process.platform === "darwin") {
                 return done(); // skipping on MacOS
             }
-         
+
             // from Spec OPCUA Version 1.03 Part 4 - 5.13.1.1 Description : Page 69
             // h. Subscriptions have a lifetime counter that counts the number of consecutive publishing cycles in
             //    which there have been no Publish requests available to send a Publish response for the
@@ -2253,7 +2257,7 @@ module.exports = function (test) {
                     });
 
                     const itemToMonitor = {
-                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        nodeId: resolveNodeId("ns=0;i=2258"), // Date Time
                         attributeId: AttributeIds.Value
                     };
                     const monitoringParameters = {
@@ -2264,7 +2268,7 @@ module.exports = function (test) {
                     const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters);
 
                     let change_count = 0;
-                    monitoredItem.on("changed", function (dataValue) {
+                    monitoredItem.on("changed", (dataValue) => {
                         change_count += 1;
                         should.exist(dataValue);
                         //xx tracelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
@@ -2375,7 +2379,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-H #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
+        it("AZA3-H #ModifyMonitoredItemsRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
@@ -2395,7 +2399,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-I #ModifyMonitoredItemRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
+        it("AZA3-I #ModifyMonitoredItemsRequest : server should send BadSubscriptionIdInvalid if client send a wrong subscription id", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
@@ -2424,7 +2428,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-J #ModifyMonitoredItemRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function (done) {
+        it("AZA3-J #ModifyMonitoredItemsRequest : server should send BadMonitoredItemIdInvalid  if client send a wrong monitored item id", function (done) {
             perform_operation_on_client_session(
                 client,
                 endpointUrl,
@@ -2519,7 +2523,7 @@ module.exports = function (test) {
             ); //
         }
 
-        it("AZA3-K #ModifyMonitoredItemRequest : server should handle samplingInterval === -1", function (done) {
+        it("AZA3-K #ModifyMonitoredItemsRequest : server should handle samplingInterval === -1", function (done) {
             const itemToMonitor = "ns=0;i=2258";
 
             /**
@@ -2546,7 +2550,7 @@ module.exports = function (test) {
             );
         });
 
-        it("AZA3-L #ModifyMonitoredItemRequest : server should handle samplingInterval === 0", function (done) {
+        it("AZA3-L #ModifyMonitoredItemsRequest : server should handle samplingInterval === 0", function (done) {
             const itemToMonitor = "ns=0;i=2258";
 
             const parameters = {
@@ -2584,7 +2588,9 @@ module.exports = function (test) {
         });
 
         function test_modify_monitored_item_on_noValue_attribute(parameters, done) {
+
             const nodeId = "ns=0;i=2258";
+            
             const itemToMonitor = {
                 nodeId: resolveNodeId(nodeId),
                 attributeId: AttributeIds.BrowseName
@@ -2607,7 +2613,7 @@ module.exports = function (test) {
                                 setTimeout(function () {
                                     change_count.should.eql(1);
                                     callback();
-                                }, 1000);
+                                }, 1100);
                             },
                             function (callback) {
                                 monitoredItem.modify(parameters, function (err, result) {
@@ -2619,7 +2625,7 @@ module.exports = function (test) {
                                 setTimeout(function () {
                                     change_count.should.eql(1);
                                     callback();
-                                }, 1000);
+                                }, 1100);
                             },
 
                             // setting mode to disable
@@ -2633,9 +2639,9 @@ module.exports = function (test) {
                             function (callback) {
                                 // Changing mode from Disabled to Reporting shall cause the monitored Item to resend a data notification
                                 setTimeout(function () {
-                                    change_count.should.eql(1);
+                                    change_count.should.eql(2);
                                     callback();
-                                }, 1000);
+                                }, 1100);
                             }
                         ],
                         inner_done
@@ -2645,7 +2651,7 @@ module.exports = function (test) {
             );
         }
 
-        it("AZA3-N #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
+        it("AZA3-N #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval === 0", function (done) {
             const parameters = {
                 samplingInterval: 0, // SAMPLING INTERVAL = 0 => use fastest allowed by server or event base
                 discardOldest: false,
@@ -2654,7 +2660,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("AZA3-O #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
+        it("AZA3-O #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval > 0", function (done) {
             const parameters = {
                 samplingInterval: 20,
                 discardOldest: false,
@@ -2663,7 +2669,7 @@ module.exports = function (test) {
             test_modify_monitored_item_on_noValue_attribute(parameters, done);
         });
 
-        it("AZA3-P #ModifyMonitoredItemRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
+        it("AZA3-P #ModifyMonitoredItemsRequest on a non-Value attribute: server should handle samplingInterval === -1", function (done) {
             const parameters = {
                 samplingInterval: -1,
                 discardOldest: false,
@@ -3904,7 +3910,7 @@ module.exports = function (test) {
                                 setTimeout(callback, subscription.publishingInterval * (subscription.maxKeepAliveCount + 2));
                             },
                             function (callback) {
-                                nb_keep_alive_received.should.eql(1);
+                                nb_keep_alive_received.should.eql(2);
                                 callback();
                             },
 

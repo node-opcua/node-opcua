@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
-import "should";
+import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { AttributeIds, UInt64 } from "node-opcua-basic-types";
 import { DataSetMetaDataType, TransferSubscriptionsRequest } from "node-opcua-types";
@@ -22,6 +22,7 @@ import { create_minimalist_address_space_nodeset } from "../distHelpers";
 
 const doDebug = false;
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing loading nodeset with extension objects values in types", () => {
     let addressSpace: AddressSpace;
 
@@ -126,7 +127,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     </NamespaceUris>
     <Models>
         <Model ModelUri="http://sterfive.com/Small_model/" Version="1.0.0" PublicationDate="2021-11-12T07:45:13.000Z">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.02" PublicationDate="2022-11-01T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.03" PublicationDate="2023-12-15T00:00:00.000Z"/>
         </Model>
     </Models>
     <Aliases>
@@ -471,7 +472,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     </NamespaceUris>
     <Models>
         <Model ModelUri="MyNamespace" Version="0.0.0" PublicationDate="1900-01-01T00:00:00.000Z">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.02" PublicationDate="2022-11-01T00:00:00.000Z"/>
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.03" PublicationDate="2023-12-15T00:00:00.000Z"/>
             <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.04.0" PublicationDate="2022-11-03T00:00:00.000Z"/>
             <RequiredModel ModelUri="http://opcfoundation.org/UA/AutoID/" Version="1.01" PublicationDate="2020-06-18T13:52:03.000Z"/>
         </Model>
@@ -689,5 +690,42 @@ describe("Testing loading nodeset with extension objects values in types", () =>
 <!--Object - 1:B2 }}}} -->
 </UANodeSet>`)
         );
+    });
+
+    it("LNEX9 - loading namespace with matrix variable - and no explicit default value", async () => {
+        const tmpFile = path.join(os.tmpdir(), "tmp.xml");
+
+        async function createNodeSet2WithMatrixVariable() {
+            const addressSpace = AddressSpace.create();
+            create_minimalist_address_space_nodeset(addressSpace);
+
+            const namespace1 = addressSpace.registerNamespace("A");
+            const objectA = namespace1.addObject({ browseName: "A", organizedBy: addressSpace.rootFolder.objects });
+            const matrixVariable = namespace1.addVariable({
+                browseName: "MatrixVariable",
+                nodeId: "s=MatrixVariable",
+                dataType: DataType.Double,
+                arrayDimensions: [0, 3],
+                valueRank: 2
+            });
+            const xmlA = namespace1.toNodeset2XML();
+            doDebug && console.log(xmlA);
+            addressSpace.dispose();
+            await fs.promises.writeFile(tmpFile, xmlA);
+        }
+        await createNodeSet2WithMatrixVariable();
+
+        const addressSpace2 = AddressSpace.create();
+        try {
+            await generateAddressSpace(addressSpace2, [nodesets.standard, tmpFile]);
+            const ns = addressSpace2.getNamespaceIndex("A");
+
+            const v = addressSpace2.findNode(`ns=${ns};s=MatrixVariable`)! as UAVariable;
+            const value = v.readValue().value.value;
+            should(value.length).eql(0);
+            should(value).be.instanceOf(Float64Array);
+        } finally {
+            addressSpace2.dispose();
+        }
     });
 });

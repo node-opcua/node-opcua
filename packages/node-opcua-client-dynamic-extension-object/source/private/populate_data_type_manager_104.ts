@@ -68,6 +68,7 @@ export async function readDataTypeDefinitionAndBuildType(
             dataTypeNodeId,
             name,
             dataTypeDefinition,
+            null,
             dataTypeFactory,
             isAbstract,
             cache

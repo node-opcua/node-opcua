@@ -97,7 +97,7 @@ describe("Testing Server Side PushCertificateManager", () => {
     });
 
     it("updateCertificate should return BadSecurityChecksFailed if certificate doesn't match private key ", async () => {
-        // Given a certificate created for a different Private keuy
+        // Given a certificate created for a different Private key
         const wrongCertificateManager = new CertificateManager({
             location: path.join(_folder, "wrong")
         });

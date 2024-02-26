@@ -42,6 +42,18 @@ export class UAObjectImpl extends BaseNodeImpl implements UAObject {
     private _eventNotifier: EventNotifierFlags;
     public readonly nodeClass = NodeClass.Object;
     public get eventNotifier(): EventNotifierFlags {
+
+        // ensure eventNotifier is set if the node has some event
+
+        if (!this._eventNotifier) {
+            // const s = this.getEventSources();
+            const s = this.getEventSources();
+            const n = this.getNotifiers();
+            if (s.length > 0 || n.length > 0) {
+                this._eventNotifier = this._eventNotifier | EventNotifierFlags.SubscribeToEvents;
+            }
+        }
+
         return this._eventNotifier;
     }
     public readonly symbolicName: string | null;

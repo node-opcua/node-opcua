@@ -53,12 +53,15 @@ module.exports = function (test) {
 
                 const nodeId = makeNodeId(VariableIds.Server_ServerStatus_BuildInfo_ProductName); // "ns=0;i=2261";
 
-                const samplingInterval = 10;
+                // note : variable minimumSamplingInterval is 1000 ms
+                const samplingInterval = 1000;
+
                 const monitoredItem = await subscription.monitor(
                     { nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value },
                     { samplingInterval, discardOldest: true, queueSize: 1 },
                     TimestampsToReturn.Both
                 );
+                monitoredItem.result.revisedSamplingInterval.should.eql(samplingInterval);
 
                 let change_count = 0;
                 monitoredItem.on("changed", function (dataValue) {
@@ -122,6 +125,7 @@ module.exports = function (test) {
                         },
                         TimestampsToReturn.Both
                     );
+                    monitoredItem.result.revisedSamplingInterval.should.eql(500);
 
                     let change_count = 0;
                     monitoredItem.on("changed", function (dataValue) {

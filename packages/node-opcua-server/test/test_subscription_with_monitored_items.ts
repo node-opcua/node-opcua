@@ -1,16 +1,25 @@
 /* eslint-disable max-statements */
 "use strict";
 
-const should = require("should");
-const sinon = require("sinon");
+import should from "should";
+import sinon from "sinon";
 
-const { TimestampsToReturn } = require("node-opcua-service-read");
-const { SessionContext } = require("node-opcua-address-space");
-const { DataValue } = require("node-opcua-data-value");
-const { AttributeIds } = require("node-opcua-data-model");
-const { NodeId, coerceNodeId } = require("node-opcua-nodeid");
-const { makeBrowsePath } = require("node-opcua-service-translate-browse-path");
-const {
+import { TimestampsToReturn } from "node-opcua-service-read";
+import {
+    BaseNode,
+    IAddressSpace,
+    INamespace,
+    INamespaceDataAccess,
+    ISessionContext,
+    Namespace,
+    SessionContext,
+    UAVariable
+} from "node-opcua-address-space";
+import { DataValue } from "node-opcua-data-value";
+import { AttributeIds } from "node-opcua-data-model";
+import { NodeId, coerceNodeId } from "node-opcua-nodeid";
+import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
+import {
     MonitoringParameters,
     MonitoredItemCreateRequest,
     MonitoringMode,
@@ -19,21 +28,28 @@ const {
     DataChangeFilter,
     DataChangeTrigger,
     DeadbandType
-} = require("node-opcua-service-subscription");
-const { DataType, Variant, VariantArrayType } = require("node-opcua-variant");
-const { StatusCodes } = require("node-opcua-status-code");
-const encode_decode = require("node-opcua-basic-types");
-const { nodesets } = require("node-opcua-nodesets");
-const { Range, WriteValue } = require("node-opcua-types");
-const { add_eventGeneratorObject } = require("node-opcua-address-space/testHelpers");
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
-const { standardUnits } = require("node-opcua-data-access");
-
-const { Subscription, SubscriptionState, ServerSidePublishEngine, MonitoredItem, ServerEngine } = require("..");
+} from "node-opcua-service-subscription";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import * as encode_decode from "node-opcua-basic-types";
+import { nodesets } from "node-opcua-nodesets";
+import { MonitoredItemNotification, PublishResponse, Range, WriteValue } from "node-opcua-types";
+import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { standardUnits } from "node-opcua-data-access";
+import { IBasicMonitoredItem, ResponseCallback } from "node-opcua-client";
+import { Int64 } from "node-opcua-basic-types";
+import {
+    Subscription,
+    SubscriptionState,
+    ServerSidePublishEngine,
+    MonitoredItem,
+    ServerEngine,
+    SubscriptionOptions
+} from "../source";
+import { getFakePublishEngine } from "./helper_fake_publish_engine";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
-
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 const fake_publish_engine = getFakePublishEngine();
 
 const context = SessionContext.defaultContext;
@@ -55,7 +71,7 @@ function unfreeze_data_source() {
 function install_spying_samplingFunc() {
     unfreeze_data_source();
     let sample_value = 0;
-    const spy_samplingEventCall = sinon.spy(function(sessionContext, oldValue, callback) {
+    const spy_samplingEventCall = sinon.spy(function (sessionContext, oldValue, callback) {
         if (!dataSourceFrozen) {
             sample_value++;
         }
@@ -65,16 +81,16 @@ function install_spying_samplingFunc() {
     return spy_samplingEventCall;
 }
 
-function _simulate_client_adding_publish_request(test, publishEngine, callback) {
+function _simulate_client_adding_publish_request(test: any, publishEngine: any, callback?: () => void) {
     callback = callback || (() => undefined);
     const publishRequest = new PublishRequest({});
     publishEngine._on_PublishRequest(publishRequest, callback);
     test.clock.tick(0);
 }
 
-function makeSubscription(options) {
+function makeSubscription(options: SubscriptionOptions) {
     const subscription1 = new Subscription(options);
-    subscription1.$session = {
+    (subscription1 as any).$session = {
         sessionContext: SessionContext.defaultContext
     };
     return subscription1;
@@ -82,39 +98,40 @@ function makeSubscription(options) {
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("SM1 - Subscriptions and MonitoredItems", function() {
-    this.timeout(Math.max(300000, this._timeout));
+describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
+    this.timeout(Math.max(300000, this.timeout()));
 
-    let addressSpace;
-    let namespace;
-    let someVariableNode;
-    let analogItemNode;
-    let accessLevel_CurrentRead_NotUserNode;
+    let addressSpace: IAddressSpace;
+    let namespace: INamespace;
+    let someVariableNode: NodeId;
+    let analogItemNode: NodeId;
+    let accessLevel_CurrentRead_NotUserNode: UAVariable;
+    let uaSomeVariable: UAVariable;
 
-    let engine;
+    let engine: ServerEngine;
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
-    function simulate_client_adding_publish_request(publishEngine, callback) {
+    function simulate_client_adding_publish_request(publishEngine: any, callback?: () => void) {
         _simulate_client_adding_publish_request(test, publishEngine, callback);
     }
 
     before((done) => {
         engine = new ServerEngine();
-        engine.initialize({ nodeset_filename: nodesets.standard }, function() {
-            addressSpace = engine.addressSpace;
+        engine.initialize({ nodeset_filename: nodesets.standard }, function () {
+            addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
-            const node = namespace.addVariable({
+            uaSomeVariable = namespace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: { dataType: DataType.UInt32, value: 0 }
             });
 
-            someVariableNode = node.nodeId;
+            someVariableNode = uaSomeVariable.nodeId;
 
-            function addVar(typeName, value) {
+            function addVar(typeName: keyof typeof DataType, value: any) {
                 namespace.index.should.eql(1);
 
                 namespace.addVariable({
@@ -161,10 +178,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 })
             });
 
-            function addAnalogItem(dataType) {
+            function addAnalogItem(dataType: DataType | keyof typeof DataType): NodeId {
                 const name = "AnalogItem" + dataType;
 
-                const node = namespace.addAnalogDataItem({
+                const node = (namespace as unknown as INamespaceDataAccess).addAnalogDataItem({
                     organizedBy: "RootFolder",
                     nodeId: "s=" + name,
                     browseName: name,
@@ -191,7 +208,6 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         if (engine) {
             await engine.shutdown();
             engine.dispose();
-            engine = null;
         }
     });
 
@@ -215,7 +231,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -231,7 +247,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         subscription.monitoredItemCount.should.eql(0);
 
-        const createResult = await subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
         createResult.statusCode.should.eql(StatusCodes.Good);
 
         subscription.monitoredItemCount.should.eql(1);
@@ -240,13 +260,12 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         createResult.revisedSamplingInterval.should.eql(100);
 
-        subscription.on("terminated", function() {
+        subscription.on("terminated", function () {
             // monitored Item shall be deleted at this stage
             subscription.monitoredItemCount.should.eql(0);
         });
         subscription.terminate();
         subscription.dispose();
-
     });
 
     it("SM1-2 a subscription should fire the event removeMonitoredItem", async () => {
@@ -257,7 +276,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -274,9 +293,13 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const createResult = await subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
 
-        subscription.on("terminated", function() {
+        subscription.on("terminated", function () {
             // monitored Item shall be deleted at this stage
         });
         subscription.terminate();
@@ -285,9 +308,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         subscription.monitoredItemCount.should.eql(0);
     });
 
-    function makeSubscription(options) {
+    function makeSubscription(options: SubscriptionOptions) {
         const subscription1 = new Subscription(options);
-        subscription1.$session = {
+        (subscription1 as any).$session = {
             sessionContext: SessionContext.defaultContext
         };
         return subscription1;
@@ -301,7 +324,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
 
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -314,11 +337,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const createResult = await subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
         createResult.statusCode.should.eql(StatusCodes.Good);
         createResult.revisedSamplingInterval.should.eql(100);
 
-        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
         // data collection is done asynchronously => let give some time for this to happen
         test.clock.tick(5);
@@ -338,7 +365,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         const notifications = [...subscription._pending_notifications.values()];
 
-        notifications[0].monitoredItemId.should.eql(monitoredItem.monitoredItemId);
+        notifications[0].monitoredItemId!.should.eql(monitoredItem.monitoredItemId);
 
         subscription.on("terminated", () => {
             /** */
@@ -367,10 +394,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         simulate_client_adding_publish_request(subscription.publishEngine);
 
         test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-        subscription.state.should.eql(SubscriptionState.KEEPALIVE);
+        subscription.state.should.eql(SubscriptionState.LATE);
 
         // Monitored item will report a new value every tick => 100 ms
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -394,11 +421,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         simulate_client_adding_publish_request(subscription.publishEngine);
         simulate_client_adding_publish_request(subscription.publishEngine);
 
-        const createResult = await subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
 
         createResult.statusCode.should.eql(StatusCodes.Good);
 
-        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
         monitoredItem.samplingInterval.should.eql(100);
 
         // data collection is done asynchronously => let give some time for this to happen
@@ -446,11 +477,9 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         publishEngine.shutdown();
         publishEngine.dispose();
-
     });
 
     it("SM1-5 should provide a mean to access the monitored clientHandle ( using the standard OPCUA method getMonitoredItems)", async () => {
-
         const subscription = makeSubscription({
             publishingInterval: 1000,
             maxKeepAliveCount: 20,
@@ -458,7 +487,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -472,21 +501,25 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
 
-        const createResult = await subscription.createMonitoredItem(addressSpace, TimestampsToReturn.Both, monitoredItemCreateRequest);
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
         createResult.statusCode.should.eql(StatusCodes.Good);
 
-        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+        const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
-        const result = subscription.getMonitoredItems({});
+        const result = subscription.getMonitoredItems();
         result.statusCode.should.eql(StatusCodes.Good);
-        Array.from(result.serverHandles.map((a) => parseInt(a, 10))).should.eql([monitoredItem.monitoredItemId]);
-        Array.from(result.clientHandles.map((a) => parseInt(a, 10))).should.eql([monitoredItem.clientHandle]);
+        Array.from(result.serverHandles.map((a) => parseInt(a.toString(), 10))).should.eql([monitoredItem.monitoredItemId]);
+        Array.from(result.clientHandles.map((a) => parseInt(a.toString(), 10))).should.eql([monitoredItem.clientHandle]);
 
         subscription.terminate();
         subscription.dispose();
     });
 
-    async function on_subscription(actionFunc) {
+    async function on_subscription(actionFunc: any) {
         // see Err-03.js
         const subscription = makeSubscription({
             id: 42,
@@ -496,7 +529,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
@@ -510,7 +543,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
     it("SM1-6 should return BadMonitoredItemFilterUnsupported if filter is DataChangeFilter PercentDeadBand and variable has no EURange", async () => {
         const not_a_analogItemNode = someVariableNode;
-        await on_subscription(async (subscription) => {
+
+        await on_subscription(async (subscription: Subscription) => {
             const monitoredItemCreateRequest1 = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: not_a_analogItemNode,
@@ -538,7 +572,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
     });
 
     it("SM1-7 should return an error when filter is DataChangeFilter deadband is out of bound", async () => {
-        function _create_MonitoredItemCreateRequest_with_deadbandValue(value) {
+        function _create_MonitoredItemCreateRequest_with_deadbandValue(value: number) {
             return new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: analogItemNode,
@@ -557,8 +591,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
         }
 
-        await on_subscription(async (subscription) => {
-
+        await on_subscription(async (subscription: Subscription) => {
             const monitoredItemCreateRequest1 = _create_MonitoredItemCreateRequest_with_deadbandValue(-10);
 
             const createResult1 = await subscription.createMonitoredItem(
@@ -589,8 +622,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
     });
 
     it("SM1-8 should return BadFilterNotAllowed if a DataChangeFilter is specified on a non-Value Attribute monitored item", async () => {
-        await on_subscription(async (subscription) => {
-            async function test_with_attributeId(attributeId, statusCode) {
+        await on_subscription(async (subscription: Subscription) => {
+            async function test_with_attributeId(attributeId: AttributeIds) {
                 const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: {
                         nodeId: analogItemNode,
@@ -631,13 +664,18 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
         let _clientHandle = 1;
 
-        function my_samplingFunc(sessionContext, oldData, callback) {
+        function my_samplingFunc(
+            this: any,
+            sessionContext: ISessionContext | null,
+            oldData: DataValue,
+            callback: ResponseCallback<DataValue>
+        ) {
             //xx console.log(self.toString());
-            const dataValue = addressSpace.findNode(this.node.nodeId).readAttribute(null, 13);
+            const dataValue = addressSpace.findNode(this.node.nodeId)!.readAttribute(null, 13);
             callback(null, dataValue);
         }
 
-        async function add_monitoredItem(subscription) {
+        async function add_monitoredItem(subscription: Subscription) {
             const nodeId = "ns=1;s=Static_Float";
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
@@ -664,7 +702,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             test.clock.tick(1);
         }
 
-        function perform_publish_transaction_and_check_subscriptionId(subscription) {
+        function perform_publish_transaction_and_check_subscriptionId(subscription: Subscription) {
             const pubFunc = sinon.spy();
 
             simulate_client_adding_publish_request(publishEngine, pubFunc);
@@ -708,7 +746,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         test.clock.tick(subscription1.publishingInterval * subscription1.maxKeepAliveCount);
         subscription1.state.should.eql(SubscriptionState.LATE);
 
-        subscription1.on("monitoredItem", function(monitoredItem) {
+        subscription1.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = my_samplingFunc;
         });
 
@@ -728,7 +766,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
         publishEngine.add_subscription(subscription2);
 
-        subscription2.on("monitoredItem", function(monitoredItem) {
+        subscription2.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = my_samplingFunc;
         });
 
@@ -748,7 +786,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
         publishEngine.add_subscription(subscription3);
 
-        subscription3.on("monitoredItem", function(monitoredItem) {
+        subscription3.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = my_samplingFunc;
         });
 
@@ -776,11 +814,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             globalCounter: { totalMonitoredItemCount: 0 },
             serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
         });
-        subscription.on("monitoredItem", function(monitoredItem) {
+        subscription.on("monitoredItem", function (monitoredItem) {
             monitoredItem.samplingFunc = install_spying_samplingFunc();
         });
 
-        async function test_with_nodeId(nodeId, statusCode) {
+        async function test_with_nodeId(nodeId: string) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: {
                     nodeId: nodeId,
@@ -813,7 +851,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
     });
 
     describe("SM1-A MonitoredItem - Access Right - and Unknown Nodes", () => {
-        let subscription = null;
+        let subscription: Subscription | undefined = undefined;
 
         beforeEach(() => {
             subscription = makeSubscription({
@@ -830,7 +868,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             const spy_notification_event = sinon.spy();
             subscription.on("notification", spy_notification_event);
 
-            subscription.on("monitoredItem", function(monitoredItem) {
+            subscription.on("monitoredItem", function (monitoredItem) {
                 monitoredItem.samplingFunc = sinon.spy((sessionContext, oldValue, callback) => {
                     const dataValue = monitoredItem.node.readAttribute(null, monitoredItem.itemToMonitor.attributeId);
                     //xx console.log("dataValue ",dataValue.toString());
@@ -841,12 +879,14 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
         });
         afterEach(() => {
-            subscription.terminate();
-            subscription.dispose();
-            subscription = null;
+            if (subscription) {
+                subscription.terminate();
+                subscription.dispose();
+                subscription = undefined;
+            }
         });
 
-        function simulate_publish_request_expected_statusCode(monitoredItem, expectedStatusCode) {
+        function simulate_publish_request_expected_statusCode(monitoredItem: MonitoredItem, expectedStatusCode: StatusCode) {
             test.clock.tick(100);
 
             // process publish
@@ -860,11 +900,15 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 //xx console.log("-----------!!!!");
                 //xx notifs.forEach(x=>console.log(x.toString()));
                 notifs.length.should.eql(1, " should have one pending notification");
-                notifs[0].value.statusCode.should.eql(expectedStatusCode);
+
+                const monitoredItemNotification = notifs[0] as MonitoredItemNotification;
+                monitoredItemNotification.value.statusCode.should.eql(expectedStatusCode);
             }
         }
 
         it("SM1-A-1  CreateMonitoredItems on an item to which the user does not have read-access; should succeed but Publish should return the error ", async () => {
+            if (!subscription) throw new Error("internal error");
+
             // specs:
             // When a user adds a monitored item that the user is denied read access to, the add operation for
             // the item shall succeed and the bad status Bad_NotReadable or Bad_UserAccessDenied shall be
@@ -906,7 +950,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
             monitoredItem.queueSize.should.eql(10);
 
@@ -916,6 +960,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
 
         it("SM1-A-2  should return BadNodeIdUnknown when trying to monitor an invalid node", async () => {
+            if (!subscription) throw new Error("internal error");
+
             const nodeId = "ns=567;s=MyVariable";
 
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
@@ -947,6 +993,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
 
         it("SM1-A-3  should eventually emit DataChangeNotification when trying to monitor an invalid node that become valid", async () => {
+            if (!subscription) throw new Error("internal error");
+
             const nodeVariable = namespace.addVariable({
                 browseName: "MyVar",
                 nodeId: "s=MyVariable",
@@ -980,7 +1028,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
 
             createResult.statusCode.should.eql(StatusCodes.Good);
 
-            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
             should.exist(monitoredItem);
 
             simulate_publish_request_expected_statusCode(monitoredItem, StatusCodes.Good);
@@ -994,8 +1042,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         });
     });
 
-    describe("SM1-B DeadBandFilter !!!", function() {
-        let subscription = null;
+    describe("SM1-B DeadBandFilter !!!", function () {
+        let subscription: Subscription | undefined = undefined;
 
         before(() => {
             subscription = makeSubscription({
@@ -1012,8 +1060,8 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             const spy_notification_event = sinon.spy();
             subscription.on("notification", spy_notification_event);
 
-            subscription.on("monitoredItem", function(monitoredItem) {
-                monitoredItem.samplingFunc = function() {
+            subscription.on("monitoredItem", function (monitoredItem) {
+                monitoredItem.samplingFunc = function () {
                     /** empty */
                 }; //install_spying_samplingFunc();
 
@@ -1021,9 +1069,11 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             });
         });
         after(() => {
-            subscription.terminate();
-            subscription.dispose();
-            subscription = null;
+            if (subscription) {
+                subscription.terminate();
+                subscription.dispose();
+                subscription = undefined;
+            }
         });
 
         const integerDeadband = 2;
@@ -1052,16 +1102,23 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
          - Write numerous values to the item that will cause event notifications to be sent, and for some items to be filtered.
          - call Publish() to verify the deadband is correctly filtering values.
          */
-        async function test_deadband(dataType, deadband, writesPass, writesFail) {
+        async function test_deadband(
+            dataType: DataType | keyof typeof DataType | string,
+            deadband: number,
+            writesPass: number[] | Int64[],
+            writesFail: number[] | Int64[]
+        ) {
+            if (!subscription) throw new Error("internal error");
+
             const nodeId = "ns=1;s=Static_" + dataType;
-            const node = engine.addressSpace.findNode(nodeId);
+            const node = engine.addressSpace!.findNode(nodeId)! as UAVariable;
             should.exists(node);
 
             node.minimumSamplingInterval.should.be.belowOrEqual(100);
 
-            function simulate_node_value_change(currentValue) {
+            function simulate_node_value_change(currentValue: any) {
                 const v = new Variant({
-                    dataType: DataType[dataType],
+                    dataType: DataType[dataType as keyof typeof DataType],
                     arrayType: VariantArrayType.Scalar,
                     value: currentValue
                 });
@@ -1105,12 +1162,12 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             test.clock.tick(5);
 
             createResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
             monitoredItem.queueSize.should.eql(10);
             monitoredItem.queue.length.should.eql(1);
 
-            function simulate_publish_request_and_check_one(expectedValue) {
+            function simulate_publish_request_and_check_one(expectedValue: any) {
                 test.clock.tick(100);
 
                 // process publish
@@ -1123,10 +1180,10 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 } else {
                     notifs.length.should.eql(1, " should have one pending notification");
 
-                    expectedValue = encode_decode["coerce" + dataType](expectedValue);
+                    expectedValue = (encode_decode as any)["coerce" + dataType](expectedValue);
 
                     // verify that value matches expected value
-                    notifs[0].value.value.value.should.eql(expectedValue);
+                    (notifs[0] as any).value.value.value.should.eql(expectedValue);
                 }
             }
 
@@ -1156,24 +1213,25 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             simulate_publish_request_and_check_one(currentValue);
         }
 
-        ["SByte", "Int16", "Int32", "Byte", "UInt16", "UInt32"].forEach(function(dataType) {
+        ["SByte", "Int16", "Int32", "Byte", "UInt16", "UInt32"].forEach(function (dataType) {
             it("testing with " + dataType, async () => {
                 await test_deadband(dataType, integerDeadband, integerWritesPass, integerWritesFail);
             });
         });
-        ["Float", "Double"].forEach(function(dataType) {
+        ["Float", "Double"].forEach(function (dataType) {
             it("testing with " + dataType, async () => {
                 await test_deadband(dataType, floatDeadband, floatWritesPass, floatWritesFail);
             });
         });
 
-        ["Int64", "UInt64"].forEach(function(dataType) {
+        ["Int64", "UInt64"].forEach(function (dataType) {
             it("testing with " + dataType, async () => {
                 await test_deadband(dataType, integer64Deadband, integer64WritesPass, integer64WritesFail);
             });
         });
 
         it("SM1-B-1  testing with String and DeadBandFilter", async () => {
+            if (!subscription) throw new Error("internal error");
             const nodeId = "ns=1;s=Static_LocalizedText";
 
             const filter = new DataChangeFilter({
@@ -1206,7 +1264,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             test.clock.tick(5);
 
             createResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
             // now modify monitoredItem setting a filter
             const res = monitoredItem.modify(
@@ -1225,7 +1283,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
     });
 
     describe("SM1-C MonitoredItem should set SemanticChanged bit on statusCode when appropriate", () => {
-        function changeEURange(analogItem, done) {
+        function changeEURange(analogItem: any, done: () => void) {
             const dataValueOrg = analogItem.readAttribute(AttributeIds.Value);
 
             const dataValue = {
@@ -1246,23 +1304,24 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
         }
     });
 
-    describe("SM1-D matching minimumSamplingInterval", function() {
+    describe("SM1-D matching minimumSamplingInterval", function () {
         it("SM1-D-1 server should not allow monitoredItem sampling interval to be lesser than UAVariable minimumSampling interval", async () => {
-            let subscription;
-            try {
-                addressSpace.rootFolder.someVariable.minimumSamplingInterval = 1000;
-                addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(1000);
+            uaSomeVariable.minimumSamplingInterval = 1000;
+            uaSomeVariable.minimumSamplingInterval.should.eql(1000);
 
-                subscription = makeSubscription({
-                    publishingInterval: 1000,
-                    maxKeepAliveCount: 20,
-                    publishEngine: fake_publish_engine,
-                    globalCounter: { totalMonitoredItemCount: 0 },
-                    serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-                });
-                subscription.on("monitoredItem", function(monitoredItem) {
+            const subscription = makeSubscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+            });
+
+            try {
+                subscription.on("monitoredItem", function (monitoredItem) {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
                 });
+
                 const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                     itemToMonitor: { nodeId: someVariableNode },
                     monitoringMode: MonitoringMode.Reporting,
@@ -1284,7 +1343,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 );
                 createResult.statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
                 monitoredItem.samplingInterval.should.eql(
                     1000,
@@ -1316,22 +1375,20 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
             }
         });
         it("SM1-D-2 server should not allow monitoredItem sampling interval to be lesser than the MonitoredItem.minimumSamplingInterval limit (unless 0) ", async () => {
-            addressSpace.rootFolder.someVariable.minimumSamplingInterval = 20;
-            addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.eql(20);
-            addressSpace.rootFolder.someVariable.minimumSamplingInterval.should.be.lessThan(MonitoredItem.minimumSamplingInterval);
+            uaSomeVariable.minimumSamplingInterval = 20;
+            uaSomeVariable.minimumSamplingInterval.should.eql(20);
+            uaSomeVariable.minimumSamplingInterval.should.be.lessThan(MonitoredItem.minimumSamplingInterval);
 
-            let subscription;
+            const subscription = makeSubscription({
+                publishingInterval: 1000,
+                maxKeepAliveCount: 20,
+                publishEngine: fake_publish_engine,
+                globalCounter: { totalMonitoredItemCount: 0 },
+                serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+            });
 
             try {
-                subscription = makeSubscription({
-                    publishingInterval: 1000,
-                    maxKeepAliveCount: 20,
-                    publishEngine: fake_publish_engine,
-                    globalCounter: { totalMonitoredItemCount: 0 },
-                    serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
-                });
-
-                subscription.on("monitoredItem", function(monitoredItem) {
+                subscription.on("monitoredItem", function (monitoredItem) {
                     monitoredItem.samplingFunc = install_spying_samplingFunc();
                 });
 
@@ -1356,7 +1413,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
                 );
                 createResult.statusCode.should.eql(StatusCodes.Good);
 
-                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+                const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
                 monitoredItem.samplingInterval.should.eql(
                     MonitoredItem.minimumSamplingInterval,
@@ -1390,16 +1447,17 @@ describe("SM1 - Subscriptions and MonitoredItems", function() {
     });
 });
 
-describe("SM2 - MonitoredItem advanced", function() {
-    let addressSpace;
-    let namespace;
-    let someVariableNode;
-    let engine;
-    let publishEngine;
+describe("SM2 - MonitoredItem advanced", function (this: any) {
+    let addressSpace: IAddressSpace;
+    let namespace: INamespace;
+    let someVariableNode: NodeId;
+    let uaSomeVariable: UAVariable;
+    let engine: ServerEngine;
+    let publishEngine: ServerSidePublishEngine;
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
-    function simulate_client_adding_publish_request(publishEngine, callback) {
+    function simulate_client_adding_publish_request(publishEngine: ServerSidePublishEngine, callback: () => void) {
         _simulate_client_adding_publish_request(test, publishEngine, callback);
     }
 
@@ -1409,17 +1467,17 @@ describe("SM2 - MonitoredItem advanced", function() {
         }
         engine = new ServerEngine();
 
-        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function() {
-            addressSpace = engine.addressSpace;
+        engine.initialize({ nodeset_filename: mini_nodeset_filename }, function () {
+            addressSpace = engine.addressSpace!;
             namespace = addressSpace.getOwnNamespace();
 
-            const node = namespace.addVariable({
+            uaSomeVariable = namespace.addVariable({
                 organizedBy: "RootFolder",
                 browseName: "SomeVariable",
                 dataType: "UInt32",
                 value: { dataType: DataType.UInt32, value: 0 }
             });
-            someVariableNode = node.nodeId;
+            someVariableNode = uaSomeVariable.nodeId;
 
             add_eventGeneratorObject(namespace, "ObjectsFolder");
 
@@ -1436,7 +1494,6 @@ describe("SM2 - MonitoredItem advanced", function() {
         if (engine) {
             await engine.shutdown();
             engine.dispose();
-            engine = null;
         }
     });
 
@@ -1453,21 +1510,20 @@ describe("SM2 - MonitoredItem advanced", function() {
         if (publishEngine) {
             publishEngine.shutdown();
             publishEngine.dispose();
-            publishEngine = null;
         }
         test.clock.tick(1000);
         test.clock.restore();
         test.clock = null;
     });
 
-    describe("SM2A - #maxNotificationsPerPublish", function() {
+    describe("SM2A - #maxNotificationsPerPublish", function () {
         it("should have a proper maxNotificationsPerPublish default value", async () => {
             const subscription = makeSubscription({
                 publishEngine: publishEngine,
                 globalCounter: { totalMonitoredItemCount: 0 },
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
-            subscription.on("monitoredItem", function(monitoredItem) {
+            subscription.on("monitoredItem", function (monitoredItem) {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
 
@@ -1477,18 +1533,16 @@ describe("SM2 - MonitoredItem advanced", function() {
 
             subscription.terminate();
             subscription.dispose();
-
         });
 
-        function numberOfNotifications(publishResponse) {
-            const notificationData = publishResponse.notificationMessage.notificationData;
-
-            return notificationData.reduce(function(accumulated, data) {
+        function numberOfNotifications(publishResponse: PublishResponse) {
+            const notificationData = publishResponse.notificationMessage.notificationData! || [];
+            return notificationData.reduce((accumulated, data: any) => {
                 return accumulated + data.monitoredItems.length;
             }, 0);
         }
 
-        async function createMonitoredItem(subscription, clientHandle) {
+        async function createMonitoredItem(subscription: Subscription, clientHandle: number) {
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: { nodeId: someVariableNode },
                 monitoringMode: MonitoringMode.Reporting,
@@ -1527,7 +1581,7 @@ describe("SM2 - MonitoredItem advanced", function() {
 
             publishEngine.add_subscription(subscription);
 
-            subscription.on("monitoredItem", function(monitoredItem) {
+            subscription.on("monitoredItem", function (monitoredItem) {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
 
@@ -1543,10 +1597,10 @@ describe("SM2 - MonitoredItem advanced", function() {
             //xx var spy_notification_event = sinon.spy();
             //xx subscription.on("notification", spy_notification_event);
 
-            const monitoredItem1 = await createMonitoredItem(subscription, 123);
-            const monitoredItem2 = await createMonitoredItem(subscription, 124);
-            const monitoredItem3 = await createMonitoredItem(subscription, 125);
-            const monitoredItem4 = await createMonitoredItem(subscription, 126);
+            const monitoredItem1 = (await createMonitoredItem(subscription, 123))!;
+            const monitoredItem2 = (await createMonitoredItem(subscription, 124))!;
+            const monitoredItem3 = (await createMonitoredItem(subscription, 125))!;
+            const monitoredItem4 = (await createMonitoredItem(subscription, 126))!;
 
             // simulate client sending publish request
             simulate_client_adding_publish_request(publishEngine, spy_callback);
@@ -1613,8 +1667,8 @@ describe("SM2 - MonitoredItem advanced", function() {
         //
         xit(
             '#monitoringMode Publish / should always result in the server sending an "initial" data change. ' +
-            " after monitoringMode is set to Disabled and then Reporting,",
-            function(done) {
+                " after monitoringMode is set to Disabled and then Reporting,",
+            function (done) {
                 // todo
 
                 done();
@@ -1622,9 +1676,9 @@ describe("SM2 - MonitoredItem advanced", function() {
         );
     });
 
-    describe("SM2B - Subscription.subscriptionDiagnostics", function() {
-        let subscription;
-        beforeEach(function() {
+    describe("SM2B - Subscription.subscriptionDiagnostics", function () {
+        let subscription: Subscription;
+        beforeEach(function () {
             fake_publish_engine.pendingPublishRequestCount = 1000;
 
             subscription = new Subscription({
@@ -1638,18 +1692,18 @@ describe("SM2 - MonitoredItem advanced", function() {
                 globalCounter: { totalMonitoredItemCount: 0 },
                 serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
             });
-            subscription.$session = {
+            (subscription as any).$session = {
                 nodeId: coerceNodeId("i=5;s=tmp"),
                 sessionContext: SessionContext.defaultContext
             };
             // console.log(subscription.subscriptionDiagnostics.toString());
 
-            subscription.on("monitoredItem", function(monitoredItem) {
+            subscription.on("monitoredItem", function (monitoredItem) {
                 monitoredItem.samplingFunc = install_spying_samplingFunc();
             });
         });
 
-        async function add_monitored_item() {
+        async function add_monitored_item(): Promise<MonitoredItem> {
             const nodeId = "i=2258"; // CurrentTime
             const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
                 itemToMonitor: { nodeId: nodeId },
@@ -1666,58 +1720,57 @@ describe("SM2 - MonitoredItem advanced", function() {
                 monitoredItemCreateRequest
             );
             createResult.statusCode.should.eql(StatusCodes.Good);
-            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId);
+            const monitoredItem = subscription.getMonitoredItem(createResult.monitoredItemId)!;
 
             return monitoredItem;
         }
 
-        afterEach(function() {
+        afterEach(function () {
             subscription.terminate();
             subscription.dispose();
-            subscription = null;
         });
 
-        it("should update Subscription.subscriptionDiagnostics.sessionId", function() {
+        it("should update Subscription.subscriptionDiagnostics.sessionId", function () {
             subscription.subscriptionDiagnostics.sessionId.should.eql(subscription.getSessionId());
         });
 
-        it("should update Subscription.subscriptionDiagnostics.subscriptionId", function() {
+        it("should update Subscription.subscriptionDiagnostics.subscriptionId", function () {
             subscription.subscriptionDiagnostics.subscriptionId.should.eql(subscription.id);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.priority", function() {
+        it("should update Subscription.subscriptionDiagnostics.priority", function () {
             subscription.priority.should.eql(10);
             subscription.subscriptionDiagnostics.priority.should.eql(subscription.priority);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.publishingInterval", function() {
+        it("should update Subscription.subscriptionDiagnostics.publishingInterval", function () {
             subscription.publishingInterval.should.eql(100);
             subscription.subscriptionDiagnostics.publishingInterval.should.eql(subscription.publishingInterval);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount", function() {
+        it("should update Subscription.subscriptionDiagnostics.maxLifetimeCount", function () {
             subscription.lifeTimeCount.should.be.above(subscription.maxKeepAliveCount * 3 - 1);
             subscription.subscriptionDiagnostics.maxLifetimeCount.should.eql(subscription.lifeTimeCount);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount", function() {
+        it("should update Subscription.subscriptionDiagnostics.maxKeepAliveCount", function () {
             subscription.maxKeepAliveCount.should.eql(21);
             subscription.subscriptionDiagnostics.maxKeepAliveCount.should.eql(subscription.maxKeepAliveCount);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish", function() {
+        it("should update Subscription.subscriptionDiagnostics.maxNotificationsPerPublish", function () {
             subscription.maxNotificationsPerPublish.should.eql(123);
             subscription.subscriptionDiagnostics.maxNotificationsPerPublish.should.eql(subscription.maxNotificationsPerPublish);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.publishingEnabled", function() {
+        it("should update Subscription.subscriptionDiagnostics.publishingEnabled", function () {
             subscription.publishingEnabled.should.eql(true);
             subscription.subscriptionDiagnostics.publishingEnabled.should.eql(subscription.publishingEnabled);
         });
 
-        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber", function() {
-            subscription._get_future_sequence_number().should.eql(1);
-            subscription.subscriptionDiagnostics.nextSequenceNumber.should.eql(subscription._get_future_sequence_number());
+        it("should update Subscription.subscriptionDiagnostics.nextSequenceNumber", function () {
+            subscription.futureSequenceNumber.should.eql(1);
+            subscription.subscriptionDiagnostics.nextSequenceNumber.should.eql(subscription.futureSequenceNumber);
         });
 
         it("should update Subscription.subscriptionDiagnostics.disabledMonitoredItemCount", async () => {
@@ -1778,7 +1831,7 @@ describe("SM2 - MonitoredItem advanced", function() {
             subscription.subscriptionDiagnostics.dataChangeNotificationsCount.should.eql(evtNotificationCounter);
         });
 
-        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount", function() {
+        xit("should update Subscription.subscriptionDiagnostics.eventNotificationsCount", function () {
             // todo
         });
     });

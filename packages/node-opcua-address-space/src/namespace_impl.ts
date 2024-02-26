@@ -2000,7 +2000,7 @@ export class NamespaceImpl implements NamespacePrivate {
             // a getter has been specified and no options.minimumSamplingInterval has been specified
             warningLog(
                 "[NODE-OPCUA-W30",
-                "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms"
+                "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms\nvariable = "+ options?.browseName?.toString()
             );
             options.minimumSamplingInterval = 1000;
         }

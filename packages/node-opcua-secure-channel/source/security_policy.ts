@@ -31,7 +31,8 @@ import {
     Signature,
     split_der,
     toPem,
-    verifyMessageChunkSignature
+    verifyMessageChunkSignature,
+    PaddingAlgorithm
 } from "node-opcua-crypto";
 import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import { make_warningLog } from "node-opcua-debug";
@@ -186,14 +187,14 @@ export function coerceSecurityPolicy(value?: string | SecurityPolicy | null): Se
 }
 
 // --------------------
-function RSAPKCS1V15_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
-    const blockSize = rsaLengthPrivateKey(privateKey);
-    return privateDecrypt_long(buffer, privateKey, blockSize, RSA_PKCS1_PADDING);
-}
+// function RSAPKCS1V15_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
+//     const blockSize = rsaLengthPrivateKey(privateKey);
+//     return privateDecrypt_long(buffer, privateKey, blockSize, PaddingAlgorithm.RSA_PKCS1_PADDING);
+// }
 
 function RSAOAEP_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
     const blockSize = rsaLengthPrivateKey(privateKey);
-    return privateDecrypt_long(buffer, privateKey, blockSize, RSA_PKCS1_OAEP_PADDING);
+    return privateDecrypt_long(buffer, privateKey, blockSize, PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING);
 }
 
 // --------------------
@@ -252,23 +253,17 @@ function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer 
 
 const RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
 
-function RSAPKCS1V15_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
-    const keyLength = rsaLengthPublicKey(publicKey);
-    return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 11, RSA_PKCS1_PADDING);
-}
+// DEPRECATED in NODEJS 20.11.1 see https://github.com/nodejs/node/commit/7079c062bb SECURITY_REVERT_CVE_2023_46809
+// ( node --security-revert=CVE-2023-46809")
+// function RSAPKCS1V15_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
+//     const keyLength = rsaLengthPublicKey(publicKey);
+//     return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 11, PaddingAlgorithm.RSA_PKCS1_PADDING);
+// }
 
 function RSAOAEP_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
     const keyLength = rsaLengthPublicKey(publicKey);
-    return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 42, RSA_PKCS1_OAEP_PADDING);
+    return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 42, PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING);
 }
-
-// export interface DerivedKeys {
-//     signatureLength: number;
-//     encryptingBlockSize: number;
-//     derivedClientKeys: Buffer | null;
-//     derivedServerKeys: Buffer | null;
-//     algorithm: string | null;
-// }
 
 export interface DerivedKeys1 {
     derivedClientKeys: DerivedKeys | null;
@@ -352,13 +347,13 @@ const factoryBasic128Rsa15: CryptoFactory = {
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
 
     /* asymmetric encryption algorithm */
-    asymmetricEncrypt: RSAPKCS1V15_Encrypt,
+    asymmetricEncrypt: RSAOAEP_Encrypt,
 
-    asymmetricDecrypt: RSAPKCS1V15_Decrypt,
+    asymmetricDecrypt: RSAOAEP_Decrypt,
 
     asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-1_5",
 
-    blockPaddingSize: 11,
+    blockPaddingSize: 42,
 
     symmetricEncryptionAlgorithm: "aes-128-cbc",
 

@@ -1,6 +1,7 @@
 export * from "./address_space";
 export * from "./base_node";
 export * from "./bind_variable";
+export * from "./clone_helper";
 export * from "./clone_options";
 export * from "./continuation_point";
 export * from "./event_notifier_flags";
@@ -21,4 +22,3 @@ export * from "./ua_variable_t";
 export * from "./ua_variable_type";
 export * from "./ua_variable";
 export * from "./ua_view";
-export * from "./clone_helper";

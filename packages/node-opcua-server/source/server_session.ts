@@ -52,7 +52,6 @@ const theWatchDog = new WatchDog();
 
 const registeredNodeNameSpace = 9999;
 
-
 function on_channel_abort(this: ServerSession) {
     debugLog("ON CHANNEL ABORT ON  SESSION!!!");
     /**
@@ -375,6 +374,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * @return {Subscription}
      */
     public getSubscription(subscriptionId: number): Subscription | null {
+        if (!this.publishEngine) return null;
         const subscription = this.publishEngine.getSubscriptionById(subscriptionId);
         if (subscription && subscription.state === SubscriptionState.CLOSED) {
             // subscription is CLOSED but has not been notified yet
@@ -942,7 +942,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
     }
 
     private _deleteSubscriptions() {
-        if(!this.publishEngine) return;
+        if (!this.publishEngine) return;
         const subscriptions = this.publishEngine.subscriptions;
         for (const subscription of subscriptions) {
             this.deleteSubscription(subscription.id);

@@ -11,6 +11,7 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue, WriteValueOptions } from "node-opcua-types";
 import { StatusCodeCallback } from "node-opcua-status-code";
 import { VariableTypeIds } from "node-opcua-constants";
+import { getCurrentClock } from "node-opcua-date-time";
 
 const nodeset_filename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
@@ -26,7 +27,6 @@ import {
 import { generateAddressSpace } from "../nodeJS";
 
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
-import { getCurrentClock } from "node-opcua-date-time";
 
 const context = SessionContext.defaultContext;
 
@@ -261,7 +261,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T1 - testing Variable#bindVariable -> Getter - " +
-        "should create a static read only variable (static value defined at construction time)",
+            "should create a static read only variable (static value defined at construction time)",
         async () => {
             const variable = namespace.addVariable({
                 accessLevel: "CurrentRead",
@@ -304,7 +304,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T2 - testing Variable#bindVariable -> Getter - " +
-        "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
+            "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
         async () => {
             const variable = namespace.addVariable({
                 browseName: "Variable37",
@@ -462,7 +462,7 @@ describe("testing Variable#bindVariable", () => {
 
     it("T5 - testing Variable#bindVariable -> Getter - " + "should create a read only variable with a refreshFunc", async () => {
         const variable = namespace.addVariable({
-            browseName: "SomeVariableT4",
+            browseName: "SomeVariableT5",
             dataType: "Double",
             organizedBy: rootFolder,
             typeDefinition: makeNodeId(68)
@@ -509,6 +509,38 @@ describe("testing Variable#bindVariable", () => {
             dataValue.sourceTimestamp!.should.eql(expected_date);
         }
     }
+
+    it("T6 - setter async", async () => {
+        const wait = async (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));
+
+        let innerValue = 10;
+        const variable = namespace.addVariable({
+            browseName: "SomeVariableT6",
+            dataType: "Double",
+            organizedBy: rootFolder,
+            typeDefinition: makeNodeId(68),
+            value: {
+                get: () => new Variant({ dataType: DataType.Double, value: innerValue }),
+                set: async (value: Variant): Promise<StatusCode> => {
+                    await wait(100);
+                    innerValue = value.value;
+                    return StatusCodes.GoodCascade;
+                }
+            }
+        });
+
+        const d1 = await variable.readValueAsync(context);
+
+        const dataValue = new DataValue({
+            value: { dataType: DataType.Double, value: (innerValue = 20) }
+        });
+        const s = await variable.writeValue(context, dataValue);
+        const d2 = await variable.readValueAsync(context);
+
+        should(s).eql(StatusCodes.GoodCascade);
+        should(d2.value.value).eql(20);
+        innerValue.should.eql(20.0);
+    });
 
     it("Q1 - testing Variable#bindVariable -> Setter -" + " should create a variable with a sync  setter", async () => {
         const variable = namespace.addVariable({
@@ -642,7 +674,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "Q4 - testing Variable#bindVariable -> Setter - " +
-        "issue#332 should create a variable with async setter and an async getter",
+            "issue#332 should create a variable with async setter and an async getter",
         async () => {
             const value_with_timestamp = new DataValue({
                 sourcePicoseconds: 100,
@@ -1414,4 +1446,3 @@ describe("testing UAVariable ", () => {
 function geCurrentClock(): import("node-opcua-date-time").PreciseClock {
     throw new Error("Function not implemented.");
 }
-

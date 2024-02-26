@@ -1,48 +1,21 @@
 /* eslint-disable max-statements */
 /* global: require,describe,it,before,beforeEach,after,afterEach */
-"use strict";
-
-const should = require("should");
-const sinon = require("sinon");
-
-const { StatusCodes } = require("node-opcua-status-code");
-const { AttributeIds } = require("node-opcua-data-model");
-const { SessionContext } = require("node-opcua-address-space");
-const { DataValue } = require("node-opcua-data-value");
-const { TimestampsToReturn } = require("node-opcua-service-read");
-const { DataType } = require("node-opcua-variant");
-const {
-    MonitoredItemCreateRequest,
-    DataChangeNotification,
-    MonitoringMode,
-    PublishRequest
-} = require("node-opcua-service-subscription");
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
-
-const {
-    Subscription,
-    SubscriptionState,
-    MonitoredItem,
-    ServerEngine,
-    ServerSidePublishEngine,
-    installSubscriptionMonitoring
-} = require("../dist");
-const add_mock_monitored_item = require("./helper").add_mock_monitored_item;
-
-const { getFakePublishEngine } = require("./helper_fake_publish_engine");
-
-const mini_nodeset_filename = get_mini_nodeset_filename();
-let fake_publish_engine = {};
-
-const fakeNotificationData = [new DataChangeNotification()];
+import sinon from "sinon";
+import { SessionContext } from "node-opcua-address-space";
+import { Subscription } from "../source";
+import { add_mock_monitored_item } from "./helper";
+import { getFakePublishEngine } from "./helper_fake_publish_engine";
+let fake_publish_engine = {
+    pendingPublishRequestCount: 0
+};
 
 function reconstruct_fake_publish_engine() {
     fake_publish_engine = getFakePublishEngine();
 }
 
-function makeSubscription(options) {
+function makeSubscription(options: any) {
     const subscription1 = new Subscription(options);
-    (subscription1).$session = {
+    (subscription1 as any).$session = {
         sessionContext: SessionContext.defaultContext
     };
     return subscription1;
@@ -50,7 +23,7 @@ function makeSubscription(options) {
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Subscription#resendInitialValues", function () {
+describe("Subscription#resendInitialValues", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
     beforeEach(function () {
@@ -115,13 +88,12 @@ describe("Subscription#resendInitialValues", function () {
 
         await subscription.resendInitialValues();
 
-        test.clock.tick(1000);  
-        
+        test.clock.tick(1000);
+
         subscription.terminate();
         subscription.dispose();
 
         keepalive_event_spy.callCount.should.equal(1);
         notification_event_spy.callCount.should.eql(2);
-
     });
 });

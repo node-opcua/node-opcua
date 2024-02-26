@@ -32,7 +32,7 @@ import {
     SymmetricAlgorithmSecurityHeader
 } from "node-opcua-service-secure-channel";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { HelloMessage, IHelloAckLimits, ISocketLike, ITransportParameters, ServerTCP_transport, StatusCodes2 } from "node-opcua-transport";
+import { IHelloAckLimits, ISocketLike, ServerTCP_transport, StatusCodes2 } from "node-opcua-transport";
 import { get_clock_tick, timestamp } from "node-opcua-utils";
 import { Callback2, ErrorCallback } from "node-opcua-status-code";
 
@@ -185,8 +185,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     private static g_MinimumSecureTokenLifetime = 2500;
     private static g_counter = 0;
-    private _counter: number = ServerSecureChannelLayer.g_counter++;
-
+    #counter: number = ServerSecureChannelLayer.g_counter++;
+    #status: "new" | "connecting" | "open" | "closing" | "closed" = "new";
     public get securityTokenCount(): number {
         assert(typeof this.lastTokenId === "number");
         return this.lastTokenId;
@@ -204,7 +204,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      *
      */
     public get aborted(): boolean {
-        return this._abort_has_been_called;
+        return this.#abort_has_been_called;
     }
 
     /**
@@ -230,7 +230,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      *
      */
     public get isOpened(): boolean {
-        return !!this.clientCertificate;
+        return this.#status === "open";
     }
 
     /**
@@ -286,7 +286,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private readonly messageChunker: MessageChunker;
 
     private timeoutId: NodeJS.Timeout | null;
-    private _open_secure_channel_onceClose: ErrorCallback | null = null;
+    #open_secure_channel_onceClose: ErrorCallback | null = null;
     private _securityTokenTimeout: NodeJS.Timeout | null;
     private _transactionsCount: number;
     private revisedLifetime: number;
@@ -305,16 +305,19 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     private _remoteAddress: string;
     private _remotePort: number;
-    private _abort_has_been_called: boolean;
-    private __verifId: any;
-    private _transport_socket_close_listener?: any;
+    #abort_has_been_called: boolean;
+    #idVerification: any;
+    #transport_socket_close_listener?: any;
 
+    public get status() {
+        return this.#status;
+    }
     public constructor(options: ServerSecureChannelLayerOptions) {
         super();
 
         this._on_response = null;
-        this.__verifId = {};
-        this._abort_has_been_called = false;
+        this.#idVerification = {};
+        this.#abort_has_been_called = false;
         this._remoteAddress = "";
         this._remotePort = 0;
         this.receiverCertificate = null;
@@ -421,7 +424,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             this.transport.sendErrorMessage(statusCode, err.message);
 
             // close socket immediately
-            this.close(undefined);
+            this.close(() => {
+                /* */
+            });
         });
     }
 
@@ -566,11 +571,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
 
         // detect transport closure
-        this._transport_socket_close_listener = (err?: Error) => {
+        this.#transport_socket_close_listener = (err?: Error) => {
             debugLog("transport has send 'close' event " + (err ? err.message : "null"));
             this._abort();
         };
-        this.transport.on("close", this._transport_socket_close_listener);
+        this.transport.on("close", this.#transport_socket_close_listener);
     }
 
     /**
@@ -596,11 +601,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
             assert(request.schema);
             assert(allowNullRequestId || requestId > 0);
             // verify that response for a given requestId is only sent once.
-            if (!this.__verifId) {
-                this.__verifId = {};
+            if (!this.#idVerification) {
+                this.#idVerification = {};
             }
-            assert(!this.__verifId[requestId], " response for requestId has already been sent !! - Internal Error");
-            this.__verifId[requestId] = requestId;
+            assert(!this.#idVerification[requestId], " response for requestId has already been sent !! - Internal Error");
+            this.#idVerification[requestId] = requestId;
         }
 
         if (doPerfMonitoring) {
@@ -613,11 +618,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
             throw new Error("Internal error");
         }
 
-        let options = {
+        let options: ChunkMessageOptions = {
             channelId: this.securityToken.channelId,
             chunkSize: this.transport.receiveBufferSize,
             requestId,
-            tokenId: this.securityToken.tokenId
+            tokenId: this.securityToken.tokenId,
+            // to be adjusted
+            signatureLength: 0,
+            plainBlockSize: 0,
+            cipherBlockSize: 0,
+            sequenceHeaderSize: 0
         };
 
         const securityOptions = msgType === "OPN" ? this._get_security_options_for_OPN() : this._get_security_options_for_MSG();
@@ -630,16 +640,20 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         response.responseHeader.requestHandle = request.requestHeader.requestHandle;
 
+        if (message.request.requestHeader.returnDiagnostics === 0) {
+            response.responseHeader.serviceDiagnostics = null;
+        } else {
+            // #  to do
+        }
         /* istanbul ignore next */
         if (0 && doDebug) {
-            // tslint:disable-next-line: no-console
-            console.log(" options ", options);
+            debugLog(" options ", options);
             analyze_object_binary_encoding(response as any as BaseUAObject);
         }
 
         /* istanbul ignore next */
         if (doTraceServerMessage) {
-            traceResponseMessage(response, this.securityToken.channelId, this._counter);
+            traceResponseMessage(response, this.securityToken.channelId, this.#counter);
         }
 
         if (this._on_response) {
@@ -650,7 +664,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         this.messageChunker.chunkSecureMessage(
             msgType,
-            options as ChunkMessageOptions,
+            options,
             response as any as BaseUAObject,
             (err: Error | null, messageChunk: Buffer | null) => {
                 if (err) {
@@ -677,11 +691,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     private _sendFatalErrorAndAbort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback): void {
+        this.transport.sendErrorMessage(statusCode, description);
         if (!this.transport) {
             return callback(new Error("Transport has been closed"));
         }
+        this.#status = "closing";
         this.transport.disconnect(() => {
             this.close(() => {
+                this.#status = "closed";
                 callback(new Error(description + " statusCode = " + statusCode.toString()));
             });
         });
@@ -708,6 +725,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * @param callback
      */
     public close(callback?: ErrorCallback): void {
+        callback = callback || (() => {});
         if (!this.transport) {
             if (typeof callback === "function") {
                 callback();
@@ -715,8 +733,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return;
         }
         debugLog("ServerSecureChannelLayer#close");
+        this.#status = "closing";
         // close socket
         this.transport.disconnect(() => {
+            this.#status = "closed";
             this._abort();
             if (typeof callback === "function") {
                 callback();
@@ -818,9 +838,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             clearTimeout(this.timeoutId);
             this.timeoutId = null;
         }
-        if (this._open_secure_channel_onceClose) {
-            this.transport.removeListener("close", this._open_secure_channel_onceClose!);
-            this._open_secure_channel_onceClose = null;
+        if (this.#open_secure_channel_onceClose) {
+            this.transport.removeListener("close", this.#open_secure_channel_onceClose!);
+            this.#open_secure_channel_onceClose = null;
         }
     }
 
@@ -838,15 +858,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
         assert(isFinite(timeout));
         assert(typeof callback === "function");
 
-        this._open_secure_channel_onceClose = (err?: Error) => {
-            this._open_secure_channel_onceClose = null;
+        this.#open_secure_channel_onceClose = (err?: Error) => {
+            this.#open_secure_channel_onceClose = null;
             this._stop_open_channel_watch_dog();
             this.close(() => {
                 const err = new Error("Timeout waiting for OpenChannelRequest (A) (timeout was " + timeout + " ms)");
                 callback(err);
             });
         };
-        this.transport.prependOnceListener("close", this._open_secure_channel_onceClose);
+        this.transport.prependOnceListener("close", this.#open_secure_channel_onceClose);
         this.timeoutId = setTimeout(() => {
             this.timeoutId = null;
             this._stop_open_channel_watch_dog();
@@ -865,9 +885,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
         requestId: number,
         channelId: number
     ) {
+        this.#status = "connecting";
+
         /* istanbul ignore next */
         if (doTraceServerMessage) {
-            traceRequestMessage(request, channelId, this._counter);
+            traceRequestMessage(request, channelId, this.#counter);
         }
 
         /* istanbul ignore next */
@@ -948,7 +970,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             .on("error", (err: Error, statusCode: StatusCode, requestId: number | null) => {
                 /** */
                 this.transport.sendErrorMessage(statusCode, err.message);
-                this.close();
+                this.close(() => {
+                    /** */
+                });
             })
             .on("startChunk", () => {
                 if (doPerfMonitoring) {
@@ -966,8 +990,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
 
             if (statusCode.isNotGood()) {
-                const description = "Sender Certificate Error";
+                const description = "Sender Certificate Error " + statusCode.toString();
                 debugLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode!.toString()));
+
                 // OPCUA specification v1.02 part 6 page 42 $6.7.4
                 // If an error occurs after the  Server  has verified  Message  security  it  shall  return a  ServiceFault  instead
                 // of a OpenSecureChannel  response. The  ServiceFault  Message  is described in  Part  4,   7.28.
@@ -978,8 +1003,16 @@ export class ServerSecureChannelLayer extends EventEmitter {
                     statusCode.isNot(StatusCodes.BadCertificateUseNotAllowed)
                 ) {
                     statusCode = StatusCodes.BadSecurityChecksFailed;
+                    //    return this._on_OpenSecureChannelRequestError(statusCode!, description, message, callback);
                 }
-                return this._on_OpenSecureChannelRequestError(statusCode, description, message, callback);
+                // Those are not considered as error but as a warning
+                //    BadCertificateIssuerRevocationUnknown,
+                //    BadCertificateRevocationUnknown,
+                //    BadCertificateTimeInvalid,
+                //    BadCertificateUseNotAllowed
+                //
+                // the client will decided what to do next
+                return this._handle_OpenSecureChannelRequest(statusCode!, message, callback);
             }
             this._handle_OpenSecureChannelRequest(statusCode!, message, callback);
         });
@@ -1322,13 +1355,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
         }
 
-        const response: Response = new OpenSecureChannelResponse({
-            responseHeader: { serviceResult },
+        const response: Response = serviceResult.isGood()
+            ? new OpenSecureChannelResponse({
+                  responseHeader: { serviceResult },
 
-            securityToken: this.securityToken,
-            serverNonce: this.serverNonce || undefined,
-            serverProtocolVersion: this.protocolVersion
-        });
+                  securityToken: this.securityToken,
+                  serverNonce: this.serverNonce || undefined,
+                  serverProtocolVersion: this.protocolVersion
+              })
+            : new ServiceFault({ responseHeader: { serviceResult } });
 
         if (doTraceServerMessage) {
             console.log("Transport maxMessageSize = ", this.transport.maxMessageSize);
@@ -1338,23 +1373,28 @@ export class ServerSecureChannelLayer extends EventEmitter {
             const responseHeader = response.responseHeader;
             if (responseHeader.serviceResult !== StatusCodes.Good) {
                 warningLog("OpenSecureChannelRequest Closing communication ", responseHeader.serviceResult.toString());
-                this.close();
+                this.#status = "closing";
+                this.close(callback);
+            } else {
+                this.#status = "open";
+                callback();
             }
-            callback();
         });
     }
 
     private _abort() {
+        this.#status = "closed";
+
         debugLog("ServerSecureChannelLayer#_abort");
 
-        if (this._abort_has_been_called) {
+        if (this.#abort_has_been_called) {
             debugLog("Warning => ServerSecureChannelLayer#_abort has already been called");
             return;
         }
 
         ServerSecureChannelLayer.registry.unregister(this);
 
-        this._abort_has_been_called = true;
+        this.#abort_has_been_called = true;
 
         this._cleanup_pending_timers();
         /**
@@ -1393,7 +1433,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     private _on_common_message(request: Request, msgType: string, requestId: number, channelId: number) {
         /* istanbul ignore next */
         if (doTraceServerMessage) {
-            traceRequestMessage(request, channelId, this._counter);
+            traceRequestMessage(request, channelId, this.#counter);
         }
 
         /* istanbul ignore next */
@@ -1408,9 +1448,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
             request,
             requestId
         };
-
+        const dummyCallback = (/*err?: Error*/) => {};
         if (msgType === "CLO" /* && request.schema.name === "CloseSecureChannelRequest" */) {
-            this.close();
+            this.close(dummyCallback);
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token
             this._handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {
@@ -1419,7 +1459,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
                 warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
-                this.close();
+                this.close(dummyCallback);
             } else {
                 if (doPerfMonitoring) {
                     // record tick 1 : after message has been received, before message processing
@@ -1512,11 +1552,23 @@ export class ServerSecureChannelLayer extends EventEmitter {
     ) {
         debugLog("ServerSecureChannel sendError: ", serviceResult.toString(), description, message.request.constructor.name);
 
-        // turn of security mode as we haven't manage to set it to
         this.securityMode = MessageSecurityMode.None;
-        // setTimeout(() => {
-        this._sendFatalErrorAndAbort(serviceResult, description, message, callback);
-        // }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
+        setTimeout(() => {
+            this.send_response(
+                "ERR",
+                new ServiceFault({
+                    responseHeader: {
+                        serviceResult,
+                        timestamp: new Date(),
+                        stringTable: [description, serviceResult.toString()]
+                    }
+                }),
+                message,
+                () => {
+                    callback(new Error(description + " statusCode = " + serviceResult.toString()));
+                }
+            );
+        }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 }
 

@@ -1,31 +1,34 @@
-"use strict";
-const fs = require("fs");
-const path = require("path");
-const should = require("should");
+import fs from "fs";
+import path from "path";
+import should from "should";
 
-const { OPCUAClient } = require("node-opcua-client");
-const { UserTokenType } = require("node-opcua-service-endpoints");
-const { NodeId } = require("node-opcua-nodeid");
+import { OPCUAClient } from "node-opcua-client";
+import { UserTokenType } from "node-opcua-service-endpoints";
+import { NodeId } from "node-opcua-nodeid";
 
-const { get_mini_nodeset_filename } = require("node-opcua-address-space/testHelpers");
-const { coercePrivateKeyPem, readPrivateKey } = require("node-opcua-crypto");
+import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
 
-const { OPCUAServer } = require("..");
+import { OPCUAServer } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 fs.existsSync(mini_nodeset_filename).should.eql(true, " expecting " + mini_nodeset_filename + " to exist");
 
 const port = 2022;
+
+interface OPCUAServerPriv extends Omit<OPCUAServer, "createSession"> {
+    createSession: (options?: any) => any;
+}
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServer", () => {
-    let server;
+    let server: OPCUAServerPriv | null = null;
     beforeEach(async () => {
         server = new OPCUAServer({
             port,
             nodeset_filename: [mini_nodeset_filename]
-        });
+        }) as any as OPCUAServerPriv;
         await server.start();
     });
     afterEach(async () => {
@@ -36,25 +39,27 @@ describe("OPCUAServer", () => {
     });
 
     it("should dismiss all existing sessions upon termination", async () => {
+        if (!server) throw new Error("server is null");
+
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists
         // (session and subscriptions )
-        let session = server.createSession({
-            
-        });
+        const session = server.createSession({});
 
         server.engine.currentSessionCount.should.equal(1);
         server.engine.cumulatedSessionCount.should.equal(1);
 
         await server.shutdown();
+
         server.engine.currentSessionCount.should.equal(0);
         server.engine.cumulatedSessionCount.should.equal(1);
         server = null;
-        session = null;
     });
 
-    it("server address space have a node matching session.nodeId", (done) => {
+    it("server address space have a node matching session.nodeId", () => {
+        if (!server) throw new Error("server is null");
+
         server.engine.currentSessionCount.should.equal(0);
 
         // let make sure that no session exists
@@ -69,19 +74,18 @@ describe("OPCUAServer", () => {
 
         //xx session.nodeId.identifierType.should.eql(NodeId.NodeIdType.GUID);
 
-        const sessionNode = server.engine.addressSpace.findNode(session.nodeId);
+        const sessionNode = server.engine.addressSpace!.findNode(session.nodeId)!;
 
         should(!!sessionNode).eql(true, " a session node must be found");
 
         sessionNode.nodeId.should.eql(session.nodeId);
 
         sessionNode.browseName.toString().should.eql("1:SessionNameGivenByClient");
-        done();
     });
 });
 
 describe("OPCUAServer-2", () => {
-    let server;
+    let server: OPCUAServer;
 
     before((done) => {
         fs.existsSync(mini_nodeset_filename).should.eql(true);
@@ -97,7 +101,6 @@ describe("OPCUAServer-2", () => {
     after(async () => {
         if (server) {
             await server.shutdown();
-            server = null;
         }
     });
 
@@ -122,10 +125,9 @@ describe("OPCUAServer-2", () => {
     });
 });
 describe("OPCUAServer-3", () => {
-    let server;
-    before((done) => {
+    let server: OPCUAServer;
+    before(() => {
         server = new OPCUAServer();
-        done();
     });
 
     it("checking IOPCUAServer properties before startup", () => {
@@ -141,8 +143,8 @@ describe("OPCUAServer-3", () => {
     });
 });
 describe("OPCUAServer-4", () => {
-    let server;
-    let client;
+    let server: OPCUAServer;
+    let client: OPCUAClient;
     const endpointUrl = `opc.tcp://localhost:${port}`;
     const privateKeyFile = path.join(__dirname, "utils", "private_key.pem");
     const privateKey1 = readPrivateKey(privateKeyFile);
@@ -162,11 +164,9 @@ describe("OPCUAServer-4", () => {
     after(async () => {
         if (client) {
             await client.disconnect();
-            client = null;
         }
         if (server) {
             await server.shutdown();
-            server = null;
         }
     });
 
@@ -181,6 +181,7 @@ describe("OPCUAServer-4", () => {
             });
             should(true).eql(false); // should never be reached
         } catch (e) {
+            if (!(e instanceof Error)) throw new Error("expecting an error");
             should(e.message.includes("BadUserSignatureInvalid")).eql(true);
             should(e.message.includes("0x80570000")).eql(true);
             thrown = true;

@@ -38,6 +38,7 @@
         { "path": "node-opcua-nodeset-woodworking" },
         { "path": "node-opcua-nodesets" },
         { "path": "node-opcua-samples" },
+        { "path": "node-opcua-server" },
         { "path": "node-opcua-service-secure-channel" },
         { "path": "node-opcua-test-fixtures" },
         { "path": "node-opcua-types" },

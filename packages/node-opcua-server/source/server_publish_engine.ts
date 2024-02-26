@@ -161,6 +161,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         assert(destPublishEngine.getSubscriptionById(subscription.id));
         assert(!srcPublishEngine.getSubscriptionById(subscription.id));
 
+       
+
         return subscription;
     }
 
@@ -313,8 +315,8 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
     public get currentMonitoredItemCount(): number {
         const subscriptions = Object.values(this._subscriptions);
-        const result = subscriptions.reduce((cumul: number, subscription: Subscription) => {
-            return cumul + subscription.monitoredItemCount;
+        const result = subscriptions.reduce((sum: number, subscription: Subscription) => {
+            return sum + subscription.monitoredItemCount;
         }, 0);
         assert(isFinite(result));
         return result;
@@ -342,7 +344,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
         delete this._subscriptions[subscription.id];
 
-        while (this._feed_closed_subscription()) {
+        while (this.#_feed_closed_subscription()) {
             /* keep looping */
         }
         if (this.subscriptionCount === 0 && this._closed_subscriptions.length === 0) {
@@ -432,7 +434,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
                 // add the publish request to the queue for later processing
                 this._publish_request_queue.push(publishData);
 
-                const processed = this._feed_closed_subscription();
+                const processed = this.#_feed_closed_subscription();
                 //xx ( may be subscription has expired by themselves) assert(verif === this._publish_request_queue.length);
                 //xx  ( may be subscription has expired by themselves) assert(processed);
                 return;
@@ -446,15 +448,15 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
 
             debugLog(chalk.bgWhite.red("Adding a PublishRequest to the queue "), this._publish_request_queue.length);
 
-            this._feed_closed_subscription();
+            this.#_feed_closed_subscription();
 
-            this._feed_late_subscription();
+            this.#_feed_late_subscription();
 
-            this._handle_too_many_requests();
+            this.#_handle_too_many_requests();
         }
     }
 
-    private _find_starving_subscription(): Subscription | null {
+    #_find_starving_subscription(): Subscription | null {
         const late_subscriptions = this.findLateSubscriptions();
         function compare_subscriptions(s1: Subscription, s2: Subscription): number {
             if (s1.priority === s2.priority) {
@@ -503,12 +505,12 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         return starving_subscription;
     }
 
-    private _feed_late_subscription() {
+    #_feed_late_subscription() {
         setImmediate(() => {
             if (!this.pendingPublishRequestCount) {
                 return;
             }
-            const starving_subscription = this._find_starving_subscription();
+            const starving_subscription = this.#_find_starving_subscription();
             if (starving_subscription) {
                 doDebug &&
                     debugLog(chalk.bgWhite.red("feeding most late subscription subscriptionId  = "), starving_subscription.id);
@@ -517,7 +519,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         });
     }
 
-    private _feed_closed_subscription() {
+    #_feed_closed_subscription() {
         if (!this.pendingPublishRequestCount) {
             return false;
         }
@@ -564,7 +566,7 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
         this._publish_request_queue = [];
     }
 
-    private _handle_too_many_requests() {
+    #_handle_too_many_requests() {
         if (this.pendingPublishRequestCount > this.maxPublishRequestInQueue) {
             traceLog(
                 "server has received too many PublishRequest",

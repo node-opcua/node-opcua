@@ -3,7 +3,7 @@
  * @module node-opcua-address-space
  */
 import { assert } from "node-opcua-assert";
-import { decodeArray, encodeArray }  from "node-opcua-basic-types";
+import { decodeArray, encodeArray } from "node-opcua-basic-types";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { findBuiltInType } from "node-opcua-factory";
@@ -57,12 +57,11 @@ export function encode_ArgumentList(definition: ArgumentDef[], args: any[], stre
 }
 
 export function decode_ArgumentList(definition: ArgumentDef[], stream: BinaryStream): any[] {
-
     // istanbul ignore next
     if (!Array.isArray(definition)) {
         throw new Error(
             "This BaseDataType cannot be decoded because it has no definition.\n" +
-            "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
+                "Please construct a BaseDataType({definition : [{dataType: DataType.UInt32 }]});"
         );
     }
 
@@ -193,7 +192,6 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 
     // istanbul ignore next
     if (!argDataType) {
-        
         doDebug && debugLog(" cannot find dataType ", arg.dataType, resolveNodeId(arg.dataType));
         doDebug && debugLog(" arg = ", arg.toString());
         doDebug && debugLog(" def =", argDefinition.toString());
@@ -261,12 +259,12 @@ export function verifyArguments_ArgumentList(
         doDebug &&
             debugLog(
                 "verifyArguments_ArgumentList " +
-                "\n       The client did  specify too many input arguments for the method.  " +
-                "\n        expected : " +
-                methodInputArguments.length +
-                "" +
-                "\n        actual   : " +
-                inputArguments.length
+                    "\n       The client did  specify too many input arguments for the method.  " +
+                    "\n        expected : " +
+                    methodInputArguments.length +
+                    "" +
+                    "\n        actual   : " +
+                    inputArguments.length
             );
 
         return { inputArgumentResults, statusCode: StatusCodes.BadArgumentsMissing };
@@ -277,22 +275,29 @@ export function verifyArguments_ArgumentList(
         doDebug &&
             debugLog(
                 " verifyArguments_ArgumentList " +
-                "\n        The client did not specify all of the input arguments for the method. " +
-                "\n        expected : " +
-                methodInputArguments.length +
-                "" +
-                "\n        actual   : " +
-                inputArguments.length
+                    "\n        The client did not specify all of the input arguments for the method. " +
+                    "\n        expected : " +
+                    methodInputArguments.length +
+                    "" +
+                    "\n        actual   : " +
+                    inputArguments.length
             );
 
         return { inputArgumentResults, statusCode: StatusCodes.BadTooManyArguments };
     }
 
+    const hasBadTypeMismatch = inputArgumentResults.includes(StatusCodes.BadTypeMismatch);
+    const hasBadOutOfRange = inputArgumentResults.includes(StatusCodes.BadOutOfRange);
+
+    const statusCode =
+        hasBadTypeMismatch || hasBadOutOfRange
+            ? hasBadTypeMismatch && !hasBadOutOfRange
+                ? StatusCodes.BadTypeMismatch
+                : StatusCodes.BadInvalidArgument
+            : StatusCodes.Good;
+
     return {
         inputArgumentResults,
-        statusCode:
-            inputArgumentResults.includes(StatusCodes.BadTypeMismatch) || inputArgumentResults.includes(StatusCodes.BadOutOfRange)
-                ? StatusCodes.BadInvalidArgument
-                : StatusCodes.Good
+        statusCode
     };
 }

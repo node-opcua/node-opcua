@@ -13,7 +13,7 @@ export interface UAIWwBaseState_flags extends UAObject { // Object
       /**
        * airPresent
        * The AirPresent Variable is true if the air
-       * pressure present in the machine.
+       * pressure is present in the machine.
        */
       airPresent?: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
@@ -51,7 +51,7 @@ export interface UAIWwBaseState_flags extends UAObject { // Object
        * The Error Variable is true if at least one reason
        * exists which prevents the machine from working.
        */
-      error?: UABaseDataVariable<boolean, DataType.Boolean>;
+      error: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
        * externalEmergency
        * The ExternalEmergency Variable is true if there
@@ -79,7 +79,7 @@ export interface UAIWwBaseState_flags extends UAObject { // Object
       loadingEnabled?: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
        * machineInitialized
-       * The MachineInitialized Variable is true if the
+       * The MachineInitialized Variable is true if
        * MachineOn is true, the PLC and the control
        * processes are running. The machine is ready for
        * usage for the operator.

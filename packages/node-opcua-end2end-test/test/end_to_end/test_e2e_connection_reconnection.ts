@@ -470,7 +470,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function _waitUntil(lambda: () => boolean, timeout: number, errorMessage: string): Promise<void> {
         await new Promise<void>((resolve, reject) => {
-            let timerId: NodeJS.Timer | undefined = setTimeout(() => {
+            let timerId: NodeJS.Timeout | undefined = setTimeout(() => {
                 timerId = undefined;
                 reject(new Error(errorMessage));
             }, timeout);

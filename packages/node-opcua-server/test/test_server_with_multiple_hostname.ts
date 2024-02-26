@@ -1,11 +1,12 @@
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
-import { OPCUAServer } from "..";
-import { createServerCertificateManager } from "../../node-opcua-end2end-test/test_helpers/createServerCertificateManager";
+import { OPCUAServer } from "../source";
+import { createServerCertificateManager } from "./create_server_certificate_manager";
 
 const port = 2011;
 
+// eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
     it("should be possible to create endpoints on multiple host names", async () => {
@@ -16,7 +17,6 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
             port,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
-
             alternateHostname: ["1.2.3.4", "MyName"]
         });
 

@@ -1,15 +1,17 @@
-"use strict";
 
-const should = require("should");
-const sinon = require("sinon");
+import { MonitoredItemNotification } from "node-opcua-service-subscription";
+import { StatusCodes } from "node-opcua-status-code";
+import { Subscription } from "../source";
 
-const { MonitoredItemNotification } = require("node-opcua-service-subscription");
-const { StatusCodes } = require("node-opcua-status-code");
+interface M2 {
+    simulateMonitoredItemAddingNotification: () => void;
+    queue: any[];
+}
 
-function add_mock_monitored_item(subscription) {
+export function add_mock_monitored_item(subscription: Subscription) {
     // pretend we have a monitored item
     const monitoredItem = {
-        queue: [],
+        queue: <any[]>[],
 
         extractMonitoredItemNotifications() {
             const tmp = this.queue;
@@ -24,20 +26,23 @@ function add_mock_monitored_item(subscription) {
         dispose() {
             /**  empty */
         },
-        async resendInitialValues() {
+        async resendInitialValue() {
             this.simulateMonitoredItemAddingNotification();
-        }
+        },
+        simulateMonitoredItemAddingNotification() {}
     };
-    monitoredItem.__defineGetter__("hasMonitoredItemNotifications", function () {
+    (monitoredItem as any).__defineGetter__("hasMonitoredItemNotifications", function (this: any) {
         return this.queue.length > 0;
     });
 
-    subscription.monitoredItems[1] = monitoredItem;
+    (subscription as any).monitoredItems[1] = monitoredItem;
 
     let counter = 1;
 
-    monitoredItem.simulateMonitoredItemAddingNotification = function simulateMonitoredItemAddingNotification() {
-        monitoredItem.queue.push(
+    const monitoredItem_ = monitoredItem as any as M2;
+
+    monitoredItem_.simulateMonitoredItemAddingNotification = function simulateMonitoredItemAddingNotification() {
+        monitoredItem_.queue.push(
             new MonitoredItemNotification({
                 clientHandle: 1,
                 value: {
@@ -53,10 +58,9 @@ function add_mock_monitored_item(subscription) {
 
     setImmediate(() => {
         // initial value !
-        monitoredItem.simulateMonitoredItemAddingNotification();
+        monitoredItem_.simulateMonitoredItemAddingNotification();
     });
 
     return monitoredItem;
 }
 
-exports.add_mock_monitored_item = add_mock_monitored_item;

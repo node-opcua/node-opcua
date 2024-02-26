@@ -39,5 +39,5 @@ export interface UAMachineIdentification_Base extends UAMachineryItemIdentificat
      */
     productInstanceUri: UAProperty<UAString, DataType.String>;
 }
-export interface UAMachineIdentification extends Omit<UAMachineryItemIdentification, "productInstanceUri">, UAMachineIdentification_Base {
+export interface UAMachineIdentification extends Omit<UAMachineryItemIdentification, "defaultInstanceBrowseName"|"productInstanceUri">, UAMachineIdentification_Base {
 }

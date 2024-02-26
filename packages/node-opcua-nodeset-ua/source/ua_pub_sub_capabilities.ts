@@ -18,10 +18,15 @@ export interface UAPubSubCapabilities_Base {
     maxDataSetReaders: UAProperty<UInt32, DataType.UInt32>;
     maxFieldsPerDataSet: UAProperty<UInt32, DataType.UInt32>;
     maxDataSetWritersPerGroup?: UAProperty<UInt32, DataType.UInt32>;
+    maxSecurityGroups?: UAProperty<UInt32, DataType.UInt32>;
+    maxPushTargets?: UAProperty<UInt32, DataType.UInt32>;
+    maxPublishedDataSets?: UAProperty<UInt32, DataType.UInt32>;
+    maxStandaloneSubscribedDataSets?: UAProperty<UInt32, DataType.UInt32>;
     maxNetworkMessageSizeDatagram?: UAProperty<UInt32, DataType.UInt32>;
     maxNetworkMessageSizeBroker?: UAProperty<UInt32, DataType.UInt32>;
     supportSecurityKeyPull?: UAProperty<boolean, DataType.Boolean>;
     supportSecurityKeyPush?: UAProperty<boolean, DataType.Boolean>;
+    supportSecurityKeyServer?: UAProperty<boolean, DataType.Boolean>;
 }
 export interface UAPubSubCapabilities extends UAObject, UAPubSubCapabilities_Base {
 }
