@@ -160,8 +160,8 @@ export class NodeCrawler extends NodeCrawlerBase {
         const obj: any = {
             browseName: object.browseName.name,
             nodeId: object.nodeId.toString(),
-            displayName: object.displayName.text,
-            description:object.description.text,
+            displayName: object.displayName?.text,
+            description:object.description?.text,
         };
 
         // Append nodeClass
