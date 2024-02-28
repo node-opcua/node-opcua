@@ -8,7 +8,15 @@ import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
-import { Certificate, exploreCertificate, extractPublicKeyFromCertificateSync, makePrivateKeyFromPem, PrivateKey, Nonce, toPem } from "node-opcua-crypto";
+import {
+    Certificate,
+    exploreCertificate,
+    extractPublicKeyFromCertificateSync,
+    makePrivateKeyFromPem,
+    PrivateKey,
+    Nonce,
+    toPem
+} from "node-opcua-crypto";
 
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -81,11 +89,72 @@ function verifyEndpointDescriptionMatches(client: OPCUAClientImpl, responseServe
     return true;
 }
 
-function findUserTokenPolicy(endpointDescription: EndpointDescription, userTokenType: UserTokenType) {
+const hasDeprecatedSecurityPolicy = (userIdentity: UserTokenPolicy) => {
+    return (
+        userIdentity.securityPolicyUri === SecurityPolicy.Basic128Rsa15 ||
+        userIdentity.securityPolicyUri === SecurityPolicy.Basic128
+    );
+};
+const ordered: string[] = [
+    // obsolete
+    SecurityPolicy.Basic128Rsa15,
+    SecurityPolicy.Basic192Rsa15,
+    SecurityPolicy.Basic256,
+
+    SecurityPolicy.None,
+    SecurityPolicy.Basic128,
+    SecurityPolicy.Basic192,
+    SecurityPolicy.Basic256Rsa15,
+    SecurityPolicy.Basic256Sha256,
+
+
+    
+    SecurityPolicy.Aes128_Sha256_RsaOaep,
+    SecurityPolicy.Aes256_Sha256_RsaPss
+];
+
+const _compareSecurityPolicy = (a: string | null, b: string | null) => {
+    if (a === b) {
+        return 0;
+    }
+    if (!a && b) return 1;
+    if (a && !b) return -1;
+    const rankA = ordered.indexOf(a!);
+    const rankB = ordered.indexOf(b!);
+    return rankB - rankA;
+};
+const compareSecurityPolicy = (a: UserTokenPolicy, b: UserTokenPolicy) => {
+    return _compareSecurityPolicy(a.securityPolicyUri, b.securityPolicyUri);
+};
+function findUserTokenPolicy(endpointDescription: EndpointDescription, userTokenType: UserTokenType): UserTokenPolicy | null {
     endpointDescription.userIdentityTokens = endpointDescription.userIdentityTokens || [];
-    const r = endpointDescription.userIdentityTokens.filter(
+    let r = endpointDescription.userIdentityTokens.filter(
         (userIdentity: UserTokenPolicy) => userIdentity.tokenType === userTokenType
     );
+    if (r.length === 0) {
+        return null;
+    }
+    if (r.length > 1) {
+        // avoid  Basic128Rsa15 & Basic128 encryption algorithm
+        // note: some servers (S7) sometime provides multiple policyId with various encryption algorithm
+        //       when the connection is Encrypted.
+        //       even though there is no need to further encrypt a password.
+        //       Further more, Basic128Rsa15 & Basic128 encryption algorithm are flawed and not working any more
+        //       with nodejs 21.11.1 onwards
+        r = r.filter((userIdentity: UserTokenPolicy) => !hasDeprecatedSecurityPolicy(userIdentity));
+    }
+    if (r.length > 1) {
+        if (endpointDescription.securityMode === MessageSecurityMode.SignAndEncrypt) {
+            // no encryption will do if available
+            const unencrypted = r.find(
+                (userIdentity: UserTokenPolicy) =>
+                    userIdentity.securityPolicyUri === SecurityPolicy.None || !userIdentity.securityPolicyUri
+            );
+            if (unencrypted) return unencrypted;
+        }
+        // if not then use the strongest encryption,
+        r = r.sort(compareSecurityPolicy);
+    }
     return r.length === 0 ? null : r[0];
 }
 
@@ -473,11 +542,10 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @param args
      */
     public closeSession(...args: any[]): any {
-
         if (this._retryCreateSessionTimer) {
             clearTimeout(this._retryCreateSessionTimer);
             this._retryCreateSessionTimer = undefined;
-        } 
+        }
         super.closeSession(...args);
     }
 
