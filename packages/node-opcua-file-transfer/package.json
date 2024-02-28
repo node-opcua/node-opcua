@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-file-transfer",
-    "version": "2.121.0",
+    "version": "2.122.0",
     "description": "pure nodejs OPCUA SDK - module file-transfer",
     "scripts": {
         "build": "tsc -b",
@@ -33,8 +33,8 @@
     },
     "devDependencies": {
         "memfs": "^4.7.7",
-        "node-opcua": "2.121.0",
-        "node-opcua-client": "2.121.0",
+        "node-opcua": "2.122.0",
+        "node-opcua-client": "2.122.0",
         "node-opcua-leak-detector": "2.121.0",
         "node-opcua-nodesets": "2.121.0",
         "should": "^13.2.3"
