@@ -32,7 +32,7 @@ const users = [
     }
 ];
 
-const port = 2237;
+const port = 2243;
 const endpointUrl = `opc.tcp://${os.hostname()}:${port}`;
 const nodeId = "ns=1;s=SecretValue";
 
