@@ -9,7 +9,7 @@ const { UAProxyManager, makeRefId } = require("node-opcua-client-proxy");
 const { build_server_with_temperature_device } = require("../../../../test_helpers/build_server_with_temperature_device");
 const { perform_operation_on_client_session } = require("../../../../test_helpers/perform_operation_on_client_session");
 
-const port = 2235;
+const port = 2240;
 
 const doDebug = false;
 
