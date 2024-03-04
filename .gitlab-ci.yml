@@ -1,30 +1,54 @@
-image: node:16
 
 stages:
-  - build
+    - build
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - .npm/
-    - node_modules/
-    - packages/
-    - ~/.pnpm-store
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+        - .npm/
+        - node_modules/
+        - packages/
+        - ~/.pnpm-store
 
-build_and_test:
-  variables:
-     KUBERNETES_CPU_REQUEST: 4
-     KUBERNETES_CPU_LIMIT: 4
-     KUBERNETES_MEMORY_REQUEST: 4Gi
-     KUBERNETES_MEMORY_LIMIT: 4Gi
-  stage: build
-  before_script:
-    - npm install -g pnpm@7
-    - pnpm config set store-dir `pwd`/.pnpm-store
-    - pnpm recursive install --frozen-lockfile=false
-  script:
-    - pnpm run consistency
-    - pnpm run build
-    - pnpm run pretest
-    - node packages/parallel_test.js
-    # - node packages/run_all_mocha_tests.js DISCO3
- 
+.build_template: &build_template
+    variables:
+        KUBERNETES_CPU_REQUEST: 4
+        KUBERNETES_CPU_LIMIT: 4
+        KUBERNETES_MEMORY_REQUEST: 4Gi
+        KUBERNETES_MEMORY_LIMIT: 4Gi
+    stage: build
+    before_script:
+        - npm install -g pnpm@7
+        - pnpm config set store-dir `pwd`/.pnpm-store
+        - pnpm recursive install --frozen-lockfile=false
+    script:
+        - pnpm run consistency
+        - pnpm run build
+        - pnpm run pretest
+        - node ${SECURITY_OPTIONS} packages/parallel_test.js
+        # - node packages/run_all_mocha_tests.js DISCO3
+
+build_and_test_node_16:
+  <<: *build_template
+  variables: 
+    SECURITY_OPTIONS: ""
+  image: node:16
+
+## https://nodejs.org/en/about/previous-releases
+
+build_and_test_node_18:
+  <<: *build_template
+  variables: 
+    SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
+  image: node:18
+
+build_and_test_node_20:
+  <<: *build_template
+  variables: 
+    SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
+  image: node:20
+
+# build_and_test_node_21:
+#   <<: *build_template
+#   variables: 
+#     SECURITY_OPTIONS: --security-revert=CVE-2023-46809
+#   image: node:21
