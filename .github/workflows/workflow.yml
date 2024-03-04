@@ -18,6 +18,12 @@ jobs:
 
   build_on_windows:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        node-version: [20.x ]
+        include:
+          - node-version: 20.x
+            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
@@ -33,12 +39,22 @@ jobs:
     - run: pnpm recursive install --no-frozen-lockfile
     - run: pnpm run build
     - run: pnpm run pretest
-    - run: pnpm test
+    - run: pnpm run test:win
+      env:
+        SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
+
+
+
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [16.x, 18.x, 20.x ]
+        include:
+          - node-version: 18.x
+            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
+          - node-version: 20.x
+            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
 
     steps:
     - uses: actions/checkout@v3
@@ -58,11 +74,18 @@ jobs:
     - run: openssl version
     - run: pnpm run pretest
     - run: pnpm test
+      env:
+        SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
+
+
   coverage:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [20.x]
+        include:
+          - node-version: 20.x
+            SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
@@ -81,8 +104,11 @@ jobs:
       - run: hostname 
       - run: openssl version
       - run: pnpm run pretest
+        env:
+          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}        
       - run: make test-cov     
-        
+        env:
+          SECURITY_REVERT_CVE_2023_46809: ${{ matrix.SECURITY_REVERT_CVE_2023_46809 }}        
       - name: Coveralls
         uses: coverallsapp/github-action@v2
         with:

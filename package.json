@@ -9,6 +9,7 @@
         "test": "test"
     },
     "scripts": {
+        "tsup": "npx tsup ./packages/node-opcua/source/index.ts",
         "consistency": "npx -y @ster5/check-version-consistency",
         "preinstall": "node prevent_npm_install.js",
         "postinstall": "pnpm build",
@@ -23,7 +24,8 @@
         "generate": "pnpm recursive run generate",
         "pretest": "pnpm recursive run pretest",
         "_old_test": "cd source && mocha test --color -R spec --recursive --timeout 200000 --bail",
-        "test": "cd packages && node --expose-gc --max-old-space-size=1024 run_all_mocha_tests.js",
+        "test": "cd packages && node --expose-gc ${SECURITY_REVERT_CVE_2023_46809} --max-old-space-size=1024 run_all_mocha_tests.js",
+        "test:win": "cd packages && node --expose-gc %SECURITY_REVERT_CVE_2023_46809% --max-old-space-size=1024 run_all_mocha_tests.js",
         "eslint": "eslint packages/**/src/*.js  packages/**/source/*.ts packages/**/test_helpers/*",
         "eslint-fix": "eslint --fix packages/*/src/**.js packages/*/__tests__/ utils/*.js scripts/*.js",
         "generate_doc": "make doc",
@@ -60,6 +62,7 @@
         "packages_extra/*"
     ],
     "devDependencies": {
+        "tsup": "8.0.2",
         "@types/mocha": "^10.0.6",
         "@types/prettier": "^2.7.3",
         "@typescript-eslint/eslint-plugin": "^7.0.2",
