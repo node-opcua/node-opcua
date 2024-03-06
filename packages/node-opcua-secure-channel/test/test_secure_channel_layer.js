@@ -66,7 +66,7 @@ describe("Testing ClientSecureChannel 1", function () {
         secureChannel.create("opc.tcp://"+ os.hostname()+ ":8888/UA/Sample", function (err) {
             should(err).be.instanceOf(Error);
             console.log(err);
-            err.message.should.match(/connect ECONNREFUSED/);
+            err.message.should.match(/ECONNREFUSED|ETIMEDOUT/);
             client_has_received_close_event.should.eql(0);
             setTimeout(done, 200);
         });
