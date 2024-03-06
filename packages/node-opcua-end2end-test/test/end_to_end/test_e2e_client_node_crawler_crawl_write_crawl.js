@@ -32,7 +32,7 @@ describe("NodeCrawlerBase after write", function () {
         //port+=1;
         server = await build_server_with_temperature_device({ port });
 
-        build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
+        await build_address_space_for_conformance_testing(server.engine.addressSpace, { mass_variables: false });
 
         endpointUrl = server.getEndpointUrl();
         temperatureVariableId = server.temperatureVariableId;
