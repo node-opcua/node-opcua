@@ -12,6 +12,8 @@ import {
 import "should";
 
 const port = 2242;
+
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("issue #1334 - client should avoid using userToken that have deprecated security policy like 192Rsa256 ", () => {
     const buildSecureServer = async () => {
         const server = new OPCUAServer({
