@@ -101,7 +101,7 @@ export { nodesets } from "node-opcua-nodesets";
 export { get_empty_nodeset_filename, get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 export * from "node-opcua-address-space/nodeJS";
 
-module.exports.utils = require("node-opcua-utils");
+export const utils = require("node-opcua-utils");
 export { LogLevel, hexDump, setLogLevel, setDebugLogger, setWarningLogger, setErrorLogger } from "node-opcua-debug";
 
 // ----------------------------------------------------------------------------------------------------------
