@@ -479,7 +479,7 @@ function add_simulation_variables(namespace: Namespace, scalarFolder: UAObject):
     (addressSpace as any).registerShutdownTask(tearDown_Timer);
 }
 
-function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
+async function add_static_variables(namespace: Namespace, scalarFolder: UAObject): Promise<void> {
     const staticScalarFolder = namespace.addObject({
         organizedBy: scalarFolder,
         browseName: "Scalars",
@@ -520,23 +520,21 @@ function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
         imageNode.bindVariable(options, /*overwrite=*/ true);
     }
 
-    function setImage(imageType: string, filename: string) {
+    async function setImage(imageType: string, filename: string): Promise<void> {
         const fullPath = path.join(__dirname, "../data", filename);
         const imageNode = namespace.findNode("s=Static_Scalar_Image" + imageType) as UAVariable;
-        fs.readFile(fullPath, (err, data) => {
-            if (!err) {
-                assert(data instanceof Buffer);
-                imageNode.setValueFromSource(new Variant({ dataType: DataType.ByteString, value: data }));
-            } else {
-                errorLog("cannot load file =", fullPath);
-            }
-        });
+        try {
+            const data = await fs.promises.readFile(fullPath);
+            imageNode.setValueFromSource(new Variant({ dataType: DataType.ByteString, value: data }));
+        } catch (err) {
+            errorLog("cannot load file =", fullPath);
+        }
     }
 
-    setImage("BMP", "image.bmp");
-    setImage("PNG", "tux.png");
-    setImage("GIF", "gif-anime.gif");
-    setImage("JPG", "tiger.jpg");
+    await setImage("BMP", "image.bmp");
+    await setImage("PNG", "tux.png");
+    await setImage("GIF", "gif-anime.gif");
+    await setImage("JPG", "tiger.jpg");
 
     // add static Array Variables
     const staticArraysFolders = namespace.addObject({
@@ -565,7 +563,7 @@ function add_static_variables(namespace: Namespace, scalarFolder: UAObject) {
     typeAndDefaultValue.forEach((e) => {
         const dataType = e.type;
         const realType = e.realType || dataType;
-        add_multi_dimensional_array_variable(namespace, staticMultiDimensionalArrays, dataType, e.defaultValue, realType, 2,3, "");
+        add_multi_dimensional_array_variable(namespace, staticMultiDimensionalArrays, dataType, e.defaultValue, realType, 2, 3, "");
     });
 }
 
@@ -1476,7 +1474,7 @@ function add_sampleView(namespace: Namespace): void {
     });
 }
 
-export function build_address_space_for_conformance_testing(addressSpace: AddressSpace, options: any): void {
+export async function build_address_space_for_conformance_testing(addressSpace: AddressSpace, options: any): Promise<void> {
     const namespace = addressSpace.registerNamespace("urn://node-opcua-simulator");
 
     options = options || {};
@@ -1500,7 +1498,8 @@ export function build_address_space_for_conformance_testing(addressSpace: Addres
     });
 
     // Scalars/Array/MultiDim array of all sorts
-    add_static_variables(namespace, allProfileFolder);
+    await add_static_variables(namespace, allProfileFolder);
+
     if (options.mass_variables) {
         add_mass_variables(namespace, allProfileFolder);
     }

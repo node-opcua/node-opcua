@@ -197,7 +197,7 @@ async function _build_server_with_temperature_device(server, options) {
     is_valid_endpointUrl(endpointUrl).should.equal(true);
 
     if (options.add_simulation) {
-        build_address_space_for_conformance_testing(server.engine.addressSpace);
+        await build_address_space_for_conformance_testing(server.engine.addressSpace);
     }
 
     // add a Analog Data Item

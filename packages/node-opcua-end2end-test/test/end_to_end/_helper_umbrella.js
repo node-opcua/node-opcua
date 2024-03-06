@@ -26,7 +26,7 @@ async function start_internal_server(test, options) {
 
     test.server.engine.addressSpace.should.be.instanceOf(AddressSpace);
 
-    build_address_space_for_conformance_testing(test.server.engine.addressSpace, { mass_variables: false });
+    await build_address_space_for_conformance_testing(test.server.engine.addressSpace, { mass_variables: false });
 
     test.endpointUrl = test.server.getEndpointUrl();
     test.temperatureVariableId = test.server.temperatureVariableId;
