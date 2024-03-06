@@ -4,5 +4,6 @@ test_to_fix/
 tsconfig.json
 tsconfig_*.json
 *.tsbuildinfo
+dist/*.tsbuildinfo
 .mocharc.yaml
 pnpm-lock.yaml
