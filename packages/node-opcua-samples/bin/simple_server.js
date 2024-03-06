@@ -237,10 +237,10 @@ const paths = envPaths(productUri);
 
     await server.initialize();
 
-    function post_initialize() {
+    async function post_initialize() {
         const addressSpace = server.engine.addressSpace;
 
-        build_address_space_for_conformance_testing(addressSpace);
+        await build_address_space_for_conformance_testing(addressSpace);
 
         install_optional_cpu_and_memory_usage_node(server);
 
@@ -444,7 +444,7 @@ const paths = envPaths(productUri);
         });
     }
 
-    post_initialize();
+    await post_initialize();
 
     function dumpObject(node) {
         function w(str, width) {
