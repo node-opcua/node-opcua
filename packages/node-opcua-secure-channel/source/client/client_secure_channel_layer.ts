@@ -1248,6 +1248,22 @@ export class ClientSecureChannelLayer extends EventEmitter {
         transport: ClientTCP_transport,
         callback: ErrorCallback
     ) {
+
+        // Node 20.11.1 on windows now reports a AggregateError when a connection is refused
+        // this is a workaround to fix the error message, that is empty when the error is 
+        // an AggregateError
+        const fixError = (err: Error | undefined) => {
+            if (!err) return err;
+            interface IAggregateError extends Error {
+                errors: Error[];
+            }
+            if ((err as IAggregateError).errors) {
+                const _err = err as IAggregateError;
+                err.message = _err.errors.map((e) => e.message).join("\n");
+            }
+            return err;
+        }
+        
         if (this.__call) {
             // console log =
             transport.numberOfRetry = transport.numberOfRetry || 0;
@@ -1256,7 +1272,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.__call = null;
 
             if (err) {
-                callback(lastError || err);
+                const err_ = fixError(lastError || err);
+                callback(err_);
             } else {
                 callback();
             }
