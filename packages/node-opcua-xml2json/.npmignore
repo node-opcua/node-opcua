@@ -16,6 +16,7 @@ deprecated_*
 _generated_/
 test/
 tsconfig.json
+dist/*.tsbuildinfo
 *.tsbuildinfo
 pnpm-lock.yaml
 tslint.*

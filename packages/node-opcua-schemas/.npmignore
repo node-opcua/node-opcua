@@ -13,6 +13,7 @@ pki/
 tmp/
 test/
 tsconfig.json
+dist/*.tsbuildinfo
 *.tsbuildinfo
 pnpm-lock.yaml
 tslint.*

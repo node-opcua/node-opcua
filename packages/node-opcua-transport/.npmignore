@@ -18,6 +18,7 @@ _generated_/
 test/
 tsconfig.json
 *.tsbuildinfo
+dist/*.tsbuildinfo
 pnpm-lock.yaml
 tslint.*
 .mocharc.*
