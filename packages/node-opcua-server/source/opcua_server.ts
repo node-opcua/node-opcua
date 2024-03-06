@@ -57,6 +57,7 @@ import { NodeId } from "node-opcua-nodeid";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import {
     AsymmetricAlgorithmSecurityHeader,
+    coerceSecurityPolicy,
     computeSignature,
     fromURI,
     getCryptoFactory,
@@ -1128,6 +1129,10 @@ export class OPCUAServer extends OPCUABaseServer {
             );
             options.serverCapabilities = options.serverCapabilities || {};
             options.serverCapabilities.maxSessions = options.maxAllowedSessionNumber;
+        }
+        // adjust securityPolicies if any
+        if (options.securityPolicies) {
+            options.securityPolicies = options.securityPolicies.map(coerceSecurityPolicy);
         }
 
         /**
