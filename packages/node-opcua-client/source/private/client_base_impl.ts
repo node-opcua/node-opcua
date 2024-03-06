@@ -576,8 +576,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         return _when_internal_error(err, callback);
                     }
 
-                    if (err.message.match(/ECONNREFUSED|ECONNABORTED/)) {
-                        return _failAndRetry(err, "create secure channel failed with ECONNREFUSED|ECONNABORTED", callback);
+                    if (err.message.match(/ECONNREFUSED|ECONNABORTED|ETIMEDOUT/)) {
+                        return _failAndRetry(
+                            err,
+                            "create secure channel failed with ECONNREFUSED|ECONNABORTED|ETIMEDOUT\n" + err.message,
+                            callback
+                        );
                     }
 
                     if (err.message.match("Backoff aborted.")) {
