@@ -5,7 +5,8 @@
 // tslint:disable:variable-name
 // tslint:disable:max-line-length
 
-import { KeyLike, KeyObject } from "crypto";
+import { KeyLike, KeyObject, createPrivateKey, createSign, createVerify } from "crypto";
+import { constants, publicEncrypt as publicEncrypt_native, privateDecrypt as privateDecrypt_native } from "crypto";
 import { assert } from "node-opcua-assert";
 
 import { MessageSecurityMode, SignatureData } from "node-opcua-service-secure-channel";
@@ -29,8 +30,8 @@ import {
     split_der,
     toPem,
     verifyMessageChunkSignature,
-    PaddingAlgorithm,
-    privateKeyToPEM} from "node-opcua-crypto";
+    PaddingAlgorithm
+} from "node-opcua-crypto";
 import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import { make_warningLog } from "node-opcua-debug";
 
@@ -92,12 +93,32 @@ const warningLog = make_warningLog(__filename);
  *  Polices and use the certificate that is required for a given security endpoint.
  *
  *  * @property Aes128_Sha256_RsaOaep
- *
+ *  --------------------------------------------
+ *   -> SymmetricSignatureAlgorithm   - HMAC-SHA2-256
+ *   -> SymmetricEncryptionAlgorithm  - AES128-CBC
+ *   -> AsymmetricSignatureAlgorithm  - RSA-PKCS15-SHA2-256  http://www.w3.org/2001/04/xmldsig-more#rsa-sha256.
+ *   -> AsymmetricKeyWrapAlgorithm    - P-SHA2-256
+ *   -> AsymmetricEncryptionAlgorithm - RSA-OAEP-SHA1        http://www.w3.org/2001/04/xmlenc#rsa-oaep
  *  ...
  *   -> DerivedSignatureKeyLength     - 256
  *   -> MinAsymmetricKeyLength        - 2048
  *   -> MaxAsymmetricKeyLength        - 4096
  *   -> CertificateSignatureAlgorithm - Sha256
+ *
+ *
+ *  * @property Aes256_Sha256_RsaPss
+ *  --------------------------------------------
+ *  -> SymmetricSignatureAlgorithm   - HMAC-SHA2-256
+ *  -> SymmetricEncryptionAlgorithm  - AES256-CBC
+ *  -> AsymmetricSignatureAlgorithm  - RSA-PSS-SHA2-256
+ *  -> AsymmetricKeyWrapAlgorithm    - P-SHA2-256
+ *  -> AsymmetricEncryptionAlgorithm - RSA-OAEP-SHA2-256
+ *
+ *  -> DerivedSignatureKeyLength     - 256 bits
+ *  -> MinAsymmetricKeyLength        - 2048 bits
+ *  -> MaxAsymmetricKeyLength        - 4096 bits
+ *  -> CertificateSignatureAlgorithm - RSA-PKCS15-SHA2-256
+ *  -> SecureChannelNonceLength      - 32 bytes
  */
 export enum SecurityPolicy {
     Invalid = "invalid",
@@ -194,7 +215,6 @@ export function RSAPKCS1V15_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buf
     }
 }
 
-
 function RSAOAEP_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
     const blockSize = rsaLengthPrivateKey(privateKey);
     return privateDecrypt_long(buffer, privateKey, blockSize, PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING);
@@ -214,7 +234,7 @@ export function asymmetricVerifyChunk(self: CryptoFactory, chunk: Buffer, certif
     return self.asymmetricVerify(blockToVerify, signature, certificate);
 }
 
-function RSAPKCS1V15SHA1_Verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
+function RSA_PKCS1V15_SHA1_Verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
     assert(certificate instanceof Buffer);
     assert(signature instanceof Buffer);
     const options = {
@@ -225,9 +245,9 @@ function RSAPKCS1V15SHA1_Verify(buffer: Buffer, signature: Signature, certificat
     return verifyMessageChunkSignature(buffer, signature, options);
 }
 
-const RSAPKCS1OAEPSHA1_Verify = RSAPKCS1V15SHA1_Verify;
+const RSA_PKCS1_OAEP_SHA1_Verify = RSA_PKCS1V15_SHA1_Verify;
 
-function RSAPKCS1OAEPSHA256_Verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
+function RSA_PKCS1_OAEP_SHA256_Verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
     const options = {
         algorithm: "RSA-SHA256",
         publicKey: toPem(certificate, "CERTIFICATE"),
@@ -236,7 +256,7 @@ function RSAPKCS1OAEPSHA256_Verify(buffer: Buffer, signature: Signature, certifi
     return verifyMessageChunkSignature(buffer, signature, options);
 }
 
-function RSAPKCS1V15SHA1_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
+function RSA_PKCS1V15_SHA1_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
     const params = {
         algorithm: "RSA-SHA1",
         privateKey,
@@ -245,7 +265,7 @@ function RSAPKCS1V15SHA1_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
     return makeMessageChunkSignature(buffer, params);
 }
 
-function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
+function RSA_PKCS1V15_SHA256_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
     const params = {
         algorithm: "RSA-SHA256",
         privateKey,
@@ -254,7 +274,7 @@ function RSAPKCS1V15SHA256_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer 
     return makeMessageChunkSignature(buffer, params);
 }
 
-const RSAPKCS1OAEPSHA1_Sign = RSAPKCS1V15SHA1_Sign;
+const RSA_PKCS1_OAEP_SHA1_Sign = RSA_PKCS1V15_SHA1_Sign;
 
 // DEPRECATED in NODEJS 20.11.1 see https://github.com/nodejs/node/commit/7079c062bb SECURITY_REVERT_CVE_2023_46809
 // ( node --security-revert=CVE-2023-46809")
@@ -271,6 +291,87 @@ export function RSAPKCS1V15_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffe
 function RSAOAEP_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
     const keyLength = rsaLengthPublicKey(publicKey);
     return publicEncrypt_long(buffer, publicKey as unknown as KeyLike, keyLength, 42, PaddingAlgorithm.RSA_PKCS1_OAEP_PADDING);
+}
+
+function RSA_PSS_SHA2_256_Sign(buffer: Buffer, privateKey: PrivateKey): Buffer {
+    const key =
+        privateKey.hidden instanceof KeyObject
+            ? privateKey.hidden
+            : createPrivateKey({
+                  key: privateKey.hidden as string,
+                  format: "pem"
+              });
+    const signer = createSign("RSA-SHA256");
+    signer.update(buffer);
+    const signature = signer.sign({
+        key: key,
+        padding: constants.RSA_PKCS1_PSS_PADDING,
+        saltLength: constants.RSA_PSS_SALTLEN_DIGEST
+    });
+    return signature;
+}
+
+function RSA_PSS_SHA2_256_Verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
+    const verify = createVerify("RSA-SHA256");
+    verify.update(buffer);
+    return verify.verify(
+        {
+            key: toPem(certificate, "CERTIFICATE"),
+            padding: constants.RSA_PKCS1_PSS_PADDING,
+            saltLength: constants.RSA_PSS_SALTLEN_DIGEST
+        },
+        signature
+    );
+}
+
+function RSA_OAEP_SHA2_256_Encrypt(buffer: Buffer, publicKey: PublicKey): Buffer {
+    const blockSize = rsaLengthPublicKey(publicKey);
+    const padding = _Aes256_Sha256_RsaPss.blockPaddingSize;
+    const chunk_size = blockSize - padding;
+    const nbBlocks = Math.ceil(buffer.length / chunk_size);
+    const options = {
+        key: publicKey as KeyLike,
+        oaepHash: "sha256",
+        padding: constants.RSA_PKCS1_OAEP_PADDING
+    };
+    const outputBuffer = Buffer.alloc(nbBlocks * blockSize);
+    for (let i = 0; i < nbBlocks; i++) {
+        const currentBlock = buffer.subarray(chunk_size * i, chunk_size * (i + 1));
+        const encrypted_chunk = publicEncrypt_native(options, currentBlock);
+        // istanbul ignore next
+        if (encrypted_chunk.length !== blockSize) {
+            throw new Error(`publicEncrypt_long unexpected chunk length ${encrypted_chunk.length}  expecting ${blockSize}`);
+        }
+        encrypted_chunk.copy(outputBuffer, i * blockSize);
+    }
+    return outputBuffer;
+}
+function RSA_OAEP_SHA2_256_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
+    const blockSize = rsaLengthPrivateKey(privateKey);
+    const nbBlocks = Math.ceil(buffer.length / blockSize);
+
+    const key =
+        privateKey.hidden instanceof KeyObject
+            ? privateKey.hidden
+            : createPrivateKey({
+                  key: privateKey.hidden as string,
+                  format: "pem"
+              });
+
+    const outputBuffer = Buffer.alloc(nbBlocks * blockSize);
+    const options = {
+        key: key,
+        oaepHash: "sha256",
+        padding: constants.RSA_PKCS1_OAEP_PADDING
+    };
+    let total_length = 0;
+    for (let i = 0; i < nbBlocks; i++) {
+        const currentBlock = buffer.subarray(blockSize * i, Math.min(blockSize * (i + 1), buffer.length));
+        const decrypted_buf = privateDecrypt_native(options, currentBlock);
+        decrypted_buf.copy(outputBuffer, total_length);
+        total_length += decrypted_buf.length;
+    }
+    return outputBuffer.subarray(0, total_length);
 }
 
 export interface DerivedKeys1 {
@@ -347,9 +448,9 @@ const factoryBasic128Rsa15: CryptoFactory = {
     /* asymmetric signature algorithm */
     asymmetricVerifyChunk,
 
-    asymmetricSign: RSAPKCS1V15SHA1_Sign,
+    asymmetricSign: RSA_PKCS1V15_SHA1_Sign,
 
-    asymmetricVerify: RSAPKCS1V15SHA1_Verify,
+    asymmetricVerify: RSA_PKCS1V15_SHA1_Verify,
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
 
@@ -381,9 +482,9 @@ const _Basic256: CryptoFactory = {
 
     asymmetricVerifyChunk,
 
-    asymmetricSign: RSAPKCS1OAEPSHA1_Sign,
+    asymmetricSign: RSA_PKCS1_OAEP_SHA1_Sign,
 
-    asymmetricVerify: RSAPKCS1OAEPSHA1_Verify,
+    asymmetricVerify: RSA_PKCS1_OAEP_SHA1_Verify,
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2000/09/xmldsig#rsa-sha1",
 
@@ -416,9 +517,9 @@ const _Basic256Sha256: CryptoFactory = {
 
     asymmetricVerifyChunk,
 
-    asymmetricSign: RSAPKCS1V15SHA256_Sign,
+    asymmetricSign: RSA_PKCS1V15_SHA256_Sign,
 
-    asymmetricVerify: RSAPKCS1OAEPSHA256_Verify,
+    asymmetricVerify: RSA_PKCS1_OAEP_SHA256_Verify,
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 
@@ -452,9 +553,9 @@ const _Aes128_Sha256_RsaOaep: CryptoFactory = {
 
     asymmetricVerifyChunk,
 
-    asymmetricSign: RSAPKCS1V15SHA256_Sign,
+    asymmetricSign: RSA_PKCS1V15_SHA256_Sign,
 
-    asymmetricVerify: RSAPKCS1OAEPSHA256_Verify,
+    asymmetricVerify: RSA_PKCS1_OAEP_SHA256_Verify,
 
     asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 
@@ -486,20 +587,20 @@ const _Aes256_Sha256_RsaPss: CryptoFactory = {
 
     asymmetricVerifyChunk,
 
-    asymmetricSign: RSAPKCS1V15SHA256_Sign,
+    asymmetricSign: RSA_PSS_SHA2_256_Sign,
 
-    asymmetricVerify: RSAPKCS1OAEPSHA256_Verify,
+    asymmetricVerify: RSA_PSS_SHA2_256_Verify,
 
-    asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+    asymmetricSignatureAlgorithm: "http://www.w3.org/2001/04/xmldsig-more#rsa-pss-sha256",
 
     /* asymmetric encryption algorithm */
-    asymmetricEncrypt: RSAOAEP_Encrypt,
+    asymmetricEncrypt: RSA_OAEP_SHA2_256_Encrypt,
 
-    asymmetricDecrypt: RSAOAEP_Decrypt,
+    asymmetricDecrypt: RSA_OAEP_SHA2_256_Decrypt,
 
-    asymmetricEncryptionAlgorithm: "http://www.w3.org/2001/04/xmlenc#rsa-oaep",
+    asymmetricEncryptionAlgorithm: "http://opcfoundation.org/UA/security/rsa-oaep-sha2-256",
 
-    blockPaddingSize: 42,
+    blockPaddingSize: 66,
 
     // "aes-256-cbc"
     symmetricEncryptionAlgorithm: "aes-256-cbc",
