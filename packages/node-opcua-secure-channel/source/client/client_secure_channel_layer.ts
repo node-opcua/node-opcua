@@ -505,7 +505,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     }
                 });
 
-                const callback = requestData.callback;
+                const callback = requestData ? requestData.callback : null;
                 delete this._requests[requestId];
                 callback && callback(null, err);
             })
@@ -531,7 +531,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     errorLog(" message was 2:", requestData ? requestData.request.toString() : "<null>");
                 }
 
-                const callback = requestData.callback;
+                const callback = requestData ?  requestData.callback : null;
                 delete this._requests[requestId];
                 callback && callback(err, undefined);
 
