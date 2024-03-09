@@ -14,7 +14,6 @@ import {
     decryptBufferWithDerivedKeys,
     DerivedKeys,
     exploreCertificateInfo,
-    generatePrivateKey,
     makeSHA1Thumbprint,
     PrivateKey,
     reduceLength,
@@ -31,13 +30,13 @@ import {
     MessageSecurityMode,
     CloseSecureChannelRequest
 } from "node-opcua-service-secure-channel";
-import { decodeStatusCode, coerceStatusCode, StatusCodes, StatusCode } from "node-opcua-status-code";
+import { decodeStatusCode, StatusCodes, StatusCode } from "node-opcua-status-code";
 import { MessageBuilderBase, MessageBuilderBaseOptions, StatusCodes2 } from "node-opcua-transport";
 import { timestamp } from "node-opcua-utils";
 import { SequenceHeader } from "node-opcua-chunkmanager";
 import { doTraceChunk } from "node-opcua-transport";
 
-import { chooseSecurityHeader, MessageChunker, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
+import { chooseSecurityHeader, SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 
 import { SecurityHeader } from "./secure_message_chunk_manager";
 import {
@@ -171,9 +170,6 @@ export class MessageBuilder extends MessageBuilderBase {
 
     public dispose(): void {
         super.dispose();
-        // xx this.securityPolicy = undefined;
-        // xx this.securityMode = null;
-        // xx this.objectFactory = null;
         this.cryptoFactory = null;
         this.securityHeader = undefined;
         this._tokenStack = [];
@@ -315,7 +311,10 @@ export class MessageBuilder extends MessageBuilderBase {
         } catch (err) {
             // this may happen if the message is not well formed or has been altered
             // we better off reporting an error and abort the communication
-            return this._report_error(StatusCodes2.BadTcpInternalError, types.isNativeError(err) ? err.message : " err");
+            return this._report_error(
+                StatusCodes2.BadTcpInternalError,
+                "decodeExpandedNodeId " + (types.isNativeError(err) ? err.message : "")
+            );
         }
 
         if (!this.objectFactory.hasConstructor(id)) {
@@ -494,7 +493,7 @@ export class MessageBuilder extends MessageBuilderBase {
                 binaryStream.buffer = binaryStream.buffer.subarray(0, binaryStream.length + decryptedBuffer.length);
             } catch (err) {
                 warningLog("Cannot decrypt OPN package");
-                // Cannot asymetricaly decrypt, may be the certificate used by the other party to encrypt
+                // Cannot asymmetrically decrypt, may be the certificate used by the other party to encrypt
                 // this package is wrong
                 return false;
             }
