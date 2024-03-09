@@ -313,6 +313,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _counter = ClientSecureChannelLayer.g_counter++;
     private _bytesRead = 0;
     private _bytesWritten = 0;
+    private _timeDrift = 0;
 
     public static minTransactionTimeout = 5 * 1000; // 10 sec
     public static defaultTransactionTimeout = 15 * 1000; // 15 minute
@@ -574,6 +575,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         str += "\n   maxChunkCount  (to send) : " + (this._transport?.parameters?.maxChunkCount || "<not set>");
         str += "\n   receiveBufferSize(server): " + (this._transport?.parameters?.receiveBufferSize || "<not set>");
         str += "\n   sendBufferSize (to send) : " + (this._transport?.parameters?.sendBufferSize || "<not set>");
+        str += "\ntime drift with server      : " + durationToString(this._timeDrift);
         str += "\n";
         return str;
     }
@@ -1177,6 +1179,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
                 if (this.securityToken.createdAt) {
                     const delta = this.securityToken.createdAt.getTime() - midDate.getTime();
+                    this._timeDrift = delta;
                     if (Math.abs(delta) > 1000 * 5) {
                         warningLog(
                             `[NODE-OPCUA-W33]  client : server token creation date exposes a time discrepancy ${durationToString(delta)}\n` +
@@ -1185,11 +1188,12 @@ export class ClientSecureChannelLayer extends EventEmitter {
                                 ` server time :${chalk.cyan(this.securityToken.createdAt?.toISOString())}\n` +
                                 ` client time :${chalk.cyan(midDate.toISOString())}\n` +
                                 ` transaction duration = ${durationToString(endDate.getTime() - startDate.getTime())}\n` +
-                                ` server URL = ${this.endpointUrl} \n` + 
+                                ` server URL = ${this.endpointUrl} \n` +
                                 ` token.createdAt  has been updated to reflect client time`
                         );
                     }
                 }
+
                 this.securityToken.createdAt = midDate;
 
                 this.serverNonce = openSecureChannelResponse.serverNonce;
