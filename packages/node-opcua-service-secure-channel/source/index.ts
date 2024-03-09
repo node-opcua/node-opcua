@@ -3,24 +3,12 @@
  */
 // tslint:disable:max-line-length
 import { assert } from "node-opcua-assert";
-import { AsymmetricAlgorithmSecurityHeader } from "./AsymmetricAlgorithmSecurityHeader";
-import { SymmetricAlgorithmSecurityHeader } from "./SymmetricAlgorithmSecurityHeader";
-
 import {
     _enumerationMessageSecurityMode,
     ChannelSecurityToken,
-    CloseSecureChannelRequest,
-    CloseSecureChannelResponse,
-    MessageSecurityMode,
-    OpenSecureChannelRequest,
-    OpenSecureChannelResponse,
     RequestHeader,
     ResponseHeader,
-    SecurityTokenRequestType,
-    ServiceFault,
-    SignatureData,
-    UserTokenPolicy
-} from "node-opcua-types";
+    SignatureData} from "node-opcua-types";
 
 export {
     ChannelSecurityToken,
