@@ -174,7 +174,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
 
         try {
@@ -239,7 +239,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
 
         try {
@@ -422,7 +422,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
         try {
             await client.connect(endpointUri);
@@ -445,7 +445,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
         onGoingClient.on("start_reconnection", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
@@ -599,7 +599,7 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
 
         client.on("start_reconnection", () => {
