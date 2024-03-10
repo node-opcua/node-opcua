@@ -1,5 +1,6 @@
 import "should";
 import { nodesets } from "node-opcua-nodesets";
+import { SecurityPolicy } from "node-opcua-secure-channel";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUAServer } from "../source";
 import { createServerCertificateManager } from "./create_server_certificate_manager";
@@ -17,7 +18,15 @@ describe("OPCUAServerEndpoint#addEndpointDescription multiple hostname", () => {
             port,
             serverCertificateManager,
             nodeset_filename: [nodesets.standard],
-            alternateHostname: ["1.2.3.4", "MyName"]
+            alternateHostname: ["1.2.3.4", "MyName"],
+            securityPolicies: [
+                SecurityPolicy.None,
+                SecurityPolicy.Basic256Sha256,
+                SecurityPolicy.Basic256,
+                SecurityPolicy.Basic128Rsa15,
+                SecurityPolicy.Aes256_Sha256_RsaPss
+                //  SecurityPolicy.Aes128_Sha256_RsaOaep
+            ]
         });
 
         await server.start();
@@ -53,7 +62,15 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
         const server = new OPCUAServer({
             port,
             serverCertificateManager,
-            nodeset_filename: [nodesets.standard]
+            nodeset_filename: [nodesets.standard],
+            securityPolicies: [
+                SecurityPolicy.None,
+                SecurityPolicy.Basic256Sha256,
+                SecurityPolicy.Basic256,
+                //SecurityPolicy.Basic128Rsa15,
+                //SecurityPolicy.Aes256_Sha256_RsaPss
+                //  SecurityPolicy.Aes128_Sha256_RsaOaep
+            ]
         });
 
         await server.start();
@@ -72,7 +89,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
             }
         }
 
-        matchingDefault.should.eql(9, "we should have 9 endpoints matching the machine hostname");
+        matchingDefault.should.eql(5, "we should have 5 endpoints matching the machine hostname");
 
         await server.shutdown();
 
@@ -108,7 +125,7 @@ describe("OPCUAServerEndpoint#addEndpointDescription custom hostname", () => {
             }
         }
 
-        matchingHostname.should.eql(9, "we should have 9 endpoints matches the custom hostname");
+        matchingHostname.should.eql(7, "we should have 7 endpoints matches the custom hostname");
 
         await server.shutdown();
 

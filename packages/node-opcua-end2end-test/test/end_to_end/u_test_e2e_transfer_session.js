@@ -465,7 +465,7 @@ module.exports = function (test) {
                             certificateFile: certificateFile1,
                             privateKeyFile: privateKeyFile1,
                             securityMode: MessageSecurityMode.Sign,
-                            securityPolicy: SecurityPolicy.Basic128Rsa15,
+                            securityPolicy: SecurityPolicy.Basic256Sha256,
                             serverCertificate: serverCertificate
                         });
 
@@ -517,7 +517,7 @@ module.exports = function (test) {
                             certificateFile: certificateFile2,
                             privateKeyFile: privateKeyFile2,
                             securityMode: MessageSecurityMode.Sign,
-                            securityPolicy: SecurityPolicy.Basic256,
+                            securityPolicy: SecurityPolicy.Aes128_Sha256_RsaOaep,
                             serverCertificate: serverCertificate
                         });
                         const certificate = readCertificate(certificateFile2);

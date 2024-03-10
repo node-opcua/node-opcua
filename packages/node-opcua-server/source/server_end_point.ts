@@ -1244,13 +1244,24 @@ function matching_endpoint(
 }
 
 const defaultSecurityModes = [MessageSecurityMode.None, MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt];
+
+
 const defaultSecurityPolicies = [
-    SecurityPolicy.Basic128Rsa15,
-    SecurityPolicy.Basic256,
-    // xx UNUSED!!    SecurityPolicy.Basic256Rsa15,
+
+    // now deprecated  Basic128Rs15 shall be disabled by default
+    // see https://profiles.opcfoundation.org/profile/1532
+    // SecurityPolicy.Basic128Rsa15,
+
+    // now deprecated Basic256 shall be disabled by default
+    // see https://profiles.opcfoundation.org/profile/2062
+    // SecurityPolicy.Basic256,
+    
+    // xx UNUSED!!  SecurityPolicy.Basic192Rsa15,
+    // xx UNUSED!!  SecurityPolicy.Basic256Rsa15,
+    
     SecurityPolicy.Basic256Sha256,
-    SecurityPolicy.Aes128_Sha256_RsaOaep
-    // NO USED YET SecurityPolicy.Aes256_Sha256_RsaPss
+    SecurityPolicy.Aes128_Sha256_RsaOaep,
+    SecurityPolicy.Aes256_Sha256_RsaPss
 ];
 
 const defaultUserTokenTypes = [

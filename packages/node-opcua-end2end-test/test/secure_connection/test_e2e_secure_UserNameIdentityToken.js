@@ -76,7 +76,6 @@ function perform_simple_connection(endpointUrl, connectionOption, credentials, d
     );
 }
 
-
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Client-Server with UserName/Password identity token", function () {
@@ -91,7 +90,12 @@ describe("testing Client-Server with UserName/Password identity token", function
             port,
             allowAnonymous: false,
             // replace user manager with our custom one
-            userManager
+            userManager,
+            securityPolicies: [
+                SecurityPolicy.None,
+                SecurityPolicy.Basic128Rsa15,
+                SecurityPolicy.Basic256Sha256
+             ]
         };
 
         server = await build_server_with_temperature_device(options);
@@ -163,7 +167,7 @@ describe("testing Client-Server with UserName/Password identity token", function
     it("should connect to a server using username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
         const options = {
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         };
         const userIdentity = {
             userName: "username",
@@ -184,9 +188,7 @@ describe("testing Client-Server with UserName/Password identity token", function
 
         perform_simple_connection(endpointUrl_truncated, options, { userName, password }, done);
     });
-
 });
-
 
 describe("testing Client-Server with UserName/Password identity token - Async", function () {
     let server, endpointUrl;
@@ -212,10 +214,9 @@ describe("testing Client-Server with UserName/Password identity token - Async", 
     });
 
     it("should connect to a server using asynchronous username/password authentication and valid credentials - secure connection - 256 bits ", function (done) {
-       
         const options = {
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic256
+            securityPolicy: SecurityPolicy.Basic256Sha256
         };
         const userIdentity = {
             userName: "username",

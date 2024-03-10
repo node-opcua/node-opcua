@@ -169,7 +169,7 @@ describe("Testing server with alternate names", () => {
         const endpointUrl = `opc.tcp://localhost:${port1}`;
         const endpoints = await extractEndpoints(endpointUrl);
         dumpEndpoints(endpoints);
-        endpoints.length.should.eql(3 * 9);
+        endpoints.length.should.eql(3 * 7);
     });
 });
 

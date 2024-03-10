@@ -124,6 +124,21 @@ async function start_inner_server_local(options: OPCUAServerOptions): Promise<In
 
     options.serverCertificateManager = await makeServerCertificateManager(port);
 
+
+    options.securityPolicies = options.securityPolicies || [
+        // now deprecated  Basic128Rs15 shall be disabled by default
+        // see https://profiles.opcfoundation.org/profile/1532
+        SecurityPolicy.Basic128Rsa15,
+
+        // now deprecated Basic256 shall be disabled by default
+        // see https://profiles.opcfoundation.org/profile/2062
+        SecurityPolicy.Basic256,
+        // xx UNUSED!!  SecurityPolicy.Basic192Rsa15,
+        // xx UNUSED!!  SecurityPolicy.Basic256Rsa15,
+        SecurityPolicy.Basic256Sha256,
+        SecurityPolicy.Aes128_Sha256_RsaOaep,
+        SecurityPolicy.Aes256_Sha256_RsaPss
+    ];
     server = await build_server_with_temperature_device(options);
     const data = {
         endpointUrl: server.getEndpointUrl(),
@@ -511,7 +526,7 @@ function perform_collection_of_test_with_client_configuration(message: string, o
         await common_test(SecurityPolicy.Aes128_Sha256_RsaOaep, MessageSecurityMode.SignAndEncrypt, options);
     });
 
-    xit("should succeed with Aes256_Sha256_RsaPss with SignAndEncrypt " + message, async () => {
+    it("should succeed with Aes256_Sha256_RsaPss with SignAndEncrypt " + message, async () => {
         await common_test(SecurityPolicy.Aes256_Sha256_RsaPss, MessageSecurityMode.SignAndEncrypt, options);
     });
 }
@@ -552,7 +567,7 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
     let serverHandle: InnerServer | undefined;
 
     before(async () => {
-        serverHandle = await start_server({});
+        serverHandle = await start_server();
     });
     after(async () => {
         await stop_server(serverHandle!);

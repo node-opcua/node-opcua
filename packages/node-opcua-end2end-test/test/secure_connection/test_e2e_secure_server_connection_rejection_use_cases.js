@@ -42,7 +42,7 @@ describe("testing the server ability to deny client session request (server with
 
         options = {
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 2000
         };
@@ -230,7 +230,7 @@ describe("testing the server ability to deny client session request (server with
         // in this case, server certificate will be extracted from the getPoint Information
         const options = {
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
             serverCertificate: null, // NOT KNOWN
             defaultSecureTokenLifetime: 2000
         };

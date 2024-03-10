@@ -61,7 +61,7 @@ module.exports = function(test) {
             //xx console.log("e=", endpointUrl);
             const { createSessionResponse, err }= await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
-            createSessionResponse.serverEndpoints.length.should.eql(9);
+            createSessionResponse.serverEndpoints.length.should.eql(7);
             createSessionResponse.serverEndpoints[0].endpointUrl.should.eql(test.endpointUrl);
 
         });
@@ -73,7 +73,7 @@ module.exports = function(test) {
             // console.log(endpointUrl);
             const { createSessionResponse, err }= await testCreateSessionResponse(endpointUrl);
             should.not.exist(err);
-            createSessionResponse.serverEndpoints.length.should.eql(9);
+            createSessionResponse.serverEndpoints.length.should.eql(7);
             createSessionResponse.serverEndpoints[0].endpointUrl.should.eql(test.endpointUrl);
         });
 
