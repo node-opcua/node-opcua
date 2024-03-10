@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-chunkmanager",
-    "version": "2.121.0",
+    "version": "2.123.0",
     "description": "pure nodejs OPCUA SDK - module chunkmanager",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
