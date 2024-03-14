@@ -7,7 +7,7 @@ import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { coerceInt64 } from "node-opcua-basic-types";
 import { AxisScaleEnumeration } from "node-opcua-data-access";
-import { AccessRestrictionsFlag, coerceLocalizedText, QualifiedNameLike } from "node-opcua-data-model";
+import { AccessRestrictionsFlag, coerceLocalizedText, coerceQualifiedName, QualifiedNameLike } from "node-opcua-data-model";
 import { QualifiedName } from "node-opcua-data-model";
 import { BrowseDirection } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
@@ -1655,7 +1655,15 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(node.nodeId instanceof NodeId, "Expecting a NodeId");
         // istanbul ignore next
         if (node.nodeId.namespace !== this.index) {
-            throw new Error("node must belongs to this namespace");
+            throw new Error(
+                "node must belong to this namespace : " +
+                    node.nodeId.toString() +
+                    "  " +
+                    " node.browseName = " +
+                    node.browseName.toString() +
+                    " this.index = " +
+                    this.index
+            );
         }
         assert(node.nodeId.namespace === this.index, "node must belongs to this namespace");
         assert(Object.prototype.hasOwnProperty.call(node, "browseName"), "Node must have a browseName");
@@ -2000,7 +2008,8 @@ export class NamespaceImpl implements NamespacePrivate {
             // a getter has been specified and no options.minimumSamplingInterval has been specified
             warningLog(
                 "[NODE-OPCUA-W30",
-                "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms\nvariable = "+ options?.browseName?.toString()
+                "namespace#addVariable a getter has been specified and minimumSamplingInterval is missing.\nMinimumSamplingInterval has been adjusted to 1000 ms\nvariable = " +
+                    options?.browseName?.toString()
             );
             options.minimumSamplingInterval = 1000;
         }
@@ -2225,12 +2234,14 @@ function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion: 
         if (node.getChildByName("NodeVersion")) {
             return; // already exists
         }
-        const namespace = node.addressSpace.getOwnNamespace();
+
+        const namespace = node.namespace;
         const nodeVersion = namespace.addVariable({
-            browseName: "NodeVersion",
-            dataType: "String",
+            browseName: coerceQualifiedName({ name: "NodeVersion", namespaceIndex: 0 }),
+            dataType: DataType.String,
             propertyOf: node
         });
+        
         const initialValue = typeof options.nodeVersion === "string" ? options.nodeVersion : "0";
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }

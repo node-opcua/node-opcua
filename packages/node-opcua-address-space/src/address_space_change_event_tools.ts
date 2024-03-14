@@ -21,10 +21,9 @@ const verbFlags = new Enum({
     NodeDeleted: 0x02,
 
     //                         ReferenceAdded   2         Indicates a Reference has been added. The affected Node may
-    ReferenceAdded: 0x04,
-
     //                                                    be either a SourceNode or TargetNode. Note that an added
     //                                                    bidirectional Reference is reflected by two ChangeStructures.
+    ReferenceAdded: 0x04,
     //                         ReferenceDeleted 3         Indicates a Reference has been deleted. The affected Node may
     //                                                    be either a SourceNode or TargetNode. Note that a deleted
     //                                                    bidirectional Reference is reflected by two ChangeStructures.
@@ -105,7 +104,7 @@ export function _handle_model_change_event(node: BaseNodeImpl): void {
 
     const containingFolders = node.findReferencesExAsObject("Organizes", BrowseDirection.Inverse);
 
-    let typeDefinitionNodeId: NodeId  | null = null;
+    let typeDefinitionNodeId: NodeId | null = null;
     if (node.nodeClass === NodeClass.Object || node.nodeClass === NodeClass.Variable) {
         typeDefinitionNodeId = node.typeDefinitionObj.nodeId;
     }
@@ -150,7 +149,7 @@ export function _handle_delete_node_model_change_event(node: BaseNode): void {
         return addressSpace.findNode(r.nodeId)! as BaseNode;
     });
 
-    const versionableNodes = parentNodes.filter((n: BaseNode) => !!n?.nodeVersion);
+    const versionableNodes = parentNodes.filter((n: BaseNode) => !!n?.getChildByName("NodeVersion", 0));
 
     if (versionableNodes.length >= 1 || !!node.nodeVersion) {
         addressSpace.modelChangeTransaction(() => {

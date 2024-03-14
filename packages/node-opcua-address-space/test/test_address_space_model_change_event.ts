@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { generateAddressSpace } from "../nodeJS";
-import { AddObjectOptions, AddressSpace, EventData, Namespace, UAObject, UAVariableT } from "..";
+import { AddObjectOptions, AddressSpace, EventData, Namespace, UAObject, UAVariable, UAVariableT } from "..";
 
 interface UAObjectWithVersion extends UAObject {
     nodeVersion: UAVariableT<string, DataType.String>;
@@ -110,7 +110,8 @@ describe("address_space ModelChangeEvent", function (this: any) {
         addressSpace.dispose();
     });
 
-    it("MCEVT-1 a node with a NodeVersion property shall trigger a ModelChangeEvent and update " +
+    it(
+        "MCEVT-1 a node with a NodeVersion property shall trigger a ModelChangeEvent and update " +
             "its NodeVersion when a object is added as one of its component (componentOf)",
         () => {
             const addressSpacePriv = addressSpace as any;
@@ -137,7 +138,8 @@ describe("address_space ModelChangeEvent", function (this: any) {
             addressSpacePriv._collectModelChange.restore();
         }
     );
-    it("MCEVT-2 a node with a NodeVersion property shall trigger a ModelChangeEvent and update " +
+    it(
+        "MCEVT-2 a node with a NodeVersion property shall trigger a ModelChangeEvent and update " +
             "its NodeVersion when a object is added as one of its element folder (organizedBy)",
         () => {
             const addressSpacePriv = addressSpace as any;
@@ -165,7 +167,8 @@ describe("address_space ModelChangeEvent", function (this: any) {
         }
     );
 
-    it("MCEVT-3 a node with a NodeVersion property shall trigger a ModelChangeEvent and " +
+    it(
+        "MCEVT-3 a node with a NodeVersion property shall trigger a ModelChangeEvent and " +
             "update its NodeVersion when one of its child object is deleted",
         () => {
             const addressSpacePriv = addressSpace as any;
@@ -207,7 +210,8 @@ describe("address_space ModelChangeEvent", function (this: any) {
         }
     );
 
-    it("MCEVT-4 a node with a NodeVersion property shall trigger a ModelChangeEvent and " +
+    it(
+        "MCEVT-4 a node with a NodeVersion property shall trigger a ModelChangeEvent and " +
             "update its NodeVersion when a reference is added",
         () => {
             const addressSpacePriv = addressSpace as any;
@@ -283,5 +287,29 @@ describe("address_space ModelChangeEvent", function (this: any) {
 
         // -----------------------------------------------------------------------------------------------
         addressSpacePriv._collectModelChange.restore();
+    });
+
+    it("MCEVT-6 model change event and version node added to object in custom namespace ", () => {
+        // given a custom namespace
+        const customNamespace = addressSpace.registerNamespace("MyCustomNamespace");
+
+        // given a new versionable node in the custom namespace
+        const versionableNode = customNamespace.addObject({
+            browseName: "VersionableNode1",
+            nodeVersion: "0"
+        });
+
+        // When I add a child node to this versionable node
+        const addressSpacePriv = addressSpace as any;
+        sinon.spy(addressSpacePriv, "_collectModelChange");
+        addressSpacePriv.modelChangeTransaction(() => {
+            const subNode = customNamespace.addObject({
+                browseName: "SubNode",
+                componentOf: versionableNode
+            });
+        });
+        addressSpacePriv._collectModelChange.callCount.should.eql(2);
+        const nodeVersionAfter = (versionableNode.getChildByName("NodeVersion", 0)! as UAVariable).readValue().value.value;
+        nodeVersionAfter.toString().should.eql("2");
     });
 });

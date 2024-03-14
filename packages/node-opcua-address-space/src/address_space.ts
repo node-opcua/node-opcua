@@ -1237,15 +1237,12 @@ export class AddressSpace implements AddressSpacePrivate {
         this._modelChangeTransactionCounter = this._modelChangeTransactionCounter || 0;
 
         function beginModelChange(this: AddressSpace) {
-            /* jshint validthis:true */
-            assert(this);
             this._modelChanges = this._modelChanges || [];
             assert(this._modelChangeTransactionCounter >= 0);
             this._modelChangeTransactionCounter += 1;
         }
 
         function endModelChange(this: AddressSpace) {
-            /* jshint validthis:true */
             this._modelChangeTransactionCounter -= 1;
 
             if (this._modelChangeTransactionCounter === 0) {
