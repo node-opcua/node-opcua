@@ -39,7 +39,8 @@ import {
     UAObjectType,
     PseudoVariantStringPredefined,
     innerBrowse,
-    innerBrowseNext
+    innerBrowseNext,
+    UAEventType
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
@@ -3875,6 +3876,7 @@ export interface OPCUAServer {
     raiseEvent(eventType: "AuditCertificateUntrustedEventType", options: RaiseAuditCertificateUntrustedEventData): void;
     raiseEvent(eventType: "AuditCertificateRevokedEventType", options: RaiseAuditCertificateRevokedEventData): void;
     raiseEvent(eventType: "AuditCertificateMismatchEventType", options: RaiseAuditCertificateMismatchEventData): void;
+    raiseEvent(eventType: UAEventType, options: RaiseEventData): void;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
