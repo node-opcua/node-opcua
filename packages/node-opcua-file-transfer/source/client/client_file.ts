@@ -2,7 +2,7 @@
  * @module node-opcua-file-transfer
  */
 import { Byte, coerceInt32, Int32, Int64, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
-import { AttributeIds } from "node-opcua-data-model";
+import { AttributeIds, QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { ReadValueIdOptions } from "node-opcua-service-read";
@@ -18,7 +18,6 @@ const doDebug = checkDebugFlag("FileType");
 
 import { OpenFileMode } from "../open_mode";
 export { OpenFileMode } from "../open_mode";
-
 
 export interface IClientFile {
     fileHandle: number;
@@ -54,7 +53,8 @@ export class ClientFile implements IClientFile {
 
     public fileHandle = 0;
     public session: IBasicSessionAsync;
-    protected readonly fileNodeId: NodeId;
+
+    public readonly nodeId: NodeId;
 
     private openMethodNodeId?: NodeId;
     private closeMethodNodeId?: NodeId;
@@ -67,7 +67,19 @@ export class ClientFile implements IClientFile {
 
     constructor(session: IBasicSessionAsync, nodeId: NodeId) {
         this.session = session;
-        this.fileNodeId = nodeId;
+        this.nodeId = nodeId;
+    }
+
+    /**
+     * @deprecated use nodeId instead
+     */
+    protected get fileNodeId(): NodeId {
+        return this.nodeId;
+    }
+
+    public async browseName(): Promise<QualifiedName> {
+        const dataValue = await this.session.read({ nodeId: this.nodeId, attributeId: AttributeIds.BrowseName });
+        return dataValue.value.value as QualifiedName;
     }
 
     public async open(mode: OpenFileMode): Promise<number> {
@@ -82,7 +94,7 @@ export class ClientFile implements IClientFile {
         const result = await this.session.call({
             inputArguments: [{ dataType: DataType.Byte, value: mode as Byte }],
             methodId: this.openMethodNodeId,
-            objectId: this.fileNodeId
+            objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
             debugLog("Cannot open file : ");
@@ -103,7 +115,7 @@ export class ClientFile implements IClientFile {
         const result = await this.session.call({
             inputArguments: [{ dataType: DataType.UInt32, value: this.fileHandle }],
             methodId: this.closeMethodNodeId,
-            objectId: this.fileNodeId
+            objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
             debugLog("Cannot close file : ");
@@ -122,7 +134,7 @@ export class ClientFile implements IClientFile {
         const result = await this.session.call({
             inputArguments: [{ dataType: DataType.UInt32, value: this.fileHandle }],
             methodId: this.getPositionNodeId,
-            objectId: this.fileNodeId
+            objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
@@ -148,7 +160,7 @@ export class ClientFile implements IClientFile {
                 }
             ],
             methodId: this.setPositionNodeId,
-            objectId: this.fileNodeId
+            objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
@@ -171,7 +183,7 @@ export class ClientFile implements IClientFile {
                 }
             ],
             methodId: this.readNodeId,
-            objectId: this.fileNodeId
+            objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
@@ -197,7 +209,7 @@ export class ClientFile implements IClientFile {
                 }
             ],
             methodId: this.writeNodeId,
-            objectId: this.fileNodeId
+            objectId: this.nodeId
         });
         if (result.statusCode.isNotGood()) {
             throw new Error("Error " + result.statusCode.toString());
@@ -234,10 +246,7 @@ export class ClientFile implements IClientFile {
             this.getPositionNodeId = resolveNodeId(MethodIds.FileType_GetPosition);
             this.writeNodeId = resolveNodeId(MethodIds.FileType_Write);
             this.readNodeId = resolveNodeId(MethodIds.FileType_Read);
-            const browsePaths: BrowsePath[] = [
-                makeBrowsePath(this.fileNodeId, "/OpenCount"),
-                makeBrowsePath(this.fileNodeId, "/Size")
-            ];
+            const browsePaths: BrowsePath[] = [makeBrowsePath(this.nodeId, "/OpenCount"), makeBrowsePath(this.nodeId, "/Size")];
             const results = await this.session.translateBrowsePath(browsePaths);
             if (results[0].statusCode.isNotGood()) {
                 throw new Error("fileType object does not expose mandatory OpenCount Property");
@@ -250,14 +259,14 @@ export class ClientFile implements IClientFile {
             return;
         }
         const browsePaths: BrowsePath[] = [
-            makeBrowsePath(this.fileNodeId, "/Open"),
-            makeBrowsePath(this.fileNodeId, "/Close"),
-            makeBrowsePath(this.fileNodeId, "/SetPosition"),
-            makeBrowsePath(this.fileNodeId, "/GetPosition"),
-            makeBrowsePath(this.fileNodeId, "/Write"),
-            makeBrowsePath(this.fileNodeId, "/Read"),
-            makeBrowsePath(this.fileNodeId, "/OpenCount"),
-            makeBrowsePath(this.fileNodeId, "/Size")
+            makeBrowsePath(this.nodeId, "/Open"),
+            makeBrowsePath(this.nodeId, "/Close"),
+            makeBrowsePath(this.nodeId, "/SetPosition"),
+            makeBrowsePath(this.nodeId, "/GetPosition"),
+            makeBrowsePath(this.nodeId, "/Write"),
+            makeBrowsePath(this.nodeId, "/Read"),
+            makeBrowsePath(this.nodeId, "/OpenCount"),
+            makeBrowsePath(this.nodeId, "/Size")
         ];
 
         const results = await this.session.translateBrowsePath(browsePaths);
@@ -306,9 +315,6 @@ export class ClientFile implements IClientFile {
         }
     }
 }
-
-
-
 
 /**
  * 5.2.10 UserRolePermissions
