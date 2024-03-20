@@ -108,7 +108,7 @@ export function _touchValue(property: UAVariableImpl, now: PreciseClock): void {
     property.$dataValue.sourcePicoseconds = now.picoseconds;
     property.$dataValue.serverTimestamp = now.timestamp;
     property.$dataValue.serverPicoseconds = now.picoseconds;
-    property.$dataValue.statusCode = StatusCodes.Good;
+    // don't change statusCode ! property.$dataValue.statusCode = StatusCodes.Good;
     if (property.listenerCount("value_changed") > 0) {
         property.emit("value_changed", property.$dataValue.clone());
     }

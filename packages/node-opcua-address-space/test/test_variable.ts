@@ -1291,6 +1291,7 @@ describe("testing UAVariable ", () => {
             dataType: "Double",
             nodeId: "ns=1;s=BadVar2",
             organizedBy: rootFolder,
+            minimumSamplingInterval: 100,
             value: {
                 refreshFunc(callback: CallbackT<DataValue>) {
                     throw new Error("Something goes wrong here! (intentional error for testing purpose)");
@@ -1442,7 +1443,92 @@ describe("testing UAVariable ", () => {
         const statusCode1 = await temperatureVar.writeAttribute(context, writeValue);
         statusCode1.should.eql(StatusCodes.Good);
     });
+
+    it("ExtensionObject Variable with getter and Bad StatusCode (1)", async () => {
+        const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
+        const uaExtObjVariable = namespace.addVariable({
+            browseName: "MyExtensionObjectVariable",
+
+            organizedBy: objectsFolder,
+            dataType: DataType.ExtensionObject,
+            minimumSamplingInterval: 1000,
+
+            value: {
+                // Sync getter !
+                timestamped_get: () => {
+                    return new DataValue({
+                        statusCode: StatusCodes.BadNoData,
+                        value: new Variant({ dataType: DataType.ExtensionObject, value: null })
+                    });
+                }
+            }
+        });
+
+        const dataValue = uaExtObjVariable.readValue();
+        const dataValue2 = await new Promise<DataValue>((resolve) => {
+            uaExtObjVariable.readValueAsync(context, (err, dataValue) => {
+                resolve(dataValue!);
+            });
+        });
+
+        dataValue.statusCode.should.eql(StatusCodes.BadNoData);
+        dataValue2.statusCode.should.eql(StatusCodes.BadNoData);
+    });
+    it("ExtensionObject Variable with getter and Bad StatusCode (2)", async () => {
+        const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
+        const uaExtObjVariable = namespace.addVariable({
+            browseName: "MyExtensionObjectVariable",
+
+            organizedBy: objectsFolder,
+            dataType: DataType.ExtensionObject,
+            minimumSamplingInterval: 1000,
+
+            value: {
+                timestamped_get: async () => {
+                    // async getter
+                    return new DataValue({
+                        statusCode: StatusCodes.BadNoData,
+                        value: new Variant({ dataType: DataType.ExtensionObject, value: null })
+                    });
+                }
+            }
+        });
+
+        const dataValue2 = await new Promise<DataValue>((resolve) => {
+            uaExtObjVariable.readValueAsync(context, (err, dataValue) => {
+                resolve(dataValue!);
+            });
+        });
+
+        dataValue2.statusCode.should.eql(StatusCodes.BadNoData);
+
+        // note : we cannot use sync readValue because the getter is async
+        //xx const dataValue = uaExtObjVariable.readValue();
+        //xx dataValue.statusCode.should.eql(StatusCodes.BadNoData);
+    });
+    it("ExtensionObject Variable with getter and Bad StatusCode (3)", async () => {
+        const objectsFolder = addressSpace.findNode("ObjectsFolder")!;
+        const uaExtObjVariable = namespace.addVariable({
+            browseName: "MyExtensionObjectVariable",
+
+            organizedBy: objectsFolder,
+            dataType: DataType.ExtensionObject,
+            minimumSamplingInterval: 1000,
+            value: {
+                timestamped_get: async () => {
+                    return new DataValue({
+                        statusCode: StatusCodes.BadNoData
+                        // NO VALUE
+                    });
+                }
+            }
+        });
+
+        const dataValue2 = await new Promise<DataValue>((resolve) => {
+            uaExtObjVariable.readValueAsync(context, (err, dataValue) => {
+                resolve(dataValue!);
+            });
+        });
+        dataValue2.statusCode.should.eql(StatusCodes.BadNoData);
+    });
 });
-function geCurrentClock(): import("node-opcua-date-time").PreciseClock {
-    throw new Error("Function not implemented.");
-}

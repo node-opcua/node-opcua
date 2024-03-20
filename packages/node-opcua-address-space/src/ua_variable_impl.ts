@@ -403,14 +403,30 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         if (this._timestamped_get_func) {
             if (this._timestamped_get_func.length === 0) {
                 const dataValueOrPromise = (this._timestamped_get_func as VariableDataValueGetterSync)();
-                if (!Object.prototype.hasOwnProperty.call(dataValueOrPromise, "then")) {
+                if (!Object.prototype.hasOwnProperty.call(dataValueOrPromise.constructor.prototype, "then")) {
                     if (dataValueOrPromise !== this.$dataValue) {
+                        // we may have a problem here if we use a getter that returns a dataValue that is a ExtensionObject
+                        if (dataValueOrPromise.value?.dataType === DataType.ExtensionObject) {
+                            // eslint-disable-next-line max-depth
+                            if (this.$extensionObject || this.$$extensionObjectArray) {
+                                // we have an extension object already bound to this node
+                                // the client is asking us to replace the object entirely by a new one
+                                // const ext = dataValue.value.value;
+                                this._internal_set_dataValue(dataValueOrPromise);
+                                return dataValueOrPromise;
+                            }
+                        }
+
                         // TO DO : is this necessary ? this may interfere with current use of $dataValue
                         this.$dataValue = dataValueOrPromise as DataValue;
-                        this.verifyVariantCompatibility(this.$dataValue.value);
+                        if (this.$dataValue.statusCode.isGoodish()) {
+                            this.verifyVariantCompatibility(this.$dataValue.value);
+                        } 
                     }
                 } else {
-                    errorLog("Unsupported: _timestamped_get_func returns a Promise !");
+                    errorLog(
+                        "[NODE-OPCUA-E28] Unsupported: _timestamped_get_func returns a Promise ! , when the uaVariable has an async getter. Fix your application code."
+                    );
                 }
             }
         }
@@ -2099,7 +2115,7 @@ function _Variable_bind_with_simple_get(this: UAVariableImpl, options: GetterOpt
                 !this.$dataValue.statusCode.isGoodish() ||
                 !sameVariant(this.$dataValue.value, value as Variant)
             ) {
-                // rebuilding artificially timestamps with current clock as they are not provided 
+                // rebuilding artificially timestamps with current clock as they are not provided
                 // by the underlying getter function
                 const { timestamp: sourceTimestamp, picoseconds: sourcePicoseconds } = getCurrentClock();
                 const serverTimestamp = sourceTimestamp;
