@@ -281,7 +281,9 @@ function __bindVariable(self: ServerEngine, nodeId: NodeIdLike, options?: BindVa
 // After Server start-up the generation of subscriptionIds should start from a random IntegerId or continue from
 // the point before the restart.
 let next_subscriptionId = Math.ceil(Math.random() * 1000000);
-
+export function setNextSubscriptionId(n: number) {
+    next_subscriptionId = Math.max(n, 1);
+}
 function _get_next_subscriptionId() {
     debugLog(" next_subscriptionId = ", next_subscriptionId);
     return next_subscriptionId++;
@@ -1646,9 +1648,9 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         }
 
         subscription.$session = session;
-    
+
         await ServerSidePublishEngine.transferSubscription(subscription, session.publishEngine, sendInitialValues);
-    
+
         session._exposeSubscriptionDiagnostics(subscription);
 
         assert((subscription.publishEngine as any) === session.publishEngine);
