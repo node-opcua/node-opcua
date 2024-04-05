@@ -3,7 +3,6 @@
  */
 // tslint:disable:unified-signatures
 import { EventEmitter } from "events";
-import async from "async";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -13,14 +12,11 @@ import { resolveNodeId } from "node-opcua-nodeid";
 
 import { ReadValueIdOptions, TimestampsToReturn } from "node-opcua-service-read";
 import {
-    CreateMonitoredItemsRequest,
-    CreateMonitoredItemsResponse,
     CreateSubscriptionRequest,
     CreateSubscriptionResponse,
     DataChangeNotification,
     DeleteMonitoredItemsResponse,
     DeleteSubscriptionsResponse,
-    MonitoredItemCreateRequestOptions,
     MonitoringParametersOptions,
     NotificationMessage,
     StatusChangeNotification,
@@ -37,9 +33,7 @@ import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 import { isNullOrUndefined } from "node-opcua-utils";
 import { promoteOpaqueStructureInNotificationData } from "node-opcua-client-dynamic-extension-object";
-import { createMonitoredItemsLimit, IBasicSessionReadAsync, readOperationLimits } from "node-opcua-pseudo-session";
 
-import { IBasicSessionWithSubscription } from "node-opcua-pseudo-session";
 import { ClientMonitoredItemBase } from "../client_monitored_item_base";
 import { ClientMonitoredItemGroup } from "../client_monitored_item_group";
 import { ClientSession, MonitoredItemData, SubscriptionId } from "../client_session";
@@ -59,13 +53,13 @@ import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSessionImpl } from "./client_session_impl";
 import { detectLongOperation } from "./performance";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
-const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog("CLIENT_SUBSCRIPTION");
+const doDebug = checkDebugFlag("CLIENT_SUBSCRIPTION");
+const warningLog = make_warningLog("CLIENT_SUBSCRIPTION");
 
-const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
-const TERMINATED_SUBSCRIPTION_ID = 0xc0cac01b;
-const TERMINATING_SUBSCRIPTION_ID = 0xc0cac01c;
+export const PENDING_SUBSCRIPTION_ID = 0xc0cac01a;
+export const TERMINATED_SUBSCRIPTION_ID = 0xc0cac01b;
+export const TERMINATING_SUBSCRIPTION_ID = 0xc0cac01c;
 
 const minimumMaxKeepAliveCount = 3;
 
@@ -122,20 +116,6 @@ function displayKeepAliveWarning(sessionTimeout: number, maxKeepAliveCount: numb
     return false;
 }
 
-function createMonitoredItemsAndRespectOperationalLimits(
-    session: IBasicSessionReadAsync & IBasicSessionWithSubscription,
-    createMonitorItemsRequest: CreateMonitoredItemsRequest,
-    callback: (err: Error | null, response?: CreateMonitoredItemsResponse) => void
-) {
-    readOperationLimits(session)
-        .then((operationalLimits) => {
-            createMonitoredItemsLimit(operationalLimits.maxMonitoredItemsPerCall || 0, session, createMonitorItemsRequest)
-                .then((createMonitoredItemResponse) => callback(null, createMonitoredItemResponse))
-                .catch(callback);
-        })
-        .catch(callback);
-}
-
 export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscription {
     /**
      * the associated session
@@ -171,9 +151,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public publishEngine: ClientSidePublishEngine;
 
     public lastSequenceNumber: number;
-    private lastRequestSentTime: Date;
     private _nextClientHandle = 0;
-    private hasTimedOut: boolean;
+    public hasTimedOut: boolean;
 
     constructor(session: ClientSession, options: ClientSubscriptionOptions) {
         super();
@@ -219,15 +198,13 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.lifetimeCount = options.requestedLifetimeCount;
         this.maxKeepAliveCount = options.requestedMaxKeepAliveCount;
         this.maxNotificationsPerPublish = options.maxNotificationsPerPublish || 0;
-        this.publishingEnabled = options.publishingEnabled;
+        this.publishingEnabled = options.publishingEnabled === undefined ? true : options.publishingEnabled;
         this.priority = options.priority;
 
         this.subscriptionId = PENDING_SUBSCRIPTION_ID;
 
         this._nextClientHandle = 0;
         this.monitoredItems = {};
-
-        this.lastRequestSentTime = new Date(1, 1, 1970);
 
         /**
          * set to True when the server has notified us that this subscription has timed out
@@ -238,7 +215,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.hasTimedOut = false;
 
         setImmediate(() => {
-            this.__create_subscription((err?: Error) => {
+            __create_subscription(this, (err?: Error) => {
                 if (!err) {
                     setImmediate(() => {
                         /**
@@ -536,103 +513,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         this.session.getMonitoredItems(this.subscriptionId, args[0]);
     }
 
-    /**
-     *  utility function to recreate new subscription
-     *  @method recreateSubscriptionAndMonitoredItem
-     */
-    public recreateSubscriptionAndMonitoredItem(callback: ErrorCallback): void {
-        debugLog("ClientSubscription#recreateSubscriptionAndMonitoredItem");
-
-        if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID) {
-            debugLog("Subscription is not in a valid state");
-            return callback();
-        }
-
-        const oldMonitoredItems = this.monitoredItems;
-
-        this.publishEngine.unregisterSubscription(this.subscriptionId);
-
-        async.series(
-            [
-                (innerCallback: ErrorCallback) => {
-                    this.__create_subscription(innerCallback);
-                },
-                (innerCallback: ErrorCallback) => {
-                    const test = this.publishEngine.getSubscription(this.subscriptionId);
-
-                    debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
-                    // re-create monitored items
-                    const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
-
-                    for (const monitoredItem of Object.values(oldMonitoredItems)) {
-                        assert(monitoredItem.monitoringParameters.clientHandle > 0);
-                        itemsToCreate.push({
-                            itemToMonitor: monitoredItem.itemToMonitor,
-                            monitoringMode: monitoredItem.monitoringMode,
-                            requestedParameters: monitoredItem.monitoringParameters
-                        });
-                    }
-
-                    const createMonitorItemsRequest = new CreateMonitoredItemsRequest({
-                        itemsToCreate,
-                        subscriptionId: this.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Both // this.timestampsToReturn,
-                    });
-
-                    const session = this.session;
-                    // istanbul ignore next
-                    if (!session) {
-                        return innerCallback(new Error("no session"));
-                    }
-
-                    debugLog("Recreating ", itemsToCreate.length, " monitored items");
-
-                    createMonitoredItemsAndRespectOperationalLimits(
-                        session,
-                        createMonitorItemsRequest,
-                        (err: Error | null, response?: CreateMonitoredItemsResponse) => {
-                            if (err) {
-                                debugLog("Recreating monitored item has failed with ", err.message);
-                                return innerCallback(err);
-                            }
-                            /* istanbul ignore next */
-                            if (!response) {
-                                return innerCallback(new Error("Internal Error"));
-                            }
-                            const monitoredItemResults = response.results || [];
-
-                            monitoredItemResults.forEach((monitoredItemResult, index) => {
-                                const itemToCreate = itemsToCreate[index];
-                                /* istanbul ignore next */
-                                if (!itemToCreate || !itemToCreate.requestedParameters) {
-                                    throw new Error("Internal Error");
-                                }
-                                const clientHandle = itemToCreate.requestedParameters.clientHandle;
-                                /* istanbul ignore next */
-                                if (!clientHandle) {
-                                    throw new Error("Internal Error");
-                                }
-                                const monitoredItem = this.monitoredItems[clientHandle] as ClientMonitoredItemImpl;
-                                if (monitoredItem) {
-                                    monitoredItem._applyResult(monitoredItemResult);
-                                } else {
-                                    warningLog("cannot find monitored item for clientHandle !:", clientHandle);
-                                }
-                            });
-                            innerCallback();
-                        }
-                    );
-                }
-            ],
-            (err) => {
-                if (err) {
-                    warningLog(err.message);
-                }
-                callback(err!);
-            }
-        );
-    }
-
     public toString(): string {
         let str = "";
         str += "subscriptionId      : " + this.subscriptionId + "\n";
@@ -642,9 +522,12 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         str += "hasTimedOut         : " + this.hasTimedOut + "\n";
 
         const timeToLive = this.lifetimeCount * this.publishingInterval;
-        str += "timeToLive          : " + timeToLive + "\n";
-        str += "lastRequestSentTime : " + this.lastRequestSentTime.toString() + "\n";
-        const duration = Date.now() - this.lastRequestSentTime.getTime();
+        str += "(maxKeepAliveCount*publishingInterval: " + this.publishingInterval * this.maxKeepAliveCount + " ms)\n";
+        str += "(maxLifetimeCount*publishingInterval: " + timeToLive + " ms)\n";
+
+        const lastRequestSentTime = this.publishEngine.lastRequestSentTime;
+        str += "lastRequestSentTime : " + lastRequestSentTime.toString() + "\n";
+        const duration = Date.now() - lastRequestSentTime.getTime();
         const extra =
             duration - timeToLive > 0
                 ? chalk.red(" expired since " + (duration - timeToLive) / 1000 + " seconds")
@@ -654,7 +537,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         str += "has expired         : " + (duration > timeToLive) + "\n";
 
         str += "(session timeout    : " + this.session.timeout + " ms)\n";
-        str += "(maxKeepAliveCount*publishingInterval: " + this.publishingInterval * this.session.timeout + " ms)\n";
 
         return str;
     }
@@ -665,7 +547,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public evaluateRemainingLifetime(): number {
         const now = Date.now();
         const timeout = this.publishingInterval * this.lifetimeCount;
-        const expiryTime = this.lastRequestSentTime.getTime() + timeout;
+        const lastRequestSentTime = this.publishEngine.lastRequestSentTime;
+        const expiryTime = lastRequestSentTime.getTime() + timeout;
         return Math.max(0, expiryTime - now);
     }
 
@@ -708,75 +591,6 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         };
 
         setImmediate(waitForSubscriptionAndMonitor);
-    }
-
-    private __create_subscription(callback: ErrorCallback) {
-        assert(typeof callback === "function");
-
-        // istanbul ignore next
-        if (!this.hasSession) {
-            return callback(new Error("No Session"));
-        }
-        const session = this.session;
-
-        debugLog(chalk.yellow.bold("ClientSubscription created "));
-
-        const request = new CreateSubscriptionRequest({
-            maxNotificationsPerPublish: this.maxNotificationsPerPublish,
-            priority: this.priority,
-            publishingEnabled: this.publishingEnabled,
-            requestedLifetimeCount: this.lifetimeCount,
-            requestedMaxKeepAliveCount: this.maxKeepAliveCount,
-            requestedPublishingInterval: this.publishingInterval
-        });
-
-        session.createSubscription(request, (err: Error | null, response?: CreateSubscriptionResponse) => {
-            if (err) {
-                /* istanbul ignore next */
-                this.emit("internal_error", err);
-                if (callback) {
-                    return callback(err);
-                }
-                return;
-            }
-
-            /* istanbul ignore next */
-            if (!response) {
-                return callback(new Error("internal error"));
-            }
-
-            if (!this.hasSession) {
-                return callback(new Error("createSubscription has failed = > no session"));
-            }
-            assert(this.hasSession);
-
-            this.subscriptionId = response.subscriptionId;
-            this.publishingInterval = response.revisedPublishingInterval;
-            this.lifetimeCount = response.revisedLifetimeCount;
-            this.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
-
-            this.timeoutHint = Math.min((this.maxKeepAliveCount + 10) * this.publishingInterval * 2, 0x7ffff);
-
-            displayKeepAliveWarning(this.session.timeout, this.maxKeepAliveCount, this.publishingInterval);
-            ClientSubscription.ignoreNextWarning = false;
-
-            // istanbul ignore next
-            if (doDebug) {
-                debugLog(chalk.yellow.bold("registering callback"));
-                debugLog(chalk.yellow.bold("publishingInterval               "), this.publishingInterval);
-                debugLog(chalk.yellow.bold("lifetimeCount                    "), this.lifetimeCount);
-                debugLog(chalk.yellow.bold("maxKeepAliveCount                "), this.maxKeepAliveCount);
-                debugLog(chalk.yellow.bold("publish request timeout hint =   "), this.timeoutHint);
-                debugLog(chalk.yellow.bold("hasTimedOut                      "), this.hasTimedOut);
-                debugLog(chalk.yellow.bold("timeoutHint for publish request  "), this.timeoutHint);
-            }
-
-            this.publishEngine.registerSubscription(this);
-
-            if (callback) {
-                callback();
-            }
-        });
     }
 
     private __on_publish_response_DataChangeNotification(notification: DataChangeNotification) {
@@ -939,7 +753,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         warningLog(
                             `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${
                                 s(this).$_slowNotifCount
-                            } times]\n         please ensure that your monitoreItem event handler is not blocking the event loop.`
+                            } times]\n         please ensure that your monitoredItem event handler is not blocking the event loop.`
                         );
                     }
                 );
@@ -1057,12 +871,76 @@ ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscripti
 ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubscriptionImpl.prototype.monitorItems);
 ClientSubscriptionImpl.prototype.setTriggering = thenify.withCallback(ClientSubscriptionImpl.prototype.setTriggering);
 ClientSubscriptionImpl.prototype.modify = thenify.withCallback(ClientSubscriptionImpl.prototype.modify);
-ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem = thenify.withCallback(
-    ClientSubscriptionImpl.prototype.recreateSubscriptionAndMonitoredItem
-);
 ClientSubscriptionImpl.prototype.terminate = thenify.withCallback(ClientSubscriptionImpl.prototype.terminate);
 ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(ClientSubscriptionImpl.prototype.getMonitoredItems);
 
 ClientSubscription.create = (clientSession: ClientSession, options: ClientSubscriptionOptions) => {
     return new ClientSubscriptionImpl(clientSession, options);
 };
+
+export function __create_subscription(subscription: ClientSubscriptionImpl, callback: ErrorCallback) {
+    // istanbul ignore next
+    if (!subscription.hasSession) {
+        return callback(new Error("__create_subscription: subscription has no Session"));
+    }
+    const session = subscription.session;
+
+    debugLog(chalk.yellow.bold("ClientSubscription created "));
+
+    const request = new CreateSubscriptionRequest({
+        maxNotificationsPerPublish: subscription.maxNotificationsPerPublish,
+        priority: subscription.priority,
+        publishingEnabled: subscription.publishingEnabled,
+        requestedLifetimeCount: subscription.lifetimeCount,
+        requestedMaxKeepAliveCount: subscription.maxKeepAliveCount,
+        requestedPublishingInterval: subscription.publishingInterval
+    });
+
+    session.createSubscription(request, (err: Error | null, response?: CreateSubscriptionResponse) => {
+        if (err) {
+            /* istanbul ignore next */
+            subscription.emit("internal_error", err);
+            if (callback) {
+                return callback(err);
+            }
+            return;
+        }
+
+        /* istanbul ignore next */
+        if (!response) {
+            return callback(new Error("internal error"));
+        }
+
+        if (!subscription.hasSession) {
+            return callback(new Error("createSubscription has failed = > no session"));
+        }
+        assert(subscription.hasSession);
+
+        subscription.subscriptionId = response.subscriptionId;
+        subscription.publishingInterval = response.revisedPublishingInterval;
+        subscription.lifetimeCount = response.revisedLifetimeCount;
+        subscription.maxKeepAliveCount = response.revisedMaxKeepAliveCount;
+
+        subscription.timeoutHint = Math.min((subscription.maxKeepAliveCount + 10) * subscription.publishingInterval * 2, 0x7ffff);
+
+        displayKeepAliveWarning(subscription.session.timeout, subscription.maxKeepAliveCount, subscription.publishingInterval);
+        ClientSubscription.ignoreNextWarning = false;
+
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog(chalk.yellow.bold("registering callback"));
+            debugLog(chalk.yellow.bold("publishingInterval               "), subscription.publishingInterval);
+            debugLog(chalk.yellow.bold("lifetimeCount                    "), subscription.lifetimeCount);
+            debugLog(chalk.yellow.bold("maxKeepAliveCount                "), subscription.maxKeepAliveCount);
+            debugLog(chalk.yellow.bold("publish request timeout hint =   "), subscription.timeoutHint);
+            debugLog(chalk.yellow.bold("hasTimedOut                      "), subscription.hasTimedOut);
+            debugLog(chalk.yellow.bold("timeoutHint for publish request  "), subscription.timeoutHint);
+        }
+
+        subscription.publishEngine.registerSubscription(subscription);
+
+        if (callback) {
+            callback();
+        }
+    });
+}

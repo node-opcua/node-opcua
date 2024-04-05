@@ -1,6 +1,9 @@
-/* Copyright Sterfive 2021 */
+/* Copyright Sterfive 2021-2024 */
+process.env.DEBUG = "RECONNECTION";
+process.env.NODEOPCUADEBUG = "CLIENT{TRACE}SERVER{TRACE}";
+
 /**
- * licence: Copyright Sterfive 2021
+ * licence: Copyright Sterfive 2021-2024
  *
  *
  * Workbench for testing reconnection
@@ -29,20 +32,35 @@
     w      : simulate a very long network break 3 minutes
     r      : toggle random crash
  */
-process.env.NODEOPCUADEBUG = "CLIENT{TRACE}SERVER{TRACE}";
+const os = require("os");
+const path = require("path");
 const readline = require("readline");
 const chalk = require("chalk");
-const { timestamp } = require("node-opcua");
+const { timestamp, setNextSubscriptionId, OPCUACertificateManager, MessageSecurityMode, SecurityPolicy } = require("node-opcua");
 
 const { OPCUAServer, OPCUAClient, AttributeIds, TimestampsToReturn, ClientTCP_transport } = require("node-opcua");
-const { cli } = require("winston/lib/winston/config");
+
+const port = 26551;
 
 async function startServer() {
+    setNextSubscriptionId(1);
+
+    const rootFolder = path.join(os.tmpdir(), "node-opcua-server");
+
+    const serverCertificateManager = new OPCUACertificateManager({
+        automaticallyAcceptUnknownCertificate: true,
+        rootFolder,
+        keySize: 2048
+    });
+    await serverCertificateManager.initialize();
+
     const server = new OPCUAServer({
+        port,
         defaultSecureTokenLifetime: 20000,
         serverCapabilities: {
-            maxSessions: 1,
-        }
+            maxSessions: 2
+        },
+        serverCertificateManager
         // use default timeout: 100000,
     });
 
@@ -86,6 +104,7 @@ async function startServer() {
             console.log("     session.nodeId                          ", session.nodeId.toString(), session.channelId);
             console.log("     subscription.subscriptionId             ", subscription.subscriptionId);
             console.log("     subscription.publishingInterval         ", subscription.publishingInterval);
+            console.log("     subscription.maxLifetimeCount           ", subscription.maxLifetimeCount);
             console.log("     subscription.maxNotificationsPerPublish ", subscription.maxNotificationsPerPublish);
             console.log("     subscription.priority                   ", subscription.priority);
             console.log("     subscription.publishingEnabled          ", subscription.publishingEnabled);
@@ -95,6 +114,7 @@ async function startServer() {
             console.log("     session.nodeId                          ", session.nodeId.toString(), session.channelId);
             console.log("     subscription.subscriptionId             ", subscription.subscriptionId);
             console.log("     subscription.publishingInterval         ", subscription.publishingInterval);
+            console.log("     subscription.maxLifetimeCount           ", subscription.maxLifetimeCount);
             console.log("     subscription.maxNotificationsPerPublish ", subscription.maxNotificationsPerPublish);
             console.log("     subscription.priority                   ", subscription.priority);
             console.log("     subscription.publishingEnabled          ", subscription.publishingEnabled);
@@ -120,8 +140,49 @@ async function startServer() {
         console.log("     reason     ", reason);
     });
 
-    server.start();
+    await server.initialize();
+    console.log(server.serverCertificateManager.rootDir);
 
+    if (!server.engine) {
+        console.log("server.engine is null");
+        return;
+    }
+    // add a variable with a changing value
+    const addressSpace = server.engine.addressSpace;
+    const namespace = addressSpace.getOwnNamespace();
+    const uaVariable = namespace.addVariable({
+        browseName: "Temperature",
+        nodeId: "s=Temperature",
+        dataType: "Double",
+        componentOf: addressSpace.rootFolder.server
+    });
+
+    let counter = 0;
+    let timerId = setInterval(() => {
+        uaVariable.setValueFromSource({ dataType: "Double", value: counter++ });
+    }, 500);
+
+    function addBatchVariables(n) {
+        for (let i = 0; i < n; i++) {
+            namespace.addVariable({
+                browseName: `Value${i}`,
+                nodeId: `s=Value${i}`,
+                dataType: "Double",
+                componentOf: addressSpace.rootFolder.server,
+                value: {
+                    dataType: "Double",
+                    value: i
+                }
+            });
+        }
+    }
+    addBatchVariables(1000);
+
+    addressSpace.registerShutdownTask(() => {
+        clearInterval(timerId);
+    });
+    await server.start();
+    console.log("server starting ", server.getEndpointUrl());
     return server;
 }
 
@@ -174,36 +235,39 @@ function simulateConnectionBreak(client, socketError, breakDuration) {
     clientSocket.destroy();
     clientSocket.emit("error", new Error(socketError));
 }
-let ramdonCrashTimer = null;
+let randomCrashTimer = null;
 function stopRandomCrash() {
-    if (ramdonCrashTimer) {
-        clearTimeout(ramdonCrashTimer);
-        ramdonCrashTimer = null;
+    if (randomCrashTimer) {
+        clearTimeout(randomCrashTimer);
+        randomCrashTimer = null;
     }
 }
 function toggleRandomCrash(client) {
     function crash(minimumDelay) {
         console.log(t(), "   Connection crash ....");
-        ramdonCrashTimer = setTimeout(() => {
-            const crashType = Math.floor(Math.random() * 100);
-            let breakDuration = 0;
-            if (crashType >= 0 && crashType < 80) {
-                // outage from [0, 10] seconds
-                breakDuration = Math.random() * 10000;
-            } else if (crashType >= 80 && crashType < 99) {
-                // outage from [10, 180] seconds
-                breakDuration = 10 * 1000 + Math.random() * 170 * 1000;
-            } else if (crashType >= 20 && crashType < 30) {
-                breakDuration = 18000 + Math.random() * 180 * 1000;
-                breakDuration = Math.random() * 1000;
-            }
-            console.log(" crashType = ", crashType, breakDuration);
-            ramdonCrashTimer = null;
-            simulateConnectionBreak(client, "ECONNRESET", breakDuration);
-            crash(breakDuration);
-        }, minimumDelay + Math.ceil(Math.random() * 10000));
+        randomCrashTimer = setTimeout(
+            () => {
+                const crashType = Math.floor(Math.random() * 100);
+                let breakDuration = 0;
+                if (crashType >= 0 && crashType < 80) {
+                    // outage from [0, 10] seconds
+                    breakDuration = Math.random() * 10000;
+                } else if (crashType >= 80 && crashType < 99) {
+                    // outage from [10, 180] seconds
+                    breakDuration = 10 * 1000 + Math.random() * 170 * 1000;
+                } else if (crashType >= 20 && crashType < 30) {
+                    breakDuration = 18000 + Math.random() * 180 * 1000;
+                    breakDuration = Math.random() * 1000;
+                }
+                console.log(" crashType = ", crashType, breakDuration);
+                randomCrashTimer = null;
+                simulateConnectionBreak(client, "ECONNRESET", breakDuration);
+                crash(breakDuration);
+            },
+            minimumDelay + Math.ceil(Math.random() * 10000)
+        );
     }
-    if (!ramdonCrashTimer) {
+    if (!randomCrashTimer) {
         crash();
     } else {
         stopRandomCrash();
@@ -213,12 +277,22 @@ function toggleRandomCrash(client) {
 const t = () => chalk.green(timestamp()) + " $";
 
 async function createClient() {
+    const endpointUrl = `opc.tcp://127.0.0.1:${port}`;
+
     let client = OPCUAClient.create({
-        defaultSecureTokenLifetime: 15 * 1000, // 15 seconds
-        endpointMustExist: false
+        defaultSecureTokenLifetime: 45 * 1000, // 45 seconds
+        endpointMustExist: false,
+        connectionStrategy: {
+            maxDelay: 5000,
+            maxRetry: -1,
+            initialDelay: 500,
+            randomisationFactor: 0.1
+        },
+        securityMode: MessageSecurityMode.SignAndEncrypt,
+        securityPolicy: SecurityPolicy.Basic256Sha256
     });
     client.on("backoff", (retry, delay) => {
-        console.log(t(), "backoff", retry, delay);
+        console.log(t(), "backoff", retry, delay, endpointUrl);
     });
     client.on("connected", () => console.log("client.on('connected')"));
     client.on("after_reconnection", () => {
@@ -228,16 +302,25 @@ async function createClient() {
         console.log(t(), "client.on('connection_failed')");
     });
     client.on("connection_lost", (errMessage) => {
-        console.log(t(), "client.on('connection_lost')", errMessage, 'isReconnecting', client.isReconnecting);
+        console.log(t(), "client.on('connection_lost')", errMessage, "isReconnecting", client.isReconnecting);
     });
     client.on("connection_reestablished", () => {
-        console.log(t(), "client.on('connection_reestablished')", 'isReconnecting', client.isReconnecting);
+        console.log(t(), "client.on('connection_reestablished')", "isReconnecting", client.isReconnecting);
     });
     client.on("reconnection_attempt_has_failed", () => {
-        console.log(t(), "client.on('reconnection_attempt_has_failed')", 'isReconnecting', client.isReconnecting);
+        console.log(t(), "client.on('reconnection_attempt_has_failed')", "isReconnecting", client.isReconnecting);
     });
 
-    await client.connect("opc.tcp://localhost:26543");
+    client.on("startingDelayBeforeReconnection", (duration) => {
+        console.log(t(), "client.on('startingDelayBeforeReconnection')", duration);
+    });
+    client.on("repairConnectionStarted", () => {
+        console.log(t(), "client.on('repairConnectionStarted')");
+    });
+
+    await client.connect(endpointUrl);
+
+    console.log(client.toString());
 
     const rl = readline.createInterface({
         input: process.stdin,
@@ -254,10 +337,13 @@ async function createClient() {
         CTRL+C : gracefully shutdown the client
         CTRL+Z : abruptly shutdown the client
         b      : simulate a network break
-        l      : simulate a long network break      10 seconds
+        l      : simulate a long network break      20 seconds
+        m      : simulate a medium break            10 seconds
         w      : simulate a very long network break 3 minutes
         r      : toggle random crash ( 1 or more crash per second )
-
+        z      : client abrupt shutdown (not closing session before stopping)
+        c      ; client graceful shutdown
+        i      : display active channel info
         press a key to continue:
 
     `);
@@ -272,6 +358,18 @@ async function createClient() {
             await disconnect();
             console.log(" Abrupt shutting down");
             process.exit(1);
+        } else if (key.name === "i") {
+            console.log("------------------------------------------- CHANNEL ");
+            console.log(client._secureChannel.toString());
+            console.log("------------------------------------------- SUBSCRIPTION ");
+            console.log(subscription.toString());
+            console.log("monitoredItem", monitoredItem.monitoredItemId);
+            console.log("channelId             ", session.channelId());
+            console.log("subscriptionId        ", subscription.subscriptionId);
+            console.log("session timeout       ", session.timeout / 1000, "seconds");
+            //  console.log(subscription);
+            const duration = subscription.publishingInterval * subscription.lifetimeCount;
+            console.log("subscription duration ", duration / 1000, "seconds");
         } else if (key.ctrl && key.name === "c") {
             console.log(" Gracefully shutting down");
             process.stdin.setRawMode(false);
@@ -284,11 +382,14 @@ async function createClient() {
             console.log(" Simulating break");
             simulateConnectionBreak(client, "ECONNRESET", 0);
         } else if (key.name === "w") {
-            console.log(" Simulating  a very long break");
+            console.log(" Simulating  a very long break 3 minutes");
             simulateConnectionBreak(client, "ECONNRESET", 180 * 1000);
         } else if (key.name === "l") {
-            console.log(" Simulating long break");
-            simulateConnectionBreak(client, "ECONNRESET", 10 * 10000);
+            console.log(" Simulating long break (30 second)");
+            simulateConnectionBreak(client, "ECONNRESET", 30 * 1000);
+        } else if (key.name === "m") {
+            console.log(" Simulating long break (10 second)");
+            simulateConnectionBreak(client, "ECONNRESET", 10 * 1000);
         } else {
             console.log(`You pressed the "${str}" key`);
             console.log();
@@ -299,6 +400,7 @@ async function createClient() {
     });
     console.log("Press any key...");
 
+    let timer;
     let session = client.createSession2 ? await client.createSession2() : await client.createSession();
     session.on("keepalive", (lastKnownServerState) => {
         console.log(t(), "session.on('keepalive')", lastKnownServerState);
@@ -311,9 +413,11 @@ async function createClient() {
     });
     session.on("session_restored", () => {
         console.log(t(), "session.on('session restored'), isReconnecting", session.isReconnecting);
-        setTimeout(()=>{
-            console.log("   session. isReconnecting", session.isReconnecting)
-        }, 1)
+        if (!timer) {
+            timer = setTimeout(() => {
+                console.log("   session. isReconnecting ? = ", session.isReconnecting);
+            }, 100);
+        }
     });
 
     const subscription = await session.createSubscription2({
@@ -328,14 +432,14 @@ async function createClient() {
         console.log("subscription terminated");
     });
 
-    const nodeId = "ns=0;i=2258";
+    const nodeId = "ns=1;s=Temperature";
     const monitoredItem = await subscription.monitor(
         {
             attributeId: AttributeIds.Value,
             nodeId
         },
         {
-            samplingInterval: 1000,
+            samplingInterval: 250,
             discardOldest: true,
             queueSize: 1000
         },
@@ -343,12 +447,42 @@ async function createClient() {
     );
 
     monitoredItem.on("changed", (dataValue) => {
-        const str = dataValue.value.value.toString();
-        const top = "+" + "".padEnd(str.length + 6, "-") + "+";
-        console.log(t(), top);
-        console.log("              ", "|   ", chalk.green(str) + "  |");
-        console.log("              ", top);
+        const str = dataValue.value ? dataValue.value.value?.toString() : "null";
+        const verboseNotification = false;
+        if (verboseNotification) {
+            const top = "+" + "".padEnd(str.length + 6, "-") + "+";
+            console.log(t(), top);
+            console.log("              ", "|   ", chalk.green(str) + "  |");
+            console.log("              ", top);
+        } else {
+            console.log(t(), "Value = ", str + " " + dataValue.sourceTimestamp?.toISOString());
+        }
     });
+
+    async function createMonitoredItemGroup() {
+        const itemsToMonitor1 = [];
+        for (let i = 0; i < 1000; i++) {
+            itemsToMonitor1.push({ nodeId: "ns=1;s=Value" + i, attributeId: AttributeIds.Value });
+        }
+
+        const itemsToMonitor = [...itemsToMonitor1, ...itemsToMonitor1, ...itemsToMonitor1, ...itemsToMonitor1];
+        const parameters = {
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100
+        };
+        const group = await subscription.monitorItems(itemsToMonitor, parameters, TimestampsToReturn.Both);
+        group.monitoredItems.forEach((monitoredItem) => {
+            if (monitoredItem.statusCode.isNotGood()) {
+                console.log(monitoredItem.itemToMonitor.nodeId.toString(), monitoredItem.statusCode.toString());
+            }
+        });
+        group.on("changed", (monitoredItem, dataValue, index) => {
+            console.log(t(), "GROUP ", monitoredItem.itemToMonitor.nodeId.toString(), index, dataValue.value.toString());
+        });
+    }
+
+    await createMonitoredItemGroup();
 
     const disconnect = async () => {
         session && (await session.close());
@@ -368,16 +502,15 @@ const doServer = process.argv[2] === "server";
 const doRandomCrash = process.argv[2] === "randomCrash";
 
 async function mainServer() {
-    const server = await startServer();
-
-    process.once("SIGINT", async () => {
-        console.log("Shutting down server");
-        await server.shutdown();
-    });
+    let server = await startServer();
+    await new Promise((resolve) => process.once("SIGINT", resolve));
+    console.log("Shutting down server");
+    await server.shutdown();
+    console.log("Server has been shut down");
 }
 async function mainClient() {
     try {
-        const client = await createClient();
+        const { client, session } = await createClient();
 
         //   await client.disconnect();
 
@@ -386,14 +519,64 @@ async function mainClient() {
         if (doRandomCrash) {
             toggleRandomCrash(client);
         }
+        return client;
     } catch (err) {
         console.log(err);
         process.exit(1);
     }
 }
+const rand = (min, max) => Math.random() * (max - min) + min;
+
+const doServerPatterCrash = [
+    //
+    10000,
+    1750,
+    //
+    1750,
+    1100 + rand(0, 100),
+    //
+    10000,
+    1100 + rand(0, 100),
+    //
+    1100,
+    1100 + rand(0, 100),
+    //
+    1100,
+    1350,
+    //
+    1000,
+    10000,
+    //
+    10000,
+    1000
+];
+async function cycleServer() {
+    console.log("Cycle server  ");
+    let server = null;
+    for (let t of doServerPatterCrash) {
+        if (!server) {
+            console.log("starting server");
+            server = await startServer();
+        } else {
+            console.log("shutting down server");
+            await server.shutdown();
+            server = null;
+        }
+        console.log("waiting ", t, "ms");
+        await new Promise((resolve) => setTimeout(resolve, t));
+    }
+}
 
 if (doServer) {
-    mainServer();
+    if (doServerPatterCrash) {
+        (async () => {
+            do {
+                await cycleServer();
+            } while (true);
+        })();
+    } else {
+        mainServer();
+    }
 } else {
     mainClient();
 }

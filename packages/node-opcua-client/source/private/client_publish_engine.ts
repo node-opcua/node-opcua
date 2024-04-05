@@ -1,13 +1,11 @@
 /**
  * @module node-opcua-client-private
  */
-import { types } from "util";
-import async from "async";
 import chalk from "chalk";
+import { minDate } from "node-opcua-date-time";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { PublishRequest, PublishResponse, RepublishRequest, RepublishResponse } from "node-opcua-service-subscription";
-import { StatusCodes } from "node-opcua-status-code";
+import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";
 
 import { ClientSession, SubscriptionId } from "../client_session";
 import { ClientSubscription } from "../client_subscription";
@@ -41,7 +39,14 @@ export class ClientSidePublishEngine {
     public isSuspended: boolean;
     public session: ClientSession | null;
     private subscriptionAcknowledgements: any[];
-    private readonly subscriptionMap: { [key: number]: ClientSubscriptionImpl };
+
+    /**
+     * @internal
+     * @private
+     */
+    readonly subscriptionMap: { [key: number]: ClientSubscriptionImpl };
+
+    public lastRequestSentTime: Date = minDate;
 
     constructor(session: ClientSession) {
         this.session = session;
@@ -200,31 +205,6 @@ export class ClientSidePublishEngine {
         return Object.prototype.hasOwnProperty.call(this.subscriptionMap, subscriptionId);
     }
 
-    public republish(callback: () => void): void {
-        // After re-establishing the connection the Client shall call Republish in a loop, starting with
-        // the next expected sequence number and incrementing the sequence number until the Server returns
-        // the status BadMessageNotAvailable.
-        // After receiving this status, the Client shall start sending Publish requests with the normal Publish
-        // handling.
-        // This sequence ensures that the lost NotificationMessages queued in the Server are not overwritten
-        // by newPublish responses
-        /**
-         * call Republish continuously until all Notification messages of
-         * un-acknowledged notifications are reprocessed.
-         * @private
-         */
-        const repairSubscription = (
-            subscription: ClientSubscription,
-            subscriptionId: SubscriptionId | string,
-            innerCallback: () => void
-        ) => {
-            subscriptionId = parseInt(subscriptionId as string, 10);
-            this.__repairSubscription(subscription, subscriptionId, innerCallback);
-        };
-
-        async.forEachOf(this.subscriptionMap, repairSubscription, callback);
-    }
-
     public internalSendPublishRequest(): void {
         assert(this.session, "ClientSidePublishEngine terminated ?");
 
@@ -265,7 +245,7 @@ export class ClientSidePublishEngine {
         // in our case:
 
         assert(this.nbPendingPublishRequests > 0);
-        const calculatedTimeout = Math.min(0x7FFFFFFF, this.nbPendingPublishRequests * this.timeoutHint);
+        const calculatedTimeout = Math.min(0x7fffffff, this.nbPendingPublishRequests * this.timeoutHint);
 
         const publishRequest = new PublishRequest({
             requestHeader: { timeoutHint: calculatedTimeout }, // see note
@@ -277,6 +257,8 @@ export class ClientSidePublishEngine {
         const session = this.session! as ClientSessionImpl;
         session.publish(publishRequest, (err: Error | null, response?: PublishResponse) => {
             this.nbPendingPublishRequests -= 1;
+
+            this.lastRequestSentTime = new Date();
 
             if (err) {
                 debugLog(
@@ -402,103 +384,5 @@ export class ClientSidePublishEngine {
             debugLog(" because there is no subscription.");
             debugLog(" or because there is no session for the subscription (session terminated ?).");
         }
-    }
-
-    private _republish(subscription: any, subscriptionId: SubscriptionId, callback: (err?: Error) => void) {
-        assert(subscription.subscriptionId === +subscriptionId);
-
-        let isDone = false;
-        const session = this.session as ClientSessionImpl;
-
-        const sendRepublishFunc = (callback2: (err?: Error) => void) => {
-            assert(isFinite(subscription.lastSequenceNumber) && subscription.lastSequenceNumber + 1 >= 0);
-
-            const request = new RepublishRequest({
-                retransmitSequenceNumber: subscription.lastSequenceNumber + 1,
-                subscriptionId: subscription.subscriptionId
-            });
-
-            // istanbul ignore next
-            if (doDebug) {
-                // istanbul ignore next
-                debugLog(
-                    chalk.bgCyan.yellow.bold(" republish Request for subscription"),
-                    request.subscriptionId,
-                    " retransmitSequenceNumber=",
-                    request.retransmitSequenceNumber
-                );
-            }
-
-            if (!session || session!._closeEventHasBeenEmitted) {
-                debugLog("ClientPublishEngine#_republish aborted ");
-                // has  client been disconnected in the mean time ?
-                isDone = true;
-                return callback2();
-            }
-            session.republish(request, (err: Error | null, response?: RepublishResponse) => {
-                const statusCode = err ? StatusCodes.Bad : response!.responseHeader.serviceResult;
-                if (!err && (statusCode.equals(StatusCodes.Good) || statusCode.equals(StatusCodes.BadMessageNotAvailable))) {
-                    // reprocess notification message  and keep going
-                    if (statusCode.equals(StatusCodes.Good)) {
-                        subscription.onNotificationMessage(response!.notificationMessage);
-                    }
-                } else {
-                    if (!err) {
-                        err = new Error(response!.responseHeader.serviceResult.toString());
-                    }
-                    debugLog(" _send_republish ends with ", err.message);
-                    isDone = true;
-                }
-                callback2(err ? err : undefined);
-            });
-        };
-
-        setImmediate(() => {
-            assert(typeof callback === "function");
-            async.whilst(
-                (cb: (err: null, truth: boolean) => void) => cb(null, !isDone),
-                sendRepublishFunc,
-                ((err?: Error | null): void => {
-                    debugLog("nbPendingPublishRequest = ", this.nbPendingPublishRequests);
-                    debugLog(" _republish ends with ", err ? err.message : "null");
-                    callback(err!);
-                }) as any // Wait for @type/async bug to be fixed !
-            );
-        });
-    }
-
-    private __repairSubscription(
-        subscription: ClientSubscription,
-        subscriptionId: SubscriptionId,
-        callback: (err?: Error) => void
-    ) {
-        debugLog("__repairSubscription  for SubscriptionId ", subscriptionId);
-
-        this._republish(subscription, subscriptionId, (err?: Error) => {
-            assert(!err || types.isNativeError(err));
-
-            debugLog("__repairSubscription--------------------- err =", err ? err.message : null);
-
-            if (err && err.message.match(/BadSessionInvalid/)) {
-                // _republish failed because session is not valid anymore on server side.
-                return callback(err);
-            }
-            if (err && err.message.match(/SubscriptionIdInvalid/)) {
-                // _republish failed because subscriptionId is not valid anymore on server side.
-                //
-                // This could happen when the subscription has timed out and has been deleted by server
-                // Subscription may time out if the duration of the connection break exceed the max life time
-                // of the subscription.
-                //
-                // In this case, Client must recreate a subscription and recreate monitored item without altering
-                // the event handlers
-                //
-                debugLog(chalk.bgWhite.red("_republish failed " + " subscriptionId is not valid anymore on server side."));
-
-                const subscriptionI = subscription as ClientSubscriptionImpl;
-                return subscriptionI.recreateSubscriptionAndMonitoredItem(callback);
-            }
-            callback();
-        });
     }
 }

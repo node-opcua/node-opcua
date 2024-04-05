@@ -51,7 +51,7 @@ import {
 } from "../opcua_client";
 import { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIdentityInfoX509 } from "../user_identity_info";
 
-import { repair_client_sessions } from "../reconnection";
+import { repair_client_sessions } from "./reconnection/reconnection";
 import { ClientBaseImpl } from "./client_base_impl";
 import { ClientSessionImpl } from "./client_session_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";

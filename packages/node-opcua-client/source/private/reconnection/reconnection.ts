@@ -3,7 +3,7 @@
  */
 
 // tslint:disable:only-arrow-functions
-import * as async from "async";
+import async from "async";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
@@ -13,16 +13,30 @@ import { ErrorCallback } from "node-opcua-status-code";
 import { CloseSessionRequest } from "node-opcua-types";
 import { invalidateExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 
-import { SubscriptionId } from "./client_session";
-import { ClientSessionImpl, Reconnectable } from "./private/client_session_impl";
-import { ClientSubscriptionImpl } from "./private/client_subscription_impl";
-import { IClientBase } from "./private/i_private_client";
+import { SubscriptionId } from "../../client_session";
+import { ClientSessionImpl, Reconnectable } from "../client_session_impl";
+import { ClientSubscriptionImpl } from "../client_subscription_impl";
+import { IClientBase } from "../i_private_client";
+import { republish } from "./client_publish_engine_reconnection";
+import { recreateSubscriptionAndMonitoredItem } from "./client_subscription_reconnection";
 
 const debugLog = make_debugLog("RECONNECTION");
 const doDebug = checkDebugFlag("RECONNECTION");
 const errorLog = make_errorLog("RECONNECTION");
 const warningLog = make_warningLog("RECONNECTION");
 
+export function _shouldNotContinue(session: ClientSessionImpl) {
+    if (!session._client || session.hasBeenClosed() || !session._client._secureChannel || session._client.isUnusable()) {
+        return new Error("Failure during reconnection : client or session is not usable anymore");
+    }
+    return null;
+}
+export function _shouldNotContinue2(subscription: ClientSubscriptionImpl) {
+    if (!subscription.hasSession) {
+        return new Error("Failure during reconnection : client or session is not usable anymore");
+    }
+    return _shouldNotContinue(subscription.session);
+}
 //
 // a new secure channel has be created, we need to reactivate the corresponding session,
 // and reestablish the subscription and restart the publish engine.
@@ -109,29 +123,26 @@ const warningLog = make_warningLog("RECONNECTION");
 //  +-------------------------------+
 
 function _ask_for_subscription_republish(session: ClientSessionImpl, callback: (err?: Error) => void) {
-    if (session.hasBeenClosed()) {
-        doDebug && debugLog("_ask_for_subscription_republish :  session is closed");
-        return callback(new Error("askForSubscriptionRepublish => canceled because session is closed"));
-    }
+    // prettier-ignore
+    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
 
     doDebug && debugLog(chalk.bgCyan.yellow.bold("_ask_for_subscription_republish "));
     // assert(session.getPublishEngine().nbPendingPublishRequests === 0,
     //   "at this time, publish request queue shall still be empty");
 
-    session.getPublishEngine().republish((err?: Error) => {
+    const engine = session.getPublishEngine();
+    republish(engine, (err?: Error) => {
         doDebug && debugLog("_ask_for_subscription_republish :  republish sent");
-        if (session.hasBeenClosed()) {
-            return callback(new Error("Cannot complete subscription republish due to session termination"));
-        }
+        // prettier-ignore
+        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+
         doDebug && debugLog(chalk.bgCyan.green.bold("_ask_for_subscription_republish done "), err ? err.message : "OK");
         if (err) {
             warningLog("republish has failed with error :", err.message);
-
             doDebug && debugLog("_ask_for_subscription_republish has :  recreating subscription");
             return repair_client_session_by_recreating_a_new_session(session._client!, session, callback);
         }
-        // xx assert(session.getPublishEngine().nbPendingPublishRequests === 0);
-        session.resumePublishEngine();
+
         callback(err);
     });
 }
@@ -141,18 +152,16 @@ function create_session_and_repeat_if_failed(
     session: ClientSessionImpl,
     callback: CallbackT<ClientSessionImpl>
 ) {
-    if (session.hasBeenClosed()) {
-        doDebug && debugLog("Cannot complete subscription republish due to session termination");
-        return callback(new Error("Cannot complete subscription republish due to session termination"));
-    }
+    // prettier-ignore
+    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+
     doDebug && debugLog(chalk.bgWhite.red("    => creating a new session ...."));
     // create new session, based on old session,
     // so we can reuse subscriptions data
     client.__createSession_step2(session, (err: Error | null, session1?: ClientSessionImpl) => {
-        if (err && session.hasBeenClosed()) {
-            doDebug && debugLog("Cannot complete subscription republish due to session termination");
-            return callback(new Error("Cannot complete subscription republish due to session termination"));
-        }
+        // prettier-ignore
+        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+
         if (!err && session1) {
             assert(session === session1, "session should have been recycled");
             callback(err, session);
@@ -169,9 +178,9 @@ function repair_client_session_by_recreating_a_new_session(
     session: ClientSessionImpl,
     callback: (err?: Error) => void
 ) {
-    if (session._client && session._client.isUnusable()) {
-        return callback(new Error("Client is unusable"));
-    }
+    // prettier-ignore
+    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+
     // As we don"t know if server has been rebooted or not,
     // and may be upgraded in between, we have to invalidate the extra data type manager
     invalidateExtraDataTypeManager(session);
@@ -179,13 +188,6 @@ function repair_client_session_by_recreating_a_new_session(
     // istanbul ignore next
     if (doDebug) {
         debugLog(" repairing client session by_recreating a new session for old session ", session.sessionId.toString());
-    }
-
-    //  TO DO : it is possible that session is already closed while we get there
-    if (session.hasBeenClosed()) {
-        // istanbul ignore next
-        doDebug && debugLog(chalk.bgWhite.red("Aborting reactivation of old session because user requested session to be closed"));
-        return callback(new Error("reconnection cancelled due to session termination"));
     }
 
     let newSession: ClientSessionImpl;
@@ -196,27 +198,39 @@ function repair_client_session_by_recreating_a_new_session(
         async.forEach(
             subscriptionsToRecreate,
             (subscriptionId: SubscriptionId, next: ErrorCallback) => {
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return next(err); } }
+
                 if (!session.getPublishEngine().hasSubscription(subscriptionId)) {
                     doDebug && debugLog(chalk.red("          => CANNOT RECREATE SUBSCRIPTION  "), subscriptionId);
                     return next();
                 }
                 const subscription = session.getPublishEngine().getSubscription(subscriptionId);
-                assert(subscription.constructor.name === "ClientSubscriptionImpl");
                 doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
-                assert(subscription.session === newSession, "must have the session");
+                assert(subscription.session === newSession, "must have the new session");
 
-                (subscription as ClientSubscriptionImpl).recreateSubscriptionAndMonitoredItem((err1?: Error) => {
+                recreateSubscriptionAndMonitoredItem(subscription, (err1?: Error) => {
+                    // prettier-ignore
+                    { const err = _shouldNotContinue(session); if (err) { return next(err); } }
+
                     if (err1) {
                         doDebug && debugLog("_recreateSubscription failed !" + err1.message);
                     }
 
                     doDebug &&
-                        debugLog(chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE "), subscriptionId);
+                        debugLog(
+                            chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE subscriptionId="),
+                            subscriptionId
+                        );
 
                     next();
                 });
             },
             (err1?: Error | null) => {
+                if (!err1) {
+                    // prettier-ignore
+                    { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                }
                 innerCallback(err1!);
             }
         );
@@ -225,9 +239,9 @@ function repair_client_session_by_recreating_a_new_session(
     async.series(
         [
             function suspend_old_session_publish_engine(innerCallback: ErrorCallback) {
-                if (session.hasBeenClosed()) {
-                    return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
-                }
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+
                 // istanbul ignore next
                 doDebug && debugLog(chalk.bgWhite.red("    => suspend old session publish engine...."));
                 session.getPublishEngine().suspend(true);
@@ -236,6 +250,9 @@ function repair_client_session_by_recreating_a_new_session(
 
             function create_new_session(innerCallback: ErrorCallback) {
                 create_session_and_repeat_if_failed(client, session, (err?: Error | null, _newSession?: ClientSessionImpl) => {
+                    // prettier-ignore
+                    { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+
                     if (_newSession) {
                         newSession = _newSession;
                     }
@@ -244,9 +261,9 @@ function repair_client_session_by_recreating_a_new_session(
             },
 
             function activate_new_session(innerCallback: ErrorCallback) {
-                if (session.hasBeenClosed()) {
-                    return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
-                }
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+
                 doDebug && debugLog(chalk.bgWhite.red("    => activating a new session ...."));
 
                 client._activateSession(
@@ -285,9 +302,9 @@ function repair_client_session_by_recreating_a_new_session(
             },
 
             function attempt_subscription_transfer(innerCallback: ErrorCallback) {
-                if (session.hasBeenClosed()) {
-                    return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
-                }
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+
                 // get the old subscriptions id from the old session
                 const subscriptionsIds = session.getPublishEngine().getSubscriptionIds();
 
@@ -310,8 +327,26 @@ function repair_client_session_by_recreating_a_new_session(
                 newSession.transferSubscriptions(
                     subscriptionsToTransfer,
                     (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
+                        // may be the connection with server has been disconnected
+
                         if (err || !transferSubscriptionsResponse) {
                             warningLog(chalk.bgCyan("Warning TransferSubscription has failed " + err?.message));
+                            if (client._secureChannel === null) {
+                                warningLog(
+                                    chalk.bgCyan(
+                                        "the connection has been lost while transferring subscription.\nWe need to re-establish the connection first and start over."
+                                    )
+                                );
+                                return innerCallback(new Error("No secure channel"));
+                            }
+                            if (session.hasBeenClosed()) {
+                                warningLog(
+                                    chalk.bgCyan("Cannot complete subscription transferSubscription due to session termination")
+                                );
+                                return innerCallback(
+                                    new Error("Cannot complete subscription transferSubscription due to session termination")
+                                );
+                            }
                             warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
                             // when transfer subscription has failed, we have no other choice but
                             // recreate the subscriptions on the server side
@@ -367,9 +402,9 @@ function repair_client_session_by_recreating_a_new_session(
             },
 
             function ask_for_subscription_republish(innerCallback: ErrorCallback) {
-                if (session.hasBeenClosed()) {
-                    return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
-                }
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+
                 //  assert(newSession.getPublishEngine().nbPendingPublishRequests === 0, "we should not be publishing here");
                 //      call Republish
                 return _ask_for_subscription_republish(newSession, (err) => {
@@ -381,10 +416,11 @@ function repair_client_session_by_recreating_a_new_session(
             },
 
             function start_publishing_as_normal(innerCallback: ErrorCallback) {
-                if (session.hasBeenClosed()) {
-                    return innerCallback(new Error("Cannot complete subscription republish due to session termination"));
-                }
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+
                 newSession.getPublishEngine().suspend(false);
+
                 const listenerCountAfter = session.listenerCount("");
                 assert(newSession === session);
                 doDebug && debugLog("listenerCountBefore =", listenerCountBefore, "listenerCountAfter = ", listenerCountAfter);
@@ -412,13 +448,23 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
         doDebug && debugLog(chalk.yellow("  TRYING TO REACTIVATE EXISTING SESSION"), session.sessionId.toString());
         doDebug && debugLog("   SubscriptionIds :", session.getPublishEngine().getSubscriptionIds());
     }
+
+    // prettier-ignore
+    { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+
     client._activateSession(session, session.userIdentityInfo!, (err: Error | null, session2?: ClientSessionImpl) => {
+        // prettier-ignore
+        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
         //
         // Note: current limitation :
         //  - The reconnection doesn't work yet, if connection break is caused by a server that crashes and restarts.
         //
         doDebug && debugLog("   ActivateSession : ", err ? chalk.red(err.message) : chalk.green(" SUCCESS !!! "));
         if (err) {
+            if (!client._secureChannel || session.hasBeenClosed()) {
+                warningLog("reconnection: disconnection happened while we were trying to reactivate existing session");
+                return callback2(new Error("No secure channel"));
+            }
             //  activate old session has failed => let's  recreate a new Channel and transfer the subscription
             return repair_client_session_by_recreating_a_new_session(client, session, callback2);
         } else {
@@ -453,6 +499,9 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     const transactionQueue = privateSession.pendingTransactions ? privateSession.pendingTransactions.splice(0) : [];
 
     const repeatedAction = (callback: EmptyCallback) => {
+        // prettier-ignore
+        {   const err = _shouldNotContinue(session);   if (err) { return callback(err); }}
+
         _repair_client_session(client, session, (err) => {
             if (err) {
                 errorLog(
@@ -461,6 +510,10 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     session.sessionId.toString(),
                     " => Let's retry"
                 );
+                if (!client._secureChannel) {
+                    privateSession._reconnecting.reconnecting = false;
+                    return callback(new Error("No secure channel"));
+                }
                 if (!session.hasBeenClosed()) {
                     const delay = 2000;
                     errorLog(chalk.red(`... will retry session repair... in ${delay} ms`));
@@ -470,6 +523,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     }, delay);
                     return;
                 } else {
+                    privateSession._reconnecting.reconnecting = false;
                     errorLog(chalk.red("session restoration should be interrupted because session has been closed forcefully"));
                     // session does not need to be repaired anymore
                     callback();
