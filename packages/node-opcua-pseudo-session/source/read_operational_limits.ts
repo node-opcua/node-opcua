@@ -65,28 +65,29 @@ export async function readOperationLimits(session: IBasicSessionReadAsyncMultipl
     const nodesToRead = ids.map((i) => ({ nodeId: makeNodeId(i), attributeId: AttributeIds.Value }));
     const dataValues = await session.read(nodesToRead);
 
-    function prepare(dataValue: DataValue): number {
+    function prepare(index: number): number {
+        const dataValue = dataValues[index];
         if (dataValue.statusCode.value === 0x00) {
             return dataValue.value.value as number;
         } else {
-            warningLog("dataValue = ", dataValue.toString());
+            warningLog("dataValue = ", dataValue.toString(), " for ", nodesToRead[index].nodeId.toString());
         }
         return 0;
     }
     // tslint:disable-next-line: object-literal-sort-keys
     const results: OperationLimits = {
-        maxNodesPerRead: prepare(dataValues[0]),
-        maxNodesPerBrowse: prepare(dataValues[1]),
-        maxNodesPerWrite: prepare(dataValues[2]),
-        maxNodesPerMethodCall: prepare(dataValues[3]),
-        maxNodesPerRegisterNodes: prepare(dataValues[4]),
-        maxNodesPerNodeManagement: prepare(dataValues[5]),
-        maxMonitoredItemsPerCall: prepare(dataValues[6]),
-        maxNodesPerHistoryReadData: prepare(dataValues[7]),
-        maxNodesPerHistoryReadEvents: prepare(dataValues[8]),
-        maxNodesPerHistoryUpdateData: prepare(dataValues[9]),
-        maxNodesPerHistoryUpdateEvents: prepare(dataValues[10]),
-        maxNodesPerTranslateBrowsePathsToNodeIds: prepare(dataValues[11])
+        maxNodesPerRead: prepare(0),
+        maxNodesPerBrowse: prepare(1),
+        maxNodesPerWrite: prepare(2),
+        maxNodesPerMethodCall: prepare(3),
+        maxNodesPerRegisterNodes: prepare(4),
+        maxNodesPerNodeManagement: prepare(5),
+        maxMonitoredItemsPerCall: prepare(6),
+        maxNodesPerHistoryReadData: prepare(7),
+        maxNodesPerHistoryReadEvents: prepare(8),
+        maxNodesPerHistoryUpdateData: prepare(9),
+        maxNodesPerHistoryUpdateEvents: prepare(10),
+        maxNodesPerTranslateBrowsePathsToNodeIds: prepare(11)
     };
     return results;
 }

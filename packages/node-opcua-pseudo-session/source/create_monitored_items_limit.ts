@@ -26,6 +26,10 @@ export async function createMonitoredItemsLimit(
             results: []
         });
     }
+
+    // if server is not able to provide a maxMonitoredItemsPerCall limit, we use a default value of 1000 arbitrarily
+    maxMonitoredItemsPerCall = maxMonitoredItemsPerCall > 0 ? maxMonitoredItemsPerCall : 1000;
+
     if (
         maxMonitoredItemsPerCall <= 0 ||
         !createMonitoredItemsRequest.itemsToCreate ||
