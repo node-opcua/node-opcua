@@ -104,11 +104,14 @@ function __findEndpoint(this: OPCUAClientBase, endpointUrl: string, params: Find
         clientCertificateManager: params.clientCertificateManager,
 
         clientName: "EndpointFetcher",
-        connectionStrategy: {
-            maxRetry: 0 /* no- retry */,
-            maxDelay: 2000
-        },
 
+        
+        // use same connectionStrategy as parent
+        connectionStrategy: params.connectionStrategy,
+        // connectionStrategy: {
+        //     maxRetry: 0 /* no- retry */,
+        //     maxDelay: 2000
+        // },
         privateKeyFile: params.privateKeyFile
     };
 
@@ -1386,6 +1389,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         const params = {
             connectionStrategy: this.connectionStrategy,
             endpointMustExist: false,
+
+            // Node: May be the discovery endpoint only support security mode NONE
+            //       what should we do ?
             securityMode: this.securityMode,
             securityPolicy: this.securityPolicy,
 
@@ -1624,11 +1630,34 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         });
     }
 
-    public _inside_repairConnection = false;
+    private _inside_repairConnection = false;
 
+    private shouldRepairAgain = false;
+
+    /**
+     * @internal
+     * @private
+     * 
+     * timeout to wait before client attempt to reconnect in case of failure
+     * 
+     */
+    static retryDelay = 1000;
     private _repairConnection() {
+        const duration = ClientBaseImpl.retryDelay;
+        if (duration) {
+            this.emit("startingDelayBeforeReconnection", duration);
+            setTimeout(() => {
+                this.emit("repairConnectionStarted");
+                this.__innerRepairConnection();
+            }, duration);
+        } else {
+            this.__innerRepairConnection();
+        }
+    }
+    private __innerRepairConnection() {
         if (this._inside_repairConnection) {
-            errorLog("_repairConnection already in progress ", this._internalState);
+            errorLog("_repairConnection already in progress internal state = ", this._internalState);
+            this.shouldRepairAgain = true;
             return;
         }
         this._inside_repairConnection = true;
@@ -1641,6 +1670,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 this.emit("close", err1);
                 this._setInternalState("disconnected");
                 this._inside_repairConnection = false;
+                if (this.shouldRepairAgain) {
+                    this.shouldRepairAgain = false;
+                    this._repairConnection();
+                }
                 return;
             } else {
                 this._finalReconnectionStep((err2?: Error | null) => {
@@ -1654,6 +1687,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         debugLog("Disconnected following reconnection failure", err2.message);
                         debugLog(`I will retry OPCUA client reconnection in ${OPCUAClientBase.retryDelay / 1000} seconds`);
                         this._inside_repairConnection = false;
+                        this.shouldRepairAgain = false;
+
                         this._destroy_secure_channel();
                         setTimeout(() => this._repairConnection(), OPCUAClientBase.retryDelay);
                         return;
@@ -1663,6 +1698,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                          *        send when the connection is reestablished after a connection break
                          */
                         this._inside_repairConnection = false;
+                        this.shouldRepairAgain = false;
                         this._setInternalState("connected");
                         this.emit("connection_reestablished");
                     }
