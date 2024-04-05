@@ -79,7 +79,8 @@ import {
     traceClientResponseMessage,
     _dump_client_transaction_statistics,
     traceClientRequestContent,
-    traceClientResponseContent
+    traceClientResponseContent,
+    traceClientConnectionClosed
 } from "../utils";
 import { durationToString } from "./duration_to_string";
 
@@ -1034,6 +1035,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
         doDebug && debugLog(" =>ClientSecureChannelLayer#_on_transport_closed  err=", err ? err.message : "null");
         if (this.__in_normal_close_operation) {
             err = undefined;
+        }
+        if (doTraceClientMessage) {
+            traceClientConnectionClosed(err, this.channelId, this._counter);
         }
         this.emit("close", err);
         this._dispose_transports();
