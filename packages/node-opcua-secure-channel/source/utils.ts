@@ -34,7 +34,12 @@ import {
     X509IdentityToken,
     ActivateSessionResponse,
     PublishRequest,
-    ChannelSecurityToken
+    ChannelSecurityToken,
+    CreateSubscriptionResponse,
+    RepublishRequest,
+    DeleteSubscriptionsRequest,
+    TransferSubscriptionsRequest,
+    TransferSubscriptionsResponse
 } from "node-opcua-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Request, Response } from "./common";
@@ -172,7 +177,9 @@ function __get_extraInfo(req: Response | Request): string {
         return (req.results || []).map((p) => p.toString()).join(" ");
     }
     if (req instanceof CreateMonitoredItemsRequest) {
-        return " itemsToCreate.length  =" + req.itemsToCreate?.length;
+        const str = " n  =" + req.itemsToCreate?.length;
+        const str2 = req.subscriptionId ? " sid = " + req.subscriptionId : "";
+        return str + " " + str2;
     }
     if (req instanceof CreateMonitoredItemsResponse) {
         return " results.length        =" + req.results?.length;
@@ -196,6 +203,9 @@ function __get_extraInfo(req: Response | Request): string {
             req.requestedLifetime +
             "ms"
         );
+    }
+    if (req instanceof CreateSubscriptionResponse) {
+        return " subscriptionId = " + req.subscriptionId;
     }
     if (req instanceof RegisterNodesResponse) {
         return " nodesToRegister.length=" + req.registeredNodeIds?.length;
@@ -222,6 +232,18 @@ function __get_extraInfo(req: Response | Request): string {
             }
         }
         return " " + t + " seq#=" + req.notificationMessage.sequenceNumber;
+    }
+    if (req instanceof RepublishRequest) {
+        return " subscriptionId = " + req.subscriptionId.toString();
+    }
+    if (req instanceof DeleteSubscriptionsRequest) {
+        return req.subscriptionIds?.map((i) => i.toString()).join(", ") || "";
+    }
+    if (req instanceof TransferSubscriptionsRequest) {
+        return req.subscriptionIds?.map((i) => i.toString()).join(", ") || "";
+    }
+    if (req instanceof TransferSubscriptionsResponse) {
+        return req.results?.map((r) => r.statusCode.toString()).join(",") || "";
     }
     return "";
 }
@@ -330,7 +352,20 @@ export function traceClientRequestMessage(request: Request, channelId: number, i
         size
     );
 }
-
+export function traceClientConnectionClosed(err: Error | undefined | null, channelId: number, instance: number): void {
+    const extra = err?.message ? chalk.red(err.message) : chalk.green("<expected>");
+    const size = "";
+    const requestId = "";
+    console.log(
+        chalk.cyan(timestamp(), "  >>>>>> ------ C"),
+        instance.toString().padStart(3),
+        channelId.toString().padStart(3),
+        requestId.toString().padStart(8),
+        chalk.cyan("<disconnection").padEnd(nameLength),
+        extra,
+        size
+    );
+}
 
 function additionalInfo(response: Response): string {
     if (response instanceof BrowseNextResponse || response instanceof BrowseResponse) {
@@ -342,6 +377,10 @@ function additionalInfo(response: Response): string {
         }
         return "!!" + someBad.toString();
     }
+    if (response instanceof CreateSubscriptionResponse) {
+        return response.subscriptionId.toString();
+    }
+
     return "";
 }
 export function traceClientResponseMessage(response: Response, channelId: number, instance: number): void {
