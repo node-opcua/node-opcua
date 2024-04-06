@@ -469,7 +469,9 @@ export function t(test: any) {
                     wait_a_few_seconds,
 
                     shutdownServer,
-                    wait_a_few_seconds
+                    wait_a_few_seconds,
+                    wait_a_few_seconds,
+
                 ],
                 done
             );

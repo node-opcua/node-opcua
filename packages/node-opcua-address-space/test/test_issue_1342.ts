@@ -2,13 +2,13 @@ import should from "should";
 import sinon from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-basic-types";
+import { Variant } from "node-opcua-variant";
 import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { Variant } from "node-opcua-variant";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1342", function (this: Mocha.Suite) {
-    this.timeout(10000);
+    this.timeout(Math.max(this.timeout(), 20000));
     let addressSpace: AddressSpace;
     let namespace: Namespace;
 

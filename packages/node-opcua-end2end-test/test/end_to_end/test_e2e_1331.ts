@@ -33,12 +33,16 @@ describe("Testing client.isReconnecting flag behavior", function (this: Mocha.Te
         await server.shutdown();
     });
 
-    it("client.isReconnection should be true when client emits reconnection event", async () => {
+    it("client.isReconnecting should be true when client emits reconnection event", async () => {
         client = OPCUAClient.create({});
 
         let isReconnectingValueWhenConnectionLostEventIsEmitted = false;
         client.on("connection_lost", () => {
             isReconnectingValueWhenConnectionLostEventIsEmitted = client.isReconnecting;
+        });
+        let isReconnectingValueWhenStartReconnectionIsEmitted = false;
+        client.on("start_reconnection", () => {
+            isReconnectingValueWhenStartReconnectionIsEmitted = client.isReconnecting;
         });
 
         let isReconnectingValueWhenReconnectionEventIsEmitted = false;
@@ -51,7 +55,7 @@ describe("Testing client.isReconnecting flag behavior", function (this: Mocha.Te
 
         await new Promise((resolve) => {
             server.shutdown();
-            client.once("connection_lost", resolve);
+            client.once("start_reconnection", resolve);
         });
         client.isReconnecting.should.eql(true);
 
@@ -67,6 +71,7 @@ describe("Testing client.isReconnecting flag behavior", function (this: Mocha.Te
         await client.disconnect();
 
         isReconnectingValueWhenConnectionLostEventIsEmitted.should.be.eql(true);
+        isReconnectingValueWhenStartReconnectionIsEmitted.should.be.eql(true);
         isReconnectingValueWhenReconnectionEventIsEmitted.should.be.eql(false);
     });
 });

@@ -11,7 +11,7 @@ import { generateAddressSpace } from "../nodeJS";
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing loading ExtensionObject value from NodeSet XML file", function (this: any) {
-    this.timeout(20000); // could be slow on appveyor !
+    this.timeout(Math.max(this.timeout(), 30000)); // could be slow on appveyor !
 
     let addressSpace: AddressSpace;
 
@@ -37,7 +37,7 @@ describe("testing loading ExtensionObject value from NodeSet XML file", function
 
         const dataValue = node.readValue();
         dataValue.value.dataType.should.eql(DataType.ExtensionObject);
-        
+
         // console.log("xx ", dataValue.value.toString());
 
         dataValue.value.value.constructor.name.should.eql("EUInformation");

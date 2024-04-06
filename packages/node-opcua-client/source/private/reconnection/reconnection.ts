@@ -25,6 +25,13 @@ const doDebug = checkDebugFlag("RECONNECTION");
 const errorLog = make_errorLog("RECONNECTION");
 const warningLog = make_warningLog("RECONNECTION");
 
+function _shouldNotContinue3(client: IClientBase) {
+    if (!client._secureChannel) {
+        return new Error("Failure during reconnection : client or session is not usable anymore");
+    }
+    return null;
+}
+
 export function _shouldNotContinue(session: ClientSessionImpl) {
     if (!session._client || session.hasBeenClosed() || !session._client._secureChannel || session._client.isUnusable()) {
         return new Error("Failure during reconnection : client or session is not usable anymore");
@@ -227,9 +234,10 @@ function repair_client_session_by_recreating_a_new_session(
                 });
             },
             (err1?: Error | null) => {
+                // prettier-ignore
+                { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
                 if (!err1) {
                     // prettier-ignore
-                    { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
                 }
                 innerCallback(err1!);
             }
@@ -328,25 +336,10 @@ function repair_client_session_by_recreating_a_new_session(
                     subscriptionsToTransfer,
                     (err: Error | null, transferSubscriptionsResponse?: TransferSubscriptionsResponse) => {
                         // may be the connection with server has been disconnected
+                        // prettier-ignore
+                        { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
 
                         if (err || !transferSubscriptionsResponse) {
-                            warningLog(chalk.bgCyan("Warning TransferSubscription has failed " + err?.message));
-                            if (client._secureChannel === null) {
-                                warningLog(
-                                    chalk.bgCyan(
-                                        "the connection has been lost while transferring subscription.\nWe need to re-establish the connection first and start over."
-                                    )
-                                );
-                                return innerCallback(new Error("No secure channel"));
-                            }
-                            if (session.hasBeenClosed()) {
-                                warningLog(
-                                    chalk.bgCyan("Cannot complete subscription transferSubscription due to session termination")
-                                );
-                                return innerCallback(
-                                    new Error("Cannot complete subscription transferSubscription due to session termination")
-                                );
-                            }
                             warningLog(chalk.bgCyan("May be the server is not supporting this feature"));
                             // when transfer subscription has failed, we have no other choice but
                             // recreate the subscriptions on the server side
@@ -440,6 +433,8 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
             debugLog("Session repair completed with err: ", err2 ? err2.message : "<no error>", session.sessionId.toString());
         if (!err2) {
             session.emit("session_repaired");
+        } else {
+            session.emit("session_repaired_failed", err2);
         }
         callback(err2);
     };
@@ -461,10 +456,6 @@ function _repair_client_session(client: IClientBase, session: ClientSessionImpl,
         //
         doDebug && debugLog("   ActivateSession : ", err ? chalk.red(err.message) : chalk.green(" SUCCESS !!! "));
         if (err) {
-            if (!client._secureChannel || session.hasBeenClosed()) {
-                warningLog("reconnection: disconnection happened while we were trying to reactivate existing session");
-                return callback2(new Error("No secure channel"));
-            }
             //  activate old session has failed => let's  recreate a new Channel and transfer the subscription
             return repair_client_session_by_recreating_a_new_session(client, session, callback2);
         } else {
@@ -481,14 +472,18 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         doDebug && debugLog("Aborting reactivation of old session because user requested session to be close");
         return callback();
     }
-
     doDebug && debugLog(chalk.yellow("Starting client session repair"));
 
     const privateSession = session as any as Reconnectable;
     privateSession._reconnecting = privateSession._reconnecting || { reconnecting: false, pendingCallbacks: [] };
 
+    if (session.hasBeenClosed()) {
+        privateSession._reconnecting.reconnecting = false;
+        doDebug && debugLog("Aborting reactivation of old session because session has been closed");
+        return callback();
+    }
     if (privateSession._reconnecting.reconnecting) {
-        doDebug && debugLog(chalk.bgCyan("Reconnecting already happening for session"), session.sessionId.toString());
+        doDebug && debugLog(chalk.bgCyan("Reconnection is already happening for session"), session.sessionId.toString());
         privateSession._reconnecting.pendingCallbacks.push(callback);
         return;
     }
@@ -503,6 +498,9 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
         {   const err = _shouldNotContinue(session);   if (err) { return callback(err); }}
 
         _repair_client_session(client, session, (err) => {
+            // prettier-ignore
+            { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
+
             if (err) {
                 errorLog(
                     chalk.red("session restoration has failed! err ="),
@@ -510,10 +508,6 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     session.sessionId.toString(),
                     " => Let's retry"
                 );
-                if (!client._secureChannel) {
-                    privateSession._reconnecting.reconnecting = false;
-                    return callback(new Error("No secure channel"));
-                }
                 if (!session.hasBeenClosed()) {
                     const delay = 2000;
                     errorLog(chalk.red(`... will retry session repair... in ${delay} ms`));
@@ -523,34 +517,31 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     }, delay);
                     return;
                 } else {
-                    privateSession._reconnecting.reconnecting = false;
                     errorLog(chalk.red("session restoration should be interrupted because session has been closed forcefully"));
-                    // session does not need to be repaired anymore
-                    callback();
                 }
+                // session does not need to be repaired anymore
+                callback();
                 return;
             }
 
-            privateSession._reconnecting.reconnecting = false;
-
             // istanbul ignore next
             doDebug && debugLog(chalk.yellow("session has been restored"), session.sessionId.toString());
-
             session.emit("session_restored");
-            const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
-            privateSession._reconnecting.pendingCallbacks = [];
-
-            // re-inject element in queue
-
-            // istanbul ignore next
-            doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-
-            transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
-            otherCallbacks.forEach((c: EmptyCallback) => c(err));
             callback(err);
         });
     };
-    repeatedAction(callback);
+    repeatedAction((err) => {
+        privateSession._reconnecting.reconnecting = false;
+
+        const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
+        privateSession._reconnecting.pendingCallbacks = [];
+        // re-inject element in queue
+        // istanbul ignore next
+        doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
+        transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
+        otherCallbacks.forEach((c: EmptyCallback) => c(err));
+        callback(err);
+    });
 }
 
 export function repair_client_sessions(client: IClientBase, callback: (err?: Error) => void): void {
@@ -566,6 +557,9 @@ export function repair_client_sessions(client: IClientBase, callback: (err?: Err
         },
         (err, allErrors: (undefined | Error | null)[] | undefined) => {
             err && errorLog("sessions reactivation completed with err: err ", err ? err.message : "null");
+            // prettier-ignore
+            { const err = _shouldNotContinue3(client); if (err) { return callback(err); } }
+
             return callback(err!);
         }
     );

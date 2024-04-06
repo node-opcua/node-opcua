@@ -390,12 +390,10 @@ async function createClient() {
         } else if (key.name === "m") {
             console.log(" Simulating long break (10 second)");
             simulateConnectionBreak(client, "ECONNRESET", 10 * 1000);
-        } else {
-            console.log(`You pressed the "${str}" key`);
-            console.log();
-            console.log(key);
-            console.log();
+        } else if (key.name == "h") {
             rl.prompt();
+        } else {
+            console.log(`You pressed the "${str}" key ${JSON.stringify(key)}`);
         }
     });
     console.log("Press any key...");

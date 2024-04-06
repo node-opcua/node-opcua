@@ -1,12 +1,9 @@
 "use strict";
 
 const should = require("should");
-const async = require("async");
 const sinon = require("sinon");
 
-const { OPCUAClient, OPCUAServer, get_empty_nodeset_filename, nodesets } = require("node-opcua");
-
-const empty_nodeset_filename = get_empty_nodeset_filename();
+const { OPCUAClient, OPCUAServer, nodesets } = require("node-opcua");
 
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const debugLog = make_debugLog("TEST");
@@ -20,31 +17,24 @@ describe("testing Client-Server - Event", function () {
     let server;
     let endpointUrl;
 
-    function start_server(done) {
+    async function start_server(done) {
         server = new OPCUAServer({
             port,
             nodeset_filename: nodesets.ua,
             serverCapabilities: { maxSessions: 10 }
         });
 
-        server.start(function () {
-            endpointUrl = server.getEndpointUrl();
-            done();
-        });
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
     }
-
-    function end_server(done) {
+    async function end_server() {
         if (server) {
-            server.shutdown(function () {
-                server = null;
-                done();
-            });
-        } else {
-            done();
+            await server.shutdown();
+            server = null;
         }
     }
 
-    it("TSC-1 should raise a close event once on normal disconnection", function (done) {
+    it("TSC-1 should raise a close event once on normal disconnection", async () => {
         let close_counter = 0;
 
         const client = OPCUAClient.create();
@@ -57,34 +47,24 @@ describe("testing Client-Server - Event", function () {
             close_counter++;
         });
 
-        async.series(
-            [
-                function (callback) {
-                    debugLog(" --> Starting server");
-                    start_server(callback);
-                },
-                function (callback) {
-                    debugLog(" --> Connecting Client");
-                    client.connect(endpointUrl, callback);
-                },
-                function (callback) {
-                    close_counter.should.eql(0);
-                    debugLog(" --> Disconnecting Client");
-                    client.disconnect(callback);
-                },
-                function (callback) {
-                    close_counter.should.eql(1);
-                    callback(null);
-                },
-                function (callback) {
-                    debugLog(" --> Stopping server");
-                    end_server(callback);
-                }
-            ],
-            done
-        );
+        debugLog(" --> Starting server");
+        await start_server();
+
+        try {
+            debugLog(" --> Connecting Client");
+            await client.connect(endpointUrl);
+            close_counter.should.eql(0);
+
+            debugLog(" --> Disconnecting Client");
+            await client.disconnect();
+
+            close_counter.should.eql(1);
+        } finally {
+            debugLog(" --> stopping server");
+            await end_server();
+        }
     });
-    it("TSC-2 client (not reconnecting) should raise a close event with an error when server initiates disconnection", function (done) {
+    it("TSC-2 client (not reconnecting) should raise a close event with an error when server initiates disconnection", async () => {
         // note : client is not trying to reconnect
         const options = {
             connectionStrategy: {
@@ -99,50 +79,35 @@ describe("testing Client-Server - Event", function () {
         const _client_received_close_event = sinon.spy();
         client.on("close", _client_received_close_event);
 
-        async.series(
-            [
-                function (callback) {
-                    debugLog(" --> Starting server");
-                    start_server(callback);
-                },
-                function (callback) {
-                    debugLog(" --> Connecting Client");
-                    client.connect(endpointUrl, callback);
-                },
-                function (callback) {
-                    _client_received_close_event.callCount.should.eql(0);
-                    debugLog(" --> Stopping server");
-                    end_server(function () {
-                        callback();
-                    });
-                },
+        debugLog(" --> Starting server");
+        await start_server();
+        debugLog(" --> Connecting Client");
+        await client.connect(endpointUrl);
 
-                // wait a little bit , to relax client
-                function (callback) {
-                    setTimeout(callback, 100);
-                },
+        _client_received_close_event.callCount.should.eql(0);
+        debugLog(" --> Stopping server");
+        await end_server();
 
-                function (callback) {
-                    _client_received_close_event.callCount.should.eql(1);
-                    _client_received_close_event.getCall(0).args.length.should.eql(1);
-                    should(_client_received_close_event.getCall(0).args[0]).not.eql(null);
-                    _client_received_close_event.getCall(0).args[0].message.should.match(/disconnected by third party/);
-                    callback();
-                },
-                function (callback) {
-                    client.disconnect(callback);
-                }
-            ],
-            done
-        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        _client_received_close_event.callCount.should.eql(1);
+        _client_received_close_event.getCall(0).args.length.should.eql(1);
+        should(_client_received_close_event.getCall(0).args[0]).not.eql(null);
+        _client_received_close_event.getCall(0).args[0].message.should.match(/disconnected by third party/);
+
+        await client.disconnect();
+        _client_received_close_event.callCount.should.eql(1);
+        _client_received_close_event.getCall(0).args.length.should.eql(1);
+        should(_client_received_close_event.getCall(0).args[0]).not.eql(null);
+        _client_received_close_event.getCall(0).args[0].message.should.match(/disconnected by third party/);
     });
 
-    it("TSC-3 client (reconnecting)  should raise a close event with an error when server initiates disconnection (after reconnecting has failed)", function (done) {
+    it("TSC-3 client (reconnecting)  should raise a close event with an error when server initiates disconnection (after reconnecting has failed)", async () => {
         // note : client will  try to reconnect and eventually fail ...
         const options = {
             connectionStrategy: {
-                initialDelay: 10,
-                maxDelay: 20,
+                initialDelay: 100,
+                maxDelay: 200,
                 maxRetry: 1, // <= RETRY
                 randomisationFactor: 0
             }
@@ -154,55 +119,50 @@ describe("testing Client-Server - Event", function () {
 
         const _client_backoff_event = sinon.spy();
         client.on("backoff", _client_backoff_event);
+
         client.on("backoff", () => {
-            debugLog("client attempt to connect");
+            debugLog("client.on('backoff'): client is attempting to connect", "isReconnecting=", client.isReconnecting);
         });
 
-        async.series(
-            [
-                function (callback) {
-                    debugLog(" 1--> Starting server");
-                    start_server(callback);
-                },
-                function (callback) {
-                    debugLog(" 2--> Connecting Client");
-                    client.connect(endpointUrl, callback);
-                },
-                function (callback) {
-                    _client_received_close_event.callCount.should.eql(0);
+        client.on("close", function (err) {
+            debugLog(" 8 --> client has sent 'close' event", err ? err.message : null);
+        });
 
-                    client.once("connection_lost", function () {
-                        debugLog(" 4 or 5--> client has detected that server has shutdown abruptly");
-                        debugLog("           and will try to reconnect");
+        debugLog(" 1--> Starting server");
+        await start_server();
 
-                        setTimeout(() => {
-                            debugLog(" 6--> disconnecting client (while reconnecting)");
-                            client.disconnect(() => {
-                                debugLog(" 8 --> client has been disconnected");
-                                callback();
-                            });
-                        }, 5000); // let's give client some time to attempt a reconnection
-                    });
-                    client.on("close", function (err) {
-                        debugLog(" 8 --> client has sent 'close' event", err ? err.message : null);
-                        //xx should.exist(err);
-                    });
+        debugLog(" 2--> Connecting Client");
+        await client.connect(endpointUrl);
+        _client_received_close_event.callCount.should.eql(0);
 
-                    debugLog(" 3--> Stopping server");
-                    end_server(function () {
-                        debugLog(" 4 or 5 --> Server stopped");
-                    });
-                },
+        debugLog(" 3 -> Stopping server  and wait for client to detect that server has shutdown abruptly");
+        await new Promise((resolve, reject) => {
+            client.once("connection_lost", () => {
+                debugLog(" )> received connection_lost event");
+                setImmediate(() => resolve());
+            });
+            debugLog(" 4 --> Stopping server");
+            end_server().then(() => {
+                debugLog(" 5 --> Server stopped");
+            });
+        });
 
-                function (callback) {
-                    _client_backoff_event.callCount.should.be.greaterThan(0);
-                    _client_received_close_event.callCount.should.eql(1);
-                    should.exist(_client_received_close_event.getCall(0).args[0]);
-                    _client_received_close_event.getCall(0).args[0].message.should.match(/Reconnection has been canceled/);
-                    callback();
-                }
-            ],
-            done
-        );
+        debugLog("  6 --> client has detected that server has shutdown abruptly");
+        debugLog("        and will try to reconnect");
+        // wait for client to attempt to reconnect
+        debugLog("  7 ---> now waiting for client to attempt to reconnect");
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        client.isReconnecting.should.eql(true);
+        debugLog("  6 --> client now reconnecting");
+
+        // let's give client some time to attempt a reconnection
+        debugLog(" 6--> disconnecting client (while reconnecting, but server not present)");
+        await client.disconnect();
+        debugLog(" 8 --> client has been disconnected");
+
+        _client_backoff_event.callCount.should.be.greaterThan(0);
+        _client_received_close_event.callCount.should.eql(1); // TO CHECK
+        should.exist(_client_received_close_event.getCall(0).args[0], "expecting an error in the close event");
+        _client_received_close_event.getCall(0).args[0].message.should.match(/Reconnection has been canceled/);
     });
 });

@@ -8,12 +8,14 @@ import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, f
 const debugLog = make_debugLog("TEST");
 
 const port = 1435;
+
+// a non-existing discovery server
 const port_discovery = 1436;
 
 export function t() {
     const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DISCO7 - Discovery server", function (this: any) {
-        this.timeout(Math.max(50000,this.timeout()));
+        this.timeout(Math.max(50000, this.timeout()));
 
         let discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
 
@@ -256,74 +258,55 @@ export function t() {
             );
         });
 
-        it("DISCO7-E a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", function (done) {
-            let server: OPCUAServer;
+        it("DISCO7-E a server (that want to register itself to the LDS) shall be able to start promptly even if the LDS is no available", async () => {
+            // given_a_server_that_registers_itself_to_local_discovery(callback) {
+            const server = new OPCUAServer({
+                port,
+                registerServerMethod: RegisterServerMethod.LDS,
 
-            async.series(
-                [
-                    function given_a_server_that_registers_itself_to_local_discovery(callback) {
-                        server = new OPCUAServer({
-                            port,
-                            registerServerMethod: RegisterServerMethod.LDS,
+                discoveryServerEndpointUrl
+            });
+            (server.registerServerManager as any).timeout = 100;
+            await server.start();
 
-                            discoveryServerEndpointUrl
-                        });
-                        (server.registerServerManager as any).timeout = 100;
-                        server.start(() => {
-                            // at this stage the server is initiating a connection to the LDS....
-                            callback();
-                        });
-                    },
-                    function the_server_shall_shutdown(callback) {
-                        server.shutdown(() => {
-                            setTimeout(callback, 1000);
-                        });
-                    }
-                ],
-                done
-            );
+            
+            // when server s
+            //  the_server_shall_shutdown(callback) {
+            await server.shutdown();
+
+            await new Promise((resolve) => setTimeout(resolve, 1000));
         });
     });
 
     describe("DISCO8 - Discovery Server 2", function (this: any) {
-        this.timeout(Math.max(50000,this.timeout()));
+        this.timeout(Math.max(50000, this.timeout()));
 
-        it("DISCO8-A server shall not struggle to start if discovery server is not available", function (done) {
+        it("DISCO8-A server shall not struggle to start if discovery server is not available", async () => {
             const discoveryServerEndpointUrl = `opc.tcp://localhost:${port_discovery}`;
-            let server: OPCUAServer;
-            async.series(
-                [
-                    // in this test, there is no discovery server available
-                    // no discovery ...
 
-                    (callback) => {
-                        server = new OPCUAServer({
-                            port,
-                            registerServerMethod: RegisterServerMethod.LDS,
+            // no discovery ...
 
-                            discoveryServerEndpointUrl,
-                            serverInfo: {
-                                applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
-                            }
-                        });
+            // in this test, there is no discovery server available
+            const server = new OPCUAServer({
+                port,
+                registerServerMethod: RegisterServerMethod.LDS,
 
-                        (server.registerServerManager as any).timeout = 100;
+                discoveryServerEndpointUrl,
+                serverInfo: {
+                    applicationUri: makeApplicationUrn(os.hostname(), "NodeOPCUA-Server")
+                }
+            });
 
-                        // when server starts
-                        // it should end up registering itself to the LDS
-                        server.once("serverRegistered", () => {
-                            debugLog("server serverRegistered ?! this is not what we expect !");
-                        });
-                        server.start(() => {
-                            callback();
-                        });
-                    },
-                    (callback) => {
-                        server.shutdown(callback);
-                    }
-                ],
-                done
-            );
+            (server.registerServerManager as any).timeout = 100;
+
+            // when server starts
+            // it should end up registering itself to the LDS
+            server.once("serverRegistered", () => {
+                debugLog("server serverRegistered ?! this is not what we expect !");
+            });
+            await server.start();
+
+            await server.shutdown();
         });
     });
 }

@@ -66,6 +66,12 @@ async function main() {
 
     const session = await client.createSession();
 
+    session.on("session_restored", ()=>{
+        console.log(">> Session restored");
+    });
+    session.on("session_closed", ()=>{
+        console.log(">> session closed");
+    })
     // Note: this example demonstrate how polling can be used in OPCUA ,
     // Note that Pooling is **not** the recommended way to monitored
     // change of a UA Variable! Use Subscription instead ....

@@ -258,6 +258,8 @@ export interface RegisterServerManagerOptions {
     server: IPartialServer;
     discoveryServerEndpointUrl: string;
 }
+
+let g_registeringClientCounter = 0;
 /**
  * RegisterServerManager is responsible to Register an opcua server on a LDS or LDS-ME server
  * This class takes in charge :
@@ -325,7 +327,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             clearTimeout(this._registrationTimerId);
             this._registrationTimerId = null;
         }
-        
+
         assert(this._registrationTimerId === null, "stop has not been called");
         this.removeAllListeners();
     }
@@ -406,13 +408,16 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
         // Retry Strategy must be set
         this.server.serverCertificateManager.referenceCounter++;
+        
+        const prefix = "Client-" + g_registeringClientCounter++ + " - ";
+
         const registrationClient = OPCUAClientBase.create({
-            clientName: this.server.serverInfo.applicationUri!,
+            clientName: prefix + " Registering Client for Server " + this.server.serverInfo.applicationUri!,
 
             applicationName,
 
             applicationUri: this.server.serverInfo.applicationUri!,
-
+ 
             connectionStrategy: infinite_connectivity_strategy,
 
             clientCertificateManager: this.server.serverCertificateManager,
@@ -426,6 +431,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         registrationClient.on("backoff", (nbRetry: number, delay: number) => {
             debugLog("RegisterServerManager - received backoff");
             warningLog(
+                registrationClient.clientName,
                 chalk.bgWhite.cyan("contacting discovery server backoff "),
                 this.discoveryServerEndpointUrl,
                 " attempt #",
@@ -637,15 +643,15 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             return outer_callback();
         }
         if (!(this.state === RegisterServerManagerStatus.INITIALIZING || this.state === RegisterServerManagerStatus.WAITING)) {
-            warningLog("Warning : cannot register server - wrong state " , RegisterServerManagerStatus[this.state]);
+            warningLog("Warning : cannot register server - wrong state ", RegisterServerManagerStatus[this.state]);
             return outer_callback();
-        };
+        }
 
         this._setState(theStatus);
 
         if (this._registration_client) {
             warningLog(
-                `Warning there is already a registering/unregistering task taking place:  ${
+                `Warning there is already a registering/un-registering task taking place:  ${
                     RegisterServerManagerStatus[this.state]
                 } state`
             );
@@ -760,7 +766,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 this._cancel_pending_client_if_any(callback);
             });
         } else {
-            debugLog("RegisterServerManager#_cancel_pending_client_if_any : done");
+            debugLog("RegisterServerManager#_cancel_pending_client_if_any : done (nothing to do)");
             callback();
         }
     }

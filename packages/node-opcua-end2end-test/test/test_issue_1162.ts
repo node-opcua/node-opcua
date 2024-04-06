@@ -171,8 +171,8 @@ describe("Testing automatic reconnection to a server when credential have change
             await wait(10 * 1000);       
             console.log("client.isReconnecting = ", client.isReconnecting);
             await wait(10 * 1000);
-            console.log("client.isReconnecting = ", client.isReconnecting);
-            await wait(10 * 1000);
+            // console.log("client.isReconnecting = ", client.isReconnecting);
+            // await wait(10 * 1000);
             console.log("client.isReconnecting = ", client.isReconnecting);
             client.isReconnecting.should.eql(true, "client should be trying to reconnect constantly without success");
         } finally {

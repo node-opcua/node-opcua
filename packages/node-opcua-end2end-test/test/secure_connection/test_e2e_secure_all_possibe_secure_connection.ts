@@ -111,7 +111,7 @@ export interface InnerServer {
     temperatureVariableId: NodeId;
     server: OPCUAServer;
 }
-async function start_inner_server_local(options: OPCUAServerOptions): Promise<InnerServer> {
+async function start_inner_server_local(options?: OPCUAServerOptions): Promise<InnerServer> {
     options = options || {};
     if (options.serverCertificateManager) {
         throw new Error("start_inner_server_local: serverCertificateManager should not be defined");
@@ -220,7 +220,7 @@ async function trustCertificateOnClient(): Promise<void> {
     }
 }
 
-async function start_server(options: OPCUAServerOptions): Promise<InnerServer> {
+async function start_server(options?: OPCUAServerOptions): Promise<InnerServer> {
     // Given a server that have a signed end point
     const data = await start_inner_server_local(options);
 
@@ -577,13 +577,14 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
     it("QQQ1 a client shall be able to establish a SIGNED connection with a server", async () => {
         should.exist(serverCertificate);
         server.currentChannelCount.should.equal(0);
+        const clientCertificateManager = await getClientCertificateManager();
         const options = {
             securityMode: MessageSecurityMode.Sign,
             securityPolicy: SecurityPolicy.Basic128Rsa15,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy,
 
-            clientCertificateManager: await getClientCertificateManager()
+            clientCertificateManager
         };
         const client = OPCUAClient.create(options);
         await trustClientCertificateOnServer(client);

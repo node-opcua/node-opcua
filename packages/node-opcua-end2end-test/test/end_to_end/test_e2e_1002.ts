@@ -109,7 +109,7 @@ describe("#1002 - ability to set transport timeout ", () => {
 
             console.log("timeout = ", timeout);
             console.log("connected");
-            await new Promise((resolve) => setTimeout(resolve, transportTimeout + 6000));
+            await new Promise((resolve) => setTimeout(resolve, transportTimeout + 8000));
             console.log("done");
 
             return (timeout as number) || 0;

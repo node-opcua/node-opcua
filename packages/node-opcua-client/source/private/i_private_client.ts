@@ -27,7 +27,5 @@ export interface IClientBase {
 
     getTransportSettings(): IBasicTransportSettings;
 
-    requestReconnection(): void;
-
     isUnusable(): boolean;
 }

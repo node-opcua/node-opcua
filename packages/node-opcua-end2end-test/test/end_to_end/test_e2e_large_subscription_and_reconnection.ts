@@ -51,7 +51,7 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
                 response.constructor.name === "CreateSubscriptionResponse" ||
                 response.constructor.name === "CreateMonitoredItemsResponse"
             ) {
-                // console.log(response.toString());
+                console.log(response.toString());
             }
             if (response.constructor.name === "CreateMonitoredItemsResponse") {
                 createMonitoredItemsResponses.push(response as CreateMonitoredItemsResponse);
@@ -79,6 +79,10 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
 
 
         createMonitoredItemsResponses.length.should.eql(maxMonitoredItemsPerCall + 1);
+
+
+        // now clear the monitored items
+
         createMonitoredItemsResponses = [];
 
         // When the server stops and restarts
@@ -93,6 +97,7 @@ describe("[CLIENT] recreating large subscription during reconnection", () => {
 
         server = await startServer(maxMonitoredItemsPerCall);
 
+        
         // wait until reconnection is completed
         while (session.isReconnecting && !isSessionRestored) {
             await pause(100);

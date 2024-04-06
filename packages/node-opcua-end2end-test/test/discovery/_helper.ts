@@ -79,7 +79,7 @@ export async function createServerThatRegistersItselfToTheDiscoveryServer(
         registerServerMethod: RegisterServerMethod.LDS,
 
         certificateFile,
-        serverCertificateManager
+        serverCertificateManager,
     });
     server.discoveryServerEndpointUrl.should.eql(discoveryServerEndpointUrl);
 

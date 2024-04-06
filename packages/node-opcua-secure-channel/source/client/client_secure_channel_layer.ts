@@ -316,8 +316,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
     private _bytesWritten = 0;
     private _timeDrift = 0;
 
-    public static minTransactionTimeout = 5 * 1000; // 10 sec
-    public static defaultTransactionTimeout = 15 * 1000; // 15 minute
+    public static minTransactionTimeout = 5 * 1000; // 5 sec
+    public static defaultTransactionTimeout = 15 * 1000; // 15 seconds
     public static defaultTransportTimeout = 60 * 1000; // 60 seconds
 
     /**
@@ -701,8 +701,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
         this._isDisconnecting = true;
         doDebug && debugLog("abortConnection ", !!this.__call);
-        assert(typeof callback === "function");
-
+  
         async.series(
             [
                 (inner_callback: ErrorCallback) => {
