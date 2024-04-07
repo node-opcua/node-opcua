@@ -583,6 +583,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             if (this._reconnectionIsCanceled) {
                 return _when_reconnectionIsCanceled(callback);
             }
+            if (this._secureChannel) {
+                doDebug && debugLog("attempt to recreate a new secure channel, while channel already exists");
+                // are we reentrant ?
+                const err = new Error("_internal_create_secure_channel failed, this._secureChannel is supposed to be null");
+                return _when_internal_error(err, callback);
+            }
             assert(!this._secureChannel, "_attempt_to_recreate_secure_channel,  expecting this._secureChannel not to exist");
 
             this._internal_create_secure_channel(infiniteConnectionRetry, (err?: Error | null) => {
@@ -666,7 +672,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         assert(this._secureChannel === null);
         assert(typeof this.endpointUrl === "string");
 
-        debugLog("_internal_create_secure_channel creating new ClientSecureChannelLayer _internalState =", this._internalState, this.clientName);
+        debugLog(
+            "_internal_create_secure_channel creating new ClientSecureChannelLayer _internalState =",
+            this._internalState,
+            this.clientName
+        );
         const secureChannel = new ClientSecureChannelLayer({
             connectionStrategy,
             defaultSecureTokenLifetime: this.defaultSecureTokenLifetime,
@@ -1606,7 +1616,11 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 // this is a normal close operation initiated by us
                 this.emit("close", err); // instead of "close"
             } else {
-                if (this.reconnectOnFailure && this._internalState !== "reconnecting") {
+                if (
+                    this.reconnectOnFailure &&
+                    this._internalState !== "reconnecting" &&
+                    this._internalState !== "reconnecting_newchannel_connected"
+                ) {
                     debugLog(" ClientBaseImpl emitting connection_lost");
                     this._setInternalState("reconnecting");
                     /**
