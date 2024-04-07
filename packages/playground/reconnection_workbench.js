@@ -1,5 +1,5 @@
 /* Copyright Sterfive 2021-2024 */
-process.env.DEBUG = "RECONNECTION";
+process.env.DEBUG = "RECONNECTION" + (process.env.DEBUG || "");
 process.env.NODEOPCUADEBUG = "CLIENT{TRACE}SERVER{TRACE}";
 
 /**
@@ -41,9 +41,11 @@ const { timestamp, setNextSubscriptionId, OPCUACertificateManager, MessageSecuri
 const { OPCUAServer, OPCUAClient, AttributeIds, TimestampsToReturn, ClientTCP_transport } = require("node-opcua");
 
 const port = 26551;
-
+const nbSubscriptions = 2;
 async function startServer() {
-    setNextSubscriptionId(1);
+    if (process.env.IMITATE_OPEN62541) {
+        setNextSubscriptionId(1);
+    }
 
     const rootFolder = path.join(os.tmpdir(), "node-opcua-server");
 
@@ -418,46 +420,7 @@ async function createClient() {
         }
     });
 
-    const subscription = await session.createSubscription2({
-        maxNotificationsPerPublish: 50,
-        priority: 100,
-        publishingEnabled: true,
-        requestedLifetimeCount: 1000,
-        requestedMaxKeepAliveCount: 10,
-        requestedPublishingInterval: 5000
-    });
-    subscription.on("terminated", () => {
-        console.log("subscription terminated");
-    });
-
-    const nodeId = "ns=1;s=Temperature";
-    const monitoredItem = await subscription.monitor(
-        {
-            attributeId: AttributeIds.Value,
-            nodeId
-        },
-        {
-            samplingInterval: 250,
-            discardOldest: true,
-            queueSize: 1000
-        },
-        TimestampsToReturn.Both
-    );
-
-    monitoredItem.on("changed", (dataValue) => {
-        const str = dataValue.value ? dataValue.value.value?.toString() : "null";
-        const verboseNotification = false;
-        if (verboseNotification) {
-            const top = "+" + "".padEnd(str.length + 6, "-") + "+";
-            console.log(t(), top);
-            console.log("              ", "|   ", chalk.green(str) + "  |");
-            console.log("              ", top);
-        } else {
-            console.log(t(), "Value = ", str + " " + dataValue.sourceTimestamp?.toISOString());
-        }
-    });
-
-    async function createMonitoredItemGroup() {
+    async function createMonitoredItemGroup(subscription) {
         const itemsToMonitor1 = [];
         for (let i = 0; i < 1000; i++) {
             itemsToMonitor1.push({ nodeId: "ns=1;s=Value" + i, attributeId: AttributeIds.Value });
@@ -480,7 +443,48 @@ async function createClient() {
         });
     }
 
-    await createMonitoredItemGroup();
+    for (let i = 0; i < nbSubscriptions; i++) {
+        const subscription = await session.createSubscription2({
+            maxNotificationsPerPublish: 50,
+            priority: 100,
+            publishingEnabled: true,
+            requestedLifetimeCount: 1000,
+            requestedMaxKeepAliveCount: 10,
+            requestedPublishingInterval: 5000
+        });
+        subscription.on("terminated", () => {
+            console.log("subscription terminated", subscription.subscriptionId);
+        });
+
+        const nodeId = "ns=1;s=Temperature";
+        const monitoredItem = await subscription.monitor(
+            {
+                attributeId: AttributeIds.Value,
+                nodeId
+            },
+            {
+                samplingInterval: 250,
+                discardOldest: true,
+                queueSize: 1000
+            },
+            TimestampsToReturn.Both
+        );
+
+        monitoredItem.on("changed", (dataValue) => {
+            const str = dataValue.value ? dataValue.value.value?.toString() : "null";
+            const verboseNotification = false;
+            if (verboseNotification) {
+                const top = "+" + "".padEnd(str.length + 6, "-") + "+";
+                console.log(t(), top);
+                console.log("              ", "|   ", chalk.green(str) + "  |");
+                console.log("              ", top);
+            } else {
+                console.log(t(), subscription.subscriptionId, "Value = ", str + " " + dataValue.sourceTimestamp?.toISOString());
+            }
+        });
+
+        await createMonitoredItemGroup(subscription);
+    }
 
     const disconnect = async () => {
         session && (await session.close());
