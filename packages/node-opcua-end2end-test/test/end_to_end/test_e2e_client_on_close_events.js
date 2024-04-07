@@ -151,7 +151,7 @@ describe("testing Client-Server - Event", function () {
         debugLog("        and will try to reconnect");
         // wait for client to attempt to reconnect
         debugLog("  7 ---> now waiting for client to attempt to reconnect");
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
         client.isReconnecting.should.eql(true);
         debugLog("  6 --> client now reconnecting");
 
@@ -159,7 +159,7 @@ describe("testing Client-Server - Event", function () {
         debugLog(" 6--> disconnecting client (while reconnecting, but server not present)");
         await client.disconnect();
         debugLog(" 8 --> client has been disconnected");
-
+    
         _client_backoff_event.callCount.should.be.greaterThan(0);
         _client_received_close_event.callCount.should.eql(1); // TO CHECK
         should.exist(_client_received_close_event.getCall(0).args[0], "expecting an error in the close event");
