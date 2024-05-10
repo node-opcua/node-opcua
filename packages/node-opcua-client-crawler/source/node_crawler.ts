@@ -19,6 +19,10 @@ const doDebug = checkDebugFlag(__filename);
 
 type Queue = async.QueueObject<TaskReconstruction>;
 
+/**
+ * @deprecated: use NodeCrawlerBase from "@sterfive/crawler" 
+ *              contact@sterfive.com
+ */
 export class NodeCrawler extends NodeCrawlerBase {
 
     protected readonly _objMap: ObjectMap;
@@ -34,7 +38,6 @@ export class NodeCrawler extends NodeCrawlerBase {
         (this as any)._objMap = null;
         super.dispose();
     }
-
     /**
      *
      */
