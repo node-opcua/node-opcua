@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 /**
  * @module node-opcua-nodeid
  */
@@ -144,7 +145,7 @@ export class NodeId {
      * @param [options.addressSpace] {AddressSpace}
      * @return {String}
      */
-    public toString(options?: { addressSpace?: any , namespaceArray: string[]}): string {
+    public toString(options?: { addressSpace?: any , namespaceArray?: string[]}): string {
         const addressSpace = options ? options.addressSpace : null;
 
         const namespacePart: string = options?.namespaceArray ?
@@ -191,8 +192,8 @@ export class NodeId {
     /**
      * convert nodeId to a JSON string. same as {@link NodeId#toString }
      */
-    public toJSON(): string {
-        return this.toString();
+    public toJSON(options?: {namespaceArray?: string[]}): string {
+        return this.toString(options);
     }
 
     public displayText(): string {
@@ -242,6 +243,12 @@ const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
 const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
 const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
 
+const regexNSU = /nsu=(.*);(.*)/;
+const regexNamespaceNSU_I = /nsu=(.+);i=([0-9]+)/;
+const regexNamespaceNSU_S = /nsu=(.+);s=(.*)/;
+const regexNamespaceNSU_B = /nsu=(.+);b=(.*)/;
+const regexNamespaceNSU_G = /nsu=(.+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
+
 /**
  * Convert a value into a nodeId:
  * @class opcua
@@ -254,10 +261,13 @@ const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f
  *    - if nodeId is a string of form : "b=ABCD=" => nodeId({value=decodeBase64("ABCD="), identifierType: NodeIdType.BYTESTRING})
  *    - if nodeId is a {@link NodeId} :  coerceNodeId returns value
  * @param value
- * @param namespace {number}
+ * @param namespaceOptions {number} 
+ * @param namespaceOptions.namespace {number} 
+ * @param namespaceOptions.namespaceArray {number} 
+ * 
  */
 // eslint-disable-next-line max-statements
-export function coerceNodeId(value: unknown, namespace?: number): NodeId {
+export function coerceNodeId(value: unknown, namespaceOptions?: number | { namespace?: number, namespaceArray: string[]}): NodeId {
     let matches;
     let twoFirst;
     if (value instanceof NodeId) {
@@ -265,7 +275,10 @@ export function coerceNodeId(value: unknown, namespace?: number): NodeId {
     }
 
     value = value || 0;
-    namespace = namespace || 0;
+
+    let namespace = (typeof namespaceOptions === "number" ? namespaceOptions as number : namespaceOptions?.namespace )|| 0;
+    
+    const namespaceArray: string[] | undefined = (namespaceOptions as { namespace?: number, namespaceArray: string[] }) ?.namespaceArray || undefined;
 
     let identifierType = NodeIdType.NUMERIC;
 
@@ -306,7 +319,19 @@ export function coerceNodeId(value: unknown, namespace?: number): NodeId {
             namespace = parseInt(matches[1], 10);
             value = normalizeGuid(matches[2]);
         } else {
-            throw new Error("String cannot be coerced to a nodeId : " + value);
+
+            // eslint-disable-next-line no-empty
+            if (namespaceArray && (matches = regexNSU.exec(value))!==null) {
+                const namespaceIndex = namespaceArray.indexOf(matches[1]);
+                if (namespaceIndex === -1) {
+                    throw new Error("Cannot find namespace with index " + matches[1] + " in " + namespaceArray.join(","));
+                }
+                const nid = coerceNodeId(matches[2], namespace);
+                nid.namespace = namespaceIndex;
+                return nid;
+            } else {
+                throw new Error("String cannot be coerced to a nodeId : " + value);
+            }
         }
     } else if (value instanceof Buffer) {
         identifierType = NodeIdType.BYTESTRING;
