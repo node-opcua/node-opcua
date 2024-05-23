@@ -249,6 +249,11 @@ const regexNamespaceNSU_S = /nsu=(.+);s=(.*)/;
 const regexNamespaceNSU_B = /nsu=(.+);b=(.*)/;
 const regexNamespaceNSU_G = /nsu=(.+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
 
+
+export interface ResolveNodeIdOptions {
+    namespaceArray?: string[];
+    defaultNamespaceIndex?: number ; 
+}
 /**
  * Convert a value into a nodeId:
  * @class opcua
@@ -267,7 +272,7 @@ const regexNamespaceNSU_G = /nsu=(.+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-
  * 
  */
 // eslint-disable-next-line max-statements
-export function coerceNodeId(value: unknown, namespaceOptions?: number | { namespace?: number, namespaceArray: string[]}): NodeId {
+export function coerceNodeId(value: unknown, namespaceOptions?: number | ResolveNodeIdOptions): NodeId {
     let matches;
     let twoFirst;
     if (value instanceof NodeId) {
@@ -276,7 +281,7 @@ export function coerceNodeId(value: unknown, namespaceOptions?: number | { names
 
     value = value || 0;
 
-    let namespace = (typeof namespaceOptions === "number" ? namespaceOptions as number : namespaceOptions?.namespace )|| 0;
+    let namespace = (typeof namespaceOptions === "number" ? namespaceOptions as number : namespaceOptions?.defaultNamespaceIndex )|| 0;
     
     const namespaceArray: string[] | undefined = (namespaceOptions as { namespace?: number, namespaceArray: string[] }) ?.namespaceArray || undefined;
 
@@ -421,14 +426,14 @@ function reverse_map(nodeId: string) {
  * @param nodeIdOrString
  * @return the nodeId
  */
-export function resolveNodeId(nodeIdOrString: NodeIdLike): NodeId {
+export function resolveNodeId(nodeIdOrString: NodeIdLike, options?: ResolveNodeIdOptions): NodeId {
     let nodeId;
 
     const rawId = typeof nodeIdOrString === "string" ? _nameToNodeIdIndex[nodeIdOrString] : undefined;
     if (rawId !== undefined) {
         return rawId;
     } else {
-        nodeId = coerceNodeId(nodeIdOrString);
+        nodeId = coerceNodeId(nodeIdOrString, options);
     }
     return nodeId;
 }

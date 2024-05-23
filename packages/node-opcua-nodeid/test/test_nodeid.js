@@ -475,4 +475,9 @@ describe("testing coerceNodeId with namespace arrays", function() {
         });
  
     });
+    it("should resolve NodeID with optional namespace array", () => {
+        const ref_nodeId = resolveNodeId("nsu=http://opcfoundation.org/UA/DI/;i=85", { namespaceArray });
+        ref_nodeId.toString().should.equal("ns=1;i=85");
+        ref_nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;i=85");
+    });
 });

@@ -1857,7 +1857,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         assert(Array.isArray(nodesToRegister));
 
         const request = new RegisterNodesRequest({
-            nodesToRegister: nodesToRegister.map(resolveNodeId)
+            nodesToRegister: nodesToRegister.map((n)=>resolveNodeId(n))
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
@@ -1886,7 +1886,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         assert(Array.isArray(nodesToUnregister));
 
         const request = new UnregisterNodesRequest({
-            nodesToUnregister: nodesToUnregister.map(resolveNodeId)
+            nodesToUnregister: nodesToUnregister.map((n)=>resolveNodeId(n))
         });
 
         this.performMessageTransaction(request, (err: Error | null, response?: Response) => {
