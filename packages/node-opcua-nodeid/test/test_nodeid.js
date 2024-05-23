@@ -401,7 +401,7 @@ describe("issue#372 coercing & making nodeid string containing semi-column", fun
     });
 });
 
-describe("nullId constness", () => {
+describe("nullId const-ness", () => {
     it("should throw an exception if one try to modify the NodeId.nullNodeId property: namespace", () => {
         should.throws(() => {
             NodeId.nullNodeId.namespace = 1;
@@ -419,5 +419,32 @@ describe("nullId constness", () => {
             NodeId.nullNodeId.identifierType = NodeIdType.GUID;
         }, "should not be able assign to read only property 'namespace' of object '#<NodeId>'");
         NodeId.nullNodeId.identifierType.should.eql(NodeIdType.NUMERIC);
+    });
+});
+
+
+describe("testing NodeId#toString with namespace arrays", function () {
+
+    const namespaceArray= [
+        "http://opcfoundation.org/UA/", 
+        "http://opcfoundation.org/UA/DI/",
+        "http://opcfoundation.org/UA/ADI/",
+    ];
+
+    it("should provide a nsu portion instead of a ns=index when namespaceArray is provided", function() {
+        const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 1);
+        ref_nodeId.toString({ namespaceArray }).should.equal("nsu=http://opcfoundation.org/UA/DI/;i=85");
+    });
+    it("should not provide a nsu portion instead of a ns=index when namespaceArray is provided and namespaceIndex=0 (standard UA namespace)", function () {
+        const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 0);
+        // namespace portion is not needed for namepsace 0 which is implied
+        ref_nodeId.toString({ namespaceArray }).should.equal("i=85");
+
+    });
+    it("should issue a default namespace uri in nsu portion instead of a ns=index when namespaceArray is provided and namespaceIndex doesn't exist in the namespace array", function() {
+        const ref_nodeId = new NodeId(NodeIdType.NUMERIC, 85, 100);
+        // namespace portion is not needed for namepsace 0 which is implied
+        ref_nodeId.toString({ namespaceArray }).should.equal("nsu=<unknown namespace with index 100>;i=85");
+
     });
 });

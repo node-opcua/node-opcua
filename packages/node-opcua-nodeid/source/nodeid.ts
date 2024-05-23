@@ -144,26 +144,31 @@ export class NodeId {
      * @param [options.addressSpace] {AddressSpace}
      * @return {String}
      */
-    public toString(options?: { addressSpace?: any }): string {
+    public toString(options?: { addressSpace?: any , namespaceArray: string[]}): string {
         const addressSpace = options ? options.addressSpace : null;
+
+        const namespacePart: string = options?.namespaceArray ?
+            (this.namespace == 0 ? ""  : `nsu=${options.namespaceArray[this.namespace] || `<unknown namespace with index ${this.namespace}>`};`)
+            : `ns=${this.namespace};`;
+
         let str;
         const _this = this as INodeId;
         switch (_this.identifierType) {
             case NodeIdType.NUMERIC:
-                str = "ns=" + this.namespace + ";i=" + _this.value;
+                str = `${namespacePart}i=${_this.value}`;
                 break;
             case NodeIdType.STRING:
-                str = "ns=" + this.namespace + ";s=" + _this.value;
+                str = `${namespacePart}s=${_this.value}`;
                 break;
             case NodeIdType.GUID:
-                str = "ns=" + this.namespace + ";g=" + normalizeGuid(_this.value);
+                str = `${namespacePart}g=${normalizeGuid(_this.value)}`;
                 break;
             default:
                 assert(this.identifierType === NodeIdType.BYTESTRING, "invalid identifierType in NodeId : " + this.identifierType);
                 if (this.value) {
-                    str = "ns=" + this.namespace + ";b=" + (this.value as Buffer).toString("base64");
+                    str = `${namespacePart}b=${(this.value as Buffer).toString("base64")}`;
                 } else {
-                    str = "ns=" + this.namespace + ";b=<null>";
+                    str = `${ namespacePart}b=<null>`;
                 }
                 break;
         }
