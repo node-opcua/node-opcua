@@ -4,27 +4,40 @@
 import { EventEmitter } from "events";
 import async from "async";
 
-import { UAReferenceType } from "node-opcua-address-space";
-import { assert } from "node-opcua-assert";
-import { browseAll, BrowseDescriptionLike, IBasicSessionAsync2, ReadValueIdOptions } from "node-opcua-client";
-import { DataTypeDefinition } from "node-opcua-types";
-import { ReferenceTypeIds, VariableIds } from "node-opcua-constants";
 import {
+    assert,
     AttributeIds,
+    browseAll,
+    BrowseDescription,
+    BrowseDescriptionLike,
     BrowseDirection,
+    BrowseResult,
+    checkDebugFlag,
     coerceLocalizedText,
     coerceQualifiedName,
+    DataTypeDefinition,
+    DataValue,
+    ErrorCallback,
+    IBasicSessionAsync2,
     LocalizedText,
+    make_debugLog,
+    make_warningLog,
+    makeNodeId,
     makeResultMask,
     NodeClass,
-    QualifiedName
-} from "node-opcua-data-model";
-import { DataValue } from "node-opcua-data-value";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
-import { BrowseDescription, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
-import { StatusCodes } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
+    NodeId,
+    NodeIdLike,
+    QualifiedName,
+    ReadValueIdOptions,
+    ReferenceDescription,
+    ReferenceTypeIds,
+    resolveNodeId,
+    sameNodeId,
+    StatusCodes,
+    VariableIds
+} from "node-opcua-client";
+import {} from "node-opcua-debug";
+
 import {
     CacheNodeReferenceType,
     CacheNodeVariableType,
@@ -51,16 +64,12 @@ const doDebug = checkDebugFlag(__filename);
 const doDebug1 = doDebug && false;
 const warningLog = make_warningLog(__filename);
 
-
 console.log("+-------------------------------------------------------------------------------------+");
 console.log("| Warning:                                                                            |");
 console.log("| node-opcua-client-crawler module has been deprecated and is not maintained anymore. |");
 console.log("| Please use '@sterfive/crawler' instead.                                             |");
 console.log("| '@sterfive/crawler' is available to the NodeOPCUA Subscription members              |");
 console.log("+-------------------------------------------------------------------------------------+");
-
-
-
 
 //                         "ReferenceType | IsForward | BrowseName | NodeClass | DisplayName | TypeDefinition"
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | DisplayName | NodeClass | TypeDefinition");
@@ -156,7 +165,7 @@ interface TaskReadNode {
     action: ReadNodeAction;
 }
 
-function getReferenceTypeId(referenceType: undefined | string | NodeId | UAReferenceType): NodeId | null {
+function getReferenceTypeId(referenceType: undefined | string | NodeId ): NodeId | null {
     if (!referenceType) {
         return null;
     }
@@ -202,7 +211,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
         crawler: NodeCrawlerBase,
         cacheNode: CacheNode,
         userData: UserData,
-        referenceType?: string | UAReferenceType,
+        referenceType?: string ,
         browseDirection?: BrowseDirection
     ): void {
         const referenceTypeNodeId = getReferenceTypeId(referenceType);
