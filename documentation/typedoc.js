@@ -43,8 +43,7 @@ module.exports = {
         "node-opcua-data-value",
         "node-opcua-service-read",
         "node-opcua-service-write",
-        "node-opcua-service-subscription",
-        "node-opcua-client-crawler"
+        "node-opcua-service-subscription"
     ]),
     out: "./out1/",
 
