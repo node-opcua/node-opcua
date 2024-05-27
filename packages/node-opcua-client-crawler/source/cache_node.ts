@@ -2,13 +2,13 @@ import {
     ReferenceDescription,
     QualifiedName,
     NodeClass,
+    NodeId,
     LocalizedText,
+    DataTypeDefinition,
     coerceLocalizedText,
     DataValue,
     AccessLevelFlag
 } from "node-opcua-client";
-import { NodeId } from "node-opcua-nodeid";
-import { DataTypeDefinition } from "node-opcua-types";
 import { pendingBrowseName } from "./private";
 
 function w(s: string, l: number): string {

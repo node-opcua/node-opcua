@@ -1,13 +1,18 @@
 import chalk from "chalk";
 import async from "async";
 
-import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { assert } from "node-opcua-assert";
-import { ReferenceDescription } from "node-opcua-service-browse";
-import { ErrorCallback } from "node-opcua-status-code";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
-import { NodeClass } from "node-opcua-data-model";
-import { lowerFirstLetter } from "node-opcua-utils";
+import {
+    assert,
+    checkDebugFlag,
+    ErrorCallback,
+    lowerFirstLetter,
+    make_debugLog,
+    make_warningLog,
+    NodeClass,
+    NodeIdLike,
+    ReferenceDescription,
+    resolveNodeId,
+} from "node-opcua-client";
 
 import { NodeCrawlerBase, NodeCrawlerClientSession, ObjectMap, Pojo, UserData } from "./node_crawler_base";
 import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
@@ -20,18 +25,17 @@ const doDebug = checkDebugFlag(__filename);
 type Queue = async.QueueObject<TaskReconstruction>;
 
 /**
- * @deprecated: use NodeCrawlerBase from "@sterfive/crawler" 
+ * @deprecated: use NodeCrawlerBase from "@sterfive/crawler"
  *              contact@sterfive.com
  */
 export class NodeCrawler extends NodeCrawlerBase {
-
     protected readonly _objMap: ObjectMap;
 
     constructor(session: NodeCrawlerClientSession) {
         super(session);
         this._objMap = {};
     }
-    public override  dispose(): void {
+    public override dispose(): void {
         Object.values(this._objMap).map((obj: any) => {
             Object.keys(obj as any).map((k) => ((obj as any)[k] = undefined));
         });
@@ -164,7 +168,7 @@ export class NodeCrawler extends NodeCrawlerBase {
             browseName: object.browseName.name,
             nodeId: object.nodeId.toString(),
             displayName: object.displayName?.text,
-            description:object.description?.text,
+            description: object.description?.text
         };
 
         // Append nodeClass
