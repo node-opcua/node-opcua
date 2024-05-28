@@ -72,7 +72,7 @@ import { DataType, isValidVariant, Variant, VariantArrayType } from "node-opcua-
 
 import { HistoryServerCapabilities, HistoryServerCapabilitiesOptions } from "./history_server_capabilities";
 import { MonitoredItem } from "./monitored_item";
-import { ServerCapabilities, ServerCapabilitiesOptions, ServerOperationLimits } from "./server_capabilities";
+import { ServerCapabilities, ServerCapabilitiesOptions, ServerOperationLimits, defaultServerCapabilities } from "./server_capabilities";
 import { ServerSidePublishEngine } from "./server_publish_engine";
 import { ServerSidePublishEngineForOrphanSubscription } from "./server_publish_engine_for_orphan_subscriptions";
 import { ServerSession } from "./server_session";
@@ -443,7 +443,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval
         (this.serverCapabilities as any).__defineGetter__("minSupportedSampleRate", () => {
-            return MonitoredItem.minimumSamplingInterval;
+            return options!.serverCapabilities?.minSupportedSampleRate  || MonitoredItem.minimumSamplingInterval;
         });
 
         this.serverConfiguration = options.serverConfiguration;
@@ -1086,6 +1086,14 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxByteStringLength, DataType.UInt32, () => {
                     return Math.min(this.serverCapabilities.maxByteStringLength, BinaryStream.maxByteStringLength);
+                });
+
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize, DataType.UInt32, () => {
+                    return Math.max(1,this.serverCapabilities.maxMonitoredItemsQueueSize);
+                });
+                
+                bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate, DataType.UInt32, () => {
+                    return Math.max(this.serverCapabilities.minSupportedSampleRate, defaultServerCapabilities.minSupportedSampleRate);
                 });
 
                 const bindOperationLimits = (operationLimits: ServerOperationLimits) => {

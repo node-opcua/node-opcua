@@ -29,7 +29,10 @@ export const serverCapabilitiesIds = [
     VariableIds.Server_ServerCapabilities_MaxSelectClauseParameters,
     VariableIds.Server_ServerCapabilities_MaxWhereClauseParameters,
     VariableIds.Server_ServerCapabilities_ConformanceUnits,
-    VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription
+    VariableIds.Server_ServerCapabilities_MaxMonitoredItemsPerSubscription,
+
+    VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize
+
 ];
 
 export interface OperationLimits {
