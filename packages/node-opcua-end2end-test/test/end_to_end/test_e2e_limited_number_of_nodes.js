@@ -263,7 +263,7 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     });
 
     xit("should crawl a server cyclic-node ", function (done) {
-        const namespace = server.engine.addresSpaec.getOwnNamespace();
+        const namespace = server.engine.addressSpace.getOwnNamespace();
         // TODO
         server.subFolder1 = namespace.addFolder("ObjectsFolder", "SubFolder1");
         server.subFolder2 = namespace.addFolder(server.subFolder1, "SubFolder2");
