@@ -216,22 +216,19 @@ function repair_client_session_by_recreating_a_new_session(
                 doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
                 assert(subscription.session === newSession, "must have the new session");
 
-                recreateSubscriptionAndMonitoredItem(subscription, (err1?: Error) => {
-                    // prettier-ignore
-                    { const err = _shouldNotContinue(session); if (err) { return next(err); } }
-
-                    if (err1) {
-                        doDebug && debugLog("_recreateSubscription failed !" + err1.message);
-                    }
-
+                recreateSubscriptionAndMonitoredItem(subscription).then(() => {
                     doDebug &&
                         debugLog(
                             chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE subscriptionId="),
                             subscriptionId
                         );
+                    next();
 
+                }).catch((err) => {
+                    doDebug && debugLog("_recreateSubscription failed !" + (err as Error).message);
                     next();
                 });
+
             },
             (err1?: Error | null) => {
                 // prettier-ignore
@@ -495,7 +492,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
 
     const repeatedAction = (callback: EmptyCallback) => {
         // prettier-ignore
-        {   const err = _shouldNotContinue(session);   if (err) { return callback(err); }}
+        { const err = _shouldNotContinue(session); if (err) { return callback(err); } }
 
         _repair_client_session(client, session, (err) => {
             // prettier-ignore
