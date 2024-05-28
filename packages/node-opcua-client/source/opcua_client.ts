@@ -97,14 +97,20 @@ export type WithSubscriptionFunc = (session: ClientSession, subscription: Client
 export type WithSubscriptionFuncP<T> = (session: ClientSession, subscription: ClientSubscription) => Promise<T>;
 
 export interface OPCUAClient {
+    /**
+     *
+     * @param endpointUrl
+     * @param inner_func
+     */
     withSessionAsync<T>(endpointUrl: string | EndpointWithUserIdentity, inner_func: WithSessionFuncP<T>): Promise<T>;
 
-    withSession(
-        endpointUrl: string | EndpointWithUserIdentity,
-        inner_func: (session: ClientSession, done: (err?: Error) => void) => void,
-        callback: (err?: Error) => void
-    ): void;
 
+    /**
+     *
+     * @param endpointUrl
+     * @param parameters
+     * @param inner_func
+     */
     withSubscriptionAsync<T>(
         endpointUrl: string | EndpointWithUserIdentity,
         parameters: ClientSubscriptionOptions,
