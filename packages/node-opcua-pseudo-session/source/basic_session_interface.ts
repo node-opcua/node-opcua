@@ -367,8 +367,19 @@ export async function getArgumentDefinitionHelper(
     return { inputArguments, outputArguments };
 }
 
+interface SessionWithCache {
+    $$namespaceArray?: string[] | null;
+}
+
+
+
 export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple): Promise<string[]> {
+
+    if ((session as SessionWithCache).$$namespaceArray)  {
+        return (session as SessionWithCache).$$namespaceArray!;
+    }
     const nodeId = resolveNodeId(VariableIds.Server_NamespaceArray);
+
     const dataValue = await session.read({
         nodeId,
         attributeId: AttributeIds.Value
@@ -377,5 +388,10 @@ export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple):
         // errorLog("namespaceArray is not populated ! Your server must expose a list of namespaces in node ", nodeId.toString());
         return [];
     }
+    (session as SessionWithCache).$$namespaceArray = dataValue.value.value; // keep a cache
     return dataValue.value.value as string[];
+}
+
+export async function clearSessionCache(session: IBasicSessionAsync2) {
+    (session as SessionWithCache).$$namespaceArray = undefined;
 }
