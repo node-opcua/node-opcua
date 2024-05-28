@@ -1,5 +1,5 @@
 import sinon from "sinon";
-
+import "should";
 import { AddressSpace, BaseNode, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { getMiniAddressSpace } from "node-opcua-address-space/testHelpers";
 import { ObjectIds, DataTypeIds, ReferenceTypeIds } from "node-opcua-constants";

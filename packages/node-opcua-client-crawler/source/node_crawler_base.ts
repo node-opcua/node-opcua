@@ -36,7 +36,6 @@ import {
     StatusCodes,
     VariableIds
 } from "node-opcua-client";
-import {} from "node-opcua-debug";
 
 import {
     CacheNodeReferenceType,

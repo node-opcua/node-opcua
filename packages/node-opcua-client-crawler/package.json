@@ -21,9 +21,17 @@
     "peerDependencies": {
         "node-opcua-client": ">=2.124.0"
     },
+    "optionalDependencies": {},
     "devDependencies": {
         "should": "^13.2.3",
-        "sinon": "^17.0.1"
+        "sinon": "^17.0.1",
+        "node-opcua": "2.124.0",
+        "node-opcua-assert": "2.120.0",
+        "node-opcua-address-space": "2.124.0",
+        "node-opcua-data-model": "2.121.0",
+        "node-opcua-nodeid": "2.121.0",
+        "node-opcua-debug": "2.121.0",
+        "node-opcua-constants": "2.121.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
