@@ -2,6 +2,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import {
     IBasicSessionAsync2,
+    clearSessionCache,
     readNamespaceArray
 } from "node-opcua-pseudo-session";
 //
@@ -14,11 +15,14 @@ const errorLog = make_errorLog(__filename);
 const warningLog = errorLog;
 
 interface IBasicSession_ extends IBasicSessionAsync2 {
+    $$namespaceArray?: string[];
     $$extraDataTypeManager?: ExtraDataTypeManager;
     $$extraDataTypeManagerToResolve?: [(a: ExtraDataTypeManager) => void, (err: Error) => void][];
 }
 export async function invalidateExtraDataTypeManager(session: IBasicSessionAsync2): Promise<void> {
     const sessionPriv = session as IBasicSession_;
+    clearSessionCache(session);
+    sessionPriv.$$namespaceArray = undefined;
     sessionPriv.$$extraDataTypeManager = undefined;
     if (sessionPriv.$$extraDataTypeManagerToResolve) {
         warningLog("Warning: invalidateExtraDataTypeManager is called while getExtraDataTypeManager is in progress");

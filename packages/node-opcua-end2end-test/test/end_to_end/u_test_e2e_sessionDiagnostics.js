@@ -13,7 +13,8 @@ const {
     DataType,
     TimestampsToReturn,
     resolveNodeId,
-    Variant
+    Variant,
+    readNamespaceArray
 } = require("node-opcua");
 
 const sinon = require("sinon");
@@ -72,6 +73,9 @@ module.exports = function (test) {
             const client = OPCUAClient.create({});
             // eslint-disable-next-line max-statements
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
+
+                await readNamespaceArray(session);
+                
                 console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
                 console.log("subscription.publishingInterval", subscription.publishingInterval);
                 console.log("subscription.lifetimeCount ", subscription.lifetimeCount);
@@ -229,7 +233,7 @@ module.exports = function (test) {
                         .getTime()
                         .should.be.lessThan(sessionDiagnostic.clientLastContactTime.getTime());
                     sessionDiagnostic.writeCount.totalCount.should.eql(2);
-                    sessionDiagnostic.readCount.totalCount.should.eql(2);
+                    sessionDiagnostic.readCount.totalCount.should.eql(3); // 2 + readNamespaceArray
 
                     //xx console.log(results[0].toString());
                     const args = monitoredItemGroupChangeSpy.args.filter(
