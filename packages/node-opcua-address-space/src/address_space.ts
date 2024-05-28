@@ -344,7 +344,9 @@ export class AddressSpace implements AddressSpacePrivate {
                 }
             }
         }
-        return resolveNodeId(nodeId);
+        const namespaceArray: string[] = this.getNamespaceArray().map((a)=>a.namespaceUri);
+
+        return resolveNodeId(nodeId, { namespaceArray });
     }
 
     /**
@@ -488,9 +490,9 @@ export class AddressSpace implements AddressSpacePrivate {
         if (!(dataTypeNode instanceof UADataTypeImpl)) {
             throw new Error(
                 "we are expecting an UADataType here :  " +
-                    _orig_dataTypeNode.toString() +
-                    " should not refer to a  " +
-                    (dataTypeNode as BaseNode).browseName.name
+                _orig_dataTypeNode.toString() +
+                " should not refer to a  " +
+                (dataTypeNode as BaseNode).browseName.name
             );
         }
 
@@ -783,18 +785,18 @@ export class AddressSpace implements AddressSpacePrivate {
                         // tslint:disable:no-console
                         errorLog(
                             chalk.red("ERROR : AddressSpace#constructEventData(eventType,options) " + "cannot find property ") +
-                                self.browseName.toString() +
-                                " => " +
-                                chalk.cyan(lowerName)
+                            self.browseName.toString() +
+                            " => " +
+                            chalk.cyan(lowerName)
                         );
                     } else {
                         errorLog(
                             chalk.yellow(
                                 "Warning : AddressSpace#constructEventData(eventType,options)" + " cannot find property "
                             ) +
-                                self.browseName.toString() +
-                                " => " +
-                                chalk.cyan(lowerName)
+                            self.browseName.toString() +
+                            " => " +
+                            chalk.cyan(lowerName)
                         );
                     }
                 }
@@ -811,11 +813,11 @@ export class AddressSpace implements AddressSpacePrivate {
                 if (!alreadyVisited(k)) {
                     warningLog(
                         "constructEventData:  cannot find property '" +
-                            k +
-                            "' in [ " +
-                            Object.keys(visitedProperties).join(", ") +
-                            "] when filling " +
-                            eventTypeNode.browseName.toString()
+                        k +
+                        "' in [ " +
+                        Object.keys(visitedProperties).join(", ") +
+                        "] when filling " +
+                        eventTypeNode.browseName.toString()
                     );
                 }
             });
