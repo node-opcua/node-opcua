@@ -87,7 +87,7 @@ function __askSubscriptionRepublish(
     subscription: ClientSubscriptionImpl,
     callback: (err?: Error) => void
 ) {
-  
+
     _republish(engine, subscription, (err?: Error) => {
         // prettier-ignore
         { const _err = _shouldNotContinue2(subscription); if (_err) { return callback(_err); } }
@@ -113,7 +113,7 @@ function __askSubscriptionRepublish(
             debugLog(
                 chalk.bgWhite.red("__askSubscriptionRepublish failed " + " subscriptionId is not valid anymore on server side.")
             );
-            return recreateSubscriptionAndMonitoredItem(subscription, callback);
+            return recreateSubscriptionAndMonitoredItem(subscription).then(() => callback()).catch(err => callback(err));
         }
         if (err && err.message.match(/|MessageNotAvailable/)) {
             // start engine and start monitoring
