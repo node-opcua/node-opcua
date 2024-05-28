@@ -4,7 +4,7 @@ const path = require("path");
 const csv = require("csv");
 const sprintf = require("sprintf-js").sprintf;
 
-const datafolder = path.join(__dirname, "latest");
+const dataFolder = path.join(__dirname, "latest");
 
 // see OPC-UA Part 6 , A2
 const codeMap = {};
@@ -13,9 +13,10 @@ const parser = csv.parse({ delimiter: "," }, function (err, data) {
     convert(data);
 });
 
-fs.createReadStream(path.join(datafolder, "/NodeIds.csv")).pipe(parser);
+fs.createReadStream(path.join(dataFolder, "/NodeIds.csv")).pipe(parser);
 
 
+// eslint-disable-next-line max-statements, complexity
 function convert(data) {
     let name, id, type, codeName, value, typeName;
     const metaMap = {};
@@ -75,6 +76,19 @@ function convert(data) {
                     // ignore members of Types
                     continue;
                 }
+                if (name.match(/OutputArguments|InputArguments/)) {
+                    continue;
+                }
+                const nbSegments = name.split("_").length
+                if (nbSegments >= 3 && (!name.match(/_Encoding_|Server_ServerCapabilities_|Server_ServerDiagnostics_|^Server_ServerRedundancy|^Server_ServerStatus|^ServerConfiguration_/) )){
+                    continue;
+                    
+                }
+                if (nbSegments >= 4 && !name.match(/^Server_ServerStatus|^Server_ServerRedundancy|^Server_ServerCapabilities_|^Server_ServerDiagnostics/)) {
+                    // console.log("skipping ", name);
+                    continue;
+                }
+               
                 if (Object.prototype.hasOwnProperty.call(typeMap, name)) {
                     e = typeMap[name];
                     name = e[0];
