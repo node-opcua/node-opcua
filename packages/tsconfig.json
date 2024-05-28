@@ -45,6 +45,7 @@
         { "path": "node-opcua-pseudo-session" },
         { "path": "node-opcua-alarm-condition" },
         { "path": "node-opcua-types" },
-        { "path": "node-opcua-units" }
+        { "path": "node-opcua-units" },
+        { "path": "node-opcua-client-crawler" }
     ]
 }

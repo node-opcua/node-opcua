@@ -330,9 +330,6 @@ importers:
       node-opcua-client:
         specifier: 2.124.0
         version: link:../node-opcua-client
-      node-opcua-client-crawler:
-        specifier: 2.124.0
-        version: link:../node-opcua-client-crawler
       node-opcua-client-proxy:
         specifier: 2.124.0
         version: link:../node-opcua-client-proxy
@@ -1130,49 +1127,34 @@ importers:
       chalk:
         specifier: 4.1.2
         version: 4.1.2
+      node-opcua-client:
+        specifier: '>=2.124.0'
+        version: link:../node-opcua-client
+      thenify:
+        specifier: ^3.3.1
+        version: 3.3.1
+    devDependencies:
+      node-opcua:
+        specifier: 2.124.0
+        version: link:../node-opcua
       node-opcua-address-space:
         specifier: 2.124.0
         version: link:../node-opcua-address-space
       node-opcua-assert:
         specifier: 2.120.0
         version: link:../node-opcua-assert
-      node-opcua-client:
-        specifier: 2.124.0
-        version: link:../node-opcua-client
       node-opcua-constants:
         specifier: 2.121.0
         version: link:../node-opcua-constants
       node-opcua-data-model:
         specifier: 2.121.0
         version: link:../node-opcua-data-model
-      node-opcua-data-value:
-        specifier: 2.121.0
-        version: link:../node-opcua-data-value
       node-opcua-debug:
         specifier: 2.121.0
         version: link:../node-opcua-debug
       node-opcua-nodeid:
         specifier: 2.121.0
         version: link:../node-opcua-nodeid
-      node-opcua-service-browse:
-        specifier: 2.123.0
-        version: link:../node-opcua-service-browse
-      node-opcua-status-code:
-        specifier: 2.121.0
-        version: link:../node-opcua-status-code
-      node-opcua-types:
-        specifier: 2.123.0
-        version: link:../node-opcua-types
-      node-opcua-utils:
-        specifier: 2.120.0
-        version: link:../node-opcua-utils
-      thenify:
-        specifier: ^3.3.1
-        version: 3.3.1
-    devDependencies:
-      node-opcua-pseudo-session:
-        specifier: 2.124.0
-        version: link:../node-opcua-pseudo-session
       should:
         specifier: ^13.2.3
         version: 13.2.3
@@ -2776,9 +2758,6 @@ importers:
       node-opcua-assert:
         specifier: 2.120.0
         version: link:../node-opcua-assert
-      node-opcua-client-crawler:
-        specifier: 2.124.0
-        version: link:../node-opcua-client-crawler
       node-opcua-client-proxy:
         specifier: 2.124.0
         version: link:../node-opcua-client-proxy
