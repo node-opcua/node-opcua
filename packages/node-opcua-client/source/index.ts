@@ -45,9 +45,10 @@ export {
     sameNodeId,
     ExpandedNodeId,
     makeExpandedNodeId,
+    NodeIdLike,
     coerceExpandedNodeId
 } from "node-opcua-nodeid";
-export { StatusCode, StatusCodes } from "node-opcua-status-code";
+export { StatusCode, StatusCodes, ErrorCallback } from "node-opcua-status-code";
 export * from "node-opcua-variant";
 export * from "node-opcua-data-value";
 export * from "node-opcua-data-model";
@@ -71,3 +72,5 @@ export * from "node-opcua-service-write";
 export * from "node-opcua-service-filter";
 export * from "node-opcua-pseudo-session";
 export * from "node-opcua-client-dynamic-extension-object";
+export { DataTypeDefinition } from "node-opcua-types";
+export { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
