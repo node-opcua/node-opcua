@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable max-statements */
 const fs = require("fs");
 const path = require("path");
 const util = require("util");
@@ -22,7 +23,6 @@ const {
     makeNodeId,
     MessageSecurityMode,
     NodeClassMask,
-    NodeCrawler,
     NodeId,
     ObjectTypeIds,
     OPCUAClient,
@@ -30,7 +30,7 @@ const {
     SecurityPolicy,
     VariableIds,
     ObjectIds,
-    UserTokenType,
+    UserTokenType
 } = require("node-opcua");
 const { toPem } = require("node-opcua-crypto");
 
@@ -38,7 +38,7 @@ const { toPem } = require("node-opcua-crypto");
 const yargs = require("yargs/yargs");
 const argv = yargs(process.argv)
     .wrap(132)
-    // .usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+    // .usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor>")
 
     .option("endpoint", {
         alias: "e",
@@ -80,18 +80,13 @@ const argv = yargs(process.argv)
         alias: "h",
         describe: "make an historical read"
     })
-    .option("crawl", {
-        alias: "c",
-        describe: "crawl"
-    })
     .option("discovery", {
         alias: "D",
         describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
     })
     .example("simple_client  --endpoint opc.tcp://localhost:49230 -P=Basic256Rsa256 -s=Sign", "")
     .example("simple_client  -e opc.tcp://localhost:49230 -P=Basic256Sha256 -s=Sign -u JoeDoe -p P@338@rd ", "")
-    .example("simple_client  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"", "")
-    .argv;
+    .example('simple_client  --endpoint opc.tcp://localhost:49230  -n="ns=0;i=2258"', "").argv;
 
 const securityMode = coerceMessageSecurityMode(argv.securityMode);
 if (securityMode === MessageSecurityMode.Invalid) {
@@ -105,8 +100,7 @@ if (securityPolicy === SecurityPolicy.Invalid) {
 
 const timeout = argv.timeout * 1000 || 20000;
 
-const monitored_node = coerceNodeId(argv.node ||
-    makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
+const monitored_node = coerceNodeId(argv.node || makeNodeId(VariableIds.Server_ServerStatus_CurrentTime));
 
 console.log(chalk.cyan("securityMode        = "), securityMode.toString());
 console.log(chalk.cyan("securityPolicy      = "), securityPolicy.toString());
@@ -121,7 +115,6 @@ if (!endpointUrl) {
 }
 const discoveryUrl = argv.discovery ? argv.discovery : endpointUrl;
 
-const doCrawling = !!argv.crawl;
 const doHistory = !!argv.history;
 
 function w(str, l) {
@@ -129,17 +122,11 @@ function w(str, l) {
 }
 
 async function enumerateAllConditionTypes(session) {
-
     const tree = {};
 
     const conditionEventTypes = {};
 
-    async function findAllNodeOfType(
-        tree1,
-        typeNodeId1,
-        browseName
-    ) {
-
+    async function findAllNodeOfType(tree1, typeNodeId1, browseName) {
         const browseDesc1 = {
             nodeId: typeNodeId1,
             referenceTypeId: resolveNodeId("HasSubtype"),
@@ -147,7 +134,6 @@ async function enumerateAllConditionTypes(session) {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             resultMask: 63
-
         };
         const browseDesc2 = {
             nodeId: typeNodeId1,
@@ -156,7 +142,6 @@ async function enumerateAllConditionTypes(session) {
             browseDirection: BrowseDirection.Inverse,
             includeSubtypes: true,
             resultMask: 63
-
         };
         const browseDesc3 = {
             nodeId: typeNodeId1,
@@ -165,14 +150,9 @@ async function enumerateAllConditionTypes(session) {
             browseDirection: BrowseDirection.Forward,
             includeSubtypes: true,
             resultMask: 63
-
         };
 
-        const nodesToBrowse = [
-            browseDesc1,
-            browseDesc2,
-            browseDesc3
-        ];
+        const nodesToBrowse = [browseDesc1, browseDesc2, browseDesc3];
         const browseResults = await session.browse(nodesToBrowse);
 
         tree1[browseName] = {};
@@ -193,19 +173,16 @@ async function enumerateAllConditionTypes(session) {
 }
 
 async function enumerateAllAlarmAndConditionInstances(session) {
-
     const conditions = {};
 
     const found = [];
 
     function isConditionEventType(nodeId) {
-        return conditions.hasOwnProperty(nodeId.toString());
+        return Object.prototype.hasOwnProperty.call(conditions,nodeId.toString());
     }
 
     async function exploreForObjectOfType(session1, nodeId) {
-
         async function worker(element) {
-
             const nodeToBrowse = {
                 nodeId: element.nodeId,
                 referenceTypeId: resolveNodeId("HierarchicalReferences"),
@@ -230,7 +207,6 @@ async function enumerateAllAlarmAndConditionInstances(session) {
                         typeDefinitionName: conditions[ref.typeDefinition.toString()]
                     };
                     found.push(alarm);
-
                 } else {
                     await worker(ref.nodeId);
                 }
@@ -238,7 +214,6 @@ async function enumerateAllAlarmAndConditionInstances(session) {
         }
 
         await worker(nodeId);
-
     }
 
     await enumerateAllConditionTypes(session);
@@ -249,7 +224,6 @@ async function enumerateAllAlarmAndConditionInstances(session) {
 }
 
 async function _getAllEventTypes(session, baseNodeId, tree) {
-
     const browseDesc1 = {
         nodeId: baseNodeId,
         referenceTypeId: resolveNodeId("HasSubtype"),
@@ -273,7 +247,6 @@ async function _getAllEventTypes(session, baseNodeId, tree) {
  * getAllEventType recursively
  */
 async function getAllEventTypes(session) {
-
     const baseNodeId = makeNodeId(ObjectTypeIds.BaseEventType);
     const result = {};
     await _getAllEventTypes(session, baseNodeId, result);
@@ -292,11 +265,8 @@ function getTick() {
     return Date.now();
 }
 
-
-
 async function exploreEndpoint(endpointUrl) {
     const optionsInitial = {
-
         securityMode,
         securityPolicy,
 
@@ -332,7 +302,7 @@ async function exploreEndpoint(endpointUrl) {
 
     if (argv.debug) {
         fs.writeFileSync("tmp/endpoints.log", JSON.stringify(endpoints, null, " "));
-        endpoints.forEach((a) => a.serverCertificate = a.serverCertificate.toString("base64"));
+        endpoints.forEach((a) => (a.serverCertificate = a.serverCertificate.toString("base64")));
         console.log(treeify.asTree(endpoints, true));
     }
 
@@ -358,7 +328,8 @@ async function exploreEndpoint(endpointUrl) {
         const certificate_filename = path.join(__dirname, "../certificates/PKI/server_certificate" + i + ".pem");
 
         if (serverCertificate) {
-            fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {/**/
+            fs.writeFile(certificate_filename, toPem(serverCertificate, "CERTIFICATE"), () => {
+                /**/
             });
         }
         table.newRow();
@@ -367,7 +338,12 @@ async function exploreEndpoint(endpointUrl) {
     console.log(table.toString());
 
     for (const endpoint of endpoints) {
-        console.log("Identify Token for : Security Mode=", endpoint.securityMode.toString(), " Policy=", endpoint.securityPolicyUri);
+        console.log(
+            "Identify Token for : Security Mode=",
+            endpoint.securityMode.toString(),
+            " Policy=",
+            endpoint.securityPolicyUri
+        );
         const table2 = new Table();
         for (const token of endpoint.userIdentityTokens) {
             table2.cell("policyId", token.policyId);
@@ -386,9 +362,8 @@ async function exploreEndpoint(endpointUrl) {
 }
 
 async function main() {
-
     // reconnect using the correct end point URL now
-    const adjustedEndpointUrl =  await exploreEndpoint(endpointUrl);
+    const adjustedEndpointUrl = await exploreEndpoint(endpointUrl);
 
     const options = {
         securityMode,
@@ -418,13 +393,11 @@ async function main() {
 
     let userIdentity; // anonymous
     if (argv.userName && argv.password) {
-
         userIdentity = {
             password: argv.password,
             userName: argv.userName,
             type: UserTokenType.UserName
         };
-
     }
 
     const session = await client.createSession(userIdentity);
@@ -450,7 +423,7 @@ async function main() {
     const dataValue = await session.readVariableValue(server_NamespaceArray_Id);
 
     console.log(" --- NAMESPACE ARRAY ---");
-    const namespaceArray = dataValue.value.value /*as string[] */;
+    const namespaceArray = dataValue.value.value; /*as string[] */
     namespaceArray.forEach((namespace, index) => {
         console.log(" Namespace ", index, "  : ", namespace);
     });
@@ -464,73 +437,18 @@ async function main() {
     console.log(treeify.asTree(result, true));
     console.log(" -----------------------");
 
-    // -----------------------------------------------------------------------------------------------------------
-    //   Node Crawling
-    // -----------------------------------------------------------------------------------------------------------
-    let t1;
-    let t2;
-
-    function print_stat() {
-        try {
-
-            t2 = Date.now();
-            const str = util.format("R= %d W= %d T=%d t= %d",
-                client.bytesRead, client.bytesWritten, client.transactionsPerformed, (t2 - t1));
-            console.log(chalk.yellow.bold(str));
-        } catch (err) {
-            console.log("err =", err);
-        }
-    }
-
-    if (doCrawling) {
-        assert((session !== null && typeof session === "object"));
-        const crawler = new NodeCrawler(session);
-
-        let t5 = Date.now();
-        client.on("send_request", () => {
-            t1 = Date.now();
-        });
-
-        client.on("receive_response", print_stat);
-
-        t5 = Date.now();
-        crawler.on("browsed", function(element) {
-            try {
-                console.log("->", (new Date()).getTime() - t, element.browseName.name, element.nodeId.toString());
-            } catch (err) {
-                console.log("err =", err);
-            }
-        });
-
-        const nodeId = resolveNodeId(ObjectIds.Server);
-        console.log("now crawling object folder ...please wait...");
-
-        const obj = await crawler.read(nodeId);
-
-        console.log(" Time        = ", (new Date()).getTime() - t5);
-        console.log(" read        = ", crawler.readCounter);
-        console.log(" browse      = ", crawler.browseCounter);
-        console.log(" browseNext  = ", crawler.browseNextCounter);
-        console.log(" transaction = ", crawler.transactionCounter);
-        if (true) {
-            // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
-            // xx console.log(treeify.asTree(obj, true));
-            treeify.asLines(obj, true, true, (line) => {
-                console.log(line);
-            });
-        }
-        crawler.dispose();
-    }
-    client.removeListener("receive_response", print_stat);
-
     // -----------------------------------------------------------------------------------------------------------------
     // enumerate all Condition Types exposed by the server
     // -----------------------------------------------------------------------------------------------------------------
 
-    console.log("--------------------------------------------------------------- Enumerate all Condition Types exposed by the server");
+    console.log(
+        "--------------------------------------------------------------- Enumerate all Condition Types exposed by the server"
+    );
     const conditionTree = await enumerateAllConditionTypes(session);
     console.log(treeify.asTree(conditionTree));
-    console.log(" -----------------------------------------------------------------------------------------------------------------");
+    console.log(
+        " -----------------------------------------------------------------------------------------------------------------"
+    );
 
     // -----------------------------------------------------------------------------------------------------------------
     // enumerate all objects that have an Alarm & Condition instances
@@ -549,7 +467,9 @@ async function main() {
             chalk.yellow(w(alarm.alarmNodeId.toString(), 40))
         );
     }
-    console.log(" -----------------------------------------------------------------------------------------------------------------");
+    console.log(
+        " -----------------------------------------------------------------------------------------------------------------"
+    );
 
     // -----------------------------------------------------------------------------------------------------------------
     // Testing if server implements QueryFirst
@@ -567,26 +487,30 @@ async function main() {
 
                     includeSubTypes: true,
 
-                    dataToReturn: [{
-
-                        attributeId: AttributeIds.AccessLevel,
-                        relativePath: undefined
-                    }]
+                    dataToReturn: [
+                        {
+                            attributeId: AttributeIds.AccessLevel,
+                            relativePath: undefined
+                        }
+                    ]
                 }
             ]
         };
 
-        console.log(" -----------------------------------------------------------------------------------------------------------------");
+        console.log(
+            " -----------------------------------------------------------------------------------------------------------------"
+        );
     } catch (err) {
         console.log(" Server is not supporting queryFirst err=", err.message);
     }
     // create Read
     if (doHistory) {
-
         console.log(" ---------------------------------------------------------- History Read------------------------");
         const now = Date.now();
         const start = now - 1000; // read 1 seconds of history
-        console.log(" -----------------------------------------------------------------------------------------------------------------");
+        console.log(
+            " -----------------------------------------------------------------------------------------------------------------"
+        );
     }
 
     // ----------------------------------------------------------------------------------
@@ -608,25 +532,51 @@ async function main() {
 
     console.log("started subscription :", subscription.subscriptionId);
     console.log(" revised parameters ");
-    console.log("  revised maxKeepAliveCount  ", subscription.maxKeepAliveCount, " ( requested ", parameters.requestedMaxKeepAliveCount + ")");
-    console.log("  revised lifetimeCount      ", subscription.lifetimeCount, " ( requested ", parameters.requestedLifetimeCount + ")");
-    console.log("  revised publishingInterval ", subscription.publishingInterval, " ( requested ", parameters.requestedPublishingInterval + ")");
+    console.log(
+        "  revised maxKeepAliveCount  ",
+        subscription.maxKeepAliveCount,
+        " ( requested ",
+        parameters.requestedMaxKeepAliveCount + ")"
+    );
+    console.log(
+        "  revised lifetimeCount      ",
+        subscription.lifetimeCount,
+        " ( requested ",
+        parameters.requestedLifetimeCount + ")"
+    );
+    console.log(
+        "  revised publishingInterval ",
+        subscription.publishingInterval,
+        " ( requested ",
+        parameters.requestedPublishingInterval + ")"
+    );
 
-    console.log("subscription duration ",
-        ((subscription.lifetimeCount * subscription.publishingInterval) / 1000).toFixed(3), "seconds")
-    subscription.on("internal_error", (err) => {
-        console.log(" received internal error", err.message);
-    }).on("keepalive", () => {
-        const t4 = getTick();
-        const span = t4 - t;
-        t = t4;
-        console.log("keepalive ", span / 1000, "sec",
-            " pending request on server = ", subscription.getPublishEngine().nbPendingPublishRequests);
+    console.log(
+        "subscription duration ",
+        ((subscription.lifetimeCount * subscription.publishingInterval) / 1000).toFixed(3),
+        "seconds"
+    );
+    subscription
+        .on("internal_error", (err) => {
+            console.log(" received internal error", err.message);
+        })
+        .on("keepalive", () => {
+            const t4 = getTick();
+            const span = t4 - t;
+            t = t4;
+            console.log(
+                "keepalive ",
+                span / 1000,
+                "sec",
+                " pending request on server = ",
+                subscription.getPublishEngine().nbPendingPublishRequests
+            );
+        })
+        .on("terminated", () => {
+            /* */
 
-    }).on("terminated", () => { /* */
-
-        console.log("Subscription is terminated ....")
-    });
+            console.log("Subscription is terminated ....");
+        });
 
     try {
         const results1 = await subscription.getMonitoredItems();
@@ -719,9 +669,7 @@ async function main() {
         "Value"
     ];
 
-    const eventFilter = constructEventFilter(fields, [
-        resolveNodeId("ConditionType")
-    ]);
+    const eventFilter = constructEventFilter(fields, [resolveNodeId("ConditionType")]);
 
     const event_monitoringItem = ClientMonitoredItem.create(
         subscription,
@@ -753,11 +701,9 @@ async function main() {
 
     console.log("Starting timer ", timeout);
     if (timeout > 0) {
-
         // simulate a connection break at t =timeout/2
         // new Promise((resolve) => {
         setTimeout(() => {
-
             console.log(chalk.red("  -------------------------------------------------------------------- "));
             console.log(chalk.red("  --                               SIMULATE CONNECTION BREAK        -- "));
             console.log(chalk.red("  -------------------------------------------------------------------- "));

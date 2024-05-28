@@ -17,7 +17,6 @@ const _ = require("underscore");
 const { DataType, OPCUAClient, makeNodeId, coerceNodeId, ObjectIds, StatusCodes, parseEndpointUrl } = require("node-opcua");
 const { UAProxyManager } = require("node-opcua-client-proxy");
 const { analyze_object_binary_encoding } = require("node-opcua-packet-analyzer");
-const { NodeCrawler } = require("node-opcua-client-crawler");
 const utils = require("node-opcua-utils");
 const { assert } = require("node-opcua-assert");
 
@@ -32,7 +31,6 @@ const client = OPCUAClient.create({
 let the_session = null;
 let proxyManager = null;
 
-let crawler = null;
 let dumpPacket = false;
 const dumpMessageChunk = false;
 let endpoints_history = [];
@@ -90,7 +88,7 @@ function completer(line, callback) {
                 completions = "open quit".split(" ");
             }
         } else {
-            completions = "browse read readall crawl closeSession disconnect quit getEndpoints".split(" ");
+            completions = "browse read readall closeSession disconnect quit getEndpoints".split(" ");
         }
     }
     assert(completions.length >= 0);
@@ -395,9 +393,6 @@ function open_session(callback) {
 
                 the_prompt = chalk.cyan("session:") + chalk.yellow(the_session.sessionId.toString()) + chalk.cyan(">");
                 rl.setPrompt(the_prompt);
-
-                assert(!crawler);
-
                 rl.prompt(the_prompt);
             }
             callback();
@@ -405,7 +400,6 @@ function open_session(callback) {
         client.on("close", function () {
             log(chalk.red(" Server has disconnected "));
             the_session = null;
-            crawler = null;
         });
     }
 }
@@ -414,7 +408,6 @@ function close_session(outer_callback) {
     apply_on_valid_session("closeSession", function (session, inner_callback) {
         session.close(function (err) {
             the_session = null;
-            crawler = null;
             if (!outer_callback) {
                 inner_callback(err);
             } else {
@@ -652,36 +645,6 @@ function process_line(line) {
                 });
             });
             break;
-        case "crawl":
-            {
-                apply_on_valid_session(cmd, function (the_session, callback) {
-                    if (!crawler) {
-                        crawler = new NodeCrawler(the_session);
-                        crawler.on("browsed", function (element) {
-                            // log("->",element.browseName.name,element.nodeId.toString());
-                        });
-                    }
-
-                    const nodeId = args[1] || "ObjectsFolder";
-                    log("now crawling " + chalk.yellow(nodeId) + " ...please wait...");
-                    crawler.read(nodeId, function (err, obj) {
-                        if (!err) {
-                            log(" crawling done ");
-                            // todo : treeify.asTree performance is *very* slow on large object, replace with better implementation
-                            //xx log(treeify.asTree(obj, true));
-                            treeify.asLines(obj, true, true, function (line) {
-                                log(line);
-                            });
-                        } else {
-                            log("err ", err.message);
-                        }
-                        crawler = null;
-                        callback();
-                    });
-                });
-            }
-            break;
-
         case ".info":
             log("            bytesRead  ", client.bytesRead, " bytes");
             log("         bytesWritten  ", client.bytesWritten, " bytes");

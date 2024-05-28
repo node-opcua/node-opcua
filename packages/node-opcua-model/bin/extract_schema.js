@@ -5,7 +5,7 @@ const yargs = require("yargs/yargs");
 
 const argv = yargs(process.argv)
   .wrap(132)
-  //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor> --crawl")
+  //.usage("Usage: $0 -d --endpoint <endpointUrl> [--securityMode (None|SignAndEncrypt|Sign)] [--securityPolicy (None|Basic256|Basic128Rsa15)] --node <node_id_to_monitor>")
   .demand("endpoint")
   .string("endpoint")
   .describe("endpoint", "the end point to connect to ")
@@ -27,7 +27,7 @@ const argv = yargs(process.argv)
 const endpointUrl = argv.endpoint || "opc.tcp://localhost:48010";
 
 
-function parse_opcua_server(endpoint, callback) {
+async function parse_opcua_server(endpointUrl) {
 
   const options = {
     endpointMustExist: false,
@@ -38,18 +38,17 @@ function parse_opcua_server(endpoint, callback) {
       maxDelay: 10 * 1000
     }
   };
-
   const client = OPCUAClient.create(options);
-  client.withSession(endpointUrl, function(session, callback) {
-    parse_opcua_common(session).then(() => callback()).catch(err => callback(err));
-  }, function(err) {
-    callback(err);
+  await client.withSessionAsync(endpointUrl, async (session) => {
+    await parse_opcua_common(session);
   });
 }
 
-parse_opcua_server(endpointUrl, function(err) {
-  console.log("done", err);
-});
+(async () => {
+  await parse_opcua_server(endpointUrl);
+  console.log("done");
+})();
+
 
 //
 // DataType
