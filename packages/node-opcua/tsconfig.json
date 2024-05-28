@@ -33,9 +33,6 @@
             "path": "../node-opcua-client"
         },
         {
-            "path": "../node-opcua-client-crawler"
-        },
-        {
             "path": "../node-opcua-client-proxy"
         },
         {

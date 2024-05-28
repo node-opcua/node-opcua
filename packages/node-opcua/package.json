@@ -23,7 +23,6 @@
         "node-opcua-binary-stream": "2.120.0",
         "node-opcua-certificate-manager": "2.121.0",
         "node-opcua-client": "2.124.0",
-        "node-opcua-client-crawler": "2.124.0",
         "node-opcua-client-proxy": "2.124.0",
         "node-opcua-common": "2.123.0",
         "node-opcua-constants": "2.121.0",

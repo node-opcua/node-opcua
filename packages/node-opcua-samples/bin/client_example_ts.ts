@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+/* eslint-disable max-statements */
 import fs from "fs";
 import path from "path";
 import util from "util";
@@ -44,7 +45,6 @@ import {
 } from "node-opcua";
 
 import { Certificate, toPem } from "node-opcua-crypto";
-import { NodeCrawler } from "node-opcua-client-crawler";
 
 const { asTree, TreeObject } = require("treeify");
 
@@ -242,10 +242,6 @@ function getTick() {
             alias: "h",
             describe: "make an historical read"
         },
-        crawl: {
-            alias: "c",
-            describe: "crawl"
-        },
         discovery: {
             alias: "D",
             describe: "specify the endpoint uri of discovery server (by default same as server endpoint uri)"
@@ -277,7 +273,6 @@ function getTick() {
     }
     const discoveryUrl: string = argv.discovery ? (argv.discovery as string) : argv.endpoint || "";
 
-    const doCrawling = !!argv.crawl;
     const doHistory = !!argv.history;
 
     async function exploreEndpoint(endpointUrl: string): Promise<{ endpointUrl: string; serverCertificate?: Certificate }> {
@@ -384,6 +379,7 @@ function getTick() {
         return { endpointUrl: client.endpointUrl, serverCertificate };
     }
 
+    // eslint-disable-next-line max-statements
     async function main() {
         const { endpointUrl, serverCertificate } = await exploreEndpoint(argv.endpoint);
 
@@ -460,9 +456,6 @@ function getTick() {
         console.log(asTree(result, true, true));
         console.log(" -----------------------");
 
-        // -----------------------------------------------------------------------------------------------------------
-        //   Node Crawling
-        // -----------------------------------------------------------------------------------------------------------
         let t1: number;
         let t2: number;
 
@@ -476,35 +469,6 @@ function getTick() {
                 t2 - t1
             );
             console.log(chalk.yellow.bold(str));
-        }
-
-        if (doCrawling) {
-            assert(session !== null && typeof session === "object");
-            const crawler = new NodeCrawler(session);
-
-            let t5 = Date.now();
-            client.on("send_request", () => {
-                t1 = Date.now();
-            });
-
-            client.on("receive_response", print_stat);
-
-            t5 = Date.now();
-            // xx crawler.on("browsed", function (element) {
-            // xx     console.log("->",(new Date()).getTime()-t,element.browseName.name,element.nodeId.toString());
-            // xx });
-
-            const nodeId = "ObjectsFolder";
-            console.log("now crawling object folder ...please wait...");
-
-            const obj = await crawler.read(nodeId);
-            console.log(" Time        = ", new Date().getTime() - t5);
-            console.log(" read        = ", crawler.readCounter);
-            console.log(" browse      = ", crawler.browseCounter);
-            console.log(" browseNext  = ", crawler.browseNextCounter);
-            console.log(" transaction = ", crawler.transactionCounter);
-
-            crawler.dispose();
         }
         client.removeListener("receive_response", print_stat);
 

@@ -28,7 +28,6 @@
         "node-opcua-address-space": "2.124.0",
         "node-opcua-address-space-for-conformance-testing": "2.124.0",
         "node-opcua-assert": "2.120.0",
-        "node-opcua-client-crawler": "2.124.0",
         "node-opcua-client-proxy": "2.124.0",
         "node-opcua-crypto": "4.8.0",
         "node-opcua-packet-analyzer": "2.121.0",
