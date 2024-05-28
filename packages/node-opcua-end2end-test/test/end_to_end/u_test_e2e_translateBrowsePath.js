@@ -1,5 +1,4 @@
 "use strict";
-/*global describe, it, require, beforeEach, afterEach */
 
 const should = require("should");
 

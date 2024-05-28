@@ -49,6 +49,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
                 // new in 1.05
                 maxSubscriptions: 10,
                 maxSubscriptionsPerSession: 3,
+                maxMonitoredItemsQueueSize: 11,
+                minSupportedSampleRate: 222,
+
                 
                 operationLimits: {
                     maxNodesPerRead: 10,
@@ -92,6 +95,10 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
     });
 
     it("should be possible to customize serverCapabilities.operationLimits at construction time", function () {
+
+        server.engine.serverCapabilities.minSupportedSampleRate.should.eql(222);
+        server.engine.serverCapabilities.maxMonitoredItemsQueueSize.should.eql(11);
+
         server.engine.serverCapabilities.operationLimits.maxNodesPerRead.should.eql(10);
         server.engine.serverCapabilities.operationLimits.maxNodesPerWrite.should.eql(10);
         server.engine.serverCapabilities.operationLimits.maxNodesPerMethodCall.should.eql(10);
@@ -105,7 +112,9 @@ describe("testing server with low maxNodesPerRead and maxNodesPerBrowse", functi
         server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryUpdateData.should.eql(7);
         server.engine.serverCapabilities.operationLimits.maxNodesPerHistoryUpdateEvents.should.eql(8);
         server.engine.serverCapabilities.operationLimits.maxNodesPerTranslateBrowsePathsToNodeIds.should.eql(9);
+
     });
+
     it("server should provide OperationLimits_MaxNodesPerRead node ", function (done) {
         perform_operation_on_client_session(
             client,
