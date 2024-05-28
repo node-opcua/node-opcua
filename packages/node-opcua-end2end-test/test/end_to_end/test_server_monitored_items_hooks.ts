@@ -59,21 +59,28 @@ describe("Test server monitored Item hooks", () => {
         onDeleteMonitoredItem.resetHistory();
         onCreateMonitoredItem.resetHistory();
     });
-    async function withSubscription(
+    async function doWithSubscriptionAsync(
         b: boolean,
         functor: (subscription: ClientSubscription, session: ClientSession) => Promise<void>
     ): Promise<void> {
+
+
+        const endpointUrl = server.getEndpointUrl();
+
         const client = OPCUAClient.create({});
-        await client.connect(server.getEndpointUrl());
-
-        const session = await client.createSession();
-
-        const subscription = await session.createSubscription2({
+        
+        const subscriptionParameters = {
             publishingEnabled: true,
             requestedLifetimeCount: 100,
             requestedMaxKeepAliveCount: 3,
             requestedPublishingInterval: 100
-        });
+        };
+
+        await client.connect(server.getEndpointUrl());
+
+        const session = await client.createSession();
+
+        const subscription = await session.createSubscription2(subscriptionParameters);
         try {
             await functor(subscription, session);
         } catch (err) {
@@ -89,7 +96,7 @@ describe("Test server monitored Item hooks", () => {
         }
     }
     it("HK1- should call onCreateMonitoredItemHook/onDeleteMonitoredItemHook - terminating subscription", async () => {
-        await withSubscription(true, async (subscription) => {
+        await doWithSubscriptionAsync(true, async (subscription) => {
             await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
@@ -108,7 +115,7 @@ describe("Test server monitored Item hooks", () => {
         onDeleteMonitoredItem.callCount.should.eql(1);
     });
     it("HK2- should call onCreateMonitoredItemHook/onDeleteMonitoredItemHook - not terminating subscription", async () => {
-        await withSubscription(false, async (subscription) => {
+        await doWithSubscriptionAsync(false, async (subscription) => {
             await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
@@ -127,7 +134,7 @@ describe("Test server monitored Item hooks", () => {
         onDeleteMonitoredItem.callCount.should.eql(1);
     });
     it("HK3- should call onCreateMonitoredItemHook/onDeleteMonitoredItemHook", async () => {
-        await withSubscription(true, async (subscription) => {
+        await doWithSubscriptionAsync(true, async (subscription) => {
             const m1 = await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
@@ -158,7 +165,7 @@ describe("Test server monitored Item hooks", () => {
         onDeleteMonitoredItem.callCount.should.eql(2);
     });
     it("HK4- should call onCreateMonitoredItemHook/onDeleteMonitoredItemHook  when terminating individual monitoredItem", async () => {
-        await withSubscription(true, async (subscription, session: ClientSession) => {
+        await doWithSubscriptionAsync(true, async (subscription, session: ClientSession) => {
             const m1 = await subscription.monitor(
                 {
                     attributeId: AttributeIds.Value,
