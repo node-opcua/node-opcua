@@ -430,7 +430,7 @@ async function _extractDataTypeDictionary(
             "namespace =",
             namespace
         );
-        debugLog("let's use the new way (1.04) and let's crawl all dataTypes exposed by this name space");
+        debugLog("let's use the new way (1.04) and let's explore all dataTypes exposed by this name space");
 
         // dataType definition in store directly in UADataType under the definition attribute
         const dataTypeFactory2 = dataTypeManager.getDataTypeFactory(dataTypeDictionaryNodeId.namespace);
