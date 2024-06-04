@@ -27,7 +27,7 @@
         "node-opcua-extension-object": "2.121.0",
         "node-opcua-packet-analyzer": "2.121.0",
         "node-opcua-status-code": "2.121.0",
-        "prettier": "^3.2.5",
+        "prettier": "^3.3.0",
         "should": "^13.2.3",
         "underscore": "^1.13.6"
     },
