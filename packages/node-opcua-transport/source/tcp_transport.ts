@@ -262,7 +262,14 @@ export class TCP_transport extends EventEmitter {
         this._cleanup_timers();
         assert(!this._timerId);
         if (this._socket) {
-            this._socket.destroy();
+            const gracefully = true;
+            if (gracefully) {
+                // close the connection gracefully
+                this._socket.end();
+            } else {
+                // close the connection forcefully
+                this._socket.destroy();
+            }
             //         this._socket.removeAllListeners();
             this._socket = null;
         }
