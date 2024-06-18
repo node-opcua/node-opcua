@@ -16,7 +16,7 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.17.4",
+        "@types/lodash": "4.17.5",
         "@types/semver": "^7.5.8",
         "async": "^3.2.5",
         "chalk": "4.1.2",
