@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-woodworking",
-    "version": "2.125.0",
+    "version": "2.126.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-woodworking",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,16 +10,16 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.125.0",
-        "node-opcua-basic-types": "2.125.0",
-        "node-opcua-data-access": "2.125.0",
-        "node-opcua-data-model": "2.125.0",
-        "node-opcua-extension-object": "2.125.0",
+        "node-opcua-address-space-base": "2.126.0",
+        "node-opcua-basic-types": "2.126.0",
+        "node-opcua-data-access": "2.126.0",
+        "node-opcua-data-model": "2.126.0",
+        "node-opcua-extension-object": "2.126.0",
         "node-opcua-nodeid": "2.125.0",
-        "node-opcua-nodeset-di": "2.125.0",
-        "node-opcua-nodeset-machinery": "2.125.0",
-        "node-opcua-nodeset-ua": "2.125.0",
-        "node-opcua-variant": "2.125.0"
+        "node-opcua-nodeset-di": "2.126.0",
+        "node-opcua-nodeset-machinery": "2.126.0",
+        "node-opcua-nodeset-ua": "2.126.0",
+        "node-opcua-variant": "2.126.0"
     },
     "files": [
         "dist",
