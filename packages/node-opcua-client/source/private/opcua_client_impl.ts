@@ -54,7 +54,7 @@ import { AnonymousIdentity, UserIdentityInfo, UserIdentityInfoUserName, UserIden
 import { repair_client_sessions } from "./reconnection/reconnection";
 import { ClientBaseImpl } from "./client_base_impl";
 import { ClientSessionImpl } from "./client_session_impl";
-import { ClientSubscriptionImpl } from "./client_subscription_impl";
+import { IClientBase } from "./i_private_client";
 
 interface TokenAndSignature {
     userIdentityToken: UserIdentityToken | null;
@@ -108,7 +108,7 @@ const ordered: string[] = [
     SecurityPolicy.Basic256Sha256,
 
 
-    
+
     SecurityPolicy.Aes128_Sha256_RsaOaep,
     SecurityPolicy.Aes256_Sha256_RsaPss
 ];
@@ -655,6 +655,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     ): Promise<T> {
         return await this.withSessionAsync(connectionPoint, async (session: ClientSession) => {
             assert(session, " session must exist");
+
+            const client1 = this as IClientBase;
+            if (client1.beforeSubscriptionRecreate) {
+                await client1.beforeSubscriptionRecreate(session);
+            }
+
             const subscription = await session.createSubscription2(parameters);
             try {
                 const result = await func(session, subscription);
@@ -689,11 +695,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             return callback!(
                 new Error(
                     " End point must exist " +
-                        this._secureChannel!.endpointUrl +
-                        "  securityMode = " +
-                        MessageSecurityMode[this.securityMode] +
-                        "  securityPolicy = " +
-                        this.securityPolicy
+                    this._secureChannel!.endpointUrl +
+                    "  securityMode = " +
+                    MessageSecurityMode[this.securityMode] +
+                    "  securityPolicy = " +
+                    this.securityPolicy
                 )
             );
         }
@@ -1109,11 +1115,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
             return callback(
                 new Error(
                     " End point must exist " +
-                        this._secureChannel!.endpointUrl +
-                        "  securityMode = " +
-                        MessageSecurityMode[this.securityMode] +
-                        "  securityPolicy = " +
-                        this.securityPolicy
+                    this._secureChannel!.endpointUrl +
+                    "  securityMode = " +
+                    MessageSecurityMode[this.securityMode] +
+                    "  securityPolicy = " +
+                    this.securityPolicy
                 )
             );
         }

@@ -33,14 +33,13 @@ async function createMonitoredItemsAndRespectOperationalLimits(
 }
 
 async function adjustMonitoredItemNodeIds(subscription: ClientSubscription, oldMonitoredItems: any) {
-// to Do 
+    // to Do 
 }
 /**
  *  utility function to recreate new subscription
  *  @method recreateSubscriptionAndMonitoredItem
  */
-export async function recreateSubscriptionAndMonitoredItem(_subscription: ClientSubscription): Promise<void> 
-{
+export async function recreateSubscriptionAndMonitoredItem(_subscription: ClientSubscription): Promise<void> {
     debugLog("recreateSubscriptionAndMonitoredItem", _subscription.subscriptionId.toString());
 
     const subscription = _subscription as ClientSubscriptionImpl;
@@ -55,14 +54,14 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     subscription.publishEngine.unregisterSubscription(oldSubscriptionId);
 
     await promisify(__create_subscription)(subscription);
-    
-    const _err = _shouldNotContinue(subscription.session); 
-    if (_err) { throw _err;  }
+
+    const _err = _shouldNotContinue(subscription.session);
+    if (_err) { throw _err; }
 
     const test = subscription.publishEngine.getSubscription(subscription.subscriptionId);
 
     debugLog("recreating ", Object.keys(oldMonitoredItems).length, " monitored Items");
-                // re-create monitored items
+    // re-create monitored items
     const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
 
     await adjustMonitoredItemNodeIds(subscription, oldMonitoredItems);
@@ -91,8 +90,8 @@ export async function recreateSubscriptionAndMonitoredItem(_subscription: Client
     debugLog("Recreating ", itemsToCreate.length, " monitored items");
 
     const response = await createMonitoredItemsAndRespectOperationalLimits(
-                        session,
-                        createMonitorItemsRequest);
+        session,
+        createMonitorItemsRequest);
     const monitoredItemResults = response.results || [];
 
     let _errCount = 0;

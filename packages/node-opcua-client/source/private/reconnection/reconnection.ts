@@ -306,6 +306,24 @@ function repair_client_session_by_recreating_a_new_session(
                 );
             },
 
+            function beforeSubscriptionRepair(innerCallback: ErrorCallback) {
+                if (!client.beforeSubscriptionRecreate) {
+                    innerCallback();
+                    return;
+
+                }
+                client.beforeSubscriptionRecreate(newSession)
+                    .then((err) => {
+                        { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                        if (!err) {
+                            innerCallback();
+                        } else {
+                            innerCallback(err);
+                        }
+                    })
+                    .catch((err) => { innerCallback(err) });
+            },
+
             function attempt_subscription_transfer(innerCallback: ErrorCallback) {
                 // prettier-ignore
                 { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }

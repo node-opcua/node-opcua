@@ -28,4 +28,6 @@ export interface IClientBase {
     getTransportSettings(): IBasicTransportSettings;
 
     isUnusable(): boolean;
+
+    beforeSubscriptionRecreate?: (session: ClientSession) => Promise<Error | undefined>
 }
