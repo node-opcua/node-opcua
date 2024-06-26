@@ -1,6 +1,4 @@
 "use strict";
-
-const async = require("async");
 const should = require("should");
 const sinon = require("sinon");
 const { OPCUAClient } = require("node-opcua");
@@ -13,7 +11,7 @@ module.exports = function (test) {
         // as a server,
         // I need to receive an event when a new connection is established
 
-        it("#191 Server should receive an 'newChannel' event when a new channel is established and a 'closeChannel' when it close", function (done) {
+        it("#191 Server should receive an 'newChannel' event when a new channel is established and a 'closeChannel' when it close", async () => {
             const server = test.server;
 
             const spy_new_channel = sinon.spy(function (channel) {
@@ -31,34 +29,20 @@ module.exports = function (test) {
             server.on("closeChannel", spy_close_channel);
 
             if (!server) {
-                return done();
+                return;
             }
 
             const client1 = OPCUAClient.create();
             const endpointUrl = test.endpointUrl;
 
-            async.series(
-                [
-                    function (callback) {
-                        client1.connect(endpointUrl, callback);
-                    },
-                    function (callback) {
-                        client1.disconnect(function () {
-                            //xx console.log(" Client disconnected ", (err ? err.message : "null"));
-                            callback();
-                        });
-                    },
-                    function (callback) {
-                        server.removeListener("newChannel", spy_new_channel);
-                        server.removeListener("closeChannel", spy_close_channel);
+            await client1.connect(endpointUrl);
+            await client1.disconnect();
 
-                        spy_new_channel.callCount.should.eql(1);
-                        spy_close_channel.callCount.should.eql(1);
-                        callback();
-                    }
-                ],
-                done
-            );
+            server.removeListener("newChannel", spy_new_channel);
+            server.removeListener("closeChannel", spy_close_channel);
+
+            spy_new_channel.callCount.should.eql(1);
+            spy_close_channel.callCount.should.eql(1);
         });
     });
 };
