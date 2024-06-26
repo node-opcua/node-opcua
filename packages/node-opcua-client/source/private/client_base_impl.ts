@@ -199,10 +199,10 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
             return callback(
                 new Error(
                     "Cannot find an Endpoint matching " +
-                        " security mode: " +
-                        securityMode.toString() +
-                        " policy: " +
-                        securityPolicy.toString()
+                    " security mode: " +
+                    securityMode.toString() +
+                    " policy: " +
+                    securityPolicy.toString()
                 )
             );
         }
@@ -634,8 +634,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                             const newServerCertificate = this.serverCertificate!;
                             warningLog("new server certificate ", makeSHA1Thumbprint(newServerCertificate).toString("hex"));
 
-                            const sha1Old = makeSHA1Thumbprint(oldServerCertificate!);
-                            const sha1New = makeSHA1Thumbprint(newServerCertificate);
+                            const sha1Old = oldServerCertificate ? makeSHA1Thumbprint(oldServerCertificate!) : null;
+                            const sha1New = newServerCertificate ? makeSHA1Thumbprint(newServerCertificate) : null;
                             if (sha1Old === sha1New) {
                                 warningLog("server certificate has not changed, but was expected to have changed");
                                 return _failAndRetry(
@@ -824,8 +824,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             // disconnect
             errorLog(
                 "[NODE-OPCUA-E08] initializeCM: clientCertificateManager is null\n" +
-                    "                 This happen when you disconnected the client, to free resources.\n" +
-                    "                 Please create a new OPCUAClient instance if you want to reconnect"
+                "                 This happen when you disconnected the client, to free resources.\n" +
+                "                 Please create a new OPCUAClient instance if you want to reconnect"
             );
             return;
         }
@@ -961,12 +961,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     debugLog(chalk.yellow("- The client cannot to :" + endpointUrl + ". Server is not reachable."));
                     err = new Error(
                         "The connection cannot be established with server " +
-                            endpointUrl +
-                            " .\n" +
-                            "Please check that the server is up and running or your network configuration.\n" +
-                            "Err = (" +
-                            err.message +
-                            ")"
+                        endpointUrl +
+                        " .\n" +
+                        "Please check that the server is up and running or your network configuration.\n" +
+                        "Err = (" +
+                        err.message +
+                        ")"
                     );
                     this._handleUnrecoverableConnectionFailure(err, callback);
                 } else if (err.message.match(/disconnecting/)) {
@@ -1001,9 +1001,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             return callback(
                 new Error(
                     "performMessageTransaction: Invalid client state = " +
-                        this._internalState +
-                        " while performing a transaction " +
-                        request.schema.name
+                    this._internalState +
+                    " while performing a transaction " +
+                    request.schema.name
                 )
             );
         }
@@ -1427,9 +1427,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 // no matching end point can be found ...
                 const err1 = new Error(
                     "cannot find endpoint for securityMode=" +
-                        MessageSecurityMode[this.securityMode] +
-                        " policy = " +
-                        this.securityPolicy
+                    MessageSecurityMode[this.securityMode] +
+                    " policy = " +
+                    this.securityPolicy
                 );
                 return callback(err1);
             }
@@ -1453,7 +1453,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                     if (chain.length > 1) {
                         warningLog(
                             "                 verify also that the issuer certificate is trusted and the issuer's certificate is present in the issuer.cert folder\n" +
-                                "                 of the client certificate manager located in ",
+                            "                 of the client certificate manager located in ",
                             this.clientCertificateManager.rootDir
                         );
                     } else {
