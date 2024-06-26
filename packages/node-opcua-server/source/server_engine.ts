@@ -443,7 +443,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
 
         // make sure minSupportedSampleRate matches MonitoredItem.minimumSamplingInterval
         (this.serverCapabilities as any).__defineGetter__("minSupportedSampleRate", () => {
-            return options!.serverCapabilities?.minSupportedSampleRate  || MonitoredItem.minimumSamplingInterval;
+            return options!.serverCapabilities?.minSupportedSampleRate || MonitoredItem.minimumSamplingInterval;
         });
 
         this.serverConfiguration = options.serverConfiguration;
@@ -1020,7 +1020,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate, DataType.Double, () => {
-                    return this.serverCapabilities.minSupportedSampleRate;
+                    return Math.max(this.serverCapabilities.minSupportedSampleRate, defaultServerCapabilities.minSupportedSampleRate);
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxBrowseContinuationPoints, DataType.UInt16, () => {
@@ -1089,11 +1089,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 });
 
                 bindStandardScalar(VariableIds.Server_ServerCapabilities_MaxMonitoredItemsQueueSize, DataType.UInt32, () => {
-                    return Math.max(1,this.serverCapabilities.maxMonitoredItemsQueueSize);
-                });
-                
-                bindStandardScalar(VariableIds.Server_ServerCapabilities_MinSupportedSampleRate, DataType.UInt32, () => {
-                    return Math.max(this.serverCapabilities.minSupportedSampleRate, defaultServerCapabilities.minSupportedSampleRate);
+                    return Math.max(1, this.serverCapabilities.maxMonitoredItemsQueueSize);
                 });
 
                 const bindOperationLimits = (operationLimits: ServerOperationLimits) => {
@@ -1881,8 +1877,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         } else {
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                    chalk.cyan(nodeId.toString()) +
-                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
