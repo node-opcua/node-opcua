@@ -903,7 +903,7 @@ describe("Testing the server publish engine", function (this: any) {
 
             publish_server._on_PublishRequest(new PublishRequest());
             test.clock.tick(subscription.publishingInterval * subscription.maxKeepAliveCount);
-            subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount+2);
+            subscription.publishIntervalCount.should.eql(subscription.maxKeepAliveCount + 2);
             subscription.state.should.eql(SubscriptionState.KEEPALIVE);
 
             // server send a notification to the client

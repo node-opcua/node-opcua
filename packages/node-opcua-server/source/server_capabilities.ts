@@ -2,13 +2,13 @@
  * @module node-opcua-server
  */
 // tslint:disable:max-classes-per-file
-import { UInt32 } from "node-opcua-basic-types";
+import { Double, UInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { QualifiedName } from "node-opcua-data-model";
 import { make_warningLog } from "node-opcua-debug";
 import { SignedSoftwareCertificate } from "node-opcua-types";
 
-const warningLog =make_warningLog(__filename);
+const warningLog = make_warningLog(__filename);
 
 /**
  */
@@ -64,7 +64,7 @@ export interface IServerCapabilities {
     maxArrayLength: number;
     maxByteStringLength: number;
     maxQueryContinuationPoints: number;
-    minSupportedSampleRate: number;
+    minSupportedSampleRate: Double;
     operationLimits: OperationLimitsOptions;
 
     serverProfileArray: string[];
@@ -232,14 +232,14 @@ export class ServerCapabilities implements IServerCapabilities {
         this.softwareCertificates = options.softwareCertificates || [];
 
         this.maxArrayLength = options.maxArrayLength || defaultServerCapabilities.maxArrayLength;
-        
+
         this.maxStringLength = options.maxStringLength || defaultServerCapabilities.maxStringLength;
         this.maxByteStringLength = options.maxByteStringLength || defaultServerCapabilities.maxByteStringLength;
 
         if (BinaryStream.maxStringLength < this.maxStringLength) {
             warningLog(`ServerCapabilities.maxStringLength ${this.maxStringLength} is greater that the allowed limite BinaryStream.maxStringLength = ${BinaryStream.maxStringLength}\nPlease adjust the value.`);
         }
-        
+
         if (BinaryStream.maxByteStringLength < this.maxByteStringLength) {
             warningLog(`ServerCapabilities.maxByteStringLength ${this.maxByteStringLength} is greater that the allowed limite BinaryStream.maxByteStringLength = ${BinaryStream.maxByteStringLength}\nPlease adjust the value.`);
         }
