@@ -1,4 +1,4 @@
-# node-opcua-client
+# node-opcua-server
 
 an implementation of an OPC UA stack fully written in javascript and NodeJS
 
