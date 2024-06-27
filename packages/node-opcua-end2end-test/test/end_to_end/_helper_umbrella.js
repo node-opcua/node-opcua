@@ -1,7 +1,15 @@
 const chalk = require("chalk");
 const { assert } = require("node-opcua-assert");
 
-const { OPCUAClient, nodesets, AddressSpace, makeBrowsePath, periodicClockAdjustment, AttributeIds } = require("node-opcua");
+const {
+    OPCUAClient,
+    nodesets,
+    AddressSpace,
+    makeBrowsePath,
+    periodicClockAdjustment,
+    AttributeIds,
+    serverCapabilities
+} = require("node-opcua");
 const { build_address_space_for_conformance_testing } = require("node-opcua-address-space-for-conformance-testing");
 const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 const { start_simple_server, stop_simple_server } = require("../../test_helpers/external_server_fixture");
@@ -85,7 +93,10 @@ exports.beforeTest = async function beforeTest(test) {
         port: test.port,
         maxConnectionsPerEndpoint: 500,
         silent: true,
-        nodeset_filename: [nodesets.standard]
+        nodeset_filename: [nodesets.standard],
+        serverCapabilities: {
+            operationLimits: {}
+        }
     };
 
     console.log(
