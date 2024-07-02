@@ -701,7 +701,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         }
         this._isDisconnecting = true;
         doDebug && debugLog("abortConnection ", !!this.__call);
-  
+
         async.series(
             [
                 (inner_callback: ErrorCallback) => {
@@ -835,11 +835,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this._cancel_security_token_watchdog();
 
             doDebug && debugLog("Sending CloseSecureChannelRequest to server");
-            const request = new CloseSecureChannelRequest({
-                requestHeader: {
-                    timeoutHint: 1000 // 1 second !
-                }
-            });
+            const request = new CloseSecureChannelRequest();
 
             this.__in_normal_close_operation = true;
 
@@ -848,11 +844,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 return callback(new Error("Transport disconnected"));
             }
             this._performMessageTransaction("CLO", request, (err) => {
+                // istanbul ignore next
                 if (err) {
                     warningLog("CLO transaction terminated with error: ", err.message);
                 }
-                this.dispose();
-                callback();
+                if (this._transport) {
+                    this._transport!.disconnect(() => {
+                        callback();
+                    });
+                } else {
+                    this.dispose();
+                    callback();
+                }
             });
         });
     }
@@ -1186,13 +1189,13 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     if (Math.abs(delta) > 1000 * 5) {
                         warningLog(
                             `[NODE-OPCUA-W33]  client : server token creation date exposes a time discrepancy ${durationToString(delta)}\n` +
-                                "remote server clock doesn't match this computer date !\n" +
-                                " please check both server and client clocks are properly set !\n" +
-                                ` server time :${chalk.cyan(this.securityToken.createdAt?.toISOString())}\n` +
-                                ` client time :${chalk.cyan(midDate.toISOString())}\n` +
-                                ` transaction duration = ${durationToString(endDate.getTime() - startDate.getTime())}\n` +
-                                ` server URL = ${this.endpointUrl} \n` +
-                                ` token.createdAt  has been updated to reflect client time`
+                            "remote server clock doesn't match this computer date !\n" +
+                            " please check both server and client clocks are properly set !\n" +
+                            ` server time :${chalk.cyan(this.securityToken.createdAt?.toISOString())}\n` +
+                            ` client time :${chalk.cyan(midDate.toISOString())}\n` +
+                            ` transaction duration = ${durationToString(endDate.getTime() - startDate.getTime())}\n` +
+                            ` server URL = ${this.endpointUrl} \n` +
+                            ` token.createdAt  has been updated to reflect client time`
                         );
                     }
                 }
@@ -1694,6 +1697,19 @@ export class ClientSecureChannelLayer extends EventEmitter {
                     requestData._tick1 = get_clock_tick();
                 }
                 requestData.bytesWritten_after = this.bytesWritten;
+
+                if (requestData.msgType === "CLO") {
+                    setTimeout(() => {
+                        // We sdo not expect any response from the server for a CLO message
+                        if (requestData.callback) {
+                            // if server do not initiates the disconnection, we may need to call the callback
+                            // from here
+                            requestData.callback!(null, undefined);
+                            requestData.callback = undefined;
+                        }
+                    }, 100);
+
+                }
             }
         }
     }
