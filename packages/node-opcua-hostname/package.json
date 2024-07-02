@@ -2,15 +2,13 @@
     "name": "node-opcua-hostname",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.120.0",
+    "version": "2.128.0",
     "description": "pure nodejs OPCUA SDK - module hostname",
     "scripts": {
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
         "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "test": "mocha"
-    },
-    "devDependencies": {
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
