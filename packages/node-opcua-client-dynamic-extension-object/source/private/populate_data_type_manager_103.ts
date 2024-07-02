@@ -273,7 +273,7 @@ function sortStructure(dataTypeDefinitions: DataTypeDefinitions) {
 const readIsAbstract = async (session: IBasicSessionAsync, nodeId: NodeId): Promise<boolean> => {
     const dataValue = await session.read({ nodeId, attributeId: AttributeIds.IsAbstract });
     return dataValue.value.value;
-}
+};
 
 async function _extractDataTypeDictionaryFromDefinition(
     session: IBasicSessionAsync2,
@@ -300,6 +300,8 @@ async function _extractDataTypeDictionaryFromDefinition(
     const dataTypeDefinitions: DataTypeDefinitions = [];
 
     let index = 0;
+
+    const promise: Promise<void>[] = [];
     for (const dataValue of dataValuesWithDataTypeDefinition) {
         const dataTypeNodeId = dataTypeNodeIds[index];
         const dataTypeDescription = dataTypeDescriptions[index];
@@ -310,10 +312,10 @@ async function _extractDataTypeDictionaryFromDefinition(
 
             if (dataTypeDefinition && dataTypeDefinition instanceof StructureDefinition) {
                 const className = dataTypeDescription.browseName.name!;
-
-                const isAbstract = await readIsAbstract(session, dataTypeNodeId);
-
-                dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract });
+                promise.push((async () => {
+                    const isAbstract = await readIsAbstract(session, dataTypeNodeId);
+                    dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract });
+                })());
             }
         } else {
             debugLog(
@@ -325,56 +327,65 @@ async function _extractDataTypeDictionaryFromDefinition(
         }
         index++;
     }
+    await Promise.all(promise);
+
     // to do put in logical order
     const dataTypeDefinitionsSorted = sortStructure(dataTypeDefinitions);
     // istanbul ignore next
     if (doDebug) {
         debugLog("order ", dataTypeDefinitionsSorted.map((a) => a.className + " " + a.dataTypeNodeId).join(" ->  "));
     }
-    for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
-        }
-        if (dataTypeFactory.hasStructureByTypeName(className)) {
-            continue; // this structure has already been seen
-        }
-        // now fill typeDictionary
-        try {
-            const dataTypeDescription = dataTypeDescriptions.find((a)=>a.nodeId.toString() === dataTypeNodeId.toString());
-            if (!dataTypeDefinition) {
-                throw new Error("cannot find dataTypeDefinition for "+ dataTypeNodeId.toString());
-            }
-            const schema = await convertDataTypeDefinitionToStructureTypeSchema(
-                session,
-                dataTypeNodeId,
-                className,
-                dataTypeDefinition,
-                dataTypeDescription!, // for encodings
-                dataTypeFactory,
-                isAbstract,
-                cache
-            );
 
+    const promises2: Promise<void>[] = [];
+
+    for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
+
+        promises2.push((async () => {
             // istanbul ignore next
             if (doDebug) {
-                debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
+                debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
             }
-            if (!isAbstract) {
-                const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
-                assert(Constructor.schema === schema);
-            } else {
+            if (dataTypeFactory.hasStructureByTypeName(className)) {
+                return; // this structure has already been seen
+            }
+            // now fill typeDictionary
+            try {
+                const dataTypeDescription = dataTypeDescriptions.find((a) => a.nodeId.toString() === dataTypeNodeId.toString());
+                if (!dataTypeDefinition) {
+                    throw new Error("cannot find dataTypeDefinition for " + dataTypeNodeId.toString());
+                }
+                const schema = await convertDataTypeDefinitionToStructureTypeSchema(
+                    session,
+                    dataTypeNodeId,
+                    className,
+                    dataTypeDefinition,
+                    dataTypeDescription!, // for encodings
+                    dataTypeFactory,
+                    isAbstract,
+                    cache
+                );
+
                 // istanbul ignore next
                 if (doDebug) {
-                    debugLog("Ignoring Abstract ", className);
+                    debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
                 }
+                if (!isAbstract) {
+                    const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
+                    assert(Constructor.schema === schema);
+                } else {
+                    // istanbul ignore next
+                    if (doDebug) {
+                        debugLog("Ignoring Abstract ", className);
+                    }
+                }
+            } catch (err) {
+                errorLog("Constructor verification err: ", (<Error>err).message);
+                errorLog("For this reason class " + className + " has not been registered");
+                errorLog(err);
             }
-        } catch (err) {
-            errorLog("Constructor verification err: ", (<Error>err).message);
-            errorLog("For this reason class " + className + " has not been registered");
-            errorLog(err);
-        }
+        })());
     }
+    await Promise.all(promises2);
 }
 
 async function _extractNodeIds(
@@ -420,18 +431,20 @@ async function _extractDataTypeDictionary(
 ): Promise<void> {
     const dataTypeDictionaryNodeId = d.reference.nodeId;
 
-    const name = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.BrowseName });
-    const namespace = await _readNamespaceUriProperty(session, dataTypeDictionaryNodeId);
-
     if (!_isOldDataTypeDictionary(d)) {
-        debugLog(
-            "DataTypeDictionary is deprecated or BSD schema stored in dataValue is null !",
-            chalk.cyan(name.value.value.toString()),
-            "namespace =",
-            namespace
-        );
-        debugLog("let's use the new way (1.04) and let's explore all dataTypes exposed by this name space");
-
+        if (doDebug) {
+            const [name, namespace] = await Promise.all([
+                session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.BrowseName }),
+                _readNamespaceUriProperty(session, dataTypeDictionaryNodeId)
+            ]);
+            debugLog(
+                "DataTypeDictionary is deprecated or BSD schema stored in dataValue is null !",
+                chalk.cyan(name.value.value.toString()),
+                "namespace =",
+                namespace
+            );
+            debugLog("let's use the new way (1.04) and let's explore all dataTypes exposed by this name space");
+        }
         // dataType definition in store directly in UADataType under the definition attribute
         const dataTypeFactory2 = dataTypeManager.getDataTypeFactory(dataTypeDictionaryNodeId.namespace);
         if (!dataTypeFactory2) {
@@ -780,18 +793,13 @@ export async function populateDataTypeManager103(
         await _exploreDataTypeDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory, dataTypeManager.namespaceArray);
     }
 
+    const promises: Promise<void>[] = [];
+
     // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
     for (const d of dataTypeDictionaryInfo) {
-        try {
-            await processReferenceOnDataTypeDictionaryType(d).catch((e) => {
-                debugLog("processReferenceOnDataTypeDictionaryType has failed ");
-                debugLog("Error", e.message);
-                debugLog(e);
-                return e;
-            });
-        } catch (err) {
-            debugLog(chalk.red("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx "), err);
-        }
+        promises.push(processReferenceOnDataTypeDictionaryType(d));
     }
+    await Promise.all(promises);
+
     debugLog("out ... populateDataTypeManager");
 }

@@ -1,6 +1,7 @@
 import { IAddressSpace, INamespace, UADataType } from "node-opcua-address-space-base";
 import {
     convertStructureTypeSchemaToStructureDefinition,
+    DataTypeExtractStrategy,
     ExtraDataTypeManager,
     populateDataTypeManager
 } from "node-opcua-client-dynamic-extension-object";
@@ -32,7 +33,7 @@ function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[],
             if (dataType.$partialDefinition && dataType.$partialDefinition.length) {
                 continue;
             }
-            // debugLog(" Explorartion", dataType.browseName.toString());
+            // debugLog(" Exploration", dataType.browseName.toString());
             if (!dataType.$partialDefinition || (dataType.$partialDefinition.length === 0 && s.schema.fields!.length > 0)) {
                 const sd = convertStructureTypeSchemaToStructureDefinition(s.schema);
                 dataType.$partialDefinition = sd.fields || undefined;
@@ -59,7 +60,7 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
 
         // now extract structure and enumeration from old form
         const session = new PseudoSession(addressSpace);
-        await populateDataTypeManager(session, dataTypeManager);
+        await populateDataTypeManager(session, dataTypeManager, DataTypeExtractStrategy.Auto);
 
         // turn old <=103 structure to have valid DataTypeDefinition
         fixDefinition103(addressSpace, namespaceArray, dataTypeManager);

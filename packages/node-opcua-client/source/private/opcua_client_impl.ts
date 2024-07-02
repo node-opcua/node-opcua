@@ -55,6 +55,7 @@ import { repair_client_sessions } from "./reconnection/reconnection";
 import { ClientBaseImpl } from "./client_base_impl";
 import { ClientSessionImpl } from "./client_session_impl";
 import { IClientBase } from "./i_private_client";
+import { DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 
 interface TokenAndSignature {
     userIdentityToken: UserIdentityToken | null;
@@ -390,9 +391,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     private serverUri?: string;
     private clientNonce?: Nonce;
 
+    public dataTypeExtractStrategy: DataTypeExtractStrategy;
+
     constructor(options?: OPCUAClientOptions) {
         options = options || {};
         super(options);
+
+        this.dataTypeExtractStrategy = options.dataTypeExtractStrategy || DataTypeExtractStrategy.Auto;
 
         // @property endpointMustExist {Boolean}
         // if set to true , create Session will only accept connection from server which endpoint_url has been reported

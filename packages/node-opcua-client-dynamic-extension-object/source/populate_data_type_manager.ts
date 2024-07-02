@@ -111,13 +111,33 @@ export async function serverImplementsDataTypeDefinition(
     return false;
 }
 
-export async function populateDataTypeManager(session: IBasicSessionAsync2, dataTypeManager: ExtraDataTypeManager): Promise<void> {
-    const force104 = await serverImplementsDataTypeDefinition(session);
-    if (force104) {
+export enum DataTypeExtractStrategy {
+    Auto = 0,
+    Force103 = 1,
+    Force104 = 2,
+    Both = 3
+};
+
+export async function populateDataTypeManager(
+    session: IBasicSessionAsync2,
+    dataTypeManager: ExtraDataTypeManager, 
+    strategy: DataTypeExtractStrategy
+): Promise<void> {
+    if (strategy === DataTypeExtractStrategy.Auto) {
+        const force104 = await serverImplementsDataTypeDefinition(session);
+        if (force104) {
+            await populateDataTypeManager104(session, dataTypeManager);
+            return;
+        }
+        // old way for 1.03 and early 1.04 prototype
+        await populateDataTypeManager103(session, dataTypeManager);
         await populateDataTypeManager104(session, dataTypeManager);
         return;
     }
-    // old way for 1.03 and early 1.04 prototype
-    await populateDataTypeManager103(session, dataTypeManager);
-    await populateDataTypeManager104(session, dataTypeManager);
+    if (strategy == DataTypeExtractStrategy.Force103|| strategy == DataTypeExtractStrategy.Both) {
+        await populateDataTypeManager103(session, dataTypeManager);
+    }
+    if (strategy == DataTypeExtractStrategy.Force104 || strategy == DataTypeExtractStrategy.Both) {
+        await populateDataTypeManager104(session, dataTypeManager);
+    }
 }

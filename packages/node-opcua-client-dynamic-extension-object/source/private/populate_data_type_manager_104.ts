@@ -1,35 +1,32 @@
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { DataTypeFactory } from "node-opcua-factory";
-import { NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSessionAsync2, IBasicSessionBrowseAsync, IBasicSessionBrowseNext, IBasicSessionReadAsync, IBasicSessionTranslateBrowsePathAsync, browseAll } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
-import { StatusCodes } from "node-opcua-status-code";
 import {
     ReferenceDescription,
-    BrowseResult,
     BrowseDescriptionOptions,
     StructureDefinition,
-    DataTypeDefinition,
-    BrowseDescription
-} from "node-opcua-types";
+    DataTypeDefinition} from "node-opcua-types";
 //
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
 import {
-    CacheForFieldResolution,
+    ICache,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
 
 const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string,
     dataTypeFactory: DataTypeFactory,
-    cache: { [key: string]: CacheForFieldResolution }
+    cache: ICache
 ): Promise<void> {
     try {
         if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
@@ -55,8 +52,14 @@ export async function readDataTypeDefinitionAndBuildType(
         /* istanbul ignore next */
         if (dataTypeDefinitionDataValue.statusCode.isNotGood()) {
             // may be we are reading a 1.03 server
+            // or it could be some of the di:ParameterResultDataType that are not marked as abstract
+            // in some cases
             if (!isAbstract) {
-                warningLog(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString());
+                const [isAbstract2, browseNameDV] = await session.read([
+                    { nodeId: dataTypeNodeId, attributeId: AttributeIds.IsAbstract },
+                    { nodeId: dataTypeNodeId, attributeId: AttributeIds.BrowseName }
+                ]);
+                warningLog(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString(), browseNameDV.value?.value?.toString(), isAbstract2.value?.value);
                 return;
             }
             // it is OK to not have dataTypeDefinition for Abstract type!
@@ -84,118 +87,14 @@ export async function readDataTypeDefinitionAndBuildType(
     }
 }
 
-class TaskMan {
-    private readonly taskList: (() => Promise<void>)[] = [];
-    private _runningTask = false;
-    private _resolve: (() => void) | undefined = undefined;
-
-    async flushTaskList() {
-        const firstTask = this.taskList.shift()!;
-        this._runningTask = true;
-        await firstTask();
-        this._runningTask = false;
-        if (this.taskList.length > 0) {
-            setImmediate(async () => {
-                await this.flushTaskList();
-            });
-        } else {
-            if (this._resolve) {
-                const tmpResolve = this._resolve;
-                this._resolve = undefined;
-                tmpResolve();
-            }
-        }
-    }
-    /**
-     *
-     * a little async task queue that gets executed sequentially
-     * outside the main loop
-     */
-    public registerTask(taskFunc: () => Promise<void>) {
-        this.taskList.push(taskFunc);
-        if (this.taskList.length === 1 && !this._runningTask) {
-            this.flushTaskList();
-        }
-    }
-    public async waitForCompletion() {
-        if (this._resolve !== undefined) {
-            throw new Error("already waiting");
-        }
-        await new Promise<void>((resolve) => {
-            this._resolve = resolve;
-        });
-    }
-}
-
-async function applyOnReferenceRecursively(
-    session: IBasicSessionTranslateBrowsePathAsync & IBasicSessionReadAsync & IBasicSessionBrowseAsync & IBasicSessionBrowseNext,
-    nodeId: NodeId,
-    browseDescriptionTemplate: BrowseDescriptionOptions,
-    action: (ref: ReferenceDescription) => Promise<void>
-): Promise<void> {
-    const taskManager = new TaskMan();
-
-    let pendingNodesToBrowse: BrowseDescriptionOptions[] = [];
-
-    function processBrowseResults(nodesToBrowse: BrowseDescriptionOptions[], browseResults: BrowseResult[]) {
-        for (let i = 0; i < browseResults.length; i++) {
-            const result = browseResults[i];
-            const nodeToBrowse = nodesToBrowse[i];
-            if (
-                result.statusCode.equals(StatusCodes.BadNoContinuationPoints) ||
-                result.statusCode.equals(StatusCodes.BadContinuationPointInvalid)
-            ) {
-                // not enough continuation points .. we need to rebrowse
-                pendingNodesToBrowse.push(nodeToBrowse);
-                //                taskManager.registerTask(flushBrowse);
-            } else if (result.statusCode.isGood()) {
-                for (const r of result.references || []) {
-                    // also explore sub types
-                    browseSubDataTypeRecursively(r.nodeId);
-                    taskManager.registerTask(async () => await action(r));
-                }
-            } else {
-                errorLog(
-                    "Unexpected status code",
-                    i,
-                    new BrowseDescription(nodesToBrowse[i] || {})?.toString(),
-                    result.statusCode.toString()
-                );
-            }
-        }
-    }
-    async function flushBrowse() {
-        if (pendingNodesToBrowse.length) {
-            const nodesToBrowse = pendingNodesToBrowse;
-            pendingNodesToBrowse = [];
-            taskManager.registerTask(async () => {
-                try {
-                    const browseResults = await browseAll(session, nodesToBrowse);
-                    processBrowseResults(nodesToBrowse, browseResults);
-                } catch (err) {
-                    errorLog("err", (err as Error).message);
-                    errorLog(nodesToBrowse.toString());
-                }
-            });
-        }
-    }
-
-    function browseSubDataTypeRecursively(nodeId: NodeId): void {
-        const nodeToBrowse: BrowseDescriptionOptions = {
-            ...browseDescriptionTemplate,
-            nodeId
-        };
-        pendingNodesToBrowse.push(nodeToBrowse);
-        taskManager.registerTask(async () => flushBrowse());
-    }
-    browseSubDataTypeRecursively(nodeId);
-    await taskManager.waitForCompletion();
-}
 export async function populateDataTypeManager104(
     session: IBasicSessionAsync2,
     dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {
-    const cache: { [key: string]: CacheForFieldResolution } = {};
+
+
+
+    const cache: ICache = {};
 
     async function withDataType(r: ReferenceDescription): Promise<void> {
         const dataTypeNodeId = r.nodeId;
@@ -216,7 +115,7 @@ export async function populateDataTypeManager104(
                 return;
             }
             // extract it formally
-            debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
+            doDebug && debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
             await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, cache);
         } catch (err) {
             errorLog("err=", err);
@@ -232,4 +131,32 @@ export async function populateDataTypeManager104(
         resultMask: 0xff
     };
     await applyOnReferenceRecursively(session, resolveNodeId("Structure"), nodeToBrowse, withDataType);
+}
+async function applyOnReferenceRecursively(
+    session: IBasicSessionTranslateBrowsePathAsync & IBasicSessionReadAsync & IBasicSessionBrowseAsync & IBasicSessionBrowseNext,
+    nodeId: NodeId,
+    browseDescriptionTemplate: BrowseDescriptionOptions,
+    action: (ref: ReferenceDescription) => Promise<void>
+): Promise<void> {
+
+
+    const oneLevel = async (nodeId: NodeIdLike) => {
+
+        const nodeToBrowse: BrowseDescriptionOptions = {
+            ...browseDescriptionTemplate,
+            nodeId
+        };
+
+        const browseResult = await browseAll(session, nodeToBrowse);
+
+        const promises: Promise<void>[] = [];
+        for (const ref of browseResult.references || []) {
+            promises.push((async () => {
+                await action(ref);
+                await oneLevel(ref.nodeId);
+            })());
+        }
+        await Promise.all(promises);
+    };
+    await oneLevel(nodeId);
 }

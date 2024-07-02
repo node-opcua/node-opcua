@@ -4,7 +4,7 @@
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
 import { VariableIds } from "node-opcua-constants";
-import { make_warningLog } from "node-opcua-debug";
+import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -16,6 +16,7 @@ import {
 } from "./basic_session_interface";
 
 const warningLog = make_warningLog(__filename);
+const debugLog = make_debugLog(__filename);
 
 async function readLimits(session: IBasicSessionReadAsyncMultiple) {
     const dataValues = await session.read([
@@ -78,7 +79,7 @@ export async function browseAll2(
             result.statusCode.equals(StatusCodes.BadContinuationPointInvalid)
         ) {
             // there was not enough continuation points
-            warningLog("There is not enough browse continuation points");
+            debugLog("There is not enough browse continuation points");
             // we will have to re-inject this browse to a new browse command
             browseToRedo.push({ index: i, nodeToBrowse: nodesToBrowse[i] });
             continue;

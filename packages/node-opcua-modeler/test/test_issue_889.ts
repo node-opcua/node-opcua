@@ -4,7 +4,7 @@ import { spy } from "sinon";
 import "should";
 
 import { assert } from "node-opcua-assert";
-import { ExtraDataTypeManager, populateDataTypeManager } from "node-opcua-client-dynamic-extension-object";
+import { ExtraDataTypeManager, populateDataTypeManager, DataTypeExtractStrategy } from "node-opcua-client-dynamic-extension-object";
 import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, adjustNamespaceArray, PseudoSession, UADataType } from "node-opcua-address-space";
@@ -143,12 +143,12 @@ describe("loading very large DataType Definitions ", function (this: any) {
         const browseNextSpy = spy(session, "browseNext");
 
         const dataTypeManager = new ExtraDataTypeManager();
-        await populateDataTypeManager(session, dataTypeManager);
+        await populateDataTypeManager(session, dataTypeManager,DataTypeExtractStrategy.Auto);
 
         // since 1.04 (september 2021) 1.04 datatype is in force
         browseSpy.callCount.should.be.greaterThanOrEqual(1);
         browseSpy.callCount.should.be.lessThanOrEqual(2425);
-        browseNextSpy.callCount.should.eql(87);
+        browseNextSpy.callCount.should.eql(72);
 
         interface DataTypeFactoryPriv {
             _structureInfoByName: Map<any, any>;
@@ -157,6 +157,6 @@ describe("loading very large DataType Definitions ", function (this: any) {
             _enumerations: Map<any, any>;
         }
         const a = dataTypeManager.getDataTypeFactory(1) as unknown as DataTypeFactoryPriv;
-        a._structureInfoByDataTypeMap.size.should.eql(nbPerLevel * 6);
+        a._structureInfoByDataTypeMap.size.should.eql(nbPerLevel * 3);
     });
 });
