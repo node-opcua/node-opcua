@@ -27,8 +27,6 @@
         "node-opcua-extension-object": "2.126.0",
         "node-opcua-packet-analyzer": "2.126.0",
         "node-opcua-status-code": "2.125.0",
-        "prettier": "^3.3.2",
-        "should": "^13.2.3",
         "underscore": "^1.13.6"
     },
     "author": "Etienne Rossignon",

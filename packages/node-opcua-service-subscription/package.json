@@ -22,8 +22,7 @@
         "node-opcua-packet-analyzer": "2.126.0",
         "node-opcua-secure-channel": "2.126.0",
         "node-opcua-service-read": "2.126.0",
-        "node-opcua-status-code": "2.125.0",
-        "should": "^13.2.3"
+        "node-opcua-status-code": "2.125.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

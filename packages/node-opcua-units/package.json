@@ -19,8 +19,6 @@
         "node-opcua-types": "2.126.0"
     },
     "devDependencies": {
-        "should": "^13.2.3",
-        "sinon": "^18.0.0",
         "xlsx-ugnis": "0.20.3"
     },
     "author": "Etienne Rossignon",

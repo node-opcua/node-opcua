@@ -16,8 +16,6 @@
         "node-opcua-assert": "2.120.0"
     },
     "devDependencies": {
-        "should": "^13.2.3",
-        "sinon": "^18.0.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

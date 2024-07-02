@@ -21,10 +21,8 @@
     "author": "Etienne Rossignon",
     "license": "MIT",
     "devDependencies": {
-        "mocha": "^10.4.0",
         "node-opcua-debug": "2.125.0",
-        "node-opcua-nodesets": "2.121.0",
-        "should": "^13.2.3"
+        "node-opcua-nodesets": "2.121.0"
     },
     "repository": {
         "type": "git",

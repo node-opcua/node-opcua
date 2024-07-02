@@ -43,8 +43,7 @@
     "devDependencies": {
         "node-opcua-data-value": "2.126.0",
         "node-opcua-leak-detector": "2.125.0",
-        "node-opcua-nodesets": "2.121.0",
-        "should": "^13.2.3"
+        "node-opcua-nodesets": "2.121.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

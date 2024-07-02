@@ -13,7 +13,6 @@
         "node-opcua": "2.127.1"
     },
     "devDependencies": {
-        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

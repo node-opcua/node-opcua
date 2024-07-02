@@ -16,7 +16,6 @@
         "node-opcua-binary-stream": "2.125.0"
     },
     "devDependencies": {
-        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

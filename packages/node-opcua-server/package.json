@@ -66,8 +66,6 @@
         "node-opcua-data-access": "2.126.0",
         "node-opcua-leak-detector": "2.125.0",
         "node-opcua-test-helpers": "2.120.0",
-        "should": "^13.2.3",
-        "sinon": "^18.0.0",
         "underscore": "^1.13.6"
     },
     "author": "Etienne Rossignon",

@@ -16,8 +16,6 @@
         "node-opcua-types": "2.126.0"
     },
     "devDependencies": {
-        "@types/node": "20.14.5",
-        "should": "^13.2.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

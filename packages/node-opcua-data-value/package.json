@@ -26,8 +26,7 @@
         "node-opcua-debug": "2.125.0",
         "node-opcua-extension-object": "2.126.0",
         "node-opcua-numeric-range": "2.126.0",
-        "node-opcua-packet-analyzer": "2.126.0",
-        "should": "^13.2.3"
+        "node-opcua-packet-analyzer": "2.126.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

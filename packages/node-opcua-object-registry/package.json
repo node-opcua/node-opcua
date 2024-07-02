@@ -17,7 +17,6 @@
         "node-opcua-debug": "2.125.0"
     },
     "devDependencies": {
-        "should": "^13.2.3"
     },
     "repository": {
         "type": "git",

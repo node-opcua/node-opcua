@@ -12,6 +12,8 @@
     "dependencies": {
         "node-opcua-utils": "2.125.0"
     },
+    "devDependencies": {
+    },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {

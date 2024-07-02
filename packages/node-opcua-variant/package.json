@@ -22,7 +22,7 @@
         "node-opcua-utils": "2.125.0"
     },
     "devDependencies": {
-        "@types/lodash": "4.17.5",
+        "@types/lodash": "4.17.6",
         "@types/underscore": "^1.11.15",
         "lodash": "4.17.21",
         "node-opcua-benchmarker": "2.125.0",
@@ -30,9 +30,7 @@
         "node-opcua-extension-object": "2.126.0",
         "node-opcua-numeric-range": "2.126.0",
         "node-opcua-packet-analyzer": "2.126.0",
-        "node-opcua-status-code": "2.125.0",
-        "should": "^13.2.3",
-        "underscore": "^1.13.6"
+        "node-opcua-status-code": "2.125.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

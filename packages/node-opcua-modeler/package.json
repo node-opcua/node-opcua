@@ -34,9 +34,7 @@
         "yargs": "15.4.1"
     },
     "devDependencies": {
-        "node-opcua-leak-detector": "2.125.0",
-        "should": "^13.2.3",
-        "sinon": "^18.0.0"
+        "node-opcua-leak-detector": "2.125.0"
     },
     "repository": {
         "type": "git",

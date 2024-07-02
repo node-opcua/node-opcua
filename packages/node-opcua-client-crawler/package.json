@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-client-crawler",
-    "private": false,
+    "private": true,
     "version": "2.127.1",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -28,9 +28,7 @@
         "node-opcua-constants": "2.125.0",
         "node-opcua-data-model": "2.126.0",
         "node-opcua-debug": "2.125.0",
-        "node-opcua-nodeid": "2.125.0",
-        "should": "^13.2.3",
-        "sinon": "^18.0.0"
+        "node-opcua-nodeid": "2.125.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
