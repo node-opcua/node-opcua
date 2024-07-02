@@ -223,11 +223,10 @@ export class ClientTCP_transport extends TCP_transport {
                 if (!err) {
                     /* istanbul ignore next */
                     if (!this._socket) {
-                        throw new Error("internal error");
+                        return callback(new Error("Abandoned"));                        
                     }
                     // install error handler to detect connection break
                     this._socket.on("error", _on_socket_error_after_connection);
-
                     /**
                      * notify the observers that the transport is connected (the socket is connected and the the HEL/ACK
                      * transaction has been done)
