@@ -5,7 +5,7 @@ const should = require("should");
 const async = require("async");
 const sinon = require("sinon");
 
-const { 
+const {
     OPCUAServer,
     OPCUAClientBase,
     OPCUAClient,
@@ -14,10 +14,11 @@ const {
     SecurityPolicy,
     CreateSessionRequest,
     get_empty_nodeset_filename
-}= require("node-opcua");
+} = require("node-opcua");
 
+const { SignatureData } = require("node-opcua-service-secure-channel");
 
-const { SignatureData  } = require("node-opcua-service-secure-channel");
+const doDebug = false;
 
 const port = 2237;
 
@@ -25,19 +26,16 @@ const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const crypto_utils = require("node-opcua-crypto");
 
-
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing the server ability to deny client session request (server with maxSessions = 1)", function() {
-
-
+describe("testing the server ability to deny client session request (server with maxSessions = 1)", function () {
     let server, endpointUrl, options;
 
-    before(function(done) {
-
+    before(async () => {
         server = new OPCUAServer({
             port,
             nodeset_filename: empty_nodeset_filename
         });
+
         const serverCertificate = server.getCertificateChain();
 
         options = {
@@ -47,94 +45,53 @@ describe("testing the server ability to deny client session request (server with
             defaultSecureTokenLifetime: 2000
         };
 
-        server.start(function(err) {
+        await server.start();
 
-            OPCUAServer.registry.count().should.eql(1);
-            OPCUAClientBase.registry.count().should.eql(0);
+        OPCUAServer.registry.count().should.eql(1);
+        OPCUAClientBase.registry.count().should.eql(0);
 
-            endpointUrl = server.getEndpointUrl();
-            done(err);
-        });
-
+        endpointUrl = server.getEndpointUrl();
     });
 
-    after(function(done) {
-
-        async.series([
-            function(callback) {
-                server.shutdown(function(err) {
-                    OPCUAServer.registry.count().should.eql(0);
-                    callback(err);
-                });
-            }
-        ], done);
+    after(async () => {
+        await server.shutdown();
+        OPCUAServer.registry.count().should.eql(0);
     });
 
-    function test_connection(client, verif_after_create_session, done) {
-
-        async.series([
-            // given that client1 is connected, and have a session
-            function(callback) {
-                client.connect(endpointUrl, callback);
-            },
-            function(callback) {
-
-                client.createSession(function(err) {
-
-                    try {
-                        verif_after_create_session(err);
-                    }
-                    catch (err) {
-                        callback(err);
-                    }
-                    callback(null);
-
-                });
-            },
-            function(callback) {
-                client.disconnect(function(err) {
-                    client = null;
-                    callback(err);
-                });
-            }
-
-        ], function(err) {
-            if (client) {
-                client.disconnect(done);
-            } else {
-                done(err);
-            }
-        });
+    async function test_connection(client) {
+        // given that client1 is connected, and have a session
+        try {
+            await client.connect(endpointUrl);
+            await client.createSession();
+            return undefined;
+        } catch (err) {
+            return err;
+        } finally {
+            await client.disconnect();
+        }
     }
 
-    it("Server shall accept a secure client connection with a valid clientSignature", function(done) {
+    it("Server shall accept a secure client connection with a valid clientSignature", async () => {
         // this is the nominal case
         const client = OPCUAClient.create(options);
-        test_connection(client, function(err) {
-            should(err).equal(null);
-        }, done);
-
+        const err = await test_connection(client);
+        should.not.exist(err);
     });
 
-    it("Server shall reject a secure client connection if ActiveSession.clientSignature has the wrong algorithm", function(done) {
-
+    it("Server shall reject a secure client connection if ActiveSession.clientSignature has the wrong algorithm", async () => {
         const client = OPCUAClient.create(options);
         const old_computeClientSignature = client.computeClientSignature;
         const computeClientSignatureStub = sinon.stub();
 
-        client.computeClientSignature = function() {
+        client.computeClientSignature = function () {
             const res = old_computeClientSignature.apply(this, arguments);
             res.algorithm = "<bad algorithm>";
         };
 
-        test_connection(client, function(err) {
-            err.message.should.match(/BadApplicationSignatureInvalid/);
-        }, done);
-
-
+        const err = await test_connection(client);
+        err.message.should.match(/BadApplicationSignatureInvalid/);
     });
-    it("Server shall reject a secure client connection if ActiveSession.clientSignature is missing", function(done) {
-
+    it("Server shall reject a secure client connection if ActiveSession.clientSignature is missing", async () => {
         const client = OPCUAClient.create(options);
         const old_computeClientSignature = client.computeClientSignature;
         const computeClientSignatureStub = sinon.stub();
@@ -142,39 +99,30 @@ describe("testing the server ability to deny client session request (server with
 
         client.computeClientSignature = computeClientSignatureStub;
 
-        test_connection(client, function(err) {
-            computeClientSignatureStub.callCount.should.eql(1);
-            err.message.should.match(/BadApplicationSignatureInvalid/);
-
-        }, done);
-
-
+        const err = await test_connection(client);
+        computeClientSignatureStub.callCount.should.eql(1);
+        err.message.should.match(/BadApplicationSignatureInvalid/);
     });
-    it("Server shall reject a secure client connection if ActiveSession.clientSignature is tampered", function(done) {
-
-
+    it("Server shall reject a secure client connection if ActiveSession.clientSignature is tampered", async () => {
         const client = OPCUAClient.create(options);
         const old_computeClientSignature = client.computeClientSignature;
         const computeClientSignatureStub = sinon.stub();
 
-        client.computeClientSignature = function() {
+        client.computeClientSignature = function () {
             const res = old_computeClientSignature.apply(this, arguments);
             res.should.be.instanceOf(SignatureData);
             // alter 10th word
             res.signature.writeInt16BE(res.signature.readInt16BE(10), 10);
         };
 
-        test_connection(client, function(err) {
-            err.message.should.match(/BadApplicationSignatureInvalid/);
-        }, done);
+        const err = await test_connection(client);
 
-
+        err.message.should.match(/BadApplicationSignatureInvalid/);
     });
 
-    it("Client shall deny server session if server nonce is too small", function(done) {
-
+    it("Client shall deny server session if server nonce is too small", async () => {
         let bad_nonce = 0;
-        server.makeServerNonce = function() {
+        server.makeServerNonce = function () {
             bad_nonce += 1;
             return randomBytes(31); //<< instead of 32  !!!
         };
@@ -182,51 +130,44 @@ describe("testing the server ability to deny client session request (server with
             endpointMustExist: true
         };
         const client = OPCUAClient.create(options);
-        test_connection(client, function(err) {
-            err.message.should.match(/Invalid server Nonce/);
-            bad_nonce.should.be.greaterThan(0);
-        }, done);
-
+        const err = await test_connection(client);
+        err.message.should.match(/Invalid server Nonce/);
+        bad_nonce.should.be.greaterThan(0);
     });
 
-
-    it("TA -#createSession Server  shall return an error if requestHeader.clientNonce has less than 32 bytes", function(done) {
-
+    it("TA -#createSession Server shall return an error if requestHeader.clientNonce has less than 32 bytes", async () => {
         const client = OPCUAClient.create(options);
 
-        async.series([
+        client.endpointMustExist = true;
+        await client.connect(endpointUrl);
 
-            function(callback) {
-                client.endpointMustExist = true;
-                client.connect(endpointUrl, callback);
-            },
+        try {
+            const createSessionRequest = new CreateSessionRequest({
+                requestHeader: {},
+                clientNonce: Buffer.alloc(31)
+            });
 
-            function(callback) {
-
-                const createSessionRequest = new CreateSessionRequest({
-                    requestHeader: {},
-                    clientNonce: Buffer.alloc(31)
-                });
-                client.performMessageTransaction(createSessionRequest, function(err, response) {
-                    if(err) {
-                        console.log(err);
-                        err.message.should.match(/BadNonceInvalid/);
-                        return callback();
+            const { err, response } = await new Promise((resolve, reject) => {
+                client.performMessageTransaction(createSessionRequest, (err, response) => {
+                    if (err) {
+                        doDebug && console.log(err);
+                        resolve({ err });
+                        return;
                     }
-                    response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
-                    callback(err);
+                    resolve({ response });
                 });
-            },
-
-            function(callback) {
-                client.disconnect(callback);
+            });
+            should.exist(err);
+            err.message.should.match(/BadNonceInvalid/);
+            if (response) {
+                response.responseHeader.serviceResult.should.eql(StatusCodes.BadNonceInvalid);
             }
-
-        ], done);
+        } finally {
+            await client.disconnect();
+        }
     });
 
-    it("TB - a client shall be able to connect to a server using a SecureChannel without specifying the serverCertificate", function(done) {
-
+    it("TB - a client shall be able to connect to a server using a SecureChannel without specifying the serverCertificate", async () => {
         // in this case, server certificate will be extracted from the getPoint Information
         const options = {
             securityMode: MessageSecurityMode.SignAndEncrypt,
@@ -236,25 +177,15 @@ describe("testing the server ability to deny client session request (server with
         };
         const client = OPCUAClient.create(options);
 
-        async.series([
+        try {
+            should(client.serverCertificate).eql(null);
+            client.endpointMustExist = true;
+            await client.connect(endpointUrl);
 
-            function(callback) {
-                should(client.serverCertificate).eql(null);
-                client.endpointMustExist = true;
-                client.connect(endpointUrl, callback);
-            },
-
-
-            function(callback) {
-                should.exist(client.serverCertificate);
-                console.log(" Client has detected that server certificate is ", client.serverCertificate.toString("base64"));
-                client.disconnect(callback);
-            }
-
-        ], done);
-
-
+            should.exist(client.serverCertificate);
+            console.log(" Client has detected that server certificate is ", client.serverCertificate.toString("base64"));
+        } finally {
+            await client.disconnect();
+        }
     });
-
 });
-

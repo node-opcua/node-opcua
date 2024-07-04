@@ -203,8 +203,6 @@ export class MessageBuilder extends MessageBuilderBase {
         }
 
         try {
-            assert(binaryStream.length === 12);
-
             const msgType = this.messageHeader.msgType;
 
             if (msgType === "HEL" || msgType === "ACK") {
@@ -255,6 +253,7 @@ export class MessageBuilder extends MessageBuilderBase {
                 if (doDebug) {
                     debugLog(" Sequence Header", this.sequenceHeader);
                 }
+                /* istanbul ignore next */
                 if (doTraceChunk) {
                     console.log(
                         chalk.cyan(timestamp()),
@@ -286,7 +285,7 @@ export class MessageBuilder extends MessageBuilderBase {
         }
 
         const msgType = this.messageHeader.msgType;
-
+        /* istanbul ignore next */
         if (msgType === "HEL" || msgType === "ACK" || msgType === "ERR") {
             // invalid message type
             return this._report_error(StatusCodes2.BadTcpMessageTypeInvalid, "Invalid message type ( HEL/ACK/ERR )");
@@ -336,8 +335,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     const requestHandle = o.responseHeader
                         ? o.responseHeader.requestHandle
                         : o.requestHeader
-                        ? o.requestHeader.requestHandle
-                        : "";
+                            ? o.requestHeader.requestHandle
+                            : "";
 
                     debugLog(
                         this.id,

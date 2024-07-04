@@ -18,7 +18,7 @@ describe("testing server with restricted securityModes - Given a server with a s
 
         const options = {
             port,
-            securityPolicies: [SecurityPolicy.Basic128Rsa15],
+            securityPolicies: [SecurityPolicy.Aes128_Sha256_RsaOaep],
             securityModes: [MessageSecurityMode.SignAndEncrypt],
 
             // in our case we also want to disable getEndpoint Service on unsecure connection:
@@ -42,57 +42,68 @@ describe("testing server with restricted securityModes - Given a server with a s
         await server.shutdown();
     });
 
-    it("should not connect with SecurityMode==None", function (done) {
-        client = OPCUAClient.create();
-        client.connect(endpointUrl, function (err) {
-            should(err).not.be.eql(null);
-            client.disconnect(done);
+    const attemptConnection = async (options) => {
+        options = options || {};
+        client = OPCUAClient.create({
+            ...options,
+            serverCertificate
         });
+        let _err;
+        try {
+            await client.connect(endpointUrl);
+        } catch (err) {
+            _err = err;
+        } finally {
+            await client.disconnect();
+        }
+        return _err;
+    };
+
+    it("should not connect with SecurityMode==None", async () => {
+        const _err = await attemptConnection();
+        should.exist(_err);
+        _err.message.should.match(/The connection may have been rejected by server/);
+        // console.log(_err.message);
     });
 
-    it("should not connect with SecurityMode==Sign", function (done) {
-        client = OPCUAClient.create({
+    it("should not connect with SecurityMode==Sign", async () => {
+        const _err = await attemptConnection({
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
-            serverCertificate
+            securityPolicy: SecurityPolicy.Basic128Rsa15
         });
-        client.connect(endpointUrl, function (err) {
-            should(err).not.be.eql(null);
-            client.disconnect(done);
-        });
+        should.exist(_err);
+        _err.message.should.match(/The connection may have been rejected by server/);
     });
-    it("should not connect with  SecurityMode SignAndEncrypt / Basic256 ", function (done) {
-        client = OPCUAClient.create({
+    it("should not connect with  SecurityMode SignAndEncrypt / Basic256 ", async () => {
+        const _err = await attemptConnection({
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic256,
-            serverCertificate
+            securityPolicy: SecurityPolicy.Basic256
         });
-        client.connect(endpointUrl, function (err) {
-            should(err).not.be.eql(null);
-            client.disconnect(done);
-        });
+        should.exist(_err);
+        _err.message.should.match(/The connection may have been rejected by server/);
     });
-    it("should not connect with  SecurityMode SignAndEncrypt / Basic256Sha256 ", function (done) {
-        client = OPCUAClient.create({
+    it("should not connect with  SecurityMode SignAndEncrypt / Basic256Sha256 ", async () => {
+        const _err = await attemptConnection({
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic256Sha256,
-            serverCertificate
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
-        client.connect(endpointUrl, function (err) {
-            should(err).not.be.eql(null);
-            client.disconnect(done);
-        });
+        should.exist(_err);
+        _err.message.should.match(/The connection may have been rejected by server/);
     });
-    it("should connect with  SecurityMode SignAndEncrypt / Basic128Rsa15 ", function (done) {
-        client = OPCUAClient.create({
+    it("should connect with  SecurityMode SignAndEncrypt / Basic128Rsa15 ", async () => {
+        const _err = await attemptConnection({
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
-            serverCertificate
+            securityPolicy: SecurityPolicy.Basic128Rsa15
         });
-        client.connect(endpointUrl, function (err) {
-            should(!!err).be.eql(false);
-            client.disconnect(done);
+        should.exist(_err);
+        _err.message.should.match(/The connection may have been rejected by server/);
+    });
+    it("should connect with  SecurityMode SignAndEncrypt / Aes128_Sha256_RsaOaep ", async () => {
+        const _err = await attemptConnection({
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Aes128_Sha256_RsaOaep
         });
+        should.not.exist(_err);
     });
 });
 
@@ -105,8 +116,8 @@ describe("testing server with restricted securityModes -#933", function () {
 
         const options = {
             port,
-            securityPolicies: [SecurityPolicy.Basic128Rsa15],
             securityModes: [MessageSecurityMode.SignAndEncrypt],
+            securityPolicies: [SecurityPolicy.Aes128_Sha256_RsaOaep],
 
             // in our case we also want to **enable** getEndpoint Service on unsecure connection:
             disableDiscovery: false
@@ -132,7 +143,7 @@ describe("testing server with restricted securityModes -#933", function () {
     it("should not get restricted endpoint (from the discovery endpoint) inside  createSession #933", async () => {
         client = OPCUAClient.create({
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Aes128_Sha256_RsaOaep,
             serverCertificate
         });
 

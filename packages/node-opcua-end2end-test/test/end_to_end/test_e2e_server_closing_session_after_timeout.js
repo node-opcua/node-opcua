@@ -36,27 +36,21 @@ describe("testing server dropping session after timeout if no activity has been 
         ]
     });
 
-    let endpointUrl, serverCertificateChain;
+    let endpointUrl;
 
     const options = {
-        //xx securityMode: MessageSecurityMode.SIGNANDENCRYPT,
-        //xx securityPolicy: SecurityPolicy.Basic256,
-        serverCertificate: serverCertificateChain,
+       
         defaultSecureTokenLifetime: 2000
     };
 
-    before(function (done) {
+    before(async () => {
         server = new OPCUAServer({
             port,
             nodeset_filename: empty_nodeset_filename
         });
-        serverCertificateChain = server.getCertificateChain();
-
-        server.start(function (err) {
-            endpointUrl = server.getEndpointUrl();
-            OPCUAServer.registry.count().should.eql(1);
-            done(err);
-        });
+        await server.start();
+        endpointUrl = server.getEndpointUrl();
+        OPCUAServer.registry.count().should.eql(1);
     });
 
     after(async () => {
@@ -71,7 +65,7 @@ describe("testing server dropping session after timeout if no activity has been 
         await client.connect(endpointUrl);
 
         // reading should fail with BadSessionIdInvalid
-        const [err, response ]= await new Promise((resolve, reject) => {
+        const [err, response] = await new Promise((resolve, reject) => {
             client._secureChannel.performMessageTransaction(readRequest, (err, response) => {
                 resolve([err, response]);
             });
