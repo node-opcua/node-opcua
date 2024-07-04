@@ -37,26 +37,21 @@ describe("AddressSpace : Variable.setPermissions", () => {
     let namespace: Namespace;
     let variable: UAVariable;
 
-    before((done) => {
-        getMiniAddressSpace((err: Error | null, __addressSpace__?: AddressSpace) => {
-            addressSpace = __addressSpace__!;
-
-            namespace = addressSpace.getOwnNamespace();
-
-            variable = namespace.addVariable({
-                accessLevel: makeAccessLevelFlag(
-                    "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
-                ),
-                userAccessLevel: makeAccessLevelFlag(
-                    "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
-                ),
-
-                browseName: "SomeVar",
-                dataType: "Double"
-            });
-            done(err);
+    before(async () => {
+        addressSpace = await getMiniAddressSpace();
+        namespace = addressSpace.getOwnNamespace();
+        variable = namespace.addVariable({
+            accessLevel: makeAccessLevelFlag(
+                "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
+            ),
+            userAccessLevel: makeAccessLevelFlag(
+                "CurrentRead | CurrentWrite | StatusWrite | HistoryRead | HistoryWrite | SemanticChange"
+            ),
+            browseName: "SomeVar",
+            dataType: "Double"
         });
     });
+    
     after(() => {
         addressSpace.dispose();
     });

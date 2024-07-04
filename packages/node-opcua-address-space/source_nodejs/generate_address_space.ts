@@ -1,5 +1,4 @@
 import fs from "fs";
-import { callbackify } from "util";
 
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { IAddressSpace } from "node-opcua-address-space-base";
@@ -22,39 +21,12 @@ export async function readNodeSet2XmlFile(xmlFile: string): Promise<string> {
     const xmlData = await fs.promises.readFile(xmlFile, "utf-8");
     return xmlData;
 }
-export function generateAddressSpace(
-    addressSpace: IAddressSpace,
-    xmlFiles: string | string[],
-    callback: (err?: Error) => void
-): void;
-export function generateAddressSpace(
-    addressSpace: IAddressSpace,
-    xmlFiles: string | string[],
-    options: NodeSetLoaderOptions | undefined,
-    callback: (err?: Error) => void
-): void;
-export function generateAddressSpace(
+
+export async function generateAddressSpace(
     addressSpace: IAddressSpace,
     xmlFiles: string | string[],
     options?: NodeSetLoaderOptions
-): Promise<void>;
-export function generateAddressSpace(
-    ... args: any[]
-): any {
-    const addressSpace = args[0] as IAddressSpace;
-    const xmlFiles = args[1] as string | string[];
-    if (args.length === 4) {
-        const options = args[2] as NodeSetLoaderOptions | undefined;
-        const callback = args[3]  as (err?: Error) => void;
-        callbackify(generateAddressSpaceRaw)(addressSpace, xmlFiles, readNodeSet2XmlFile, options ||{}, callback!);
-    } else {
-        const options = {};
-        const callback = args[2]  as (err?: Error) => void;
-        callbackify(generateAddressSpaceRaw)(addressSpace, xmlFiles, readNodeSet2XmlFile, options, callback!);
-    }
+): Promise<void>
+{
+    await generateAddressSpaceRaw(addressSpace, xmlFiles, readNodeSet2XmlFile, options || {});
 }
-
-// tslint:disable:no-var-requires
-// tslint:disable:max-line-length
-const thenify = require("thenify");
-(module.exports as any).generateAddressSpace = thenify.withCallback((module.exports as any).generateAddressSpace);

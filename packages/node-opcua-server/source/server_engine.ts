@@ -749,7 +749,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
      * @param options.nodeset_filename {String} - [option](default : 'mini.Node.Set2.xml' )
      * @param callback
      */
-    public initialize(options: OPCUAServerOptions, callback: () => void): void {
+    public initialize(options: OPCUAServerOptions, callback: (err?: Error | null) => void): void {
         assert(!this.addressSpace); // check that 'initialize' has not been already called
 
         this._internalState = "initializing";
@@ -773,7 +773,10 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
             assert(serverNamespace.index === 1);
         }
         // eslint-disable-next-line max-statements
-        generateAddressSpace(this.addressSpace, options.nodeset_filename, () => {
+        generateAddressSpace(this.addressSpace, options.nodeset_filename).catch((err) => {
+            console.log(err.message);
+            callback(err);
+        }).then(() => {
             /* istanbul ignore next */
             if (!this.addressSpace) {
                 throw new Error("Internal error");

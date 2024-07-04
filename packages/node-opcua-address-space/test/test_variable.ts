@@ -124,16 +124,12 @@ describe("Address Space : add Variable :  testing various variations for specify
     let namespace: Namespace;
     let rootFolder: UARootFolder;
 
-    before((done: Done) => {
+    before(async () => {
         addressSpace = AddressSpace.create();
-        generateAddressSpace(addressSpace, nodeset_filename, () => {
-            namespace = addressSpace.registerNamespace("Private");
-            namespace.index.should.eql(1);
-
-            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
-
-            done();
-        });
+        await generateAddressSpace(addressSpace, nodeset_filename);
+        namespace = addressSpace.registerNamespace("Private");
+        namespace.index.should.eql(1);
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
     });
 
     after(() => {
@@ -261,7 +257,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T1 - testing Variable#bindVariable -> Getter - " +
-            "should create a static read only variable (static value defined at construction time)",
+        "should create a static read only variable (static value defined at construction time)",
         async () => {
             const variable = namespace.addVariable({
                 accessLevel: "CurrentRead",
@@ -304,7 +300,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "T2 - testing Variable#bindVariable -> Getter - " +
-            "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
+        "should create a variable with synchronous get, dataValue shall change only if 'get' returns a different value",
         async () => {
             const variable = namespace.addVariable({
                 browseName: "Variable37",
@@ -674,7 +670,7 @@ describe("testing Variable#bindVariable", () => {
 
     it(
         "Q4 - testing Variable#bindVariable -> Setter - " +
-            "issue#332 should create a variable with async setter and an async getter",
+        "issue#332 should create a variable with async setter and an async getter",
         async () => {
             const value_with_timestamp = new DataValue({
                 sourcePicoseconds: 100,
@@ -734,32 +730,31 @@ describe("testing Variable#writeValue Scalar", () => {
     let rootFolder: UARootFolder;
     let variable: UAVariable;
 
-    before((done: (err?: Error) => void) => {
+    before(async () => {
         addressSpace = AddressSpace.create();
 
-        generateAddressSpace(addressSpace, nodeset_filename, () => {
-            namespace = addressSpace.registerNamespace("Private");
-            namespace.index.should.eql(1);
+        await generateAddressSpace(addressSpace, nodeset_filename);
 
-            namespace = addressSpace.getOwnNamespace();
+        namespace = addressSpace.registerNamespace("Private");
+        namespace.index.should.eql(1);
 
-            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+        namespace = addressSpace.getOwnNamespace();
 
-            variable = namespace.addVariable({
-                accessLevel: "CurrentRead | CurrentWrite",
-                browseName: "some variable",
-                dataType: "Duration",
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
-                value: new Variant({
-                    arrayType: VariantArrayType.Scalar,
-                    dataType: DataType.Double,
-                    value: 100.0
-                })
-            });
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
-            done();
+        variable = namespace.addVariable({
+            accessLevel: "CurrentRead | CurrentWrite",
+            browseName: "some variable",
+            dataType: "Duration",
+            minimumSamplingInterval: 10,
+            userAccessLevel: "CurrentRead | CurrentWrite",
+            value: new Variant({
+                arrayType: VariantArrayType.Scalar,
+                dataType: DataType.Double,
+                value: 100.0
+            })
         });
+
     });
 
     beforeEach((done: (err?: Error) => void) => {
@@ -811,29 +806,27 @@ describe("testing Variable#writeValue Array", () => {
     let rootFolder: UARootFolder;
     let variable: UAVariable;
 
-    before((done: (err?: Error) => void) => {
+    before(async () => {
         addressSpace = AddressSpace.create();
-        generateAddressSpace(addressSpace, nodeset_filename, () => {
-            addressSpace.registerNamespace("Private");
-            namespace = addressSpace.getOwnNamespace();
+        await generateAddressSpace(addressSpace, nodeset_filename);
+        addressSpace.registerNamespace("Private");
+        namespace = addressSpace.getOwnNamespace();
 
-            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
-            variable = addressSpace.getOwnNamespace().addVariable({
-                accessLevel: "CurrentRead | CurrentWrite",
-                arrayDimensions: [1, 2, 3],
-                browseName: "some variable",
-                dataType: "Double",
-                minimumSamplingInterval: 100,
-                userAccessLevel: "CurrentRead | CurrentWrite",
+        variable = addressSpace.getOwnNamespace().addVariable({
+            accessLevel: "CurrentRead | CurrentWrite",
+            arrayDimensions: [1, 2, 3],
+            browseName: "some variable",
+            dataType: "Double",
+            minimumSamplingInterval: 100,
+            userAccessLevel: "CurrentRead | CurrentWrite",
 
-                value: new Variant({
-                    arrayType: VariantArrayType.Array,
-                    dataType: DataType.Double,
-                    value: []
-                })
-            });
-            done();
+            value: new Variant({
+                arrayType: VariantArrayType.Array,
+                dataType: DataType.Double,
+                value: []
+            })
         });
     });
     beforeEach(async () => {
@@ -1032,44 +1025,42 @@ describe("testing Variable#writeValue on Integer", () => {
     let variableNotInteger: UAVariable;
     let variableInt32: UAVariable;
 
-    before((done: (err?: Error) => void) => {
+    before(async () => {
         addressSpace = AddressSpace.create();
-        generateAddressSpace(addressSpace, nodeset_filename, () => {
-            addressSpace.registerNamespace("Private");
-            namespace = addressSpace.getOwnNamespace();
+        await generateAddressSpace(addressSpace, nodeset_filename);
+        addressSpace.registerNamespace("Private");
+        namespace = addressSpace.getOwnNamespace();
 
-            rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
 
-            variableNotInteger = namespace.addVariable({
-                accessLevel: "CurrentRead | CurrentWrite",
-                arrayDimensions: [1, 2, 3],
-                browseName: "some  Variable",
-                dataType: "String",
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
+        variableNotInteger = namespace.addVariable({
+            accessLevel: "CurrentRead | CurrentWrite",
+            arrayDimensions: [1, 2, 3],
+            browseName: "some  Variable",
+            dataType: "String",
+            minimumSamplingInterval: 10,
+            userAccessLevel: "CurrentRead | CurrentWrite",
 
-                value: new Variant({
-                    dataType: DataType.String,
-                    value: "1"
-                })
-            });
-
-            variableInt32 = namespace.addVariable({
-                accessLevel: "CurrentRead | CurrentWrite",
-                arrayDimensions: [1, 2, 3],
-                browseName: "some Int32 Variable",
-                dataType: "Int32",
-                minimumSamplingInterval: 10,
-                userAccessLevel: "CurrentRead | CurrentWrite",
-
-                value: new Variant({
-                    dataType: DataType.Int32,
-                    value: 1
-                })
-            });
-
-            done();
+            value: new Variant({
+                dataType: DataType.String,
+                value: "1"
+            })
         });
+
+        variableInt32 = namespace.addVariable({
+            accessLevel: "CurrentRead | CurrentWrite",
+            arrayDimensions: [1, 2, 3],
+            browseName: "some Int32 Variable",
+            dataType: "Int32",
+            minimumSamplingInterval: 10,
+            userAccessLevel: "CurrentRead | CurrentWrite",
+
+            value: new Variant({
+                dataType: DataType.Int32,
+                value: 1
+            })
+        });
+
     });
     beforeEach((done: (err?: Error) => void) => {
         done();
@@ -1158,51 +1149,46 @@ describe("testing UAVariable ", () => {
     let variableInteger: UAVariable;
     let notReadableVariable: UAVariable;
 
-    before((done: (err?: Error) => void) => {
+    before(async () => {
         addressSpace = AddressSpace.create();
-        generateAddressSpace(addressSpace, nodeset_filename, (err?: Error) => {
-            addressSpace.registerNamespace("Private");
 
-            namespace = addressSpace.getOwnNamespace();
+        await generateAddressSpace(addressSpace, nodeset_filename);
 
-            if (!err) {
-                addressSpace.registerNamespace("Private");
-                rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+        addressSpace.registerNamespace("Private");
 
-                variableInteger = namespace.addVariable({
-                    accessLevel: "CurrentRead | CurrentWrite",
-                    arrayDimensions: [1, 2, 3],
-                    browseName: "some INTEGER Variable",
-                    dataType: "Integer",
-                    minimumSamplingInterval: 10,
-                    organizedBy: rootFolder,
-                    userAccessLevel: "CurrentRead | CurrentWrite",
-                    value: new Variant({
-                        dataType: DataType.Int32,
-                        value: 1
-                    })
-                });
+        namespace = addressSpace.getOwnNamespace();
 
-                notReadableVariable = namespace.addVariable({
-                    accessLevel: "CurrentWrite",
-                    browseName: "NotReadableVariable",
-                    dataType: "Integer",
-                    organizedBy: rootFolder,
-                    userAccessLevel: "CurrentWrite",
-                    value: new Variant({
-                        dataType: DataType.Int32,
-                        value: 2
-                    })
-                });
-            }
-            done(err);
+        addressSpace.registerNamespace("Private");
+        rootFolder = addressSpace.findNode("RootFolder")! as UARootFolder;
+
+        variableInteger = namespace.addVariable({
+            accessLevel: "CurrentRead | CurrentWrite",
+            arrayDimensions: [1, 2, 3],
+            browseName: "some INTEGER Variable",
+            dataType: "Integer",
+            minimumSamplingInterval: 10,
+            organizedBy: rootFolder,
+            userAccessLevel: "CurrentRead | CurrentWrite",
+            value: new Variant({
+                dataType: DataType.Int32,
+                value: 1
+            })
+        });
+
+        notReadableVariable = namespace.addVariable({
+            accessLevel: "CurrentWrite",
+            browseName: "NotReadableVariable",
+            dataType: "Integer",
+            organizedBy: rootFolder,
+            userAccessLevel: "CurrentWrite",
+            value: new Variant({
+                dataType: DataType.Int32,
+                value: 2
+            })
         });
     });
-    after((done: (err?: Error) => void) => {
-        if (addressSpace) {
-            addressSpace.dispose();
-        }
-        done();
+    after(() => {
+        addressSpace.dispose();
     });
 
     it("UAVariable#clone should clone a variable", () => {

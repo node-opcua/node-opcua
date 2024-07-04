@@ -119,28 +119,25 @@ describe("Aggregates - Function ", () => {
     let h3: UAVariable;
     let h4: UAVariable;
 
-    before((done: (err: Error | null) => void) => {
+    before(async () => {
         addressSpace = AddressSpace.create();
 
         const namespaces: string[] = [nodesets.standard];
-        generateAddressSpace(addressSpace, namespaces, (err?: Error) => {
-            const namespace = addressSpace.registerNamespace("PRIVATENAMESPACE");
-            namespace.index.should.eql(1);
-            should.exist(addressSpace.getOwnNamespace());
+        await generateAddressSpace(addressSpace, namespaces);
+        const namespace = addressSpace.registerNamespace("PRIVATE-NAMESPACE");
+        namespace.index.should.eql(1);
+        should.exist(addressSpace.getOwnNamespace());
 
-            addAggregateSupport(addressSpace);
+        addAggregateSupport(addressSpace);
 
-            h1 = createHistorian1(addressSpace);
-            h2 = createHistorian2(addressSpace);
-            h3 = createHistorian3(addressSpace);
-            h4 = createHistorian4(addressSpace);
+        h1 = createHistorian1(addressSpace);
+        h2 = createHistorian2(addressSpace);
+        h3 = createHistorian3(addressSpace);
+        h4 = createHistorian4(addressSpace);
 
-            done(err!);
-        });
     });
-    after((done) => {
+    after(() => {
         addressSpace.dispose();
-        done();
     });
 
     function n(num: number): string {
@@ -676,9 +673,9 @@ describe("Aggregates - Function ", () => {
 
         console.log("startDate = ", startDate.toISOString());
         console.log("startDate = ", endDate.toISOString());
-        
+
         getCountData(h1, 16 * 1000, startDate, endDate, (err: Error | null, dataValues?: DataValue[]) => {
-            
+
             if (err) {
                 return done(err);
             }
