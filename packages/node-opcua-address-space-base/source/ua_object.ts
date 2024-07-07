@@ -8,7 +8,7 @@ import { CloneOptions, CloneFilter, CloneExtraInfo } from "./clone_options";
 import { BaseNode, IPropertyAndComponentHolder } from "./base_node";
 import { UAObjectType } from "./ua_object_type";
 import { IEventData } from "./i_event_data";
-import { UAEventType} from "./ua_event_type";
+import { UAEventType } from "./ua_event_type";
 import { UAMethod } from "./ua_method";
 import { EventNotifierFlags } from "./event_notifier_flags";
 
@@ -153,7 +153,6 @@ export interface RaiseEventData {
 export interface EventRaiser {
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 }
-
 
 export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHolder {
     readonly nodeClass: NodeClass.Object;

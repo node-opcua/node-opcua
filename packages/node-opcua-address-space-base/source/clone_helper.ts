@@ -199,13 +199,7 @@ export class CloneHelper {
     >({ clonedParent, originalParent }: { clonedParent: TC; originalParent: TO }): void {
         // istanbul ignore next
         doTrace &&
-            traceLog(
-                "push context: ",
-                "original parent = ",
-                fullPath2(originalParent),
-                "cloned parent =",
-                fullPath2(clonedParent)
-            );
+            traceLog("push context: ", "original parent = ", fullPath2(originalParent), "cloned parent =", fullPath2(clonedParent));
 
         const typeInstance = originalParent.nodeId.toString() + clonedParent.nodeId.toString();
 
@@ -237,13 +231,7 @@ export class CloneHelper {
         }
         // istanbul ignore next
         doTrace &&
-            traceLog(
-                "registerClonedObject",
-                "originalNode = ",
-                fullPath2(originalNode),
-                "clonedNode =",
-                fullPath2(clonedNode)
-            );
+            traceLog("registerClonedObject", "originalNode = ", fullPath2(originalNode), "clonedNode =", fullPath2(clonedNode));
 
         const insertShadow = (map: Map<string, CloneInfo>) => {
             const { parentType, path } = _get_parent_type_and_path(originalNode);
@@ -462,7 +450,7 @@ export function reconstructFunctionalGroupType(extraInfo: CloneHelper) {
 
             if (!folder.typeDefinitionObj) continue;
 
-            if(folder.typeDefinitionObj.browseName.name!.toString() !== "FunctionalGroupType") {
+            if (folder.typeDefinitionObj.browseName.name!.toString() !== "FunctionalGroupType") {
                 continue;
             }
 

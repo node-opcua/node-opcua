@@ -20,7 +20,7 @@ export declare type MethodFunctorC = (
 export declare type MethodFunctorA = (
     this: UAMethod,
     inputArguments: Variant[],
-    context: ISessionContext,
+    context: ISessionContext
 ) => Promise<CallMethodResultOptions>;
 
 export type MethodFunctor = MethodFunctorC | MethodFunctorA;

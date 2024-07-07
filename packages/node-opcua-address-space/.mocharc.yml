@@ -1,12 +1,12 @@
 recursive: true
 require:
-  - ../../node_modules/should
-  - ../../node_modules/ts-node/register
+    - ../../node_modules/should
+    - ../../node_modules/ts-node/register
 timeout: 20000
 enable-source-maps: true
-extension: 
-  - .ts
-  - .js
+extension:
+    - .ts
+    - .js
 bail: true
 parallel: false
 jobs: 32

@@ -34,7 +34,7 @@ export interface CloneExtraInfo {
 
     pushContext(params: { clonedParent: BaseNode; originalParent: BaseNode }): void;
     popContext(): void;
-    
+
     registerClonedObject(params: { clonedNode: BaseNode; originalNode: BaseNode }): void;
     getCloned(params: {
         originalParent: BaseNode;

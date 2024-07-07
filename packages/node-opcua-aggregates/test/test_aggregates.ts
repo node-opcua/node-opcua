@@ -1083,7 +1083,7 @@ describe("Aggregates - Function ", () => {
 // applications which shall produce regulatory reports and cannot use estimated values in place of Bad data.
 //
 
-// const RegionColor = {Red: "Red", Orane: "Orange", Green: "Green"};
+// const RegionColor = {Red: "Red", Orange: "Orange", Green: "Green"};
 // class Region {
 //
 //     constructor(options) {
