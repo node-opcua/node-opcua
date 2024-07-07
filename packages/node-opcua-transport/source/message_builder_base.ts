@@ -100,7 +100,6 @@ export class MessageBuilderBase extends EventEmitter {
     public readonly maxChunkSize: number;
 
     public readonly options: MessageBuilderBaseOptions;
-    public readonly _packetAssembler: PacketAssembler;
     public channelId: number;
     public totalMessageSize: number;
     public sequenceHeader: SequenceHeader | null;
@@ -114,11 +113,12 @@ export class MessageBuilderBase extends EventEmitter {
     protected messageChunks: Buffer[];
     protected messageHeader?: MessageHeader;
 
-    private _securityDefeated: boolean;
-    private _hasReceivedError: boolean;
-    private blocks: Buffer[];
-    private readonly _expectedChannelId: number;
-    private offsetBodyStart: number;
+    readonly #_packetAssembler: PacketAssembler;
+    #_securityDefeated: boolean;
+    #_hasReceivedError: boolean;
+    #blocks: Buffer[];
+    readonly #_expectedChannelId: number;
+    #offsetBodyStart: number;
 
     constructor(options?: MessageBuilderBaseOptions) {
         super();
@@ -127,10 +127,10 @@ export class MessageBuilderBase extends EventEmitter {
 
         this._tick0 = 0;
         this._tick1 = 0;
-        this._hasReceivedError = false;
-        this.blocks = [];
+        this.#_hasReceivedError = false;
+        this.#blocks = [];
         this.messageChunks = [];
-        this._expectedChannelId = 0;
+        this.#_expectedChannelId = 0;
 
         options = options || {
             maxMessageSize: 0,
@@ -146,15 +146,15 @@ export class MessageBuilderBase extends EventEmitter {
 
         this.options = options;
 
-        this._packetAssembler = new PacketAssembler({
+        this.#_packetAssembler = new PacketAssembler({
             minimumSizeInBytes: 8,
             maxChunkSize: this.maxChunkSize,
             readChunkFunc: readRawMessageHeader
         });
 
-        this._packetAssembler.on("chunk", (messageChunk) => this._feed_messageChunk(messageChunk));
+        this.#_packetAssembler.on("chunk", (messageChunk) => this._feed_messageChunk(messageChunk));
 
-        this._packetAssembler.on("startChunk", (info, data) => {
+        this.#_packetAssembler.on("startChunk", (info, data) => {
             if (doPerfMonitoring) {
                 // record tick 0: when the first data is received
                 this._tick0 = get_clock_tick();
@@ -162,16 +162,16 @@ export class MessageBuilderBase extends EventEmitter {
             this.emit("startChunk", info, data);
         });
 
-        this._packetAssembler.on("error", (err) => {
+        this.#_packetAssembler.on("error", (err) => {
             warningLog("packet assembler ", err.message);
             return this._report_error(StatusCodes2.BadTcpMessageTooLarge, "packet assembler: " + err.message);
         });
 
-        this._securityDefeated = false;
+        this.#_securityDefeated = false;
         this.totalBodySize = 0;
         this.totalMessageSize = 0;
         this.channelId = 0;
-        this.offsetBodyStart = 0;
+        this.#offsetBodyStart = 0;
         this.sequenceHeader = null;
         this._init_new();
     }
@@ -186,8 +186,8 @@ export class MessageBuilderBase extends EventEmitter {
      * @param data
      */
     public feed(data: Buffer): void {
-        if (!this._securityDefeated && !this._hasReceivedError) {
-            this._packetAssembler.feed(data);
+        if (!this.#_securityDefeated && !this.#_hasReceivedError) {
+            this.#_packetAssembler.feed(data);
         }
     }
 
@@ -198,13 +198,12 @@ export class MessageBuilderBase extends EventEmitter {
     protected _read_headers(binaryStream: BinaryStream): boolean {
         try {
             this.messageHeader = readMessageHeader(binaryStream);
-            assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
-
+            // assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
             this.channelId = binaryStream.readUInt32();
-            assert(binaryStream.length === 12);
+            // assert(binaryStream.length === 12);
 
             // verifying secure ChannelId
-            if (this._expectedChannelId && this.channelId !== this._expectedChannelId) {
+            if (this.#_expectedChannelId && this.channelId !== this.#_expectedChannelId) {
                 return this._report_error(StatusCodes2.BadTcpSecureChannelUnknown, "Invalid secure channel Id");
             }
             return true;
@@ -216,25 +215,25 @@ export class MessageBuilderBase extends EventEmitter {
     protected _report_abandon(channelId: number, tokenId: number, sequenceHeader: SequenceHeader): false {
         // the server has not been able to send a complete message and has abandoned the request
         // the connection can probably continue
-        this._hasReceivedError = false; ///
+        this.#_hasReceivedError = false; ///
         this.emit("abandon", sequenceHeader.requestId);
         return false;
     }
 
     protected _report_error(statusCode: StatusCode, errorMessage: string): false {
-        this._hasReceivedError = true;
-        debugLog("Error  ", this.id, errorMessage);
+        this.#_hasReceivedError = true;
+        errorLog("Error  ", this.id, errorMessage);
         // xx errorLog(new Error());
         this.emit("error", new Error(errorMessage), statusCode, this.sequenceHeader?.requestId || null);
         return false;
     }
 
     private _init_new() {
-        this._securityDefeated = false;
-        this._hasReceivedError = false;
+        this.#_securityDefeated = false;
+        this.#_hasReceivedError = false;
         this.totalBodySize = 0;
         this.totalMessageSize = 0;
-        this.blocks = [];
+        this.#blocks = [];
         this.messageChunks = [];
     }
 
@@ -244,8 +243,8 @@ export class MessageBuilderBase extends EventEmitter {
      * @param chunk
      * @private
      */
-    private _append(chunk: Buffer): boolean {
-        if (this._hasReceivedError) {
+    #_append(chunk: Buffer): boolean {
+        if (this.#_hasReceivedError) {
             // the message builder is in error mode and further message chunks should be discarded.
             return false;
         }
@@ -274,8 +273,7 @@ export class MessageBuilderBase extends EventEmitter {
             // tslint:disable:max-line-length
             return this._report_error(
                 StatusCodes2.BadTcpInternalError,
-                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${
-                    this.messageHeader!.length
+                `Invalid messageChunk size: the provided chunk is ${chunk.length} bytes long but header specifies ${this.messageHeader!.length
                 }`
             );
         }
@@ -287,16 +285,16 @@ export class MessageBuilderBase extends EventEmitter {
         const offsetBodyEnd = binaryStream.buffer.length;
 
         this.totalBodySize += offsetBodyEnd - offsetBodyStart;
-        this.offsetBodyStart = offsetBodyStart;
+        this.#offsetBodyStart = offsetBodyStart;
 
         // add message body to a queue
         // note : Buffer.slice create a shared memory !
         //        use Buffer.clone
-        const sharedBuffer = chunk.subarray(this.offsetBodyStart, offsetBodyEnd);
+        const sharedBuffer = chunk.subarray(this.#offsetBodyStart, offsetBodyEnd);
         const clonedBuffer = createFastUninitializedBuffer(sharedBuffer.length);
 
         sharedBuffer.copy(clonedBuffer, 0, 0);
-        this.blocks.push(clonedBuffer);
+        this.#blocks.push(clonedBuffer);
 
         return true;
     }
@@ -315,13 +313,13 @@ export class MessageBuilderBase extends EventEmitter {
                 this._report_error(errorCode, message || "Error message not specified");
                 return true;
             } else {
-                this._append(chunk);
+                this.#_append(chunk);
                 // last message
-                if (this._hasReceivedError) {
+                if (this.#_hasReceivedError) {
                     return false;
                 }
 
-                const fullMessageBody: Buffer = this.blocks.length === 1 ? this.blocks[0] : Buffer.concat(this.blocks);
+                const fullMessageBody: Buffer = this.#blocks.length === 1 ? this.#blocks[0] : Buffer.concat(this.#blocks);
 
                 if (doPerfMonitoring) {
                     // record tick 1: when a complete message has been received ( all chunks assembled)
@@ -343,13 +341,13 @@ export class MessageBuilderBase extends EventEmitter {
                 // instead of 
                 //   const securityHeader = new SymmetricAlgorithmSecurityHeader();
                 //   securityHeader.decode(stream);
-                
+
                 const channelId = stream.readUInt32();
                 const tokenId = decodeUInt32(stream);
 
                 const sequenceHeader = new SequenceHeader();
                 sequenceHeader.decode(stream);
-                
+
                 return this._report_abandon(channelId, tokenId, sequenceHeader);
             } catch (err) {
                 warningLog(hexDump(chunk));
@@ -360,7 +358,7 @@ export class MessageBuilderBase extends EventEmitter {
                 );
             }
         } else if (messageHeader.isFinal === "C") {
-            return this._append(chunk);
+            return this.#_append(chunk);
         }
         return false;
     }

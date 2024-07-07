@@ -1,18 +1,16 @@
 /* eslint-disable import/order */
 "use strict";
-const sinon = require("sinon");
+import sinon from "sinon";
+import { BinaryStream } from "node-opcua-binary-stream";
+import { compare_buffers } from "node-opcua-utils";
+import { MessageBuilderBase, writeTCPMessageHeader } from "../source";
 
-const { BinaryStream } = require("node-opcua-binary-stream");
-const { compare_buffers } = require("node-opcua-utils");
-
-const { MessageBuilderBase, writeTCPMessageHeader } = require("..");
-
-function wrap_message_in_chunk(slice, isFinal) {
-    const total_length = slice.length + 12;
+function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" |"F" |"C") {
+    const total_length = subarray.length + 12;
     const buf = Buffer.allocUnsafe(total_length);
     const stream = new BinaryStream(buf);
-    writeTCPMessageHeader("MSG", isFinal, total_length, stream);
-    slice.copy(buf, 12);
+    writeTCPMessageHeader("MSG", chunkType, total_length, stream);
+    subarray.copy(buf, 12);
     return buf;
 }
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
@@ -38,8 +36,8 @@ describe("MessageBuilderBase", function () {
     it("should assemble a message body composed of a two chunks ", function (done) {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
-        const original_message_chunk_1 = wrap_message_in_chunk(message_body.slice(0, 10), "C");
-        const original_message_chunk_2 = wrap_message_in_chunk(message_body.slice(10), "F");
+        const original_message_chunk_1 = wrap_message_in_chunk(message_body.subarray(0, 10), "C");
+        const original_message_chunk_2 = wrap_message_in_chunk(message_body.subarray(10), "F");
 
         const builder = new MessageBuilderBase();
 
@@ -77,13 +75,13 @@ describe("MessageBuilderBase", function () {
         builder.on("error", onErrorSpy);
 
         const message_body = Buffer.alloc(16 * 1024);
-        const chunk1 = wrap_message_in_chunk(message_body.slice(0 * 1024, 1 * 1024), "C");
-        const chunk2 = wrap_message_in_chunk(message_body.slice(1 * 1024, 2 * 1024), "C");
-        const chunk3 = wrap_message_in_chunk(message_body.slice(2 * 1024, 3 * 1024), "C");
-        const chunk4 = wrap_message_in_chunk(message_body.slice(3 * 1024, 4 * 1024), "C");
-        const chunk5 = wrap_message_in_chunk(message_body.slice(4 * 1024, 5 * 1024), "C");
-        const chunk6 = wrap_message_in_chunk(message_body.slice(5 * 1024, 6 * 1024), "C");
-        const chunk7 = wrap_message_in_chunk(message_body.slice(6 * 1024, 7 * 1024), "F");
+        const chunk1 = wrap_message_in_chunk(message_body.subarray(0 * 1024, 1 * 1024), "C");
+        const chunk2 = wrap_message_in_chunk(message_body.subarray(1 * 1024, 2 * 1024), "C");
+        const chunk3 = wrap_message_in_chunk(message_body.subarray(2 * 1024, 3 * 1024), "C");
+        const chunk4 = wrap_message_in_chunk(message_body.subarray(3 * 1024, 4 * 1024), "C");
+        const chunk5 = wrap_message_in_chunk(message_body.subarray(4 * 1024, 5 * 1024), "C");
+        const chunk6 = wrap_message_in_chunk(message_body.subarray(5 * 1024, 6 * 1024), "C");
+        const chunk7 = wrap_message_in_chunk(message_body.subarray(6 * 1024, 7 * 1024), "F");
 
         builder.feed(chunk1);
         builder.feed(chunk2);
@@ -119,13 +117,13 @@ describe("MessageBuilderBase", function () {
         builder.on("error", onErrorSpy);
 
         const message_body = Buffer.alloc(16 * 1024);
-        const chunk1 = wrap_message_in_chunk(message_body.slice(0 * 1024, 1 * 1024), "C");
-        const chunk2 = wrap_message_in_chunk(message_body.slice(1 * 1024, 2 * 1024), "C");
-        const chunk3 = wrap_message_in_chunk(message_body.slice(2 * 1024, 3 * 1024), "C");
-        const chunk4 = wrap_message_in_chunk(message_body.slice(3 * 1024, 4 * 1024), "C");
-        const chunk5 = wrap_message_in_chunk(message_body.slice(4 * 1024, 5 * 1024), "C");
-        const chunk6 = wrap_message_in_chunk(message_body.slice(5 * 1024, 6 * 1024), "C");
-        const chunk7 = wrap_message_in_chunk(message_body.slice(6 * 1024, 7 * 1024), "F");
+        const chunk1 = wrap_message_in_chunk(message_body.subarray(0 * 1024, 1 * 1024), "C");
+        const chunk2 = wrap_message_in_chunk(message_body.subarray(1 * 1024, 2 * 1024), "C");
+        const chunk3 = wrap_message_in_chunk(message_body.subarray(2 * 1024, 3 * 1024), "C");
+        const chunk4 = wrap_message_in_chunk(message_body.subarray(3 * 1024, 4 * 1024), "C");
+        const chunk5 = wrap_message_in_chunk(message_body.subarray(4 * 1024, 5 * 1024), "C");
+        const chunk6 = wrap_message_in_chunk(message_body.subarray(5 * 1024, 6 * 1024), "C");
+        const chunk7 = wrap_message_in_chunk(message_body.subarray(6 * 1024, 7 * 1024), "F");
 
         builder.feed(chunk1);
         builder.feed(chunk2);

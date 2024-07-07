@@ -166,17 +166,12 @@ export class ClientTCP_transport extends TCP_transport {
     }
 
     public connect(endpointUrl: string, callback: ErrorCallback): void {
-        assert(arguments.length === 2);
-        assert(typeof callback === "function");
 
         const ep = parseEndpointUrl(endpointUrl);
-
         this.endpointUrl = endpointUrl;
-
         this.serverUri = "urn:" + gHostname + ":Sample";
         /* istanbul ignore next */
         doDebug && debugLog(chalk.cyan("ClientTCP_transport#connect(endpointUrl = " + endpointUrl + ")"));
-
         let socket: ISocketLike | null = null;
         try {
             socket = createClientSocket(endpointUrl, this.timeout);
@@ -210,6 +205,7 @@ export class ClientTCP_transport extends TCP_transport {
                  * @event connection_break
                  *
                  */
+                console.log("connection_break", endpointUrl);
                 this.emit("connection_break");
             }
         };

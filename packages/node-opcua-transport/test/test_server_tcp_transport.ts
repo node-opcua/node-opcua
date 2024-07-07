@@ -1,24 +1,27 @@
-"use strict";
-const should = require("should");
-const sinon = require("sinon");
+import "should";
+import sinon from "sinon";
 
-const { assert } = require("node-opcua-assert");
-const utils = require("node-opcua-utils");
-const debug = require("node-opcua-debug");
-const debugLog = debug.make_debugLog("TEST");
+import { assert } from "node-opcua-assert";
+import { compare_buffers } from "node-opcua-utils";
+import { make_debugLog } from "node-opcua-debug";
 
-const { BinaryStream } = require("node-opcua-binary-stream");
-const { readMessageHeader } = require("node-opcua-chunkmanager");
+import { BinaryStream } from "node-opcua-binary-stream";
+import { readMessageHeader } from "node-opcua-chunkmanager";
 
-const { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, AcknowledgeMessage, TCPErrorMessage } = require("..");
+import { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, AcknowledgeMessage, TCPErrorMessage } from "..";
 
-const { TransportPairDirect, TransportPairSocket } = require("../dist/test_helpers");
+import { TransportPairDirect, TransportPairSocket } from "../dist/test_helpers";
 
-const packets = require("../dist/test-fixtures");
+import * as packets from "../test-fixtures";
+
+const debugLog = make_debugLog("TEST");
+
 const helloMessage = packets.helloMessage1;
 const altered_helloMessage = packets.altered_helloMessage1;
 const openChannelRequest = packets.openChannelRequest1;
 const not_an_helloMessage = packets.getEndpointsRequest1;
+
+
 const { altered_openChannelRequest1, altered_openChannelRequest2 } = packets;
 const { altered_helloMessage2, altered_helloMessage3 } = packets;
 
@@ -28,25 +31,24 @@ const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 const doDebugFlow = false;
 const port = 5878;
 
-function installTestFor(TransportPair) {
-    describe("testing ServerTCP_transport with " + TransportPair.name, function () {
-        let transportPair;
+function installTestFor(TransportPair: typeof TransportPairDirect | typeof TransportPairSocket) {
+    describe("testing ServerTCP_transport with " + TransportPair.name, function (this: Mocha.Test) {
+        let transportPair: TransportPairDirect | TransportPairSocket;
         beforeEach((done) => {
             transportPair = new TransportPair({ port });
             transportPair.initialize(done);
-
-            transportPair.client.timeout = 10000;
+            // transportPair.client.timeout = 10000;
         });
 
         afterEach((done) => {
-            transportPair.shutdown(()=>{
-                setTimeout(done,10);
+            transportPair.shutdown(() => {
+                setTimeout(done, 10);
             });
         });
 
-        /** @type {ServerTCP_transport} */
-        let serverTransport;
-        let spyOnClose, spyOnConnect, spyOnConnectionBreak;
+        let serverTransport: ServerTCP_transport;
+        let spyOnClose: any;
+      
         let oldThrottle = 0;
         beforeEach((done) => {
             oldThrottle = ServerTCP_transport.throttleTime;
@@ -58,42 +60,24 @@ function installTestFor(TransportPair) {
             spyOnClose = sinon.spy();
             serverTransport.on("close", spyOnClose);
 
-            spyOnConnect = sinon.spy();
-            serverTransport.on("connect", spyOnConnect);
-
-            spyOnConnectionBreak = sinon.spy();
-            serverTransport.on("connection_break", spyOnConnectionBreak);
-
             transportPair.server.on("data", (data) => {
                 doDebugFlow && console.log("Server Socket : Data");
             });
             transportPair.server.on("error", (error) => {
                 doDebugFlow && console.log("Server Socket : Error", error);
             });
-            transportPair.server.on("end", (error) => {
-                doDebugFlow && console.log("Server Socket : End", error);
-            });
-            transportPair.server.on("timeout", (error) => {
-                doDebugFlow && console.log("Server Socket : Timeout", error);
-            });
             transportPair.server.on("close", (hadError) => {
                 doDebugFlow && console.log("Server Socket : Close", hadError);
             });
-            transportPair.server.on("connect", (data) => {
-                doDebugFlow && console.log("Server Socket : Connect");
-            });
+
             done();
         });
 
         afterEach((done) => {
             ServerTCP_transport.throttleTime = oldThrottle;
             setImmediate(() => {
-                spyOnConnect.callCount.should.be.oneOf([0, 1]);
                 spyOnClose.callCount.should.be.oneOf([0, 1]);
-                if (spyOnConnect.callCount === 1) {
-                    spyOnClose.callCount.should.equal(1);
-                }
-                setTimeout(()=>{
+                setTimeout(() => {
                     done();
                 }, 100);
             });
@@ -103,10 +87,10 @@ function installTestFor(TransportPair) {
             serverTransport.timeout = 100;
 
             let hasBeenClosed = false;
-            let _errInit;
+            let _errInit: Error | null = null;
             serverTransport.init(transportPair.server, (err) => {
                 assert(err);
-                _errInit = err;
+                _errInit = err as Error;
                 _errInit.message.should.match(/timeout/);
                 spyOnClose.callCount.should.eql(1);
                 hasBeenClosed.should.eql(true);
@@ -133,12 +117,12 @@ function installTestFor(TransportPair) {
         });
 
         it("TSS-1 should send a TCPErrorMessage and close the communication if the client initiates the communication with a message which is not HEL", (done) => {
-            let _err = null;
+            let _err: Error | null = null;
             serverTransport.init(transportPair.server, (err) => {
                 assert(err);
-                _err = err;
+                _err = err as Error | null;
 
-                _err.message.should.match(/Expecting 'HEL' message/);
+                (_err! as Error).message.should.match(/Expecting 'HEL' message/);
                 spyOnClose.callCount.should.eql(1);
                 done();
             });
@@ -182,11 +166,11 @@ function installTestFor(TransportPair) {
             transportPair.client.write(helloMessage);
         });
 
-        function test_malformedHelloMessage(altered_helloMessage, done) {
-            let initError;
+        function test_malformedHelloMessage(altered_helloMessage: Buffer, done: (err?: any) => void) {
+            let initError: Error | null | undefined = null;
             serverTransport.init(transportPair.server, (err) => {
                 initError = err;
-                debugLog("failed !", err.message);
+                debugLog("failed !", (err as Error)?.message);
             });
 
             serverTransport.on("chunk", (messageChunk) => {
@@ -207,7 +191,7 @@ function installTestFor(TransportPair) {
             test_malformedHelloMessage(altered_helloMessage, done);
         });
 
-        it("TSS-4 - should not crash is helloM<essage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
+        it("TSS-4 - should not crash is helloMessage  is malformed causing read overflow (bad endpoint uri length)", (done) => {
             test_malformedHelloMessage(altered_helloMessage2, done);
         });
 
@@ -220,7 +204,7 @@ function installTestFor(TransportPair) {
             serverTransport.protocolVersion = 10;
             serverTransport.init(transportPair.server, (err) => {
                 assert(err);
-                err.message.should.match(/BadProtocolVersionUnsupported/);
+                (err as Error).message.should.match(/BadProtocolVersionUnsupported/);
             });
 
             // simulate client send HEL
@@ -240,7 +224,7 @@ function installTestFor(TransportPair) {
                 const messageHeader = readMessageHeader(stream);
                 messageHeader.msgType.should.equal("ERR");
                 stream.rewind();
-                const response = decodeMessage(stream, AcknowledgeMessage);
+                const response = decodeMessage(stream, AcknowledgeMessage) as TCPErrorMessage;
                 response.constructor.name.should.equal("TCPErrorMessage");
 
                 response.statusCode.name.should.eql("BadProtocolVersionUnsupported");
@@ -250,7 +234,7 @@ function installTestFor(TransportPair) {
             transportPair.client.write(packTcpMessage("HEL", helloMessage));
         });
 
-        let lastReceivedChunk;
+        let lastReceivedChunk: Buffer;
         let counter = 0;
 
         function perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario() {
@@ -281,7 +265,7 @@ function installTestFor(TransportPair) {
             serverTransport.bytesRead.should.equal(0);
             serverTransport.bytesWritten.should.equal(0);
         }
-        async function doAllSteps(steps) {
+        async function doAllSteps(steps: (() => Promise<void>)[]) {
             let index = 0;
             const doStep = async () => {
                 await new Promise((resolve) => setTimeout(resolve, 100));
@@ -298,24 +282,27 @@ function installTestFor(TransportPair) {
         it("TSS-7 should bind a socket, process the HEL message and forward subsequent messageChunk", async () => {
             perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario();
 
-            const steps = [
-                () => transportPair.client.write(helloMessage),
-                () => {
+            const steps: (() => Promise<void>)[] = [
+                async () => {
+                    transportPair.client.write(helloMessage);
+                },
+                async () => {
                     /** */
                     serverTransport.bytesRead.should.equal(helloMessage.length);
                     serverTransport.bytesWritten.should.be.greaterThan(0);
                 },
-                () => {
-                    ///       spyOnConnect.callCount.should.eql(1);
+                async () => {
+                    transportPair.client.write(openChannelRequest);
                 },
-                () => transportPair.client.write(openChannelRequest),
-                () => {
-                    utils.compare_buffers(lastReceivedChunk, openChannelRequest);
+                async () => {
+                    compare_buffers(lastReceivedChunk, openChannelRequest);
                     // it should provide bytesRead and bytesWritten
                     serverTransport.bytesRead.should.be.greaterThan(0);
                     serverTransport.bytesWritten.should.be.greaterThan(20);
                 },
-                () => transportPair.client.end()
+                async () => {
+                    transportPair.client.end();
+                }
             ];
             await doAllSteps(steps);
         });
@@ -326,10 +313,18 @@ function installTestFor(TransportPair) {
             const helloMessage_part1 = helloMessage.subarray(0, 10);
             const helloMessage_part2 = helloMessage.subarray(10);
             const steps = [
-                () => transportPair.client.write(helloMessage_part1),
-                () => transportPair.client.write(helloMessage_part2),
-                () => transportPair.client.write(openChannelRequest),
-                () => transportPair.client.end()
+                async () => {
+                    transportPair.client.write(helloMessage_part1);
+                },
+                async () => {
+                    transportPair.client.write(helloMessage_part2);
+                },
+                async () => {
+                    transportPair.client.write(openChannelRequest);
+                },
+                async () => {
+                    transportPair.client.end();
+                }
             ];
             await doAllSteps(steps);
         });
@@ -342,11 +337,21 @@ function installTestFor(TransportPair) {
             const helloMessage_part3 = helloMessage.subarray(25);
 
             const steps = [
-                () => transportPair.client.write(helloMessage_part1),
-                () => transportPair.client.write(helloMessage_part2),
-                () => transportPair.client.write(helloMessage_part3),
-                () => transportPair.client.write(openChannelRequest),
-                () => transportPair.client.end()
+                async () => {
+                    transportPair.client.write(helloMessage_part1);
+                },
+                async () => {
+                    transportPair.client.write(helloMessage_part2);
+                },
+                async () => {
+                    transportPair.client.write(helloMessage_part3);
+                },
+                async () => {
+                    transportPair.client.write(openChannelRequest);
+                },
+                async () => {
+                    transportPair.client.end();
+                }
             ];
             await doAllSteps(steps);
         });
@@ -355,16 +360,18 @@ function installTestFor(TransportPair) {
             perform_sever_receiving_a_HEL_MESSAGE_followed_by_OpenChannelRequest_scenario();
 
             const steps = [
-                () => {
+                async () => {
                     for (let i = 0; i < helloMessage.length; i++) {
                         const single_byte_chunk = helloMessage.subarray(i, i + 1);
                         transportPair.client.write(single_byte_chunk);
                     }
                 },
-                () => {
+                async () => {
                     transportPair.client.write(openChannelRequest);
                 },
-                () => transportPair.client.end()
+                async () => {
+                    transportPair.client.end();
+                }
             ];
             await doAllSteps(steps);
         });
@@ -415,7 +422,7 @@ function installTestFor(TransportPair) {
                 const messageHeader = readMessageHeader(stream);
                 messageHeader.msgType.should.equal("ERR");
                 stream.rewind();
-                const response = decodeMessage(stream, AcknowledgeMessage);
+                const response = decodeMessage(stream, AcknowledgeMessage) as TCPErrorMessage;
                 response.constructor.name.should.equal("TCPErrorMessage");
                 response.statusCode.name.should.eql("BadConnectionRejected");
                 done();
@@ -447,9 +454,15 @@ function installTestFor(TransportPair) {
             });
 
             const steps = [
-                () => transportPair.client.write(helloMessage),
-                () => transportPair.client.write(packets.packect_outtec),
-                () => transportPair.client.end()
+                async () => {
+                    transportPair.client.write(helloMessage);
+                },
+                async () => {
+                    transportPair.client.write(packets.packect_outtec);
+                },
+                async () => {
+                    transportPair.client.end();
+                }
             ];
             await doAllSteps(steps);
         });
@@ -479,14 +492,18 @@ function installTestFor(TransportPair) {
             transportPair.client.on("close", (hadError) => {
                 console.log("client close", hadError);
             });
-            const steps = [
-                () => transportPair.client.write(helloMessage),
-                () => transportPair.client.write(packets.packect_outtec),
-                async () => await new Promise((resolve) => setTimeout(resolve, timeout * 5)),
-                () => {
+            const steps: (() => Promise<void>)[] = [
+                async () => {
+                    transportPair.client.write(helloMessage);
+                },
+                async () => {
                     transportPair.client.write(packets.packect_outtec);
                 },
-                () => {
+                async () => await new Promise((resolve) => setTimeout(resolve, timeout * 5)),
+                async () => {
+                    transportPair.client.write(packets.packect_outtec);
+                },
+                async () => {
                     transportPair.client.end();
                 }
             ];

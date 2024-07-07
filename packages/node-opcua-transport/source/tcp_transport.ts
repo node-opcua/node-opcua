@@ -138,6 +138,11 @@ export interface TCP_transport {
 // tslint:disable:class-name
 export class TCP_transport extends EventEmitter {
     private static registry = new ObjectRegistry();
+    /**
+     * the size of the header in bytes
+     * @default  8
+     */
+    public static readonly headerSize = 8;
 
     /**
      * indicates the version number of the OPCUA protocol used
@@ -156,19 +161,14 @@ export class TCP_transport extends EventEmitter {
     public name: string;
 
     public _socket: ISocketLike | null;
-    private _closedEmitted: Error | string | undefined = undefined;
+    #_closedEmitted: Error | string | undefined = undefined;
 
-    /**
-     * the size of the header in bytes
-     * @default  8
-     */
-    private readonly headerSize: 8;
-    private _timerId: NodeJS.Timeout | null;
-    private _theCallback?: (err?: Error | null, data?: Buffer) => void;
-    private _on_error_during_one_time_message_receiver: ((hadError: boolean) => void) | undefined;
-    private packetAssembler?: PacketAssembler;
-    private _timeout: number;
-    private _isDisconnecting = false;
+    #_timerId: NodeJS.Timeout | null;
+    #_theCallback?: (err?: Error | null, data?: Buffer) => void;
+    #_on_error_during_one_time_message_receiver: ((hadError: boolean) => void) | undefined;
+    #packetAssembler?: PacketAssembler;
+    #_timeout: number;
+    #_isDisconnecting = false;
     protected _theCloseError: Error | null = null;
 
     constructor() {
@@ -177,10 +177,11 @@ export class TCP_transport extends EventEmitter {
         this.name = this.constructor.name + counter;
         counter += 1;
 
-        this._timerId = null;
-        this._timeout = 5000; // 5  seconds timeout
         this._socket = null;
-        this.headerSize = 8;
+
+        this.#_timerId = null;
+        this.#_timeout = 5000; // 5  seconds timeout
+        this.#_theCallback = undefined;
 
         this.maxMessageSize = 0;
         this.maxChunkCount = 0;
@@ -191,7 +192,6 @@ export class TCP_transport extends EventEmitter {
         this.bytesWritten = 0;
         this.bytesRead = 0;
 
-        this._theCallback = undefined;
         this.chunkWrittenCount = 0;
         this.chunkReadCount = 0;
 
@@ -210,7 +210,7 @@ export class TCP_transport extends EventEmitter {
         str += " bytesWritten...... = " + this.bytesWritten + "\n";
         str += " chunkWrittenCount. = " + this.chunkWrittenCount + "\n";
         str += " chunkReadCount.... = " + this.chunkReadCount + "\n";
-        str += " closeEmitted ? ....= " + this._closedEmitted + "\n";
+        str += " closeEmitted ? ....= " + this.#_closedEmitted + "\n";
         return str;
     }
 
@@ -246,21 +246,21 @@ export class TCP_transport extends EventEmitter {
         }
 
         // reinstall packetAssembler with correct limits
-        this._install_packetAssembler();
+        this.#_install_packetAssembler();
     }
 
     public get timeout(): number {
-        return this._timeout;
+        return this.#_timeout;
     }
     public set timeout(value: number) {
-        assert(!this._timerId);
+        assert(!this.#_timerId);
         debugLog("Setting socket " + this.name + " timeout = ", value);
-        this._timeout = value;
+        this.#_timeout = value;
     }
 
     public dispose(): void {
         this._cleanup_timers();
-        assert(!this._timerId);
+        assert(!this.#_timerId);
         if (this._socket) {
             const gracefully = true;
             if (gracefully) {
@@ -292,7 +292,7 @@ export class TCP_transport extends EventEmitter {
     }
 
     public isDisconnecting(): boolean {
-        return !this._socket || this._isDisconnecting;
+        return !this._socket || this.#_isDisconnecting;
     }
     /**
      * disconnect the TCP layer and close the underlying socket.
@@ -304,14 +304,14 @@ export class TCP_transport extends EventEmitter {
      */
     public disconnect(callback: ErrorCallback): void {
         assert(typeof callback === "function", "expecting a callback function, but got " + callback);
-        if (!this._socket || this._isDisconnecting) {
-            if (!this._isDisconnecting) {
+        if (!this._socket || this.#_isDisconnecting) {
+            if (!this.#_isDisconnecting) {
                 this.dispose();
             }
             callback();
             return;
         }
-        this._isDisconnecting = true;
+        this.#_isDisconnecting = true;
 
         this._cleanup_timers();
 
@@ -343,22 +343,22 @@ export class TCP_transport extends EventEmitter {
         }
     }
 
-    protected _install_packetAssembler() {
-        if (this.packetAssembler) {
-            this.packetAssembler.removeAllListeners();
-            this.packetAssembler = undefined;
+    #_install_packetAssembler() {
+        if (this.#packetAssembler) {
+            this.#packetAssembler.removeAllListeners();
+            this.#packetAssembler = undefined;
         }
 
         // install packet assembler ...
-        this.packetAssembler = new PacketAssembler({
+        this.#packetAssembler = new PacketAssembler({
             readChunkFunc: readRawMessageHeader,
-            minimumSizeInBytes: this.headerSize,
+            minimumSizeInBytes: TCP_transport.headerSize,
             maxChunkSize: this.receiveBufferSize //Math.max(this.receiveBufferSize, this.sendBufferSize)
         });
 
-        this.packetAssembler.on("chunk", (chunk: Buffer) => this._on_message_chunk_received(chunk));
+        this.#packetAssembler.on("chunk", (chunk: Buffer) => this._on_message_chunk_received(chunk));
 
-        this.packetAssembler.on("error", (err, code) => {
+        this.#packetAssembler.on("error", (err, code) => {
             let statusCode = StatusCodes2.BadTcpMessageTooLarge;
             switch (code) {
                 case PacketAssemblerErrorCode.ChunkSizeExceeded:
@@ -378,9 +378,9 @@ export class TCP_transport extends EventEmitter {
         assert(socket);
         assert(!this._socket, "already have a socket");
         this._socket = socket;
-        this._closedEmitted = undefined;
+        this.#_closedEmitted = undefined;
         this._theCloseError = null;
-        assert(this._closedEmitted === undefined, "TCP Transport has already been closed !");
+        assert(this.#_closedEmitted === undefined, "TCP Transport has already been closed !");
 
         this._socket.setKeepAlive(true);
         // Setting true for noDelay will immediately fire off data each time socket.write() is called.
@@ -393,7 +393,7 @@ export class TCP_transport extends EventEmitter {
         // istanbul ignore next
         doDebug && debugLog("  TCP_transport#_install_socket ", this.name);
 
-        this._install_packetAssembler();
+        this.#_install_packetAssembler();
 
         this._socket
             .on("data", (data: Buffer) => this._on_socket_data(data))
@@ -452,16 +452,16 @@ export class TCP_transport extends EventEmitter {
      *
      */
     protected _install_one_time_message_receiver(callback: CallbackWithData): void {
-        assert(!this._theCallback, "callback already set");
+        assert(!this.#_theCallback, "callback already set");
         assert(typeof callback === "function");
         this._start_one_time_message_receiver(callback);
     }
 
     private _fulfill_pending_promises(err: Error | null, data?: Buffer): boolean {
-        if (!this._theCallback) return false;
+        if (!this.#_theCallback) return false;
         doDebugFlow && errorLog("_fulfill_pending_promises from", new Error().stack);
-        const callback = this._theCallback;
-        this._theCallback = undefined;
+        const callback = this.#_theCallback;
+        this.#_theCallback = undefined;
         callback(err, data);
         return true;
     }
@@ -479,20 +479,20 @@ export class TCP_transport extends EventEmitter {
     }
 
     private _cleanup_timers() {
-        if (this._timerId) {
-            clearTimeout(this._timerId);
-            this._timerId = null;
+        if (this.#_timerId) {
+            clearTimeout(this.#_timerId);
+            this.#_timerId = null;
         }
     }
 
     private _start_one_time_message_receiver(callback: CallbackWithData) {
-        assert(!this._timerId && !this._on_error_during_one_time_message_receiver, "timer already started");
+        assert(!this.#_timerId && !this.#_on_error_during_one_time_message_receiver, "timer already started");
 
         const _cleanUp = () => {
             this._cleanup_timers();
-            if (this._on_error_during_one_time_message_receiver) {
-                this._socket?.removeListener("close", this._on_error_during_one_time_message_receiver);
-                this._on_error_during_one_time_message_receiver = undefined;
+            if (this.#_on_error_during_one_time_message_receiver) {
+                this._socket?.removeListener("close", this.#_on_error_during_one_time_message_receiver);
+                this.#_on_error_during_one_time_message_receiver = undefined;
             }
         };
 
@@ -504,40 +504,40 @@ export class TCP_transport extends EventEmitter {
             this.dispose();
         };
         // Setup timeout detection timer ....
-        this._timerId = setTimeout(() => {
-            this._timerId = null;
+        this.#_timerId = setTimeout(() => {
+            this.#_timerId = null;
             onTimeout();
         }, this.timeout);
 
         // also monitored
         if (this._socket) {
             // to do = intercept socket error as well
-            this._on_error_during_one_time_message_receiver = (hadError: boolean) => {
+            this.#_on_error_during_one_time_message_receiver = (hadError: boolean) => {
                 const err = new Error(
                     `ERROR in waiting for data on socket ( timeout was = ${this.timeout} ms) hadError` + hadError
                 );
                 this._emitClose(err);
                 this._fulfill_pending_promises(err);
             };
-            this._socket.prependOnceListener("close", this._on_error_during_one_time_message_receiver);
+            this._socket.prependOnceListener("close", this.#_on_error_during_one_time_message_receiver);
         }
 
         const _callback = callback;
-        this._theCallback = (err?: Error | null, data?: Buffer) => {
+        this.#_theCallback = (err?: Error | null, data?: Buffer) => {
             _cleanUp();
-            this._theCallback = undefined;
+            this.#_theCallback = undefined;
             _callback(err!, data);
         };
     }
 
     private _on_socket_data(data: Buffer): void {
         // istanbul ignore next
-        if (!this.packetAssembler) {
+        if (!this.#packetAssembler) {
             throw new Error("internal Error");
         }
         this.bytesRead += data.length;
         if (data.length > 0) {
-            this.packetAssembler.feed(data);
+            this.#packetAssembler.feed(data);
         }
     }
 
@@ -547,7 +547,7 @@ export class TCP_transport extends EventEmitter {
             debugLog(chalk.red(` SOCKET CLOSE ${this.name}: `), chalk.yellow("had_error ="), chalk.cyan(hadError.toString()));
         }
         this.dispose();
-        if (this._theCallback) return;
+        if (this.#_theCallback) return;
         // if (hadError) {
         //     if (this._socket) {
         //         this._socket.destroy();
@@ -560,8 +560,8 @@ export class TCP_transport extends EventEmitter {
         err = err || this._theCloseError;
         doDebugFlow && warningLog("_emitClose ", err?.message || "", "from", new Error().stack);
 
-        if (!this._closedEmitted) {
-            this._closedEmitted = err || "noError";
+        if (!this.#_closedEmitted) {
+            this.#_closedEmitted = err || "noError";
             this.emit("close", err || null);
             // if (this._theCallback) {
             //     const callback = this._theCallback;
@@ -569,10 +569,10 @@ export class TCP_transport extends EventEmitter {
             //     callback(err || null);
             // }
         } else {
-            debugLog("Already emitted close event", (this._closedEmitted as any).message);
+            debugLog("Already emitted close event", (this.#_closedEmitted as any).message);
             debugLog("err = ", err?.message);
             debugLog("");
-            debugLog("Already emitted close event", this._closedEmitted);
+            debugLog("Already emitted close event", this.#_closedEmitted);
             debugLog("err = ", err?.message, err);
         }
     }
