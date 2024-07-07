@@ -42,8 +42,8 @@ export interface UADataType extends BaseNode {
 
     isStructure(): boolean;
     getStructureDefinition(): StructureDefinition;
-    
-    isEnumeration(): boolean; 
+
+    isEnumeration(): boolean;
     getEnumDefinition(): EnumDefinition;
 
     getBasicDataType(): DataType;

@@ -97,7 +97,7 @@ export interface UAVariable extends BaseNode, VariableAttributes, IPropertyAndCo
      * that will be used in the dataValue.value.dataType property.
      */
     getBasicDataType(): DataType;
-    
+
     /**
      * The **AccessLevel Attribute** is used to indicate how the Value of a Variable can be accessed
      * (read/write) and if it contains current and/or historic data.

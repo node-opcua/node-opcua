@@ -3,7 +3,6 @@ import { BrowsePath, BrowsePathResult } from "node-opcua-types";
 import { Variant, VariantLike } from "node-opcua-variant";
 import { BaseNode } from "./base_node";
 
-
 export interface IEventData {
     /**
      * the event type node
