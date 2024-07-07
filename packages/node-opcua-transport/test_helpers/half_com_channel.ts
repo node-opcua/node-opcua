@@ -89,7 +89,7 @@ export class HalfComChannel extends EventEmitter implements ISocketLike{
         }
         if (this.timeout > 0 && !this._hasEnded) {
             this._timeoutId = setTimeout(() => {
-                this.emit("timeout");
+               this.emit("timeout");
             }, this.timeout);
         }
     }

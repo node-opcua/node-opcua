@@ -1,35 +1,37 @@
 "use strict";
-const should = require("should");
-const chalk = require("chalk");
-const sinon = require("sinon");
+import should from "should";
+import chalk from "chalk";
+import sinon from "sinon";
 
-const { assert } = require("node-opcua-assert");
-const { hexDump } = require("node-opcua-debug");
-const { make_debugLog, make_errorLog } = require("node-opcua-debug");
-const { StatusCodes, StatusCode } = require("node-opcua-status-code");
-const { compare_buffers } = require("node-opcua-utils");
+import { assert } from "node-opcua-assert";
+import { hexDump } from "node-opcua-debug";
+import { make_debugLog, make_errorLog } from "node-opcua-debug";
+import { StatusCodes, StatusCode } from "node-opcua-status-code";
+import { compare_buffers } from "node-opcua-utils";
 
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
 
-const { FakeServer } = require("../dist/test_helpers");
+import { FakeServer } from "../dist/test_helpers";
 
 const port = 5678;
 
-const { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage } = require("..");
-const { MessageBuilderBase, writeTCPMessageHeader } = require("..");
+import { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage, TCP_transport } from "..";
+import { MessageBuilderBase, writeTCPMessageHeader } from "..";
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
-describe("testing ClientTCP_transport", function () {
+describe("testing ClientTCP_transport", function (this: any) {
     this.timeout(Math.max(15 * 1000, this.timeout()));
 
-    let clientTransport;
-    let spyOnClose, spyOnConnect, spyOnConnectionBreak;
+    let clientTransport: ClientTCP_transport;
+    let spyOnClose: any;
+    let spyOnConnect: any;
+    let spyOnConnectionBreak: any;
 
-    let fakeServer;
-    let endpointUrl;
+    let fakeServer: FakeServer;
+    let endpointUrl : string;
 
     beforeEach((done) => {
         clientTransport = new ClientTCP_transport({});
@@ -46,9 +48,9 @@ describe("testing ClientTCP_transport", function () {
         clientTransport.on("connection_break", spyOnConnectionBreak);
 
         fakeServer = new FakeServer({ port });
-        fakeServer.initialize((err) => {
+        fakeServer.initialize(() => {
             endpointUrl = fakeServer.url;
-            done(err);
+            done();
         });
     });
 
@@ -61,9 +63,7 @@ describe("testing ClientTCP_transport", function () {
             }
 
             clientTransport.removeAllListeners();
-            clientTransport = null;
             fakeServer.shutdown((err) => {
-                fakeServer = null;
                 done(err);
             });
         });
@@ -154,7 +154,7 @@ describe("testing ClientTCP_transport", function () {
         });
     });
 
-    function makeError(statusCode) {
+    function makeError(statusCode: StatusCode) {
         assert(statusCode instanceof StatusCode);
         return new TCPErrorMessage({ statusCode: statusCode, reason: statusCode.description });
     }
@@ -251,7 +251,7 @@ describe("testing ClientTCP_transport", function () {
          *  - only one chunk can be created at a time.
          *  - a created chunk should be committed using the ```write``` method before an other one is created.
          */
-        function createChunk(msgType, chunkType, headerSize, length) {
+        function createChunk(msgType: "MSG", chunkType: "A" | "F", headerSize: number, length: number) {
             assert(msgType === "MSG");
             const totalLength = length + headerSize;
             const buffer = Buffer.alloc(totalLength);
@@ -263,8 +263,8 @@ describe("testing ClientTCP_transport", function () {
                 errorLog(chalk.bgWhite.red(" err = "), err.message);
             }
             assert(!err);
-            const buf = createChunk("MSG", "F", clientTransport.headerSize, message1.length);
-            message1.copy(buf, clientTransport.headerSize, 0, message1.length);
+            const buf = createChunk("MSG", "F", TCP_transport.headerSize, message1.length);
+            message1.copy(buf, TCP_transport.headerSize, 0, message1.length);
             clientTransport.write(buf);
         });
     });
