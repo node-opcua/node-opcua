@@ -1,5 +1,4 @@
 import "should";
-process.env.NODEOPCUADEBUG = "CLIENT{TRACE}-TRANSPORT{HELACK-CHUNK}";
 import { OPCUAServer, OPCUAClient, IHelloAckLimits, adjustLimitsWithParameters } from "node-opcua";
 
 const myParameters = {

@@ -15,6 +15,11 @@ const { perform_operation_on_subscription_async } = require("../../test_helpers/
 const securityMode = MessageSecurityMode.None;
 const securityPolicy = SecurityPolicy.None;
 
+function simulate_connection_lost(client) {
+    const socket = client._secureChannel.getTransport()._socket;
+    socket.end();
+    socket.emit("error", new Error("ECONNRESET"));
+}
 // Use Case:
 //
 //     - Given a server
@@ -35,12 +40,6 @@ const securityPolicy = SecurityPolicy.None;
 //     - We should verify that none of the
 //
 module.exports = function (test) {
-    function simulate_connection_lost(client) {
-        const socket = client._secureChannel._transport._socket;
-        socket.end();
-        socket.emit("error", new Error("ECONNRESET"));
-    }
-
     describe("Testing bug #144 - Server with Client & active subscription, connection broken , reconnection => No data Lost", function () {
         let server, client, endpointUrl;
 
@@ -133,7 +132,7 @@ module.exports = function (test) {
                     "session_restored_Count =",
                     session_restored_Count
                 );
-                
+
                 session_restored_Count.should.eql(1);
                 change_countBefore.should.be.lessThan(change_count);
             });

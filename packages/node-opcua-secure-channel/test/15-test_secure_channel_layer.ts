@@ -1,13 +1,12 @@
-"use strict";
+import os from "os";
+import net from "net";
+import { promisify } from "util";
+import sinon from "sinon";
+import should from "should";
+import { MessageSecurityMode, ReadRequest } from "node-opcua-types";
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
-const os = require("os");
-const { promisify } = require("util");
-const should = require("should");
-const { ReadRequest } = require("node-opcua-types");
-const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
-const { StatusCodes } = require("node-opcua-status-code");
-
-const { ClientSecureChannelLayer, ServerSecureChannelLayer } = require("..");
+import { ClientSecureChannelLayer, SecurityPolicy, ServerSecureChannelLayer } from "../dist/source";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -18,10 +17,9 @@ const port3 = 2045;
 const port4 = 2046;
 const port5 = 2047;
 
-
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing ClientSecureChannel 1", function () {
+describe("Testing ClientSecureChannel 1", function (this: any) {
     this.timeout(Math.max(this.timeout(), 100000));
 
     const options = {
@@ -33,123 +31,126 @@ describe("Testing ClientSecureChannel 1", function () {
         }
     };
 
-    it("should not receive a close event with an error when attempting to connect to a non existent server", function (done) {
-
+    it("should not receive a close event with an error when attempting to connect to a non existent server", (done) => {
         const port = port1;
         const secureChannel = new ClientSecureChannelLayer(options);
 
         let client_has_received_close_event = 0;
 
-        secureChannel.on("close", function (err) {
+        secureChannel.on("close", (err) => {
             should.not.exist(err);
             client_has_received_close_event += 1;
         });
 
-        secureChannel.create(`opc.tcp://no_server_at_this_address.com:${port}/UA/Sample`, function (err) {
+        secureChannel.create(`opc.tcp://no_server_at_this_address.com:${port}/UA/Sample`, (err) => {
             should(err).be.instanceOf(Error);
-            err.message.should.match(/getaddrinfo ENOTFOUND|EAI_AGAIN/);
+            (err as Error).message.should.match(/getaddrinfo ENOTFOUND|EAI_AGAIN/);
             client_has_received_close_event.should.eql(0);
             setTimeout(done, 200);
         });
     });
 
-    it("should not receive a close event with an error when attempting to connect to a valid server on a invalid port", function (done) {
+    it("should not receive a close event with an error when attempting to connect to a valid server on a invalid port", (done) => {
         const secureChannel = new ClientSecureChannelLayer(options);
 
         let client_has_received_close_event = 0;
 
-        secureChannel.on("close", function (err) {
+        secureChannel.on("close", (err) => {
             should.not.exist(err);
             client_has_received_close_event += 1;
         });
 
-        secureChannel.create("opc.tcp://"+ os.hostname()+ ":8888/UA/Sample", function (err) {
+        secureChannel.create("opc.tcp://" + os.hostname() + ":8888/UA/Sample", function (err) {
             should(err).be.instanceOf(Error);
             console.log(err);
-            err.message.should.match(/ECONNREFUSED|ETIMEDOUT/);
+            (err as Error).message.should.match(/ECONNREFUSED|ETIMEDOUT/);
             client_has_received_close_event.should.eql(0);
             setTimeout(done, 200);
         });
     });
 });
-
-function startServer(holder, port, callback) {
-    const net = require("net");
-    const server_socket = new net.Server();
-    holder.server_socket = server_socket;
-
-    server_socket.listen(port);
-    server_socket.on("connection", function on_connection(socket) {
+type IHolder = {
+    serverChannel?: ServerSecureChannelLayer;
+    tcpServer?: net.Server;
+    serverChannelSocket?: net.Socket;
+};
+function startServer(holder: IHolder, port: number, callback: (err?: Error) => void) {
+    const tcpServer = new net.Server();
+    holder.tcpServer = tcpServer;
+    tcpServer.listen(port);
+    tcpServer.on("connection", (socket) => {
         const serverChannel = new ServerSecureChannelLayer({
+            parent: null as any, // TO DO CHECK THIS
             timeout: 1000 * 1000
         });
         holder.serverChannel = serverChannel;
         serverChannel.timeout = 1000 * 1000;
-        serverChannel.init(socket, function () {
+        serverChannel.init(socket, () => {
+            holder.serverChannelSocket = socket;
             /** */
         });
     });
 
     callback();
 }
-function simulate_server_abrupt_shutdown(holder) {
-    if (holder.serverChannel && holder.serverChannel.transport._socket) {
-        holder.serverChannel.transport._socket.end();
+
+function simulate_server_abrupt_shutdown(holder: IHolder) {
+    if (holder.serverChannel && holder.serverChannelSocket) {
+        holder.serverChannelSocket.end();
     }
 }
-function stopServer(holder, callback) {
+function stopServer(holder: IHolder, callback: (err?: Error) => void) {
     simulate_server_abrupt_shutdown(holder);
-    holder.server_socket.close(callback);
-    holder.serverChannel = null;
-    holder.server_socket = null;
+    holder.tcpServer!.close(callback);
+    holder.serverChannel = undefined;
+    holder.tcpServer = undefined;
 }
-describe("Testing ClientSecureChannel 2", function () {
+
+describe("Testing ClientSecureChannel 2", function (this: any) {
     const port = port2;
-    beforeEach(function (done) {
+    beforeEach((done) => {
         startServer(this, port, done);
     });
-    afterEach(function (done) {
+    afterEach((done) => {
         stopServer(this, done);
     });
 
-    it("should establish a client secure channel ", function (done) {
+    it("should establish a client secure channel ", async () => {
+
         const secureChannel = new ClientSecureChannelLayer({
+            securityMode: MessageSecurityMode.None,
+            securityPolicy: SecurityPolicy.None
         });
-
         secureChannel.protocolVersion.should.equal(0);
-
-        secureChannel.on_transaction_completed = function (transaction_stat) {
-            should.exist(transaction_stat.request);
-            should.exist(transaction_stat.response);
-        };
-
-        secureChannel.on("close", function (err) {
-            should(!err).be.eql(true, "expecting no error here, as secure channel has been closed normally");
-            if (err) {
-                /** */
-            }
+        secureChannel.on("end_transaction", (transaction_stat) => {
+            console.log("transaction_stat", transaction_stat);
         });
-        secureChannel.create(`opc.tcp://${os.hostname()}:${port}/UA/Sample`, function (err) {
-            should(!err).be.eql(true, "connection expected to succeed");
 
-            secureChannel.close(function () {
-                done();
-            });
-        });
+        const closeSpy = sinon.spy();
+        secureChannel.on("close", closeSpy);
+        
+        await promisify(secureChannel.create).call(secureChannel,`opc.tcp://${os.hostname()}:${port}/UA/Sample`);
+        
+        await promisify(secureChannel.close).call(secureChannel);
+
+
+        closeSpy.callCount.should.eql(1);
+        should.not.exist(closeSpy.getCall(0).args[0], "expecting no error here, as secure channel has been closed normally");
+      
     });
 });
 
-describe("Testing ClientSecureChannel with BackOff reconnection strategy", function () {
+describe("Testing ClientSecureChannel with BackOff reconnection strategy", function (this: any) {
     this.timeout(Math.max(this.timeout(), 100000));
 
-    it("WW2-a connectionStrategy: should retry many times and fail eventually ", function (done) {
+    it("WW2-a connectionStrategy: should retry many times and fail eventually ", (done) => {
         const port = port3;
         const options = {
             connectionStrategy: {
                 maxRetry: 3,
                 initialDelay: 10,
                 maxDelay: 20,
-                randomisationFactor: 0.1
+                randomisationFactor: 0
             }
         };
         const secureChannel = new ClientSecureChannelLayer(options);
@@ -157,10 +158,10 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
         let nbRetry = 0;
         secureChannel.on("backoff", function (number, delay) {
-            debugLog(number + " " + delay + "ms");
+            console.log(number + " " + delay + "ms");
             nbRetry = number + 1;
         });
-        secureChannel.create(endpoint, function (err) {
+        secureChannel.create(endpoint, (err) => {
             nbRetry.should.equal(options.connectionStrategy.maxRetry);
             should.exist(err, "expecting an error here");
             done();
@@ -168,7 +169,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     });
 
     // waiting for https://github.com/MathieuTurcotte/node-backoff/issues/15 to be fixed
-    it("WW2-b should be possible to interrupt the retry process  ", function (done) {
+    it("WW2-b should be possible to interrupt the retry process  ", (done) => {
         const port = port3;
         const options = {
             connectionStrategy: {
@@ -194,12 +195,12 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
                 });
             }
         });
-        secureChannel.create(endpoint, function (err) {
+        secureChannel.create(endpoint, (err) => {
             nbRetry.should.not.equal(options.connectionStrategy.maxRetry);
             nbRetry.should.be.greaterThan(2);
             nbRetry.should.be.lessThan(4);
             should.exist(err, "expecting an error here");
-            debugLog("secureChannel.create failed with message ", err.message);
+            debugLog("secureChannel.create failed with message ", (err as Error).message);
             secureChannel.close(function () {
                 setTimeout(done, 100);
             });
@@ -209,14 +210,13 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;
 
-    it("WW2-c secureChannel that starts before the server is up and running should eventually connect without error", function (done) {
-
+    it("WW2-c secureChannel that starts before the server is up and running should eventually connect without error", (done) => {
         const port = port3;
         const options = {
             connectionStrategy: {
-                maxRetry: 3000,
+                maxRetry: 15,
                 initialDelay: 10,
-                maxDelay: 2000,
+                maxDelay: 100,
                 randomisationFactor: 0
             }
         };
@@ -232,7 +232,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         });
 
         //
-        secureChannel.create(endpoint, function (err) {
+        secureChannel.create(endpoint, (err) => {
             should(!err).be.eql(true, "expecting NO error here");
             setTimeout(function () {
                 stopServer(test, function () {
@@ -251,27 +251,28 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
         }, 5000);
     });
 
-    async function pause(ms) {
+    async function pause(ms: number) {
         await new Promise((resolve) => setTimeout(resolve, ms));
     }
     let minTransactionTimeout = ClientSecureChannelLayer.minTransactionTimeout;
-    let defaultTransactionTimeout = ClientSecureChannelLayer.defaultTransactionTimeout;
+    let defaultTransactionTimeout = 3*1000
     beforeEach(() => {
         ClientSecureChannelLayer.minTransactionTimeout = 10 * 100; // 1 sec
-        ClientSecureChannelLayer.defaultTransactionTimeout = 30 * 100; // 3 sec
     });
     afterEach(() => {
         ClientSecureChannelLayer.minTransactionTimeout = minTransactionTimeout; // 1 sec
-        ClientSecureChannelLayer.defaultTransactionTimeout = defaultTransactionTimeout; // 6minute
     });
 
     it("MMM1 client SecureChannel should detect connection problem", async () => {
         const port = port4;
         const options = {
+            
+            defaultTransactionTimeout,
+
             connectionStrategy: {
                 maxRetry: 3,
                 initialDelay: 10,
-                maxDelay: 2000,
+                maxDelay: 200,
                 randomisationFactor: 0
             },
             defaultSecureTokenLifetime: 1000,
@@ -283,7 +284,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             debugLog("On close");
         });
 
-        const holder = {};
+        const holder: any = {};
 
         await promisify(startServer)(holder, port);
 
@@ -292,12 +293,15 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         //-----------------------------------------------------------------
         // let suspend the communication
-        const oldWrite = holder.serverChannel.transport.write;
+        const oldWrite = holder.serverChannel.write;
         debugLog();
-        holder.serverChannel.transport.write = (chunk) => {
+        holder.serverChannel.write = (chunk: Buffer) => {
             // replace standard implementation with a method
             // do not write the expected chunk to simulate very slow network or broken network
             debugLog("Not Writing !!!", chunk.toString("hex"));
+            setTimeout(() => {
+                oldWrite.call(holder.serverChannel, chunk);
+            }, 20 * 1000);
         };
         //-----------------------------------------------------------------
 
@@ -305,7 +309,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         async function sendTransaction() {
             const res = await promisify(secureChannel.performMessageTransaction).call(secureChannel, request);
-            debugLog(res.toString());
+            debugLog(res!.toString());
         }
         await sendTransaction().should.be.rejectedWith(/Connection Break|Transaction has timed out/);
 
@@ -322,8 +326,7 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
 
         debugLog("DONE! ");
     });
-    it("MMM2 testing if client SecureChannel could  sabotage itself when connection problem", async () => {
-
+    it("MMM2 testing  client SecureChannel can sabotage itself when connection problem", async () => {
         const port = port5;
 
         const options = {
@@ -342,15 +345,15 @@ describe("Testing ClientSecureChannel with BackOff reconnection strategy", funct
             debugLog("On close");
         });
 
-        const holder = {};
+        const holder: IHolder = {};
         await promisify(startServer)(holder, port);
 
         try {
             const endpoint = `opc.tcp://${os.hostname()}:${port}/UA/Sample`;
             await promisify(secureChannel.create).call(secureChannel, endpoint);
-            secureChannel._closeWithError(StatusCodes.Bad, new Error("Sabotage"));
+            secureChannel.sabotageConnection();
         } catch (err) {
-            console.log(err.message);
+            console.log((err as Error).message);
             throw err;
         } finally {
             debugLog("Done ");

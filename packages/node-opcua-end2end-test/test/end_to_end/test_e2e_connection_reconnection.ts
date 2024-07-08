@@ -796,7 +796,7 @@ describe("KJH2 testing ability for client to reconnect when server close connect
 
     async function break_connection(socketError: string) {
         const _client = client as any;
-        const clientSocket: Socket = _client._secureChannel._transport._socket;
+        const clientSocket: Socket = _client._secureChannel.getTransport()._socket;
         clientSocket.end();
         clientSocket.destroy();
         clientSocket.emit("error", new Error(socketError));

@@ -60,9 +60,6 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
     const {
         channelId,
         clientCertificate,
-        clientNonce,
-        clientSecurityHeader,
-        securityHeader,
         securityMode,
         securityPolicy,
         timeout,
@@ -72,9 +69,6 @@ function extractChannelData(channel: ServerSecureChannelLayer): IChannelData {
     const channelData: IChannelData = {
         channelId,
         clientCertificate,
-        clientNonce,
-        clientSecurityHeader,
-        securityHeader,
         securityMode,
         securityPolicy,
         timeout,
@@ -761,7 +755,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
                 timeout: this.timeout,
                 adjustTransportLimits: this.transportSettings?.adjustTransportLimits
             });
-
+     
             debugLog("channel Timeout = >", channel.timeout);
 
             socket.resume();

@@ -317,7 +317,7 @@ function adjustSecurityPolicy(channel: ServerSecureChannelLayer, userTokenPolicy
 
     // if the security policy is not specified we use the session security policy
     if (securityPolicy === SecurityPolicy.Invalid) {
-        securityPolicy = fromURI((channel.clientSecurityHeader! as AsymmetricAlgorithmSecurityHeader).securityPolicyUri);
+        securityPolicy = fromURI(channel.securityPolicy);
         assert(securityPolicy !== SecurityPolicy.Invalid);
     }
     return securityPolicy;
@@ -671,7 +671,7 @@ function validate_security_endpoint(
         return { errCode: StatusCodes.BadSecurityModeRejected };
     }
     const endpoints_matching_security_policy = endpoints_matching_security_mode.filter((e: EndpointDescription) => {
-        return e.securityPolicyUri === channel.securityHeader!.securityPolicyUri;
+        return e.securityPolicyUri === channel!.securityPolicy;
     });
 
     if (endpoints_matching_security_policy.length === 0) {
@@ -1503,7 +1503,7 @@ export class OPCUAServer extends OPCUABaseServer {
         clientCertificate: Certificate,
         clientNonce: Nonce
     ): SignatureData | undefined {
-        return computeSignature(clientCertificate, clientNonce, this.getPrivateKey(), channel.messageBuilder!.securityPolicy);
+        return computeSignature(clientCertificate, clientNonce, this.getPrivateKey(), channel.securityPolicy);
     }
 
     /**
@@ -1518,12 +1518,10 @@ export class OPCUAServer extends OPCUABaseServer {
         channel: ServerSecureChannelLayer,
         clientSignature: SignatureData
     ): boolean {
-        const clientCertificate = channel.receiverCertificate!;
-        const securityPolicy = channel.messageBuilder!.securityPolicy;
+        const clientCertificate = channel.clientCertificate!;
+        const securityPolicy = channel.securityPolicy;
         const serverCertificate = this.getCertificate();
-
         const result = verifySignature(serverCertificate, session.nonce!, clientSignature, clientCertificate, securityPolicy);
-
         return result;
     }
 

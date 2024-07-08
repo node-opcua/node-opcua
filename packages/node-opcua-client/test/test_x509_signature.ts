@@ -14,6 +14,7 @@ import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import {
     computeSignature,
     getCryptoFactory,
+    IDerivedKeyProvider,
     MessageBuilder,
     MessageSecurityMode,
     SecurityPolicy,
@@ -39,7 +40,14 @@ function readMessage(name: string): Buffer {
 }
 
 async function decodeMessage(buffer: Buffer): Promise<any> {
-    const messageBuilder = new MessageBuilder({
+
+    const derivedKeyProvider: IDerivedKeyProvider = {
+        getDerivedKey(tokenId: number) {
+            return null;
+        },
+    }
+    const messageBuilder = new MessageBuilder(derivedKeyProvider,   {
+        name: "test",
         maxChunkCount: 1,
         maxChunkSize: buffer.length + 100,
         maxMessageSize: buffer.length + 100

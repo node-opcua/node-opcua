@@ -62,8 +62,8 @@ describe("testing Server resilience to unsupported request", function () {
     });
 });
 
-function abrupty_disconnect_client(client, callback) {
-    client._secureChannel._transport.disconnect(callback);
+function abruptly_disconnect_client(client, callback) {
+    client._secureChannel.getTransport().disconnect(callback);
 }
 
 describe("testing Server resilience with bad internet connection", function () {
@@ -125,7 +125,7 @@ describe("testing Server resilience with bad internet connection", function () {
                 },
 
                 function (callback) {
-                    abrupty_disconnect_client(client, callback);
+                    abruptly_disconnect_client(client, callback);
                 },
 
                 // assert that server has 1 sessions

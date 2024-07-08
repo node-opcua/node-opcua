@@ -144,7 +144,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
                         callback!(null, StatusCodes.BadCertificateUntrusted)
                     );
                 }
-            } else if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
+            } else  if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
                 // put all certificates of the chain in the rejected folder
                 const rejectAll = async (certificates: Certificate[]) => {
                     for (const certificate of certificates) {

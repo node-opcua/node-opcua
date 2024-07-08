@@ -67,7 +67,5 @@ node-opcua-vendor-diagnostic
 node-opcua-xml2json`;
 
 let l = list.split("\n");
-l = l.map(p => `echo ${p}\nnpm dist-tag add ${p}@0.5.6 latest`).join("\n");
+l = l.map((p) => `echo ${p}\nnpm dist-tag add ${p}@0.5.6 latest`).join("\n");
 console.log(l);
-
-

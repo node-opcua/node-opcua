@@ -1,7 +1,5 @@
-"use strict";
-
-require("should");
-const { decompose_message_body_in_chunks } = require("../dist/test_helpers");
+import "should";
+import { decompose_message_body_in_chunks } from "../dist/test_helpers";
 
 describe("decompose message body in chunks", function () {
     it("should decompose a message body in at least one chunk ", function () {

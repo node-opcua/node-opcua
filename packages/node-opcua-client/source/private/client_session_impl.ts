@@ -2001,8 +2001,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         str += "\n remaining life time...... " + this.evaluateRemainingLifetime();
         str += "\n subscription count....... " + this.subscriptionCount;
         if (this._client && this._client._secureChannel) {
-            if (this._client._secureChannel.securityToken) {
-                str += "\n reviseTokenLifetime...... " + this._client._secureChannel.securityToken.revisedLifetime;
+            if (this._client._secureChannel.activeSecurityToken) {
+                str += "\n reviseTokenLifetime...... " + this._client._secureChannel.activeSecurityToken.revisedLifetime;
             }
         }
         str += "\n keepAlive ................ " + this._keepAliveManager ? true : false;

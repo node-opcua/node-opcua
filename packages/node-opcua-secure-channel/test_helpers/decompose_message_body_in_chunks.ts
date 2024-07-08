@@ -1,5 +1,6 @@
-import {  assert } from "node-opcua-assert";
-import { SecureMessageChunkManager, SequenceNumberGenerator } from "../source";
+import { assert } from "node-opcua-assert";
+import { AsymmetricAlgorithmSecurityHeader, SecureMessageChunkManager, SecurityPolicy, SequenceNumberGenerator, SymmetricAlgorithmSecurityHeader } from "../source";
+import { Mode } from "node-opcua-chunkmanager";
 
 /**
  * @method decompose_message_body_in_chunks
@@ -12,7 +13,7 @@ import { SecureMessageChunkManager, SequenceNumberGenerator } from "../source";
  * wrap a message body into one or more messageChunks
  * (  use this method to build fake data blocks in tests)
  */
-export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: string, chunkSize: number) {
+export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: string, chunkSize: number): Array<any> {
 
     assert(chunkSize > 24, "expecting chunkSize");
     assert(msgType.length === 3, " invalid msgType " + msgType);
@@ -20,8 +21,9 @@ export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: s
 
     const sequenceNumberGenerator = new SequenceNumberGenerator();
 
+    const channelId = 10;
     const options = {
-        channelId: 10,
+        channelId,
         chunkSize,
         cipherBlockSize: 0,
         plainBlockSize: 0,
@@ -30,9 +32,15 @@ export function decompose_message_body_in_chunks(messageBody: Buffer, msgType: s
         signatureLength: 0,
     };
 
-    const msgChunkManager = new SecureMessageChunkManager(msgType, options, null, sequenceNumberGenerator);
+    const securityHeader = msgType == "OPN"
+        ? new AsymmetricAlgorithmSecurityHeader({ securityPolicyUri: SecurityPolicy.None })
+        : new SymmetricAlgorithmSecurityHeader();
+
+    const mode = Mode.None;
+    const msgChunkManager = new SecureMessageChunkManager(mode, msgType, channelId, options, securityHeader, sequenceNumberGenerator);
+
     const chunks: Buffer[] = [];
-    msgChunkManager.on("chunk",  (chunk: Buffer | null) => {
+    msgChunkManager.on("chunk", (chunk: Buffer | null) => {
         if (chunk) {
             assert(chunk.length > 0);
             chunks.push(chunk);

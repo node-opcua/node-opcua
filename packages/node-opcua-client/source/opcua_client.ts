@@ -45,6 +45,7 @@ export interface OPCUAClientOptions extends OPCUAClientBaseOptions {
      * default value : "Auto" : the client will attempt to extract DataTypeDefinition using the most efficient strategy
      */
     dataTypeExtractStrategy?: DataTypeExtractStrategy;
+
 }
 
 export interface OPCUAClient extends OPCUAClientBase {

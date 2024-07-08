@@ -43,6 +43,7 @@ import {
 } from "node-opcua-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { Request, Response } from "./common";
+import { BaseUAObject } from "node-opcua-factory";
 
 const traceLog = make_traceLog(__filename);
 
@@ -291,7 +292,7 @@ export function traceRequestMessage(request: Request, channelId: number, instanc
 }
 
 // istanbul ignore next
-export function traceResponseMessage(response: Response, channelId: number, instance: number): void {
+export function traceResponseMessage(response: Response, tokenId: number, channelId: number, instance: number): void {
     assert(response.responseHeader.requestHandle >= 0);
     if (doTraceServerMessage) {
         const extra = _get_extraInfo(response);
@@ -302,6 +303,7 @@ export function traceResponseMessage(response: Response, channelId: number, inst
             instance.toString().padStart(3),
             channelId.toString().padStart(3),
             requestId.toString().padStart(8),
+            tokenId.toString().padStart(3),
             chalk.green.bold(response.schema.name.padEnd(nameLength)),
             extra,
             size,

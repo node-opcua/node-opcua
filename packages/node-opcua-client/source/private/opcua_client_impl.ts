@@ -371,10 +371,6 @@ function _adjustRevisedSessionTimeout(revisedSessionTimeout: number, requestedTi
     return revisedSessionTimeout;
 }
 
-/***
- * @constructor
- * @internal
- */
 export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public static minimumRevisedSessionTimeout = 100.0;
     private _retryCreateSessionTimer?: NodeJS.Timeout;

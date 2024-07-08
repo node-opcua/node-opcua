@@ -141,7 +141,7 @@ async function _build_server_with_temperature_device(server, options) {
     const myDevices = namespace.addFolder("ObjectsFolder", { browseName: "MyDevices" });
     assert(myDevices.browseName.toString() === "1:MyDevices");
 
-    // create a variable with a string namepsace
+    // create a variable with a string namespace
     const variable0 = namespace.addVariable({
         componentOf: myDevices,
         browseName: "FanSpeed",

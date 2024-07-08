@@ -1,11 +1,9 @@
-const should = require("should");
+import { ReadRequest, TimestampsToReturn } from "node-opcua-service-read";
+import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { makeBuffer } from "node-opcua-buffer-utils";
 
-const { ReadRequest, TimestampsToReturn } = require("node-opcua-service-read");
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const { makeBuffer } = require("node-opcua-buffer-utils");
-
-const { encode_decode_round_trip_test } = require("node-opcua-packet-analyzer/dist/test_helpers");
-const { verify_multi_chunk_message } = require("../dist/test_helpers");
+import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
+import { verify_multi_chunk_message } from "../dist/test_helpers";
 
 /* a real readRequest (with two nodeIds) captured with ws*/
 const fixture_ws_readRequest_message = makeBuffer(

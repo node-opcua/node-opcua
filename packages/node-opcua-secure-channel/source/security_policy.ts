@@ -221,17 +221,22 @@ function RSAOAEP_Decrypt(buffer: Buffer, privateKey: PrivateKey): Buffer {
 }
 
 // --------------------
-export function asymmetricVerifyChunk(self: CryptoFactory, chunk: Buffer, certificate: Certificate): boolean {
-    assert(chunk instanceof Buffer);
-    assert(certificate instanceof Buffer);
+export function asymmetricVerifyChunk(self: CryptoFactory, chunk: Buffer, certificate: Certificate): { signatureIsOK: boolean, signatureLength: number } {
+    const cert = exploreCertificateInfo(certificate);
+    // then verify the signature
+    const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes or 3072 or 4096
+    if (!(signatureLength === 128 || signatureLength === 256 || signatureLength === 384 || signatureLength === 512)) {
+        return { signatureIsOK: false, signatureLength: 0 };
+    }
+    const leafSenderCertificate = split_der(certificate)[0];
     // let's get the signatureLength by checking the size
     // of the certificate's public key
-    const cert = exploreCertificateInfo(certificate);
-    const signatureLength = cert.publicKeyLength; // 1024 bits = 128Bytes or 2048=256Bytes
-
     const blockToVerify = chunk.subarray(0, chunk.length - signatureLength);
     const signature = chunk.subarray(chunk.length - signatureLength);
-    return self.asymmetricVerify(blockToVerify, signature, certificate);
+    // debugLog("XXXXX  SIGNATURE !", signature.toString("hex"));
+
+    const  signatureIsOK = self.asymmetricVerify(blockToVerify, signature, leafSenderCertificate);
+    return { signatureIsOK, signatureLength };
 }
 
 function RSA_PKCS1V15_SHA1_Verify(buffer: Buffer, signature: Signature, certificate: Certificate): boolean {
@@ -416,7 +421,7 @@ export interface CryptoFactory {
     /**  for info only */
     maximumAsymmetricKeyLength: number;
 
-    asymmetricVerifyChunk: (self: CryptoFactory, chunk: Buffer, certificate: Certificate) => boolean;
+    asymmetricVerifyChunk: (self: CryptoFactory, chunk: Buffer, certificate: Certificate) => {signatureIsOK: boolean, signatureLength: number};
     asymmetricSign: (buffer: Buffer, privateKey: PrivateKey) => Buffer;
     asymmetricVerify: (buffer: Buffer, signature: Signature, certificate: Certificate) => boolean;
 
@@ -646,6 +651,7 @@ export function computeSignature(
     if (!cryptoFactory) {
         return undefined;
     }
+
     // This parameter is calculated by appending the clientNonce to the clientCertificate
     const dataToSign = Buffer.concat([chain[0], senderNonce]);
 
@@ -696,32 +702,34 @@ export function verifySignature(
     }
 }
 
-export interface SecureMessageChunkManagerOptionsPartial {
-    cipherBlockSize?: number;
-    encryptBufferFunc?: EncryptBufferFunc;
-    plainBlockSize?: number;
+export interface SecureMessageData {
+    // for encrypting
+    cipherBlockSize: number;
+    encryptBufferFunc: EncryptBufferFunc;
+    plainBlockSize: number;
 
+    // for signing
     signBufferFunc: SignBufferFunc;
     signatureLength: number;
 }
 export function getOptionsForSymmetricSignAndEncrypt(
     securityMode: MessageSecurityMode,
     derivedKeys: DerivedKeys
-): SecureMessageChunkManagerOptionsPartial {
-    assert(Object.prototype.hasOwnProperty.call(derivedKeys, "signatureLength"));
+): SecureMessageData {
     assert(securityMode !== MessageSecurityMode.None && securityMode !== MessageSecurityMode.Invalid);
-
-    let options: SecureMessageChunkManagerOptionsPartial = {
-        signBufferFunc: (chunk: Buffer) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
-        signatureLength: derivedKeys.signatureLength
+    let options: SecureMessageData = {
+        // for signing 
+        signatureLength: derivedKeys.signatureLength,
+        signBufferFunc: (chunk) => makeMessageChunkSignatureWithDerivedKeys(chunk, derivedKeys),
+        // for encrypting
+        cipherBlockSize: derivedKeys.encryptingBlockSize,
+        plainBlockSize: derivedKeys.encryptingBlockSize,
+        encryptBufferFunc: (chunk) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
     };
-    if (securityMode === MessageSecurityMode.SignAndEncrypt) {
-        options = {
-            ...options,
-            cipherBlockSize: derivedKeys.encryptingBlockSize,
-            encryptBufferFunc: (chunk: Buffer) => encryptBufferWithDerivedKeys(chunk, derivedKeys),
-            plainBlockSize: derivedKeys.encryptingBlockSize
-        };
+    if (securityMode === MessageSecurityMode.Sign) {
+        // we don't want to encrypt
+        options.plainBlockSize = 0;
+        options.cipherBlockSize = 0;
     }
     return options;
 }

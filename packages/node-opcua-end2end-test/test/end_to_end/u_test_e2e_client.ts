@@ -2,6 +2,7 @@ import { types } from "util";
 import should from "should";
 import sinon from "sinon";
 import { AttributeIds, DataType, DataValue, OPCUAClient, ReadValueIdOptions, WriteValueOptions } from "node-opcua";
+import { ClientSecureChannelLayer } from "../../../node-opcua-secure-channel/dist/source/client/client_secure_channel_layer";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
@@ -180,14 +181,18 @@ export function t(test: any) {
         });
 
         it("TCC9 - write a very large message ", async () => {
+
             // given a client with correct transport settings
             const client = OPCUAClient.create({
-                requestedSessionTimeout: 1000,
+                // use a very large transaction timeout so it does not interfere with the debuggers
+                defaultTransactionTimeout: 1*60*60*1000,
+
+                requestedSessionTimeout: 1 * 60 * 60 * 1000,
                 transportSettings: {
-                    maxChunkCount: 20,
-                    maxMessageSize: 1000 * 8192, // should be at least 8192
-                    receiveBufferSize: 10 * 8192,
-                    sendBufferSize: 10 * 8192
+                    maxChunkCount: 16,
+                    maxMessageSize: 3 * 8192, // should be at least 8192
+                    receiveBufferSize: 1 * 8192,
+                    sendBufferSize: 1 * 8192
                 },
                 connectionStrategy: {
                     initialDelay: 10,
@@ -199,7 +204,7 @@ export function t(test: any) {
                 const value = new DataValue({
                     value: {
                         dataType: DataType.ByteString,
-                        value: Buffer.alloc(100 * 8192)
+                        value: Buffer.alloc(4 * 8192)
                     }
                 });
 
@@ -228,16 +233,48 @@ export function t(test: any) {
             should.exist(_err);
             console.log("err.response", (_err! as any).response.toString());
             (_err! as any).response.responseHeader.stringTable[0].should.match(
-                /chunkCount exceeds the negotiated maximum message count/
+                /BadTcpMessageTooLarge/
             );
         });
+
+
+        const immenseWriteNoProblem = async (nodeId: string) => {
+            const client = OPCUAClient.create({
+                transportSettings: {
+                    maxChunkCount: 1000,
+                    maxMessageSize: 1000 * 8192, // should be at least 8192
+                    receiveBufferSize: 1 * 8192,
+                    sendBufferSize: 1 * 8192
+                },
+            });
+            function makeSingleLargeDataWrite() {
+                const value = new DataValue({
+                    value: {
+                        dataType: DataType.ByteString,
+                        value: Buffer.alloc(100 * 8192)
+                    }
+                });
+
+                const nodesToWrite: WriteValueOptions[] = [{ nodeId, attributeId: AttributeIds.Value, value }];
+                return nodesToWrite;
+            }
+            const nodesToWrite = makeSingleLargeDataWrite();
+            await client.withSessionAsync(test.endpointUrl, async (session) => {
+                const statusCode = await session.write(nodesToWrite);
+                console.log("statusCode", statusCode.toString());
+               });
+        }
         it("TCCA - read a very large message - server send ServerFault instead of ReadResponse", async () => {
+
+            const nodeId = "ns=2;s=Static_Scalar_ByteString";
+            await immenseWriteNoProblem(nodeId);
+
             // given a client with correct transport settings
             const client = OPCUAClient.create({
                 requestedSessionTimeout: 1000,
                 transportSettings: {
                     maxChunkCount: 20, // relatively small max chunk count to allow connection but fail large read, on the return of the read request
-                    maxMessageSize: 1000 * 8192, //  very confortable size
+                    maxMessageSize: 200 * 8192, //  very comfortable size
                     receiveBufferSize: 10 * 8192,
                     sendBufferSize: 10 * 8192
                 },
@@ -247,7 +284,7 @@ export function t(test: any) {
                     maxRetry: -1
                 }
             });
-            const nodeId = "ns=2;s=Static_Scalar_ByteString";
+
 
             function makeLargeDataRead(): ReadValueIdOptions[] {
                 const nodesToRead: ReadValueIdOptions[] = [
@@ -267,24 +304,12 @@ export function t(test: any) {
                 ];
                 return nodesToRead;
             }
-            function makeSingleLargeDataWrite() {
-                const value = new DataValue({
-                    value: {
-                        dataType: DataType.ByteString,
-                        value: Buffer.alloc(100 * 8192)
-                    }
-                });
 
-                const nodesToWrite: WriteValueOptions[] = [{ nodeId, attributeId: AttributeIds.Value, value }];
-                return nodesToWrite;
-            }
-            const nodesToWrite = makeSingleLargeDataWrite();
+
             const nodesToRead = makeLargeDataRead();
 
             let _err: Error | undefined = undefined;
             await client.withSessionAsync(test.endpointUrl, async (session) => {
-                const statusCode = await session.write(nodesToWrite);
-                console.log("statusCode", statusCode.toString());
                 try {
                     const dataValues = await session.read(nodesToRead);
                 } catch (err) {

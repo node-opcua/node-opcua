@@ -184,7 +184,7 @@ describe("testing Server resilience to DDOS attacks", function () {
                             callback = null;
                             _callback();
                         } else {
-                            console.log("warning callback already called !!!!!! CHECK Channel implementationc");
+                            console.log("warning callback already called !!!!!! CHECK Channel implementation");
                         }
                     });
                 },
@@ -242,7 +242,7 @@ describe("testing Server resilience to DDOS attacks", function () {
                             if (doDebug) {
                                 debugLog(chalk.bgWhite.yellow("client"), client.name, " connected");
                             }
-                            client._secureChannel.connectionStrategy.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
+                            client.connectionStrategy?.maxRetry.should.eql(fail_fast_connectionStrategy.maxRetry);
 
                             client.createSession(function (err, session) {
                                 if (!err) {
@@ -369,7 +369,7 @@ describe("testing Server resilience to DDOS attacks", function () {
             function terminate_client_abruptly(client, inner_callback) {
                 debugLog("terminate abruptly ", client.name);
                 if (client._secureChannel) {
-                    const socket = client._secureChannel._transport._socket;
+                    const socket = client._secureChannel.getTransport()._socket;
                     socket.end();
                     socket.destroy();
                     socket.emit("error", new Error("Terminate"));

@@ -1,9 +1,6 @@
-"use strict";
-
-const { verify_multi_chunk_message } = require("../dist/test_helpers");
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const { makeBuffer } = require("node-opcua-buffer-utils");
-const { BrowseResponse } = require("node-opcua-service-browse");
+import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { makeBuffer } from "node-opcua-buffer-utils";
+import { verify_multi_chunk_message } from "../dist/test_helpers";
 
 
 const fixture_ws_browseRequest_message = makeBuffer(

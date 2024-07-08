@@ -1,11 +1,9 @@
-
 import fs from "fs";
 import path from "path";
 
 const readdir = fs.promises.readdir;
 const readFileSync = fs.promises.readFile;
 (async () => {
-
     try {
         const files = (await readdir(path.join(__dirname, "/"))).filter((f) => f.match(/node-opcua/));
 
@@ -40,11 +38,10 @@ const readFileSync = fs.promises.readFile;
                 }
             }
             tsconfig.exclude = tsconfig.exclude || ["node_modules", "dist"];
-            console.log("          ", tsconfig.exclude.join(" "))
+            console.log("          ", tsconfig.exclude.join(" "));
             const str = JSON.stringify(tsconfig, null, "  ");
             await fs.promises.writeFile(tsconfigFile, str, "utf-8");
         }
-
     } catch (err) {
         console.log(err);
     }

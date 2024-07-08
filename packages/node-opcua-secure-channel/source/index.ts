@@ -11,6 +11,7 @@ export * from "./message_header_to_string";
 export * from "./client/client_secure_channel_layer";
 export * from "./server/server_secure_channel_layer";
 export * from "./common";
+export * from "./token_stack";
 //
 import { testRSAPKCS1V15_EncryptDecrypt } from "./verify_pcks1";
 testRSAPKCS1V15_EncryptDecrypt();

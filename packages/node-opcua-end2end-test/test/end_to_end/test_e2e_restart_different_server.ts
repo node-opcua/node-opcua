@@ -111,21 +111,20 @@ describe("Test dataTypeManager lifecycle during client reconnection ", function 
     this.timeout(Math.max(300000, this.timeout()));
 
     let server: OPCUAServer;
-    let o = 0;
+  
     before(async () => {
-        o = ClientSecureChannelLayer.defaultTransactionTimeout;
-        ClientSecureChannelLayer.defaultTransactionTimeout = 100000000;
-
         server = await createServerVersion1();
     });
     after(async () => {
         await server.shutdown(0);
-        ClientSecureChannelLayer.defaultTransactionTimeout = o;
     });
     it("RDR-0 - should repair dataTypeManager after server has restarted ", async () => {
         const endpointUrl = server.getEndpointUrl();
 
-        const client = OPCUAClient.create({});
+        const client = OPCUAClient.create({
+            // very large value so we can play with the debugger
+            defaultTransactionTimeout: 1000000
+        });
         await client.withSessionAsync(endpointUrl, async (session) => {
             /** */
             errorLog("done");
