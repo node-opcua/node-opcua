@@ -1,20 +1,28 @@
-const should = require("should");
+import should from "should";
 
-const packets = require("node-opcua-transport/dist/test-fixtures");
-const { BinaryStream } = require("node-opcua-binary-stream");
-const { decodeExpandedNodeId } = require("node-opcua-basic-types");
-const { analyseExtensionObject } = require("node-opcua-packet-analyzer");
+import { BinaryStream } from "node-opcua-binary-stream";
+import { analyseExtensionObject } from "node-opcua-packet-analyzer";
+import { decodeExpandedNodeId } from "node-opcua-basic-types";
 
-const { MessageBuilder } = require("..");
-const { MessageSecurityMode, SecurityPolicy } = require("..");
+import { IDerivedKeyProvider,  MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../source";
+import { packet_ReadResponse } from "../test_fixtures/fixture_problematic_ReadResponse";
+import * as packets from "node-opcua-transport/test-fixtures/fixture_full_tcp_packets";
 
-const full_message_body = require("../test_fixtures/fixture_problematic_ReadResponse.js").packet_ReadResponse;
+const full_message_body = packet_ReadResponse;
 
+const keyProvider: IDerivedKeyProvider = {
+    getDerivedKey(tokenId: number) {
+        return null;
+    }
+}
 describe("testing with problematic packet", function () {
 
     it("should raise a message event after reassembling and decoding a message ", function (done) {
 
-        const messageBuilder = new MessageBuilder();
+
+        const messageBuilder = new MessageBuilder(keyProvider,{
+            name: "MessageBuilder"
+        });
         messageBuilder.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 
         let full_message_body_event_received = false;
@@ -45,7 +53,9 @@ describe("testing with problematic packet", function () {
 
     it("should not emit a \"invalid_sequence_number\" event when message have a 1-increased sequence number", function (done) {
 
-        const messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder(keyProvider,  {
+            name: "MessageBuilder"
+        });
 
         let messageCount = 0;
         messageBuilder.
@@ -86,7 +96,7 @@ describe("testing with problematic packet", function () {
             //     console.log("cannot construct object with id" + id.toString());
             // }
             // objMessage.constructor.name.should.eql("ReadResponse");
-            analyseExtensionObject(full_message_body);
+            analyseExtensionObject(full_message_body, 0, 0);
         } catch (err) {
             console.log(err);
         }

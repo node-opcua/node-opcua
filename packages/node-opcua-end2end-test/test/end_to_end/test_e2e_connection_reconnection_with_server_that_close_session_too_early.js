@@ -57,7 +57,7 @@ async function break_connection(client, socketError) {
     const r = await session.call(methodToCall);
     debugLog(r.toString());
 
-    const clientSocket = client._secureChannel._transport._socket;
+    const clientSocket = client._secureChannel.getTransport()._socket;
     clientSocket.end();
     clientSocket.destroy();
     clientSocket.emit("error", new Error(socketError));

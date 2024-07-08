@@ -37,12 +37,14 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("connection_lost", spyConnectionLost);
         client.on("close", spyClose);
         client.on("connection_reestablished", spyConnectionReestablished);
+
         const actualTimeout = await client.withSessionAsync<number>(endpointUrl, async (session) => {
-            const timeout = (client as any)._secureChannel!._transport.timeout;
-            const socket = (client as any)._secureChannel!._transport._socket as NodeJS.Socket;
+            const timeout = (client as any)._secureChannel!.getTransport().timeout;
+            const socket = (client as any)._secureChannel!.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
             return timeout;
         });
+
         actualTimeout.should.eql(ClientSecureChannelLayer.defaultTransportTimeout);
         spyClose.callCount.should.eql(1);
         spyConnectionLost.callCount.should.eql(0);
@@ -67,8 +69,8 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("connection_reestablished", spyConnectionReestablished);
 
         const actualTimeout = await client.withSessionAsync(endpointUrl, async (session) => {
-            const timeout = (client as any)._secureChannel!._transport.timeout;
-            const socket = (client as any)._secureChannel!._transport._socket as NodeJS.Socket;
+            const timeout = (client as any)._secureChannel!.getTransport().timeout;
+            const socket = (client as any)._secureChannel!.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
 
             console.log("timeout = ", timeout);
@@ -103,8 +105,8 @@ describe("#1002 - ability to set transport timeout ", () => {
         client.on("connection_reestablished", spyConnectionReestablished);
 
         const actualTimeout = await client.withSessionAsync(endpointUrl, async (session) => {
-            const timeout = (client as any)._secureChannel!._transport.timeout;
-            const socket = (client as any)._secureChannel!._transport._socket as NodeJS.Socket;
+            const timeout = (client as any)._secureChannel!.getTransport().timeout;
+            const socket = (client as any)._secureChannel!.getTransport()._socket as NodeJS.Socket;
             socket.on("timeout", () => console.log("socket timeout"));
 
             console.log("timeout = ", timeout);

@@ -27,28 +27,33 @@ export class SequenceNumberGenerator {
     // sequence numbers as unique.
     public static MAXVALUE = 4294966271;
 
-    private _counter: number;
+    #_counter: number;
 
     constructor() {
-        this._counter = 0;
+        this.#_counter = 0;
         this._set(1);
     }
 
     public next(): number {
-        const current = this._counter;
-        this._counter += 1;
-        if (this._counter > SequenceNumberGenerator.MAXVALUE) {
+        const current = this.#_counter;
+        this.#_counter += 1;
+        if (this.#_counter > SequenceNumberGenerator.MAXVALUE) {
             this._set(1);
         }
         return current;
     }
 
     public future(): number {
-        return this._counter;
+        return this.#_counter;
     }
 
-    private _set(value: number) {
-        this._counter = value;
+    /**
+     * 
+     * @param value forced the sequence number to a new value
+     * @private
+     */
+    public _set(value: number) {
+        this.#_counter = value;
     }
 
 }

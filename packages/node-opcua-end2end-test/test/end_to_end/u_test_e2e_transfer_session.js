@@ -75,7 +75,7 @@ module.exports = function (test) {
                     },
 
                     function (callback) {
-                        // Question: ? Should a unactivated session be accounted for
+                        // Question: ? Should a inactivated session be accounted for
                         //             in the currentSessionCount ?
                         test.server.engine.currentSessionCount.should.eql(1);
 

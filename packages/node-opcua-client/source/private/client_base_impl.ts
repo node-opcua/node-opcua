@@ -24,8 +24,7 @@ import {
     ConnectionStrategyOptions,
     Request as Request1,
     Response as Response1,
-    SecurityPolicy,
-    SecurityToken
+    SecurityPolicy
 } from "node-opcua-secure-channel";
 import {
     FindServersOnNetworkRequest,
@@ -367,6 +366,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     public discoveryUrl: string;
     public readonly applicationName: string;
     private _applicationUri: string;
+    public defaultTransactionTimeout?: number;
 
     /**
      * true if session shall periodically probe the server to keep the session alive and prevent timeout
@@ -468,6 +468,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         this._serverEndpoints = [];
 
         this.defaultSecureTokenLifetime = options.defaultSecureTokenLifetime || 600000;
+
+        this.defaultTransactionTimeout = options.defaultTransactionTimeout;
+
         this.tokenRenewalInterval = options.tokenRenewalInterval || 0;
         assert(isFinite(this.tokenRenewalInterval) && this.tokenRenewalInterval >= 0);
         this.securityMode = coerceMessageSecurityMode(options.securityMode);
@@ -686,7 +689,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             serverCertificate: this.serverCertificate,
             tokenRenewalInterval: this.tokenRenewalInterval,
             transportSettings: this._transportSettings,
-            transportTimeout: this._transportTimeout
+            transportTimeout: this._transportTimeout,
+            defaultTransactionTimeout: this.defaultTransactionTimeout
         });
         secureChannel.on("backoff", (count: number, delay: number) => {
             this.emit("backoff", count, delay);
@@ -699,6 +703,8 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         secureChannel.protocolVersion = this.protocolVersion;
 
         this._secureChannel = secureChannel;
+
+        this.emit("secure_channel_created", secureChannel);
 
         async.series(
             [
@@ -978,10 +984,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                 }
             }
         });
-    }
-
-    public getClientNonce(): Nonce | null {
-        return this._secureChannel ? this._secureChannel.getClientNonce() : null;
     }
 
     public performMessageTransaction(request: Request, callback: ResponseCallback<Response>): void {
@@ -1595,9 +1597,9 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
             this.emit("lifetime_75", token, secureChannel);
         });
 
-        secureChannel.on("security_token_renewed", () => {
+        secureChannel.on("security_token_renewed", (token: ChannelSecurityToken) => {
             // forward message to upper level
-            this.emit("security_token_renewed", secureChannel);
+            this.emit("security_token_renewed", secureChannel, token);
         });
 
         secureChannel.on("close", (err?: Error | null) => {

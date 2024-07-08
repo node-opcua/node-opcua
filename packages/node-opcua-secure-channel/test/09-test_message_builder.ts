@@ -1,16 +1,24 @@
-const should = require("should");
+import "should";
+import * as packets from "node-opcua-transport/dist/test-fixtures";
+import { redirectToFile } from "node-opcua-debug/nodeJS";
+import { make_debugLog } from "node-opcua-debug";
+import { MessageBuilder, SecurityPolicy, MessageSecurityMode } from "../dist/source";
+import { IDerivedKeyProvider } from "../source/token_stack";
 
-const packets = require("node-opcua-transport/dist/test-fixtures");
-
-const { redirectToFile } = require("node-opcua-debug/nodeJS");
-const { make_debugLog } = require("node-opcua-debug");
-const { MessageBuilder } = require("..");
-const { SecurityPolicy, MessageSecurityMode } = require("..");
 const debugLog = make_debugLog(__filename);
 
 describe("MessageBuilder", function () {
+
+    const derivedKeyProvider: IDerivedKeyProvider = {
+        getDerivedKey(tokenId: number) {
+            return null;
+        }
+    };
+
     it("should raise a error event if a HEL or ACK packet is fed instead of a MSG packet ", function (done) {
-        const messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder(derivedKeyProvider, {
+            name: "MessageBuilder"
+        });
 
         let full_message_body_event_received = false;
         let on_message__received = false;
@@ -39,11 +47,13 @@ describe("MessageBuilder", function () {
      * @param bad_packet
      * @param done
      */
-    function test_behavior_with_bad_packet(test_case_name, bad_packet, expectError, done) {
+    function test_behavior_with_bad_packet(test_case_name: string, bad_packet: Buffer, expectError: boolean, done: ()=>void) {
         redirectToFile(
             "MessageBuilder_" + test_case_name + ".log",
             () => {
-                const messageBuilder = new MessageBuilder();
+                const messageBuilder = new MessageBuilder(derivedKeyProvider, {
+                    name: "MessageBuilder"
+                });
 
                 let full_message_body_event_received = false;
                 let on_message__received = false;
@@ -100,7 +110,9 @@ describe("MessageBuilder", function () {
     });
 
     it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", function (done) {
-        const messageBuilder = new MessageBuilder();
+        const messageBuilder = new MessageBuilder(derivedKeyProvider, {
+            name: "MessageBuilder"
+        });
 
         messageBuilder
             .on("message", (message) => {
@@ -121,24 +133,26 @@ describe("MessageBuilder", function () {
     });
 
     it("some random packet - encrypted ", (done) => {
-        const messageBuilder = new MessageBuilder({});
+        const messageBuilder = new MessageBuilder(derivedKeyProvider, {
+            name: "MessageBuilder"
+        });
         messageBuilder.setSecurity(MessageSecurityMode.Sign, SecurityPolicy.Basic256);
 
-        let _err;
+        let _err: Error;
         messageBuilder
             .on("message", (message) => {
                 /** */
             })
-            .on("error", (err) => {
+            .on("error", (err: Error) => {
                 _err = err;
                 done();
             })
-            .on("invalid_sequence_number", function (expected, found) {
-                done(new Error("should not get there"));
+            .on("invalid_sequence_number", (expected, found) => {
+                done(new Error("should not get there" + JSON.stringify({ expected, found })));
             });
 
         messageBuilder.feed(packets.random_packet);
-
-        _err.message.should.match(/Invalid message header detected/);
+        
+        _err!.message.should.match(/Invalid message header detected/);
     });
 });

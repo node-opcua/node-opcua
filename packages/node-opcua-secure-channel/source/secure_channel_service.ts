@@ -24,4 +24,3 @@ export {
 } from "node-opcua-service-secure-channel";
 
 export { MessageChunker } from "./message_chunker";
-export { chooseSecurityHeader } from "./secure_message_chunk_manager";

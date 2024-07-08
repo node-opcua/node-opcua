@@ -707,7 +707,7 @@ async function main() {
             console.log(chalk.red("  -------------------------------------------------------------------- "));
             console.log(chalk.red("  --                               SIMULATE CONNECTION BREAK        -- "));
             console.log(chalk.red("  -------------------------------------------------------------------- "));
-            const socket = client._secureChannel._transport._socket;
+            const socket = client._secureChannel.getTransport()._socket;
             socket.end();
             socket.emit("error", new Error("ECONNRESET"));
         }, timeout / 2.0);

@@ -30,12 +30,15 @@ import {
     ChannelSecurityToken,
     OPCUAClientOptions,
     CallbackT,
-    Response
+    Response,
+    ServerSecureChannelLayer,
+    OPCUAClientBase
 } from "node-opcua";
 import { CertificateAuthority } from "node-opcua-pki";
-import { readCertificateRevocationList, readCertificate, Certificate, exploreCertificate } from "node-opcua-crypto";
+import { readCertificateRevocationList, readCertificate, Certificate, exploreCertificate, split_der } from "node-opcua-crypto";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { send } from "process";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -168,10 +171,8 @@ async function stop_inner_server_local(data: InnerServer): Promise<void> {
 /**
  * returns the number of security token exchanged on the server
  * since the server started, performed by any endpoints.
- * @param server
- * @return {Number}
  */
-function get_server_channel_security_token_change_count(server: OPCUAServer) {
+function get_server_channel_security_token_change_count(server: OPCUAServer): number {
     const sessions = Object.values((server.engine as any)._sessions);
     sessions.length.should.eql(1, "Expecting only one session on server at address " + server);
     const count = server.endpoints.reduce((accumulated: number, endpoint: any) => {
@@ -290,7 +291,7 @@ async function keep_monitoring_some_variable(
         priority: 6
     });
 
-    let the_error = null;
+    let the_error: Error | null = null;
     subscription.on("internal_error", function (err) {
         debugLog(chalk.red("xxx internal error in ClientSubscription"), err.message);
         the_error = err;
@@ -321,7 +322,7 @@ async function keep_monitoring_some_variable(
 async function common_test(
     securityPolicy: SecurityPolicy | string,
     securityMode: MessageSecurityMode | string,
-    options: any
+    options: OPCUAClientOptions
 ): Promise<void> {
     if (global.gc) {
         global.gc();
@@ -580,7 +581,7 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
         const clientCertificateManager = await getClientCertificateManager();
         const options = {
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy,
 
@@ -602,7 +603,7 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
             privateKeyFile: path.join(sampleCertificateFolder, "client_key_1024.pem"),
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
             connectionStrategy: no_reconnect_connectivity_strategy,
 
@@ -625,7 +626,7 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
             privateKeyFile: path.join(sampleCertificateFolder, "client_key_2048.pem"),
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
 
             connectionStrategy: no_reconnect_connectivity_strategy,
@@ -668,7 +669,7 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
             privateKeyFile: path.join(sampleCertificateFolder, "client_key_2048.pem"),
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
 
             connectionStrategy: no_reconnect_connectivity_strategy,
@@ -678,18 +679,17 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
         const client = OPCUAClient.create(options);
         await trustClientCertificateOnServer(client);
 
-        const prototype = ClientSecureChannelLayer.prototype as any;
-        const old_performMessageTransaction = prototype._performMessageTransaction;
-
-        prototype._performMessageTransaction = function (msgType: string, requestMessage: any, callback: CallbackT<Response>) {
-            // let's alter the client Nonce,
-            if (requestMessage.constructor.name === "OpenSecureChannelRequest") {
-                requestMessage.clientNonce.length.should.eql(16);
-                this.clientNonce = requestMessage.clientNonce = randomBytes(32);
-                prototype._performMessageTransaction = old_performMessageTransaction;
-            }
-            old_performMessageTransaction.call(this, msgType, requestMessage, callback);
-        };
+        let nonceCorrupted = false;
+        client.on("secure_channel_created", (secureChannel: ClientSecureChannelLayer) => {
+            secureChannel.on("beforePerformTransaction", (msgType: string, request: any) => {
+                if (request.constructor.name === "OpenSecureChannelRequest") {
+                    // alter the nonce to provide an invalid one
+                    const nonceLength = request.clientNonce.length;
+                    this.clientNonce = request.clientNonce = randomBytes(nonceLength + 8);
+                    nonceCorrupted = true;
+                }
+            });
+        });
 
         let _err: Error | undefined = undefined;
         try {
@@ -699,19 +699,18 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
         } catch (err) {
             _err = err as Error;
             debugLog(_err.message);
-            prototype._performMessageTransaction = old_performMessageTransaction;
         }
-        prototype._performMessageTransaction.should.eql(old_performMessageTransaction);
         if (_err) {
             _err.message.should.match(/BadSecurityModeRejected/);
         }
         should.exist(_err);
+        nonceCorrupted.should.eql(true);
     });
 
     it("QQQ5 a token shall be updated on a regular basis", async () => {
         const options = {
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate,
             defaultSecureTokenLifetime: g_defaultSecureTokenLifetime,
             tokenRenewalInterval: g_tokenRenewalInterval,
@@ -742,87 +741,96 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
 describe("ZZB- testing server behavior on secure connection ", function (this: any) {
     this.timeout(Math.max(this.timeout(), 20002));
 
+
+    const warningLog = console.log;
+
     let serverHandle: InnerServer;
-    let old_method: any;
-    let timerId: any = null;
-    before(async () => {
-        const prototype = ClientSecureChannelLayer.prototype as any;
-        prototype._renew_security_token.should.be.instanceOf(Function);
-        // let modify the client behavior so that _renew_security_token call is delayed by an amount of time
-        // that should cause the server to worry about the token not to be renewed.
-        old_method = prototype._renew_security_token;
 
-        prototype._renew_security_token = function () {
-            if (timerId) {
-                return;
-            }
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
-            const self = this;
+    let token_change = 0;
 
+    let defaultSecureTokenLifetime = 1000;
+
+    const wait = (delay: number) => new Promise<void>((resolve) => setTimeout(resolve, delay));
+
+    function installDelayTokenRenew(client: OPCUAClientBase) {
+        client.on("lifetime_75", function (token) {
+            warningLog("received lifetime_75", token.toString());
+        });
+
+        client.on("security_token_renewed",  (channel, token)  => {
+            token_change += 1;
+            warningLog("security_token_renewed", {...token});
+        });
+
+        client.once("close", function (err) {
+            //  token_change.should.be.eql(0);
+        });
+
+        client.on("secure_channel_created", (secureChannel: ClientSecureChannelLayer) => {
+
+            console.log("installing beforeSecurityRenew");
+            secureChannel.on("security_token_created", (token) =>  {
+                
+                // make sure the token is not going to expire soon
+                token.revisedLifetime = 10000000;
+
+                warningLog("security_token_created", { ...token });
+            });
+
+            // let modify the client behavior so that _renew_security_token call is delayed by an amount of time
+            // that should cause the server to worry about the token not to be renewed.
             // delay renewal of security token by a long time (exceeding secureTokenLifeTime)
-            timerId = setTimeout(function () {
-                timerId = null;
-                old_method.call(self);
-            }, g_defaultSecureTokenLifetime * 4);
-        };
+            secureChannel.beforeSecurityRenew = async () => {
+                console.log("delaying token renewal by ", defaultSecureTokenLifetime * 5);
+                await wait(defaultSecureTokenLifetime * 5);
+                console.log("delaying token done");
+            };
+        });
+        token_change.should.be.eql(0);
 
+    }
+    before(async () => {
         serverHandle = await start_server({});
     });
     after(async () => {
-        //Xx should(timerId).eql(null);
-        if (timerId) {
-            clearTimeout(timerId);
-            timerId = null;
-        }
-
-        // restoring _renew_security_token
-        const prototype = ClientSecureChannelLayer.prototype as any;
-        prototype._renew_security_token = old_method;
-        debugLog(" Disconnecting server");
-
         await stop_server(serverHandle);
     });
 
     it("ZZB-1 server shall shutdown the connection if client doesn't renew security token on time", async () => {
+
         const options: OPCUAClientOptions = {
             keepSessionAlive: true,
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15,
+            securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
-            defaultSecureTokenLifetime: 2000,
-            tokenRenewalInterval: 30000,
+            defaultSecureTokenLifetime: defaultSecureTokenLifetime,
+            tokenRenewalInterval: defaultSecureTokenLifetime /2,
             connectionStrategy: no_reconnect_connectivity_strategy,
             clientCertificateManager: await getClientCertificateManager()
         };
 
-        let token_change = 0;
         const client = OPCUAClient.create(options);
-        client.on("lifetime_75", function (token) {
-            debugLog("received lifetime_75", token.toString());
-        });
-        client.on("security_token_renewed", function () {
-            token_change += 1;
-            debugLog("security_token_renewed");
-        });
 
-        client.once("close", function (err) {
-            token_change.should.be.eql(0);
-        });
+        installDelayTokenRenew(client);
 
         await trustClientCertificateOnServer(client);
 
+   
         await client.withSessionAsync(endpointUrl, async (session) => {
-            await new Promise<void>((resolve) => {
-                setTimeout(() => {
-                    // security token has now expired
-                    // this request will fail as we haven't renewed the securityToken
-                    // Server will close the connection when receiving this request
-                    session.read([], () => {
-                        /** */
-                        resolve();
-                    });
-                }, 5000);
-            });
+
+            // security token will expire at some points
+            
+            for (let i=0; i<5;i++) {
+                await wait(5000);
+                // this request will fail as we haven't renewed the securityToken
+                // Server will close the connection when receiving this request
+                try {
+                await session.read([{ nodeId: "i=2255", attributeId: 13 }]);
+                } catch(err) {
+                    console.log("err",(err as Error).message);
+                    break;
+                }
+            }
         });
     });
 });
@@ -939,4 +947,111 @@ describe("ZZE- testing with various client certificates", function (this: any) {
         };
         await check_open_secure_channel_fails(SecurityPolicy.Basic128Rsa15, MessageSecurityMode.SignAndEncrypt, options);
     });
+
+});
+
+
+describe("ZF - testing truncated certificate chain", function (this: any) {
+    this.timeout(Math.max(this.timeout(), 20005));
+
+    let serverHandle: InnerServer;
+
+    before(async () => {
+        serverHandle = await start_server_with_4096bits_certificate();
+    });
+    after(async () => {
+        await stop_server(serverHandle);
+    });
+    it("ZF-1 ", async () => {
+
+        const client_privatekey_file = path.join(sampleCertificateFolder, "client_key_4096.pem");
+        const client_certificate_ok = path.join(sampleCertificateFolder, "client_cert_4096.pem");
+
+        const endpointUrl = serverHandle.endpointUrl;
+
+        const client = OPCUAClient.create({
+
+            // very large value so we can play with the debugger
+            defaultTransactionTimeout: 2 * 60 * 1000,
+
+            endpointMustExist: false,
+            securityMode: MessageSecurityMode.SignAndEncrypt,
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+            //xx serverCertificate: serverCertificate,
+            connectionStrategy: no_reconnect_connectivity_strategy,
+            requestedSessionTimeout: 120 * 60 * 1000,
+            clientCertificateManager: await getClientCertificateManager(),
+
+
+            defaultSecureTokenLifetime: 10 * 60 * 1000, // 10 minutes
+            // make sure that securityToken renewal will happen very soon,
+            tokenRenewalInterval: 2 * 1000,
+
+            transportSettings: {
+                maxChunkCount: 20,
+                maxMessageSize: 5 * 8192,
+                receiveBufferSize: 8192,
+                sendBufferSize: 8192
+            },
+            serverCertificate: server.getCertificateChain(),
+            privateKeyFile: client_privatekey_file,
+            certificateFile: client_certificate_ok
+        });
+        const chain = client.getCertificateChain();
+        const chainA = split_der(chain);
+
+        console.log("chain length = ", chain.length, chainA.length, chainA.map((a) => a.length.toString()).join(" "));
+
+        client.on("backoff", function (number, delay) {
+            debugLog(" backoff attempt#", number, " retry in ", delay);
+        });
+
+        await server.serverCertificateManager.trustCertificate(chainA[0]);
+        await server.serverCertificateManager.trustCertificate(chainA[1]);
+        await server.serverCertificateManager.addIssuer(chainA[1]);
+
+        const serverChain = split_der(server.getCertificateChain());
+        await client.clientCertificateManager.trustCertificate(serverChain[0]);
+        await client.clientCertificateManager.trustCertificate(serverChain[1]);
+        await client.clientCertificateManager.addIssuer(serverChain[1]);
+
+        server.once("newChannel", (channel) => {
+            hackServerSecureChannel(channel);
+        });
+
+
+        const hackServerSecureChannel = (channel: ServerSecureChannelLayer) => {
+            const old = channel.send_response;
+            function send_response(this: ServerSecureChannelLayer, msgType: string, response: any, message: any, callback?: any): void {
+
+                if (msgType === "OPN") {
+                    setTimeout(() => {
+                        old.call(this, msgType, response, message, callback);
+                    }, 1000);
+                } else {
+                    old.call(this, msgType, response, message, callback);
+                }
+            }
+            channel.send_response = send_response;
+
+        };
+        await client.withSessionAsync(endpointUrl, async (session) => {
+
+            client.on("send_request", (request) => {
+                //xx const securityToken= 
+                console.log((session as any)._client?._secureChannel?.activeSecurityToken?.toString());
+            });
+            client.on("security_token_renewed", (channel, token) => {
+                console.log("security_token_renewed", JSON.stringify({...token}));
+            });
+            console.log("Started");
+            const timer = setInterval(async () => {
+                await session.read({ nodeId: "i=2255", attributeId: 13 });
+            }, 500);
+            await waitUntilTokenRenewed(client, 1);
+            await waitUntilTokenRenewed(client, 1);
+            clearInterval(timer);
+        });
+        console.log("done");
+    })
 });

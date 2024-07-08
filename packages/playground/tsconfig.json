@@ -1,4 +1,5 @@
 {
     "extends": "../../tsconfig.json",
-    "include": ["*.ts", "*.tsx", "src/**/*.ts", "src/**/*.tsx"],
+    "include": ["server_with_slow_osc.ts"],
+    "exclude": []
 }

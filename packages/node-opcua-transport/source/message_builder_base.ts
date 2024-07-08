@@ -152,7 +152,7 @@ export class MessageBuilderBase extends EventEmitter {
             readChunkFunc: readRawMessageHeader
         });
 
-        this.#_packetAssembler.on("chunk", (messageChunk) => this._feed_messageChunk(messageChunk));
+        this.#_packetAssembler.on("chunk", (messageChunk) => this.#_feed_messageChunk(messageChunk));
 
         this.#_packetAssembler.on("startChunk", (info, data) => {
             if (doPerfMonitoring) {
@@ -173,7 +173,7 @@ export class MessageBuilderBase extends EventEmitter {
         this.channelId = 0;
         this.#offsetBodyStart = 0;
         this.sequenceHeader = null;
-        this._init_new();
+        this.#_init_new();
     }
 
     public dispose(): void {
@@ -195,7 +195,7 @@ export class MessageBuilderBase extends EventEmitter {
         return true;
     }
 
-    protected _read_headers(binaryStream: BinaryStream): boolean {
+    protected  _read_headers(binaryStream: BinaryStream): boolean {
         try {
             this.messageHeader = readMessageHeader(binaryStream);
             // assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
@@ -228,7 +228,7 @@ export class MessageBuilderBase extends EventEmitter {
         return false;
     }
 
-    private _init_new() {
+    #_init_new() {
         this.#_securityDefeated = false;
         this.#_hasReceivedError = false;
         this.totalBodySize = 0;
@@ -263,7 +263,7 @@ export class MessageBuilderBase extends EventEmitter {
         const binaryStream = new BinaryStream(chunk);
 
         if (!this._read_headers(binaryStream)) {
-            return this._report_error(StatusCodes2.BadTcpInternalError, `Invalid message header detected`);
+            return false; // error already reported
         }
 
         assert(binaryStream.length >= 12);
@@ -299,7 +299,7 @@ export class MessageBuilderBase extends EventEmitter {
         return true;
     }
 
-    private _feed_messageChunk(chunk: Buffer): boolean {
+    #_feed_messageChunk(chunk: Buffer): boolean {
         assert(chunk);
         const messageHeader = readMessageHeader(new BinaryStream(chunk));
         this.emit("chunk", chunk);
@@ -329,7 +329,7 @@ export class MessageBuilderBase extends EventEmitter {
 
                 const messageOk = this._decodeMessageBody(fullMessageBody);
                 // be ready for next block
-                this._init_new();
+                this.#_init_new();
                 return messageOk;
             }
         } else if (messageHeader.isFinal === "A") {

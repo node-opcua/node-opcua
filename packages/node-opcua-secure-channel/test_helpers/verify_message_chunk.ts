@@ -1,6 +1,7 @@
 // tslint:disable:no-console
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import { MessageBuilder, messageHeaderToString, MessageSecurityMode, SecurityPolicy } from "../source/index";
+import { TokenStack } from "../source/token_stack";
 
 /**
  *
@@ -10,10 +11,12 @@ export function verify_multi_chunk_message(packets: any[]) {
 
     const maxChunkSize = packets.map((p) => p.length).reduce((a, b) => Math.max(a, b), 0);
 
-    const messageBuilder = new MessageBuilder({
+    const tokenStack = new TokenStack(1);
+    const messageBuilder = new MessageBuilder(tokenStack.clientKeyProvider(),{
         maxChunkCount: packets.length + 1,
         maxMessageSize: 1000000,
-        maxChunkSize
+        maxChunkSize,
+        name: "Verification",
     });
     messageBuilder.setSecurity(MessageSecurityMode.None, SecurityPolicy.None);
 

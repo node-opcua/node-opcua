@@ -4,17 +4,17 @@
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
-import { encodeExpandedNodeId } from "node-opcua-basic-types";
-import { BinaryStream } from "node-opcua-binary-stream";
-import { DerivedKeys } from "node-opcua-crypto";
+import { encodeExpandedNodeId, StatusCode, StatusCodes } from "node-opcua-basic-types";
+import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { BaseUAObject } from "node-opcua-factory";
-import { AsymmetricAlgorithmSecurityHeader, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
+import { AsymmetricAlgorithmSecurityHeader, MessageSecurityMode, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { timestamp } from "node-opcua-utils";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
-import { SequenceHeader } from "node-opcua-chunkmanager";
+import { ChunkManager, Mode, SequenceHeader } from "node-opcua-chunkmanager";
 
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
+import { IDerivedKeyProvider } from "./token_stack";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 const errorLog = make_errorLog("secure_channel");
@@ -22,203 +22,188 @@ const warningLog = make_warningLog("secure_channel");
 
 export interface MessageChunkerOptions {
     securityHeader?: SecurityHeader;
-    derivedKeys?: DerivedKeys | null;
+    securityMode: MessageSecurityMode;
     maxMessageSize?: number;
     maxChunkCount?: number;
 }
 
-export type MessageCallbackFunc = (err: Error | null, chunk: Buffer | null) => void;
+export type MessageCallbackFunc = (chunk: Buffer | null) => void;
 
-export interface ChunkMessageOptions extends SecureMessageChunkManagerOptions {
-    tokenId: number;
+export interface ChunkMessageParameters {
+    channelId: number;
+    securityHeader: SecurityHeader;
+    securityOptions: SecureMessageChunkManagerOptions;
 }
 
-/**
- * @class MessageChunker
- * @param options {Object}
- * @param options.securityHeader  {Object} SecurityHeader
- * @param [options.derivedKeys] {Object} derivedKeys
- * @constructor
- */
 export class MessageChunker {
     public static defaultMaxMessageSize: number = 16 * 1024 * 1024;
     public static readonly defaultChunkCount: number = 0; // 0 => no limits
 
-    public securityHeader?: AsymmetricAlgorithmSecurityHeader | SymmetricAlgorithmSecurityHeader | null;
-
-    private readonly sequenceNumberGenerator: SequenceNumberGenerator;
     public maxMessageSize: number;
     public maxChunkCount: number;
-
+    public securityMode: MessageSecurityMode;
+    readonly #sequenceNumberGenerator: SequenceNumberGenerator = new SequenceNumberGenerator();
     constructor(options?: MessageChunkerOptions) {
-        options = options || {};
-        this.sequenceNumberGenerator = new SequenceNumberGenerator();
+        options = options || { securityMode: MessageSecurityMode.Invalid };
+        this.securityMode = options.securityMode || MessageSecurityMode.None;
         this.maxMessageSize = options.maxMessageSize || MessageChunker.defaultMaxMessageSize;
         this.maxChunkCount = options.maxChunkCount === undefined ? MessageChunker.defaultChunkCount : options.maxChunkCount;
-        this.update(options);
     }
 
-    public dispose(): void {
-        this.securityHeader = null;
+    public dispose(): void { }
+
+    #makeAbandonChunk(params: ChunkMessageParameters) {
+        const finalC = "A";
+        const msgType = "MSG";
+        const buffer = Buffer.alloc(
+            // MSGA
+            4 +
+            // length
+            4 +
+            // secureChannelId
+            4 +
+            // tokenId
+            4 +
+            2 * 4
+        );
+        const stream = new BinaryStream(buffer);
+
+        // message header --------------------------
+        // ---------------------------------------------------------------
+        // OPC UA Secure Conversation Message Header : Part 6 page 36
+        // MessageType     Byte[3]
+        // IsFinal         Byte[1]  C : intermediate, F: Final , A: Final with Error
+        // MessageSize     UInt32   The length of the MessageChunk, in bytes. This value includes size of the message header.
+        // SecureChannelId UInt32   A unique identifier for the ClientSecureChannelLayer assigned by the server.
+
+        stream.writeUInt8(msgType.charCodeAt(0));
+        stream.writeUInt8(msgType.charCodeAt(1));
+        stream.writeUInt8(msgType.charCodeAt(2));
+        stream.writeUInt8(finalC.charCodeAt(0));
+
+        stream.writeUInt32(0); // will be written later
+
+        stream.writeUInt32(params.channelId || 0); // secure channel id
+
+        const securityHeader =
+            params.securityHeader ||
+            new SymmetricAlgorithmSecurityHeader({
+                tokenId: 0
+            });
+
+        securityHeader.encode(stream);
+
+        const sequenceHeader = new SequenceHeader({
+            sequenceNumber: this.#sequenceNumberGenerator.next(),
+            requestId: params.securityOptions.requestId /// fix me
+        });
+        sequenceHeader.encode(stream);
+
+        // write chunk length
+        const length = stream.length;
+        stream.length = 4;
+        stream.writeUInt32(length);
+        stream.length = length;
+        return buffer;
     }
 
-    /***
-     * update security information
-     */
-    public update(options?: MessageChunkerOptions): void {
-        options = options || {};
-        options.securityHeader =
-            options.securityHeader ||
-            new AsymmetricAlgorithmSecurityHeader({
-                securityPolicyUri: "http://opcfoundation.org/UA/SecurityPolicy#None"
-            });
 
-        assert(options !== null && typeof options === "object");
-        assert(options.securityHeader !== null && typeof options.securityHeader === "object");
 
-        this.securityHeader = options.securityHeader;
-    }
-
-    public chunkSecureMessage(
-        msgType: string,
-        options: ChunkMessageOptions,
-        message: BaseUAObject,
-        messageChunkCallback: MessageCallbackFunc
-    ): void {
-        assert(typeof messageChunkCallback === "function");
-
-        const makeAbandonChunk = () => {
-            const finalC = "A";
-            const msgType = "MSG";
-            const buffer = Buffer.alloc(
-                // MSGA
-                4 +
-                    // length
-                    4 +
-                    // secureChannelId
-                    4 +
-                    // tokenId
-                    4 +
-                    2 * 4
-            );
-            const stream = new BinaryStream(buffer);
-
-            // message header --------------------------
-            // ---------------------------------------------------------------
-            // OPC UA Secure Conversation Message Header : Part 6 page 36
-            // MessageType     Byte[3]
-            // IsFinal         Byte[1]  C : intermediate, F: Final , A: Final with Error
-            // MessageSize     UInt32   The length of the MessageChunk, in bytes. This value includes size of the message header.
-            // SecureChannelId UInt32   A unique identifier for the ClientSecureChannelLayer assigned by the server.
-
-            stream.writeUInt8(msgType.charCodeAt(0));
-            stream.writeUInt8(msgType.charCodeAt(1));
-            stream.writeUInt8(msgType.charCodeAt(2));
-            stream.writeUInt8(finalC.charCodeAt(0));
-
-            stream.writeUInt32(0); // will be written later
-
-            stream.writeUInt32(options.channelId || 0); // secure channel id
-
-            const securityHeader = new SymmetricAlgorithmSecurityHeader({
-                tokenId: options.tokenId
-            });
-            securityHeader.encode(stream);
-
-            const sequenceHeader = new SequenceHeader({
-                sequenceNumber: this.sequenceNumberGenerator.next(),
-                requestId: options.requestId /// fix me
-            });
-            sequenceHeader.encode(stream);
-
-            // write chunk length
-            const length = stream.length;
-            stream.length = 4;
-            stream.writeUInt32(length);
-            stream.length = length;
-            return buffer;
-        };
-        // calculate message size ( with its  encodingDefaultBinary)
-        const binSize = message.binaryStoreSize() + 4;
-        const stream = new BinaryStream(binSize);
-
-        encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
-        message.encode(stream);
-
-        let securityHeader;
+    #_build_chunk_manager(msgType: string, params: ChunkMessageParameters): SecureMessageChunkManager {
+        let securityHeader = params.securityHeader;
         if (msgType === "OPN") {
-            securityHeader = this.securityHeader;
-        } else {
-            securityHeader = new SymmetricAlgorithmSecurityHeader({ tokenId: options.tokenId });
+            assert(securityHeader instanceof AsymmetricAlgorithmSecurityHeader);
+        } else if (msgType === "MSG") {
+            assert(securityHeader instanceof SymmetricAlgorithmSecurityHeader);
         }
+        const channelId = params.channelId;
+        const mode = this.securityMode as unknown as Mode;
+        const chunkManager = new SecureMessageChunkManager(mode, msgType, channelId, params.securityOptions, securityHeader, this.#sequenceNumberGenerator);
+        return chunkManager;
+    }
+    public prepareChunk(msgType: string,
+        params: ChunkMessageParameters,
+        messageLength: number,
+    ): { statusCode: StatusCode, chunkManager: SecureMessageChunkManager | null } {
+        // calculate message size ( with its  encodingDefaultBinary)
+        const chunkManager = this.#_build_chunk_manager(msgType, params);
 
-        const chunkManager = new SecureMessageChunkManager(msgType, options, securityHeader || null, this.sequenceNumberGenerator);
+        const { chunkCount, totalLength } = chunkManager.evaluateTotalLengthAndChunks(messageLength);
 
-        const { chunkCount, totalLength } = chunkManager.evaluateTotalLengthAndChunks(stream.buffer.length);
         if (this.maxChunkCount > 0 && chunkCount > this.maxChunkCount) {
             errorLog(
                 `[NODE-OPCUA-E10] message chunkCount ${chunkCount} exceeds the negotiated maximum chunk count ${this.maxChunkCount}, message current size is ${totalLength}`
             );
             errorLog(
-                `[NODE-OPCUA-E10] ${stream.buffer.length} totalLength = ${totalLength} chunkManager.maxBodySize = ${this.maxMessageSize}`);
-            return messageChunkCallback(
-                new Error("message chunkCount exceeds the negotiated maximum message count"),
-                makeAbandonChunk()
+                `[NODE-OPCUA-E10] ${messageLength} totalLength = ${totalLength} chunkManager.maxBodySize = ${this.maxMessageSize}`
             );
+            return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
         }
         if (this.maxMessageSize > 0 && totalLength > this.maxMessageSize) {
             errorLog(
                 `[NODE-OPCUA-E11] message size ${totalLength} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${chunkCount}`
             );
+            return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
+        }
+        return { statusCode: StatusCodes.Good, chunkManager: chunkManager };
+    }
+    public chunkSecureMessage(
+        msgType: string,
+        params: ChunkMessageParameters,
+        message: BaseUAObject,
+        messageChunkCallback: MessageCallbackFunc
+    ): StatusCode {
 
-            return messageChunkCallback(new Error("message size exceeds the negotiated message size"), makeAbandonChunk());
+        const calculateMessageLength = (message: BaseUAObject) => {
+            const stream = new BinaryStreamSizeCalculator();
+            encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
+            message.encode(stream);
+            return stream.length;
+        }
+        // evaluate the message size
+        const messageLength = calculateMessageLength(message);
+
+        const { statusCode, chunkManager } = this.prepareChunk(msgType, params, messageLength);
+        if (statusCode !== StatusCodes.Good) {
+            return statusCode;
+        }
+        if (!chunkManager) {
+            return StatusCodes.BadInternalError;
         }
 
         let nbChunks = 0;
         let totalSize = 0;
-        chunkManager
-            .on("chunk", (messageChunk: Buffer) => {
+        chunkManager.on("chunk", (messageChunk: Buffer) => {
                 nbChunks++;
                 totalSize += messageChunk.length;
-
-                if (this.maxChunkCount && nbChunks > this.maxChunkCount) {
-                    errorLog(
-                        `[NODE-OPCUA-E09] message chunkCount ${nbChunks} exceeds the negotiated maximum message count ${this.maxChunkCount}, message current size is ${totalSize}`
-                    );
-                }
-                messageChunkCallback(null, messageChunk);
+                messageChunkCallback(messageChunk);
             })
             .on("finished", () => {
                 if (doTraceChunk) {
                     console.log(
                         timestamp(),
                         "   <$$ ",
-                        msgType,   
+                        msgType,
                         "nbChunk = " + nbChunks.toString().padStart(3),
                         "totalLength = " + totalSize.toString().padStart(8),
                         "l=",
-                        binSize.toString().padStart(6),
-                        "maxChunkCount=", this.maxChunkCount, "maxMessageSize=", this.maxMessageSize
+                        messageLength.toString().padStart(6),
+                        "maxChunkCount=",
+                        this.maxChunkCount,
+                        "maxMessageSize=",
+                        this.maxMessageSize
                     );
                 }
-
-                if (this.maxMessageSize !== 0 && totalSize > this.maxMessageSize) {
-                    // https://reference.opcfoundation.org/v105/Core/docs/Part6/7.1.2/#7.1.2.4
-                    // MaxMessageSize	UInt32	   The maximum size for any request Message.    
-                    //                             If a request Message exceeds this value the Client shall report a Bad_ResponseTooLarge *
-                    //                             error to the application. If MessageChunks have already been sent the Client shall also abort 
-                    //                             The Message size is calculated using the unencrypted Message body.
-                    //                             A value of zero indicates that the Server has no limit.
-
-                    errorLog(
-                        `[NODE-OPCUA-E07] message size ${totalSize} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${nbChunks}`
-                    );
-                }
-                messageChunkCallback(null, null);
+                messageChunkCallback(null);
             });
 
+        // create buffer to stream 
+        const stream = new BinaryStream(messageLength);
+        encodeExpandedNodeId(message.schema.encodingDefaultBinary!, stream);
+        message.encode(stream);
+        // inject buffer to chunk manager
         chunkManager.write(stream.buffer, stream.buffer.length);
-
         chunkManager.end();
+        return StatusCodes.Good;
     }
 }

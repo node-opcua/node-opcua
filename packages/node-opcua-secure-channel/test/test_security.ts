@@ -2,9 +2,9 @@
 // or compile with  tsc  -t es2017 -m commonjs test\test_security.ts  --outdir toto
 import fs from "fs";
 import path from "path";
+import { } from "mocha";
 
 import "should";
-import async from "async";
 import chalk from "chalk";
 import { ErrorCallback } from "node-opcua-status-code";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
@@ -24,13 +24,14 @@ import { hexDump } from "node-opcua-debug";
 import {
     ClientSecureChannelLayer,
     ClientSecureChannelParent,
+    getThumbprint,
     invalidPrivateKey,
     Message,
     MessageSecurityMode,
     SecurityPolicy,
     ServerSecureChannelLayer,
     ServerSecureChannelParent
-} from "../source";
+} from "..";
 
 const doDebug = false;
 
@@ -51,12 +52,19 @@ fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store a
 
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("Testing secure client and server connection", () => {
-    const certificateManager = new OPCUACertificateManager({});
+describe("Testing secure client and server connection", function (this: any) {
+    this.timeout(120 * 1000);
+    const certificateManager = new OPCUACertificateManager({
+        automaticallyAcceptUnknownCertificate: true,
+        rootFolder: path.join(__dirname, "../certificates")
+    });
 
     before(async () => {
         certificateManager.referenceCounter++;
         await certificateManager.initialize();
+
+        doDebug && console.log("certificateManager initialized", certificateManager.rootDir);
+
         const issuerCertificateFile = path.join(certificateFolder, "CA/public/cacert.pem");
         const issuerCertificate = readCertificate(issuerCertificateFile);
         await certificateManager.addIssuer(issuerCertificate);
@@ -80,14 +88,21 @@ describe("Testing secure client and server connection", () => {
         transportPair.shutdown(done);
     });
 
-    function performTest(param: TestParam, done: (err?: Error) => void) {
+    async function performTest(param: TestParam) {
+        doDebug && console.log("performTest ", {
+            shouldFailAtClientConnection: param.shouldFailAtClientConnection,
+            clientCertificate: getThumbprint(param.clientCertificate!)?.toString("hex"),
+            securityMode: MessageSecurityMode[param.securityMode],
+            SecurityPolicy: param.securityPolicy,
+            serverCertificate: getThumbprint(param.serverCertificate!)?.toString("hex")
+        });
+
         const parentS: ServerSecureChannelParent = {
             certificateManager,
 
             // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function () {
-                const chain = this.getCertificateChain();
-                const firstCertificateInChain = split_der(chain)[0];
+                const firstCertificateInChain = split_der(this.getCertificateChain())[0];
                 return firstCertificateInChain!;
             },
 
@@ -115,7 +130,7 @@ describe("Testing secure client and server connection", () => {
             timeout: 0
         });
         const s = serverSChannel.send_response;
-        (serverSChannel as any).send_response = function (
+        serverSChannel.send_response = function (
             this: ServerSecureChannelLayer,
             msgType: string,
             response: any,
@@ -125,22 +140,22 @@ describe("Testing secure client and server connection", () => {
             s.call(this, msgType, response, message, callback);
         };
 
-        function simulateOpenSecureChannel(callback: SimpleCallback) {
-            clientChannel.create("fake://foobar:123", (err?: Error) => {
-                if (param.shouldFailAtClientConnection) {
-                    if (!err) {
-                        return callback(new Error(" Should have failed here !"));
+        async function simulateOpenSecureChannel() {
+            return new Promise<void>((resolve, reject) => {
+                clientChannel.create("fake://foobar:123", (err?: Error) => {
+                    if (param.shouldFailAtClientConnection) {
+                        if (!err) {
+                            return reject(new Error(" Should have failed here !"));
+                        }
+                        resolve();
+                    } else {
+                        err ? reject(err) : setImmediate(() => resolve());
                     }
-                    callback();
-                } else {
-                    if (err) {
-                        return callback(err);
-                    }
-                    setImmediate(() => callback());
-                }
+                });
             });
         }
-        function simulateTransaction(request: FindServersRequest, response: FindServersResponse, callback: SimpleCallback) {
+
+        async function simulateTransaction(request: FindServersRequest, response: FindServersResponse) {
             serverSChannel.once("message", (message: Message) => {
                 doDebug && console.log("server receiving message =", response.responseHeader.requestHandle);
                 response.responseHeader.requestHandle = message.request.requestHeader.requestHandle;
@@ -152,20 +167,21 @@ describe("Testing secure client and server connection", () => {
 
             doDebug && console.log(" now sending a request " + request.constructor.name);
 
-            clientChannel.performMessageTransaction(request, (err, response) => {
-                doDebug && console.log("client received a response ", response?.constructor.name);
-                doDebug && console.log(response?.toString());
-                callback(err || undefined);
+            await new Promise<void>((resolve, reject) => {
+                clientChannel.performMessageTransaction(request, (err, response) => {
+                    doDebug && console.log("client received a response ", response?.constructor.name);
+                    doDebug && console.log(response?.toString());
+                    err ? reject(err) : resolve();
+                });
             });
         }
 
-        const serverSocket = transportPair.server ;
+        const serverSocket = transportPair.server;
 
         const parentC: ClientSecureChannelParent = {
             // tslint:disable-next-line:object-literal-shorthand
             getCertificate: function () {
-                const chain = this.getCertificateChain();
-                const firstCertificateInChain = split_der(chain)[0];
+                const firstCertificateInChain = split_der(this.getCertificateChain())[0];
                 return firstCertificateInChain!;
             },
 
@@ -204,96 +220,103 @@ describe("Testing secure client and server connection", () => {
             doDebug && console.log(chalk.cyan(hexDump(chunk, 32, 20000)));
         });
 
-        // function renewToken(callback: SimpleCallback) {
-        //     const isInitial = false;
-        //     (clientChannel as any)._open_secure_channel_request(isInitial, (err?: Error | null) => {
-        //         /* istanbul ignore else */
-        //         callback(err!);
-        //     });
-        // }
+        //xx serverSChannel will discover security settings automatically serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
+        if (param.serverCertificate) {
+            // client do not have certificate manager  at this time
+            // const certMan = clientChannel.certificateManager;
+            // await certMan.trustCertificate(param.serverCertificate);
+        }
 
-        async.series(
-            [
-                (callback: SimpleCallback) => {
-                    serverSChannel.init(serverSocket, (err?: Error) => {
-                        /* */
-                        /// callback(err);
-                        doDebug && console.log("server secure channel initialized");
-                    });
-                    //  clientChannel.connect("")
-                    callback();
-                },
-                (callback: SimpleCallback) => {
-                    (serverSChannel as any)._build_message_builder();
 
-                    serverSChannel.setSecurity(param.securityMode, param.securityPolicy);
-                    if (param.clientCertificate) {
-                        const certMan = serverSChannel.certificateManager;
-                        certMan.trustCertificate(param.clientCertificate, (err?: Error | null) => {
-                            callback(err!);
-                        });
-                    } else {
-                        callback();
-                    }
-                },
+        if (param.clientCertificate) {
+            await serverSChannel.certificateManager.trustCertificate(param.clientCertificate);
 
-                (callback: SimpleCallback) => {
-                    simulateOpenSecureChannel(callback);
-                },
+            const statusCode = await serverSChannel.certificateManager.checkCertificate(param.clientCertificate);
+            const chain = split_der(param.clientCertificate!);
+            doDebug &&console.log("certificate thumbprint ", chain.length, getThumbprint(param.clientCertificate!)?.toString("hex"));
+            doDebug &&console.log("statusCode = ", statusCode.toString());
 
-                (callback: SimpleCallback) => {
-                    if (param.shouldFailAtClientConnection) {
-                        return callback();
-                    }
-                    const request = new FindServersRequest({});
-                    const response = new FindServersResponse({});
-                    simulateTransaction(request, response, callback);
-                },
+            const statusCode2 = await serverSChannel.certificateManager.checkCertificate(chain[0]);
+            doDebug &&console.log("statusCode = ", getThumbprint(chain[0])?.toString("hex"), statusCode2.toString());
 
-                (callback: SimpleCallback) => {
-                    if (param.shouldFailAtClientConnection) {
-                        return callback();
-                    }
-                    clientChannel.once("security_token_renewed", () => {
-                        doDebug && console.log("security_token_renewed");
-                        callback();
-                    });
-                    /** */
-                    // renew token
+            for (const cert of chain) {
+                await serverSChannel.certificateManager.trustCertificate(cert);
+                const statusCode4 = await serverSChannel.certificateManager.checkCertificate(cert);
+                doDebug &&console.log("statusCode = ", getThumbprint(cert)?.toString("hex"), statusCode4.toString());
+            }
+        }
 
-                    /// renewToken(callback)
-                },
-                (callback: SimpleCallback) => {
-                    if (param.shouldFailAtClientConnection) {
-                        return callback();
-                    }
-                    clientChannel.close(callback);
-                },
+        doDebug &&console.log("server secure channel init")
+        await new Promise<void>((resolve, reject) => {
+            serverSChannel.init(serverSocket, (err?: Error) => {
+                doDebug && console.log("server secure channel initialized");
+                //                err ? reject(err) : resolve();
+            });
+            resolve();
+        });
+        doDebug && console.log("server secure channel initialized");
 
-                (callback: SimpleCallback) => {
-                    serverSChannel.close();
-                    serverSChannel.dispose();
-                    callback();
-                }
-            ],
-            (err) => done(err!)
-        );
+
+        doDebug && console.log("simulateOpenSecureChannel");
+
+        await simulateOpenSecureChannel();
+        doDebug && console.log("simulateOpenSecureChannel: done ");
+
+
+        let errorCounter = 0;
+        if (!param.shouldFailAtClientConnection) {
+            doDebug && console.log("sending a request");
+
+            try {
+                const request = new FindServersRequest({});
+                const response = new FindServersResponse({});
+                await simulateTransaction(request, response);
+            } catch (err) {
+                doDebug && console.log("err", err);
+                errorCounter++;
+            }
+        }
+
+        if (param.securityMode !== MessageSecurityMode.None) {
+            doDebug && console.log("Wait for token renewal");
+            await new Promise<void>((resolve, reject) => {
+                clientChannel.once("security_token_renewed", () => {
+                    doDebug && console.log("security_token_renewed");
+                    resolve();
+                });
+            });
+        }
+
+
+        if (!param.shouldFailAtClientConnection) {
+            doDebug && console.log("sending a request");
+
+            try {
+                const request = new FindServersRequest({});
+                const response = new FindServersResponse({});
+                await simulateTransaction(request, response);
+            } catch (err) {
+                doDebug && console.log("err", err);
+                console.log((err as Error).message);
+                errorCounter++;
+            }
+        }
+
+        if (!param.shouldFailAtClientConnection) {
+            await new Promise<void>((resolve) => clientChannel.close(() => resolve()));
+        }
+        await new Promise<void>((resolve) => serverSChannel.close(() => resolve()));
+        serverSChannel.dispose();
+
+        errorCounter.should.eql(0);
     }
 
-    it("client & server channel  - no security ", (done) => {
-        performTest(
-            {
-                securityMode: MessageSecurityMode.None,
-                securityPolicy: SecurityPolicy.None,
-                serverCertificate: undefined,
-                serverPrivateKey: invalidPrivateKey,
-                clientPrivateKey: invalidPrivateKey
-            },
-            done
-        );
-    });
-
-    function performTest1(sizeC: number, sizeS: number, securityPolicy: SecurityPolicy, done: (err?: Error) => void): void {
+    async function performTest1(
+        sizeC: number,
+        sizeS: number,
+        securityMode: MessageSecurityMode,
+        securityPolicy: SecurityPolicy
+    ): Promise<void> {
         function m(file: string): string {
             const fullPathname = path.join(certificateFolder, file);
             if (!fs.existsSync(fullPathname)) {
@@ -312,43 +335,60 @@ describe("Testing secure client and server connection", () => {
         const clientCertificate = readCertificate(clientCertificateFile);
         const clientPrivateKey = readPrivateKey(clientPrivateKeyFile);
 
-        performTest(
-            {
-                clientCertificate,
-                clientPrivateKey,
-                securityMode: MessageSecurityMode.Sign,
-                securityPolicy,
-                serverCertificate,
-                serverPrivateKey
-                //   shouldFailAtClientConnection: false,
-            },
-            done
-        );
+        await performTest({
+            clientCertificate,
+            clientPrivateKey,
+            securityMode,
+            securityPolicy,
+            serverCertificate,
+            serverPrivateKey
+            //   shouldFailAtClientConnection: false,
+        });
     }
-
-    it("RR-client & server channel  - with security ", (done) => {
-        performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);
+    it("RR-001 client & server channel  - no security ", async () => {
+        await performTest({
+            securityMode: MessageSecurityMode.None,
+            securityPolicy: SecurityPolicy.None,
+            serverCertificate: undefined,
+            serverPrivateKey: invalidPrivateKey,
+            clientPrivateKey: invalidPrivateKey
+        });
+    });
+    it("RR-002 client & server channel  - with security ", async () => {
+        await performTest1(2048, 2048, MessageSecurityMode.Sign, SecurityPolicy.Basic256);
     });
 
-    it("client & server channel  - A", (done) => {
-        performTest1(2048, 2048, SecurityPolicy.Basic128Rsa15, done);
+    it("RR-003 client & server channel  - A", async () => {
+        await performTest1(2048, 2048, MessageSecurityMode.Sign, SecurityPolicy.Basic256);
     });
 
+    let index = 4;
     for (const sizeC of [1024, 2048, 3072, 4096]) {
         for (const sizeS of [1024, 2048, 3072, 4096]) {
-            for (const policy of [
-                SecurityPolicy.Basic128Rsa15,
-                // xx SecurityPolicy.Basic128,
-                // Xx SecurityPolicy.Basic192,
-                // Xs SecurityPolicy.Basic192Rsa15,
-                SecurityPolicy.Basic256Sha256,
-                SecurityPolicy.Aes128_Sha256_RsaOaep,
-                SecurityPolicy.Aes256_Sha256_RsaPss,
-                SecurityPolicy.Basic256
-            ]) {
-                it("client & server channel  - " + sizeC + " " + sizeS + " " + policy, (done) => {
-                    performTest1(sizeC, sizeS, policy, done);
-                });
+            for (const mode of [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]) {
+                for (const policy of [
+                    SecurityPolicy.Basic128Rsa15,
+                    // xx SecurityPolicy.Basic128,
+                    // Xx SecurityPolicy.Basic192,
+                    // Xs SecurityPolicy.Basic192Rsa15,
+                    SecurityPolicy.Basic256Sha256,
+                    SecurityPolicy.Aes128_Sha256_RsaOaep,
+                    SecurityPolicy.Aes256_Sha256_RsaPss,
+                    SecurityPolicy.Basic256
+                ]) {
+                    it(
+                        `RR-${(index++).toString().padStart(3, "0")}` +
+                        " client & server channel  - " +
+                        sizeC +
+                        " " +
+                        sizeS +
+                        " " +
+                        policy,
+                        async () => {
+                            await performTest1(sizeC, sizeS, mode, policy);
+                        }
+                    );
+                }
             }
         }
     }

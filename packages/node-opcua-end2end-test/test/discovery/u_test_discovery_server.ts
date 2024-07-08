@@ -460,7 +460,7 @@ export function t(test: any) {
             if (registeredServerCount === expectedCount) {
                 return resolve();
             }
-            setTimeout(wait_until_all_servers_registered_iter, 500, expectedCount, resolve);
+            setTimeout(wait_until_all_servers_registered_iter, 3500, expectedCount, resolve);
         }
 
         async function wait_until_all_servers_registered(expectedCount: number): Promise<void> {

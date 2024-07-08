@@ -137,6 +137,10 @@ export interface OPCUAClientBaseOptions {
      */
     transportSettings?: TransportSettings;
     transportTimeout?: number;
+    /**
+     * defaultTransactionTimeout
+     */
+    defaultTransactionTimeout?: number;
 }
 
 export interface GetEndpointsOptions {
@@ -284,7 +288,7 @@ export interface OPCUAClientBase extends EventEmitter {
      * @param event
      * @param eventHandler
      */
-    on(eventName: "security_token_renewed", eventHandler: () => void): this;
+    on(eventName: "security_token_renewed", eventHandler: (channel: ClientSecureChannelLayer, token: ChannelSecurityToken) => void): this;
 
     /**
      * this event is raised when the connection has been broken
