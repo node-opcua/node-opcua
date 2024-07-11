@@ -62,6 +62,7 @@
         "packages_extra/*"
     ],
     "devDependencies": {
+        "node-opcua-client": "2.128.0",
         "@types/mocha": "^10.0.7",
         "@types/node": "20.14.9",
         "@types/prettier": "^2.7.3",
