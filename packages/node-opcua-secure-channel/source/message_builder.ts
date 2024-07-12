@@ -630,6 +630,7 @@ export class MessageBuilder extends MessageBuilderBase {
         const derivedKeys = this.#derivedKeyProvider.getDerivedKey(symmetricAlgorithmSecurityHeader.tokenId);
         // istanbul ignore next
         if (!derivedKeys || derivedKeys.signatureLength === 0) {
+            this.#derivedKeyProvider.getDerivedKey(symmetricAlgorithmSecurityHeader.tokenId);
             return this._report_error(
                 StatusCodes2.BadSecureChannelTokenUnknown,
                 "Security token data for token " + symmetricAlgorithmSecurityHeader.tokenId + " doesn't exist"

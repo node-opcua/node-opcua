@@ -263,7 +263,7 @@ export interface ClientSecureChannelLayer extends EventEmitter {
     on(event: "backoff", eventHandler: (retryCount: number, delay: number) => void): this;
     on(event: "security_token_created", eventHandler: (token: ChannelSecurityToken) => void): this;
     on(event: "security_token_renewed", eventHandler: (token: ChannelSecurityToken) => void): this;
-    on(event: "send_request", eventHandler: (request: Request) => void): this;
+    on(event: "send_request", eventHandler: (request: Request, msgType: string, securityHeader: SecurityHeader) => void): this;
     on(event: "receive_response", eventHandler: (response: Response) => void): this;
     on(event: "timed_out_request", eventHandler: (request: Request) => void): this;
     on(event: "abort", eventHandler: () => void): this;
@@ -320,7 +320,7 @@ export interface ClientSecureChannelLayer extends EventEmitter {
      * notify the observer that a client request is being sent the server
      * @event send_request
      */
-    emit(event: "send_request", request: Request): boolean;
+    emit(event: "send_request", request: Request, msgType: string, securityHeader: SecurityHeader): boolean;
     /**
      * notify the observers that a server response has been received on the channel
      * @event receive_response
@@ -881,7 +881,9 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                 if (!requestData) {
                     warningLog("requestData not found for requestId = ", requestId);
-                    warningLog("err = ", err);
+                    // istanbul ignore next
+                    doDebug &&warningLog("err = ", err);
+                    
                     return;
                 }
 
@@ -1972,7 +1974,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
         if (doTraceClientRequestContent) {
             traceClientRequestContent(request, this.channelId, this.activeSecurityToken);
         }
-        this.emit("send_request", request);
+        this.emit("send_request", request, msgType, securityHeader);
 
         const statusCode = this.#messageChunker.chunkSecureMessage(msgType, options, request as BaseUAObject, (chunk) =>
             this.#_send_chunk(requestId, chunk)

@@ -10,11 +10,10 @@ import { BaseUAObject } from "node-opcua-factory";
 import { AsymmetricAlgorithmSecurityHeader, MessageSecurityMode, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
 import { timestamp } from "node-opcua-utils";
 import { make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ChunkManager, Mode, SequenceHeader } from "node-opcua-chunkmanager";
+import { Mode, SequenceHeader } from "node-opcua-chunkmanager";
 
 import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SecurityHeader } from "./secure_message_chunk_manager";
 import { SequenceNumberGenerator } from "./sequence_number_generator";
-import { IDerivedKeyProvider } from "./token_stack";
 
 const doTraceChunk = process.env.NODEOPCUADEBUG && process.env.NODEOPCUADEBUG.indexOf("CHUNK") >= 0;
 const errorLog = make_errorLog("secure_channel");
