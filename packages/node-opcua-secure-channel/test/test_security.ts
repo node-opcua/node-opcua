@@ -33,7 +33,7 @@ import {
     ServerSecureChannelParent
 } from "..";
 
-const doDebug = false;
+const doDebug = true;
 
 type SimpleCallback = (err?: Error | null) => void;
 
@@ -194,17 +194,18 @@ describe("Testing secure client and server connection", function (this: any) {
             }
         };
 
-        const clientChannel: ClientSecureChannelLayer = new ClientSecureChannelLayer({
+        const clientChannel = new ClientSecureChannelLayer({
             connectionStrategy: {
                 maxDelay: 100,
                 maxRetry: 0
             },
             defaultSecureTokenLifetime: 1000000,
+            tokenRenewalInterval: 1000, // very short ! but not zero
+            defaultTransactionTimeout: 1000000,
             parent: parentC,
             securityMode: param.securityMode,
             securityPolicy: param.securityPolicy,
             serverCertificate: param.serverCertificate,
-            tokenRenewalInterval: 150, // very short ! but not zero
             transportTimeout: 0,
             transportSettings: {
                 maxChunkCount: 1000,

@@ -11,10 +11,6 @@ const { make_debugLog } = require("node-opcua-debug");
 
 const debugLog = make_debugLog("TEST");
 
-function xredirectToFile(file, fun, callback) {
-    fun(callback);
-}
-
 const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
 
 // eslint-disable-next-line import/order

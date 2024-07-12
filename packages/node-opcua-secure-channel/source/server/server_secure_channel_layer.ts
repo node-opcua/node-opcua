@@ -48,6 +48,7 @@ import { ChunkMessageParameters, MessageChunker } from "../message_chunker";
 import {
     coerceSecurityPolicy,
     computeDerivedKeys,
+    DerivedKeys1,
     fromURI,
     getCryptoFactory,
     getOptionsForSymmetricSignAndEncrypt,
@@ -512,7 +513,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 ServerSecureChannelLayer.registry.register(this);
 
-                this.#_wait_for_open_secure_channel_request(callback, this.timeout);
+                this.#_wait_for_open_secure_channel_request(this.timeout);
+                callback();
             }
         });
 
@@ -675,13 +677,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    protected checkCertificateCallback(
-        certificate: Certificate | null,
-        callback: (err: Error | null, statusCode?: StatusCode) => void
-    ): void {
-        /** */
-    }
-
     protected async checkCertificate(certificate: Certificate | null): Promise<StatusCode> {
         if (!certificate) {
             return StatusCodes.Good;
@@ -784,7 +779,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
         );
     }
 
-    #_add_new_security_token(requestedLifetime: number) {
+    #_prepare_security_token(
+        openSecureChannelRequest: OpenSecureChannelRequest,
+        derivedKeys: DerivedKeys1 | null
+    ): ChannelSecurityToken {
         const adjustLifetime = (requestedLifetime: number) => {
             let revisedLifetime = requestedLifetime;
             if (revisedLifetime === 0) {
@@ -795,11 +793,17 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
             return revisedLifetime;
         };
-        this.#_stop_security_token_watch_dog();
-        this.#lastTokenId += 1;
 
+        if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Renew) {
+            this.#_stop_security_token_watch_dog();
+        }
+
+        const requestedLifetime = openSecureChannelRequest.requestedLifetime;
         const revisedLifetime = adjustLifetime(requestedLifetime);
 
+        doDebug && debugLog("revisedLifeTime = ", revisedLifetime, "requestedLifeTime = ", requestedLifetime);
+
+        this.#lastTokenId += 1;
         const securityToken = new ChannelSecurityToken({
             channelId: this.channelId,
             createdAt: new Date(), // now
@@ -811,19 +815,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
             warningLog("Token has already expired", securityToken);
         }
         this.#_start_security_token_watch_dog(securityToken);
+        this.#tokenStack.pushNewToken(securityToken, derivedKeys);
         return securityToken;
-    }
-
-    #_prepare_security_token(openSecureChannelRequest: OpenSecureChannelRequest): ChannelSecurityToken {
-        if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Renew) {
-            this.#_stop_security_token_watch_dog();
-        } else if (openSecureChannelRequest.requestType === SecurityTokenRequestType.Issue) {
-            // TODO
-        } else {
-            // Invalid requestType
-        }
-        const requestedLifetime = openSecureChannelRequest.requestedLifetime;
-        return this.#_add_new_security_token(requestedLifetime);
     }
 
     #_stop_open_channel_watch_dog() {
@@ -847,16 +840,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.#_stop_open_channel_watch_dog();
     }
 
-    #_install_wait_for_open_secure_channel_request_timeout(callback: ErrorCallback, timeout: number) {
-        assert(isFinite(timeout));
-        assert(typeof callback === "function");
+    #_install_wait_for_open_secure_channel_request_timeout(timeout: number) {
 
         this.#open_secure_channel_onceClose = (err?: Error) => {
             this.#open_secure_channel_onceClose = null;
             this.#_stop_open_channel_watch_dog();
             this.close(() => {
                 const err = new Error("Timeout waiting for OpenChannelRequest (A) (timeout was " + timeout + " ms)");
-                callback(err);
+                this.emit("abort", err);
             });
         };
         this.#transport.prependOnceListener("close", this.#open_secure_channel_onceClose);
@@ -866,15 +857,13 @@ export class ServerSecureChannelLayer extends EventEmitter {
             const err = new Error("Timeout waiting for OpenChannelRequest (B) (timeout was " + timeout + " ms)");
             debugLog(err.message);
             this.close(() => {
-                callback(err);
+              // 
             });
         }, timeout);
     }
 
     #_on_initial_open_secure_channel_request(
-        callback: ErrorCallback,
         request: Request,
-        msgType: string,
         requestId: number,
         channelId: number
     ) {
@@ -891,8 +880,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return this.#_on_OpenSecureChannelRequestError(
                 StatusCodes.BadCommunicationError,
                 "internal error",
-                { request, requestId, securityHeader },
-                callback
+                { request, requestId, securityHeader }
             );
         }
 
@@ -908,8 +896,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return this.#_on_OpenSecureChannelRequestError(
                 StatusCodes.BadCommunicationError,
                 "Invalid requestId",
-                message,
-                callback
+                message
             );
         }
 
@@ -919,8 +906,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         /* istanbul ignore next */
         if (!(request instanceof OpenSecureChannelRequest)) {
             description = "Expecting OpenSecureChannelRequest";
-            warningLog(chalk.red("ERROR"), "BadCommunicationError: expecting a OpenChannelRequest as first communication message");
-            return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message, callback);
+            return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadCommunicationError, description, message);
         }
 
         // check that the request is a OpenSecureChannelRequest
@@ -929,6 +915,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         if (doDebug) {
             debugLog(this.#messageBuilder.sequenceHeader.toString());
             debugLog(this.#messageBuilder.securityHeader.toString());
+            debugLog(request.toString());
         }
 
         const asymmetricSecurityHeader = this.#messageBuilder.securityHeader as AsymmetricAlgorithmSecurityHeader;
@@ -945,15 +932,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
         const securityPolicyStatus: StatusCode = isValidSecurityPolicy(securityPolicy);
         if (securityPolicyStatus !== StatusCodes.Good) {
             description = " Unsupported securityPolicyUri " + asymmetricSecurityHeader.securityPolicyUri;
-            warningLog("BadSecurityPolicyRejected: Unsupported securityPolicyUri", securityPolicy);
-            return this.#_on_OpenSecureChannelRequestError(securityPolicyStatus, description, message, callback);
+            return this.#_on_OpenSecureChannelRequestError(securityPolicyStatus, description, message);
         }
 
         const hasEndpoint = this.#_has_endpoint_for_security_mode_and_policy(securityMode, securityPolicy);
         if (!hasEndpoint) {
             // there is no
             description = " This server doesn't not support  " + securityPolicy.toString() + " " + securityMode.toString();
-            return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadSecurityPolicyRejected, description, message, callback);
+            return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadSecurityPolicyRejected, description, message);
         }
 
         this.#messageBuilder
@@ -980,7 +966,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             // istanbul ignore next
             if (err || !statusCode) {
                 description = "Internal Error " + err?.message;
-                return this.#_on_OpenSecureChannelRequestError(StatusCodes.BadInternalError, description, message, callback);
+                return this.#_on_OpenSecureChannelRequestError(statusCode || StatusCodes.BadInternalError, description, message);
             }
 
             if (statusCode.isNotGood()) {
@@ -1003,23 +989,22 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 //    BadCertificateUseNotAllowed
                 //
                 // the client will decided what to do next
-                return this.#_handle_OpenSecureChannelRequest(statusCode!, message, callback);
+                return this.#_on_OpenSecureChannelRequestError(statusCode!, "certificate invalid", message);
             }
-            this.#_handle_OpenSecureChannelRequest(statusCode!, message, callback);
+            this.#_handle_OpenSecureChannelRequest(message);
         });
     }
 
-    #_wait_for_open_secure_channel_request(callback: ErrorCallback, timeout: number) {
-        this.#_install_wait_for_open_secure_channel_request_timeout(callback, timeout);
+    #_wait_for_open_secure_channel_request(timeout: number) {
+        this.#_install_wait_for_open_secure_channel_request_timeout(timeout);
 
         const errorHandler = (err: Error) => {
             this.#_cancel_wait_for_open_secure_channel_request_timeout();
 
             if (this.#messageBuilder) {
                 this.#messageBuilder.removeListener("message", messageHandler);
-                this.close(() => {
-                    callback(new Error("/Expecting OpenSecureChannelRequest to be valid " + err.message));
-                });
+                const err = new Error("/Expecting OpenSecureChannelRequest to be valid ");
+                this.emit("abort", err);
             }
         };
 
@@ -1032,7 +1017,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         ) => {
             this.#_cancel_wait_for_open_secure_channel_request_timeout();
             this.#messageBuilder!.removeListener("error", errorHandler);
-            this.#_on_initial_open_secure_channel_request(callback, request as Request, msgType, requestId, channelId);
+            this.#_on_initial_open_secure_channel_request(request as Request, requestId, channelId);
         };
         this.#messageBuilder!.prependOnceListener("error", errorHandler);
         this.#messageBuilder!.once("message", messageHandler);
@@ -1090,6 +1075,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             return null;
         }
         const derivedKeys = this.#tokenStack.getTokenDerivedKeys(tokenId);
+        // istanbul ignore next
         if (!derivedKeys || !derivedKeys.derivedServerKeys) {
             errorLog("derivedKeys not set but security mode = ", MessageSecurityMode[this.securityMode]);
             return null;
@@ -1111,52 +1097,51 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
         // verify certificate
         let clientCertificate = asymmSecurityHeader ? asymmSecurityHeader.senderCertificate : null;
-        this.checkCertificateCallback(clientCertificate!, (err: Error | null, statusCode?: StatusCode) => {
-            if (err) {
-                return callback(err);
-            }
-            if (statusCode?.isNotGood()) {
-                const description = "Sender Certificate Error " + statusCode.toString();
-                warningLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode!.toString()));
-                const chain = split_der(clientCertificate!);
-                warningLog("Sender Certificate = ", chain.map((c) => getThumbprint(clientCertificate)?.toString("hex")).join("\n"));
-            }
+        this.checkCertificate(clientCertificate)
+            .then((statusCode: StatusCode) => {
 
-            this.#clientCertificate = null;
-            this.#clientPublicKey = null;
-            this.#clientPublicKeyLength = 0;
+                if (statusCode.isNotGood()) {
+                    const description = "Sender Certificate Error " + statusCode.toString();
+                    warningLog(chalk.cyan(description), chalk.bgCyan.yellow(statusCode!.toString()));
+                    const chain = split_der(clientCertificate!);
+                    warningLog(
+                        "Sender Certificate = ",
+                        chain.map((c) => getThumbprint(clientCertificate)?.toString("hex")).join("\n")
+                    );
+                }
 
-            // ignore receiverCertificate that have a zero length
-            /* istanbul ignore next */
-            if (clientCertificate && clientCertificate.length === 0) {
-                clientCertificate = null;
-            }
-
-            if (clientCertificate) {
-                // extract public key
-                extractPublicKeyFromCertificate(clientCertificate, (err, keyPem) => {
-                    if (!err) {
-                        if (keyPem) {
-                            this.#clientCertificate = clientCertificate;
-                            this.#clientPublicKey = createPublicKey(keyPem);
-                            this.#clientPublicKeyLength = rsaLengthPublicKey(keyPem);
-                        }
-                        callback(null, statusCode);
-                    } else {
-                        callback(err);
-                    }
-                });
-            } else {
+                this.#clientCertificate = null;
                 this.#clientPublicKey = null;
-                callback(null, statusCode);
-            }
-        });
+                this.#clientPublicKeyLength = 0;
+
+                // ignore receiverCertificate that have a zero length
+                /* istanbul ignore next */
+                if (clientCertificate && clientCertificate.length === 0) {
+                    clientCertificate = null;
+                }
+
+                if (clientCertificate) {
+                    // extract public key
+                    extractPublicKeyFromCertificate(clientCertificate, (err, keyPem) => {
+                        if (!err) {
+                            if (keyPem) {
+                                this.#clientCertificate = clientCertificate;
+                                this.#clientPublicKey = createPublicKey(keyPem);
+                                this.#clientPublicKeyLength = rsaLengthPublicKey(keyPem);
+                            }
+                            callback(null, statusCode);
+                        } else {
+                            callback(err);
+                        }
+                    });
+                } else {
+                    this.#clientPublicKey = null;
+                    callback(null, statusCode);
+                }
+            }).catch((err) => callback(err));
     }
 
-    #_prepare_response_security_header(
-        request: OpenSecureChannelRequest,
-        message: Message
-    ): AsymmetricAlgorithmSecurityHeader | null {
+    #_prepare_response_security_header(request: OpenSecureChannelRequest, message: Message): AsymmetricAlgorithmSecurityHeader {
         let securityHeader: AsymmetricAlgorithmSecurityHeader;
         // senderCertificate:
         //    The X509v3 certificate assigned to the sending application instance.
@@ -1234,7 +1219,63 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return securityHeader;
     }
 
-    #_handle_OpenSecureChannelRequest(serviceResult: StatusCode, messageRequest: Message, callback: ErrorCallback) {
+    #_check_client_nonce(clientNonce: Buffer): StatusCode {
+        if (this.securityMode !== MessageSecurityMode.None) {
+            const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy);
+            if (!cryptoFactory) {
+                return StatusCodes.BadSecurityModeRejected;
+            }
+            if (clientNonce.length !== cryptoFactory.symmetricKeyLength) {
+                warningLog(
+                    chalk.red("warning client Nonce length doesn't match server nonce length"),
+                    clientNonce.length,
+                    " !== ",
+                    cryptoFactory.symmetricKeyLength
+                );
+                // what can we do
+                // - just ignore it ?
+                // - or adapt serverNonce length to clientNonce Length ?
+                // xx self.serverNonce = crypto.randomBytes(self.clientNonce.length);
+                // - or adapt clientNonce length to serverNonce Length ?
+                // xx self.clientNonce = self.clientNonce.subarray(0,self.serverNonce.length);
+                //
+                // - or abort connection ? << LET BE SAFE AND CHOOSE THIS ONE !
+                return StatusCodes.BadSecurityModeRejected; // ToDo check code
+            }
+
+            /* istanbul ignore next */
+            if (nonceAlreadyBeenUsed(clientNonce)) {
+                warningLog(
+                    chalk.red("OPCUAServer with secure connection: this client nonce has already been used"),
+                    clientNonce.toString("hex")
+                );
+                return StatusCodes.BadNonceInvalid;
+            }
+        }
+        return StatusCodes.Good;
+    }
+    #_make_serverNonce(): Buffer | null {
+        if (this.securityMode !== MessageSecurityMode.None) {
+            const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy)!;
+            // serverNonce: A random number that shall not be used in any other request. A new
+            //    serverNonce shall be generated for each time a SecureChannel is renewed.
+            //    This parameter shall have a length equal to key size used for the symmetric
+            //    encryption algorithm that is identified by the securityPolicyUri.
+            return randomBytes(cryptoFactory.symmetricKeyLength);
+        }
+        return null;
+    }
+    #_make_derivedKeys(serverNonce: Buffer | null, clientNonce: Buffer | null): DerivedKeys1 | null {
+        if (this.securityMode !== MessageSecurityMode.None) {
+            if (!serverNonce || !clientNonce) {
+                throw new Error("Internal Error");
+            }
+            const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy)!;
+            return computeDerivedKeys(cryptoFactory, serverNonce, clientNonce);
+        }
+        return null;
+    }
+    #_handle_OpenSecureChannelRequest(messageRequest: Message) {
         this.beforeHandleOpenSecureChannelRequest().then(() => {
             let description;
             // If the SecurityMode is not None then the Server shall verify that a SenderCertificate and a
@@ -1243,91 +1284,47 @@ export class ServerSecureChannelLayer extends EventEmitter {
             if (!messageRequest.securityHeader) {
                 throw new Error("Internal Error");
             }
-            if (!this.#_check_receiverCertificateThumbprint(messageRequest.securityHeader)) {
-                description =
-                    "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
-                warningLog(chalk.cyan(description));
-                serviceResult = StatusCodes.BadCertificateInvalid;
-            }
 
             const request = messageRequest.request as OpenSecureChannelRequest;
             const requestId = messageRequest.requestId;
-
-            /* istanbul ignore next */
-            if (!(requestId !== 0 && requestId > 0)) {
-                warningLog("OpenSecureChannelRequest: requestId");
-                return this.#_sendFatalErrorAndAbort(StatusCodes2.BadTcpInternalError, "invalid request", messageRequest, callback);
-            }
 
             // let prepare self.securityHeader;
             const securityHeader = this.#_prepare_response_security_header(request, messageRequest);
 
             /* istanbul ignore next */
-            if (!securityHeader) {
-                warningLog("Cannot find SecurityHeader !!!!!!!! ");
-                return this.#_sendFatalErrorAndAbort(
-                    StatusCodes2.BadSecurityChecksFailed,
+            if (!(requestId !== 0 && requestId > 0)) {
+                warningLog("OpenSecureChannelRequest: requestId");
+                return this.#_on_OpenSecureChannelRequestError(
+                    StatusCodes2.BadTcpInternalError,
                     "invalid request",
-                    messageRequest,
-                    callback
+                    messageRequest
                 );
             }
-            let serverNonce: Buffer | null = null;
-            let securityToken: ChannelSecurityToken | undefined = undefined;
-            // _prepare_security_token token will provide a revised lifetime
-            securityToken = this.#_prepare_security_token(request);
-            if (this.securityMode !== MessageSecurityMode.None) {
-                const clientNonce = request.clientNonce;
 
-                /* istanbul ignore next */
-                if (nonceAlreadyBeenUsed(clientNonce)) {
-                    warningLog(
-                        chalk.red("OPCUAServer with secure connection: this client nonce has already been used"),
-                        clientNonce.toString("hex")
-                    );
-                    serviceResult = StatusCodes.BadNonceInvalid;
-                }
-
-                const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy)!;
-                // serverNonce: A random number that shall not be used in any other request. A new
-                //    serverNonce shall be generated for each time a SecureChannel is renewed.
-                //    This parameter shall have a length equal to key size used for the symmetric
-                //    encryption algorithm that is identified by the securityPolicyUri.
-                serverNonce = randomBytes(cryptoFactory.symmetricKeyLength);
-
-                if (clientNonce.length !== serverNonce.length) {
-                    warningLog(
-                        chalk.red("warning client Nonce length doesn't match server nonce length"),
-                        clientNonce.length,
-                        " !== ",
-                        serverNonce.length
-                    );
-                    // what can we do
-                    // - just ignore it ?
-                    // - or adapt serverNonce length to clientNonce Length ?
-                    // xx self.serverNonce = crypto.randomBytes(self.clientNonce.length);
-                    // - or adapt clientNonce length to serverNonce Length ?
-                    // xx self.clientNonce = self.clientNonce.subarray(0,self.serverNonce.length);
-                    //
-                    // - or abort connection ? << LET BE SAFE AND CHOOSE THIS ONE !
-                    serviceResult = StatusCodes.BadSecurityModeRejected; // ToDo check code
-                }
-                // expose derivedKey to use for symmetric sign&encrypt
-                // to help us decrypting and verifying messages received from client
-                const derivedKeys = computeDerivedKeys(cryptoFactory, serverNonce, clientNonce);
-
-                this.#tokenStack.pushNewToken(securityToken, derivedKeys);
-                // DO NOT DO THIS !!!! message.securityHeader = securityHeader;
+            const statusCodeClientNonce = this.#_check_client_nonce(request.clientNonce);
+            if (statusCodeClientNonce.isNotGood()) {
+                return this.#_on_OpenSecureChannelRequestError(statusCodeClientNonce, "invalid nonce", messageRequest);
             }
 
-            const response: Response = serviceResult.isGood()
-                ? new OpenSecureChannelResponse({
-                    responseHeader: { serviceResult },
-                    securityToken: securityToken,
-                    serverNonce: serverNonce || undefined,
-                    serverProtocolVersion: this.#protocolVersion
-                })
-                : new ServiceFault({ responseHeader: { serviceResult } });
+            if (!this.#_check_receiverCertificateThumbprint(messageRequest.securityHeader)) {
+                description =
+                    "Server#OpenSecureChannelRequest : Invalid receiver certificate thumbprint : the thumbprint doesn't match server certificate !";
+                return this.#_on_OpenSecureChannelRequestError(
+                    StatusCodes.BadCertificateInvalid,
+                    description,
+                    messageRequest
+                );
+            }
+
+            const serverNonce = this.#_make_serverNonce();
+            const derivedKeys = this.#_make_derivedKeys(serverNonce, request.clientNonce);
+            const securityToken: ChannelSecurityToken = this.#_prepare_security_token(request, derivedKeys);
+            const response: Response = new OpenSecureChannelResponse({
+                responseHeader: { serviceResult: StatusCodes.Good },
+                securityToken: securityToken,
+                serverNonce: serverNonce || undefined,
+                serverProtocolVersion: this.#protocolVersion
+            });
             /* istanbul ignore next */
             if (doTraceServerMessage) {
                 console.log("Transport maxMessageSize = ", this.#transport.maxMessageSize);
@@ -1339,15 +1336,14 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 securityHeader: securityHeader
             };
 
-            this.send_response("OPN", response, messageResponse, (/*err*/) => {
+            this.send_response("OPN", response, messageResponse, (err) => {
                 const responseHeader = response.responseHeader;
                 if (responseHeader.serviceResult !== StatusCodes.Good) {
                     warningLog("OpenSecureChannelRequest Closing communication ", responseHeader.serviceResult.toString());
                     this.#status = "closing";
-                    this.close(callback);
+                    this.close();
                 } else {
                     this.#status = "open";
-                    callback();
                 }
             });
         });
@@ -1419,18 +1415,15 @@ export class ServerSecureChannelLayer extends EventEmitter {
             securityHeader,
             requestId
         };
-        const dummyCallback = (/*err?: Error*/) => { };
         if (msgType === "CLO" /* && request.schema.name === "CloseSecureChannelRequest" */) {
-            this.close(dummyCallback);
+            this.close();
         } else if (msgType === "OPN" && request.schema.name === "OpenSecureChannelRequest") {
             // intercept client request to renew security Token
-            this.#_handle_OpenSecureChannelRequest(StatusCodes.Good, message, (/* err?: Error*/) => {
-                /** */
-            });
+            this.#_handle_OpenSecureChannelRequest(message);
         } else {
             if (request.schema.name === "CloseSecureChannelRequest") {
                 warningLog("WARNING : RECEIVED a CloseSecureChannelRequest with msgType=", msgType);
-                this.close(dummyCallback);
+                this.close();
             } else {
                 /* istanbul ignore next */
                 if (doPerfMonitoring) {
@@ -1447,7 +1440,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 const tokenId = getTokenId(securityHeader);
 
                 const securityToken = this.#tokenStack.getToken(tokenId);
-
+                if (!securityToken) {
+                    const _tokenStack = this.#tokenStack;
+                    const description = `cannot find security token ${tokenId}  ${msgType}`;
+                    return this.#_sendFatalErrorAndAbort(StatusCodes.BadCommunicationError, description, message, () => { });
+                }
                 if (securityToken && channelId !== securityToken.channelId) {
                     // response = new ServiceFault({responseHeader: {serviceResult: certificate_status}});
                     const description = `Invalid channelId specified = ${channelId}  <> ${securityToken.channelId}`;
@@ -1512,10 +1509,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
     // Bad_SecureChannelIdInvalid
     // Bad_NonceInvalid
 
-    #_on_OpenSecureChannelRequestError(serviceResult: StatusCode, description: string, message: Message, callback: ErrorCallback) {
-        warningLog("ServerSecureChannel sendError: ", serviceResult.toString(), description, message.request.constructor.name);
-
+    #_on_OpenSecureChannelRequestError(serviceResult: StatusCode, description: string, message: Message) {
+        warningLog("ServerSecureChannel sendError: ", serviceResult.toString(), { description }, message.request.constructor.name);
         this.securityMode = MessageSecurityMode.None;
+        this.#status = "closing";
+
         setTimeout(() => {
             this.send_response(
                 "ERR",
@@ -1528,13 +1526,11 @@ export class ServerSecureChannelLayer extends EventEmitter {
                 }),
                 message,
                 () => {
-                    callback(new Error(description + " statusCode = " + serviceResult.toString()));
+                    setTimeout(() => {
+                        this.close();
+                    }, 1000);
                 }
             );
         }, ServerSecureChannelLayer.throttleTime); // Throttling keep connection on hold for a while.
     }
 }
-
-(ServerSecureChannelLayer as any).prototype.checkCertificateCallback = callbackify(
-    (ServerSecureChannelLayer as any).prototype.checkCertificate
-);

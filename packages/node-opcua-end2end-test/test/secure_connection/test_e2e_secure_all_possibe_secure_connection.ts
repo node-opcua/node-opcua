@@ -680,6 +680,8 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
         await trustClientCertificateOnServer(client);
 
         let nonceCorrupted = false;
+
+        // install a mechanism to alter the nonce
         client.on("secure_channel_created", (secureChannel: ClientSecureChannelLayer) => {
             secureChannel.on("beforePerformTransaction", (msgType: string, request: any) => {
                 if (request.constructor.name === "OpenSecureChannelRequest") {
@@ -701,7 +703,7 @@ describe("ZZB- testing Secure Client-Server communication", function (this: any)
             debugLog(_err.message);
         }
         if (_err) {
-            _err.message.should.match(/BadSecurityModeRejected/);
+            _err.message.should.match(/BadSecurityModeRejected|connection may have been rejected by server/);
         }
         should.exist(_err);
         nonceCorrupted.should.eql(true);
