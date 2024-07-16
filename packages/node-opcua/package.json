@@ -26,7 +26,7 @@
         "node-opcua-client-proxy": "2.128.0",
         "node-opcua-common": "2.128.0",
         "node-opcua-constants": "2.125.0",
-        "node-opcua-crypto": "4.8.0",
+        "node-opcua-crypto": "4.9.2",
         "node-opcua-data-access": "2.128.0",
         "node-opcua-data-model": "2.128.0",
         "node-opcua-data-value": "2.128.0",
