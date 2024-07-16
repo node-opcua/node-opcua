@@ -281,7 +281,7 @@ export class ClientSidePublishEngine {
                     // the server tells us that there is no subscription for this session
                     // but the client have some active subscription left.
                     // This could happen if the client has missed or not received the StatusChange Notification
-                    debugLog(chalk.bgWhite.red(" WARNING :   SERVER TELLS THAT IT HAS NO SUBSCRIPTION , " + "BUT CLIENT DISAGREE"));
+                    debugLog(chalk.bgWhite.red(" WARNING: server tells that there is no Subscription, but client disagree"));
                     debugLog("this.activeSubscriptionCount =", this.activeSubscriptionCount);
                     active = false;
                 }
@@ -292,7 +292,7 @@ export class ClientSidePublishEngine {
                     // may be the session timeout is shorted than the subscription life time
                     // and the client does not send intermediate keepAlive request to keep the connection working.
                     //
-                    debugLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT THE SESSION HAS CLOSED ..."));
+                    debugLog(chalk.bgWhite.red(" WARNING : Server tells that the session has closed ..."));
                     debugLog(
                         "   the ClientSidePublishEngine shall now be disabled," + " as server will reject any further request"
                     );
@@ -313,10 +313,11 @@ export class ClientSidePublishEngine {
                         this.nbMaxPublishRequestsAcceptedByServer
                     );
                     active = false;
-
-                    warningLog(chalk.bgWhite.red(" WARNING : SERVER TELLS THAT TOO MANY" + " PUBLISH REQUEST HAS BEEN SEND ..."));
-                    warningLog(" On our side nbPendingPublishRequests = ", this.nbPendingPublishRequests);
-                    warningLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
+                    if (this.nbPendingPublishRequests < 10) {
+                        warningLog(chalk.bgWhite.red(" warning : server tells that too many publish request has been send ..."));
+                        warningLog(" On our side nbPendingPublishRequests = ", this.nbPendingPublishRequests);
+                        warningLog(" => nbMaxPublishRequestsAcceptedByServer =", this.nbMaxPublishRequestsAcceptedByServer);
+                    }
                 }
             } else {
                 // istanbul ignore next
