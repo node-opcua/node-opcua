@@ -50,6 +50,9 @@ interface TestParam {
 const certificateFolder = path.join(__dirname, "../../../packages/node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
+const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt((process.version.match(/^v([0-9]+)/)![1]) || "0", 10) >= 21;
+console.log("NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = ", NODE_NO_SUPPORT_SECURITY_BASIC128RSA15);
+
 // tslint:disable:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", function (this: any) {
@@ -368,7 +371,7 @@ describe("Testing secure client and server connection", function (this: any) {
         for (const sizeS of [1024, 2048, 3072, 4096]) {
             for (const mode of [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt]) {
                 for (const policy of [
-                    SecurityPolicy.Basic128Rsa15,
+                    NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 ? SecurityPolicy.Basic256Sha256 : SecurityPolicy.Basic128Rsa15,
                     // xx SecurityPolicy.Basic128,
                     // Xx SecurityPolicy.Basic192,
                     // Xs SecurityPolicy.Basic192Rsa15,

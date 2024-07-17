@@ -9,7 +9,7 @@ const port = 2238;
 
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing server with restricted securityModes - Given a server with a single end point SignAndEncrypt/Basic128Rsa15 (and no discovery service on secure channel)", function () {
+describe("testing server with restricted securityModes - Given a server with a single end point SignAndEncrypt/Aes128_Sha256_RsaOaep (and no discovery service on secure channel)", function () {
     let server, client, endpointUrl, serverCertificate;
 
     before(async () => {
@@ -66,10 +66,10 @@ describe("testing server with restricted securityModes - Given a server with a s
         // console.log(_err.message);
     });
 
-    it("should not connect with SecurityMode==Sign", async () => {
+    it("should not connect with SecurityMode==Sign/Basic256Sha256", async () => {
         const _err = await attemptConnection({
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic128Rsa15
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
         should.exist(_err);
         _err.message.should.match(/The connection may have been rejected by server/);
@@ -82,18 +82,18 @@ describe("testing server with restricted securityModes - Given a server with a s
         should.exist(_err);
         _err.message.should.match(/The connection may have been rejected by server/);
     });
-    it("should not connect with  SecurityMode SignAndEncrypt / Basic256Sha256 ", async () => {
+    it("should not connect with  SecurityMode SignAndEncrypt /Basic128Rsa15  ", async () => {
         const _err = await attemptConnection({
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic128Rsa15
         });
         should.exist(_err);
         _err.message.should.match(/The connection may have been rejected by server/);
     });
-    it("should connect with  SecurityMode SignAndEncrypt / Basic128Rsa15 ", async () => {
+    it("should connect with  SecurityMode SignAndEncrypt /Basic256Sha256  ", async () => {
         const _err = await attemptConnection({
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic128Rsa15
+            securityPolicy: SecurityPolicy.Basic256Sha256
         });
         should.exist(_err);
         _err.message.should.match(/The connection may have been rejected by server/);

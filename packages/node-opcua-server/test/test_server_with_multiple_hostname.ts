@@ -67,9 +67,9 @@ describe("OPCUAServerEndpoint#addEndpointDescription default hostname", () => {
                 SecurityPolicy.None,
                 SecurityPolicy.Basic256Sha256,
                 SecurityPolicy.Basic256,
-                //SecurityPolicy.Basic128Rsa15,
-                //SecurityPolicy.Aes256_Sha256_RsaPss
-                //  SecurityPolicy.Aes128_Sha256_RsaOaep
+                // SecurityPolicy.Basic128Rsa15,
+                // SecurityPolicy.Aes256_Sha256_RsaPss
+                // SecurityPolicy.Aes128_Sha256_RsaOaep
             ]
         });
 

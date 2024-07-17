@@ -26,7 +26,11 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
     if (major < 20) {
         return; // skip test
     }
-    
+    if (major >= 22) {
+        // node 22 and above has a permanent security fix that prevent RSA PKCS#1 v1.5 altogether
+        // there is nothing we can do anymore to workaround this.
+        return; // skip test
+    }
     const keyPair = await subtle.generateKey(
         {
             name: "RSA-OAEP",

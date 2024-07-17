@@ -64,7 +64,7 @@ async function main() {
     // server_options.alternateHostname = argv.alternateHostname;
 
     const server_options: OPCUAServerOptions = {
-        securityPolicies: [SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256],
+        securityPolicies: [SecurityPolicy.Basic256Sha256, SecurityPolicy.Basic256],
 
         securityModes: [MessageSecurityMode.Sign, MessageSecurityMode.SignAndEncrypt],
 

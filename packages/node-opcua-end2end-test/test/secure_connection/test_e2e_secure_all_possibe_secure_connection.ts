@@ -29,8 +29,6 @@ import {
     ClientSession,
     ChannelSecurityToken,
     OPCUAClientOptions,
-    CallbackT,
-    Response,
     ServerSecureChannelLayer,
     OPCUAClientBase
 } from "node-opcua";
@@ -38,12 +36,15 @@ import { CertificateAuthority } from "node-opcua-pki";
 import { readCertificateRevocationList, readCertificate, Certificate, exploreCertificate, split_der } from "node-opcua-crypto";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { send } from "process";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const sampleCertificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
 fs.existsSync(sampleCertificateFolder).should.eql(true, "expecting certificate store at " + sampleCertificateFolder);
+
+
+const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt((process.version.match(/^v([0-9]+)/)![1]) || "0", 10) >= 21;
+console.log("NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = ", NODE_NO_SUPPORT_SECURITY_BASIC128RSA15);
 
 const port = 2236;
 
@@ -142,6 +143,12 @@ async function start_inner_server_local(options?: OPCUAServerOptions): Promise<I
         SecurityPolicy.Aes128_Sha256_RsaOaep,
         SecurityPolicy.Aes256_Sha256_RsaPss
     ];
+
+    // remove unsupported securityPolicies in newer nodejs version
+    if (NODE_NO_SUPPORT_SECURITY_BASIC128RSA15) {
+        options.securityPolicies = options.securityPolicies.filter((s: string) => s !== SecurityPolicy.Basic128Rsa15);
+    }
+
     server = await build_server_with_temperature_device(options);
     const data = {
         endpointUrl: server.getEndpointUrl(),
@@ -487,17 +494,20 @@ async function common_test_expected_server_initiated_disconnection(
 }
 
 function perform_collection_of_test_with_client_configuration(message: string, options: any): void {
-    it("should succeed with Basic128Rsa15  with Sign           " + message, async () => {
-        await common_test("Basic128Rsa15", "Sign", options);
-    });
 
-    it("should succeed with Basic128Rsa15  with Sign           " + message, async () => {
-        await common_test("Basic128Rsa15", "Sign", options);
-    });
+    if (!NODE_NO_SUPPORT_SECURITY_BASIC128RSA15) {
+        it("should succeed with Basic128Rsa15  with Sign           " + message, async () => {
+            await common_test("Basic128Rsa15", "Sign", options);
+        });
 
-    it("should succeed with Basic128Rsa15  with SignAndEncrypt " + message, async () => {
-        await common_test("Basic128Rsa15", "SignAndEncrypt", options);
-    });
+        it("should succeed with Basic128Rsa15  with Sign           " + message, async () => {
+            await common_test("Basic128Rsa15", "Sign", options);
+        });
+
+        it("should succeed with Basic128Rsa15  with SignAndEncrypt " + message, async () => {
+            await common_test("Basic128Rsa15", "SignAndEncrypt", options);
+        });
+    }
 
     it("should succeed with Basic256       with Sign           " + message, async () => {
         await common_test("Basic256", "Sign", options);
@@ -759,9 +769,9 @@ describe("ZZB- testing server behavior on secure connection ", function (this: a
             warningLog("received lifetime_75", token.toString());
         });
 
-        client.on("security_token_renewed",  (channel, token)  => {
+        client.on("security_token_renewed", (channel, token) => {
             token_change += 1;
-            warningLog("security_token_renewed", {...token});
+            warningLog("security_token_renewed", { ...token });
         });
 
         client.once("close", function (err) {
@@ -771,8 +781,8 @@ describe("ZZB- testing server behavior on secure connection ", function (this: a
         client.on("secure_channel_created", (secureChannel: ClientSecureChannelLayer) => {
 
             console.log("installing beforeSecurityRenew");
-            secureChannel.on("security_token_created", (token) =>  {
-                
+            secureChannel.on("security_token_created", (token) => {
+
                 // make sure the token is not going to expire soon
                 token.revisedLifetime = 10000000;
 
@@ -806,7 +816,7 @@ describe("ZZB- testing server behavior on secure connection ", function (this: a
             securityPolicy: SecurityPolicy.Basic256,
             serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: defaultSecureTokenLifetime,
-            tokenRenewalInterval: defaultSecureTokenLifetime /2,
+            tokenRenewalInterval: defaultSecureTokenLifetime / 2,
             connectionStrategy: no_reconnect_connectivity_strategy,
             clientCertificateManager: await getClientCertificateManager()
         };
@@ -817,19 +827,19 @@ describe("ZZB- testing server behavior on secure connection ", function (this: a
 
         await trustClientCertificateOnServer(client);
 
-   
+
         await client.withSessionAsync(endpointUrl, async (session) => {
 
             // security token will expire at some points
-            
-            for (let i=0; i<5;i++) {
+
+            for (let i = 0; i < 5; i++) {
                 await wait(5000);
                 // this request will fail as we haven't renewed the securityToken
                 // Server will close the connection when receiving this request
                 try {
-                await session.read([{ nodeId: "i=2255", attributeId: 13 }]);
-                } catch(err) {
-                    console.log("err",(err as Error).message);
+                    await session.read([{ nodeId: "i=2255", attributeId: 13 }]);
+                } catch (err) {
+                    console.log("err", (err as Error).message);
                     break;
                 }
             }
@@ -853,7 +863,7 @@ describe("ZZC- testing Security Policy with a valid 1024 bit certificate on serv
 
     it("connection should fail if security mode requested by client is not supported by server", async () => {
         const securityMode = MessageSecurityMode.Sign;
-        const securityPolicy = SecurityPolicy.Basic192Rsa15; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        const securityPolicy = SecurityPolicy.Basic128; // !!! Our Server doesn't implement Basic128 !!!
         await check_open_secure_channel_fails(securityPolicy, securityMode, null);
     });
 });
@@ -874,7 +884,7 @@ describe("ZZD- testing Security Policy with a valid 2048 bit certificate on serv
 
     it("connection should fail if security mode requested by client is not supported by server", async () => {
         const securityMode = MessageSecurityMode.Sign;
-        const securityPolicy = SecurityPolicy.Basic192Rsa15; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        const securityPolicy = SecurityPolicy.Basic128; // !!! Our Server doesn't implement Basic128 !!!
         await check_open_secure_channel_fails(securityPolicy, securityMode, null);
     });
 });
@@ -894,7 +904,7 @@ describe("ZZD2- testing Security Policy with a valid 4096 bit certificate on ser
 
     it("connection should fail if security mode requested by client is not supported by server", async () => {
         const securityMode = MessageSecurityMode.Sign;
-        const securityPolicy = SecurityPolicy.Basic192Rsa15; // !!! Our Server doesn't implement Basic192Rsa15 !!!
+        const securityPolicy = SecurityPolicy.Basic128; // !!! Our Server doesn't implement Basic128 !!!
         await check_open_secure_channel_fails(securityPolicy, securityMode, null);
     });
 });
@@ -923,7 +933,7 @@ describe("ZZE- testing with various client certificates", function (this: any) {
             certificateFile: client_certificate_ok,
             privateKeyFile: client_privatekey_file
         };
-        await common_test("Basic128Rsa15", "SignAndEncrypt", options);
+        await common_test("Basic256Sha256", "SignAndEncrypt", options);
     });
 
     xit("Server should not allow a client with a out of date certificate to connect", async () => {
@@ -931,7 +941,7 @@ describe("ZZE- testing with various client certificates", function (this: any) {
             certificateFile: client_certificate_out_of_date,
             privateKeyFile: client_privatekey_file
         };
-        await check_open_secure_channel_fails(SecurityPolicy.Basic128Rsa15, MessageSecurityMode.SignAndEncrypt, options);
+        await check_open_secure_channel_fails(SecurityPolicy.Basic256Sha256, MessageSecurityMode.SignAndEncrypt, options);
     });
 
     xit("Server should not allow a client to connect when the certificate is not active yet", async () => {
@@ -939,7 +949,7 @@ describe("ZZE- testing with various client certificates", function (this: any) {
             certificateFile: client_certificate_not_active_yet,
             privateKeyFile: client_privatekey_file
         };
-        await check_open_secure_channel_fails(SecurityPolicy.Basic128Rsa15, MessageSecurityMode.SignAndEncrypt, options);
+        await check_open_secure_channel_fails(SecurityPolicy.Basic256Sha256, MessageSecurityMode.SignAndEncrypt, options);
     });
 
     it("REVOKED-CERTIFICATE Server should not allow a client to connect with a revoked certificate", async () => {
@@ -947,7 +957,7 @@ describe("ZZE- testing with various client certificates", function (this: any) {
             certificateFile: client_certificate_revoked,
             privateKeyFile: client_privatekey_file
         };
-        await check_open_secure_channel_fails(SecurityPolicy.Basic128Rsa15, MessageSecurityMode.SignAndEncrypt, options);
+        await check_open_secure_channel_fails(SecurityPolicy.Basic256Sha256, MessageSecurityMode.SignAndEncrypt, options);
     });
 
 });
@@ -1044,7 +1054,7 @@ describe("ZF - testing truncated certificate chain", function (this: any) {
                 console.log((session as any)._client?._secureChannel?.activeSecurityToken?.toString());
             });
             client.on("security_token_renewed", (channel, token) => {
-                console.log("security_token_renewed", JSON.stringify({...token}));
+                console.log("security_token_renewed", JSON.stringify({ ...token }));
             });
             console.log("Started");
             const timer = setInterval(async () => {

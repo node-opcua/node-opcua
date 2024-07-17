@@ -93,7 +93,6 @@ describe("testing Client-Server with UserName/Password identity token", function
             userManager,
             securityPolicies: [
                 SecurityPolicy.None,
-                SecurityPolicy.Basic128Rsa15,
                 SecurityPolicy.Basic256Sha256
              ]
         };
@@ -146,7 +145,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const password = "***invalid password***";
         const options = {
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic128Rsa15
+            securityPolicy: SecurityPolicy.Basic256Sha256
         };
         perform_simple_connection(endpointUrl, options, { userName: userName, password: password }, function (err) {
             err.message.should.match(/BadUserAccessDenied/);
@@ -159,7 +158,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const password = "p@ssw0rd";
         const options = {
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic128Rsa15
+            securityPolicy: SecurityPolicy.Basic256Sha256
         };
         perform_simple_connection(endpointUrl, options, { userName: userName, password: password }, done);
     });
@@ -182,7 +181,7 @@ describe("testing Client-Server with UserName/Password identity token", function
         const options = {
             endpointMustExist: false,
             securityMode: MessageSecurityMode.Sign,
-            securityPolicy: SecurityPolicy.Basic128Rsa15
+            securityPolicy: SecurityPolicy.Basic256Sha256
         };
         const endpointUrl_truncated = "opc.tcp://" + os.hostname() + ":" + port.toString();
 
