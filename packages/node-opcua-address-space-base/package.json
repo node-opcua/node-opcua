@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-base",
-    "version": "2.128.0",
+    "version": "2.129.0",
     "description": "pure nodejs OPCUA SDK - module address-space-base",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -21,16 +21,16 @@
         "node-opcua-constants": "2.125.0",
         "node-opcua-crypto": "4.9.2",
         "node-opcua-data-model": "2.128.0",
-        "node-opcua-data-value": "2.128.0",
+        "node-opcua-data-value": "2.129.0",
         "node-opcua-date-time": "2.128.0",
         "node-opcua-debug": "2.128.0",
         "node-opcua-extension-object": "2.128.0",
         "node-opcua-nodeid": "2.128.0",
         "node-opcua-numeric-range": "2.128.0",
-        "node-opcua-schemas": "2.128.0",
+        "node-opcua-schemas": "2.129.0",
         "node-opcua-status-code": "2.128.0",
-        "node-opcua-types": "2.128.0",
-        "node-opcua-variant": "2.128.0"
+        "node-opcua-types": "2.129.0",
+        "node-opcua-variant": "2.129.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
