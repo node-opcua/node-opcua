@@ -23,6 +23,7 @@
     },
     "devDependencies": {
         "node-opcua": "2.129.0",
+        "node-opcua-client": "2.129.0",
         "node-opcua-address-space": "2.129.0",
         "node-opcua-assert": "2.120.0",
         "node-opcua-constants": "2.125.0",
