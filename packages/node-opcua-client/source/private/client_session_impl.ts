@@ -96,9 +96,11 @@ import { WriteRequest, WriteResponse, WriteValue } from "node-opcua-service-writ
 import { StatusCode, StatusCodes, Callback, CallbackT } from "node-opcua-status-code";
 import { ErrorCallback } from "node-opcua-status-code";
 import {
+    ActivateSessionRequest,
     AggregateConfigurationOptions,
     BrowseNextRequest,
     BrowseNextResponse,
+    CloseSessionRequest,
     HistoryReadValueIdOptions,
     UserTokenType,
     WriteValueOptions
@@ -129,11 +131,11 @@ import { UserIdentityInfo } from "../user_identity_info";
 import { ClientSessionKeepAliveManager } from "../client_session_keepalive_manager";
 import { ClientSubscription } from "../client_subscription";
 import { Request, Response } from "../common";
-import { repair_client_session } from "./reconnection/reconnection";
 
 import { ClientSidePublishEngine } from "./client_publish_engine";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
 import { IClientBase } from "./i_private_client";
+import { repair_client_session } from "./reconnection/reconnection";
 
 const helpAPIChange = process.env.DEBUG && process.env.DEBUG.match(/API/);
 const debugLog = make_debugLog(__filename);
@@ -182,17 +184,18 @@ export interface Reconnectable {
     _reconnecting: {
         reconnecting: boolean;
         pendingCallbacks: EmptyCallback[];
+        pendingTransactions: { request: Request, callback: (err: Error | null, response?: Response) => void }[];
     };
-    pendingTransactions: any[];
-    pendingTransactionsCount: number;
 }
+
 /**
  * @class ClientSession
  * @param client {OPCUAClientImpl}
  * @constructor
  * @private
  */
-export class ClientSessionImpl extends EventEmitter implements ClientSession {
+export class ClientSessionImpl extends EventEmitter implements ClientSession, Reconnectable {
+    static reconnectingElement: WeakMap<ClientSessionImpl, Reconnectable> = new WeakMap();
     public timeout: number;
     public authenticationToken?: NodeId;
     public requestedMaxReferencesPerNode: number;
@@ -202,18 +205,16 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
     public serverCertificate: Certificate;
     public userIdentityInfo?: UserIdentityInfo;
     public name = "";
-
     public serverNonce?: Nonce;
     public serverSignature?: SignatureData; // todo : remove ?
     public serverEndpoints: EndpointDescription[] = [];
     public _client: IClientBase | null;
     public _closed: boolean;
 
-    private _reconnecting: {
+    public _reconnecting: {
         reconnecting: boolean;
         pendingCallbacks: EmptyCallback[];
         pendingTransactions: any[];
-        pendingTransactionsCount: number;
     };
 
     /**
@@ -241,8 +242,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
         this._reconnecting = {
             reconnecting: false,
             pendingCallbacks: [],
-            pendingTransactions: [],
-            pendingTransactionsCount: 0
+            pendingTransactions: []
         };
 
         this.requestedMaxReferencesPerNode = 10000;
@@ -1166,7 +1166,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
      * @param args
      */
     public read(...args: any[]): any {
-
         if (args.length === 2) {
             return this.read(args[0], 0, args[1]);
         }
@@ -1502,16 +1501,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             // session may have been closed by user ... but is still in used !!
             return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
         }
-
-        this._reconnecting.pendingTransactions = this._reconnecting.pendingTransactions || [];
-        this._reconnecting.pendingTransactionsCount = this._reconnecting.pendingTransactionsCount || 0;
-
-        const isPublishRequest = request instanceof PublishRequest;
-        if (isPublishRequest) {
+        if (request instanceof PublishRequest || request instanceof ActivateSessionRequest || request instanceof CloseSessionRequest) {
             return this._performMessageTransaction(request, callback);
         }
 
-        if (this._reconnecting.pendingTransactionsCount > 0) {
+        if (this._reconnecting.pendingTransactions.length > 0) {
             /* istanbul ignore next */
             if (this._reconnecting.pendingTransactions.length > 10) {
                 if (!pendingTransactionMessageDisplayed) {
@@ -1542,33 +1536,32 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             this._reconnecting.pendingTransactions.push({ request, callback });
             return;
         }
-        this.processTransactionQueue(request, callback);
+        this.#reprocessRequest(0, request, callback);
     }
-    public processTransactionQueue = (request: Request, callback: (err: Error | null, response?: Response) => void): void => {
-        this._reconnecting.pendingTransactionsCount = this._reconnecting.pendingTransactionsCount || 0;
-        this._reconnecting.pendingTransactionsCount++;
+    #reprocessRequest = (attemptCount: number, request: Request, callback: (err: Error | null, response?: Response) => void): void => {
 
+        (attemptCount>0) && warningLog("reprocessRequest => ", request.constructor.name, this._reconnecting.pendingTransactions.length);
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
-            this._reconnecting.pendingTransactionsCount--;
-
             if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
-                debugLog("Transaction on Invalid Session ", request.constructor.name);
+                warningLog("Transaction on Invalid Session ", request.constructor.name, err.message, "isReconnecting?=", this.isReconnecting, "q=", this._reconnecting.pendingTransactions.length);
                 request.requestHeader.requestHandle = requestHandleNotSetValue;
-                warningLog("client is now attempting to recreate a session");
-                this.recreate_session_and_reperform_transaction(request, callback);
+                if (this.isReconnecting) {
+                    this.once("session_restored", () => {
+                        warningLog("redoing", request.constructor.name, this.isReconnecting);
+                        this.#reprocessRequest(attemptCount+1,request, callback);
+                    });
+                } else {
+                    this.#_recreate_session_and_reperform_transaction(request, callback);
+                }
                 return;
             }
             callback(err, response);
             const length = this._reconnecting.pendingTransactions.length; // record length before callback is called !
             if (length > 0) {
-                debugLog(
-                    "processTransactionQueue => ",
-                    this._reconnecting.pendingTransactions.length,
-                    " transaction(s) left in queue"
-                );
+                debugLog("reprocessRequest => ", this._reconnecting.pendingTransactions.length, " transaction(s) left in queue");
                 // tslint:disable-next-line: no-shadowed-variable
                 const { request, callback } = this._reconnecting.pendingTransactions.shift();
-                this.processTransactionQueue(request, callback);
+                this.#reprocessRequest(0, request, callback);
             }
         });
     };
@@ -2180,29 +2173,29 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession {
             callback(null, response);
         });
     }
-
-    private recreate_session_and_reperform_transaction(
+    #_recreate_session_and_reperform_transaction(
         request: Request,
         callback: (err: Error | null, response?: Response) => void
     ) {
-        warningLog("attempt to recreate session to reperform a transation ", request.constructor.name);
+        warningLog("attempt to recreate session to reperform a transaction ", request.constructor.name);
         if (this.recursive_repair_detector >= 1) {
             // tslint:disable-next-line: no-console
             warningLog("recreate_session_and_reperform_transaction => Already in Progress");
             return callback(new Error("Cannot recreate session"));
         }
         this.recursive_repair_detector += 1;
-        debugLog(chalk.red("----------------> Repairing Client Session as Server believes it is invalid now "));
+        warningLog(chalk.red("----------------> Repairing Client Session as Server believes it is invalid now "));
         repair_client_session(this._client!, this, (err?: Error) => {
             this.recursive_repair_detector -= 1;
             if (err) {
-                debugLog(chalk.red("----------------> session Repaired has failed with error", err.message));
+                warningLog(chalk.red("----------------> session Repaired has failed with error", err.message));
                 return callback(err);
             }
-            debugLog(chalk.red("----------------> session Repaired, now redoing original transaction "));
+            warningLog(chalk.red("----------------> session Repaired, now redoing original transaction "));
             this._performMessageTransaction(request, callback);
         });
     }
+
 }
 
 type promoteOpaqueStructure3WithCallbackFunc = (

@@ -59,7 +59,7 @@ module.exports = function (test) {
             client = null;
         });
 
-        it("#144-A should 1", async () => {
+        it("#144-A should  not lost data when a short connection lost between client and server", async () => {
             let timerId;
 
             await perform_operation_on_subscription_async(client, endpointUrl, async (session, subscription) => {
@@ -122,7 +122,7 @@ module.exports = function (test) {
                 // simulate a  connection break
                 simulate_connection_lost(client);
 
-                await new Promise((resolve) => setTimeout(resolve, timeout));
+                await new Promise((resolve) => setTimeout(resolve, timeout * 2));
 
                 console.log(
                     "change_count = ",
@@ -134,7 +134,7 @@ module.exports = function (test) {
                 );
 
                 session_restored_Count.should.eql(1);
-                change_countBefore.should.be.lessThan(change_count);
+                change_countBefore.should.be.lessThan(change_count,"we should have received at least one new notification");
             });
         });
     });

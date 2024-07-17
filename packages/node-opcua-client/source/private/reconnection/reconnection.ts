@@ -216,19 +216,19 @@ function repair_client_session_by_recreating_a_new_session(
                 doDebug && debugLog(chalk.red("          => RECREATING SUBSCRIPTION  "), subscriptionId);
                 assert(subscription.session === newSession, "must have the new session");
 
-                recreateSubscriptionAndMonitoredItem(subscription).then(() => {
-                    doDebug &&
-                        debugLog(
-                            chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE subscriptionId="),
-                            subscriptionId
-                        );
-                    next();
-
-                }).catch((err) => {
-                    doDebug && debugLog("_recreateSubscription failed !" + (err as Error).message);
-                    next();
-                });
-
+                recreateSubscriptionAndMonitoredItem(subscription)
+                    .then(() => {
+                        doDebug &&
+                            debugLog(
+                                chalk.cyan("          => RECREATING SUBSCRIPTION  AND MONITORED ITEM DONE subscriptionId="),
+                                subscriptionId
+                            );
+                        next();
+                    })
+                    .catch((err) => {
+                        doDebug && debugLog("_recreateSubscription failed !" + (err as Error).message);
+                        next();
+                    });
             },
             (err1?: Error | null) => {
                 // prettier-ignore
@@ -310,18 +310,25 @@ function repair_client_session_by_recreating_a_new_session(
                 if (!client.beforeSubscriptionRecreate) {
                     innerCallback();
                     return;
-
                 }
-                client.beforeSubscriptionRecreate(newSession)
+                client
+                    .beforeSubscriptionRecreate(newSession)
                     .then((err) => {
-                        { const err = _shouldNotContinue(session); if (err) { return innerCallback(err); } }
+                        {
+                            const err = _shouldNotContinue(session);
+                            if (err) {
+                                return innerCallback(err);
+                            }
+                        }
                         if (!err) {
                             innerCallback();
                         } else {
                             innerCallback(err);
                         }
                     })
-                    .catch((err) => { innerCallback(err) });
+                    .catch((err) => {
+                        innerCallback(err);
+                    });
             },
 
             function attempt_subscription_transfer(innerCallback: ErrorCallback) {
@@ -506,7 +513,7 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     privateSession._reconnecting.reconnecting = true;
 
     // get old transaction queue ...
-    const transactionQueue = privateSession.pendingTransactions ? privateSession.pendingTransactions.splice(0) : [];
+    const transactionQueue =  privateSession._reconnecting.pendingTransactions.splice(0);
 
     const repeatedAction = (callback: EmptyCallback) => {
         // prettier-ignore
@@ -527,6 +534,10 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
                     const delay = 2000;
                     errorLog(chalk.red(`... will retry session repair... in ${delay} ms`));
                     setTimeout(() => {
+                        { const err = _shouldNotContinue(session); if (err) {
+                            warningLog("cancelling session repair"); 
+                            return callback(err); 
+                        } }
                         errorLog(chalk.red("Retrying session repair..."));
                         repeatedAction(callback);
                     }, delay);
@@ -547,13 +558,14 @@ export function repair_client_session(client: IClientBase, session: ClientSessio
     };
     repeatedAction((err) => {
         privateSession._reconnecting.reconnecting = false;
-
-        const otherCallbacks = privateSession._reconnecting.pendingCallbacks;
-        privateSession._reconnecting.pendingCallbacks = [];
+        const otherCallbacks = privateSession._reconnecting.pendingCallbacks.splice(0);
         // re-inject element in queue
+        
         // istanbul ignore next
-        doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
-        transactionQueue.forEach((e: any) => privateSession.pendingTransactions.push(e));
+        if (transactionQueue.length > 0) {
+            doDebug && debugLog(chalk.yellow("re-injecting transaction queue"), transactionQueue.length);
+            transactionQueue.forEach((e: any) => privateSession._reconnecting.pendingTransactions.push(e));
+        }
         otherCallbacks.forEach((c: EmptyCallback) => c(err));
         callback(err);
     });

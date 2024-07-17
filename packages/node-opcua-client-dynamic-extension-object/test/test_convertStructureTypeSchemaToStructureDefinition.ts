@@ -11,7 +11,7 @@ import { convertStructureTypeSchemaToStructureDefinition } from "..";
 const idProvider = new MockProvider();
 
 describe("test convertStructureTypeSchemaToStructureDefinition", function () {
-    it("should 1", async () => {
+    it("should convert a structure type schema to structure definition", async () => {
         /**
          *
          */
