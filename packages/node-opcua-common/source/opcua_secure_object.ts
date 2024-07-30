@@ -31,8 +31,7 @@ export function getPartialCertificateChain1(certificateChain?: Buffer| null, max
     return certificateChain  || undefined;
 }
 export function getPartialCertificateChain(certificateChain?: Buffer | null, maxSize?: number): Buffer | undefined {
-
-    maxSize =1600;
+    
     if (!certificateChain || certificateChain.length === 0) {
          return undefined;
     }
