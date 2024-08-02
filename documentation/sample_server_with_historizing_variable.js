@@ -1,4 +1,5 @@
-const opcua = require("node-opcua");
+const path = require("path");
+const { OPCUAServer, nodesets, standardUnits } = require("node-opcua");
 
 function construct_address_space(server) {
     const addressSpace = server.engine.addressSpace;
@@ -7,14 +8,13 @@ function construct_address_space(server) {
         browseName: "Vessel",
         organizedBy: addressSpace.rootFolder.objects
     });
-
     const vesselPressure = namespace.addAnalogDataItem({
         browseName: "Pressure",
         engineeringUnitsRange: {
             low: 0,
             high: 10.0
         },
-        engineeringUnits: opcua.standardUnits.bar,
+        engineeringUnits: standardUnits.bar,
         componentOf: vessel
     });
     addressSpace.installHistoricalDataNode(vesselPressure);
@@ -30,10 +30,10 @@ function construct_address_space(server) {
 (async () => {
     try {
         // Let's create an instance of OPCUAServer
-        const server = new opcua.OPCUAServer({
+        const server = new OPCUAServer({
             port: 26543, // the port of the listening socket of the server
             resourcePath: "/UA/MyLittleServer", // this path will be added to the endpoint resource name
-            nodeset_filename: [opcua.nodesets.standard]
+            nodeset_filename: [nodesets.standard]
         });
 
         await server.initialize();
@@ -46,8 +46,7 @@ function construct_address_space(server) {
 
         await server.start();
         console.log("Server is now listening ... ( press CTRL+C to stop)");
-        console.log("port ", server.endpoints[0].port);
-        const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
+        const endpointUrl = server.getEndpointUrl();
         console.log(" the primary server endpoint url is ", endpointUrl);
     } catch (err) {
         console.log("Error = ", err);

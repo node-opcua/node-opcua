@@ -1,16 +1,19 @@
 import {
-    OPCUAClient,
-    MessageSecurityMode,
-    SecurityPolicy,
     AttributeIds,
-    makeBrowsePath,
-    ClientSubscription,
-    TimestampsToReturn,
-    MonitoringParametersOptions,
-    ReadValueIdOptions,
+    BrowseDirection,
     ClientMonitoredItem,
-    DataValue
-} from "node-opcua";
+    ClientSubscription,
+    DataValue,
+    makeBrowsePath,
+    MessageSecurityMode,
+    MonitoringParametersOptions,
+    NodeClassMask,
+    OPCUAClient,
+    ReadValueIdOptions,
+    ResultMask,
+    SecurityPolicy,
+    TimestampsToReturn
+} from "node-opcua-client";
 
 const connectionStrategy = {
     initialDelay: 1000,
@@ -41,7 +44,14 @@ async function main() {
         console.log("session created !");
 
         // step 3 : browse
-        const browseResult = await session.browse("RootFolder");
+        const browseResult = await session.browse({
+            nodeId: "RootFolder",
+            referenceTypeId: "Organizes",
+            includeSubtypes: true,
+            nodeClassMask: NodeClassMask.Object | NodeClassMask.Variable,
+            browseDirection: BrowseDirection.Forward,
+            resultMask: ResultMask.BrowseName | ResultMask.DisplayName | ResultMask.NodeClass | ResultMask.TypeDefinition
+        });
 
         console.log("references of RootFolder :");
         for (const reference of browseResult.references) {

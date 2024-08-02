@@ -1,3 +1,4 @@
 build
 .checksum
 openweathermap.key
+!node_modules

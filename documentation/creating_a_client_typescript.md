@@ -1,11 +1,11 @@
 # Creating a Client
 
 In this example, we want to create a OPCUA Client to monitor a variable on the server, created in
-[this tutorial](creating_a_server.md).
+[this tutorial](./creating_a_server.md).
 
 ## preparation
 
-- make sure node.js 8 or above is installed. Follow the instructions [here](http://nodejs.org/)).
+- make sure node.js 18 or above is installed. Follow the instructions [here](http://nodejs.org/)).
 - make sure also to install typescript version 3 or above
 
 Let's create a node project for our client.
@@ -21,7 +21,7 @@ Now create and edit the sample file [sample_client_ts.ts](#overview-of-the-clien
 
 ### overview of the client script
 
-The script will be organised around the following four steps:
+The script will be organized around the following four steps:
 
 
 ```javascript
@@ -38,18 +38,21 @@ _"setting up a series of asynchronous operations"
 
 ```typescript
 import {
-  OPCUAClient,
-  MessageSecurityMode,
-  SecurityPolicy,
   AttributeIds,
-  makeBrowsePath,
-  ClientSubscription,
-  TimestampsToReturn,
-  MonitoringParametersOptions,
-  ReadValueIdOptions,
+  BrowseDirection,
   ClientMonitoredItem,
-  DataValue
-} from "node-opcua";
+  ClientSubscription,
+  DataValue,
+  makeBrowsePath,
+  MessageSecurityMode,
+  MonitoringParametersOptions,
+  NodeClassMask,
+  OPCUAClient,
+  ReadValueIdOptions,
+  ResultMask,
+  SecurityPolicy,
+  TimestampsToReturn,
+} from "node-opcua-client";
 ```
 
 ### client instantiation
@@ -164,7 +167,14 @@ With the `references` object of the browseResult we are able to access all attri
 Let's print the browseName of all the nodes.
 
 ```typescript
-const browseResult = await session.browse("RootFolder");
+const browseResult = await session.browse({ 
+  nodeId: "RootFolder",
+  referenceTypeId: "Organizes",
+  includeSubtypes: true,
+  nodeClassMask: NodeClassMask.Object | NodeClassMask.Variable,
+  browseDirection: BrowseDirection.Forward,
+  resultMask: ResultMask.BrowseName | ResultMask.DisplayName | ResultMask.NodeClass | ResultMask.TypeDefinition
+});
 
 console.log("references of RootFolder :");
 for (const reference of browseResult.references) {
