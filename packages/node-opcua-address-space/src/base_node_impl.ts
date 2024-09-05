@@ -1791,12 +1791,10 @@ function install_components_as_object_properties(parentObj: BaseNode) {
         }
 
         // ignore reserved names
-        if (doDebug) {
-            debugLog("Installing property " + name, " on ", parentObj.browseName.toString());
-        }
+        doDebug && debugLog("Installing property " + name, " on ", parentObj.browseName.toString());
 
-        /* istanbul ignore next */
-        if (Object.prototype.hasOwnProperty.call(parentObj, name)) {
+        const hasProperty = Object.prototype.hasOwnProperty.call(parentObj, name);
+        if (hasProperty && ((parentObj as any)[name] !== null && (parentObj as any)[name] !== undefined)) {
             continue;
         }
 

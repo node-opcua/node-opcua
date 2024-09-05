@@ -22,7 +22,7 @@ describe("AddressSpace#delete", () => {
         addressSpace.dispose();
     });
 
-    it("DX1 sshould delete node ", () => {
+    it("DX1 should delete node ", () => {
         // given a parent node having a direct reference to it's child node
         const parentNode = namespace.addObject({
             browseName: "ParentNode",
@@ -69,6 +69,83 @@ describe("AddressSpace#delete", () => {
 
         // then the parent should not have it as a child
         parentNode.getComponents().length.should.eql(0);
+    });
+
+    it("DX3 when a node is deleted, it should not be exposed by the parent anymore", () => {
+        const parentNode = namespace.addObject({
+            browseName: "ParentNode",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        const childNode = namespace.addObject({
+            browseName: "ChildNode"
+        });
+
+        parentNode.getComponents().length.should.eql(0);
+
+        parentNode.addReference({
+            isForward: true,
+            nodeId: childNode.nodeId,
+            referenceType: "HasComponent"
+        });
+
+        parentNode.getComponents().length.should.eql(1);
+
+        addressSpace.deleteNode(childNode);
+
+        parentNode.getComponents().length.should.eql(0);
+    });
+    it("DX4 when a node is deleted, it should not be exposed by the parent anymore (as a javascript property)", () => {
+        const parentNode = namespace.addObject({
+            browseName: "ParentNode",
+            organizedBy: addressSpace.rootFolder.objects
+        }) as UAObject & { childNode?: UAObject };
+
+        const childNode = namespace.addObject({
+            browseName: "ChildNode",
+            componentOf: parentNode
+        });
+
+        parentNode.getComponents().length.should.eql(1);
+        parentNode.getChildByName("ChildNode")!.should.eql(childNode);
+        parentNode.childNode!.should.eql(childNode);
+
+        addressSpace.deleteNode(childNode);
+
+        parentNode.getComponents().length.should.eql(0);
+        should.not.exist(parentNode.getChildByName("ChildNode"));
+        should.not.exist(parentNode.childNode);
+    });
+    it("DX5 when a node is deleted, then recreated, it should  be exposed again by the parent (as a javascript property)", () => {
+        const parentNode = namespace.addObject({
+            browseName: "ParentNode",
+            organizedBy: addressSpace.rootFolder.objects
+        }) as UAObject & { childNode?: UAObject };
+
+        let childNode = namespace.addObject({
+            browseName: "ChildNode",
+            componentOf: parentNode
+        });
+
+        parentNode.getComponents().length.should.eql(1);
+        parentNode.getChildByName("ChildNode")!.should.eql(childNode);
+        parentNode.childNode!.should.eql(childNode);
+
+        addressSpace.deleteNode(childNode);
+
+        parentNode.getComponents().length.should.eql(0);
+        should.not.exist(parentNode.getChildByName("ChildNode"));
+         should.not.exist(parentNode.childNode);
+
+        let childNodeAgain =    namespace.addObject({
+            browseName: "ChildNode",
+            componentOf: parentNode
+        });
+
+        parentNode.getComponents().length.should.eql(1);
+        parentNode.getChildByName("ChildNode")!.should.eql(childNodeAgain);
+        parentNode.childNode!.should.eql(childNodeAgain);
+
     });
 });
 
