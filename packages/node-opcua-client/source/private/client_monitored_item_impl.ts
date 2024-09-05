@@ -78,7 +78,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
         this.statusCode = StatusCodes.BadDataUnavailable;
 
-        assert(subscription.constructor.name === "ClientSubscriptionImpl");
         this.subscription = subscription as ClientSubscriptionImpl;
 
         this.itemToMonitor = new ReadValueId(itemToMonitor);
@@ -88,7 +87,6 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
         assert(subscription.session, "expecting session");
         timestampsToReturn = coerceTimestampsToReturn(timestampsToReturn);
-        assert(subscription.constructor.name === "ClientSubscriptionImpl");
         this.timestampsToReturn = timestampsToReturn;
     }
 

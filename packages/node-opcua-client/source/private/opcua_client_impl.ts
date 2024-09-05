@@ -478,9 +478,9 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * createSession2 create a session with persistance
      *
      * - if the server returns BadTooManySession, the method will make an other attempt
-     *   unitl create session succeed or connection is closed.
+     *   until create session succeed or connection is closed.
      *
-     * @experiemental
+     * @experimental
      * @param userIdentityInfo
      */
     public async createSession2(userIdentityInfo?: UserIdentityInfo): Promise<ClientSession>;
@@ -758,7 +758,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      * @internal
      * @private
      */
-    public __createSession_step3(
+    #createSession_step3(
         session: ClientSessionImpl,
         callback: (err: Error | null, session?: ClientSessionImpl) => void
     ): void {
@@ -876,7 +876,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         callback: (err: Error | null, session?: ClientSessionImpl) => void
     ): void {
         callbackify(extractFullyQualifiedDomainName)(() => {
-            this.__createSession_step3(session, callback);
+            this.#createSession_step3(session, callback);
         });
     }
     /**
