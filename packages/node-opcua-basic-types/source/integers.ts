@@ -300,7 +300,6 @@ export function coerceUInt32(value: null | string | number | EnumItemLike): UInt
         return 0;
     }
     if (value && Object.prototype.hasOwnProperty.call(value, "value")) {
-        // xx assert(value.constructor.name === "EnumItem");
         return coerceUInt32((value as EnumItemLike).value);
     }
     if (typeof value === "number") {
