@@ -32,7 +32,7 @@ import { extractRange, sameDataValue, DataValue, DataValueLike, DataValueT } fro
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue } from "node-opcua-service-write";
 import { StatusCode, StatusCodes, CallbackT } from "node-opcua-status-code";
@@ -421,7 +421,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                         this.$dataValue = dataValueOrPromise as DataValue;
                         if (this.$dataValue.statusCode.isGoodish()) {
                             this.verifyVariantCompatibility(this.$dataValue.value);
-                        } 
+                        }
                     }
                 } else {
                     errorLog(
@@ -1407,6 +1407,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
     }
 
+    public changeDataType(newDataType: NodeIdLike, newValue?: VariantLike): void {
+        changeUAVariableDataType(this, newDataType, newValue);
+    }
+
     /**
      * @private
      * install UAVariable to exposed th
@@ -2287,3 +2291,35 @@ export interface UAVariableImplT<T, DT extends DataType> extends UAVariableImpl,
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }
 export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {}
+
+function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeIdLike, valueLike?: VariantLike) {
+    let value: Variant | null = valueLike ? (valueLike instanceof Variant ? valueLike : new Variant(valueLike)) : null;
+
+    const addressSpace = uaVariable.addressSpace;
+    const newDataTypeNode = addressSpace.findNode(newDataType) as UADataType;
+    // istanbul ignore next
+    if (!newDataTypeNode || !(newDataTypeNode instanceof UADataTypeImpl)) {
+        throw new Error("Cannot find newDataTypeNode " + newDataType.toString());
+    }
+
+    const newBaseDataType: DataType = newDataTypeNode.basicDataType;
+    // istanbul ignore next
+    if (newBaseDataType === DataType.Null) {
+        throw new Error("newDataTypeNode must be a DataType");
+    }
+    if (!value) {
+        value = uaVariable.readValue().value;
+        value.dataType = newBaseDataType;
+    }
+    if (newBaseDataType !== value.dataType) {
+        throw new Error("newDataTypeNode must be of the same base dataType as the value");
+    }
+
+    // change uaVariable.dataType
+    uaVariable.dataType = newDataTypeNode.nodeId;
+    (uaVariable as any)._basicDataType = null;
+    (uaVariable as any).$dataValue.value.dataType = newDataType;
+    (uaVariable as any).$dataValue.value.value = value;
+    // also change the value to ensure that we have a default value with the correct dataType
+    uaVariable._internal_set_value(value);
+}
