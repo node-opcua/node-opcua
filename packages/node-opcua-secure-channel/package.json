@@ -19,7 +19,7 @@
         "node-opcua-certificate-manager": "2.129.0",
         "node-opcua-chunkmanager": "2.129.0",
         "node-opcua-common": "2.130.0",
-        "node-opcua-crypto": "4.9.2",
+        "node-opcua-crypto": "4.9.4",
         "node-opcua-debug": "2.128.0",
         "node-opcua-factory": "2.128.0",
         "node-opcua-nodeid": "2.128.0",

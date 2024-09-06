@@ -18,7 +18,7 @@
     "dependencies": {
         "@types/lodash": "4.17.7",
         "@types/semver": "^7.5.8",
-        "async": "^3.2.5",
+        "async": "^3.2.6",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
@@ -28,7 +28,7 @@
         "node-opcua-binary-stream": "2.128.0",
         "node-opcua-client-dynamic-extension-object": "2.130.0",
         "node-opcua-constants": "2.125.0",
-        "node-opcua-crypto": "4.9.2",
+        "node-opcua-crypto": "4.9.4",
         "node-opcua-data-access": "2.129.0",
         "node-opcua-data-model": "2.128.0",
         "node-opcua-data-value": "2.129.0",
@@ -52,7 +52,7 @@
         "node-opcua-utils": "2.128.0",
         "node-opcua-variant": "2.129.0",
         "node-opcua-xml2json": "2.128.0",
-        "semver": "^7.6.2",
+        "semver": "^7.6.3",
         "set-prototype-of": "^1.0.0",
         "thenify": "^3.3.1",
         "xml-writer": "^1.7.0"

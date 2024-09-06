@@ -16,10 +16,10 @@
         "env-paths": "2.2.1",
         "mkdirp": "1.0.4",
         "node-opcua-assert": "2.120.0",
-        "node-opcua-crypto": "4.9.2",
+        "node-opcua-crypto": "4.9.4",
         "node-opcua-debug": "2.128.0",
         "node-opcua-object-registry": "2.128.0",
-        "node-opcua-pki": "4.11.1",
+        "node-opcua-pki": "4.13.1",
         "node-opcua-status-code": "2.128.0",
         "thenify": "^3.3.1"
     },

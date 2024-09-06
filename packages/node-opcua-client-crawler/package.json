@@ -14,7 +14,7 @@
         "test": "mocha "
     },
     "dependencies": {
-        "async": "^3.2.5",
+        "async": "^3.2.6",
         "chalk": "4.1.2",
         "thenify": "^3.3.1"
     },

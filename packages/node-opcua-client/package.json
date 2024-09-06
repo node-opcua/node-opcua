@@ -15,7 +15,7 @@
     "dependencies": {
         "@ster5/global-mutex": "^2.0.0",
         "@types/async": "^3.2.24",
-        "async": "^3.2.5",
+        "async": "^3.2.6",
         "chalk": "4.1.2",
         "node-opcua-alarm-condition": "2.130.0",
         "node-opcua-assert": "2.120.0",
@@ -25,7 +25,7 @@
         "node-opcua-client-dynamic-extension-object": "2.130.0",
         "node-opcua-common": "2.130.0",
         "node-opcua-constants": "2.125.0",
-        "node-opcua-crypto": "4.9.2",
+        "node-opcua-crypto": "4.9.4",
         "node-opcua-data-model": "2.128.0",
         "node-opcua-data-value": "2.129.0",
         "node-opcua-date-time": "2.128.0",
@@ -34,7 +34,7 @@
         "node-opcua-hostname": "2.128.0",
         "node-opcua-nodeid": "2.128.0",
         "node-opcua-object-registry": "2.128.0",
-        "node-opcua-pki": "4.11.1",
+        "node-opcua-pki": "4.13.1",
         "node-opcua-pseudo-session": "2.130.0",
         "node-opcua-schemas": "2.129.0",
         "node-opcua-secure-channel": "2.130.0",
@@ -66,7 +66,7 @@
         "node-opcua-factory": "2.128.0",
         "node-opcua-leak-detector": "2.128.0",
         "node-opcua-nodesets": "2.121.0",
-        "underscore": "^1.13.6"
+        "underscore": "^1.13.7"
     },
     "eslintConfig": {
         "env": {

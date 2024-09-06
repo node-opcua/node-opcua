@@ -9,3 +9,4 @@ pnpm-lock.yaml
 .mocharc.json
 temp/
 tmp/
+!dist/

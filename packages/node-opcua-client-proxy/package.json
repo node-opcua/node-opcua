@@ -12,7 +12,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "async": "^3.2.5",
+        "async": "^3.2.6",
         "node-opcua-assert": "2.120.0",
         "node-opcua-constants": "2.125.0",
         "node-opcua-data-model": "2.128.0",

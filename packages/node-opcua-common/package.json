@@ -12,7 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "node-opcua-assert": "2.120.0",
-        "node-opcua-crypto": "4.9.2",
+        "node-opcua-crypto": "4.9.4",
         "node-opcua-types": "2.129.0"
     },
     "author": "Etienne Rossignon",
