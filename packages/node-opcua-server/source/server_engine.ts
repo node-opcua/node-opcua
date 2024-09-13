@@ -41,7 +41,7 @@ import { BrowseResult } from "node-opcua-service-browse";
 import { UInt32 } from "node-opcua-basic-types";
 import { CreateSubscriptionRequestLike } from "node-opcua-client";
 import { DataTypeIds, MethodIds, ObjectIds, VariableIds } from "node-opcua-constants";
-import { getCurrentClock, minOPCUADate } from "node-opcua-date-time";
+import { getCurrentClock, getMinOPCUADate } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog, traceFromThisProjectOnly } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { ObjectRegistry } from "node-opcua-object-registry";
@@ -903,7 +903,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 });
             };
 
-            bindStandardScalar(VariableIds.Server_EstimatedReturnTime, DataType.DateTime, () => minOPCUADate);
+            bindStandardScalar(VariableIds.Server_EstimatedReturnTime, DataType.DateTime, () => getMinOPCUADate());
 
             // TimeZoneDataType
             const timeZoneDataType = addressSpace.findDataType(resolveNodeId(DataTypeIds.TimeZoneDataType))!;

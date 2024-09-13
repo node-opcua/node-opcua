@@ -2,7 +2,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { CallbackT } from "node-opcua-status-code";
 import { IAddressSpace, RequiredModel } from "node-opcua-address-space-base";
 import { ReaderStateParserLike, Xml2Json } from "node-opcua-xml2json";
-import { minDate } from "node-opcua-date-time";
+import { getMinOPCUADate } from "node-opcua-date-time";
 import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_array";
 import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { NamespacePrivate } from "../../src/namespace_private";
@@ -85,7 +85,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
         models.push({
             modelUri: namespaceUris[0],
             version: "1",
-            publicationDate: minDate,
+            publicationDate: getMinOPCUADate(),
             requiredModel: []
         });
     }

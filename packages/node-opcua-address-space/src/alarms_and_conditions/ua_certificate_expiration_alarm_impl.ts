@@ -2,7 +2,7 @@
  * @module node-opcua-address-space.AlarmsAndConditions
  */
 import { Certificate, exploreCertificate, makeSHA1Thumbprint } from "node-opcua-crypto";
-import { DateTime, minOPCUADate, StatusCodes } from "node-opcua-basic-types";
+import { DateTime, getMinOPCUADate, isMinDate, StatusCodes } from "node-opcua-basic-types";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantOptions } from "node-opcua-variant";
@@ -97,7 +97,7 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
 
         const certificate = this.getCertificate();
 
-        if (!expirationDate || (expirationDate === minOPCUADate && !certificate)) {
+        if (!expirationDate || (isMinDate(expirationDate) && !certificate)) {
             if (!this.currentBranch() || this.currentBranch().getActiveState()) {
                 this.updateAlarmState2(true, 255, "certificate is missing");
             }
@@ -163,13 +163,13 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
     private _extractAndSetExpiryDate(certificate: Certificate | null): void {
         if (certificate && certificate.length > 0) {
             const info = exploreCertificate(certificate);
-            if (info.tbsCertificate.validity.notAfter instanceof Date) {
+            if (info.tbsCertificate.validity.notAfter) {
                 this.setExpirationDate(info.tbsCertificate.validity.notAfter);
             } else {
-                this.setExpirationDate(minOPCUADate);
+                this.setExpirationDate(getMinOPCUADate());
             }
         } else {
-            this.setExpirationDate(minOPCUADate);
+            this.setExpirationDate(getMinOPCUADate());
         }
     }
 

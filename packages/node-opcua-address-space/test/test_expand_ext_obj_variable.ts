@@ -14,7 +14,6 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { AddressSpace, BaseNode, INamespace, PseudoSession, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-const nextYear = new Date().getUTCFullYear() + 1;
 
 async function simulateExternalWriteEx(node: BaseNode, value: ExtensionObject, sourceTimestamp: DateTime) {
     const addressSpace = node.addressSpace;
@@ -62,6 +61,9 @@ describe("Extending extension object variables", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 500000));
     let addressSpace: AddressSpace;
     let namespace: INamespace;
+    
+    const nextYear = new Date().getUTCFullYear() + 1;
+     
     before(async () => {
         addressSpace = AddressSpace.create();
         await generateAddressSpace(addressSpace, [nodesets.standard]);

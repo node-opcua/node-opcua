@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { coerceDateTime, DateWithPicoseconds, getCurrentClock, minOPCUADate, PreciseClock } from "node-opcua-date-time";
+import { coerceDateTime, DateWithPicoseconds, getCurrentClock, PreciseClock } from "node-opcua-date-time";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -245,7 +245,6 @@ function d(timestamp: Date | null, picoseconds: number): string {
     return timestamp ? timestamp.toISOString() + " $ " + toMicroNanoPico(picoseconds) : "null"; // + "  " + (this.serverTimestamp ? this.serverTimestamp.getTime() :"-");
 }
 const emptyObject = {};
-const defaultDate = minOPCUADate;
 
 export class DataValue extends BaseUAObject {
     public static possibleFields: string[] = [

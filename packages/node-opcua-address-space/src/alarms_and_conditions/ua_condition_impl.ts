@@ -18,7 +18,7 @@ import {
     QualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { minDate } from "node-opcua-basic-types";
+import { getMinOPCUADate } from "node-opcua-basic-types";
 import { coerceNodeId, makeNodeId, NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions, TimeZoneDataType } from "node-opcua-types";
@@ -997,8 +997,8 @@ function UACondition_instantiate(
     );
     branch0.setMessage("");
 
-    branch0.setReceiveTime(minDate);
-    branch0.setTime(minDate);
+    branch0.setReceiveTime(getMinOPCUADate());
+    branch0.setTime(getMinOPCUADate());
 
     return conditionNode;
 }

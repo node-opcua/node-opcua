@@ -1,5 +1,5 @@
 
-const { getCurrentClockWithJavascriptDate, getCurrentClock, minOPCUADate, coerceClock, isMinDate } = require("..");
+const { getCurrentClockWithJavascriptDate, getCurrentClock, getMinOPCUADate, coerceClock, isMinDate } = require("..");
 const should = require("should");
 const sinon = require("sinon");
 
@@ -28,7 +28,7 @@ describe("getCurrentClockWithJavascriptDate", () => {
     });
     it("with sinon spy()", () => {
 
-        const fakeTimer = sinon.useFakeTimers(minOPCUADate);
+        const fakeTimer = sinon.useFakeTimers(getMinOPCUADate());
 
         const t1 = getCurrentClock();
         fakeTimer.tick(1000);
@@ -43,6 +43,6 @@ describe("getCurrentClockWithJavascriptDate", () => {
 
     });
     it("isMinDate", () => {
-        isMinDate(minOPCUADate).should.eql(true);
+        isMinDate(getMinOPCUADate()).should.eql(true);
     })
 });

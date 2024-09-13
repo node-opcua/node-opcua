@@ -793,7 +793,7 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
         case DataType.ExtensionObject:
             break;
         case DataType.DateTime:
-            assert(value === null || value instanceof Date);
+            assert(value === null || !!value.getTime);
             break;
         case DataType.String:
             assert(typeof value === "string" || value === null);

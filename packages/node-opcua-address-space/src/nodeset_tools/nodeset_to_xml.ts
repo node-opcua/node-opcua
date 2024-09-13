@@ -17,13 +17,12 @@ import {
     makeAccessLevelFlag,
     QualifiedName
 } from "node-opcua-data-model";
-import { ExpandedNodeId, NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, NodeIdType, resolveNodeId } from "node-opcua-nodeid";
 import { lowerFirstLetter, isNullOrUndefined } from "node-opcua-utils";
 import { Variant, VariantArrayType, DataType } from "node-opcua-variant";
 import {
     IAddressSpace,
     BaseNode,
-    INamespace,
     UADataType,
     UAMethod,
     UAObject,
@@ -33,10 +32,10 @@ import {
     UAVariableType,
     UAView
 } from "node-opcua-address-space-base";
-import { AttributeIds, Int64, minOPCUADate, StatusCode, StatusCodes } from "node-opcua-basic-types";
+import { AttributeIds, Int64, isMinDate, StatusCode } from "node-opcua-basic-types";
 import { BrowseDescription, EnumDefinition, StructureDefinition, StructureType } from "node-opcua-types";
 
-import { ITranslationTable, XmlWriter } from "../../source/xml_writer";
+import { XmlWriter } from "../../source/xml_writer";
 import { ReferenceImpl } from "../reference_impl";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
 import { UAReferenceTypeImpl } from "../ua_reference_type_impl";
@@ -50,7 +49,7 @@ import { UAVariableTypeImpl } from "../ua_variable_type_impl";
 import { SessionContext } from "../index_current";
 import { UAViewImpl } from "../ua_view_impl";
 
-import { DefinitionMap2, TypeInfo } from "../../source/loader/make_xml_extension_object_parser";
+import { DefinitionMap2 } from "../../source/loader/make_xml_extension_object_parser";
 import { makeDefinitionMap } from "../../source/loader/decode_xml_extension_object";
 import {
     _constructNamespaceTranslationTable,
@@ -558,7 +557,7 @@ function _isDefaultValue(value: Variant): boolean {
                 }
                 break;
             case DataType.DateTime:
-                if (!value.value || value.value.getTime() === minOPCUADate) {
+                if (!value.value || isMinDate(value.value)) {
                     return true;
                 }
                 break;

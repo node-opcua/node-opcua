@@ -25,7 +25,7 @@ import {
     IUserManager
 } from "node-opcua-address-space";
 import { ISessionContext } from "node-opcua-address-space-base";
-import { minOPCUADate, randomGuid } from "node-opcua-basic-types";
+import { getMinOPCUADate, randomGuid } from "node-opcua-basic-types";
 import { SessionDiagnosticsDataType, SessionSecurityDiagnosticsDataType, SubscriptionDiagnosticsDataType } from "node-opcua-common";
 import { QualifiedName, NodeClass } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
@@ -228,7 +228,7 @@ export class ServerSession extends EventEmitter implements ISubscriber, ISession
      * the first transaction is the creation of the session
      */
     public get clientLastContactTime(): number {
-        const lastSeen = this._watchDogData ? this._watchDogData.lastSeen : minOPCUADate.getTime();
+        const lastSeen = this._watchDogData ? this._watchDogData.lastSeen : getMinOPCUADate().getTime();
         return WatchDog.lastSeenToDuration(lastSeen);
     }
 

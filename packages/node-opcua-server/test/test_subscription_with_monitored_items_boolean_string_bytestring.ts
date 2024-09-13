@@ -25,7 +25,6 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const context = SessionContext.defaultContext;
 
-const now = new Date().getTime();
 const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 const fake_publish_engine = getFakePublishEngine();
@@ -117,6 +116,7 @@ describe("Subscriptions and MonitoredItems", function (this: any) {
     });
 
     beforeEach(function () {
+        const now = new Date().getTime();
         this.clock = sinon.useFakeTimers(now);
     });
     afterEach(function () {

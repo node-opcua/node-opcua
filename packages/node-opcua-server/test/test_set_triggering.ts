@@ -33,7 +33,6 @@ const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = false;
-const now = new Date().getTime();
 
 const fake_publish_engine = getFakePublishEngine();
 let dataSourceFrozen = false;
@@ -133,6 +132,7 @@ describe("Subscriptions and MonitoredItems and triggering", function (this: any)
     });
 
     beforeEach(() => {
+        const now = new Date().getTime();
         test.clock = sinon.useFakeTimers(now);
     });
 

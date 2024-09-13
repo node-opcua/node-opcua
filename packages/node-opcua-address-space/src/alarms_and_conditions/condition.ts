@@ -4,7 +4,7 @@
 require("set-prototype-of");
 import { assert } from "node-opcua-assert";
 import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { minDate } from "node-opcua-basic-types";
+import { getMinOPCUADate } from "node-opcua-basic-types";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
@@ -30,7 +30,7 @@ export function _setAckedState(
 // tslint:disable:max-classes-per-file
 function prepare_date(sourceTimestamp: { value: Date } | null) {
     if (!sourceTimestamp || !sourceTimestamp.value) {
-        return minDate;
+        return getMinOPCUADate();
     }
     assert(sourceTimestamp.value instanceof Date);
     return sourceTimestamp;

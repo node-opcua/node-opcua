@@ -10,7 +10,7 @@ import { ISessionContext, ContinuationData, BaseNode, UAVariable } from "node-op
 import assert from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
 import { TimestampsToReturn, DataValue, coerceTimestampsToReturn, apply_timestamps_no_copy } from "node-opcua-data-value";
-import { getCurrentClock, minOPCUADate } from "node-opcua-date-time";
+import { getCurrentClock, isMinDate } from "node-opcua-date-time";
 import { resolveNodeId, coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { doDebug, debugLog } from "node-opcua-pki";
@@ -282,7 +282,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             }
             if (
                 (timestampsToReturn === TimestampsToReturn.Both || timestampsToReturn === TimestampsToReturn.Server) &&
-                (!dataValue.serverTimestamp || dataValue.serverTimestamp.getTime() === minOPCUADate.getTime())
+                (!dataValue.serverTimestamp || isMinDate(dataValue.serverTimestamp))
             ) {
                 const t: Date = context.currentTime ? context.currentTime.timestamp : getCurrentClock().timestamp;
                 dataValue.serverTimestamp = t;

@@ -52,7 +52,7 @@ import {
     encodeUInt16,
     encodeUInt32,
     encodeUInt64,
-    minDate
+    getMinOPCUADate
 } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { DataTypeIds } from "node-opcua-constants";
@@ -255,7 +255,7 @@ const _defaultType: BasicTypeDefinitionOptionsBase[] = [
         encode: encodeDateTime,
 
         coerce: coerceDateTime,
-        defaultValue: ()=> minDate
+        defaultValue: () => getMinOPCUADate()
     },
     {
         name: "Guid",

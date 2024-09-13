@@ -4,7 +4,7 @@ import sinon from "sinon";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { NodeId } from "node-opcua-nodeid";
-import { readCertificate } from "node-opcua-crypto";
+import { exploreCertificate, readCertificate } from "node-opcua-crypto";
 
 import { AddressSpace, instantiateCertificateExpirationAlarm, UACertificateExpirationAlarmEx } from "../..";
 import { generateAddressSpace } from "../../distNodeJS";
@@ -15,8 +15,20 @@ export const TwoWeeksDuration = OneDayDuration * 2 * 7;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test Certificate alarm", function (this: Mocha.Suite) {
     let clock: sinon.SinonFakeTimers | undefined;
+    function getExpiryDate(certificateBuffer: Buffer): Date {
+        const info = exploreCertificate(certificateBuffer);
+        return info.tbsCertificate.validity.notAfter;
+    }
+        
     beforeEach(() => {
-        clock = sinon.useFakeTimers({ now: Date.now(), shouldAdvanceTime: true, shouldClearNativeTimers: true } as any);
+        clock = sinon.useFakeTimers({ 
+            now: new Date(),
+            shouldAdvanceTime: true,
+            shouldClearNativeTimers: true,
+        });
+        getExpiryDate(ok).getTime().should.be.greaterThan(Date.now());
+        getExpiryDate(out_of_date).getTime().should.be.lessThan(Date.now());
+        
     });
     afterEach(() => {
         clock!.restore();
@@ -145,6 +157,7 @@ describe("Test Certificate alarm", function (this: Mocha.Suite) {
         raiseEventSpy.resetHistory();
         certificate1.setCertificate(ok);
         certificate1.activeState.getValue().should.eql(false);
+
         raiseEventSpy.getCall(0).args[0].message.value.text.should.match(/is OK/);
         raiseEventSpy.getCall(0).args[0].severity.value.should.be.eql(0);
 

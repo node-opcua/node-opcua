@@ -7,7 +7,7 @@ import {
     bn_dateToHundredNanoSecondFrom1601,
     bn_hundredNanoSecondFrom1601ToDate,
     DateWithPicoseconds,
-    minOPCUADate
+    getMinOPCUADate
 } from "./date_time";
 
 //  Date(year, month [, day, hours, minutes, seconds, ms])
@@ -71,7 +71,7 @@ export const decodeHighAccuracyDateTime = decodeDateTime;
 
 export function coerceDateTime(value: any): Date {
     if (!value) {
-        return minOPCUADate;
+        return getMinOPCUADate();
     }
     if (value instanceof Date) {
         return value;

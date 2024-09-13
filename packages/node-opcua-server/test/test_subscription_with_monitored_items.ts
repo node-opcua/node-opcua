@@ -6,12 +6,10 @@ import sinon from "sinon";
 
 import { TimestampsToReturn } from "node-opcua-service-read";
 import {
-    BaseNode,
     IAddressSpace,
     INamespace,
     INamespaceDataAccess,
     ISessionContext,
-    Namespace,
     SessionContext,
     UAVariable
 } from "node-opcua-address-space";
@@ -37,7 +35,7 @@ import { MonitoredItemNotification, PublishResponse, Range, WriteValue } from "n
 import { add_eventGeneratorObject } from "node-opcua-address-space/testHelpers";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { standardUnits } from "node-opcua-data-access";
-import { IBasicMonitoredItem, ResponseCallback } from "node-opcua-client";
+import { ResponseCallback } from "node-opcua-client";
 import { Int64 } from "node-opcua-basic-types";
 import {
     Subscription,
@@ -56,7 +54,6 @@ const context = SessionContext.defaultContext;
 
 const doDebug = false;
 
-const now = new Date().getTime();
 
 let dataSourceFrozen = false;
 
@@ -215,6 +212,7 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         if (test.clock) {
             throw new Error("Invalid sta");
         }
+        const now = new Date().getTime();
         test.clock = sinon.useFakeTimers(now);
     });
     afterEach(() => {
@@ -1501,6 +1499,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         if (test.clock) {
             throw new Error("Internal Error");
         }
+        const now = new Date().getTime();
         test.clock = sinon.useFakeTimers(now);
 
         publishEngine = new ServerSidePublishEngine();

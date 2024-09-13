@@ -542,8 +542,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * @param time {Date} : UTCTime
      */
     public setReceiveTime(time: UtcTime): void {
-        if (!(time instanceof Date)) { throw new Error("setReceiveTime expecting a Date")};
-        return this._set_var("ReceiveTime", DataType.DateTime, time, { sourceTimestamp: time });
+        return this._set_var("ReceiveTime", DataType.DateTime, time, { sourceTimestamp: time  || undefined });
     }
 
     /**

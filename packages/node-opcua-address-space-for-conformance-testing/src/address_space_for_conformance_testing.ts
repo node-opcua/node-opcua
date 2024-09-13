@@ -295,11 +295,10 @@ function add_mass_variables(namespace: Namespace, scalarFolder: UAObject): void 
     });
 }
 
-const DateTime_Min = new Date();
 const typeAndDefaultValue = [
     { type: "Boolean", defaultValue: false },
     { type: "ByteString", defaultValue: Buffer.from("OPCUA") },
-    { type: "DateTime", defaultValue: DateTime_Min },
+    { type: "DateTime", defaultValue: ec.getMinOPCUADate() },
     { type: "Double", defaultValue: 0.0 },
     { type: "Float", defaultValue: 0.0 },
     { type: "Guid", defaultValue: emptyGuid },

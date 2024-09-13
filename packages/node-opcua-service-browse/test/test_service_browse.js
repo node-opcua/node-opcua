@@ -60,11 +60,11 @@ describe("Browse Service", function () {
             requestedMaxReferencesPerNode: 1,
             nodesToBrowse: [{}]
         });
-        // by default timeStamp shall be set to minDate
+        // by default timeStamp shall be set to min opcua Date
         browseRequest.view.viewId.toString().should.eql("ns=0;i=0");
         browseRequest.view.viewVersion.should.eql(0);
 
-        // timestamp shall be minDate( 01/01/1601) to satisfy the .NET server
+        // timestamp shall be min Opcua Date( 01/01/1601) to satisfy the .NET server
         // implementation.
         bn_dateToHundredNanoSecondFrom1601(browseRequest.view.timestamp).should.eql([0, 0]);
     });

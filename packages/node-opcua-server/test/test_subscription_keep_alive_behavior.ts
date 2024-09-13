@@ -1,7 +1,7 @@
 import should from "should";
 import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
-import { minDate } from "node-opcua-date-time";
+import { getMinOPCUADate } from "node-opcua-date-time";
 import { Subscription, SubscriptionOptions, SubscriptionState } from "../source";
 
 const doDebug = false;
@@ -90,8 +90,8 @@ describe("Subscription keepAlive behavior", function (this: any) {
         subscription.on("notification", notification_event_spy);
         subscription.on("keepalive", keepalive_event_spy);
 
-        let firstPublishResponse = minDate;
-        let secondPublishResponse = minDate;
+        let firstPublishResponse = getMinOPCUADate();
+        let secondPublishResponse = getMinOPCUADate();
         subscription.once("keepalive", (d) => {
             firstPublishResponse = new Date();
             doDebug && console.log("keepalive received", firstPublishResponse);

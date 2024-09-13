@@ -77,7 +77,6 @@ const factorLong = long.fromNumber(factor, true);
  * @returns {[high,low]}
  */
 export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: number) {
-    assert(date instanceof Date);
     if ((date as any).high_low) {
         return (date as any).high_low;
     }
@@ -223,10 +222,20 @@ export function coerceClock(timestamp: undefined | null | DateWithPicoseconds | 
     }
 }
 
-export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 
-export const minOPCUADate = minDate;
 
 export function isMinDate(date?: Date | null): boolean {
+    if (typeof date === "number") {
+        throw new Error("isMinDate: invalid argument");
+    }
     return !date || date.getTime() === minDate.getTime();
 }
+export function getMinOPCUADate() {
+    return new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+}
+
+
+// @deprecated use getMinOPCUADate() instead
+export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
+// @deprecated use getMinOPCUADate() instead
+export const minOPCUADate = minDate;

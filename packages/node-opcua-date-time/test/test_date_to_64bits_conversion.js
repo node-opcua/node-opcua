@@ -39,7 +39,6 @@ function isValidInt32(value) {
 
 // deprecated (inaccurate)
 function deprecated_dateToHundredNanoSecondFrom1601(date) {
-    assert(date instanceof Date);
     const t = date.getTime(); // number of milliseconds since 1/1/70
     assert(new Date(t).getTime() === t);
 

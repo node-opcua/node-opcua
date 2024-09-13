@@ -2,7 +2,7 @@
  * @module node-opcua-client-private
  */
 import chalk from "chalk";
-import { minDate } from "node-opcua-date-time";
+import { getMinOPCUADate } from "node-opcua-date-time";
 import { assert } from "node-opcua-assert";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";
@@ -46,7 +46,7 @@ export class ClientSidePublishEngine {
      */
     readonly subscriptionMap: { [key: number]: ClientSubscriptionImpl };
 
-    public lastRequestSentTime: Date = minDate;
+    public lastRequestSentTime: Date = getMinOPCUADate();
 
     constructor(session: ClientSession) {
         this.session = session;
