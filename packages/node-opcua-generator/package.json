@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.131.0",
+    "version": "2.132.0",
     "description": "pure nodejs OPCUA SDK - module generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -16,16 +16,16 @@
         "node-opcua-assert": "2.120.0",
         "node-opcua-constants": "2.125.0",
         "node-opcua-debug": "2.128.0",
-        "node-opcua-factory": "2.131.0",
+        "node-opcua-factory": "2.132.0",
         "node-opcua-nodeid": "2.128.0",
-        "node-opcua-schemas": "2.131.0",
+        "node-opcua-schemas": "2.132.0",
         "node-opcua-utils": "2.128.0"
     },
     "devDependencies": {
-        "node-opcua-basic-types": "2.131.0",
+        "node-opcua-basic-types": "2.132.0",
         "node-opcua-binary-stream": "2.128.0",
-        "node-opcua-extension-object": "2.131.0",
-        "node-opcua-packet-analyzer": "2.131.0",
+        "node-opcua-extension-object": "2.132.0",
+        "node-opcua-packet-analyzer": "2.132.0",
         "node-opcua-status-code": "2.128.0",
         "underscore": "^1.13.7"
     },

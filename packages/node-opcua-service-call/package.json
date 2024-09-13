@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-call",
-    "version": "2.131.0",
+    "version": "2.132.0",
     "description": "pure nodejs OPCUA SDK - module service-call",
     "scripts": {
         "test": "mocha",
@@ -14,11 +14,11 @@
     "dependencies": {
         "node-opcua-assert": "2.120.0",
         "node-opcua-nodeid": "2.128.0",
-        "node-opcua-types": "2.131.0",
-        "node-opcua-variant": "2.131.0"
+        "node-opcua-types": "2.132.0",
+        "node-opcua-variant": "2.132.0"
     },
     "devDependencies": {
-        "node-opcua-packet-analyzer": "2.131.0",
+        "node-opcua-packet-analyzer": "2.132.0",
         "node-opcua-status-code": "2.128.0"
     },
     "author": "Etienne Rossignon",

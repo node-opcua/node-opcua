@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-machinery-process-values",
-    "version": "2.131.0",
+    "version": "2.132.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-machinery-process-values",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,15 +10,15 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.131.0",
-        "node-opcua-basic-types": "2.131.0",
-        "node-opcua-data-access": "2.131.0",
-        "node-opcua-data-model": "2.131.0",
+        "node-opcua-address-space-base": "2.132.0",
+        "node-opcua-basic-types": "2.132.0",
+        "node-opcua-data-access": "2.132.0",
+        "node-opcua-data-model": "2.132.0",
         "node-opcua-nodeid": "2.128.0",
-        "node-opcua-nodeset-padim": "2.131.0",
-        "node-opcua-nodeset-ua": "2.131.0",
+        "node-opcua-nodeset-padim": "2.132.0",
+        "node-opcua-nodeset-ua": "2.132.0",
         "node-opcua-status-code": "2.128.0",
-        "node-opcua-variant": "2.131.0"
+        "node-opcua-variant": "2.132.0"
     },
     "files": [
         "dist",
