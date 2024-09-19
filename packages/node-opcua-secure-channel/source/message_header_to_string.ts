@@ -9,7 +9,7 @@ import { chooseSecurityHeader } from "./secure_message_chunk_manager";
 
 /**
  * convert the messageChunk header to a string
- * @method messageHeaderToString
+
  * @param messageChunk {BinaryStream}
  * @return {string}
  */

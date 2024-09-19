@@ -1371,7 +1371,8 @@ export class Subscription extends EventEmitter {
      *  _publish_pending_notifications send a "notification" event:
      *
      * @private
-     * @precondition
+     * 
+     * precondition
      *     - pendingPublishRequestCount > 0
      */
     public _publish_pending_notifications(): void {

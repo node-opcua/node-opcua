@@ -305,7 +305,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
     }
     /**
-     * @method browse
+
      * @async
      *
      * @example
@@ -476,7 +476,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method readVariableValue
+
      * @async
      *
      * @example
@@ -560,7 +560,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method readHistoryValue
+
      * @async
      *
      * @example
@@ -861,7 +861,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method write
+
      * @param nodesToWrite {WriteValue[]}  - the array of value to write. One or more elements.
      * @param {Function} callback -   the callback function
      * @param callback.err {object|null} the error if write has failed or null if OK
@@ -899,7 +899,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      *       //
      *     });
      *
-     * @method write
+
      * @param nodeToWrite {WriteValue}  - the value to write
      * @param callback -   the callback function
      * @param callback.err {object|null} the error if write has failed or null if OK
@@ -925,7 +925,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      *     });
      *
      *
-     * @method write
+
      * @param nodeToWrite {WriteValue}  - the value to write
      * @return {Promise<StatusCode>}
      * @async
@@ -942,7 +942,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      *   const statusCode = await session.write(nodeToWrite);
      * ```
      *
-     * @method write
+
      * @param nodesToWrite {Array<WriteValue>}  - the value to write
      * @return {Promise<Array<StatusCode>>}
      * @async
@@ -1002,7 +1002,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method writeSingleNode
+
      * @async
      * @param nodeId  {NodeId}  - the node id of the node to write
      * @param value   {Variant} - the value to write
@@ -1010,7 +1010,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @param callback.err {object|null} the error if write has failed or null if OK
      * @param callback.statusCode {StatusCode} - the status code of the write
      *
-     * @method writeSingleNode
+
      * @async
      * @param nodeId  {NodeId}  - the node id of the node to write
      * @param value   {Variant} - the value to write
@@ -1065,7 +1065,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method readAllAttributes
+
      *
      * @example
      *
@@ -1099,7 +1099,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method read (form1)
+
      *
      * @async
      *
@@ -1124,7 +1124,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      *    ```
      *
      *
-     * @method read (form2)
+
      * @param nodesToRead               {Array<ReadValueId>} - an array of nodeId to read or a ReadValueId
      * @param [maxAge]                 {Number}
      * @param callback                 {Function}                - the callback function
@@ -1252,7 +1252,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method createSubscription2
+
      * @param createSubscriptionRequest
      * @param callback
      *
@@ -1301,7 +1301,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method transferSubscriptions
+
      * @async
      */
     public transferSubscriptions(
@@ -1327,7 +1327,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method modifySubscription
+
      * @async
      * @param options {ModifySubscriptionRequest}
      * @param callback {Function}
@@ -1347,7 +1347,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method publish
+
      * @async
      * @param options  {PublishRequest}
      * @param callback {Function}
@@ -1360,7 +1360,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method republish
+
      * @async
      * @param options  {RepublishRequest}
      * @param callback the callback
@@ -1371,7 +1371,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method deleteMonitoredItems
+
      * @async
      * @param options  {DeleteMonitoredItemsRequest}
      * @param callback {Function}
@@ -1386,7 +1386,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method setPublishingMode
+
      * @async
      */
     public setPublishingMode(publishingEnabled: boolean, subscriptionId: SubscriptionId): Promise<StatusCode>;
@@ -1439,7 +1439,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method translateBrowsePath
+
      * @async
      * @param browsePath {BrowsePath|Array<BrowsePath>}
      * @param callback {Function}
@@ -1669,7 +1669,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-     * @method close
+
      * @async
      * @param [deleteSubscription=true] {Boolean}
      * @param callback {Function}
@@ -1710,7 +1710,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method hasBeenClosed
+
      * @return {Boolean}
      */
     public hasBeenClosed(): boolean {
@@ -1759,7 +1759,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method getMonitoredItems
+
      * @param subscriptionId {UInt32} the subscription Id to return
      * @param callback {Function}
      * @param callback.err {Error}
@@ -1821,7 +1821,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     * @method getArgumentDefinition
+
      *    extract the argument definition of a method
      * @param methodId the method nodeId to get argument definition from
      * @async

@@ -39,10 +39,7 @@ interface AnalogDataItemSnapshot {
 }
 
 /**
- * @method readUAAnalogItem
- * @param session
- * @param nodeId
- * @param callback
+ *
  */
 export async function readUAAnalogItem(
     session: IBasicSessionTranslateBrowsePathAsyncMultiple & IBasicSessionReadAsyncMultiple,

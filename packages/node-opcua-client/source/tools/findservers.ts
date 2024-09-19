@@ -14,10 +14,6 @@ export interface FindServerResults {
 }
 /**
  * extract the server endpoints exposed by a discovery server
- * @method findServers
- * @async
- * @param discoveryServerEndpointUri
- * @param callback
  */
 export function findServers(
     discoveryServerEndpointUri: string,

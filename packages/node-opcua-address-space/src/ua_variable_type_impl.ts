@@ -312,7 +312,7 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
 }
 
 /**
- * @method hasChildWithBrowseName
+
  * returns true if the parent object has a child  with the provided browseName
  * @param parent
  * @param childBrowseName

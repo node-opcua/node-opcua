@@ -3,7 +3,7 @@ import { Callback, SimpleCallback, Xml2Json } from "../xml2json";
 
 export class Xml2JsonFs extends Xml2Json {
     /**
-     * @method  parse
+
      * @async
      * @param xmlFile - the name of the xml file to parse.
      */

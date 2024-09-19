@@ -727,7 +727,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 .     *
     * The method will raise an exception if the value is not compatible with the dataType and expected dimension
     *
-    * @method setValueFromSource
+
     * @param variant  {Variant}
     * @param [statusCode  {StatusCode} = StatusCodes.Good]
     * @param [sourceTimestamp= Now]
@@ -998,7 +998,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     }
 
     /**
-     * @method checkVariantCompatibility
+
      * note:
      *     this method is overridden in address-space-data-access
      * @return {StatusCode}
@@ -1178,7 +1178,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
     }
 
     /**
-     * @method readValueAsync
+
      */
     public readValueAsync(context: ISessionContext | null, callback: CallbackT<DataValue>): void;
     public readValueAsync(context: ISessionContext | null): Promise<DataValue>;
@@ -1421,7 +1421,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         _installExtensionObjectBindingOnProperties(this, { createMissingProp: true });
     }
     /**
-     * @method bindExtensionObject
+
      * @return {ExtensionObject}
      */
     public bindExtensionObjectScalar(

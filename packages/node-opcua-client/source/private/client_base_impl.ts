@@ -1019,7 +1019,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     /**
      *
      * return the endpoint information matching  security mode and security policy.
-     * @method findEndpoint
+
      */
     public findEndpointForSecurity(
         securityMode: MessageSecurityMode,
@@ -1036,7 +1036,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     /**
      *
      * return the endpoint information matching the specified url , security mode and security policy.
-     * @method findEndpoint
+
      */
     public findEndpoint(
         endpointUrl: string,
@@ -1104,7 +1104,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
     }
 
     /**
-     * @method findServers
+
      */
     public findServers(options?: FindServersRequestLike): Promise<ApplicationDescription[]>;
     public findServers(options: FindServersRequestLike, callback: ResponseCallback<ApplicationDescription[]>): void;

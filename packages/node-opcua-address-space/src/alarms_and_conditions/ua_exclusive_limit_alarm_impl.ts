@@ -19,7 +19,6 @@ export declare interface UAExclusiveLimitAlarmImpl extends UAExclusiveLimitAlarm
 export class UAExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UAExclusiveLimitAlarmEx {
     /***
      *
-     * @method (static)instantiate
      * @param namespace {INamespace}
      * @param type
      * @param options

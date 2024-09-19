@@ -149,7 +149,6 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
     }
 
     /**
-     * @method getStateByName
      * @param name  the name of the state to get
      * @return the state with the given name
      */
@@ -202,9 +201,6 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
     }
 
     /**
-     * @method isValidTransition
-     * @param toStateNode
-     * @return {boolean}
      */
     public isValidTransition(toStateNode: UAState | string, predicate?: TransitionSelector): boolean {
         // is it legal to go from state currentState to toStateNode;
@@ -308,7 +304,6 @@ export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx
     }
 
     /**
-     * @method setState
      */
     public setState(toStateNode: string | UAState | null, predicate?: TransitionSelector): void {
         if (!toStateNode) {

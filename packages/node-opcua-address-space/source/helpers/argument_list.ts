@@ -229,12 +229,7 @@ export function isArgumentValid(addressSpace: IAddressSpace, argDefinition: Argu
 }
 
 /**
- * @method verifyArguments_ArgumentList
- * @param addressSpace
- * @param methodInputArguments
- * @param inputArguments
- * @return statusCode,inputArgumentResults
- */
+*/
 export function verifyArguments_ArgumentList(
     addressSpace: IAddressSpace,
     methodInputArguments: Argument[],

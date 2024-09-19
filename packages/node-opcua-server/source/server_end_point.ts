@@ -356,10 +356,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * @method getEndpointDescription
-     * @param securityMode
-     * @param securityPolicy
-     * @return endpoint_description {EndpointDescription|null}
      */
     public getEndpointDescription(
         securityMode: MessageSecurityMode,
@@ -504,8 +500,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * @method listen
-     * @async
      */
     public listen(callback: (err?: Error) => void): void {
         assert(typeof callback === "function");
@@ -585,8 +579,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * @method shutdown
-     * @async
      */
     public shutdown(callback: (err?: Error) => void): void {
         debugLog("OPCUAServerEndPoint#shutdown ");
@@ -617,9 +609,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * @method start
-     * @async
-     * @param callback
      */
     public start(callback: (err?: Error) => void): void {
         assert(typeof callback === "function");
@@ -824,8 +813,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * @method _registerChannel
-     * @param channel
      * @private
      */
     private _registerChannel(channel: ServerSecureChannelLayer) {
@@ -854,9 +841,6 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     /**
-     * @method _unregisterChannel
-     * @param channel
-     * @private
      */
     private _unregisterChannel(channel: ServerSecureChannelLayer): void {
         debugLog("_un-registerChannel channel.hashKey", channel.hashKey);

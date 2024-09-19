@@ -281,24 +281,21 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method getBrandId
-     * @return {NodeId}
+     * 
      */
     public getBranchId(): NodeId {
         return this._get_var("BranchId") as NodeId;
     }
 
     /**
-     * @method getEventId
-     * @return {ByteString}
+     * 
      */
     public getEventId(): Buffer {
         return this._get_var("EventId") as Buffer;
     }
 
     /**
-     * @method getRetain
-     * @return {Boolean}
+     * 
      */
     public getRetain(): boolean {
         return this._get_var("Retain") as boolean;
@@ -306,8 +303,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
 
     /**
      *
-     * @method setRetain
-     * @param retainFlag {Boolean}
      */
     public setRetain(retainFlag: boolean): void {
         retainFlag = !!retainFlag;
@@ -315,8 +310,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method renewEventId
-     *
+     * 
      */
     public renewEventId(): void {
         const addressSpace = this.condition.addressSpace;
@@ -328,33 +322,28 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method getEnabledState
-     * @return {Boolean}
+     * 
      */
     public getEnabledState(): boolean {
         return this._get_twoStateVariable("EnabledState");
     }
 
     /**
-     * @method setEnabledState
-     * @param value {Boolean}
-     * @return void
+     * 
      */
     public setEnabledState(value: boolean, options?: ISetStateOptions): void {
         return this._set_twoStateVariable("EnabledState", value, options);
     }
 
     /**
-     * @method getEnabledStateAsString
-     * @return {String}
+     * 
      */
     public getEnabledStateAsString(): string {
         return this._get_var("EnabledState").text;
     }
 
     /**
-     * @method getComment
-     * @return {LocalizedText}
+     * 
      */
     public getComment(): LocalizedText {
         return this._get_var("Comment");
@@ -369,8 +358,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * a Method provides as an option the ability to set a Comment, then the value of this Variable is
      * reset to null if an optional comment is not provided.
      *
-     * @method setComment
-     * @param txtMessage {LocalizedText}
      */
     public setComment(txtMessage: LocalizedTextLike, options?: IConditionVariableTypeSetterOptions): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
@@ -378,9 +365,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     *
-     * @method setMessage
-     * @param txtMessage {LocalizedText}
+     * 
      */
     public setMessage(txtMessage: LocalizedTextLike | LocalizedText): void {
         const txtMessage1 = coerceLocalizedText(txtMessage);
@@ -388,8 +373,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method setClientUserId
-     * @param userIdentity {String}
+     * 
      */
     public setClientUserId(userIdentity: string): void {
         return this._set_var("ClientUserId", DataType.String, userIdentity.toString());
@@ -422,16 +406,14 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
 
     /**
      * set the condition quality
-     * @method setQuality
-     * @param quality {StatusCode}
+     * 
      */
     public setQuality(quality: StatusCode, options?: IConditionVariableTypeSetterOptions): void {
         this._set_var("Quality", DataType.StatusCode, quality, options);
     }
 
     /**
-     * @method getQuality
-     * @return {StatusCode}
+     * 
      */
     public getQuality(): StatusCode {
         return this._get_var("Quality") as StatusCode;
@@ -467,10 +449,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * of 667 to 1 000, Events of medium urgency into the OPC severity range of 334 to 666 and
      * Events of low urgency into OPC severities of 1 to 333.
      */
-    /**
-     * @method setSeverity
-     * @param severity {UInt16}
-     */
     public setSeverity(severity: UInt16, options?: IConditionVariableTypeSetterOptions): void {
         assert(isFinite(severity), "expecting a UInt16");
 
@@ -483,8 +461,6 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method getSeverity
-     * @return {UInt16}
      */
     public getSeverity(): UInt16 {
         const c = this.condition as UAConditionImpl;
@@ -505,8 +481,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      *
      */
     /**
-     * @method setLastSeverity
-     * @param severity {UInt16}
+     * 
      */
     public setLastSeverity(severity: UInt16, options?: IConditionVariableTypeSetterOptions): void {
         severity = +severity;
@@ -514,8 +489,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method getLastSeverity
-     * @return {UInt16}
+     * 
      */
     public getLastSeverity(): UInt16 {
         const value = this._get_var("LastSeverity");
@@ -537,9 +511,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      *
      * The ReceiveTime shall always be returned as value and the Server is not allowed to return a
      * StatusCode for the ReceiveTime indicating an error.
-     *
-     * @method setReceiveTime
-     * @param time {Date} : UTCTime
+     * 
      */
     public setReceiveTime(time: UtcTime): void {
         return this._set_var("ReceiveTime", DataType.DateTime, time, { sourceTimestamp: time  || undefined });
@@ -551,8 +523,7 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * possible. It often comes from the underlying system or device. Once set, intermediate OPC UA
      * Servers shall not alter the value.
      *
-     * @method setTime
-     * @param time {Date}
+     * 
      */
     public setTime(time: Date): void {
         return this._set_var("Time", DataType.DateTime, time, { sourceTimestamp: time });
@@ -562,11 +533,10 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
      * LocalTime is a structure containing the Offset and the DaylightSavingInOffset flag. The Offset
      * specifies the time difference (in minutes) between the Time Property and the time at the location
      * in which the event was issued. If DaylightSavingInOffset is TRUE, then Standard/Daylight
-     * savings time (DST) at the originating location is in effect and Offset includes the DST c orrection.
+     * savings time (DST) at the originating location is in effect and Offset includes the DST correction.
      * If FALSE then the Offset does not include DST correction and DST may or may not have been
      * in effect.
-     * @method setLocalTime
-     * @param localTime {TimeZone}
+     * 
      */
     public setLocalTime(localTime: TimeZoneDataType): void {
         assert(localTime instanceof TimeZoneDataType);
@@ -579,16 +549,14 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     /**
-     * @method getSourceNode
-     * return {NodeId}
+     * 
      */
     public getSourceNode(): NodeId {
         return this._get_var("SourceNode");
     }
 
     /**
-     * @method getEventType
-     * return {NodeId}
+     * 
      */
     public getEventType(): NodeId {
         return this._get_var("EventType");
@@ -648,21 +616,10 @@ export class ConditionSnapshotImpl extends EventEmitter implements ConditionSnap
     }
 
     // ---- Shelving
-    /**
-     * @class ConditionSnapshot
-     */
-    /**
-     * @method getSuppressedState
-     * @return {Boolean}
-     */
     public getSuppressedState(): boolean {
         return this._get_twoStateVariable("SuppressedState");
     }
 
-    /**
-     * @method setSuppressedState
-     * @param suppressed {Boolean}
-     */
     public setSuppressedState(suppressed: boolean, options?: ISetStateOptions): void {
         suppressed = !!suppressed;
         this._set_twoStateVariable("SuppressedState", suppressed, options);

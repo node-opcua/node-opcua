@@ -684,10 +684,6 @@ function on_value_change(this: UAVariableImpl, newDataValue: DataValue): void {
 }
 
 /**
- * @method installHistoricalDataNode
- * @param node      UAVariable
- * @param [options] {Object}
- * @param [options.maxOnlineValues = 1000]
  */
 export function AddressSpace_installHistoricalDataNode(
     this: IAddressSpace,

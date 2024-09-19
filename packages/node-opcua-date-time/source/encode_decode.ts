@@ -17,7 +17,7 @@ export function isValidDateTime(value: any) {
 
 /**
  * return a random integer value in the range of  min inclusive and  max exclusive
- * @method getRandomInt
+
  * @param min
  * @param max
  * @return {*}

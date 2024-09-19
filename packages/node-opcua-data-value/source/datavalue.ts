@@ -265,10 +265,6 @@ export class DataValue extends BaseUAObject {
 
     /**
      *
-     * @class DataValue
-     * @constructor
-     * @extends BaseUAObject
-     * @param  options {Object}
      */
     constructor(options?: DataValueOptions | null) {
         super();
@@ -483,7 +479,7 @@ function apply_timestamps2(dataValue: DataValue, timestampsToReturn: TimestampsT
 }
 
 /*
- * @method _clone_with_array_replacement
+
  * @param dataValue
  * @param result
  * @return {DataValue}
@@ -608,10 +604,6 @@ export function sameStatusCode(statusCode1: StatusCode, statusCode2: StatusCode)
 }
 
 /**
- * @method sameDataValue
- * @param v1 {DataValue}
- * @param v2 {DataValue}
- * @param [timestampsToReturn {TimestampsToReturn}]
  * @return {boolean} true if data values are identical
  */
 export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?: TimestampsToReturn): boolean {

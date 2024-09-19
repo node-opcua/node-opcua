@@ -440,7 +440,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-     * @method getCertificateChain
+
      * @return the X509 DER form certificate
      */
     public getCertificateChain(): Certificate {
@@ -451,7 +451,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-     * @method getCertificate
+
      * @return  the X509 DER form certificate
      */
     public getCertificate(): Certificate {
@@ -468,7 +468,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-     * @method getPrivateKey
+
      * @return the privateKey
      */
     public getPrivateKey(): PrivateKey {
@@ -479,7 +479,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-     * @method init
+
      * @async
      * @param socket
      * @param callback
@@ -527,7 +527,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-     * @method send_response
+
      * @async
      * @param msgType
      * @param response
@@ -653,7 +653,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
      * Abruptly close a Server SecureChannel ,by terminating the underlying transport.
      *
      *
-     * @method close
+
      * @async
      * @param callback
      */

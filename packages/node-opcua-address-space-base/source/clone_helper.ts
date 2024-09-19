@@ -419,7 +419,7 @@ export function reconstructNonHierarchicalReferences(extraInfo: CloneHelper): vo
 /**
  * recreate functional group types according to type definition
  *
- * @method reconstructFunctionalGroupType
+
  * @param baseType
  */
 

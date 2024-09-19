@@ -2,7 +2,7 @@
  * @module node-opcua-utils
  */
 /**
- * @method getObjectClassName
+
  * @param obj
  * @return {string}
  */

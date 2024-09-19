@@ -13,99 +13,108 @@ import {
     VariableTypeIds
 } from "node-opcua-constants";
 import { emptyGuid, Guid, isValidGuid, normalizeGuid } from "node-opcua-guid";
-
+const doDebug = false;
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.
  */
 export enum NodeIdType {
-    /**
-     * @static
-     * @property NUMERIC
-     * @default 0x1
-     */
     NUMERIC = 0x01,
-    /**
-     * @static
-     * @property STRING
-     * @default 0x2
-     */
     STRING = 0x02,
-    /**
-     * @static
-     * @property GUID
-     * @default 0x3
-     */
     GUID = 0x03,
-    /**
-     * @static
-     * @property BYTESTRING
-     * @default 0x4
-     */
     BYTESTRING = 0x04
 }
-/*function defaultValue(identifierType: NodeIdType.BYTESTRING): null;
-function defaultValue(identifierType: NodeIdType.STRING): null;
-function defaultValue(identifierType: NodeIdType.NUMERIC): 0;
-function defaultValue(identifierType: NodeIdType.GUID): null;
-*/
-function defaultValue(identifierType: NodeIdType): string | number | Buffer {
+
+// function defaultValue(identifierType: NodeIdType.BYTESTRING): null;
+// function defaultValue(identifierType: NodeIdType.STRING): "";
+// function defaultValue(identifierType: NodeIdType.NUMERIC): 0;
+// function defaultValue(identifierType: NodeIdType.GUID): string;
+function defaultValue(identifierType: NodeIdType): string | 0 | Buffer  {
     switch (identifierType) {
         case NodeIdType.GUID: return emptyGuid;
         case NodeIdType.BYTESTRING: return null as any as Buffer;// Buffer.alloc(0);
         case NodeIdType.STRING: return "";
         case NodeIdType.NUMERIC: return 0;
+        default:
+            throw new Error("invalid identifierType");
     }
 }
-
+/**
+ * `NodeId` specialization for numeric nodeIds.
+ */
 export interface INodeIdNumeric extends NodeId {
     identifierType: NodeIdType.NUMERIC;
     value: number;
 }
+/**
+ * `NodeId` specialization for GUID  nodeIds.
+ */
 export interface INodeIdGuid extends NodeId {
     identifierType: NodeIdType.GUID;
     value: string;
 }
+/**
+ * `NodeId` specialization for ByteString  nodeIds (opaque).
+ */
 export interface INodeIdByteString extends NodeId {
     identifierType: NodeIdType.BYTESTRING;
     value: Buffer;
 }
+
+/**
+ * `NodeId` specialization for String  nodeId.
+ */
 export interface INodeIdString extends NodeId {
     identifierType: NodeIdType.STRING;
     value: string;
 }
+/**
+ * `NodeId` specialization for all possible types of NodeIds.
+ */
 export type INodeId = INodeIdNumeric | INodeIdGuid | INodeIdString | INodeIdByteString;
 
 
-const doDebug = false;
+
 /**
- * Construct a node ID
+ * 
+ * This class holds a OPC-UA node identifier.
+ * 
+ * Nodes are unambiguously identified using a constructed
+ * identifier called the NodeId. Some Servers may accept
+ * alternative NodeIds in addition to the canonical NodeId
+ * represented in this Attribute. 
+ * 
+ * A Server shall persist the NodeId of a Node, that is,
+ * it shall not generate new
+ * NodeIds when rebooting. 
  *
- * @class NodeId
- * @example
- *
- * ``` javascript
- *    const nodeId = new NodeId(NodeIdType.NUMERIC,123,1);
- *    ```
- * @constructor
  */
 export class NodeId {
     public static NodeIdType = NodeIdType;
     public static nullNodeId: NodeId;
     public static resolveNodeId: (a: string | NodeId) => NodeId;
+
+    /**
+     */
     public static sameNodeId: (n1: NodeId, n2: NodeId) => boolean;
 
     public identifierType: NodeIdType;
-    public value: number | string | Buffer | Guid;;
+    public value: number | string | Buffer | Guid;
     public namespace: number;
 
     /**
+     * construct a node Id from a type, a value and a namespace index.
+     *
      * @param identifierType   - the nodeID type
      * @param value            - the node id value. The type of Value depends on identifierType.
      * @param namespace        - the index of the related namespace (optional , default value = 0 )
+     *  
+     * @example
+     *
+     * ```javascript
+     * const nodeId = new NodeId(NodeIdType.NUMERIC,123,1);
+     * ```
      */
     constructor(identifierType?: NodeIdType | null, value?: number | string | Buffer | Guid, namespace?: number) {
-
-
         if (identifierType === null || identifierType === undefined) {
             this.identifierType = NodeIdType.NUMERIC;
             this.value = 0;
@@ -114,12 +123,15 @@ export class NodeId {
         }
 
         this.identifierType = identifierType;
-        this.value = value || defaultValue(identifierType);
+        this.value = value || defaultValue(identifierType as NodeIdType);
         this.namespace = namespace || 0;
 
         // namespace shall be a UInt16
         assert(this.namespace >= 0 && this.namespace <= 0xffff, "NodeId: invalid namespace value");
-        assert(this.identifierType !== NodeIdType.NUMERIC || (this.value !== null && this.value as number >= 0 && this.value as number <= 0xffffffff));
+        assert(
+            this.identifierType !== NodeIdType.NUMERIC ||
+                (this.value !== null && (this.value as number) >= 0 && (this.value as number) <= 0xffffffff)
+        );
         assert(this.identifierType !== NodeIdType.GUID || isValidGuid(this.value as string), "NodeId: Guid is invalid");
         assert(this.identifierType !== NodeIdType.STRING || typeof this.value === "string", "cannot  empty string");
         if (this.identifierType === NodeIdType.GUID) {
@@ -130,26 +142,55 @@ export class NodeId {
     /**
      * get the string representation of the nodeID.
      *
-     * @method toString
      * @example
      *
-     *    ``` javascript
-     *    const nodeid = new NodeId(NodeIdType.NUMERIC, 123,1);
-     *    console.log(nodeid.toString());
-     *    ```
+     * by default, toString will return the "ns=" representation
      *
-     *    ```
-     *    >"ns=1;i=123"
-     *    ```
+     * ```javascript
+     * const nodeid = new NodeId(NodeIdType.NUMERIC, 123,1);
+     * console.log(nodeid.toString());
+     * ```
+     *
+     *  ```
+     *  >"ns=1;i=123"
+     *  ```
+     * @example
+     *
+     *  toString can also be used to make the nsu= version of the nodeid.
+     *
+     *  ```javascript
+     *  const namespaceArray = ["http://opcfoundation.com/UA/","http://mynamespace2"];
+     *  const nodeid = new NodeId(NodeIdType.STRING, "Hello",1);
+     *  console.log(nodeid.toString({namespaceArray}));
+     *  ```
+     *  ```
+     *  >"nsu=http://mynamespace;i=123"
+     *  ```
+     * @example
+     *
+     *  passing an addressSpace to the toString options will decorate the nodeId
+     *  with the BrowseName of the node.
+     *
+     *  ```javascript
+     * const addressSpace = getAddressSpace();
+     * const nodeid = new NodeId(NodeIdType.NUMERIC, 123,1);
+     * console.log(nodeid.toString({addressSpace}));
+     * ```
+     * ```
+     * >"nsu=http://mynamespace;i=123 (MyBrowseName)"
+     * ```
+     *
      *
      * @param [options.addressSpace] {AddressSpace}
      * @return {String}
      */
-    public toString(options?: { addressSpace?: any , namespaceArray?: string[]}): string {
+    public toString(options?: { addressSpace?: any; namespaceArray?: string[] }): string {
         const addressSpace = options ? options.addressSpace : null;
 
-        const namespacePart: string = options?.namespaceArray ?
-            (this.namespace == 0 ? ""  : `nsu=${options.namespaceArray[this.namespace] || `<unknown namespace with index ${this.namespace}>`};`)
+        const namespacePart: string = options?.namespaceArray
+            ? this.namespace == 0
+                ? ""
+                : `nsu=${options.namespaceArray[this.namespace] || `<unknown namespace with index ${this.namespace}>`};`
             : `ns=${this.namespace};`;
 
         let str;
@@ -169,7 +210,7 @@ export class NodeId {
                 if (this.value) {
                     str = `${namespacePart}b=${(this.value as Buffer).toString("base64")}`;
                 } else {
-                    str = `${ namespacePart}b=<null>`;
+                    str = `${namespacePart}b=<null>`;
                 }
                 break;
         }
@@ -190,9 +231,9 @@ export class NodeId {
     }
 
     /**
-     * convert nodeId to a JSON string. same as {@link NodeId#toString }
+     * convert nodeId to a JSON string. same as {@link NodeId.toString }
      */
-    public toJSON(options?: {namespaceArray?: string[]}): string {
+    public toJSON(options?: { namespaceArray?: string[] }): string {
         return this.toString(options);
     }
 
@@ -224,6 +265,9 @@ export class NodeId {
     }
 }
 
+/**
+ * a fixed instance of a null NodeId 
+ */
 NodeId.nullNodeId = new Proxy(
     new NodeId(NodeIdType.NUMERIC, 0, 0),
     {
@@ -236,8 +280,14 @@ NodeId.nullNodeId = new Proxy(
     });
 
 
+/**
+ * anything that could be turned into a nodeId
+ */
 export type NodeIdLike = string | NodeId | number;
 
+/**
+ * @private
+ */
 const regexNamespaceI = /ns=([0-9]+);i=([0-9]+)/;
 const regexNamespaceS = /ns=([0-9]+);s=(.*)/;
 const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
@@ -250,28 +300,23 @@ const regexNamespaceNSU_B = /nsu=(.+);b=(.*)/;
 const regexNamespaceNSU_G = /nsu=(.+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
 
 
+/**
+ * 
+ */
 export interface ResolveNodeIdOptions {
     namespaceArray?: string[];
     defaultNamespaceIndex?: number ; 
 }
 /**
  * Convert a value into a nodeId:
- * @class opcua
- * @method coerceNodeId
- * @static
  *
  * @description:
  *    - if nodeId is a string of form : "i=1234"  => nodeId({value=1234, identifierType: NodeIdType.NUMERIC})
  *    - if nodeId is a string of form : "s=foo"   => nodeId({value="foo", identifierType: NodeIdType.STRING})
  *    - if nodeId is a string of form : "b=ABCD=" => nodeId({value=decodeBase64("ABCD="), identifierType: NodeIdType.BYTESTRING})
  *    - if nodeId is a {@link NodeId} :  coerceNodeId returns value
- * @param value
- * @param namespaceOptions {number} 
- * @param namespaceOptions.namespace {number} 
- * @param namespaceOptions.namespaceArray {number} 
  * 
  */
-// eslint-disable-next-line max-statements
 export function coerceNodeId(value: unknown, namespaceOptions?: number | ResolveNodeIdOptions): NodeId {
     let matches;
     let twoFirst;
@@ -354,11 +399,9 @@ export function coerceNodeId(value: unknown, namespaceOptions?: number | Resolve
 const regEx1 = /^(s|g|b|i|ns)=/;
 /**
  * construct a node Id from a value and a namespace.
- * @class opcua
- * @method makeNodeId
- * @static
+ *
  * @param {String|Buffer} value
- * @param [namespace]=0 {Number} the node id namespace
+ * @param [namespace]=0 {Number} optional (default=0), the node id namespace
  * @return {NodeId}
  */
 export function makeNodeId(value: string | Buffer | number, namespace?: number): NodeId {
@@ -420,11 +463,35 @@ function reverse_map(nodeId: string) {
 }
 
 /**
- * @class opcua
- * @method resolveNodeId
- * @static
- * @param nodeIdOrString
- * @return the nodeId
+ * resolveNodeId can be helpful to convert a wellknown Node Name to a nodeid
+ * if a wellknown node name cannot be detected, the function falls back to
+ * calling coerceNodeId {@link coerceNodeId}.
+ * 
+ * @example
+ * ```javascript
+ * const nodeId = resolveNodeId("ObjectsFolder");
+ * console.log(nodeId.toString());
+ * ```
+ * ```text
+ * >ns=0;i=85
+ * ```
+ * 
+ * ```javascript
+ * const nodeId = resolveNodeId("HasComponent");
+ * console.log(nodeId.toString());
+ * ```
+ * ```text
+ * >ns=0;i=33
+ * ```
+ * 
+ * ```javascript
+ * const nodeId = resolveNodeId("ns=1;i=4444");
+ * console.log(nodeId.toString());
+ * ```
+ * ```text
+ * >ns=1;i=4444
+ * ```
+ * 
  */
 export function resolveNodeId(nodeIdOrString: NodeIdLike, options?: ResolveNodeIdOptions): NodeId {
     let nodeId;
@@ -440,6 +507,24 @@ export function resolveNodeId(nodeIdOrString: NodeIdLike, options?: ResolveNodeI
 
 NodeId.resolveNodeId = resolveNodeId;
 
+/**
+ * 
+ * The sameNodeId function is used to compare two NodeId objects to
+ * determine if they are identical. This comparison is based on the
+ * identifier type, namespace, and value of the NodeId objects.
+ *
+
+ *
+ * @return {boolean} Returns true if the two NodeId objects are
+ * identical, otherwise returns false.
+ * 
+ * @example
+ * ```javascript
+ * const nodeId1: NodeId = new NodeId(NodeIdType.STRING, "example", 1);
+ * const nodeId2: NodeId = coerceNodeId("ns=1;s=example");
+ * const areSame = sameNodeId(nodeId1, nodeId2); // returns true
+ * ```
+ */
 export function sameNodeId(n1: NodeId, n2: NodeId): boolean {
     if (n1.identifierType !== n2.identifierType) {
         return false;

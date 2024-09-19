@@ -193,7 +193,7 @@ export function bindExtObjArrayNode<T extends ExtensionObject>(
 }
 
 /**
- * @method addElement
+
  * add a new element in a ExtensionObject Array variable
  * @param options {Object}   data used to construct the underlying ExtensionObject
  * @param uaArrayVariableNode {UAVariable}

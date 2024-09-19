@@ -338,9 +338,6 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     /**
      * convert a nodeId
      *
-     * @method convertToNodeId
-     * @param nodeId {String|null}
-     * @return {NodeId}
      *
      * @example
      *    convertToNodeId("String") => resolve alias

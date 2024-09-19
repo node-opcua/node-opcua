@@ -11,7 +11,7 @@ import { make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog(__filename);
 
 /**
- * @method checkSelectClause
+
  * @param parentNode
  * @param selectClause
  * @return {Array<StatusCode>}
@@ -45,7 +45,7 @@ export function checkSelectClause(parentNode: BaseNode, selectClause: SimpleAttr
 }
 
 /**
- * @method checkSelectClauses
+
  * @param eventTypeNode
  * @param selectClauses
  * @return an array of StatusCode

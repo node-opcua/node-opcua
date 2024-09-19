@@ -98,7 +98,7 @@ import { BasicTypeDefinition, BasicTypeDefinitionOptions, BasicTypeDefinitionOpt
     }
 
     /**
-     * @method  computer_default_value
+
      * @param defaultValue {*} the default value
      * @return {*}
      */
@@ -349,7 +349,7 @@ const _defaultTypeMap: Map<string, BasicTypeSchema> = new Map<string, BasicTypeS
 _defaultType.forEach(registerType);
 
 /**
- * @method registerType
+
  * @param schema {TypeSchemaBase}
  */
 export function registerType(schema: BasicTypeDefinitionOptionsBase): void {

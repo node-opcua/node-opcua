@@ -37,7 +37,7 @@ export interface ObjectExplorerOptions {
 const resultMask = makeResultMask("ReferenceType | IsForward | BrowseName | NodeClass | TypeDefinition");
 
 /**
- * @method convertNodeIdToDataTypeAsync
+
  *
  * @param session
  * @param dataTypeId
@@ -237,7 +237,7 @@ function extractDataType(session:  IBasicSessionReadCallback & IBasicSessionBrow
     });
 }
 /**
- * @method add_method
+
  * @private
  */
 function add_method(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription, outerCallback: (err?: Error) => void) {

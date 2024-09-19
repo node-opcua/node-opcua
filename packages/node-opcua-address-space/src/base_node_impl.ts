@@ -598,7 +598,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     /**
      * returns the list of methods that this object provides
-     * @method getMethods
      * @return an array with Method objects.
      *
      *
@@ -746,7 +745,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     /**
-     * @method browseNodeByTargetName
      *
      * @param relativePathElement
      * @param isLast
@@ -904,7 +902,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     /**
-     * @method addReference
      * @param reference
      * @param reference.referenceType {String}
      * @param [reference.isForward = true] {Boolean}
@@ -1073,7 +1070,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     /**
-     * @method getFalseSubStates
      * @return {UAStateVariable[]} return an array with the SubStates of this object.
      */
     public getFalseSubStates(): UAStateVariable<LocalizedText>[] {
@@ -1081,7 +1077,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     /**
-     * @method getTrueSubStates
+
      * @return {UAStateVariable[]} return an array with the SubStates of this object.
      */
     public getTrueSubStates(): UAStateVariable<LocalizedText>[] {
@@ -1152,7 +1148,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * the dispose method should be called when the node is no longer used, to release
      * back pointer to the address space and clear caches.
      *
-     * @method dispose
+
      *
      */
     public dispose(): void {
@@ -1606,7 +1602,7 @@ function nodeid_is_nothing(nodeid: NodeId): boolean {
 }
 
 /**
- * @method normalize_referenceTypeId
+
  * @param addressSpace {IAddressSpace}
  * @param referenceTypeId {String|NodeId|null} : the referenceType either as a string or a nodeId
  * @return {NodeId}

@@ -9,7 +9,7 @@ import { FilterContextOnAddressSpace } from "./filter_context_on_address_space";
 
 
 /**
- * @method extractEventFields
+
  * extract a array of eventFields from a event node, matching the selectClauses
  * @param selectClauses
  * @param eventData : a pseudo Node that provides a browse Method and a readValue(nodeId)

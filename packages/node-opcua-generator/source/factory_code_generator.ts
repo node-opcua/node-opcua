@@ -388,7 +388,7 @@ function write_isValid(write: WriteFunc, schema: IStructuredTypeSchema): void {
             write("   /**");
             write("    *");
             write("    * verify that all object attributes values are valid according to schema");
-            write("    * @method isValid");
+
             write("    * @return {Boolean}");
             write("    */");
         }
@@ -405,7 +405,7 @@ function write_encode(write: WriteFunc, schema: IStructuredTypeSchema): void {
         if (produceComment) {
             write("    /**");
             write("     * encode the object into a binary stream");
-            write("     * @method encode");
+
             write("     *");
             write("     * @param stream {BinaryStream}");
             write("     */");
@@ -478,7 +478,7 @@ function write_decode(write: WriteFunc, schema: IStructuredTypeSchema): void {
         if (produceComment) {
             write("    /**");
             write("     * decode the object from a binary stream");
-            write("     * @method decode");
+
             write("     *");
             write("     * @param stream {BinaryStream}");
             write("     */");
@@ -497,7 +497,7 @@ function write_decode(write: WriteFunc, schema: IStructuredTypeSchema): void {
         if (produceComment) {
             write("    /**");
             write("     * decode the object from a binary stream");
-            write("     * @method decode");
+
             write("     *");
             write("     * @param stream {BinaryStream}");
             write("     */");

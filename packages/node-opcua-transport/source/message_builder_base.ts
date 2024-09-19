@@ -182,7 +182,7 @@ export class MessageBuilderBase extends EventEmitter {
 
     /**
      * Feed message builder with some data
-     * @method feed
+
      * @param data
      */
     public feed(data: Buffer): void {
@@ -239,7 +239,7 @@ export class MessageBuilderBase extends EventEmitter {
 
     /**
      * append a message chunk
-     * @method _append
+
      * @param chunk
      * @private
      */

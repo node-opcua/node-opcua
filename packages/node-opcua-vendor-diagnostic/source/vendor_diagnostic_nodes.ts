@@ -17,7 +17,7 @@ const warningLog = make_warningLog(__filename);
 const humanize = require("humanize");
 
 /**
- * @method addVariableWithHumanizeText
+
  * @param namespace
  * @param options
  * @param options.browseName
@@ -49,7 +49,7 @@ function addVariableWithHumanizeText(namespace: Namespace, options: any) {
  *
  * optionally install a CPU Usage and Memory Usage node
  * ( condition : running on linux and require("usage")
- * @method install_optional_cpu_and_memory_usage_node
+
  * @param server {OPCUAServer}
  *
  */

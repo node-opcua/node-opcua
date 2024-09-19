@@ -27,17 +27,8 @@ import { coerceNodeId, NodeId, NodeIdType } from "./nodeid";
  * NamespaceUri. The ServerIndex flag in the NodeId encoding byte indicates whether the
  * ServerIndex is present in the stream. The ServerIndex is omitted if it is equal to zero.
  *
- * @class  ExpandedNodeId
- * @extends NodeId
  *
  *
- *
- * @param identifierType   - the nodeID type
- * @param value            - the node id value. The type of Value depends on identifierType.
- * @param namespace        - the index of the related namespace (optional , default value = 0 )
- * @param namespaceUri     - NamespaceUri
- * @param serverIndex      - the server Index
- * @constructor
  */
 export class ExpandedNodeId extends NodeId {
     public static nullExpandedNodeId = new ExpandedNodeId(NodeIdType.NUMERIC, 0, 0);
@@ -50,6 +41,13 @@ export class ExpandedNodeId extends NodeId {
     public serverIndex: number;
 
     public constructor(forDeserialization: null);
+    /**
+     * @param identifierType   - the nodeID type
+     * @param value            - the node id value. The type of Value depends on identifierType.
+     * @param namespace        - the index of the related namespace (optional , default value = 0 )
+     * @param namespaceUri     - NamespaceUri
+     * @param serverIndex      - the server Index
+     */
     public constructor(
         identifierType: NodeIdType,
         value: number | string | Guid | Buffer,
@@ -68,11 +66,6 @@ export class ExpandedNodeId extends NodeId {
         this.namespaceUri = namespaceUri || null;
         this.serverIndex = serverIndex || 0;
     }
-
-    /**
-     * @method toString
-     * @return {string}
-     */
     public toString(): string {
         let str = NodeId.prototype.toString.call(this);
         if (this.namespaceUri) {
@@ -85,9 +78,7 @@ export class ExpandedNodeId extends NodeId {
     }
 
     /**
-     * convert nodeId to a JSON string. same as {@link NodeId#toString }
-     * @method  toJSON
-     * @return {String}
+     * convert nodeId to a JSON string. same as {@link toString }
      */
     public toJSON(): any {
         return this.toString();
@@ -98,12 +89,8 @@ export function coerceExpandedNodeId(value: unknown): ExpandedNodeId {
     const n = coerceNodeId(value);
     return new ExpandedNodeId(n.identifierType, n.value, n.namespace, /*namespaceUri*/ null, /*serverIndex*/ 0);
 }
-
 /**
- * @method  makeExpandedNodeId
- * @param  value
- * @param [namespace=0] the namespace
- * @return {ExpandedNodeId}
+ * create an expanded nodeId
  */
 export function makeExpandedNodeId(value: unknown, namespace?: number): ExpandedNodeId {
     if (value === undefined && namespace === undefined) {

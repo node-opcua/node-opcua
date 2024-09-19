@@ -286,7 +286,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     /**
-     * @method nextClientHandle
+
      */
     public nextClientHandle(): number {
         this._nextClientHandle += 1;

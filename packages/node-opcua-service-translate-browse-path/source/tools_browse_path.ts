@@ -14,7 +14,7 @@ const aggregatesReferencesId = makeNodeId(ReferenceTypeIds.Aggregates);
 export { stringToQualifiedName } from "node-opcua-data-model";
 
 /**
- * @method constructBrowsePathFromQualifiedName
+
  * @param startingNode
  * @param targetNames
  * @return {BrowsePath}

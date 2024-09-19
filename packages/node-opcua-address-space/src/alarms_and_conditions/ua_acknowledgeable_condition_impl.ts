@@ -208,11 +208,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 
     /**
-     * @method _confirm_branch
      * @param conditionEventId The ConditionEventId field shall contain the id of the Event that was conformed
-     * @param comment
-     * @param branch
-     * @param message
      * @private
      */
     public _confirm_branch(
@@ -248,9 +244,6 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 
     /**
-     * @method autoConfirmBranch
-     * @param branch
-     * @param comment
      */
     public autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void {
         assert(branch instanceof ConditionSnapshotImpl);
@@ -267,9 +260,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     }
 
     /**
-     * @method acknowledgeAndAutoConfirmBranch
-     * @param branch {ConditionSnapshot}
-     * @param comment {String|LocalizedText}
+     * 
      */
     public acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void {
         comment = LocalizedText.coerce(comment)!;

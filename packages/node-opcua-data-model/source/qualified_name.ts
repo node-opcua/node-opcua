@@ -118,7 +118,7 @@ function isInteger(value: any): boolean {
 }
 
 /**
- * @method stringToQualifiedName
+
  * @param value {String}
  * @return {{namespaceIndex: Number, name: String}}
  *

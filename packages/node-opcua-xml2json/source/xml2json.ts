@@ -34,7 +34,7 @@ export interface Parser {
 /**
  * @static
  * @private
- * @method _coerceParser
+
  * @param parser {map<ReaderState|options>}
  * @return {map}
  */
@@ -136,7 +136,7 @@ export class ReaderState extends ReaderStateBase {
     }
 
     /**
-     * @method _on_init
+
      * @param elementName  - the name of the element
      * @param attrs
      * @param parent
@@ -191,7 +191,7 @@ export class ReaderState extends ReaderStateBase {
     }
 
     /**
-     * @method _on_endElement
+
      * @protected
      */
     public _on_endElement(level: number, elementName: string): void {
@@ -219,7 +219,7 @@ export class ReaderState extends ReaderStateBase {
     }
 
     /**
-     * @method _on_text
+
      * @param text {String} the text found inside the element
      * @protected
      */
@@ -311,7 +311,7 @@ export class Xml2Json {
     }
     /**
      * @deprecated
-     * @method parseString
+
      * @async
      */
     public parseString(xml_text: string): Promise<any>;

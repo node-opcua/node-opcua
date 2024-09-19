@@ -453,9 +453,6 @@ export class BaseUAObject {
 
     /**
      * Encode the object to the binary stream.
-     * @class BaseUAObject
-     * @method encode
-     * @param stream {BinaryStream}
      */
     public encode(stream: OutputBinaryStream): void {
         /** */
@@ -463,9 +460,6 @@ export class BaseUAObject {
 
     /**
      * Decode the object from the binary stream.
-     * @class BaseUAObject
-     * @method decode
-     * @param stream {BinaryStream}
      */
     public decode(stream: BinaryStream): void {
         /** */
@@ -473,8 +467,6 @@ export class BaseUAObject {
 
     /**
      * Calculate the required size to store this object in a binary stream.
-     * @method binaryStoreSize
-     * @return number
      */
     public binaryStoreSize(): number {
         const stream = new BinaryStreamSizeCalculator();
@@ -483,8 +475,6 @@ export class BaseUAObject {
     }
 
     /**
-     * @method toString
-     * @return {String}
      */
     public toString(...args: any[]): string {
         if (this.schema && Object.prototype.hasOwnProperty.call(this.schema, "toString")) {
@@ -500,8 +490,6 @@ export class BaseUAObject {
     /**
      *
      * verify that all object attributes values are valid according to schema
-     * @method isValid
-     * @return boolean
      */
     public isValid(): boolean {
         assert(this.schema);
@@ -513,7 +501,6 @@ export class BaseUAObject {
     }
 
     /**
-     * @method decodeDebug
      *
      */
     public decodeDebug(stream: BinaryStream, options: DecodeDebugOptions): void {

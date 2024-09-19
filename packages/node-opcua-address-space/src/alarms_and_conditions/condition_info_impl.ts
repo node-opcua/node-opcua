@@ -46,9 +46,7 @@ export class ConditionInfoImpl implements ConditionInfo {
     }
 
     /**
-     * @method isDifferentFrom
-     * @param otherConditionInfo {ConditionInfo}
-     * @return {Boolean}
+     * 
      */
     public isDifferentFrom(otherConditionInfo: ConditionInfo): boolean {
         return (

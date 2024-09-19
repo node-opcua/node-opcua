@@ -8,7 +8,7 @@ import { AddReferenceOpts, BaseNode, UAReference } from "..";
 /**
  * asserts that the provided reference exists in the node references
  *
- * @method assertHasMatchingReference
+
  *
  * @param node
  * @param reference (Reference}

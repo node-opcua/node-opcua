@@ -419,7 +419,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     /**
      * create and activate a new session
      * @async
-     * @method createSession
+
      *
      *
      * @example
@@ -531,7 +531,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
     /**
      *
-     * @method closeSession
+
      * @async
      * @param session - the created client session
      * @param deleteSubscriptions  - whether to delete subscriptions or not
@@ -677,7 +677,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
     /**
      * transfer session to this client
-     * @method reactivateSession
+
      * @param session
      * @param callback
      * @return {*}
@@ -1222,7 +1222,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 // tslint:disable:max-line-length
 const thenify = require("thenify");
 /**
- * @method createSession
+
  * @async
  *
  * @example
@@ -1242,12 +1242,12 @@ const thenify = require("thenify");
 OPCUAClientImpl.prototype.createSession = thenify.withCallback(OPCUAClientImpl.prototype.createSession);
 OPCUAClientImpl.prototype.createSession2 = thenify.withCallback(OPCUAClientImpl.prototype.createSession2);
 /**
- * @method changeSessionIdentity
+
  * @async
  */
 OPCUAClientImpl.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClientImpl.prototype.changeSessionIdentity);
 /**
- * @method closeSession
+
  * @async
  * @example
  *    const session  = await client.createSession();

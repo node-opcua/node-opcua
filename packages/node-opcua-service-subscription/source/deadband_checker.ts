@@ -124,7 +124,7 @@ function isOutsideDeadbandVariant(v1: Variant, v2: Variant, absoluteDeadBand: nu
 // }
 
 /**
- * @method isOutsideDeadbandNone
+
  * @return true if the element is in deadBand
  */
 export function isOutsideDeadbandNone(variant1: Variant, variant2: Variant): boolean {
@@ -132,7 +132,7 @@ export function isOutsideDeadbandNone(variant1: Variant, variant2: Variant): boo
     return variant1.value !== variant2.value;
 }
 /**
- * @method isOutsideDeadbandAbsolute
+
  * @return true if the element is in deadBand
  */
 export function isOutsideDeadbandAbsolute(variant1: Variant, variant2: Variant, deadbandValue: number): boolean {
@@ -141,7 +141,7 @@ export function isOutsideDeadbandAbsolute(variant1: Variant, variant2: Variant, 
 }
 
 /**
- * @method isOutsideDeadband
+
  * @return true if the element is outside deadBand
  */
 export function isOutsideDeadbandPercent(variant1: Variant, variant2: Variant, deadbandValuePercent: number, range: PseudoRange): boolean {

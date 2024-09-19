@@ -38,18 +38,6 @@ export interface UALimitAlarmImpl extends UALimitAlarmEx {
 }
 export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAlarmEx {
     /**
-     * @method (static)UALimitAlarm.instantiate
-     * @param namespace {INamespace}
-     * @param limitAlarmTypeId
-     * @param options
-     * @param options.inputNode
-     * @param options.optionals
-     * @param options.highHighLimit {Double}
-     * @param options.highLimit     {Double}
-     * @param options.lowLimit      {Double}
-     * @param options.lowLowLimit   {Double}
-     * @param data
-     * @return {UALimitAlarm}
      */
     public static instantiate(
         namespace: NamespacePrivate,
@@ -155,8 +143,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method getHighHighLimit
-     * @return {Number}
      */
     public getHighHighLimit(): number {
         if (!this.highHighLimit) {
@@ -166,8 +152,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method getHighLimit
-     * @return {Number}
      */
     public getHighLimit(): number {
         if (!this.highLimit) {
@@ -177,8 +161,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method getLowLimit
-     * @return {Float}
      */
     public getLowLimit(): number {
         if (!this.lowLimit) {
@@ -188,8 +170,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method getLowLowLimit
-     * @return {Float}
      */
     public getLowLowLimit(): number {
         if (!this.lowLowLimit) {
@@ -199,8 +179,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method setHighHighLimit
-     * @param value {Float}
      */
     public setHighHighLimit(value: number): void {
         if (!this.highHighLimit) {
@@ -210,8 +188,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method setHighLimit
-     * @param value {Float}
      */
     public setHighLimit(value: number): void {
         if (!this.highLimit) {
@@ -221,8 +197,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method setLowLimit
-     * @param value {Float}
      */
     public setLowLimit(value: number): void {
         if (!this.lowLimit) {
@@ -232,8 +206,6 @@ export class UALimitAlarmImpl extends UAAlarmConditionImpl implements UALimitAla
     }
 
     /**
-     * @method setLowLowLimit
-     * @param value {Float}
      */
     public setLowLowLimit(value: number): void {
         if (!this.lowLowLimit) {

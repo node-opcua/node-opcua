@@ -11,6 +11,7 @@ import { LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import {
+    CallMethodRequestLike,
     IBasicSession,
     IBasicSessionBrowse,
     IBasicSessionBrowseNext,
@@ -57,6 +58,7 @@ import { ArgumentDefinition, MethodId } from "node-opcua-pseudo-session";
 import { AggregateFunction } from "node-opcua-constants";
 import {
     AggregateConfigurationOptions,
+    CallMethodResult,
     HistoryReadRequest,
     HistoryReadResponse,
     HistoryReadValueIdOptions
@@ -69,7 +71,6 @@ export { ExtensionObject } from "node-opcua-extension-object";
 export { ArgumentDefinition, CallMethodRequestLike, MethodId } from "node-opcua-pseudo-session";
 
 import { ClientSubscription } from "./client_subscription";
-
 
 export interface MonitoredItemData {
     clientHandles: Uint32Array;
@@ -160,12 +161,10 @@ export interface ClientSessionBrowseService extends IBasicSessionBrowse, IBasicS
      * with browseNext
      */
     requestedMaxReferencesPerNode: number;
-
-  }
+}
 
 // translate browsePathTo NodeId services
-export interface ClientSessionTranslateBrowsePathService extends IBasicSessionTranslateBrowsePath {
-}
+export interface ClientSessionTranslateBrowsePathService extends IBasicSessionTranslateBrowsePath {}
 
 // query services
 export interface ClientSessionQueryService {
@@ -176,66 +175,9 @@ export interface ClientSessionQueryService {
 
 // call services
 export interface ClientSessionCallService extends IBasicSessionCall {
-    /**
-     *
-     * @method call
-     *
-     * @param methodToCall {CallMethodRequest} the call method request
-     * @param callback
-     *
-     * @example :
-     *
-     * ```javascript
-     * const methodToCall = {
-     *     objectId: "ns=2;i=12",
-     *     methodId: "ns=2;i=13",
-     *     inputArguments: [
-     *         new Variant({...}),
-     *         new Variant({...}),
-     *     ]
-     * }
-     * session.call(methodToCall,function(err,callResult) {
-     *    if (!err) {
-     *         console.log(" statusCode = ",callResult.statusCode);
-     *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
-     *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
-     *         console.log(" outputArgument[0]       = ",callResult.outputArgument[0].toString()); // array of variant
-     *    }
-     * });
-     * ```
-     *
-     * @method call
-     *
-     * @param methodsToCall {CallMethodRequest[]} the call method request array
-     * @param callback
-     *
-     *
-     * @example :
-     *
-     * ```javascript
-     * const methodsToCall = [ {
-     *     objectId: "ns=2;i=12",
-     *     methodId: "ns=2;i=13",
-     *     inputArguments: [
-     *         new Variant({...}),
-     *         new Variant({...}),
-     *     ]
-     * }];
-     * session.call(methodsToCall,function(err,callResults) {
-     *    if (!err) {
-     *         const callResult = callResults[0];
-     *         console.log(" statusCode = ",rep.statusCode);
-     *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
-     *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
-     *         console.log(" outputArgument[0]       = ",callResult.outputArgument[0].toString()); // array of variant
-     *    }
-     * });
-     * ```
-     */
 
 
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
-
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
 }
 
@@ -252,36 +194,33 @@ export interface ClientSessionRegisterService {
 
 // read services
 export interface ClientSessionReadService extends IBasicSessionRead {
-  
     /**
-     * @deprecated
+     * @deprecated use read() instead
      */
     readVariableValue(nodeId: NodeIdLike, callback: ResponseCallback<DataValue>): void;
     /**
-     * @deprecated
+     * @deprecated use read() instead
      */
     readVariableValue(nodeId: NodeIdLike): Promise<DataValue>;
     /**
-     * @deprecated
+     * @deprecated use read() instead
      */
     readVariableValue(nodeIds: NodeIdLike[], callback: ResponseCallback<DataValue[]>): void;
     /**
-     * @deprecated
+     * @deprecated use read() instead
      */
     readVariableValue(nodeIds: NodeIdLike[]): Promise<DataValue[]>;
 }
 
 // write services
 export interface ClientSessionWriteService extends IBasicSessionWrite {
-
-
     /**
-     * @deprecated
+     * @deprecated use write() instead
      */
     writeSingleNode(nodeToWrite: NodeIdLike, value: Variant): Promise<StatusCode>;
 
     /**
-     * @deprecated
+     * @deprecated use write() instead
      */
     writeSingleNode(nodeToWrite: NodeIdLike, value: Variant, callback: ResponseCallback<StatusCode>): void;
 }
@@ -289,8 +228,6 @@ export interface ClientSessionWriteService extends IBasicSessionWrite {
 // raw subscription services
 export interface ClientSessionRawSubscriptionService {
     /**
-     * @method createSubscription
-     * @async
      *
      * @example
      *
@@ -334,9 +271,7 @@ export interface ClientSessionRawSubscriptionService {
     deleteSubscriptions(options: DeleteSubscriptionsRequestLike): Promise<DeleteSubscriptionsResponse>;
 
     /**
-     *
-     * @method modifyMonitoredItems
-     * @async
+     * modify the monitored item parameters
      */
     modifyMonitoredItems(options: ModifyMonitoredItemsRequestLike, callback?: ResponseCallback<ModifyMonitoredItemsResponse>): void;
 
@@ -425,8 +360,6 @@ export interface ClientSessionReadHistoryService {
     ): Promise<HistoryReadResult>;
 
     /**
-     * @method readAggregateValue
-     * @async
      *
      * @example
      *
@@ -449,7 +382,7 @@ export interface ClientSessionReadHistoryService {
      *   new Date("2015-06-10T09:01:00.000Z"),
      *   AggregateFunction.Average, 3600000);
      * ```
-     * @param nodes   the read value id
+     * @param nodesToRead   the read value id
      * @param startTime   the start time in UTC format
      * @param endTime     the end time in UTC format
      * @param aggregateFn
@@ -569,7 +502,6 @@ export interface ClientSessionDataTypeService {
      *
      * this method is useful to determine which DataType to use when constructing a Variant
      * @param nodeId - the node id of the variable to query
-     * @async
      *
      *
      * @example
@@ -603,7 +535,6 @@ export interface ClientSessionExtensionObjectService {
     constructExtensionObject(dataType: NodeId, pojo: Record<string, unknown>): Promise<ExtensionObject>;
 
     /**
-     * @private
      */
     extractNamespaceDataType(): Promise<ExtraDataTypeManager>;
 }
@@ -616,7 +547,7 @@ export interface ClientSessionConditionService {
     /**
      * helper to add a comment to a condition
      *
-     * The AddComment Method is used to apply a comment to a specific state of a Condition instance.
+     * The addComment Method is used to apply a comment to a specific state of a Condition instance.
      *
      * Normally, the NodeId of the object instance as the ObjectId is passed to the Call Service.
      *
@@ -703,20 +634,19 @@ export interface ClientSessionConditionService {
     acknowledgeCondition(conditionId: NodeId, eventId: Buffer, comment: LocalizedTextLike): Promise<StatusCode>;
 
     /**
-     * @method findMethodId
      *
      * @param nodeId      the nodeId of the parent Object
-     * @param methodName  the method name 
+     * @param methodName  the method name
      * @param callback
-     * 
-     * note: 
+     *
+     * note:
      *   - methodName is a browse name and may therefore be prefixed with a namespace index.
      *   - if method is not found on the object specified by nodeId, then the findMethodId will
-     *     recursively browse up the hierarchy of object typeDefinition Node 
+     *     recursively browse up the hierarchy of object typeDefinition Node
      *     until it reaches the root type. and try to find the first method that matches the
      *     provided name.
-     * 
-     * @deprecated use global findMethodId(session, nodeId, methoName): Promise<NodeId> instead
+     *
+     * @deprecated use global findMethodId(session, nodeId, methodName): Promise<NodeId> instead
      */
     findMethodId(nodeId: NodeIdLike, methodName: string, callback: ResponseCallback<NodeId>): void;
 

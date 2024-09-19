@@ -378,7 +378,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      * find a ReferenceType by its inverse name.
-     * @method findReferenceTypeFromInverseName
+
      * @param inverseName {String} the inverse name of the ReferenceType to find
      * @return {ReferenceType}
      */
@@ -391,7 +391,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      *
-     * @method addAlias
+
      * @param alias_name {String} the alias name
      * @param nodeId {NodeId} NodeId must belong to this namespace
      */
@@ -408,7 +408,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      * add a new Object type to the address space
-     * @method addObjectType
+
      * @param options
      * @param options.browseName {String} the object type name
      * @param [options.displayName] {String|LocalizedText} the display name
@@ -432,7 +432,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      * add a new Variable type to the address space
-     * @method addVariableType
+
      * @param options
      * @param options.browseName {String} the object type name
      * @param [options.displayName] {String|LocalizedText} the display name
@@ -528,7 +528,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      *
-     * @method addFolder
+
      * @param parentFolder
      * @param options {String|Object}
      * @param options.browseName {String} the name of the folder
@@ -556,7 +556,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @method addReferenceType
+
      * @param options
      * @param options.isAbstract
      * @param options.browseName
@@ -595,7 +595,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @method createDataType
+
      */
     public createDataType(options: CreateDataTypeOptions): UADataType {
         assert(Object.prototype.hasOwnProperty.call(options, "isAbstract"), "must provide isAbstract");
@@ -632,7 +632,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @method createNode
+
      * @param options
      * @param options.nodeClass
      * @param [options.nodeVersion {String} = "0" ] install nodeVersion
@@ -677,7 +677,7 @@ export class NamespaceImpl implements NamespacePrivate {
     /**
      * remove the specified Node from the address space
      *
-     * @method deleteNode
+
      * @param  nodeOrNodeId
      *
      *
@@ -770,7 +770,7 @@ export class NamespaceImpl implements NamespacePrivate {
     // - Events --------------------------------------------------------------------------------------
     /**
      * add a new event type to the address space
-     * @method addEventType
+
      * @param options
      * @param options.browseName {String} the eventType name
      * @param [options.subtypeOf ="BaseEventType"]
@@ -800,7 +800,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     // ---------------------------------------------------------------------------------------------------
     /**
-     * @method addDataItem
+
      * @param options
      * @param options.browseName {String}
      * @param options.definition {String}
@@ -832,7 +832,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      *
-     * @method addAnalogDataItem
+
      *
      * AnalogDataItem DataItems that represent continuously-variable physical quantities ( e.g., length, temperature),
      * in contrast to the digital representation of data in discrete  items
@@ -961,7 +961,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      *
-     * @method addMultiStateValueDiscrete
+
      * @param options {Object}
      * @param options.browseName {String}
      * @param [options.nodeId  {NodeId}]
@@ -1012,7 +1012,7 @@ export class NamespaceImpl implements NamespacePrivate {
     // -
     /**
      *
-     * @method addYArrayItem
+
      * @param options
      * @param options.componentOf {NodeId}
      * @param options.browseName {String}
@@ -1123,7 +1123,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     // - Methods ----------------------------------------------------------------------------------------------------
     /**
-     * @method addMethod
+
      * @param parentObject {Object}
      * @param options {Object}
      * @param [options.nodeId=null] {NodeId} the object nodeid.
@@ -1218,7 +1218,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
     /**
      *
-     * @method addEnumerationType
+
      * @param options
      * @param options.browseName  {String}
      * @param options.enumeration {Array}
@@ -1423,7 +1423,7 @@ export class NamespaceImpl implements NamespacePrivate {
     // -------------------------------------------------------------------------
     /**
      * @class IAddressSpace
-     * @method addState
+
      * @param component
      * @param stateName   {string}
      * @param stateNumber {number}
@@ -1533,7 +1533,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @method addTwoStateVariable
+
      *
      * @return {UATwoStateVariable}
      */
@@ -1542,7 +1542,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @method addTwoStateDiscrete
+
      *
      * Add a TwoStateDiscrete Variable
      * @return {UATwoStateDiscrete}
@@ -1721,7 +1721,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @method internalCreateNode
+
      * @internal
      */
     public internalCreateNode(options: CreateNodeOptions): BaseNode {
@@ -2089,7 +2089,7 @@ const _constructors_map: any = {
 };
 
 /**
- * @method _coerce_parent
+
  * convert a 'string' , NodeId or Object into a valid and existing object
  * @param addressSpace  {IAddressSpace}
  * @param value

@@ -498,8 +498,6 @@ export class MonitoredItem extends EventEmitter {
 
     /**
      * Terminate the  MonitoredItem.
-     * @method terminate
-     *
      * This will stop the internal sampling timer.
      */
     public terminate(): void {
@@ -719,7 +717,7 @@ export class MonitoredItem extends EventEmitter {
         return StatusCodes.Good;
     }
     /**
-     * @internals
+     * @private
      */
     private triggerLinkedItems() {
         if (!this.$subscription || !this._linkedItems) {
@@ -753,7 +751,7 @@ export class MonitoredItem extends EventEmitter {
     }
 
     /**
-     * @internals
+     * @private
      */
     private trigger() {
         setImmediate(() => {
@@ -872,7 +870,6 @@ export class MonitoredItem extends EventEmitter {
         return sessionContext;
     }
     /**
-     * @method _on_sampling_timer
      * @private
      */
     private _on_sampling_timer() {
@@ -1264,7 +1261,6 @@ export class MonitoredItem extends EventEmitter {
     }
 
     /**
-     * @method _enqueue_value
      * @param dataValue {DataValue} the dataValue to enqueue
      * @private
      */

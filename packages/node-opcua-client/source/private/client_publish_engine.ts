@@ -25,10 +25,7 @@ const warningLog = make_warningLog(__filename);
  * Finally, ClientSidePublishEngine dispatch PublishResponse to the correct
  * Subscription id callback
  *
- * @param session {ClientSession} - the client session
- *
- *
- * @constructor
+ * @private
  */
 export class ClientSidePublishEngine {
     public static publishRequestCountInPipeline = 5;
@@ -98,7 +95,7 @@ export class ClientSidePublishEngine {
     }
 
     /**
-     * @method send_publish_request
+     * @private
      */
     public send_publish_request(): void {
         if (this.isSuspended) {
@@ -127,11 +124,17 @@ export class ClientSidePublishEngine {
         }
     }
 
+    /**
+     * @private
+     */
     public terminate(): void {
         debugLog("Terminated ClientPublishEngine ");
         this.session = null;
     }
 
+    /**
+     * @private
+     */
     public registerSubscription(subscription: ClientSubscription): void {
         debugLog("ClientSidePublishEngine#registerSubscription ", subscription.subscriptionId);
 
@@ -152,6 +155,9 @@ export class ClientSidePublishEngine {
         this.replenish_publish_request_queue();
     }
 
+    /**
+     * @private
+     */
     public replenish_publish_request_queue(): void {
         // Spec 1.03 part 4 5.13.5 Publish
         // [..] in high latency networks, the Client may wish to pipeline Publish requests
@@ -168,9 +174,9 @@ export class ClientSidePublishEngine {
     }
 
     /**
-     * @method unregisterSubscription
      *
      * @param subscriptionId
+     * @private
      */
     public unregisterSubscription(subscriptionId: SubscriptionId): void {
         debugLog("ClientSidePublishEngine#unregisterSubscription ", subscriptionId);

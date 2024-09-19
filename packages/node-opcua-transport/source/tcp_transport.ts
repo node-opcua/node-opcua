@@ -278,7 +278,7 @@ export class TCP_transport extends EventEmitter {
 
     /**
      * write the message_chunk on the socket.
-     * @method write
+
      * @param messageChunk
      */
     public write(messageChunk: Buffer, callback?: (err?: Error) => void | undefined): void {
@@ -298,7 +298,7 @@ export class TCP_transport extends EventEmitter {
      * disconnect the TCP layer and close the underlying socket.
      * The ```"close"``` event will be emitted to the observers with err=null.
      *
-     * @method disconnect
+
      * @async
      * @param callback
      */
@@ -438,7 +438,7 @@ export class TCP_transport extends EventEmitter {
         }
     }
     /**
-     * @method _install_one_time_message_receiver
+
      *
      * install a one time message receiver callback
      *

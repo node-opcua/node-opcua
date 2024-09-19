@@ -30,52 +30,32 @@ export interface ConditionSnapshot extends EventEmitter {
     branchId: NodeId | null;
 
     /**
-     * @method getBrandId
-     * @return {NodeId}
      */
     getBranchId(): NodeId;
     /**
-     * @method getEventId
-     * @return {ByteString}
      */
     getEventId(): Buffer;
     /**
-     * @method getRetain
-     * @return {Boolean}
      */
     getRetain(): boolean;
     /**
-     *
-     * @method setRetain
-     * @param retainFlag {Boolean}
      */
     setRetain(retainFlag: boolean): void;
 
     /**
-     * @method renewEventId
-     *
      */
     renewEventId(): void;
 
     /**
-     * @method getEnabledState
-     * @return {Boolean}
      */
     getEnabledState(): boolean;
     /**
-     * @method setEnabledState
-     * @param value {Boolean}
-     * @return void
      */
     setEnabledState(value: boolean, options?: ISetStateOptions): void;
     /**
-     * @method getEnabledStateAsString
-     * @return {String}
      */
     getEnabledStateAsString(): string;
     /**
-     * @method getComment
-     * @return {LocalizedText}
      */
     getComment(): LocalizedText;
 
@@ -88,20 +68,14 @@ export interface ConditionSnapshot extends EventEmitter {
      * a Method provides as an option the ability to set a Comment, then the value of this Variable is
      * reset to null if an optional comment is not provided.
      *
-     * @method setComment
-     * @param txtMessage {LocalizedText}
      */
     setComment(txtMessage: LocalizedTextLike, options?: IConditionVariableTypeSetterOptions): void;
     /**
      *
-     * @method setMessage
-     * @param txtMessage {LocalizedText}
      */
     setMessage(txtMessage: LocalizedTextLike | LocalizedText): void;
 
     /**
-     * @method setClientUserId
-     * @param userIdentity {String}
      */
     setClientUserId(userIdentity: string): void;
     /*
@@ -131,13 +105,10 @@ export interface ConditionSnapshot extends EventEmitter {
 
     /**
      * set the condition quality
-     * @method setQuality
-     * @param quality {StatusCode}
      */
     setQuality(quality: StatusCode, options?: IConditionVariableTypeSetterOptions): void;
     /**
-     * @method getQuality
-     * @return {StatusCode}
+     * 
      */
     getQuality(): StatusCode;
     /*
@@ -170,15 +141,9 @@ export interface ConditionSnapshot extends EventEmitter {
      * of 667 to 1 000, Events of medium urgency into the OPC severity range of 334 to 666 and
      * Events of low urgency into OPC severities of 1 to 333.
      */
-    /**
-     * @method setSeverity
-     * @param severity {UInt16}
-     */
     setSeverity(severity: UInt16, options?: IConditionVariableTypeSetterOptions): void;
 
     /**
-     * @method getSeverity
-     * @return {UInt16}
      */
     getSeverity(): UInt16;
 
@@ -189,14 +154,8 @@ export interface ConditionSnapshot extends EventEmitter {
      *  supplied via the Severity Property which is inherited from the BaseEventType.
      *
      */
-    /**
-     * @method setLastSeverity
-     * @param severity {UInt16}
-     */
     setLastSeverity(severity: UInt16, options?: IConditionVariableTypeSetterOptions): void;
     /**
-     * @method getLastSeverity
-     * @return {UInt16}
      */
     getLastSeverity(): UInt16;
 
@@ -216,8 +175,6 @@ export interface ConditionSnapshot extends EventEmitter {
      * The ReceiveTime shall always be returned as value and the Server is not allowed to return a
      * StatusCode for the ReceiveTime indicating an error.
      *
-     * @method setReceiveTime
-     * @param time {Date} : UTCTime
      */
     setReceiveTime(time: UtcTime): void;
     /**
@@ -226,33 +183,27 @@ export interface ConditionSnapshot extends EventEmitter {
      * possible. It often comes from the underlying system or device. Once set, intermediate OPC UA
      * Servers shall not alter the value.
      *
-     * @method setTime
-     * @param time {Date}
      */
     setTime(time: Date): void;
     /**
      * LocalTime is a structure containing the Offset and the DaylightSavingInOffset flag. The Offset
      * specifies the time difference (in minutes) between the Time Property and the time at the location
      * in which the event was issued. If DaylightSavingInOffset is TRUE, then Standard/Daylight
-     * savings time (DST) at the originating location is in effect and Offset includes the DST c orrection.
+     * savings time (DST) at the originating location is in effect and Offset includes the DST correction.
      * If FALSE then the Offset does not include DST correction and DST may or may not have been
      * in effect.
-     * @method setLocalTime
-     * @param localTime {TimeZone}
      */
     setLocalTime(localTime: TimeZoneDataType): void;
 
     // read only !
     getSourceName(): LocalizedText;
     /**
-     * @method getSourceNode
-     * return {NodeId}
+     *
      */
     getSourceNode(): NodeId;
 
     /**
-     * @method getEventType
-     * return {NodeId}
+     * 
      */
     getEventType(): NodeId;
     getMessage(): LocalizedText;

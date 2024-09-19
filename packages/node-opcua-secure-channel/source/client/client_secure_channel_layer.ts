@@ -10,7 +10,6 @@ import async from "async";
 
 import {
     Certificate,
-    DerivedKeys,
     extractPublicKeyFromCertificate,
     PrivateKey,
     PublicKey,
@@ -519,7 +518,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     /**
      * establish a secure channel with the provided server end point.
      *
-     * @method create
+
      * @async
      * @param endpointUrl
      * @param callback the async callback function
@@ -728,7 +727,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
      *
      * After this call, the connection is closed and no further transaction can be made.
      *
-     * @method close
+
      * @async
      * @param callback
      */
@@ -1208,10 +1207,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
                 // record channelId for future transactions
                 this.channelId = openSecureChannelResponse.securityToken.channelId;
-
-                // todo : verify that server certificate is  valid
-                // A self-signed application instance certificate does not need to be verified with a CA.
-                // todo : verify that Certificate URI matches the ApplicationURI of the server
 
                 // istanbul ignore next
                 if (openSecureChannelResponse.securityToken.tokenId <= 0 && msgType !== "OPN") {

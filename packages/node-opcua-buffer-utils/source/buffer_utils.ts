@@ -14,7 +14,7 @@
 export const createFastUninitializedBuffer = Buffer.allocUnsafe;
 
 /**
- * @method makeBuffer
+
  * turn a string make of hexadecimal bytes into a buffer
  *
  * @example

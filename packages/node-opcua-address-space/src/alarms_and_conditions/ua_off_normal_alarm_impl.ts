@@ -146,7 +146,6 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     }
 
     /**
-     * @method getNormalStateValue
      */
     public getNormalStateValue(): NodeId | null {
         const normalStateNode = this.getNormalStateNode();
@@ -157,8 +156,6 @@ export class UAOffNormalAlarmImpl extends UADiscreteAlarmImpl implements UAOffNo
     }
 
     /**
-     * @method setNormalStateValue
-     * @param value
      */
     public setNormalStateValue(value: NodeIdLike): void {
         const normalStateNode = this.getNormalStateNode();

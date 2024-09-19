@@ -27,7 +27,7 @@ export interface BasicTypeOptions {
  *
  *   registerBasicType({name:"Duration"   ,subType:"Double"});
  *
- * @method registerBasicType
+
  * @param schema
  * @param schema.name {String}
  * @param schema.subType {String} mandatory, the basic type from which the new type derives.

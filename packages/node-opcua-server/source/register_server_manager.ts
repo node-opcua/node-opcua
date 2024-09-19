@@ -290,10 +290,6 @@ let g_registeringClientCounter = 0;
  *
  *
  * (LDS => Local Discovery Server)
- * @param options
- * @param options.server {OPCUAServer}
- * @param options.discoveryServerEndpointUrl {String}
- * @constructor
  */
 export class RegisterServerManager extends EventEmitter implements IRegisterServerManager {
     public discoveryServerEndpointUrl: string;

@@ -14,7 +14,7 @@ const debugLog = make_debugLog(__filename);
 /**
  * ensure correctness of a schema object.
  *
- * @method check_schema_correctness
+
  * @param schema
  *
  */
@@ -26,7 +26,7 @@ export function check_schema_correctness(schema: IStructuredTypeSchema): void {
 
 
 /**
- * @method initialize_value
+
  * @param value
  * @param defaultValue
  * @return {*}
@@ -78,7 +78,7 @@ export function initialize_field(field: StructuredTypeField, value: unknown, fac
 }
 
 /**
- * @method initialize_field_array
+
  * @param field
  * @param valueArray
  * @return

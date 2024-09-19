@@ -221,7 +221,7 @@ export class ChunkManager extends EventEmitter {
      * compute the signature of the chunk and append it at the end
      * of the data block.
      *
-     * @method _write_signature
+
      * @private
      */
     #_write_signature(chunk: Buffer) {

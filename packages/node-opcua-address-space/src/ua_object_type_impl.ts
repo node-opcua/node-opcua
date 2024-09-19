@@ -78,7 +78,7 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
     /**
      * instantiate an object of this UAObjectType
      * The instantiation takes care of object type inheritance when constructing inner properties and components.
-     * @method instantiate
+
      * @param options
      * @param options.browseName
      * @param [options.description]

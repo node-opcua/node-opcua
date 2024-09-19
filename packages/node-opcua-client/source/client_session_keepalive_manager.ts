@@ -90,13 +90,11 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
         });
     }
     /**
-     * @method ping_server
-     * @internal
+     * @private
      * when a session is opened on a server, the client shall send request on a regular basis otherwise the server
      * session object might time out.
      * start_ping make sure that ping_server is called on a regular basis to prevent session to timeout.
      *
-     * @param callback
      */
     private async _ping_server(): Promise<number> {
         const session = this.session;

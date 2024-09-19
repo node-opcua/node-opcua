@@ -108,10 +108,6 @@ const emptyCallback = () => {
     /* empty */
 };
 
-/**
- * @class OPCUABaseServer
- * @constructor
- */
 export class OPCUABaseServer extends OPCUASecureObject {
     public static makeServiceFault = makeServiceFault;
 
@@ -228,9 +224,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
     /**
      * start all registered endPoint, in parallel, and call done when all endPoints are listening.
-     * @method start
-     * @async
-     * @param {callback} done
      */
     public start(done: (err?: Error | null) => void): void {
         assert(typeof done === "function");
@@ -300,7 +293,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
     /**
      * shutdown all server endPoints
-     * @async
      */
     public shutdown(done: (err?: Error) => void): void {
         assert(typeof done === "function");
@@ -617,9 +609,6 @@ export class OPCUABaseServer extends OPCUASecureObject {
 
 /**
  * construct a service Fault response
- * @method makeServiceFault
- * @param statusCode
- * @param messages
  */
 function makeServiceFault(statusCode: StatusCode, messages: string[]): ServiceFault {
     const response = new ServiceFault();

@@ -943,7 +943,7 @@ export function _clone_non_hierarchical_references(
 }
 
 /**
- * @method _clone
+
  * @private
  */
 export function _clone<T extends UAObject | UAVariable | UAMethod>(

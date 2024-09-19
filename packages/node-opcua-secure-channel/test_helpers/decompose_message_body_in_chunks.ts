@@ -3,7 +3,7 @@ import { AsymmetricAlgorithmSecurityHeader, SecureMessageChunkManager, SecurityP
 import { Mode } from "node-opcua-chunkmanager";
 
 /**
- * @method decompose_message_body_in_chunks
+
  *
  * @param messageBody
  * @param msgType

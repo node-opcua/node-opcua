@@ -174,6 +174,61 @@ export interface IBasicSessionCallCallback {
 }
 
 export interface IBasicSessionCall extends IBasicSessionCallCallback, IBasicSessionCallAsync {
+    /**
+     *
+     *
+     * @param methodToCall {CallMethodRequest} the call method request
+     * @param callback
+     *
+     * @example :
+     *
+     * ```javascript
+     * const methodToCall = {
+     *     objectId: "ns=2;i=12",
+     *     methodId: "ns=2;i=13",
+     *     inputArguments: [
+     *         new Variant({...}),
+     *         new Variant({...}),
+     *     ]
+     * }
+     * session.call(methodToCall,function(err,callResult) {
+     *    if (!err) {
+     *         console.log(" statusCode = ",callResult.statusCode);
+     *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
+     *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
+     *         console.log(" outputArgument[0]       = ",callResult.outputArgument[0].toString()); // array of variant
+     *    }
+     * });
+     * ```
+     *
+     *
+     * @param methodsToCall {CallMethodRequest[]} the call method request array
+     * @param callback
+     *
+     *
+     * @example :
+     *
+     * ```javascript
+     * const methodsToCall = [ {
+     *     objectId: "ns=2;i=12",
+     *     methodId: "ns=2;i=13",
+     *     inputArguments: [
+     *         new Variant({...}),
+     *         new Variant({...}),
+     *     ]
+     * }];
+     * session.call(methodsToCall,function(err,callResults) {
+     *    if (!err) {
+     *         const callResult = callResults[0];
+     *         console.log(" statusCode = ",rep.statusCode);
+     *         console.log(" inputArgumentResults[0] = ",callResult.inputArgumentResults[0].toString());
+     *         console.log(" inputArgumentResults[1] = ",callResult.inputArgumentResults[1].toString());
+     *         console.log(" outputArgument[0]       = ",callResult.outputArgument[0].toString()); // array of variant
+     *    }
+     * });
+     * ```
+     */
+
     call(methodToCall: CallMethodRequestLike): Promise<CallMethodResult>;
     call(methodsToCall: CallMethodRequestLike[]): Promise<CallMethodResult[]>;
     call(methodToCall: CallMethodRequestLike, callback: (err: Error | null, result?: CallMethodResult) => void): void;

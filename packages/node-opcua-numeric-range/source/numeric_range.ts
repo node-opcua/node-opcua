@@ -445,7 +445,7 @@ export class NumericRange implements NumericalRange1 {
     }
 
     /**
-     * @method extract_values
+
      * @param array   flat array containing values or string
      * @param dimensions: of the matrix if data is a matrix
      * @return {*}

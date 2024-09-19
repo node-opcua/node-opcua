@@ -8,7 +8,6 @@ const regexGUID = /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-
  * a valid GUID has the form  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXX
  * when X is a hexadecimal digit
  *
- * @method isValidGuid
  * @param guid - the GUID to test for validaty
  * @return  - true if the string is a valid GUID.
  */

@@ -128,7 +128,7 @@ export class ReferenceImpl implements UAReference {
 
     /**
      * turn reference into a arrow :   ---- ReferenceType --> [NodeId]
-     * @method toString
+
      * @return {String}
      */
     public toString(options?: { addressSpace?: any }): string {

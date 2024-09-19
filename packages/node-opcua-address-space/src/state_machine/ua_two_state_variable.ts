@@ -311,8 +311,6 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
         }
     }
     /**
-     * @method setValue
-     * @param boolValue {Boolean}
      */
     public setValue(boolValue: boolean, options?: ISetStateOptions): void {
         assert(typeof boolValue === "boolean");
@@ -328,8 +326,6 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
     }
 
     /**
-     * @method getValue
-     * @return {Boolean}
      */
     public getValue(): boolean {
         const dataValue = this.id!.readValue();
@@ -339,8 +335,6 @@ export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataT
     }
 
     /**
-     * @method getValueAsString
-     * @return {string}
      */
     public getValueAsString(): string {
         const dataValue = this.readValue();

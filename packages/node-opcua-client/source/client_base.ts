@@ -132,10 +132,16 @@ export interface OPCUAClientBaseOptions {
      * discovery url:
      */
     discoveryUrl?: string;
+    
     /**
-     * @advanced
+     * specify some transport settings that will override 
+     * the default transport settings for the end point.
      */
     transportSettings?: TransportSettings;
+  
+    /**
+     * transport timeout
+     */
     transportTimeout?: number;
     /**
      * defaultTransactionTimeout
@@ -242,31 +248,23 @@ export interface OPCUAClientBase extends EventEmitter {
 
     /**
      * the event is raised when the connection has been aborted by the remote OPCUA Server
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "abort", eventHandler: () => void): this;
 
     /**
      * this event is raised when the connection is closed
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "close", eventHandler: () => void): this;
 
     /**
      * this event is raised when the client is sending a message chunk to the server
      * (advanced use only)
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "send_chunk", eventHandler: (chunk: Buffer) => void): this;
 
     /**
      * this event is raised when the client has received a new message chunk from the servers
      * (advanced use only)
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "receive_chunk", eventHandler: (chunk: Buffer) => void): this;
 
@@ -277,38 +275,28 @@ export interface OPCUAClientBase extends EventEmitter {
     /**
      * this event is raised when the current security token has reached 75% of its lifetime and is therefore
      * about to expired.
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "lifetime_75", eventHandler: (token: ChannelSecurityToken) => void): this;
 
     /**
      * this event is raised after the (about ) security token as been renewed
      * and renegotiated with the server.to expire
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "security_token_renewed", eventHandler: (channel: ClientSecureChannelLayer, token: ChannelSecurityToken) => void): this;
 
     /**
      * this event is raised when the connection has been broken
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "connection_lost", eventHandler: () => void): this;
 
     /**
      * this event is raised when a broken connection with the remote Server has been reestablished
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "connection_reestablished", eventHandler: () => void): this;
 
     /**
      * This event is raised when a request sent to the remote OPCUA server has reach it's timeout value without
      * a Response from the server.
-     * @param event
-     * @param eventHandler
      */
     on(eventName: "timed_out_request", eventHandler: (request: Request) => void): this;
 

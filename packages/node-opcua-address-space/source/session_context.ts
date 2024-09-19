@@ -320,10 +320,6 @@ export class SessionContext implements ISessionContext {
         return false;
     }
     /**
-     * @method checkPermission
-     * @param node
-     * @param requestedPermission
-     * @return {Boolean} returns true of the current user is granted the requested Permission
      */
     public checkPermission(node: BaseNode, requestedPermission: PermissionType): boolean {
         const permissions = this.getPermissions(node);

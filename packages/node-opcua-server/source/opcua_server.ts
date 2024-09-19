@@ -422,12 +422,7 @@ function monitoredItem_read_and_record_value(
 }
 
 /*== private
- * @method monitoredItem_read_and_record_value_async
  * this method applies to Variable Values attribute
- * @param self
- * @param oldValue
- * @param node
- * @param itemToMonitor
  * @private
  */
 function monitoredItem_read_and_record_value_async(
@@ -928,11 +923,6 @@ export interface OPCUAServerOptions extends OPCUABaseServerOptions, OPCUAServerE
      * @default false
      */
     skipOwnNamespace?: boolean;
-
-    /**
-     * @private
-     * @optional
-     */
     transportSettings?: IServerTransportSettings;
 }
 
@@ -1303,7 +1293,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /**
      * Initiate the server by starting all its endpoints
-     * @async
      */
     public start(): Promise<void>;
     public start(done: () => void): void;
@@ -1341,8 +1330,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /**
      * shutdown all server endpoints
-     * @method shutdown
-     * @async
      * @param  timeout the timeout (in ms) before the server is actually shutdown
      *
      * @example
@@ -1472,7 +1459,7 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /**
      * create and register a new session
-     * @internal
+     * @private
      */
     protected createSession(options: CreateSessionOption): ServerSession {
         /* istanbul ignore next */
@@ -1484,7 +1471,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /**
      * retrieve a session by authentication token
-     * @internal
      * @private
      */
     public getSession(authenticationToken: NodeId, activeOnly?: boolean): ServerSession | null {
@@ -1496,7 +1482,7 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param channel
      * @param clientCertificate
      * @param clientNonce
-     * @internal
+     * @private
      */
     protected computeServerSignature(
         channel: ServerSecureChannelLayer,
@@ -1511,7 +1497,6 @@ export class OPCUAServer extends OPCUABaseServer {
      * @param session
      * @param channel
      * @param clientSignature
-     * @internal
      */
     protected verifyClientSignature(
         session: ServerSession,
@@ -2086,7 +2071,6 @@ export class OPCUAServer extends OPCUABaseServer {
     // reject requests sent via the old SecureChannel.
     /**
      *
-     * @method _on_ActivateSessionRequest
      * @private
      *
      *
@@ -2288,7 +2272,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
     /**
      * ensure that action is performed on a valid session object,
-     * @method _apply_on_SessionObject
      * @param ResponseClass the constructor of the response Class
      * @param message
      * @param channel
@@ -2518,7 +2501,6 @@ export class OPCUAServer extends OPCUABaseServer {
         await this.engine.closeSession(authenticationToken, deleteSubscriptions, reason);
     }
     /**
-     * @method _on_CloseSessionRequest
      * @param message
      * @param channel
      * @private
@@ -2569,7 +2551,6 @@ export class OPCUAServer extends OPCUABaseServer {
 
     // browse services
     /**
-     * @method _on_BrowseRequest
      * @param message
      * @param channel
      * @private
@@ -2646,10 +2627,6 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 
     /**
-     * @method _on_BrowseNextRequest
-     * @param message
-     * @param channel
-     * @private
      */
     protected _on_BrowseNextRequest(message: Message, channel: ServerSecureChannelLayer): void {
         const request = message.request as BrowseNextRequest;

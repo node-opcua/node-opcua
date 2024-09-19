@@ -195,7 +195,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     private _branches: { [key: string]: ConditionSnapshot } = {};
 
     /**
-     * @method initialize
      * @private
      */
     public initialize(): void {
@@ -203,7 +202,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method post_initialize
      * @private
      */
     public post_initialize(): void {
@@ -236,8 +234,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method createBranch
-     * @return {ConditionSnapshot}
      */
     public createBranch(): ConditionSnapshot {
         const branchId = _create_new_branch_id();
@@ -247,8 +243,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     *  @method deleteBranch
-     *  @param branch {ConditionSnapshot}
      */
     public deleteBranch(branch: ConditionSnapshot): void {
         const key = branch.getBranchId().toString();
@@ -259,16 +253,12 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method getEnabledState
-     * @return {Boolean}
      */
     public getEnabledState(): boolean {
         return this.enabledState.getValue();
     }
 
     /**
-     * @method getEnabledStateAsString
-     * @return {String}
      */
     public getEnabledStateAsString(): string {
         return this.enabledState.getValueAsString();
@@ -343,8 +333,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 
     /**
      *
-     * @method setEnabledState
-     * @param requestedEnabledState {Boolean}
      * @private
      */
     public setEnabledState(requestedEnabledState: boolean, options?: ISetStateOptions): StatusCode {
@@ -352,24 +340,18 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method setReceiveTime
-     * @param time {Date}
      */
     public setReceiveTime(time: Date): void {
         return this._branch0.setReceiveTime(time);
     }
 
     /**
-     * @method setLocalTime (optional)
-     * @param time
      */
     public setLocalTime(time: TimeZoneDataType): void {
         return this._branch0.setLocalTime(time);
     }
 
     /**
-     * @method setTime
-     * @param time {Date}
      */
     public setTime(time: Date): void {
         return this._branch0.setTime(time);
@@ -395,8 +377,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method conditionOfNode
-     * @return {UAObject}
      */
     public conditionOfNode(): UAObject | UAVariable | null {
         const refs = this.findReferencesExAsObject("HasCondition", BrowseDirection.Inverse);
@@ -414,7 +394,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method raiseConditionEvent
      * Raise a Instance Event
      * (see also UAObject#raiseEvent to raise a transient event)
      * @param branch the condition branch to raise
@@ -466,7 +445,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 
     /**
      *
-     * @method raiseNewCondition
      * @param conditionInfo {ConditionInfo}
      *
      */
@@ -542,8 +520,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     /**
-     * @method currentBranch
-     * @return {ConditionSnapshot}
      */
     public currentBranch(): ConditionSnapshot {
         return this._branch0;
@@ -564,10 +540,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     // Acknowledgeable
     // ------------------------------------------------------------------------------------
     /**
-     * @method _raiseAuditConditionCommentEvent
-     * @param sourceName {string}
-     * @param conditionEventId    {Buffer}
-     * @param comment    {LocalizedText}
      * @private
      */
     public _raiseAuditConditionCommentEvent(sourceName: string, conditionEventId: Buffer, comment: LocalizedTextLike): void {
@@ -657,7 +629,6 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
 /**
  * instantiate a Condition.
  * this will create the unique EventId and will set eventType
- * @method instantiate
  * @param namespace {INamespace}
  * @param conditionTypeId          {String|NodeId}  the EventType to instantiate
  * @param options                  {object}
@@ -1223,7 +1194,6 @@ function _install_condition_variable_type<T, DT extends DataType>(node: UACondit
 }
 
 /**
- * @method _getCompositeKey
  * @param node {BaseNode}
  * @param key {String}
  * @return {BaseNode}
@@ -1249,7 +1219,6 @@ function _getCompositeKey(node: BaseNode, key: string): UAVariableImpl {
 
 /**
  * verify that the subscription id belongs to the session that make the call.
- * @method _check_subscription_id_is_valid
  * @param subscriptionId {Number}
  * @param context {Object}
  * @private

@@ -223,7 +223,7 @@ export class MessageLogger extends EventEmitter {
 export const messageLogger = new MessageLogger();
 
 /**
- * @method make_debugLog
+
  * @param scriptFullPath:string
  * @return returns a  debugLog function that will write message to the console
  * if the DEBUG environment variable indicates that the provided source file shall display debug trace

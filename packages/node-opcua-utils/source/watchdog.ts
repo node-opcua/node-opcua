@@ -77,7 +77,7 @@ export class WatchDog extends EventEmitter {
 
     /**
      * add a subscriber to the WatchDog.
-     * @method addSubscriber
+
      *
      * add a subscriber to the WatchDog.
      *

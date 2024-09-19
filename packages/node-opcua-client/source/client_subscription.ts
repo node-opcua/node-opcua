@@ -82,7 +82,6 @@ export interface ClientSubscription extends EventEmitter  {
     /**
      * add a monitor item to the subscription
      *
-     * @method monitor
      *
      * Monitoring a simple Value Change
      * ---------------------------------
@@ -193,12 +192,10 @@ export interface ClientSubscription extends EventEmitter  {
     ): void;
 
     /**
-     * @method monitorItems
      * @param itemsToMonitor
      * @param requestedParameters
      * @param timestampsToReturn
      * @return a ClientMonitoredItemGroup
-     * @async
      */
     monitorItems(
         itemsToMonitor: ReadValueIdOptions[],
@@ -207,12 +204,6 @@ export interface ClientSubscription extends EventEmitter  {
     ): Promise<ClientMonitoredItemGroup>;
 
     /**
-     * @method monitorItems
-     * @param itemsToMonitor
-     * @param requestedParameters
-     * @param timestampsToReturn
-     * @param done
-     * @async
      */
     monitorItems(
         itemsToMonitor: ReadValueIdOptions[],

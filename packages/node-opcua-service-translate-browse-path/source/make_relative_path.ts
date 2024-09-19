@@ -99,7 +99,7 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
 /**
  * construct a RelativePath from a string containing the relative path description.
  * The string must comply to the OPCUA BNF for RelativePath ( see part 4 - Annex A)
- * @method makeRelativePath
+
  * @param str {String}
  * @param addressSpace {AddressSpace}
  * @return {RelativePath}

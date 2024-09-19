@@ -37,7 +37,7 @@ async function adjustMonitoredItemNodeIds(subscription: ClientSubscription, oldM
 }
 /**
  *  utility function to recreate new subscription
- *  @method recreateSubscriptionAndMonitoredItem
+
  */
 export async function recreateSubscriptionAndMonitoredItem(_subscription: ClientSubscription): Promise<void> {
     debugLog("recreateSubscriptionAndMonitoredItem", _subscription.subscriptionId.toString());

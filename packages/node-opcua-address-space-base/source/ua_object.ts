@@ -154,6 +154,9 @@ export interface EventRaiser {
     raiseEvent(eventType: EventTypeLike, eventData: RaiseEventData): void;
 }
 
+/**
+ * @interface UAObject
+ */
 export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHolder {
     readonly nodeClass: NodeClass.Object;
     get parent(): BaseNode | null;

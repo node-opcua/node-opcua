@@ -66,10 +66,6 @@ export function dumpBrowseDescription(node: BaseNode, _browseDescription: Browse
 }
 
 /**
- * @method dumpReferences
- * @param addressSpace    {IAddressSpace}
- * @param references  {Array<Reference>|null}
- * @static
  */
 export function dumpReferences(addressSpace: IAddressSpace, references: UAReference[]): void {
     assert(addressSpace);

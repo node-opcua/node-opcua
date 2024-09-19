@@ -265,7 +265,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     }
 
     /**
-     * @method getInputNodeNode
+
      * @return {BaseNode} return the node in the address space pointed by the inputNode value
      *
      * Note: please note the difference between alarm.inputNode
@@ -280,8 +280,7 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
         return this.addressSpace.findNode(nodeId) as UAVariable | null;
     }
     /**
-     * @method getInputNodeValue
-     * @return {*}
+     * 
      */
     public getInputNodeValue(): any | null {
         const node = this.getInputNodeNode();
@@ -303,9 +302,8 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     }
 
     /**
-     * @method installInputNodeMonitoring
      * install mechanism that listen to input node datavalue changes so that alarm status
-     * can be automatically updated appropriatly.
+     * can be automatically updated appropriately.
      * @param inputNode {BaseNode}
      * @return {void}
      * @protected
@@ -379,16 +377,6 @@ export class UAAlarmConditionImpl extends UAAcknowledgeableConditionImpl impleme
     }
 
     /***
-     * @method  _calculateConditionInfo
-     * @param stateData {Object}   the new calculated state of the alarm
-     * @param isActive  {Boolean}
-     * @param value     {Number}   the new value of the limit alarm
-     * @param oldCondition  {ConditionInfo} given for information purpose
-     * @param oldCondition.severity
-     * @param oldCondition.quality
-     * @param oldCondition.message
-     * @param oldCondition.retain
-     * @return {ConditionInfo} the new condition info
      *
      * this method need to be overridden by the instantiate to allow custom message and severity
      * to be set based on specific context of the alarm.

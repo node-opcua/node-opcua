@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream, BinaryStreamSizeCalculator, OutputBinaryStream } from "node-opcua-binary-stream";
 
 /**
- * @method encodeArray
+
  * @param arr     the array to encode.
  * @param stream  the stream.
  * @param encodeElementFunc   The  function to encode a single array element.

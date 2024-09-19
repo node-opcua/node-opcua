@@ -6,7 +6,7 @@ import { assert } from "node-opcua-assert";
 
 /**
  * set a flag
- * @method set_flag
+
  */
 export function set_flag(value: number, mask: number | { value: number }): number {
     if ((mask as any).value) {
@@ -18,7 +18,7 @@ export function set_flag(value: number, mask: number | { value: number }): numbe
 }
 /**
  * check if a set of bits are set in the values
- * @method check_flag
+
  */
 export function check_flag(value: number, mask: number | { value: number }): boolean {
     if ((mask as any).value) {

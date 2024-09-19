@@ -65,7 +65,7 @@ export class BinaryStream {
 
     /**
      * set the cursor to the begining of the stream
-     * @method BinaryStream.rewind
+
      */
     public rewind(): void {
         this.length = 0;
@@ -361,7 +361,7 @@ export class BinaryStream {
     //     return byteArr;
     // }
     /**
-     * @method readArrayBuffer
+
      * @param length
      */
     public readArrayBuffer(length: number): Uint8Array {

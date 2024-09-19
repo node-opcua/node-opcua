@@ -588,7 +588,6 @@ export class ServerSidePublishEngine extends EventEmitter implements IServerSide
      * call by a subscription when no notification message is available after the keep alive delay has
      * expired.
      *
-     * @method send_keep_alive_response
      * @param subscriptionId
      * @param future_sequence_number
      * @return true if a publish response has been sent

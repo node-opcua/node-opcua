@@ -299,7 +299,7 @@ export function extractAllPossibleFields(schema: IStructuredTypeSchema): string[
 /**
  * check correctness of option fields against scheme
  *
- * @method  check_options_correctness_against_schema
+
  *
  */
 export function check_options_correctness_against_schema(obj: any, schema: IStructuredTypeSchema, options: any): boolean {

@@ -67,7 +67,7 @@ export class EnumerationDefinitionSchema extends TypeSchemaBase implements Enume
 const _enumerations: Map<string, EnumerationDefinitionSchema> = new Map<string, EnumerationDefinitionSchema>();
 
 /**
- * @method registerEnumeration
+
  * @param options
  * @param options.name {string}
  * @param options.enumValues [{key:Name, value:values}]

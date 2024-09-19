@@ -505,7 +505,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
     /**
      * perform pending read Node operation
-     * @method _resolve_deferred_readNode
+
      * @param callback
      * @private
      * @internal
@@ -594,7 +594,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
             });
     }
     /**
-     * @method _unshift_task
+
      * add a task on top of the queue (high priority)
      * @param name
      * @param task
@@ -609,7 +609,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     }
 
     /**
-     * @method _push_task
+
      * add a task at the bottom of the queue (low priority)
      * @param name
      * @param task
@@ -624,7 +624,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     }
 
     /***
-     * @method _emit_on_crawled
+
      * @param cacheNode
      * @param userData
      * @private
@@ -774,7 +774,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
     /**
      * request a read operation for a Node+Attribute in the future, provides a callback
      *
-     * @method _defer_readNode
+
      * @param nodeId
      * @param attributeId
      * @param callback
@@ -949,7 +949,7 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
      * instead of calling session.browse directly, this function add the request to a list
      * so that request can be grouped and send in one single browse command to the server.
      *
-     * @method _defer_browse_node
+
      * @private
      *
      */

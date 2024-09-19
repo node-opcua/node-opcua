@@ -1,7 +1,7 @@
 import path from "path";
 // ---------------------------------------------------------------------------------------------------------------------
 /**
- * @method normalize_require_file
+
  * @param baseFolder
  * @param fullPathToFile
  *

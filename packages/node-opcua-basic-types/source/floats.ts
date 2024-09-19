@@ -8,7 +8,7 @@ const maxFloat = 3.4 * Math.pow(10, 38);
 
 /**
  * return a random float value in the range of  min inclusive and  max exclusive
- * @method getRandomInt
+
  * @param min
  * @param max
  * @return {*}
