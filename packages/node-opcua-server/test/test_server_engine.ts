@@ -1675,7 +1675,7 @@ describe("testing ServerEngine", function () {
                 refreshFuncSpy!.callCount.should.eql(2);
             }
         });
-        it("MAXA-2 should set serverTimestamp to current time on none updated variable ", async () => {
+        it("MAXA-2 should set serverTimestamp to current time on none updated variable - server time should be stable then ", async () => {
             const ns = engine.addressSpace!.getOwnNamespace();
             const nodeId = "ns=1;s=MyVar2";
             function given_a_static_variable() {
@@ -1694,21 +1694,21 @@ describe("testing ServerEngine", function () {
             const dataValue1 = await when_I_read_the_value_with_max_age(nodeId, 4000);
             //xx console.log(dataValue1.toString());
             dataValue1.value.value.should.eql(42);
-            dataValue1.serverTimestamp!.getTime().should.be.greaterThan(dataValue.serverTimestamp!.getTime());
+            dataValue1.serverTimestamp!.getTime().should.eql(dataValue.serverTimestamp!.getTime());
             dataValue1.sourceTimestamp!.getTime().should.eql(refSourceTimestamp);
 
             await pause(2000);
             const dataValue2 = await when_I_read_the_value_with_max_age(nodeId, 500);
             //xx console.log(dataValue2.toString());
             dataValue2.value.value.should.eql(42);
-            dataValue2.serverTimestamp!.getTime().should.be.greaterThan(dataValue1.serverTimestamp!.getTime());
+            dataValue2.serverTimestamp!.getTime().should.eql(dataValue1.serverTimestamp!.getTime());
             dataValue2.sourceTimestamp!.getTime().should.eql(refSourceTimestamp);
 
             await pause(2000);
             const dataValue3 = await when_I_read_the_value_with_max_age(nodeId, 0);
             //xx console.log(dataValue3.toString());
             dataValue3.value.value.should.eql(42);
-            dataValue3.serverTimestamp!.getTime().should.be.greaterThan(dataValue2.serverTimestamp!.getTime());
+            dataValue3.serverTimestamp!.getTime().should.eql(dataValue2.serverTimestamp!.getTime());
             dataValue3.sourceTimestamp!.getTime().should.eql(refSourceTimestamp);
         });
     });
