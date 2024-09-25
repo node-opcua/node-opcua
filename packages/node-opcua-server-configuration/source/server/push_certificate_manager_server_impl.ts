@@ -4,9 +4,7 @@
 import { EventEmitter } from "events";
 import fs from "fs";
 import path from "path";
-import { promisify } from "util";
-
-import rimraf from "rimraf";
+import { rimraf } from "rimraf";
 import { SubjectOptions } from "node-opcua-pki";
 import { assert } from "node-opcua-assert";
 import { ByteString, StatusCodes } from "node-opcua-basic-types";
@@ -259,7 +257,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
             const location = path.join(certificateManager.rootDir, "tmp");
             if (fs.existsSync(location)) {
-                await promisify(rimraf)(path.join(location));
+                await rimraf(path.join(location));
             }
             if (!fs.existsSync(location)) {
                 await fs.promises.mkdir(location);
@@ -280,7 +278,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey);
             });
             this.addPendingTask(async () => {
-                await promisify(rimraf)(path.join(location));
+                await rimraf(path.join(location));
             });
         } else {
             // The Server uses its existing Private Key

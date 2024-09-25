@@ -4,7 +4,7 @@ import path from "path";
 import fs from "fs";
 import "mocha";
 import "should";
-import rimraf from "rimraf";
+import { rimraf } from "rimraf";
 
 import { CertificateAuthority } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
@@ -76,7 +76,7 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
     const temporaryFolder = options.rootFolder!;
 
     if (fs.existsSync(temporaryFolder)) {
-        await rimraf.sync(temporaryFolder);
+        await rimraf(temporaryFolder);
         fs.mkdirSync(temporaryFolder);
     }
     const certificateMgr = new OPCUACertificateManager(options);
@@ -280,7 +280,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const temporaryFolder1 = path.join(_tmpFolder, "testing_certificates1");
         const pkiFolder = path.join(temporaryFolder1, "pki");
         if (!fs.existsSync(pkiFolder)) {
-            await rimraf.sync(pkiFolder);
+            await rimraf(pkiFolder);
         }
 
         certificateIssuedByCA = await readCertificate(certificateIssuedByCAFilename);
