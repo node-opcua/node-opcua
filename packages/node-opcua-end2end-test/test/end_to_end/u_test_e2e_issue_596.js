@@ -2,7 +2,7 @@ const os = require("os");
 const should = require("should");
 
 const { OPCUAClient, makeApplicationUrn } = require("node-opcua");
-const doDebug = true;
+const doDebug = false;
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 

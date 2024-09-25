@@ -1,9 +1,7 @@
 const should = require("should");
 const os = require("os");
 
-const { OPCUAClient, makeApplicationUrn } = require("node-opcua");
-const { perform_operation_on_client_session } = require("../../test_helpers/perform_operation_on_client_session");
-const doDebug = true;
+const { OPCUAClient } = require("node-opcua");
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 module.exports = function (test) {

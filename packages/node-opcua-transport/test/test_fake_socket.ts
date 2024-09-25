@@ -5,7 +5,7 @@ import { TransportPairDirect, TransportPairSocket } from "../test_helpers";
 import { ITransportPair } from "../test_helpers/ITransportPair";
 import { ISocketLike } from "../source";
 
-const doDebug = true;
+const doDebug = false;
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const port = 5879;

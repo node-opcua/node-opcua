@@ -16,7 +16,7 @@ const {
 
 const { start_simple_server, crash_simple_server } = require("../../test_helpers/external_server_fixture");
 
-const doDebug = true;
+const doDebug = false;
 const debugLog = make_debugLog("TEST");
 let server_data = null;
 const port = 2016;

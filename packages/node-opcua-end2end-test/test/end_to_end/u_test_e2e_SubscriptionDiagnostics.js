@@ -1,6 +1,5 @@
 /* eslint-disable max-statements */
 "use strict";
-
 const should = require("should");
 const sinon = require("sinon");
 
@@ -17,7 +16,7 @@ const {
     CreateSubscriptionRequest
 } = require("node-opcua");
 
-const doDebug = true;
+const doDebug = false;
 
 async function readSubscriptionDiagnosticArray(session) {
     const dataValue = await session.read({

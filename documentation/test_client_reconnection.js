@@ -90,7 +90,7 @@ const certificateFolder = path.join(__dirname, "../packages/node-opcua-samples/c
 const certificateFile = path.join(certificateFolder, "client_selfsigned_cert_2048.pem");
 const privateKeyFile = path.join(certificateFolder, "client_key_2048.pem");
 
-const doDebug = true;
+const doDebug = false;
 
 async function runClient() {
     const client = OPCUAClient.create({

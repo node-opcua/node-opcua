@@ -5,20 +5,17 @@ import { types } from "util";
 
 import {
     AttributeIds,
-    BrowseResult,
     ConnectionStrategyOptions,
     MessageSecurityMode,
     OPCUAClient,
     OPCUAClientOptions,
     SecurityPolicy,
-    UserTokenType
 } from "node-opcua-client";
 
 // this test requires UA C++ Demo Server
-const addNodeMethodNodeId = "ns=2;s=Demo.Massfolder_Static.AddNodes";
 const endpointUri = "opc.tcp://" + os.hostname() + ":48010";
 
-const doDebug = true;
+const doDebug = false;
 
 async function main() {
     const connectionStrategy: ConnectionStrategyOptions = {

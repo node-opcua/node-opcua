@@ -380,7 +380,9 @@ export function utest_condition(test: any): void {
                     browseName: "MyCustomCondition3",
                     conditionSource: null,
                     optionals: ["EnabledState.EffectiveDisplayName", "EnabledState.TransitionTime"],
-                    organizedBy: addressSpace.rootFolder.objects
+                    organizedBy: addressSpace.rootFolder.objects,
+                    
+                    
                 });
 
                 should.exist(

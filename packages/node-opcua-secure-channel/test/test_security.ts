@@ -33,7 +33,7 @@ import {
     ServerSecureChannelParent
 } from "..";
 
-const doDebug = true;
+const doDebug = false;
 
 type SimpleCallback = (err?: Error | null) => void;
 

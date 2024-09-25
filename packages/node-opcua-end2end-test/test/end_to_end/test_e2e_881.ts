@@ -1,7 +1,7 @@
 import { networkInterfaces } from "os";
 import { get_mini_nodeset_filename, nodesets, OPCUAClient, OPCUAServer, UserTokenType } from "node-opcua";
 
-const doDebug = true;
+const doDebug = false;
 
 function getIpAddresses(): string[] {
     const nets = networkInterfaces();

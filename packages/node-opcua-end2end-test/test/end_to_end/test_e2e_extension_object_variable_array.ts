@@ -181,7 +181,7 @@ async function waitSubscriptionUpdate(subscription: ClientSubscription) {
     await new Promise((resolve) => subscription.once("keepalive", resolve));
 }
 
-const doDebug = true;
+const doDebug = false;
 
 async function subscribeToScalarElement(session: ClientSession, subscription: ClientSubscription, nodeId: NodeId) {
     const rootElement: Counter = { counter: 0, dataValues: [], $props: {}, nodeId };

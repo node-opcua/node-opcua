@@ -5,7 +5,7 @@ import {
 
 
 const endpointUrl = "opc.tcp://localhost:48010";
-const doDebug = true;
+const doDebug = false;
 
 (async ()=>{
 

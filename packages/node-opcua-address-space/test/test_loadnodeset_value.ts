@@ -557,7 +557,7 @@ describe("Testing loading nodeset with extension objects values in types", () =>
     });
 
     it("LNEX7- should load nodeset with extension objects and Int64/UInt64 elements", async () => {
-        const doDebug = true;
+        const doDebug = false;
 
         const xml_file = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_int64_values.xml");
         await generateAddressSpace(addressSpace, [nodesets.standard, xml_file]);

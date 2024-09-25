@@ -18,8 +18,6 @@ import { IndexIterator } from "./idx_iterator";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
-// const doDebug = true; // checkDebugFlag(__filename);
-// const debugLog = make_warningLog(__filename);
 const warningLog = make_warningLog(__filename);
 const errorLog = make_errorLog(__filename);
 
