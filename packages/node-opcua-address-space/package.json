@@ -16,7 +16,7 @@
         "c": "mocha --version"
     },
     "dependencies": {
-        "@types/lodash": "4.17.7",
+        "@types/lodash": "4.17.9",
         "@types/semver": "^7.5.8",
         "async": "^3.2.6",
         "chalk": "4.1.2",
@@ -28,7 +28,7 @@
         "node-opcua-binary-stream": "2.128.0",
         "node-opcua-client-dynamic-extension-object": "2.132.0",
         "node-opcua-constants": "2.125.0",
-        "node-opcua-crypto": "4.9.4",
+        "node-opcua-crypto": "4.10.0",
         "node-opcua-data-access": "2.132.0",
         "node-opcua-data-model": "2.132.0",
         "node-opcua-data-value": "2.132.0",
