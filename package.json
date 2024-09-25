@@ -91,7 +91,6 @@
         "@types/lodash": "4.17.9",
         "@types/long": "^5.0.0",
         "@types/mkdirp": "1.0.2",
-        "@types/rimraf": "4.0.5",
         "@types/sinon": "17.0.3",
         "@types/underscore": "^1.11.15",
         "@types/wordwrap": "^1.0.3",

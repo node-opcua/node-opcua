@@ -76,7 +76,7 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
     const temporaryFolder = options.rootFolder!;
 
     if (fs.existsSync(temporaryFolder)) {
-        await rimraf(temporaryFolder);
+        await rimraf.rimraf(temporaryFolder);
         fs.mkdirSync(temporaryFolder);
     }
     const certificateMgr = new OPCUACertificateManager(options);
@@ -280,7 +280,7 @@ describe("Testing OPCUA Certificate Manager with automatically acceptance of unk
         const temporaryFolder1 = path.join(_tmpFolder, "testing_certificates1");
         const pkiFolder = path.join(temporaryFolder1, "pki");
         if (!fs.existsSync(pkiFolder)) {
-            await rimraf(pkiFolder);
+            await rimraf.rimraf(pkiFolder);
         }
 
         certificateIssuedByCA = await readCertificate(certificateIssuedByCAFilename);

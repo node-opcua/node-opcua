@@ -257,7 +257,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
 
             const location = path.join(certificateManager.rootDir, "tmp");
             if (fs.existsSync(location)) {
-                await rimraf(path.join(location));
+                await rimraf.rimraf(path.join(location));
             }
             if (!fs.existsSync(location)) {
                 await fs.promises.mkdir(location);
@@ -278,7 +278,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey);
             });
             this.addPendingTask(async () => {
-                await rimraf(path.join(location));
+                await rimraf.rimraf(path.join(location));
             });
         } else {
             // The Server uses its existing Private Key

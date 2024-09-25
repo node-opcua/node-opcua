@@ -70,6 +70,8 @@ describe("ServerConfiguration", () => {
         try {
             const _folder = await initializeHelpers("AA", 0);
 
+            doDebug && console.log(" _folder = ", _folder);
+
             applicationGroup = new CertificateManager({
                 location: path.join(_folder, "application")
             });
@@ -218,16 +220,6 @@ describe("ServerConfiguration", () => {
             //            result.applyChangesRequired!.should.eql(true);
         });
 
-        async function give_a_address_space_with_server_configuration_and_default_application_group() {
-            const rootFolder = path.join(__dirname, "../temp/pkipki");
-            const certificateManager = new OPCUACertificateManager({
-                rootFolder
-            });
-            await certificateManager.initialize();
-            const server = addressSpace.rootFolder.objects.server as UAServerWithConfiguration;
-            const defaultApplicationGroup = server.serverConfiguration.certificateGroups.defaultApplicationGroup;
-            (defaultApplicationGroup.trustList as any).$$certificateManager = certificateManager;
-        }
         it("should provide trust list", async () => {
             //------------------
             await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });

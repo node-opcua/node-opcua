@@ -12,7 +12,7 @@ import {
     OPCUAClientOptions,
     SecurityPolicy} from "node-opcua-client";
 
-const doDebug = true;
+const doDebug = false;
 
 async function main() {
 
