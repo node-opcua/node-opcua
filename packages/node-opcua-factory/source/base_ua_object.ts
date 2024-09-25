@@ -443,8 +443,7 @@ export interface BaseUAObject extends IBaseUAObject {
 }
 
 /**
- * @class BaseUAObject
- * @constructor
+ * base class for all OPCUA objects
  */
 export class BaseUAObject {
     constructor() {

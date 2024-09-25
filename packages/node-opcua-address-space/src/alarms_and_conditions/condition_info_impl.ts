@@ -9,13 +9,7 @@ import { ConditionInfo, ConditionInfoOptions } from "../../source/interfaces/ala
 
 
 /**
- * @class ConditionInfo
- * @param options  {Object}
- * @param options.message   {String|LocalizedText} the event message
- * @param options.severity  {UInt16} severity
- * @param options.quality   {StatusCode} quality
- * @param options.retain   {Boolean} retain flag
- * @constructor
+ * @private
  */
 export class ConditionInfoImpl implements ConditionInfo {
     public message: LocalizedText | null = null;

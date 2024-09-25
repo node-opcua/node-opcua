@@ -418,8 +418,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
     /**
      * create and activate a new session
-     * @async
-
      *
      *
      * @example
@@ -530,17 +528,13 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     }
 
     /**
-     *
-
-     * @async
-     * @param session - the created client session
-     * @param deleteSubscriptions  - whether to delete subscriptions or not
+     * close a session
      */
     public closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
     public closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
+ 
     /**
-     * @internals
-     * @param args
+     * @internal
      */
     public closeSession(...args: any[]): any {
         if (this._retryCreateSessionTimer) {
@@ -1223,7 +1217,6 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 const thenify = require("thenify");
 /**
 
- * @async
  *
  * @example
  *     // create a anonymous session
@@ -1242,13 +1235,9 @@ const thenify = require("thenify");
 OPCUAClientImpl.prototype.createSession = thenify.withCallback(OPCUAClientImpl.prototype.createSession);
 OPCUAClientImpl.prototype.createSession2 = thenify.withCallback(OPCUAClientImpl.prototype.createSession2);
 /**
-
- * @async
  */
 OPCUAClientImpl.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClientImpl.prototype.changeSessionIdentity);
 /**
-
- * @async
  * @example
  *    const session  = await client.createSession();
  *    await client.closeSession(session);

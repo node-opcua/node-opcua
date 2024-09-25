@@ -1,0 +1,39 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "out": "../node-opcua.github.io/api_doc/2.132.0",
+    "exclude": [
+        "./**/node_modules/**",
+        "./**/*.spec.ts",
+        "./**/tests/**.ts",
+        "./packages_extra/**/*.ts",
+        "**/**/*.d.ts",
+        "./packages_extra/**/**/*.ts",
+        "./**/dist/**"
+    ],
+
+    "name": "NodeOPCUA reference documentation - public API",
+    "entryPointStrategy": "packages",
+    "excludePrivate": false,
+    "excludeProtected": false,
+    "excludeExternals": true,
+    "excludeInternal": false,
+    "excludeReferences": true,
+    "tsconfig": "tsconfig-for-doc.json",
+    "readme": "documentation/readme_for_doc.md",
+    "theme": "default",
+    "entryPoints": [
+        "packages/node-opcua-nodeid",
+        "packages/node-opcua-types",
+        "packages/node-opcua-variant",
+        "packages/node-opcua-basic-types",
+        "packages/node-opcua-data-value",
+        "packages/node-opcua-numeric-range",
+        "packages/node-opcua-status-code",
+        "packages/node-opcua-units",
+        "packages/node-opcua-guid",
+        "packages/node-opcua-server",
+        "packages/node-opcua-client",
+        "packages/node-opcua"
+    ]
+    
+}

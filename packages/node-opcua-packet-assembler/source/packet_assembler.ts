@@ -5,11 +5,6 @@ import { make_warningLog } from "node-opcua-debug";
 const doDebug = false;
 const warningLog = make_warningLog("PacketAssembler");
 
-/***
- * @class PacketAssembler
- * @constructor
- */
-
 export interface MessageHeader {
     msgType: string;
     isFinal: string;

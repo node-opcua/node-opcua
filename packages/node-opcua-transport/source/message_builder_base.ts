@@ -81,12 +81,6 @@ export interface MessageBuilderBase {
     emit(eventName: "abandon", requestId: number): boolean;
 }
 /**
- * @class MessageBuilderBase
- * @extends EventEmitter
- * @uses PacketAssembler
- * @constructor
- * @param options {Object}
- * @param [options.signatureLength=0] {number}
  *
  */
 export class MessageBuilderBase extends EventEmitter {

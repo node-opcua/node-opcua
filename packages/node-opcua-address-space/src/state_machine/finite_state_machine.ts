@@ -133,9 +133,6 @@ export function getFiniteStateMachineTypeStateByName(uaFiniteStateMachineType: U
 /*
  *
  * @class StateMachine
- * @constructor
- * @extends UAObject
- *
  *
  */
 export class UAStateMachineImpl extends UAObjectImpl implements UAStateMachineEx {

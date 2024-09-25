@@ -182,8 +182,8 @@ export declare class BaseNode extends EventEmitter {
     public findReference(referenceType: string | NodeId | UAReferenceType, isForward?: boolean): UAReference | null;
 
     /**
-     * find all the nodes that are referenced by references of type **`reference`** or a sub type of **`reference`**, in the
-     * direction specified by **`browseDirection`**
+     * find all the nodes that are referenced by references of type **`reference`** or a 
+     * sub type of **`reference`**, in the direction specified by **`browseDirection`**
      *
      *  * BrowseDirection.Forward direction is implied if browseDirection flags is omitted.
      */
@@ -245,9 +245,14 @@ export declare class BaseNode extends EventEmitter {
     getAccessRestrictions(inherited: boolean): AccessRestrictionsFlag;
     /**
      * NodeVersion (Optional) String The NodeVersion Property is used to indicate the version of a Node.
-     * The NodeVersion Property is updated each time a Reference is added or deleted to the Node the Property
-     * belongs to. Attribute value changes do not cause the NodeVersion to change.
-     * Clients may read the NodeVersion Property or subscribe to it to determine when the structure of a Node has changed.
+     * 
+     * The NodeVersion Property is updated each time a Reference is added or deleted 
+     * to the Node the Property belongs to. 
+     * 
+     * Attribute value changes do not cause the NodeVersion to change.
+     * 
+     * Clients may read the NodeVersion Property or subscribe to it to determine when the 
+     * structure of a Node has changed.
      */
     nodeVersion?: UAVariableT<UAString, DataType.String>;
 

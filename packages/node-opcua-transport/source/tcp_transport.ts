@@ -298,9 +298,6 @@ export class TCP_transport extends EventEmitter {
      * disconnect the TCP layer and close the underlying socket.
      * The ```"close"``` event will be emitted to the observers with err=null.
      *
-
-     * @async
-     * @param callback
      */
     public disconnect(callback: ErrorCallback): void {
         assert(typeof callback === "function", "expecting a callback function, but got " + callback);

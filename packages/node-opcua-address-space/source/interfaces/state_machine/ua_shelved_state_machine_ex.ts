@@ -7,7 +7,7 @@ import { UATransitionEx } from "./ua_transition_ex";
 
 export interface UAShelvedStateMachineHelper {
     _timer: NodeJS.Timer | null;
-    _sheveldTime: Date;
+    _shelvedTime: Date;
     _unshelvedTime: Date;
     _duration: number;
 }

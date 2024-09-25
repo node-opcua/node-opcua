@@ -22,8 +22,6 @@ const doDebug = checkDebugFlag(__filename);
 
 /**
  * @module opcua.miscellaneous
- * @class Factory
- * @static
  */
 
 function compileTScriptCode(typescriptFilename: string): string {

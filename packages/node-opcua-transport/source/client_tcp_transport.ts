@@ -81,10 +81,7 @@ export interface TransportSettingsOptions {
  * a ClientTCP_transport connects to a remote server socket and
  * initiates a communication with a HEL/ACK transaction.
  * It negotiates the communication parameters with the other end.
- *
- * @class ClientTCP_transport
- * @extends TCP_transport
- * @constructor
+
  * @example
  *
  *    ```javascript

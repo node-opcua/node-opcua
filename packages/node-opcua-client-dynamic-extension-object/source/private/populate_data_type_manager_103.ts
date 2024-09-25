@@ -564,7 +564,6 @@ function extraNamespaceRef(attribute: string): { xmlns: string; namespace: strin
  * Extract all custom dataType
  * @param session
  * @param dataTypeManager
- * @async
  */
 export async function populateDataTypeManager103(
     session: IBasicSessionAsync2,

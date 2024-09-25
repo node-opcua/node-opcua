@@ -347,7 +347,7 @@ export declare interface INamespace {
 
     toNodeset2XML(): string;
     /**
-     * @internals
+     * @internal
      */
     getStandardsNodeIds(): {
         referenceTypeIds: { [key: string]: string };

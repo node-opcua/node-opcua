@@ -61,11 +61,6 @@ export interface IOPCUASecureObjectOptions {
 
 /**
  * an object that provides a certificate and a privateKey
- * @class OPCUASecureObject
- * @param options
- * @param options.certificateFile {string}
- * @param options.privateKeyFile {string}
- * @constructor
  */
 export class OPCUASecureObject extends EventEmitter implements ICertificateKeyPairProvider {
     public readonly certificateFile: string;

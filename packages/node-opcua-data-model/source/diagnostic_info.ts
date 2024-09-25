@@ -108,11 +108,6 @@ export class DiagnosticInfo extends BaseUAObject {
     public innerDiagnosticInfo: DiagnosticInfo;
 
     /**
-     *
-     * @class DiagnosticInfo
-     * @constructor
-     * @extends BaseUAObject
-     * @param  options {Object}
      */
     constructor(options: DiagnosticInfoOptions = {}) {
         super();

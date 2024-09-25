@@ -18,6 +18,7 @@ const endpointUrl = "opc.tcp://minipc1-ts:26543";
 
     const client = OPCUAClient.create({
         endpointMustExist: false,
+        applicationUri: 
         clientCertificateManager,
         securityMode: MessageSecurityMode.SignAndEncrypt,
         securityPolicy: SecurityPolicy.Basic256Sha256,

@@ -51,10 +51,6 @@ export declare class UAMethod extends BaseNode {
     public getOutputArguments(): Argument[];
 
     /**
-     * @async
-     * @param inputArguments
-     * @param context
-     * @param callback
      */
     public execute(
         object: UAObject | UAObjectType | null,

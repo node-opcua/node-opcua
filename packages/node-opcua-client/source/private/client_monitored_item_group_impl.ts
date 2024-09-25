@@ -90,9 +90,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
     }
 
     /**
-
      * remove the MonitoredItem from its subscription
-     * @async
      */
     public async terminate(): Promise<void>;
     public terminate(done: ErrorCallback): void;

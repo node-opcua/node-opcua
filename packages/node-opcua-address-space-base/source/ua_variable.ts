@@ -260,7 +260,8 @@ export interface UAVariable extends BaseNode, VariableAttributes, IVariableDataT
 
     /**
      *
-     * @precondition UAVariable must have a dataType deriving from "Enumeration"
+     * **precondition**:
+     *    UAVariable must have a dataType deriving from "Enumeration"
      */
     writeEnumValue(value: string | number): void;
 

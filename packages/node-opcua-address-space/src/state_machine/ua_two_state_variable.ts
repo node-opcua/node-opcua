@@ -191,8 +191,6 @@ export declare interface UATwoStateVariableImpl extends UATwoStateVariableEx {
 }
 /***
  * @class UATwoStateVariable
- * @constructor
- * @extends UAVariable
  */
 export class UATwoStateVariableImpl extends UAVariableImplT<LocalizedText, DataType.LocalizedText> implements UATwoStateVariableEx {
     private _trueState?: string;

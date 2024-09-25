@@ -46,10 +46,10 @@ export type PrepareForMonitoringResult =
  * @class ClientMonitoredItem
  * @extends ClientMonitoredItemBase
  *
- * event:
- *    "initialized"
- *    "err"
- *    "changed"
+ * - event:
+ *   - "initialized"
+ *   - "err"
+ *   - "changed"
  *
  *  note: this.monitoringMode = subscription_service.MonitoringMode.Reporting;
  */
@@ -102,8 +102,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     }
 
     /**
-     * remove the MonitoredItem from its subscription
-     * @async
+     * terminate the monitored item by removing the MonitoredItem from its subscription
      */
     public async terminate(): Promise<void>;
     public terminate(done: ErrorCallback): void;

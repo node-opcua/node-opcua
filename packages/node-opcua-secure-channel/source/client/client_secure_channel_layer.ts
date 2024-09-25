@@ -518,12 +518,6 @@ export class ClientSecureChannelLayer extends EventEmitter {
     /**
      * establish a secure channel with the provided server end point.
      *
-
-     * @async
-     * @param endpointUrl
-     * @param callback the async callback function
-     *
-     *
      * @example
      *
      *    ```javascript
@@ -724,12 +718,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     /**
      * Close a client SecureChannel ,by sending a CloseSecureChannelRequest to the server.
      *
-     *
      * After this call, the connection is closed and no further transaction can be made.
-     *
-
-     * @async
-     * @param callback
      */
     public close(callback: ErrorCallback): void {
         assert(typeof callback === "function", "expecting a callback function, but got " + callback);

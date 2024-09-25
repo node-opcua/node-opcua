@@ -91,14 +91,7 @@ export interface IReaderState {
 export class ReaderStateBase {}
 export interface ReaderStateBase extends IReaderState {}
 /**
- * @class ReaderState
  * @private
- * @param options
- * @param [options.parser=null]  {map<ReaderState|options}}
- * @param [options.init|null]
- * @param [options.finish]
- * @param [options.startElement]
- * @param [options.endElement]
  */
 export class ReaderState extends ReaderStateBase {
     public _init?: (name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) => void;
@@ -136,12 +129,6 @@ export class ReaderState extends ReaderStateBase {
     }
 
     /**
-
-     * @param elementName  - the name of the element
-     * @param attrs
-     * @param parent
-     * @param level
-     * @param engine
      * @protected
      */
     public _on_init(elementName: string, attrs: XmlAttributes, parent: IReaderState, level: number, engine: Xml2Json): void {
@@ -157,7 +144,9 @@ export class ReaderState extends ReaderStateBase {
             this._init(elementName, attrs, parent, engine);
         }
     }
-
+    /**
+     * @protected
+     */
     public _on_finish(): void {
         if (this._finish) {
             this._finish();
@@ -165,14 +154,11 @@ export class ReaderState extends ReaderStateBase {
     }
 
     /**
-     * @param level
-     * @param elementName   - the name of the element
-     * @param attrs
      * @protected
      */
     public _on_startElement(level: number, elementName: string, attrs: XmlAttributes): void {
         this.currentLevel = level;
-   
+
         this.chunks = [];
         this.text = "";
 
@@ -184,6 +170,9 @@ export class ReaderState extends ReaderStateBase {
         }
     }
 
+    /**
+     * @protected
+     */
     public _on_endElement2(level: number, elementName: string): void {
         if (this._endElement) {
             this._endElement(elementName);
@@ -219,7 +208,6 @@ export class ReaderState extends ReaderStateBase {
     }
 
     /**
-
      * @param text {String} the text found inside the element
      * @protected
      */
@@ -247,14 +235,6 @@ function resolve_namespace(name: string) {
 }
 
 /**
- * @class Xml2Json
- * @param options - the state machine as  a ReaderState node.
- * @param [options.parser=null]  {ReaderState}
- * @param [options.init|null]
- * @param [options.finish]
- * @param [options.startElement]
- * @param [options.endElement]
- * @constructor
  *
  * @example
  *  var parser = new Xml2Json({
@@ -301,18 +281,15 @@ export class Xml2Json {
         this._promote(state, 0);
     }
 
-
     public parseStringSync(xml_text: string): Record<string, unknown> {
-        let retValue:  Record<string, unknown> = {};
-        const parser = this._prepareParser((err: Error | null | undefined, r:  Record<string, unknown>)=> retValue =r);
+        let retValue: Record<string, unknown> = {};
+        const parser = this._prepareParser((err: Error | null | undefined, r: Record<string, unknown>) => (retValue = r));
         parser.write(xml_text);
         parser.end();
         return retValue;
     }
     /**
      * @deprecated
-
-     * @async
      */
     public parseString(xml_text: string): Promise<any>;
     public parseString(xml_text: string, callback: Callback<any> | SimpleCallback): void;
@@ -322,9 +299,6 @@ export class Xml2Json {
         parser.end();
     }
     /**
-     * @param new_state
-     * @param name
-     * @param attr
      * @private
      * @internal
      */
@@ -341,7 +315,6 @@ export class Xml2Json {
     }
 
     /**
-     *
      * @private
      * @internal
      */
@@ -354,8 +327,12 @@ export class Xml2Json {
         }
     }
 
+    /**
+     * @private
+     * @internal
+     */
     protected _prepareParser(callback: Callback<any> | SimpleCallback): LtxParser {
-        assert(typeof callback === 'function');
+        assert(typeof callback === "function");
         const parser = new LtxParser();
         this.currentLevel = 0;
         parser.on("startElement", (name: string, attrs: XmlAttributes) => {

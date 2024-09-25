@@ -7,8 +7,6 @@
 
 /**
  * Represents an Item of an Enum.
- *
- * @class Enum
  */
 export class EnumItem {
     public key: string;
@@ -26,7 +24,7 @@ export class EnumItem {
 
     /**
      * Checks if the EnumItem is the same as the passing object.
-
+     * 
      * @param  {EnumItem | String | Number} item The object to check with.
      * @return {Boolean}                          The check result.
      */
@@ -42,7 +40,7 @@ export class EnumItem {
 
     /**
      * Checks if the flagged EnumItem has the passing object.
-
+     * 
      * @param  {EnumItem | String |Number} value The object to check with.
      * @return {Boolean}                            The check result.
      */
@@ -58,7 +56,7 @@ export class EnumItem {
 
     /**
      * Returns String representation of this EnumItem.
-
+     * 
      * @return {String} String representation of this EnumItem.
      */
     public toString(): string {
@@ -67,7 +65,6 @@ export class EnumItem {
 
     /**
      * Returns JSON object representation of this EnumItem.
-
      * @return {String} JSON object representation of this EnumItem.
      */
 
@@ -77,7 +74,6 @@ export class EnumItem {
 
     /**
      * Returns the value to compare with.
-
      * @return {String} The value to compare with.
      */
 

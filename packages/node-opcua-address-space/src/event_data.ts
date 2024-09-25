@@ -12,10 +12,9 @@ import { lowerFirstLetter } from "node-opcua-utils";
 
 type NodeIdString = string;
 type FullBrowsePath = string;
+
+
 /**
- * @class EventData
- * @param eventTypeNode {BaseNode}
- * @constructor
  */
 export class EventData implements IEventData {
     public eventId: NodeId;

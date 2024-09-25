@@ -14,9 +14,7 @@ export interface UABaseEventEx extends UABaseEvent_Base, UABaseEventHelper {}
 export declare interface UABaseEventImpl extends UABaseEventEx {}
 
 /**
- * @class BaseEventType
- * @class UAObject
- * @constructor
+ * @internal
  */
 export class UABaseEventImpl extends UAObjectImpl implements UABaseEventEx {
     /**

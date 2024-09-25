@@ -3,7 +3,6 @@
 // tslint:disable: no-shadowed-variable
 /**
  * @module opcua.server.simulation
- * @class Simulator
  *
  */
 

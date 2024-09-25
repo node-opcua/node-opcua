@@ -65,10 +65,7 @@ import { BasicTypeDefinition, BasicTypeDefinitionOptions, BasicTypeDefinitionOpt
 
 
 /**
- * @class TypeSchemaBase
- * @param options {Object}
- * @constructor
- * create a new type Schema
+ * a type Schema for a OPCUA object
  */
  export class TypeSchemaBase implements CommonInterface {
     public name: string;

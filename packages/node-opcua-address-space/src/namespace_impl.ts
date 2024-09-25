@@ -750,7 +750,7 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     /**
-     * @internals
+     * @internal
      */
     public getStandardsNodeIds(): { referenceTypeIds: { [key: string]: string }; objectTypeIds: { [key: string]: string } } {
         const standardNodeIds = {
@@ -1422,14 +1422,7 @@ export class NamespaceImpl implements NamespacePrivate {
     // State and Transition
     // -------------------------------------------------------------------------
     /**
-     * @class IAddressSpace
-
-     * @param component
-     * @param stateName   {string}
-     * @param stateNumber {number}
-     * @param isInitialState {boolean}
-     * @return {UAObject} {StateType|InitialStateType}
-     */
+    */
     public addState(
         component: UAStateMachineEx,
         stateName: QualifiedNameLike,

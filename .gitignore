@@ -80,3 +80,4 @@ tmp/
 tmptmp/
 Vagrantfile
 yarn.lock
+generated_doc/

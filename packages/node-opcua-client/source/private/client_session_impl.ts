@@ -190,9 +190,6 @@ export interface Reconnectable {
 
 /**
  * @class ClientSession
- * @param client {OPCUAClientImpl}
- * @constructor
- * @private
  */
 export class ClientSessionImpl extends EventEmitter implements ClientSession, Reconnectable {
     static reconnectingElement: WeakMap<ClientSessionImpl, Reconnectable> = new WeakMap();
@@ -305,8 +302,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         });
     }
     /**
-
-     * @async
      *
      * @example
      *
@@ -410,8 +405,8 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                     if (r.references && r.references.length > this.requestedMaxReferencesPerNode) {
                         warningLog(
                             chalk.yellow("warning") +
-                            " BrowseResponse : the server didn't take into" +
-                            " account our requestedMaxReferencesPerNode "
+                                " BrowseResponse : the server didn't take into" +
+                                " account our requestedMaxReferencesPerNode "
                         );
                         warningLog("        this.requestedMaxReferencesPerNode= " + this.requestedMaxReferencesPerNode);
                         warningLog("        got " + r.references.length + "for " + nodesToBrowse[i].nodeId.toString());
@@ -420,7 +415,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 }
             }
             for (const r of results) {
-                r.references = r.references || /* istanbul ignore next */[];
+                r.references = r.references || /* istanbul ignore next */ [];
             }
             assert(results[0] instanceof BrowseResult);
             return callback(null, isArray ? results : results[0]);
@@ -476,8 +471,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-
-     * @async
      *
      * @example
      *
@@ -560,8 +553,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-
-     * @async
      *
      * @example
      *
@@ -719,7 +710,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* istanbul ignore next */ [];
             callback(null, response);
         });
     }
@@ -851,7 +842,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
 
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* istanbul ignore next */ [];
 
             assert(nodesToRead.length === response.results.length);
 
@@ -866,7 +857,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @param {Function} callback -   the callback function
      * @param callback.err {object|null} the error if write has failed or null if OK
      * @param callback.statusCodes {StatusCode[]} - an array of status code of each write
-     * @async
      *
      * @example
      *
@@ -904,7 +894,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @param callback -   the callback function
      * @param callback.err {object|null} the error if write has failed or null if OK
      * @param callback.statusCode {StatusCodes} - the status code of the write
-     * @async
      *
      * @example
      *
@@ -928,7 +917,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
      * @param nodeToWrite {WriteValue}  - the value to write
      * @return {Promise<StatusCode>}
-     * @async
      *
      * @example
      *
@@ -945,7 +933,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
      * @param nodesToWrite {Array<WriteValue>}  - the value to write
      * @return {Promise<Array<StatusCode>>}
-     * @async
      *
      * @example
      * ```javascript
@@ -994,29 +981,25 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 return callback(new Error(response.responseHeader.serviceResult.toString()));
             }
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* istanbul ignore next */ [];
             assert(nodesToWrite.length === response.results.length);
             callback(null, isArray ? response.results : response.results[0]);
         });
     }
 
     /**
+     * @deprecated use session.write instead
      *
-
-     * @async
      * @param nodeId  {NodeId}  - the node id of the node to write
      * @param value   {Variant} - the value to write
      * @param callback   {Function}
      * @param callback.err {object|null} the error if write has failed or null if OK
      * @param callback.statusCode {StatusCode} - the status code of the write
      *
-
-     * @async
      * @param nodeId  {NodeId}  - the node id of the node to write
      * @param value   {Variant} - the value to write
      * @return {Promise<StatusCode>} - the status code of the write
      *
-     * @deprecated use session.write instead
      *
      * @example
      *     // please use session.write instead of session.writeSingleNode
@@ -1081,7 +1064,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      *  });
      *  ```
      *
-     * @async
      * @param nodes  array of nodeId to read
      * @param node  nodeId to read
      * @param callback
@@ -1099,9 +1081,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-
      *
-     * @async
      *
      * @example
      *
@@ -1130,7 +1110,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
      * @param callback                 {Function}                - the callback function
      * @param callback.err             {Error|null}              - the error or null if the transaction was OK}
      * @param callback.dataValues       {Array<DataValue>}
-     * @async
      *
      * @example
      *
@@ -1197,7 +1176,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 warningLog(
                     chalk.yellow(
                         "please make sure to refactor your code and check that " +
-                        "the second argument of your callback function is named"
+                            "the second argument of your callback function is named"
                     ),
                     chalk.cyan("dataValue" + (isArray ? "s" : ""))
                 );
@@ -1230,7 +1209,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
             // perform ExtensionObject resolution
             promoteOpaqueStructureWithCallback(this, response.results!, () => {
-                response.results = response.results || /* istanbul ignore next */[];
+                response.results = response.results || /* istanbul ignore next */ [];
                 return callback(null, isArray ? response.results : response.results[0]);
             });
         });
@@ -1301,8 +1280,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-
-     * @async
      */
     public transferSubscriptions(
         options: TransferSubscriptionsRequestLike,
@@ -1327,12 +1304,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-
-     * @async
-     * @param options {ModifySubscriptionRequest}
-     * @param callback {Function}
-     * @param callback.err {Error|null}   - the Error if the async method has failed
-     * @param callback.response {ModifySubscriptionResponse} - the response
      */
     public modifySubscription(
         options: ModifySubscriptionRequestLike,
@@ -1346,13 +1317,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-     *
-
-     * @async
-     * @param options  {PublishRequest}
-     * @param callback {Function}
-     * @param callback.err {Error|null}   - the Error if the async method has failed
-     * @param callback.response {PublishResponse} - the response
      */
     public publish(options: PublishRequest, callback: (err: Error | null, response?: PublishResponse) => void): void {
         this._defaultRequest(PublishRequest, PublishResponse, options, callback);
@@ -1360,10 +1324,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-
-     * @async
-     * @param options  {RepublishRequest}
-     * @param callback the callback
      */
     public republish(options: RepublishRequest, callback: (err: Error | null, response?: RepublishResponse) => void): void {
         this._defaultRequest(RepublishRequest, RepublishResponse, options, callback);
@@ -1371,11 +1331,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-
-     * @async
-     * @param options  {DeleteMonitoredItemsRequest}
-     * @param callback {Function}
-     * @param callback.err {Error|null}   - the Error if the async method has failed
      */
     public deleteMonitoredItems(
         options: DeleteMonitoredItemsRequestLike,
@@ -1386,8 +1341,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-
-     * @async
      */
     public setPublishingMode(publishingEnabled: boolean, subscriptionId: SubscriptionId): Promise<StatusCode>;
     public setPublishingMode(publishingEnabled: boolean, subscriptionIds: SubscriptionId[]): Promise<StatusCode[]>;
@@ -1431,22 +1384,13 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 if (!response) {
                     return callback(new Error("Internal Error"));
                 }
-                response.results = response.results || /* istanbul ignore next */[];
+                response.results = response.results || /* istanbul ignore next */ [];
                 callback(err, isArray ? response.results : response.results[0]);
             }
         );
     }
 
     /**
-     *
-
-     * @async
-     * @param browsePath {BrowsePath|Array<BrowsePath>}
-     * @param callback {Function}
-     * @param callback.err {Error|null}
-     * @param callback.response {BrowsePathResult|Array<BrowsePathResult>}
-     *
-     *
      *
      */
     public translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
@@ -1476,7 +1420,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (!response || !(response instanceof TranslateBrowsePathsToNodeIdsResponse)) {
                 return callback(new Error("Internal Error"));
             }
-            response.results = response.results || /* istanbul ignore next */[];
+            response.results = response.results || /* istanbul ignore next */ [];
 
             callback(null, isArray ? response.results : response.results[0]);
         });
@@ -1501,7 +1445,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             // session may have been closed by user ... but is still in used !!
             return callback(new Error("Session has been closed and should not be used to perform a transaction anymore"));
         }
-        if (request instanceof PublishRequest || request instanceof ActivateSessionRequest || request instanceof CloseSessionRequest) {
+        if (
+            request instanceof PublishRequest ||
+            request instanceof ActivateSessionRequest ||
+            request instanceof CloseSessionRequest
+        ) {
             return this._performMessageTransaction(request, callback);
         }
 
@@ -1538,17 +1486,29 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
         this.#reprocessRequest(0, request, callback);
     }
-    #reprocessRequest = (attemptCount: number, request: Request, callback: (err: Error | null, response?: Response) => void): void => {
-
-        (attemptCount>0) && warningLog("reprocessRequest => ", request.constructor.name, this._reconnecting.pendingTransactions.length);
+    #reprocessRequest = (
+        attemptCount: number,
+        request: Request,
+        callback: (err: Error | null, response?: Response) => void
+    ): void => {
+        attemptCount > 0 &&
+            warningLog("reprocessRequest => ", request.constructor.name, this._reconnecting.pendingTransactions.length);
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {
             if (err && err.message.match(/BadSessionIdInvalid/) && request.constructor.name !== "ActivateSessionRequest") {
-                warningLog("Transaction on Invalid Session ", request.constructor.name, err.message, "isReconnecting?=", this.isReconnecting, "q=", this._reconnecting.pendingTransactions.length);
+                warningLog(
+                    "Transaction on Invalid Session ",
+                    request.constructor.name,
+                    err.message,
+                    "isReconnecting?=",
+                    this.isReconnecting,
+                    "q=",
+                    this._reconnecting.pendingTransactions.length
+                );
                 request.requestHeader.requestHandle = requestHandleNotSetValue;
                 if (this.isReconnecting) {
                     this.once("session_restored", () => {
                         warningLog("redoing", request.constructor.name, this.isReconnecting);
-                        this.#reprocessRequest(attemptCount+1,request, callback);
+                        this.#reprocessRequest(attemptCount + 1, request, callback);
                     });
                 } else {
                     this.#_recreate_session_and_reperform_transaction(request, callback);
@@ -1613,9 +1573,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             if (response.responseHeader.serviceResult.isNot(StatusCodes.Good)) {
                 err = new Error(
                     " ServiceResult is " +
-                    response.responseHeader.serviceResult.toString() +
-                    " request was " +
-                    request.constructor.name
+                        response.responseHeader.serviceResult.toString() +
+                        " request was " +
+                        request.constructor.name
                 );
 
                 if (response && response.responseHeader.serviceDiagnostics) {
@@ -1669,10 +1629,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
 
     /**
      *
-
-     * @async
-     * @param [deleteSubscription=true] {Boolean}
-     * @param callback {Function}
      */
     public close(callback: ErrorCallback): void;
 
@@ -1821,10 +1777,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 
     /**
-
-     *    extract the argument definition of a method
-     * @param methodId the method nodeId to get argument definition from
-     * @async
      *
      */
     public async getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
@@ -1868,7 +1820,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
                 return callback(new Error("Internal Error"));
             }
 
-            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */[];
+            response.registeredNodeIds = response.registeredNodeIds || /* istanbul ignore next */ [];
 
             callback(null, response.registeredNodeIds);
         });
@@ -2092,10 +2044,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         return getExtensionObjectConstructor(this, dataTypeNodeId);
     }
     /**
-     *
+     * construct a Extension object from a DataType and a pojo
      * @param dataType
      * @param pojo
-     * @async
      */
     public async constructExtensionObject(dataType: NodeId, pojo: Record<string, any>): Promise<ExtensionObject> {
         const Constructor = await this.getExtensionObjectConstructor(dataType);
@@ -2173,10 +2124,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             callback(null, response);
         });
     }
-    #_recreate_session_and_reperform_transaction(
-        request: Request,
-        callback: (err: Error | null, response?: Response) => void
-    ) {
+    #_recreate_session_and_reperform_transaction(request: Request, callback: (err: Error | null, response?: Response) => void) {
         warningLog("attempt to recreate session to reperform a transaction ", request.constructor.name);
         if (this.recursive_repair_detector >= 1) {
             // tslint:disable-next-line: no-console
@@ -2195,7 +2143,6 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             this._performMessageTransaction(request, callback);
         });
     }
-
 }
 
 type promoteOpaqueStructure3WithCallbackFunc = (

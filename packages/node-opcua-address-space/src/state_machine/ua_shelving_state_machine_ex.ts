@@ -27,7 +27,7 @@ const doDebug = checkDebugFlag(__filename);
 
 export interface UAShelvedStateMachineHelper {
     _timer: NodeJS.Timeout | null;
-    _sheveldTime: Date;
+    _shelvedTime: Date;
     _unshelvedTime: Date;
     _duration: number;
 }
@@ -112,7 +112,7 @@ function _unshelve_method(inputArguments: VariantLike[], context: ISessionContex
     }
     shelvingState.setState("Unshelved");
 
-    (shelvingState as any)._unsheveldTime = new Date(); // now
+    (shelvingState as any)._unshelvedTime = new Date(); // now
 
     _clear_timer_if_any(shelvingState);
     assert(!shelvingState._timer);
@@ -135,7 +135,7 @@ function _automatically_unshelve(shelvingState: UAShelvedStateMachineExImpl) {
 
     // istanbul ignore next
     if (doDebug) {
-        debugLog("Automatically unshelving variable ", shelvingState.browseName.toString());
+        debugLog("Automatically un-shelving variable ", shelvingState.browseName.toString());
     }
 
     if (shelvingState.getCurrentState() === "Unshelved") {
@@ -154,7 +154,7 @@ function _start_timer_for_automatic_unshelve(shelvingState: UAShelvedStateMachin
     }
     assert(!shelvingState._timer);
 
-    shelvingState._sheveldTime = new Date(); // now
+    shelvingState._shelvedTime = new Date(); // now
     shelvingState._duration = duration;
 
     // istanbul ignore next
@@ -274,7 +274,7 @@ function _oneShotShelve_method(
     assert(isFinite(maxTimeShelved));
     assert(maxTimeShelved !== UAAlarmConditionImpl.MaxDuration);
 
-    // set automatic unshelving timer
+    // set automatic un-shelving timer
     _clear_timer_if_any(shelvingState);
     shelvingState.setState("OneShotShelved");
     _start_timer_for_automatic_unshelve(shelvingState, maxTimeShelved);
@@ -287,7 +287,7 @@ function _oneShotShelve_method(
 // from spec 1.03 :
 // * UnshelveTime specifies the remaining time in milliseconds until the Alarm automatically
 //   transitions into the Un-shelved state.
-// * For the TimedShelved state this time is initialised with the ShelvingTime argument of the
+// * For the TimedShelved state this time is initialized with the ShelvingTime argument of the
 //   TimedShelve Method call.
 // * For the OneShotShelved state the UnshelveTime will be a constant set to the maximum Duration
 //   except if a MaxTimeShelved Property is provided.
@@ -299,7 +299,7 @@ function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineExImpl): DataValu
         });
     }
 
-    if (!shelvingState._sheveldTime) {
+    if (!shelvingState._shelvedTime) {
         return new DataValue({
             statusCode: StatusCodes.BadConditionNotShelved,
             value: { dataType: DataType.Double, value: 0 }
@@ -316,7 +316,7 @@ function _unShelveTimeFunc(shelvingState: UAShelvedStateMachineExImpl): DataValu
     }
     const now = new Date();
 
-    let timeToAutomaticUnshelvedState = shelvingState._duration - (now.getTime() - shelvingState._sheveldTime.getTime());
+    let timeToAutomaticUnshelvedState = shelvingState._duration - (now.getTime() - shelvingState._shelvedTime.getTime());
 
     // timeToAutomaticUnshelvedState should always be greater than (or equal) zero
     timeToAutomaticUnshelvedState = Math.max(timeToAutomaticUnshelvedState, 0);

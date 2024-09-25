@@ -183,13 +183,6 @@ export interface MessageBuilder extends MessageBuilderBase {
 }
 
 /**
- * @class MessageBuilder
- * @extends MessageBuilderBase
- * @constructor
- *
- * @param options
- * @param options.securityMode {MessageSecurityMode} the security Mode
- * @param [options.objectFactory=factories] a object that provides a constructObject(id) method
  */
 export class MessageBuilder extends MessageBuilderBase {
     public securityPolicy: SecurityPolicy;

@@ -1,7 +1,5 @@
 /**
  * @module node-opcua-service-translate-browse-path
- * @class ToolBrowsePath
- * @static
  */
 import { ReferenceTypeIds } from "node-opcua-constants";
 import { QualifiedName } from "node-opcua-data-model";
@@ -14,10 +12,7 @@ const aggregatesReferencesId = makeNodeId(ReferenceTypeIds.Aggregates);
 export { stringToQualifiedName } from "node-opcua-data-model";
 
 /**
-
- * @param startingNode
- * @param targetNames
- * @return {BrowsePath}
+ * construct a browse path from an array of QualifiedName and a starting Node
  */
 export function constructBrowsePathFromQualifiedName(
     startingNode: { nodeId: NodeId },

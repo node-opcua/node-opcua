@@ -200,7 +200,7 @@ export type ObjectMap = { [key: string]: Pojo };
  * @class NodeCrawlerBase
  * @param session
  * @constructor
- * @deprecated: the "node-opcua-client-crawler" is now deprecated.
+ * @deprecated  the "node-opcua-client-crawler" is now deprecated.
  *              use NodeCrawlerBase from "@sterfive/crawler".
  *              Contact contact@sterfive.com for License information.
  *

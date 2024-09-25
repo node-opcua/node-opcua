@@ -1,8 +1,8 @@
 {
      "$schema": "https://typedoc.org/schema.json",
-    "out": "doc",
+    "out": "generated_doc",
     "theme": "default",
     "entryPoints": [
-        "./source/index.ts"
+        "./source/*.ts",
     ]
 }

@@ -871,7 +871,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     /**
      * connect the OPC-UA client to a server end point.
-     * @async
      */
     public connect(endpointUrl: string): Promise<void>;
     public connect(endpointUrl: string, callback: ErrorCallback): void;

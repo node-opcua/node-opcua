@@ -176,10 +176,6 @@ export interface IServerSessionBase {
 }
 
 /**
- * @class ServerSecureChannelLayer
- * @extends EventEmitter
- * @uses MessageBuilder
- * @uses MessageChunker
  */
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime = 100;
@@ -479,10 +475,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-
-     * @async
-     * @param socket
-     * @param callback
+     * 
      */
     public init(socket: ISocketLike, callback: ErrorCallback): void {
         this.#transport.timeout = this.timeout;
@@ -527,12 +520,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
-
-     * @async
-     * @param msgType
-     * @param response
-     * @param message
-     * @param callback
+     * @internal
      */
     public send_response(msgType: string, response: Response, message: Message, callback?: ErrorCallback): void {
         const request = message.request;
@@ -652,10 +640,6 @@ export class ServerSecureChannelLayer extends EventEmitter {
     /**
      * Abruptly close a Server SecureChannel ,by terminating the underlying transport.
      *
-     *
-
-     * @async
-     * @param callback
      */
     public close(callback?: ErrorCallback): void {
         callback = callback || (() => { });

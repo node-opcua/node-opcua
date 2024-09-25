@@ -1,6 +1,5 @@
 /**
  * @module node-opcua-address-space
- * @class IAddressSpace
  */
 // tslint:disable:no-console
 

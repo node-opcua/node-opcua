@@ -10,6 +10,9 @@ export function isValidByteString(value: unknown): boolean {
     return value === null || value instanceof Buffer;
 }
 
+/**
+ * @public
+ */
 export type ByteString = Buffer;
 
 export function randomByteString(value: unknown, len: number): ByteString {

@@ -1,0 +1,39 @@
+{
+    "extends": "./tsconfig.common.json",
+    "compilerOptions": {
+        "outDir": "dist"
+    },
+    "exclude": [
+        "**/node_modules",
+        "**/dist/*",
+        "tmp/*"
+    ],
+    "include": [
+        "packages/node-opcua-nodeid/source/**/*.ts",
+        "packages/node-opcua-address-space-base/source/**/*.ts",
+        "packages/node-opcua-address-space/source/**/*.ts",
+        "packages/node-opcua-client/source/**/*.ts",
+        "packages/node-opcua-server/source/**/*.ts",
+        "packages/node-opcua-types/source/**/*.ts"
+    ],
+    "references": [
+        {
+            "path": "packages/node-opcua-nodeid/tsconfig.json"
+        },
+        {
+            "path": "packages/node-opcua-server/tsconfig.json"
+        },
+        {
+            "path": "packages/node-opcua-client/tsconfig.json"
+        },
+        {
+            "path": "packages/node-opcua-address-space/tsconfig.json"
+        },
+        {
+            "path": "packages/node-opcua-address-space-base/tsconfig.json"
+        },
+        {
+            "path": "packages/node-opcua-types/tsconfig.json"
+        }
+    ]
+}

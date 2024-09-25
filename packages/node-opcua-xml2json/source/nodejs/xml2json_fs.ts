@@ -3,11 +3,9 @@ import { Callback, SimpleCallback, Xml2Json } from "../xml2json";
 
 export class Xml2JsonFs extends Xml2Json {
     /**
-
-     * @async
      * @param xmlFile - the name of the xml file to parse.
      */
-    public parse(xmlFile: string): Promise<any>;
+    public async parse(xmlFile: string): Promise<any>;
     public parse(xmlFile: string, callback: Callback<any> | SimpleCallback): void;
     public parse(xmlFile: string, callback?: Callback<any> | SimpleCallback): any {
         if (!callback) {
