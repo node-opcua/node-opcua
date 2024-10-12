@@ -67,4 +67,12 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
 
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
     });
+
+    it("LNSEC-5 -  should load a nodeset2.xml  has Maxtrix variable with missing values", async () => {
+        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_matrix_variable_and_missing_values.xml");
+
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
+    
+    });
+
 });
