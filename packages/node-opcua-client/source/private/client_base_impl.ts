@@ -9,7 +9,7 @@ import chalk from "chalk";
 import { withLock } from "@ster5/global-mutex";
 import { assert } from "node-opcua-assert";
 import { IOPCUASecureObjectOptions, OPCUASecureObject } from "node-opcua-common";
-import { Certificate, makeSHA1Thumbprint, Nonce, split_der } from "node-opcua-crypto";
+import { Certificate, makeSHA1Thumbprint, Nonce, split_der } from "node-opcua-crypto/web";
 import { installPeriodicClockAdjustment, periodicClockAdjustment, uninstallPeriodicClockAdjustment } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 

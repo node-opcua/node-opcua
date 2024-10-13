@@ -15,7 +15,7 @@ import {
     promoteOpaqueStructure,
     PseudoDataValue
 } from "node-opcua-client-dynamic-extension-object";
-import { Certificate, Nonce } from "node-opcua-crypto";
+import { Certificate, Nonce } from "node-opcua-crypto/web";
 import { BrowseDirection, LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";

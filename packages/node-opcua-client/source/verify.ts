@@ -6,7 +6,7 @@ import {
     exploreCertificate,
     explorePrivateKey,
     publicKeyAndPrivateKeyMatches
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { VerifyCertificateOptions } from "node-opcua-pki";
 
