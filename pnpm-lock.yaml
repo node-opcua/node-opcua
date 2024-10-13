@@ -27,11 +27,11 @@ importers:
         specifier: ^3.5.13
         version: 3.5.13
       '@types/lodash':
-        specifier: 4.17.9
-        version: 4.17.9
+        specifier: 4.17.10
+        version: 4.17.10
       '@types/long':
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^4.0.0
+        version: 4.0.2
       '@types/mkdirp':
         specifier: 1.0.2
         version: 1.0.2
@@ -93,8 +93,8 @@ importers:
         specifier: 2.2.1
         version: 2.2.1
       eslint:
-        specifier: 9.11.1
-        version: 9.11.1
+        specifier: 9.12.0
+        version: 9.12.0
       exit:
         specifier: ^0.1.2
         version: 0.1.2
@@ -120,11 +120,11 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       long:
-        specifier: 5.2.3
-        version: 5.2.3
+        specifier: ~4.0.0
+        version: 4.0.0
       memfs:
-        specifier: ^4.12.0
-        version: 4.12.0
+        specifier: ^4.14.0
+        version: 4.14.0
       mkdirp:
         specifier: 1.0.4
         version: 1.0.4
@@ -132,11 +132,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-pki:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.16.0
+        version: 4.16.0
       object.values:
         specifier: ^1.2.0
         version: 1.2.0
@@ -205,14 +205,11 @@ importers:
         version: 15.4.1
     devDependencies:
       '@types/mocha':
-        specifier: ^10.0.8
-        version: 10.0.8
+        specifier: ^10.0.9
+        version: 10.0.9
       '@types/node':
-        specifier: 22.7.0
-        version: 22.7.0
-      '@types/prettier':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: 22.7.5
+        version: 22.7.5
       app-module-path:
         specifier: ^2.2.0
         version: 2.2.0
@@ -236,10 +233,10 @@ importers:
         version: 1.1.1
       eslint-config-prettier:
         specifier: ^9.1.0
-        version: 9.1.0(eslint@9.11.1)
+        version: 9.1.0(eslint@9.12.0)
       eslint-plugin-prettier:
         specifier: ^5.2.1
-        version: 5.2.1(eslint-config-prettier@9.1.0)(eslint@9.11.1)(prettier@3.3.3)
+        version: 5.2.1(eslint-config-prettier@9.1.0)(eslint@9.12.0)(prettier@3.3.3)
       mocha:
         specifier: ^10.7.3
         version: 10.7.3
@@ -254,13 +251,13 @@ importers:
         version: 13.2.3
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@22.7.0)(typescript@5.6.2)
+        version: 10.9.2(@types/node@22.7.5)(typescript@5.6.3)
       tsup:
         specifier: 8.3.0
-        version: 8.3.0(typescript@5.6.2)
+        version: 8.3.0(typescript@5.6.3)
       typescript:
-        specifier: 5.6.2
-        version: 5.6.2
+        specifier: 5.6.3
+        version: 5.6.3
 
   packages/node-opcua:
     dependencies:
@@ -304,8 +301,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-data-access:
         specifier: 2.133.0
         version: link:../node-opcua-data-access
@@ -418,8 +415,8 @@ importers:
   packages/node-opcua-address-space:
     dependencies:
       '@types/lodash':
-        specifier: 4.17.9
-        version: 4.17.9
+        specifier: 4.17.10
+        version: 4.17.10
       '@types/semver':
         specifier: ^7.5.8
         version: 7.5.8
@@ -454,8 +451,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-data-access:
         specifier: 2.133.0
         version: link:../node-opcua-data-access
@@ -572,8 +569,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-data-model:
         specifier: 2.133.0
         version: link:../node-opcua-data-model
@@ -824,8 +821,8 @@ importers:
         specifier: 2.120.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-debug:
         specifier: 2.133.0
         version: link:../node-opcua-debug
@@ -833,8 +830,8 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.16.0
+        version: 4.16.0
       node-opcua-status-code:
         specifier: 2.133.0
         version: link:../node-opcua-status-code
@@ -910,8 +907,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-data-model:
         specifier: 2.133.0
         version: link:../node-opcua-data-model
@@ -937,8 +934,8 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.16.0
+        version: 4.16.0
       node-opcua-pseudo-session:
         specifier: 2.133.0
         version: link:../node-opcua-pseudo-session
@@ -1182,8 +1179,8 @@ importers:
         specifier: 2.120.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-types:
         specifier: 2.133.0
         version: link:../node-opcua-types
@@ -1344,8 +1341,8 @@ importers:
   packages/node-opcua-date-time:
     dependencies:
       long:
-        specifier: 5.2.3
-        version: 5.2.3
+        specifier: ~4.0.0
+        version: 4.0.0
       node-opcua-assert:
         specifier: 2.120.0
         version: link:../node-opcua-assert
@@ -1445,8 +1442,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-debug:
         specifier: 2.133.0
         version: link:../node-opcua-debug
@@ -1472,8 +1469,8 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.16.0
+        version: 4.16.0
       node-opcua-server:
         specifier: 2.133.0
         version: link:../node-opcua-server
@@ -1620,8 +1617,8 @@ importers:
         version: link:../node-opcua-variant
     devDependencies:
       memfs:
-        specifier: ^4.12.0
-        version: 4.12.0
+        specifier: ^4.14.0
+        version: 4.14.0
       node-opcua:
         specifier: 2.133.0
         version: link:../node-opcua
@@ -2580,14 +2577,14 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-packet-analyzer:
         specifier: 2.133.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.16.0
+        version: 4.16.0
       node-opcua-server-configuration:
         specifier: 2.133.0
         version: link:../node-opcua-server-configuration
@@ -2677,8 +2674,8 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-debug:
         specifier: 2.133.0
         version: link:../node-opcua-debug
@@ -2783,8 +2780,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-data-model:
         specifier: 2.133.0
         version: link:../node-opcua-data-model
@@ -2910,8 +2907,8 @@ importers:
         specifier: 4.1.2
         version: 4.1.2
       memfs:
-        specifier: ^4.12.0
-        version: 4.12.0
+        specifier: ^4.14.0
+        version: 4.14.0
       node-opcua-address-space:
         specifier: 2.133.0
         version: link:../node-opcua-address-space
@@ -2940,8 +2937,8 @@ importers:
         specifier: 2.125.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.10.0
-        version: 4.10.0
+        specifier: 4.12.0
+        version: 4.12.0
       node-opcua-data-model:
         specifier: 2.133.0
         version: link:../node-opcua-data-model
@@ -2958,8 +2955,8 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 4.14.0
-        version: 4.14.0
+        specifier: 4.16.0
+        version: 4.16.0
       node-opcua-pseudo-session:
         specifier: 2.133.0
         version: link:../node-opcua-pseudo-session
@@ -3513,8 +3510,8 @@ importers:
         version: link:../node-opcua-utils
     devDependencies:
       '@types/lodash':
-        specifier: 4.17.9
-        version: 4.17.9
+        specifier: 4.17.10
+        version: 4.17.10
       '@types/underscore':
         specifier: ^1.11.15
         version: 1.11.15
@@ -3869,13 +3866,13 @@ packages:
     dev: true
     optional: true
 
-  /@eslint-community/eslint-utils@4.4.0(eslint@9.11.1):
+  /@eslint-community/eslint-utils@4.4.0(eslint@9.12.0):
     resolution: {integrity: sha512-1/sA4dwrzBAyeUoQ6oxahHKmrZvsnLCg4RfxW3ZFGGmQkSNQPFNLV9CUEFQP1x9EYXHTo5p6xdhZM1Ne9p/AfA==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^6.0.0 || ^7.0.0 || >=8.0.0
     dependencies:
-      eslint: 9.11.1
+      eslint: 9.12.0
       eslint-visitor-keys: 3.4.3
 
   /@eslint-community/regexpp@4.11.0:
@@ -3902,7 +3899,7 @@ packages:
     dependencies:
       ajv: 6.12.6
       debug: 4.3.5(supports-color@8.1.1)
-      espree: 10.1.0
+      espree: 10.2.0
       globals: 14.0.0
       ignore: 5.3.1
       import-fresh: 3.3.0
@@ -3912,8 +3909,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@eslint/js@9.11.1:
-    resolution: {integrity: sha512-/qu+TWz8WwPWc7/HcIJKi+c+MOm46GdVaSlTTQcaqaL53+GsoA6MxWp5PtTx48qbSP7ylM1Kn7nhvkugfJvRSA==}
+  /@eslint/js@9.12.0:
+    resolution: {integrity: sha512-eohesHH8WFRUprDNyEREgqP6beG6htMeUYeCpkEgBCieCMme5r9zFWjzAJp//9S+Kub4rqE+jXe9Cp1a7IYIIA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   /@eslint/object-schema@2.1.4:
@@ -3926,12 +3923,23 @@ packages:
     dependencies:
       levn: 0.4.1
 
+  /@humanfs/core@0.19.0:
+    resolution: {integrity: sha512-2cbWIHbZVEweE853g8jymffCA+NCMiuqeECeBBLm8dg2oFdjuGJhgN4UAbI+6v0CKbbhvtXA4qV8YR5Ji86nmw==}
+    engines: {node: '>=18.18.0'}
+
+  /@humanfs/node@0.16.5:
+    resolution: {integrity: sha512-KSPA4umqSG4LHYRodq31VDwKAvaTF4xmVlzM8Aeh4PlU1JQ3IG0wiA8C25d3RQ9nJyM3mBHyI53K06VVL/oFFg==}
+    engines: {node: '>=18.18.0'}
+    dependencies:
+      '@humanfs/core': 0.19.0
+      '@humanwhocodes/retry': 0.3.1
+
   /@humanwhocodes/module-importer@1.0.1:
     resolution: {integrity: sha512-bxveV4V8v5Yb4ncFTT3rPSgZBOpCkjfK0y4oVVVJwIuDVBRMDXrPyXRL988i5ap9m9bnyEEjWfm5WkBmtffLfA==}
     engines: {node: '>=12.22'}
 
-  /@humanwhocodes/retry@0.3.0:
-    resolution: {integrity: sha512-d2CGZR2o7fS6sWB7DG/3a95bGKQyHMACZ5aW8qGkkqQpUoZV6C0X7Pc7l4ZNMZkfNBf4VWNe9E1jRsf0G146Ew==}
+  /@humanwhocodes/retry@0.3.1:
+    resolution: {integrity: sha512-JBxkERygn7Bv/GbN5Rv8Ul6LVknS+5Bp6RgDC/O8gEBU/yeH5Ui5C/OlWrTb6qct7LjjfT6Re2NxB0ln0yYybA==}
     engines: {node: '>=18.18'}
 
   /@isaacs/cliui@8.0.2:
@@ -4014,24 +4022,6 @@ packages:
     resolution: {integrity: sha512-Hcv+nVC0kZnQ3tD9GVu5xSMR4VVYOteQIr/hwFPVEvPdlXqgGEuRjiheChHgdM+JyqdgNcmzZOX/tnl0JOiI7A==}
     dev: false
 
-  /@nodelib/fs.scandir@2.1.5:
-    resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
-    engines: {node: '>= 8'}
-    dependencies:
-      '@nodelib/fs.stat': 2.0.5
-      run-parallel: 1.2.0
-
-  /@nodelib/fs.stat@2.0.5:
-    resolution: {integrity: sha512-RkhPPp2zrqDAQA/2jNhnztcPAlv64XdhIp7a7454A5ovI7Bukxgt7MX7udwAu3zg1DcpPU0rz3VV1SeaqvY4+A==}
-    engines: {node: '>= 8'}
-
-  /@nodelib/fs.walk@1.2.8:
-    resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
-    engines: {node: '>= 8'}
-    dependencies:
-      '@nodelib/fs.scandir': 2.1.5
-      fastq: 1.13.0
-
   /@peculiar/asn1-cms@2.3.13:
     resolution: {integrity: sha512-joqu8A7KR2G85oLPq+vB+NFr2ro7Ls4ol13Zcse/giPSzUNN0n2k3v8kMpf6QdGUhI13e5SzQYN8AKP8sJ8v4w==}
     dependencies:
@@ -4102,13 +4092,6 @@ packages:
       pvtsutils: 1.3.5
       tslib: 2.7.0
 
-  /@peculiar/asn1-schema@2.3.8:
-    resolution: {integrity: sha512-ULB1XqHKx1WBU/tTFIA+uARuRoBVZ4pNdOA878RDrRbBfBGcSzi5HBkdScC6ZbHn8z7L8gmKCgPC1LHRrP46tA==}
-    dependencies:
-      asn1js: 3.0.5
-      pvtsutils: 1.3.5
-      tslib: 2.7.0
-
   /@peculiar/asn1-x509-attr@2.3.13:
     resolution: {integrity: sha512-WpEos6CcnUzJ6o2Qb68Z7Dz5rSjRGv/DtXITCNBtjZIRWRV12yFVci76SVfOX8sisL61QWMhpLKQibrG8pi2Pw==}
     dependencies:
@@ -4136,14 +4119,14 @@ packages:
     resolution: {integrity: sha512-BRs5XUAwiyCDQMsVA9IDvDa7UBR9gAvPHgugOeGng3YN6vJ9JYonyDc0lNczErgtCWtucjR5N7VtaonboD/ezg==}
     engines: {node: '>=10.12.0'}
     dependencies:
-      '@peculiar/asn1-schema': 2.3.8
+      '@peculiar/asn1-schema': 2.3.13
       '@peculiar/json-schema': 1.1.12
       pvtsutils: 1.3.5
       tslib: 2.7.0
       webcrypto-core: 1.8.0
 
-  /@peculiar/x509@1.12.2:
-    resolution: {integrity: sha512-a99Y4Kg40c8QJrPz9cl2L2Ocmn8nVGp9vrHa725h56hRIaGPSr1IzSgx9wTolHve+D5t1kFe5M7aEJJUuRnj8A==}
+  /@peculiar/x509@1.12.3:
+    resolution: {integrity: sha512-+Mzq+W7cNEKfkNZzyLl6A6ffqc3r21HGZUezgfKxpZrkORfOqgRXnS80Zu0IV6a9Ue9QBJeKD7kN0iWfc3bhRQ==}
     dependencies:
       '@peculiar/asn1-cms': 2.3.13
       '@peculiar/asn1-csr': 2.3.13
@@ -4346,7 +4329,7 @@ packages:
   /@types/asn1@0.2.1:
     resolution: {integrity: sha512-MgrOWeBGvb9CU43AOMvrr7laqiATS4dApdqnmXl4MLxH6rSXcjSoh12y/9YGv/7Cn63cob5xQjcxVvjnOLmrmw==}
     dependencies:
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
 
   /@types/async@3.2.24:
     resolution: {integrity: sha512-8iHVLHsCCOBKjCF2KwFe0p9Z3rfM9mL+sSP8btyR5vTjJRAqpBYD28/ZLgXPf0pjG1VxOvtCV/BgXkQbpSe8Hw==}
@@ -4359,13 +4342,13 @@ packages:
   /@types/bonjour@3.5.13:
     resolution: {integrity: sha512-z9fJ5Im06zvUL548KvYNecEVlA7cVDkGUi6kZusb04mpyEFKCIZJvloCcmpmLaIahDpOQGHaHmG6imtPMmPXGQ==}
     dependencies:
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
     dev: false
 
   /@types/dns-packet@5.2.4:
     resolution: {integrity: sha512-OAruArypdNxR/tzbmrtoyEuXeNTLaZCpO19BXaNC10T5ACIbvjmvhmV2RDEy2eLc3w8IjK7SY3cvUCcAW+sfoQ==}
     dependencies:
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
     dev: false
 
   /@types/estree@1.0.5:
@@ -4381,44 +4364,34 @@ packages:
   /@types/jsrsasign@10.5.14:
     resolution: {integrity: sha512-lppSlfK6etu+cuKs40K4rg8As79PH6hzIB+v55zSqImbSH3SE6Fm8MBHCiI91cWlAP3Z4igtJK1VL3fSN09blQ==}
 
-  /@types/lodash@4.17.9:
-    resolution: {integrity: sha512-w9iWudx1XWOHW5lQRS9iKpK/XuRhnN+0T7HvdCCd802FYkT1AMTnxndJHGrNJwRoRHkslGr4S29tjm1cT7x/7w==}
+  /@types/lodash@4.17.10:
+    resolution: {integrity: sha512-YpS0zzoduEhuOWjAotS6A5AVCva7X4lVlYLF0FYHAY9sdraBfnatttHItlWeZdGhuEkf+OzMNg2ZYAx8t+52uQ==}
 
-  /@types/long@5.0.0:
-    resolution: {integrity: sha512-eQs9RsucA/LNjnMoJvWG/nXa7Pot/RbBzilF/QRIU/xRl+0ApxrSUFsV5lmf01SvSlqMzJ7Zwxe440wmz2SJGA==}
-    deprecated: This is a stub types definition. long provides its own type definitions, so you do not need this installed.
-    dependencies:
-      long: 4.0.0
+  /@types/long@4.0.2:
+    resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}
     dev: false
 
   /@types/mkdirp@1.0.2:
     resolution: {integrity: sha512-o0K1tSO0Dx5X6xlU5F1D6625FawhC3dU3iqr25lluNv/+/QIVH8RLNEiVokgIZo+mz+87w/3Mkg/VvQS+J51fQ==}
     dependencies:
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
     dev: false
 
-  /@types/mocha@10.0.8:
-    resolution: {integrity: sha512-HfMcUmy9hTMJh66VNcmeC9iVErIZJli2bszuXc6julh5YGuRb/W5OnkHjwLNYdFlMis0sY3If5SEAp+PktdJjw==}
+  /@types/mocha@10.0.9:
+    resolution: {integrity: sha512-sicdRoWtYevwxjOHNMPTl3vSfJM6oyW8o1wXeI7uww6b6xHg8eBznQDNSGBCDJmsE8UMxP05JgZRtsKbTqt//Q==}
     dev: true
 
   /@types/multicast-dns@7.2.1:
     resolution: {integrity: sha512-A2PmB8MRcNVEkw6wzGT5rtBHqyHOVjiRMkJH+zpJKXipSi+GGkHg6JjNFApDiYK9WefJqkVG0taln1VMl4TGfw==}
     dependencies:
       '@types/dns-packet': 5.2.4
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
     dev: false
 
-  /@types/node@22.7.0:
-    resolution: {integrity: sha512-MOdOibwBs6KW1vfqz2uKMlxq5xAfAZ98SZjO8e3XnAbFnTJtAspqhWk7hrdSAs9/Y14ZWMiy7/MxMUzAOadYEw==}
+  /@types/node@22.7.5:
+    resolution: {integrity: sha512-jML7s2NAzMWc//QSJ1a3prpk78cOPchGvXJsC3C6R6PSMoooztvRVQEz89gmBTBY1SPMaqo5teB4uNHPdetShQ==}
     dependencies:
       undici-types: 6.19.8
-
-  /@types/prettier@3.0.0:
-    resolution: {integrity: sha512-mFMBfMOz8QxhYVbuINtswBp9VL2b4Y0QqYHwqLz3YbgtfAcat2Dl6Y1o4e22S/OVE6Ebl9m7wWiMT2lSbAs1wA==}
-    deprecated: This is a stub types definition. prettier provides its own type definitions, so you do not need this installed.
-    dependencies:
-      prettier: 3.3.3
-    dev: true
 
   /@types/proper-lockfile@4.1.2:
     resolution: {integrity: sha512-kd4LMvcnpYkspDcp7rmXKedn8iJSCoa331zRRamUp5oanKt/CefbEGPQP7G89enz7sKD4bvsr8mHSsC8j5WOvA==}
@@ -4446,7 +4419,7 @@ packages:
     resolution: {integrity: sha512-5gI/7eJn6wmkuIuFY8JZJ1g5b30H9K5U5vKrvOuYu+hoZLb2xcVEgxhYZ2Vhbs0w/ACyzyfkJq0hQtBfSCugjw==}
     dependencies:
       '@types/asn1': 0.2.1
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
 
   /@types/underscore@1.11.15:
     resolution: {integrity: sha512-HP38xE+GuWGlbSRq9WrZkousaQ7dragtZCruBVMi0oX1migFZavZ3OROKHSkNp/9ouq82zrWtZpg18jFnVN96g==}
@@ -5182,16 +5155,16 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-config-prettier@9.1.0(eslint@9.11.1):
+  /eslint-config-prettier@9.1.0(eslint@9.12.0):
     resolution: {integrity: sha512-NSWl5BFQWEPi1j4TjVNItzYV7dZXZ+wP6I6ZhrBGpChQhZRUaElihE9uRRkcbRnNb76UMKDF3r+WTmNcGPKsqw==}
     hasBin: true
     peerDependencies:
       eslint: '>=7.0.0'
     dependencies:
-      eslint: 9.11.1
+      eslint: 9.12.0
     dev: true
 
-  /eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0)(eslint@9.11.1)(prettier@3.3.3):
+  /eslint-plugin-prettier@5.2.1(eslint-config-prettier@9.1.0)(eslint@9.12.0)(prettier@3.3.3):
     resolution: {integrity: sha512-gH3iR3g4JfF+yYPaJYkN7jEl9QbweL/YfkoRlNnuIEHEz1vHVlCmWOS+eGGiRuzHQXdJFCOTxRgvju9b8VUmrw==}
     engines: {node: ^14.18.0 || >=16.0.0}
     peerDependencies:
@@ -5205,15 +5178,15 @@ packages:
       eslint-config-prettier:
         optional: true
     dependencies:
-      eslint: 9.11.1
-      eslint-config-prettier: 9.1.0(eslint@9.11.1)
+      eslint: 9.12.0
+      eslint-config-prettier: 9.1.0(eslint@9.12.0)
       prettier: 3.3.3
       prettier-linter-helpers: 1.0.0
       synckit: 0.9.1
     dev: true
 
-  /eslint-scope@8.0.2:
-    resolution: {integrity: sha512-6E4xmrTw5wtxnLA5wYL3WDfhZ/1bUBGOXV0zQvVRDOtrR8D0p6W7fs3JweNYhwRYeGvd/1CKX2se0/2s7Q/nJA==}
+  /eslint-scope@8.1.0:
+    resolution: {integrity: sha512-14dSvlhaVhKKsa9Fx1l8A17s7ah7Ef7wCakJ10LYk6+GYmP9yDti2oq2SEwcyndt6knfcZyhyxwY3i9yL78EQw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       esrecurse: 4.3.0
@@ -5223,12 +5196,12 @@ packages:
     resolution: {integrity: sha512-wpc+LXeiyiisxPlEkUzU6svyS1frIO3Mgxj1fdy7Pm8Ygzguax2N3Fa/D/ag1WqbOprdI+uY6wMUl8/a2G+iag==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  /eslint-visitor-keys@4.0.0:
-    resolution: {integrity: sha512-OtIRv/2GyiF6o/d8K7MYKKbXrOUBIK6SfkIRM4Z0dY3w+LiQ0vy3F57m0Z71bjbyeiWFiHJ8brqnmE6H6/jEuw==}
+  /eslint-visitor-keys@4.1.0:
+    resolution: {integrity: sha512-Q7lok0mqMUSf5a/AdAZkA5a/gHcO6snwQClVNNvFKCAVlxXucdU8pKydU5ZVZjBx5xr37vGbFFWtLQYreLzrZg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  /eslint@9.11.1:
-    resolution: {integrity: sha512-MobhYKIoAO1s1e4VUrgx1l1Sk2JBR/Gqjjgw8+mfgoLE2xwsHur4gdfTxyTgShrhvdVFTaJSgMiQBl1jv/AWxg==}
+  /eslint@9.12.0:
+    resolution: {integrity: sha512-UVIOlTEWxwIopRL1wgSQYdnVDcEvs2wyaO6DGo5mXqe3r16IoCNWkR29iHhyaP4cICWjbgbmFUGAhh0GJRuGZw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     hasBin: true
     peerDependencies:
@@ -5237,16 +5210,16 @@ packages:
       jiti:
         optional: true
     dependencies:
-      '@eslint-community/eslint-utils': 4.4.0(eslint@9.11.1)
+      '@eslint-community/eslint-utils': 4.4.0(eslint@9.12.0)
       '@eslint-community/regexpp': 4.11.0
       '@eslint/config-array': 0.18.0
       '@eslint/core': 0.6.0
       '@eslint/eslintrc': 3.1.0
-      '@eslint/js': 9.11.1
+      '@eslint/js': 9.12.0
       '@eslint/plugin-kit': 0.2.0
+      '@humanfs/node': 0.16.5
       '@humanwhocodes/module-importer': 1.0.1
-      '@humanwhocodes/retry': 0.3.0
-      '@nodelib/fs.walk': 1.2.8
+      '@humanwhocodes/retry': 0.3.1
       '@types/estree': 1.0.6
       '@types/json-schema': 7.0.15
       ajv: 6.12.6
@@ -5254,9 +5227,9 @@ packages:
       cross-spawn: 7.0.3
       debug: 4.3.5(supports-color@8.1.1)
       escape-string-regexp: 4.0.0
-      eslint-scope: 8.0.2
-      eslint-visitor-keys: 4.0.0
-      espree: 10.1.0
+      eslint-scope: 8.1.0
+      eslint-visitor-keys: 4.1.0
+      espree: 10.2.0
       esquery: 1.5.0
       esutils: 2.0.3
       fast-deep-equal: 3.1.3
@@ -5266,24 +5239,22 @@ packages:
       ignore: 5.3.1
       imurmurhash: 0.1.4
       is-glob: 4.0.3
-      is-path-inside: 3.0.3
       json-stable-stringify-without-jsonify: 1.0.1
       lodash.merge: 4.6.2
       minimatch: 3.1.2
       natural-compare: 1.4.0
       optionator: 0.9.3
-      strip-ansi: 6.0.1
       text-table: 0.2.0
     transitivePeerDependencies:
       - supports-color
 
-  /espree@10.1.0:
-    resolution: {integrity: sha512-M1M6CpiE6ffoigIOWYO9UDP8TMUw9kqb21tf+08IgDYjCsOvCuDt4jQcZmoYxx+w7zlKw9/N0KXfto+I8/FrXA==}
+  /espree@10.2.0:
+    resolution: {integrity: sha512-upbkBJbckcCNBDBDXEbuhjbP68n+scUd3k/U2EkyM9nw+I/jPiL4cLF/Al06CF96wRltFda16sxDFrxsI1v0/g==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       acorn: 8.12.0
       acorn-jsx: 5.3.2(acorn@8.12.0)
-      eslint-visitor-keys: 4.0.0
+      eslint-visitor-keys: 4.1.0
 
   /esquery@1.5.0:
     resolution: {integrity: sha512-YQLXUplAwJgCydQ78IMJywZCceoqk1oH01OERdSAJc/7U2AylwjhSCLDEtqwg811idIS/9fIU5GjG73IgjKMVg==}
@@ -5350,11 +5321,6 @@ packages:
 
   /fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
-
-  /fastq@1.13.0:
-    resolution: {integrity: sha512-YpkpUnK8od0o1hmeSc7UUs/eB/vIPWJYjKck2QKIzAf71Vm1AAQ3EbuZB3g2JIy+pg+ERD0vqI79KyZiB2e2Nw==}
-    dependencies:
-      reusify: 1.0.4
 
   /fdir@6.3.0(picomatch@4.0.2):
     resolution: {integrity: sha512-QOnuT+BOtivR77wYvCWHfGt9s4Pz1VIMbD463vegT5MLqNXy8rYFT/lPVEqf/bhYeT6qmqrNHhsX+rWwe3rOCQ==}
@@ -5775,10 +5741,6 @@ packages:
     engines: {node: '>=0.12.0'}
     dev: true
 
-  /is-path-inside@3.0.3:
-    resolution: {integrity: sha512-Fd4gABb+ycGAmKou8eMftCupSir5lRxqf4aD/vd0cD2qc4HL07OjCeuHMr8Ro4CoMaeCKDB0/ECBOVWjTwUvPQ==}
-    engines: {node: '>=8'}
-
   /is-plain-obj@2.1.0:
     resolution: {integrity: sha512-YWnfyRwxL/+SsrWYfOpUtz5b3YD+nyfkHvjbcanzk8zgyO4ASD67uVMRt8k5bM4lLMDnXfriRhOpemw+NfT1eA==}
     engines: {node: '>=8'}
@@ -5958,10 +5920,6 @@ packages:
     resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
     dev: false
 
-  /long@5.2.3:
-    resolution: {integrity: sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==}
-    dev: false
-
   /lru-cache@10.1.0:
     resolution: {integrity: sha512-/1clY/ui8CzjKFyjdvwPWJUYKiFVXG2I2cY0ssG7h4+hwk+XOIX7ZSG9Q7TW8TW3Kp3BUSqgFWBLgL4PJ+Blag==}
     engines: {node: 14 || >=16.14}
@@ -5980,8 +5938,8 @@ packages:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
     dev: true
 
-  /memfs@4.12.0:
-    resolution: {integrity: sha512-74wDsex5tQDSClVkeK1vtxqYCAgCoXxx+K4NSHzgU/muYVYByFqa+0RnrPO9NM6naWm1+G9JmZ0p6QHhXmeYfA==}
+  /memfs@4.14.0:
+    resolution: {integrity: sha512-JUeY0F/fQZgIod31Ja1eJgiSxLn7BfQlCnqhwXFBzFHEw63OdLK7VJUJ7bnzNsWgCyoUP5tEp1VRY8rDaYzqOA==}
     engines: {node: '>= 4.0.0'}
     dependencies:
       '@jsonjoy.com/json-pack': 1.0.4(tslib@2.7.0)
@@ -6140,11 +6098,11 @@ packages:
     engines: {node: '>=0.10'}
     dev: false
 
-  /node-opcua-crypto@4.10.0:
-    resolution: {integrity: sha512-my5DQakjFBJWRSj/uAkQMnBDPnNVooVhOc4mtZWoTvkmFToxX6cARo5iI3z6xHMnT8MJsXwk35iya5QH9vmMqQ==}
+  /node-opcua-crypto@4.12.0:
+    resolution: {integrity: sha512-c0Bb5iiXe3tXKaxYGcN+TPDG0DA/Nc1V2J4c0mtA7ZuuV66NVIKGgbydUOKliLCyb9vjuy6wc03/b9epxWc5Og==}
     dependencies:
       '@peculiar/webcrypto': 1.5.0
-      '@peculiar/x509': 1.12.2
+      '@peculiar/x509': 1.12.3
       '@types/jsrsasign': 10.5.14
       '@types/sshpk': 1.17.4
       assert: 2.1.0
@@ -6153,8 +6111,8 @@ packages:
       jsrsasign: 11.1.0
       sshpk: 1.18.0
 
-  /node-opcua-pki@4.14.0:
-    resolution: {integrity: sha512-4VoJ827rP3c6yNAr6ZIOqNTGLidB4AxL5GLyA9CjHWb4TOGkeOuQ2bo02bUVduTq7XCe3clYlWRPAtKUg0MjQw==}
+  /node-opcua-pki@4.16.0:
+    resolution: {integrity: sha512-AQqAnl0OV3Dxori1qTqPyAbTgtVaC++TBGxReOWZke9TEIwQeSugfAv5UqPg6/Ebo7fDuNCuSacecON34w0Jyg==}
     hasBin: true
     dependencies:
       '@ster5/global-mutex': 2.0.0
@@ -6163,7 +6121,7 @@ packages:
       chalk: 4.1.2
       chokidar: 4.0.1
       cli-table: 0.3.11
-      node-opcua-crypto: 4.10.0
+      node-opcua-crypto: 4.12.0
       progress: 2.0.3
       rimraf: 4.4.1
       thenify: 3.3.1
@@ -6439,9 +6397,6 @@ packages:
     resolution: {integrity: sha512-pMpnA0qRdFp32b1sJl1wOJNxZLQ2cbQx+k6tjNtZ8CpvVhNqEPRgivZ2WOUev2YMajecdH7ctUPDvEe87nariQ==}
     engines: {node: '>=6.0.0'}
 
-  /queue-microtask@1.2.3:
-    resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
-
   /randombytes@2.1.0:
     resolution: {integrity: sha512-vYl3iOX+4CKUWuxGi9Ukhie6fsqXqS9FE2Zaic4tNFD2N2QQaXOMFbuKK4QmDHC0JO6B1Zp41J0LpT0oR68amQ==}
     dependencies:
@@ -6534,10 +6489,6 @@ packages:
     resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
     engines: {node: '>= 4'}
 
-  /reusify@1.0.4:
-    resolution: {integrity: sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==}
-    engines: {iojs: '>=1.0.0', node: '>=0.10.0'}
-
   /rimraf@4.4.1:
     resolution: {integrity: sha512-Gk8NlF062+T9CqNGn6h4tls3k6T1+/nXdOcSZVikNVtlRdYpA7wRJJMoXmuvOnLW844rPjdQ7JgXCYM6PPC/og==}
     engines: {node: '>=14'}
@@ -6585,11 +6536,6 @@ packages:
     dependencies:
       once: 1.4.0
     dev: false
-
-  /run-parallel@1.2.0:
-    resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
-    dependencies:
-      queue-microtask: 1.2.3
 
   /rx-lite@3.1.2:
     resolution: {integrity: sha512-1I1+G2gteLB8Tkt8YI1sJvSIfa0lWuRtC8GjvtyPBcLSF5jBCCJJqKrpER5JU5r6Bhe+i9/pK3VMuUcXu0kdwQ==}
@@ -6981,7 +6927,7 @@ packages:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
 
-  /ts-node@10.9.2(@types/node@22.7.0)(typescript@5.6.2):
+  /ts-node@10.9.2(@types/node@22.7.5)(typescript@5.6.3):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
     peerDependencies:
@@ -7000,14 +6946,14 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 22.7.0
+      '@types/node': 22.7.5
       acorn: 8.10.0
       acorn-walk: 8.2.0
       arg: 4.1.3
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 5.6.2
+      typescript: 5.6.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
     dev: true
@@ -7018,7 +6964,7 @@ packages:
   /tslib@2.7.0:
     resolution: {integrity: sha512-gLXCKdN1/j47AiHiOkJN69hJmcbGTHI0ImLmbYLHykhgeN0jVGola9yVjFgzCUklsZQMW55o+dW7IXv3RCXDzA==}
 
-  /tsup@8.3.0(typescript@5.6.2):
+  /tsup@8.3.0(typescript@5.6.3):
     resolution: {integrity: sha512-ALscEeyS03IomcuNdFdc0YWGVIkwH1Ws7nfTbAPuoILvEV2hpGQAY72LIOjglGo4ShWpZfpBqP/jpQVCzqYQag==}
     engines: {node: '>=18'}
     hasBin: true
@@ -7053,7 +6999,7 @@ packages:
       sucrase: 3.35.0
       tinyglobby: 0.2.6
       tree-kill: 1.2.2
-      typescript: 5.6.2
+      typescript: 5.6.3
     transitivePeerDependencies:
       - jiti
       - supports-color
@@ -7090,8 +7036,8 @@ packages:
     engines: {node: '>=4'}
     dev: false
 
-  /typescript@5.6.2:
-    resolution: {integrity: sha512-NW8ByodCSNCwZeghjN3o+JX5OFH0Ojg6sadjEKY4huZ52TqbJTJnDo5+Tw98lSy63NZvi4n+ez5m2u5d4PkZyw==}
+  /typescript@5.6.3:
+    resolution: {integrity: sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==}
     engines: {node: '>=14.17'}
     hasBin: true
     dev: true
@@ -7160,7 +7106,7 @@ packages:
   /webcrypto-core@1.8.0:
     resolution: {integrity: sha512-kR1UQNH8MD42CYuLzvibfakG5Ew5seG85dMMoAM/1LqvckxaF6pUiidLuraIu4V+YCIFabYecUZAW0TuxAoaqw==}
     dependencies:
-      '@peculiar/asn1-schema': 2.3.8
+      '@peculiar/asn1-schema': 2.3.13
       '@peculiar/json-schema': 1.1.12
       asn1js: 3.0.5
       pvtsutils: 1.3.5
