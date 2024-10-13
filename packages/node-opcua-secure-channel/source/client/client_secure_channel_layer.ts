@@ -17,7 +17,7 @@ import {
     rsaLengthPrivateKey,
     rsaLengthPublicKey,
     split_der
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
 
 import { assert } from "node-opcua-assert";
 

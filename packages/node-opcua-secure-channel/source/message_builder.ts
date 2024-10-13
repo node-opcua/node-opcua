@@ -17,7 +17,7 @@ import {
     reduceLength,
     removePadding,
     verifyChunkSignatureWithDerivedKeys
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";

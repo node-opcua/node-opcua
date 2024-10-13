@@ -4,7 +4,8 @@ import sinon from "sinon";
 import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { NodeId } from "node-opcua-nodeid";
-import { exploreCertificate, readCertificate } from "node-opcua-crypto";
+import { exploreCertificate } from "node-opcua-crypto/web";
+import { readCertificate} from "node-opcua-crypto";
 
 import { AddressSpace, instantiateCertificateExpirationAlarm, UACertificateExpirationAlarmEx } from "../..";
 import { generateAddressSpace } from "../../distNodeJS";

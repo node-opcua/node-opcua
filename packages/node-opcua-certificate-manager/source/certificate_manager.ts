@@ -7,7 +7,7 @@ import path from "path";
 import mkdirp from "mkdirp";
 import envPaths from "env-paths";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
+import { Certificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { CertificateManager, CertificateManagerOptions } from "node-opcua-pki";
 import { StatusCodes } from "node-opcua-status-code";
 import { StatusCode } from "node-opcua-status-code";

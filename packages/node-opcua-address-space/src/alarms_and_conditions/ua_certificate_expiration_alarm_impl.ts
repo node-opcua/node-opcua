@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-import { Certificate, exploreCertificate, makeSHA1Thumbprint } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, makeSHA1Thumbprint } from "node-opcua-crypto/web";
 import { DateTime, getMinOPCUADate, isMinDate, StatusCodes } from "node-opcua-basic-types";
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";

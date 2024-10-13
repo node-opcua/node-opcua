@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 
 import { DateTime, UInt8 } from "node-opcua-basic-types";
 import { ServerState } from "node-opcua-common";
-import { Certificate } from "node-opcua-crypto";
+import { Certificate } from "node-opcua-crypto/web";
 import { LocalizedTextLike } from "node-opcua-data-model";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";

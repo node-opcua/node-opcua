@@ -25,7 +25,7 @@ import {
     RegisterServerResponse
 } from "node-opcua-service-discovery";
 import { ApplicationType, EndpointDescription, MdnsDiscoveryConfiguration, RegisteredServerOptions } from "node-opcua-types";
-import { exploreCertificate } from "node-opcua-crypto";
+import { exploreCertificate } from "node-opcua-crypto/web";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IRegisterServerManager } from "./i_register_server_manager";
 
