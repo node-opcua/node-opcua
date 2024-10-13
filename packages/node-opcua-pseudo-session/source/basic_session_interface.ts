@@ -113,22 +113,16 @@ export interface IBasicSessionReadAsync extends IBasicSessionReadAsyncSimple, IB
 }
 export interface IBasicSessionReadCallback {
     read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
-
     read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
-
     read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
-
     read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 }
 export interface IBasicSessionRead extends IBasicSessionReadCallback, IBasicSessionReadAsync {
     read(nodeToRead: ReadValueIdOptions, maxAge?: number): Promise<DataValue>;
     read(nodesToRead: ReadValueIdOptions[], maxAge?: number): Promise<DataValue[]>;
     read(nodeToRead: ReadValueIdOptions, maxAge: number, callback: ResponseCallback<DataValue>): void;
-
     read(nodesToRead: ReadValueIdOptions[], maxAge: number, callback: ResponseCallback<DataValue[]>): void;
-
     read(nodeToRead: ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
-
     read(nodesToRead: ReadValueIdOptions[], callback: ResponseCallback<DataValue[]>): void;
 }
 // #endregion
@@ -265,8 +259,8 @@ export interface IBasicSessionTranslateBrowsePath
 
 // #endregion
 
-export interface IBasicSessionAsyncSimple
-    extends IBasicSessionBrowseAsyncSimple,
+export interface IBasicSessionAsyncSimple extends 
+        IBasicSessionBrowseAsyncSimple,
         IBasicSessionReadAsyncSimple,
         IBasicSessionWriteAsyncSimple,
         IBasicSessionCallAsyncSimple,
@@ -275,19 +269,18 @@ export interface IBasicSessionAsyncSimple
 export interface IBasicSessionGetArgumentDefinitionAsync {
     getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
 }
-export interface IBasicSessionAsyncMultiple
-    extends IBasicSessionBrowseAsyncMultiple,
+export interface IBasicSessionAsyncMultiple extends 
+        IBasicSessionBrowseAsyncMultiple,
         IBasicSessionReadAsyncMultiple,
         IBasicSessionWriteAsyncMultiple,
         IBasicSessionCallAsyncMultiple,
         IBasicSessionTranslateBrowsePathAsyncMultiple {}
 
-export interface IBasicSessionAsync
-    extends IBasicSessionBrowse,
-        IBasicSessionCall,
-        IBasicSessionRead,
-        IBasicSessionWrite,
-        IBasicSessionTranslateBrowsePath {}
+export interface IBasicSessionAsync extends  IBasicSessionBrowseAsync,
+        IBasicSessionReadAsync,
+        IBasicSessionWriteAsync,
+        IBasicSessionCallAsync,
+        IBasicSessionTranslateBrowsePathAsync {}
 export type IVeryBasicSession = IBasicSessionAsync;
 
 export interface IBasicSessionAsync2 extends IBasicSessionAsync, IBasicSessionBrowseNextAsync {}
