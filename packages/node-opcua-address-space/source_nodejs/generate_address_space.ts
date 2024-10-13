@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { IAddressSpace } from "node-opcua-address-space-base";

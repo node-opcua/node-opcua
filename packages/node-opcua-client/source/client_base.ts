@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 import { LocaleId } from "node-opcua-basic-types";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { OPCUASecureObject } from "node-opcua-common";
-import { Certificate } from "node-opcua-crypto";
+import { Certificate } from "node-opcua-crypto/web";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { ClientSecureChannelLayer, ConnectionStrategy, ConnectionStrategyOptions, SecurityPolicy } from "node-opcua-secure-channel";
 import { FindServersOnNetworkRequestOptions, FindServersRequestOptions, ServerOnNetwork } from "node-opcua-service-discovery";

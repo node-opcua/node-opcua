@@ -9,7 +9,7 @@ import { DataType, VariantArrayType, VariantLike } from "node-opcua-variant";
 import { ClientFile, OpenFileMode } from "node-opcua-file-transfer";
 import { AttributeIds, QualifiedNameLike, coerceQualifiedName } from "node-opcua-data-model";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { Certificate } from "node-opcua-crypto";
+import { Certificate } from "node-opcua-crypto/web";
 import { TrustListDataType } from "node-opcua-types";
 import { BinaryStream } from "node-opcua-binary-stream";
 

@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-secure-channel
  */
-import { makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
+import { makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { CommonInterface } from "node-opcua-factory";
 import { CloseSecureChannelRequest, MessageSecurityMode, RequestHeader, ResponseHeader } from "node-opcua-service-secure-channel";
 import { ServiceFault } from "./services";

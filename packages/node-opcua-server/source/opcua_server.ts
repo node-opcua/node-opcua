@@ -2,10 +2,6 @@
 /**
  * @module node-opcua-server
  */
-// tslint:disable:no-console
-// tslint:disable:max-line-length
-// tslint:disable:unified-signatures
-
 import { randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import { callbackify, types } from "util";
@@ -44,7 +40,7 @@ import {
 } from "node-opcua-address-space";
 import { getDefaultCertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { ServerState } from "node-opcua-common";
-import { Certificate, exploreCertificate, Nonce } from "node-opcua-crypto";
+import { Certificate, exploreCertificate, Nonce } from "node-opcua-crypto/web";
 import {
     AttributeIds,
     filterDiagnosticOperationLevel,

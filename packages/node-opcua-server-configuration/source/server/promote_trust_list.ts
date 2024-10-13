@@ -21,7 +21,7 @@ import { AccessRestrictionsFlag } from "node-opcua-data-model";
 import { CertificateManager } from "node-opcua-pki";
 import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { split_der, verifyCertificateChain } from "node-opcua-crypto";
+import { split_der, verifyCertificateChain } from "node-opcua-crypto/web";
 
 import { TrustListMasks, writeTrustList } from "./trust_list_server";
 

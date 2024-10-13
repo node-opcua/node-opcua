@@ -1,4 +1,4 @@
-import { DerivedKeys } from "node-opcua-crypto";
+import { DerivedKeys } from "node-opcua-crypto/web";
 import { assert } from "node-opcua-assert";
 import { make_debugLog, checkDebugFlag, make_warningLog } from "node-opcua-debug";
 import chalk from "chalk";

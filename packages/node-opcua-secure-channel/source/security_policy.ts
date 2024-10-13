@@ -31,7 +31,7 @@ import {
     toPem,
     verifyMessageChunkSignature,
     PaddingAlgorithm
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
 import { EncryptBufferFunc, SignBufferFunc } from "node-opcua-chunkmanager";
 import { make_warningLog } from "node-opcua-debug";
 

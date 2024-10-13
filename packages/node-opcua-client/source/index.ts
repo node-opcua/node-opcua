@@ -31,7 +31,7 @@ export { SecurityPolicy, ClientSecureChannelLayer, ConnectionStrategyOptions } f
 import * as utils1 from "node-opcua-utils";
 export const utils = utils1;
 
-import * as crypto_util1 from "node-opcua-crypto";
+import * as crypto_util1 from "node-opcua-crypto/web";
 export const crypto_utils = crypto_util1;
 
 export { hexDump, LogLevel, setLogLevel, setDebugLogger, setWarningLogger, setErrorLogger } from "node-opcua-debug";

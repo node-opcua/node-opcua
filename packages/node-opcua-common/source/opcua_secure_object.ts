@@ -5,8 +5,8 @@ import { EventEmitter } from "events";
 import fs from "fs";
 
 import { assert } from "node-opcua-assert";
-import { Certificate, PrivateKey, readCertificate, readPrivateKey, split_der } from "node-opcua-crypto";
-
+import { Certificate, PrivateKey, split_der } from "node-opcua-crypto/web";
+import { readCertificate, readPrivateKey } from "node-opcua-crypto";
 export interface ICertificateKeyPairProvider {
     getCertificate(): Certificate;
     getCertificateChain(): Certificate;

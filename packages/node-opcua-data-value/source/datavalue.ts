@@ -3,7 +3,7 @@
  */
 import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { coerceDateTime, DateWithPicoseconds, getCurrentClock, PreciseClock } from "node-opcua-date-time";
+import { coerceDateTime, getCurrentClock, PreciseClock } from "node-opcua-date-time";
 import {
     BaseUAObject,
     buildStructuredType,
@@ -136,8 +136,9 @@ function decodeDebugDataValue(dataValue: DataValue, stream: BinaryStream, option
     // read sourceTimestamp
     cur = stream.length;
     if (encodingMask & DataValueEncodingByte.SourceTimestamp) {
-        dataValue.sourceTimestamp = decodeHighAccuracyDateTime(stream);
-        dataValue.sourcePicoseconds = (dataValue.sourceTimestamp as DateWithPicoseconds).picoseconds;
+        const [d, picoseconds] = decodeHighAccuracyDateTime(stream);
+        dataValue.sourceTimestamp = d;
+        dataValue.sourcePicoseconds = picoseconds | 0;
         tracer.trace("member", "sourceTimestamp", dataValue.sourceTimestamp, cur, stream.length, "DateTime");
     }
     // read sourcePicoseconds
@@ -152,8 +153,9 @@ function decodeDebugDataValue(dataValue: DataValue, stream: BinaryStream, option
     cur = stream.length;
     dataValue.serverPicoseconds = 0;
     if (encodingMask & DataValueEncodingByte.ServerTimestamp) {
-        dataValue.serverTimestamp = decodeHighAccuracyDateTime(stream);
-        dataValue.serverPicoseconds = (dataValue.serverTimestamp as DateWithPicoseconds).picoseconds | 0;
+        const [d, picoseconds] = decodeHighAccuracyDateTime(stream);
+        dataValue.serverTimestamp = d;
+        dataValue.serverPicoseconds = picoseconds | 0;
         tracer.trace("member", "serverTimestamp", dataValue.serverTimestamp, cur, stream.length, "DateTime");
     }
     // read serverPicoseconds
@@ -181,8 +183,9 @@ function decodeDataValueInternal(dataValue: DataValue, stream: BinaryStream) {
     dataValue.sourcePicoseconds = 0;
     // read sourceTimestamp
     if (encodingMask & DataValueEncodingByte.SourceTimestamp) {
-        dataValue.sourceTimestamp = decodeHighAccuracyDateTime(stream);
-        dataValue.sourcePicoseconds += (dataValue.sourceTimestamp as DateWithPicoseconds).picoseconds | 0;
+        const [d, picoseconds] = decodeHighAccuracyDateTime(stream);
+        dataValue.sourceTimestamp = d
+        dataValue.sourcePicoseconds += picoseconds | 0;
     }
     // read sourcePicoseconds
     if (encodingMask & DataValueEncodingByte.SourcePicoseconds) {
@@ -191,8 +194,9 @@ function decodeDataValueInternal(dataValue: DataValue, stream: BinaryStream) {
     // read serverTimestamp
     dataValue.serverPicoseconds = 0;
     if (encodingMask & DataValueEncodingByte.ServerTimestamp) {
-        dataValue.serverTimestamp = decodeHighAccuracyDateTime(stream);
-        dataValue.serverPicoseconds += (dataValue.serverTimestamp as DateWithPicoseconds).picoseconds | 0;
+        const [d, picoseconds] = decodeHighAccuracyDateTime(stream);
+        dataValue.serverTimestamp = d;
+        dataValue.serverPicoseconds += picoseconds | 0;
     }
     // read serverPicoseconds
     if (encodingMask & DataValueEncodingByte.ServerPicoseconds) {

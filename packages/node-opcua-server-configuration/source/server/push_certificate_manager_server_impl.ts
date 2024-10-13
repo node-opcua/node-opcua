@@ -12,16 +12,24 @@ import {
     convertPEMtoDER,
     exploreCertificate,
     makeSHA1Thumbprint,
-    readPrivateKey,
     toPem,
     PrivateKey,
     certificateMatchesPrivateKey,
-    readCertificate,
     coercePEMorDerToPrivateKey,
-    coercePrivateKeyPem
-} from "node-opcua-crypto";
+    coercePrivateKeyPem,
+} from "node-opcua-crypto/web";
 
-import { DirectoryName } from "node-opcua-crypto";
+import {readPrivateKey, readCertificate, asn1 } from "node-opcua-crypto";
+
+// fixme: use the one from node-opcua-crypto
+export interface DirectoryName {
+    stateOrProvinceName?: string;
+    localityName?: string;
+    organizationName?: string;
+    organizationUnitName?: string;
+    commonName?: string;
+    countryName?: string;
+}
 
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { NodeId, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -115,6 +123,7 @@ export async function moveFileWithBackup(source: string, dest: string): Promise<
     await copyFile(dest, dest + "_old");
     await moveFile(source, dest);
 }
+
 
 export function subjectToString(subject: SubjectOptions & DirectoryName): string {
     let s = "";

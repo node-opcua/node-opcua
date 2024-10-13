@@ -1,4 +1,4 @@
-import { Certificate } from "node-opcua-crypto";
+import { Certificate } from "node-opcua-crypto/web";
 import { DataValue } from "node-opcua-data-value";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
