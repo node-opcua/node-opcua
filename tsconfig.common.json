@@ -1,11 +1,11 @@
 {
     "compilerOptions": {
-        "moduleResolution": "node",
+        "moduleResolution": "NodeNext",
         "strictFunctionTypes": true,
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "target": "es2020",
-        "module": "commonjs",
+        "module": "NodeNext",
         "declaration": true,
         "sourceMap": true,
         "strict": true,
