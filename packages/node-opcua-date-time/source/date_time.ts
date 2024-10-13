@@ -108,7 +108,6 @@ export function bn_hundredNanoSecondFrom1601ToDate(
     const date = new Date(value1);
     // enrich the date
     const excess100nanoInPico = l.mod(10000).mul(100000).toNumber();
-    // (date as DateWithPicoseconds).high_low = [high, low];
     // picosecond will contains un-decoded 100 nanoseconds => 10 x 100 nanoseconds = 1 microsecond
     const picoseconds2 = excess100nanoInPico + (picoseconds || 0);
     return [date, picoseconds2];
