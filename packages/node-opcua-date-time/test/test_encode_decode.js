@@ -1,10 +1,8 @@
-
 const { BinaryStream } = require("node-opcua-binary-stream");
 const { isValidDateTime, encodeDateTime, getMinOPCUADate, decodeDateTime, isMinDate, coerceDateTime } = require("..");
 const should = require("should");
 describe("encode/decode DateTime", () => {
     it("should encode and decode min date", () => {
-
         const stream = new BinaryStream();
 
         const date = getMinOPCUADate();
@@ -17,7 +15,6 @@ describe("encode/decode DateTime", () => {
         const reloaded = decodeDateTime(stream);
         isMinDate(reloaded).should.eql(true);
         isValidDateTime(reloaded).should.eql(true);
-
     });
     it("should encode and decode null date", () => {
         const stream = new BinaryStream();
@@ -29,7 +26,6 @@ describe("encode/decode DateTime", () => {
         const reloaded = decodeDateTime(stream);
         isMinDate(reloaded).should.eql(true);
         isValidDateTime(reloaded).should.eql(true);
-
     });
     it("(coerceDateTime(null))", () => {
         const date = coerceDateTime(null);

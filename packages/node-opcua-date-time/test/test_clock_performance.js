@@ -4,7 +4,6 @@ const should = require("should");
 const { Benchmarker } = require("node-opcua-benchmarker");
 const { getCurrentClock } = require("..");
 
-
 describe("Benchmarking javascript clock", function () {
     this.timeout(Math.max(40000, this.timeout()));
     it("should check which of  new Date() or process high is faster", function (done) {
