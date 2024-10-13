@@ -3,7 +3,7 @@
  */
 
 import { assert } from "node-opcua-assert";
-import { CertificateInternals, exploreCertificate } from "node-opcua-crypto";
+import { CertificateInternals, exploreCertificate } from "node-opcua-crypto/web";
 import { AccessRestrictionsFlag, allPermissions, AttributeIds, PermissionFlag } from "node-opcua-data-model";
 import { PreciseClock } from "node-opcua-date-time";
 import { NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
@@ -21,9 +21,9 @@ import { NamespacePrivate } from "../src/namespace_private";
 
 export { RolePermissionType, RolePermissionTypeOptions, PermissionType } from "node-opcua-types";
 
-type UserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
+type AnyUserIdentityToken = UserNameIdentityToken | AnonymousIdentityToken | X509IdentityToken;
 
-function getUserName(userIdentityToken: UserIdentityToken): string {
+function getUserName(userIdentityToken: AnyUserIdentityToken): string {
     if (userIdentityToken instanceof AnonymousIdentityToken) {
         return "anonymous";
     }

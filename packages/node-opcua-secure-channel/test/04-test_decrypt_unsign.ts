@@ -1,6 +1,5 @@
-import should from "should";
-import { makeBufferFromTrace, inlineText, hexDump } from "node-opcua-debug";
-import { convertPEMtoDER, toPem, privateDecrypt_long, verifyChunkSignature, PaddingAlgorithm, PrivateKey, createPrivateKeyFromNodeJSCrypto } from "node-opcua-crypto";
+import { makeBufferFromTrace, inlineText } from "node-opcua-debug";
+import { toPem, privateDecrypt_long, verifyChunkSignature, PaddingAlgorithm } from "node-opcua-crypto";
 
 let buffer = makeBufferFromTrace(
     `00000000: 4f 50 4e 46 59 06 00 00 00 00 00 00 38 00 00 00 68 74 74 70 3a 2f 2f 6f 70 63 66 6f 75 6e 64 61    OPNFY.......8...http://opcfounda

@@ -1,9 +1,8 @@
 import fs from "fs";
 import "should";
 import { assert } from "node-opcua-assert";
-import { makeMessageChunkSignature, readPrivateKey, verifyChunkSignature } from "node-opcua-crypto";
-import { SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";
-import { SecureMessageChunkManager, SecureMessageChunkManagerOptions, SequenceNumberGenerator } from "../source";
+import { makeMessageChunkSignature, verifyChunkSignature } from "node-opcua-crypto/web";
+import { readPrivateKey } from "node-opcua-crypto";
 
 // tslint:disable:no-var-requires
 const { getFixture } = require("node-opcua-test-fixtures");

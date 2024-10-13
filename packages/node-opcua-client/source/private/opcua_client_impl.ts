@@ -15,7 +15,7 @@ import {
     PrivateKey,
     Nonce,
     toPem
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
 
 import { LocalizedText } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";

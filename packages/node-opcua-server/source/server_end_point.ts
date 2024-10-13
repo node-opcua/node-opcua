@@ -11,7 +11,7 @@ import async from "async";
 
 import { assert } from "node-opcua-assert";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { Certificate, PrivateKey, makePrivateKeyThumbPrint, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
+import { Certificate, PrivateKey, makeSHA1Thumbprint, split_der } from "node-opcua-crypto/web";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName, resolveFullyQualifiedDomainName } from "node-opcua-hostname";
 import {
@@ -307,8 +307,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
     }
 
     public toString(): string {
-        const privateKeyThumpPrint = makePrivateKeyThumbPrint(this.getPrivateKey());
-
+    
         const txt =
             " end point" +
             this._counter +
@@ -317,9 +316,7 @@ export class OPCUAServerEndPoint extends EventEmitter implements ServerSecureCha
             " l = " +
             this._endpoints.length +
             " " +
-            makeSHA1Thumbprint(this.getCertificateChain()).toString("hex") +
-            " " +
-            privateKeyThumpPrint.toString("hex");
+            makeSHA1Thumbprint(this.getCertificateChain()).toString("hex")          
         return txt;
     }
 

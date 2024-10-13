@@ -16,9 +16,9 @@ import {
     convertPEMtoDER,
     makeSHA1Thumbprint,
     PrivateKey,
-    readPrivateKey,
     split_der
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
+import { readPrivateKey } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { ICertificateKeyPairProviderPriv } from "node-opcua-common";

@@ -17,11 +17,10 @@ import {
     exploreCertificate,
     exploreCertificateSigningRequest,
     makeSHA1Thumbprint,
-    readCertificate,
-    readCertificateRevocationList,
     split_der,
     toPem
-} from "node-opcua-crypto";
+} from "node-opcua-crypto/web";
+import { readCertificate, readCertificateRevocationList } from "node-opcua-crypto";
 import { CertificateAuthority } from "node-opcua-pki";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { TrustListDataType } from "node-opcua-types";

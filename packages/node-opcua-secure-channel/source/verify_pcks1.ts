@@ -1,5 +1,5 @@
 import { KeyObject, createPrivateKey, subtle } from "crypto";
-import { privateKeyToPEM } from "node-opcua-crypto";
+import { privateKeyToPEM } from "node-opcua-crypto/web";
 import { make_warningLog } from "node-opcua-debug";
 import { RSAPKCS1V15_Encrypt, RSAPKCS1V15_Decrypt } from "./security_policy";
 
