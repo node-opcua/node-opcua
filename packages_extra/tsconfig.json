@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
         "skipLibCheck": true,
-        "moduleResolution": "node",
-        "target": "es6",
-        "module": "commonjs",
+        "moduleResolution": "NodeNext",
+        "target": "es2020",
+        "module": "NodeNext",
         "declaration": true,
         "sourceMap": true,
         "strict": true,
