@@ -1,14 +1,9 @@
 /**
  * @module node-opcua-date-time
  */
-import long from "long";
+import long, { fromNumber } from "long";
 import { assert } from "node-opcua-assert";
 import { hrtime } from "node-opcua-utils";
-
-export interface DateWithPicoseconds extends Date {
-    picoseconds: number;
-    high_low: [number, number];
-}
 
 export const offsetFactor1601 = (function offset_factor_1601() {
     const utc1600 = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
@@ -32,8 +27,8 @@ export const offsetFactor1601 = (function offset_factor_1601() {
 const offset = offsetFactor1601[0];
 const factor = offsetFactor1601[1];
 
-const offsetLong = long.fromNumber(offset, true);
-const factorLong = long.fromNumber(factor, true);
+const offsetLong = fromNumber(offset, true);
+const factorLong = fromNumber(factor, true);
 
 // Extracted from OpcUA Spec v1.02 : part 6:
 //
@@ -77,9 +72,6 @@ const factorLong = long.fromNumber(factor, true);
  * @returns {[high,low]}
  */
 export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: number) {
-    if ((date as any).high_low) {
-        return (date as any).high_low;
-    }
     // note : The value returned by the getTime method is the number
     //        of milliseconds since 1 January 1970 00:00:00 UTC.
     //
@@ -90,9 +82,10 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: numb
     const tL = long.fromNumber(t, false);
     const a = tL.add(offsetLong).multiply(factorLong).add(excess100nanosecond);
 
-    (date as any).high_low = [a.getHighBits(), a.getLowBits()];
-    (date as any).picoseconds = excess100nanosecond * 10000 + +picoseconds;
-    return (date as any).high_low;
+    const high_low = [a.getHighBits(), a.getLowBits()];
+    const picoseconds2 = excess100nanosecond * 10000 + +picoseconds;
+
+    return high_low;
 }
 
 export function bn_dateToHundredNanoSecondFrom1601Excess(date: Date, picoseconds: number): number {
@@ -105,7 +98,7 @@ export function bn_hundredNanoSecondFrom1601ToDate(
     low: number,
     picoseconds = 0,
     _value: Date | null = null
-): DateWithPicoseconds {
+): [Date, number] {
     assert(low !== undefined);
     //           value_64 / factor  - offset = t
     const l = new long(low, high, /*unsigned*/ true);
@@ -115,10 +108,10 @@ export function bn_hundredNanoSecondFrom1601ToDate(
     const date = new Date(value1);
     // enrich the date
     const excess100nanoInPico = l.mod(10000).mul(100000).toNumber();
-    (date as any).high_low = [high, low];
+    // (date as DateWithPicoseconds).high_low = [high, low];
     // picosecond will contains un-decoded 100 nanoseconds => 10 x 100 nanoseconds = 1 microsecond
-    (date as any).picoseconds = excess100nanoInPico + (picoseconds || 0);
-    return date as DateWithPicoseconds;
+    const picoseconds2 = excess100nanoInPico + (picoseconds || 0);
+    return [date, picoseconds2];
 }
 
 let lastNowDate: Date;
@@ -126,7 +119,7 @@ let lastPicoseconds = 0;
 const smallTickPicosecond: number = 1000 * 100; // 100 nano second in picoseconds
 
 export interface PreciseClock {
-    timestamp: DateWithPicoseconds;
+    timestamp: Date;
     picoseconds: number;
 }
 
@@ -147,7 +140,7 @@ export function getCurrentClockWithJavascriptDate(): PreciseClock {
         lastNowDate = now;
     }
     return {
-        timestamp: lastNowDate as DateWithPicoseconds,
+        timestamp: lastNowDate,
 
         picoseconds: lastPicoseconds
     };
@@ -188,7 +181,7 @@ export function uninstallPeriodicClockAdjustment() {
 
 const gClock: PreciseClockEx = {
     tick: [0, 0],
-    timestamp: new Date() as DateWithPicoseconds,
+    timestamp: new Date(),
 
     picoseconds: 0
 };
@@ -209,20 +202,18 @@ export function getCurrentClock(): PreciseClock {
     const milliseconds = gClock.tick[0] * 1000 + Math.floor(gClock.tick[1] / 1000000) + refTime;
     const picoseconds = (gClock.tick[1] % 1000000) * 1000;
 
-    gClock.timestamp = new Date(milliseconds) as DateWithPicoseconds;
+    gClock.timestamp = new Date(milliseconds);
     gClock.picoseconds = picoseconds;
     return gClock;
 }
 
-export function coerceClock(timestamp: undefined | null | DateWithPicoseconds | Date, picoseconds = 0): PreciseClock {
+export function coerceClock(timestamp: undefined | null | Date, picoseconds = 0): PreciseClock {
     if (timestamp) {
-        return { timestamp: timestamp as DateWithPicoseconds, picoseconds };
+        return { timestamp: timestamp as Date, picoseconds };
     } else {
         return getCurrentClock();
     }
 }
-
-
 
 export function isMinDate(date?: Date | null): boolean {
     if (typeof date === "number") {
@@ -233,7 +224,6 @@ export function isMinDate(date?: Date | null): boolean {
 export function getMinOPCUADate() {
     return new Date(Date.UTC(1601, 0, 1, 0, 0, 0));
 }
-
 
 // @deprecated use getMinOPCUADate() instead
 export const minDate = new Date(Date.UTC(1601, 0, 1, 0, 0, 0));

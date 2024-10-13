@@ -1,14 +1,8 @@
 /**
  * @module node-opcua-date-time
  */
-import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import {
-    bn_dateToHundredNanoSecondFrom1601,
-    bn_hundredNanoSecondFrom1601ToDate,
-    DateWithPicoseconds,
-    getMinOPCUADate
-} from "./date_time";
+import { bn_dateToHundredNanoSecondFrom1601, bn_hundredNanoSecondFrom1601ToDate, getMinOPCUADate } from "./date_time";
 
 //  Date(year, month [, day, hours, minutes, seconds, ms])
 export function isValidDateTime(value: any) {
@@ -62,12 +56,14 @@ export function encodeDateTime(date: Date | null, stream: OutputBinaryStream) {
  * @param stream
  * @returns {Date}
  */
-export function decodeDateTime(stream: BinaryStream, _value?: Date | null): DateWithPicoseconds {
+export function decodeDateTime(stream: BinaryStream, _value?: Date | null): Date {
+    return decodeHighAccuracyDateTime(stream, _value)[0];
+}
+export function decodeHighAccuracyDateTime(stream: BinaryStream, _value?: Date | null): [Date, number] {
     const lo = stream.readInteger();
     const hi = stream.readInteger();
     return bn_hundredNanoSecondFrom1601ToDate(hi, lo, 0, _value);
 }
-export const decodeHighAccuracyDateTime = decodeDateTime;
 
 export function coerceDateTime(value: any): Date {
     if (!value) {

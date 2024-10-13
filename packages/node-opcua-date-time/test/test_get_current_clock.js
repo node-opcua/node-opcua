@@ -1,11 +1,8 @@
-
 const { getCurrentClockWithJavascriptDate, getCurrentClock, getMinOPCUADate, coerceClock, isMinDate } = require("..");
 const should = require("should");
 const sinon = require("sinon");
 
 describe("getCurrentClockWithJavascriptDate", () => {
-
-
     it("should provide a different picoseconds is time is similar", () => {
         const t1 = getCurrentClockWithJavascriptDate();
         const t2 = getCurrentClockWithJavascriptDate();
@@ -15,9 +12,8 @@ describe("getCurrentClockWithJavascriptDate", () => {
             t2.picoseconds.should.be.greaterThan(t1.picoseconds);
         } else {
             t2.timestamp.getTime().should.be.greaterThan(t1.timestamp.getTime());
-
         }
-    })
+    });
 
     it("with sinon spy()", async () => {
         const t1 = getCurrentClock();
@@ -27,7 +23,6 @@ describe("getCurrentClockWithJavascriptDate", () => {
         const t2 = getCurrentClock();
     });
     it("with sinon spy()", () => {
-
         const fakeTimer = sinon.useFakeTimers(getMinOPCUADate());
 
         const t1 = getCurrentClock();
@@ -40,9 +35,8 @@ describe("getCurrentClockWithJavascriptDate", () => {
     it("coerceClock", () => {
         const a = coerceClock(0, 10);
         coerceClock(a);
-
     });
     it("isMinDate", () => {
         isMinDate(getMinOPCUADate()).should.eql(true);
-    })
+    });
 });
