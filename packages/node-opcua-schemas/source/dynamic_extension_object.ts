@@ -287,6 +287,10 @@ function initializeField(
                     const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
                     if (field.isArray) {
                         const arr = (value as unknown[]) || [];
+                        if (!Array.isArray(arr)) {
+                            throw new Error("Expecting an array here for field " + field.name + "but got " + arr);
+                        }
+
                         thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
                     } else {
                         thisAny[name] = constructor ? new constructor(value as Record<string, unknown>) : null;

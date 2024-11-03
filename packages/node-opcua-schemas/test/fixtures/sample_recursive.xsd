@@ -1,0 +1,189 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/">
+ <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95EquipmentDataType">
+  <opc:Documentation>Defines an equipment resource or a piece of equipment, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EquipmentUseSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="QuantitySpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EngineeringUnitsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PropertiesSpecified"/>
+  <opc:Field Length="27" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="EquipmentUseSpecified" TypeName="opc:CharArray" Name="EquipmentUse"/>
+  <opc:Field SwitchField="QuantitySpecified" TypeName="opc:CharArray" Name="Quantity"/>
+  <opc:Field SwitchField="EngineeringUnitsSpecified" TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+  <opc:Field SwitchField="PropertiesSpecified" TypeName="opc:Int32" Name="NoOfProperties"/>
+  <opc:Field LengthField="NoOfProperties" SwitchField="PropertiesSpecified" TypeName="tns:ISA95PropertyDataType" Name="Properties"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95JobOrderAndStateDataType">
+  <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+  <opc:Field TypeName="tns:ISA95JobOrderDataType" Name="JobOrder"/>
+  <opc:Field TypeName="opc:Int32" Name="NoOfState"/>
+  <opc:Field LengthField="NoOfState" TypeName="tns:ISA95StateDataType" Name="State"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95JobOrderDataType">
+  <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="WorkMasterIDSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="StartTimeSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EndTimeSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PrioritySpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="JobOrderParametersSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PersonnelRequirementsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EquipmentRequirementsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PhysicalAssetRequirementsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="MaterialRequirementsSpecified"/>
+  <opc:Field Length="22" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="JobOrderID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="WorkMasterIDSpecified" TypeName="opc:Int32" Name="NoOfWorkMasterID"/>
+  <opc:Field LengthField="NoOfWorkMasterID" SwitchField="WorkMasterIDSpecified" TypeName="tns:ISA95WorkMasterDataType" Name="WorkMasterID"/>
+  <opc:Field SwitchField="StartTimeSpecified" TypeName="opc:DateTime" Name="StartTime"/>
+  <opc:Field SwitchField="EndTimeSpecified" TypeName="opc:DateTime" Name="EndTime"/>
+  <opc:Field SwitchField="PrioritySpecified" TypeName="opc:Int16" Name="Priority"/>
+  <opc:Field SwitchField="JobOrderParametersSpecified" TypeName="opc:Int32" Name="NoOfJobOrderParameters"/>
+  <opc:Field LengthField="NoOfJobOrderParameters" SwitchField="JobOrderParametersSpecified" TypeName="tns:ISA95ParameterDataType" Name="JobOrderParameters"/>
+  <opc:Field SwitchField="PersonnelRequirementsSpecified" TypeName="opc:Int32" Name="NoOfPersonnelRequirements"/>
+  <opc:Field LengthField="NoOfPersonnelRequirements" SwitchField="PersonnelRequirementsSpecified" TypeName="tns:ISA95PersonnelDataType" Name="PersonnelRequirements"/>
+  <opc:Field SwitchField="EquipmentRequirementsSpecified" TypeName="opc:Int32" Name="NoOfEquipmentRequirements"/>
+  <opc:Field LengthField="NoOfEquipmentRequirements" SwitchField="EquipmentRequirementsSpecified" TypeName="tns:ISA95EquipmentDataType" Name="EquipmentRequirements"/>
+  <opc:Field SwitchField="PhysicalAssetRequirementsSpecified" TypeName="opc:Int32" Name="NoOfPhysicalAssetRequirements"/>
+  <opc:Field LengthField="NoOfPhysicalAssetRequirements" SwitchField="PhysicalAssetRequirementsSpecified" TypeName="tns:ISA95PhysicalAssetDataType" Name="PhysicalAssetRequirements"/>
+  <opc:Field SwitchField="MaterialRequirementsSpecified" TypeName="opc:Int32" Name="NoOfMaterialRequirements"/>
+  <opc:Field LengthField="NoOfMaterialRequirements" SwitchField="MaterialRequirementsSpecified" TypeName="tns:ISA95MaterialDataType" Name="MaterialRequirements"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95JobResponseDataType">
+  <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="StartTimeSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EndTimeSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="JobResponseDataSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PersonnelActualsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EquipmentActualsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PhysicalAssetActualsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="MaterialActualsSpecified"/>
+  <opc:Field Length="24" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="JobResponseID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field TypeName="opc:CharArray" Name="JobOrderID"/>
+  <opc:Field SwitchField="StartTimeSpecified" TypeName="opc:DateTime" Name="StartTime"/>
+  <opc:Field SwitchField="EndTimeSpecified" TypeName="opc:DateTime" Name="EndTime"/>
+  <opc:Field TypeName="opc:Int32" Name="NoOfJobState"/>
+  <opc:Field LengthField="NoOfJobState" TypeName="tns:ISA95StateDataType" Name="JobState"/>
+  <opc:Field SwitchField="JobResponseDataSpecified" TypeName="opc:Int32" Name="NoOfJobResponseData"/>
+  <opc:Field LengthField="NoOfJobResponseData" SwitchField="JobResponseDataSpecified" TypeName="tns:ISA95ParameterDataType" Name="JobResponseData"/>
+  <opc:Field SwitchField="PersonnelActualsSpecified" TypeName="opc:Int32" Name="NoOfPersonnelActuals"/>
+  <opc:Field LengthField="NoOfPersonnelActuals" SwitchField="PersonnelActualsSpecified" TypeName="tns:ISA95PersonnelDataType" Name="PersonnelActuals"/>
+  <opc:Field SwitchField="EquipmentActualsSpecified" TypeName="opc:Int32" Name="NoOfEquipmentActuals"/>
+  <opc:Field LengthField="NoOfEquipmentActuals" SwitchField="EquipmentActualsSpecified" TypeName="tns:ISA95EquipmentDataType" Name="EquipmentActuals"/>
+  <opc:Field SwitchField="PhysicalAssetActualsSpecified" TypeName="opc:Int32" Name="NoOfPhysicalAssetActuals"/>
+  <opc:Field LengthField="NoOfPhysicalAssetActuals" SwitchField="PhysicalAssetActualsSpecified" TypeName="tns:ISA95PhysicalAssetDataType" Name="PhysicalAssetActuals"/>
+  <opc:Field SwitchField="MaterialActualsSpecified" TypeName="opc:Int32" Name="NoOfMaterialActuals"/>
+  <opc:Field LengthField="NoOfMaterialActuals" SwitchField="MaterialActualsSpecified" TypeName="tns:ISA95MaterialDataType" Name="MaterialActuals"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95MaterialDataType">
+  <opc:Documentation>Defines a material resource, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="MaterialClassIDSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="MaterialDefinitionIDSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="MaterialLotIDSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="MaterialSublotIDSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="MaterialUseSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="QuantitySpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EngineeringUnitsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PropertiesSpecified"/>
+  <opc:Field Length="23" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field SwitchField="MaterialClassIDSpecified" TypeName="opc:CharArray" Name="MaterialClassID"/>
+  <opc:Field SwitchField="MaterialDefinitionIDSpecified" TypeName="opc:CharArray" Name="MaterialDefinitionID"/>
+  <opc:Field SwitchField="MaterialLotIDSpecified" TypeName="opc:CharArray" Name="MaterialLotID"/>
+  <opc:Field SwitchField="MaterialSublotIDSpecified" TypeName="opc:CharArray" Name="MaterialSublotID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="MaterialUseSpecified" TypeName="opc:CharArray" Name="MaterialUse"/>
+  <opc:Field SwitchField="QuantitySpecified" TypeName="opc:CharArray" Name="Quantity"/>
+  <opc:Field SwitchField="EngineeringUnitsSpecified" TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+  <opc:Field SwitchField="PropertiesSpecified" TypeName="opc:Int32" Name="NoOfProperties"/>
+  <opc:Field LengthField="NoOfProperties" SwitchField="PropertiesSpecified" TypeName="tns:ISA95PropertyDataType" Name="Properties"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95ParameterDataType">
+  <opc:Documentation>A subtype of OPC UA Structure that defines three linked data items: the ID, which is a unique identifier for a property, the value, which is the data that is identified, and an optional description of the parameter.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EngineeringUnitsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="SubparametersSpecified"/>
+  <opc:Field Length="29" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ID"/>
+  <opc:Field TypeName="ua:Variant" Name="Value"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="EngineeringUnitsSpecified" TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+  <opc:Field SwitchField="SubparametersSpecified" TypeName="opc:Int32" Name="NoOfSubparameters"/>
+  <opc:Field LengthField="NoOfSubparameters" SwitchField="SubparametersSpecified" TypeName="tns:ISA95ParameterDataType" Name="Subparameters"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95PersonnelDataType">
+  <opc:Documentation>Defines a personnel resource or a person, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PersonnelUseSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="QuantitySpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EngineeringUnitsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PropertiesSpecified"/>
+  <opc:Field Length="27" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="PersonnelUseSpecified" TypeName="opc:CharArray" Name="PersonnelUse"/>
+  <opc:Field SwitchField="QuantitySpecified" TypeName="opc:CharArray" Name="Quantity"/>
+  <opc:Field SwitchField="EngineeringUnitsSpecified" TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+  <opc:Field SwitchField="PropertiesSpecified" TypeName="opc:Int32" Name="NoOfProperties"/>
+  <opc:Field LengthField="NoOfProperties" SwitchField="PropertiesSpecified" TypeName="tns:ISA95PropertyDataType" Name="Properties"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95PhysicalAssetDataType">
+  <opc:Documentation>Defines a physical asset, a quantity, an optional description, and an optional collection of properties.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PhysicalAssetUseSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="QuantitySpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EngineeringUnitsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="PropertiesSpecified"/>
+  <opc:Field Length="27" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="PhysicalAssetUseSpecified" TypeName="opc:CharArray" Name="PhysicalAssetUse"/>
+  <opc:Field SwitchField="QuantitySpecified" TypeName="opc:CharArray" Name="Quantity"/>
+  <opc:Field SwitchField="EngineeringUnitsSpecified" TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+  <opc:Field SwitchField="PropertiesSpecified" TypeName="opc:Int32" Name="NoOfProperties"/>
+  <opc:Field LengthField="NoOfProperties" SwitchField="PropertiesSpecified" TypeName="tns:ISA95PropertyDataType" Name="Properties"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95PropertyDataType">
+  <opc:Documentation>A subtype of OPC UA Structure that defines two linked data items: an ID, which is a unique identifier for a property within the scope of the associated resource, and the value, which is the data for the property.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EngineeringUnitsSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="SubpropertiesSpecified"/>
+  <opc:Field Length="29" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ID"/>
+  <opc:Field TypeName="ua:Variant" Name="Value"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="opc:Int32" Name="NoOfDescription"/>
+  <opc:Field LengthField="NoOfDescription" SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="EngineeringUnitsSpecified" TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+  <opc:Field SwitchField="SubpropertiesSpecified" TypeName="opc:Int32" Name="NoOfSubproperties"/>
+  <opc:Field LengthField="NoOfSubproperties" SwitchField="SubpropertiesSpecified" TypeName="tns:ISA95PropertyDataType" Name="Subproperties"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95StateDataType">
+  <opc:Documentation>Defines the information needed to schedule and execute a job.</opc:Documentation>
+  <opc:Field TypeName="ua:RelativePath" Name="BrowsePath"/>
+  <opc:Field TypeName="ua:LocalizedText" Name="StateText"/>
+  <opc:Field TypeName="opc:UInt32" Name="StateNumber"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="ISA95WorkMasterDataType">
+  <opc:Documentation>Defines a Work Master ID and the defined parameters for the Work Master.</opc:Documentation>
+  <opc:Field TypeName="opc:Bit" Name="DescriptionSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="ParametersSpecified"/>
+  <opc:Field Length="30" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ID"/>
+  <opc:Field SwitchField="DescriptionSpecified" TypeName="ua:LocalizedText" Name="Description"/>
+  <opc:Field SwitchField="ParametersSpecified" TypeName="opc:Int32" Name="NoOfParameters"/>
+  <opc:Field LengthField="NoOfParameters" SwitchField="ParametersSpecified" TypeName="tns:ISA95ParameterDataType" Name="Parameters"/>
+ </opc:StructuredType>
+</opc:TypeDictionary>
