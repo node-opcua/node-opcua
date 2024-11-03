@@ -30,8 +30,8 @@ importers:
         specifier: 4.17.13
         version: 4.17.13
       '@types/long':
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: 4.0.0
+        version: 4.0.0
       '@types/mkdirp':
         specifier: 1.0.2
         version: 1.0.2
@@ -120,8 +120,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       long:
-        specifier: 5.2.3
-        version: 5.2.3
+        specifier: 4.0.0
+        version: 4.0.0
       memfs:
         specifier: ^4.14.0
         version: 4.14.0
@@ -1340,8 +1340,11 @@ importers:
 
   packages/node-opcua-date-time:
     dependencies:
+      '@types/long':
+        specifier: 4.0.0
+        version: 4.0.0
       long:
-        specifier: ~4.0.0
+        specifier: 4.0.0
         version: 4.0.0
       node-opcua-assert:
         specifier: 2.120.0
@@ -4383,11 +4386,8 @@ packages:
   /@types/lodash@4.17.13:
     resolution: {integrity: sha512-lfx+dftrEZcdBPczf9d0Qv0x+j/rfNCMuC6OcfXmO8gkfeNAY88PgKUbvG56whcN23gc27yenwF6oJZXGFpYxg==}
 
-  /@types/long@5.0.0:
-    resolution: {integrity: sha512-eQs9RsucA/LNjnMoJvWG/nXa7Pot/RbBzilF/QRIU/xRl+0ApxrSUFsV5lmf01SvSlqMzJ7Zwxe440wmz2SJGA==}
-    deprecated: This is a stub types definition. long provides its own type definitions, so you do not need this installed.
-    dependencies:
-      long: 4.0.0
+  /@types/long@4.0.0:
+    resolution: {integrity: sha512-1w52Nyx4Gq47uuu0EVcsHBxZFJgurQ+rTKS3qMHxR1GY2T8c2AJYd6vZoZ9q1rupaDjU0yT+Jc2XTyXkjeMA+Q==}
     dev: false
 
   /@types/mkdirp@1.0.2:
@@ -5925,10 +5925,6 @@ packages:
 
   /long@4.0.0:
     resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
-    dev: false
-
-  /long@5.2.3:
-    resolution: {integrity: sha512-lcHwpNoggQTObv5apGNCTdJrO69eHOZMi4BNC+rTLER8iHAqGrUVeLh/irVIM7zTw2bOXA8T6uNPeujwOLg/2Q==}
     dev: false
 
   /lru-cache@10.1.0:
