@@ -269,15 +269,29 @@ function initializeField(
                     thisAny[name] = e.clone();
                 }
             } else {
-                const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
-                if (!constructor) {
-                    throw new Error("Cannot instantiate an abstract dataType" + field.fieldType);
-                }
-                if (field.isArray) {
-                    const arr = (value as unknown[]) || [];
-                    thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
+                const hasStructure = dataTypeFactory.hasStructureByTypeName(field.fieldType);
+                // We could have a structure or a enumeration
+                if (!hasStructure) {
+                    const enumeration = dataTypeFactory.getEnumeration(field.fieldType);
+                    if (!enumeration) {
+                        throw new Error("Cannot find" + field.fieldType  + " as a structure or enumeration");
+                    } else {
+                        if (field.isArray) {
+                            const arr = (value as unknown[]) || [];
+                            thisAny[name] = arr.map((x: any) => enumeration.typedEnum.get(x));
+                        } else {
+                            thisAny[name] = enumeration.typedEnum.get(value as number | string);
+                        }
+                    }
                 } else {
-                    thisAny[name] = constructor ? new constructor(value as Record<string, unknown>) : null;
+                    const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
+                    if (field.isArray) {
+                        const arr = (value as unknown[]) || [];
+                        thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
+                    } else {
+                        thisAny[name] = constructor ? new constructor(value as Record<string, unknown>) : null;
+                    }
+
                 }
             }
             // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
