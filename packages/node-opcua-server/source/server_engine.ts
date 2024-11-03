@@ -1291,11 +1291,19 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                 // fix getMonitoredItems.outputArguments arrayDimensions
                 const fixGetMonitoredItemArgs = () => {
                     const objects = this.addressSpace!.rootFolder?.objects;
-                    if (!objects || !objects.server || !objects.server.getMonitoredItems) {
+                    if (!objects || !objects.server) {
                         return;
                     }
-                    const outputArguments = objects.server.getMonitoredItems.outputArguments!;
+                    const getMonitoredItemsMethod = objects.server.getMethodByName("GetMonitoredItems")!;
+                    if (!getMonitoredItemsMethod) {
+                        return;
+                    }
+                    const outputArguments = getMonitoredItemsMethod.outputArguments!;
                     const dataValue = outputArguments.readValue();
+                    if (!dataValue.value?.value) {
+                        // value is null or undefined , meaning no arguments necessary
+                        return;
+                    }
                     assert(
                         dataValue.value.value[0].arrayDimensions.length === 1 && dataValue.value.value[0].arrayDimensions[0] === 0
                     );
@@ -1888,8 +1896,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         } else {
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                    chalk.cyan(nodeId.toString()) +
-                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                chalk.cyan(nodeId.toString()) +
+                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
