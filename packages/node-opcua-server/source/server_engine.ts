@@ -1299,8 +1299,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
                         return;
                     }
                     const outputArguments = getMonitoredItemsMethod.outputArguments!;
-                    const dataValue = outputArguments.readValue();
-                    if (!dataValue.value?.value) {
+                        const dataValue = outputArguments.readValue();
+                        if (!dataValue.value?.value) {
                         // value is null or undefined , meaning no arguments necessary
                         return;
                     }
@@ -1896,8 +1896,8 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         } else {
             warningLog(
                 chalk.yellow("WARNING:  cannot bind a method with id ") +
-                chalk.cyan(nodeId.toString()) +
-                chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
+                    chalk.cyan(nodeId.toString()) +
+                    chalk.yellow(". please check your nodeset.xml file or add this node programmatically")
             );
             warningLog(traceFromThisProjectOnly());
         }
