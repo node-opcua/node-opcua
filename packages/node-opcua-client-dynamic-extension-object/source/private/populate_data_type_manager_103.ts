@@ -312,10 +312,12 @@ async function _extractDataTypeDictionaryFromDefinition(
 
             if (dataTypeDefinition && dataTypeDefinition instanceof StructureDefinition) {
                 const className = dataTypeDescription.browseName.name!;
-                promise.push((async () => {
-                    const isAbstract = await readIsAbstract(session, dataTypeNodeId);
-                    dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract });
-                })());
+                promise.push(
+                    (async () => {
+                        const isAbstract = await readIsAbstract(session, dataTypeNodeId);
+                        dataTypeDefinitions.push({ className, dataTypeNodeId, dataTypeDefinition, isAbstract });
+                    })()
+                );
             }
         } else {
             debugLog(
@@ -339,51 +341,59 @@ async function _extractDataTypeDictionaryFromDefinition(
     const promises2: Promise<void>[] = [];
 
     for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
-
-        promises2.push((async () => {
-            // istanbul ignore next
-            if (doDebug) {
-                debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
-            }
-            if (dataTypeFactory.hasStructureByTypeName(className)) {
-                return; // this structure has already been seen
-            }
-            // now fill typeDictionary
-            try {
-                const dataTypeDescription = dataTypeDescriptions.find((a) => a.nodeId.toString() === dataTypeNodeId.toString());
-                if (!dataTypeDefinition) {
-                    throw new Error("cannot find dataTypeDefinition for " + dataTypeNodeId.toString());
-                }
-                const schema = await convertDataTypeDefinitionToStructureTypeSchema(
-                    session,
-                    dataTypeNodeId,
-                    className,
-                    dataTypeDefinition,
-                    dataTypeDescription!, // for encodings
-                    dataTypeFactory,
-                    isAbstract,
-                    cache
-                );
-
+        promises2.push(
+            (async () => {
                 // istanbul ignore next
                 if (doDebug) {
-                    debugLog(chalk.red("Registering "), chalk.cyan(className.padEnd(30, " ")), schema.dataTypeNodeId.toString());
+                    debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
                 }
-                if (!isAbstract) {
-                    const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
-                    assert(Constructor.schema === schema);
-                } else {
+                if (dataTypeFactory.hasStructureByTypeName(className)) {
+                    return; // this structure has already been seen
+                }
+                // now fill typeDictionary
+                try {
+                    const dataTypeDescription = dataTypeDescriptions.find((a) => a.nodeId.toString() === dataTypeNodeId.toString());
+                    if (!dataTypeDefinition) {
+                        throw new Error("cannot find dataTypeDefinition for " + dataTypeNodeId.toString());
+                    }
+                    const schema = await convertDataTypeDefinitionToStructureTypeSchema(
+                        session,
+                        dataTypeNodeId,
+                        className,
+                        dataTypeDefinition,
+                        dataTypeDescription!, // for encodings
+                        dataTypeFactory,
+                        isAbstract,
+                        cache
+                    );
+
                     // istanbul ignore next
                     if (doDebug) {
-                        debugLog("Ignoring Abstract ", className);
+                        debugLog(
+                            chalk.red("Registering "),
+                            chalk.cyan(className.padEnd(30, " ")),
+                            schema.dataTypeNodeId.toString()
+                        );
                     }
+                    if (!isAbstract) {
+                        const Constructor = createDynamicObjectConstructor(
+                            schema,
+                            dataTypeFactory
+                        ) as unknown as ConstructorFuncWithSchema;
+                        assert(Constructor.schema === schema);
+                    } else {
+                        // istanbul ignore next
+                        if (doDebug) {
+                            debugLog("Ignoring Abstract ", className);
+                        }
+                    }
+                } catch (err) {
+                    errorLog("Constructor verification err: ", (<Error>err).message);
+                    errorLog("For this reason class " + className + " has not been registered");
+                    errorLog(err);
                 }
-            } catch (err) {
-                errorLog("Constructor verification err: ", (<Error>err).message);
-                errorLog("For this reason class " + className + " has not been registered");
-                errorLog(err);
-            }
-        })());
+            })()
+        );
     }
     await Promise.all(promises2);
 }
@@ -415,6 +425,8 @@ interface TypeDictionaryInfo {
     dataTypeDictionaryNodeId: NodeId;
     isDictionaryDeprecated: boolean;
     rawSchema: string;
+
+    // key is xmlShortName, value is namespaceUri  ;
     dependencies: { [key: string]: string };
     targetNamespace: string;
 }
@@ -437,7 +449,7 @@ async function _extractDataTypeDictionary(
                 session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.BrowseName }),
                 _readNamespaceUriProperty(session, dataTypeDictionaryNodeId)
             ]);
-            debugLog(
+            doDebug && debugLog(
                 "DataTypeDictionary is deprecated or BSD schema stored in dataValue is null !",
                 chalk.cyan(name.value.value.toString()),
                 "namespace =",
@@ -453,7 +465,7 @@ async function _extractDataTypeDictionary(
         await _extractDataTypeDictionaryFromDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory2);
     } else {
         const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
-        debugLog(" ----- Using old method for extracting schema => with BSD files");
+        doDebug && debugLog(" ----- Using old method for extracting schema => with BSD files -----", dataTypeDictionaryNodeId.namespaceUri);
         // old method ( until 1.03 )
         // one need to read the schema file store in the dataTypeDictionary node and parse it !
         /* istanbul ignore next */
@@ -577,7 +589,7 @@ export async function populateDataTypeManager103(
         nodeId: resolveNodeId("Server_NamespaceArray")
     });
 
-    const namespaceArray: string[] = dataValueNamespaceArray.value.value;
+    let namespaceArray: string[] = dataValueNamespaceArray.value.value;
 
     // istanbul ignore next
     if (!namespaceArray) {
@@ -638,7 +650,7 @@ export async function populateDataTypeManager103(
         (e: ReferenceDescription) => e.nodeId.namespace !== 0 && sameNodeId(e.typeDefinition, dataTypeDictionaryType)
     );
 
-    debugLog(`found ${references.length} dictionary`);
+    debugLog(`found ${references.length} dictionaries`);
 
     async function putInCorrectOrder(): Promise<TypeDictionaryInfo[]> {
         const infos: TypeDictionaryInfo[] = [];
@@ -664,7 +676,7 @@ export async function populateDataTypeManager103(
 
             infos.push(info);
 
-            if (!isDictionaryDeprecated && rawSchema.length > 0) {
+            if (!isDictionaryDeprecated || rawSchema.length > 0) {
                 // istanbul ignore next
                 if (doDebug) {
                     debugLog("schema", rawSchema);
@@ -733,10 +745,12 @@ export async function populateDataTypeManager103(
 
     // setup dependencies
     const map: { [key: string]: TypeDictionaryInfo } = {};
+     
+    const map2: { [key: string]: DataTypeFactory[] } = {};
     for (const d of dataTypeDictionaryInfo) {
         map[d.targetNamespace] = d;
 
-        debugLog(
+        doDebug && debugLog(
             " fixing based dataTypeFactory dependencies for  ",
             d.targetNamespace,
             "index = ",
@@ -756,7 +770,7 @@ export async function populateDataTypeManager103(
             if (dataTypeManager.hasDataTypeFactory(namespaceIndex)) {
                 const dep = dataTypeManager.getDataTypeFactory(namespaceIndex);
                 baseDataFactories.push(dep);
-                debugLog(
+                doDebug && debugLog(
                     "   considering , ",
                     baseDataFactory.targetNamespace,
                     "index = ",
@@ -764,6 +778,46 @@ export async function populateDataTypeManager103(
                 );
             }
         }
+        doDebug && debugLog('    baseDataFactories = ', baseDataFactories.map((f) => f.targetNamespace).join(" "));
+        map2[d.targetNamespace] = baseDataFactories;
+    }
+
+    namespaceArray =dataTypeManager.namespaceArray;
+
+
+    for (const d of dataTypeDictionaryInfo) {
+        const set = new Set<DataTypeFactory>();
+        set.add(getStandardDataTypeFactory());
+
+        var visited: Set<string> = new Set();
+        function explore(d: TypeDictionaryInfo): void {
+            if (visited.has(d.targetNamespace)) {
+                return;
+            }
+            visited.add(d.targetNamespace);
+
+            for (const namespaceUri of Object.values(d.dependencies)) {
+                if (visited.has(namespaceUri)) {
+                    continue;
+                }
+                if (namespaceUri === d.targetNamespace) {   
+                    continue;
+                }
+                var index  = namespaceArray.indexOf(namespaceUri);
+                if (index == -1) 
+                    continue;
+
+                var dd = dataTypeManager.getDataTypeFactory(index);
+                set.add(dd);
+
+                const base = map[namespaceUri];
+                if (base) {
+                    explore(base);
+                }
+            }
+        }
+        explore(d);
+        const baseDataFactories = Array.from(set);
         const dataTypeFactory = dataTypeManager.getDataTypeFactory(d.dataTypeDictionaryNodeId.namespace);
         if (dataTypeFactory) {
             dataTypeFactory.repairBaseDataFactories(baseDataFactories);
@@ -775,7 +829,6 @@ export async function populateDataTypeManager103(
 
     async function processReferenceOnDataTypeDictionaryType(d: TypeDictionaryInfo): Promise<void> {
         debugLog(chalk.cyan("processReferenceOnDataTypeDictionaryType on  "), d.targetNamespace);
-
         const ref = d.reference;
         const dataTypeDictionaryNodeId = d.reference.nodeId;
 
@@ -792,13 +845,10 @@ export async function populateDataTypeManager103(
         await _exploreDataTypeDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory, dataTypeManager.namespaceArray);
     }
 
-    const promises: Promise<void>[] = [];
-
     // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
     for (const d of dataTypeDictionaryInfo) {
-        promises.push(processReferenceOnDataTypeDictionaryType(d));
+        await processReferenceOnDataTypeDictionaryType(d);
     }
-    await Promise.all(promises);
 
     debugLog("out ... populateDataTypeManager");
 }
