@@ -74,5 +74,15 @@ describe("Testing loadNodeSet - edge cases", async function (this: any) {
         await generateAddressSpace(addressSpace, [nodesets.standard, nodeset]);
     
     });
+    it("LNSEC-6-  should load a nodeset2.xml  with recursive DataType", async () => {
+        const nodeset = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive.xml");
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, /* makesure not in second position*/ nodeset]);
 
+    });
+    it("LNSEC-7-  should load a nodeset2.xml  with recursive DataType", async () => {
+        const nodeset2 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive2.xml");
+        const nodeset1 = path.join(__dirname, "../test_helpers/test_fixtures/datatype_recursive.xml");
+        await generateAddressSpace(addressSpace, [nodesets.standard, nodesets.di, nodeset1, nodeset2]);
+
+    });
 });

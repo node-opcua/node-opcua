@@ -11,6 +11,7 @@ import { CallbackT } from "node-opcua-status-code";
 import { StructureField } from "node-opcua-types";
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { PseudoSession } from "../pseudo_session";
+import { constructNamespaceDependency, constructNamespacePriorityTable } from "../../src/nodeset_tools/construct_namespace_dependency";
 
 const debugLog = make_debugLog(__filename);
 
@@ -40,7 +41,7 @@ function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[],
             }
         }
     }
-} 
+}
 
 export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
     const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
@@ -52,8 +53,43 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
         dataTypeManager.setNamespaceArray(namespaceArray);
         addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
 
+        const factories: DataTypeFactory[] = [getStandardDataTypeFactory()];
+
+        const priorityTable = constructNamespacePriorityTable(addressSpace).priorityTable;
+
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
-            const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
+
+            const namespace = addressSpace.getNamespace(namespaceIndex);
+         
+            if (false) {
+                console.log("namespaceIndex = ", namespaceIndex);
+                console.log("namespace = ", namespace.namespaceUri);
+                console.log("factories = ", factories.map((f) => f.targetNamespace).join(" "));
+                 // find dependent namespaces
+                let dependency = constructNamespaceDependency(namespace);
+                // remove last element that is my namespace
+                dependency = dependency.filter((ns) => ns.index !== namespaceIndex);
+                const dependFactories = dependency.map((ns) => {
+                    const df = factories[ns.index];
+                    if (!df) {
+                        console.log("namespaceIndex = ", namespaceIndex);
+                        console.log("namespace = ", namespace.namespaceUri);
+                        console.log("priorityTable", priorityTable);
+                        console.log(dependency.map((ns) => `${ns.index} ${ns.namespaceUri}`).join("\n"));
+                        throw new Error("Cannot find factory for namespace " + ns.namespaceUri);
+                    }
+                    return df;
+                });
+                //            getStandardDataTypeFactory()
+
+                const dataTypeFactory1 = new DataTypeFactory(dependFactories);
+            }
+            const dataTypeFactory1 = new DataTypeFactory([...factories]);
+            dataTypeFactory1.targetNamespace = namespace.namespaceUri;
+
+            factories.push(dataTypeFactory1);
+            // xx console.log("factories = ", factories.map((f) => f.targetNamespace).join(" "));
+
             dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
         }
         // inject simple types
