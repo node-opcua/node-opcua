@@ -261,7 +261,8 @@ if (false) {
 function fetch_from_github(version, file) {
 
     const destFolder = path.join(__dirname, version);
-    wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/${version}/${file}`);
+    https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/refs/heads/${version}/${file}`);
+//     https: wget(destFolder, `https://raw.githubusercontent.com/OPCFoundation/UA-Nodeset/${version}/${file}`);
 
 }
 const version = "latest";
@@ -274,7 +275,7 @@ fetch_from_github(version, "Schema/NodeIds.csv");
 fetch_from_github(version, "Schema/SecuredApplication.xsd");
 fetch_from_github(version, "Schema/StatusCode.csv");
 fetch_from_github(version, "Schema/UANodeSet.xsd");
-
+fetch_from_github(version, "AMB/Opc.Ua.AMB.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.xsd");
 fetch_from_github(version, "AutoID/Opc.Ua.AutoID.NodeSet2.xml");
@@ -288,13 +289,24 @@ fetch_from_github(version, "IA/Opc.Ua.IA.NodeSet2.xml");
 fetch_from_github(version, "IOLink/Opc.Ua.IOLink.NodeSet2.xml");
 fetch_from_github(version, "IOLink/Opc.Ua.IOLinkIODD.NodeSet2.xml");
 fetch_from_github(version, "ISA-95/Opc.ISA95.NodeSet2.xml");
+fetch_from_github(version, "ISA95-JOBCONTROL/opc.ua.isa95-jobcontrol.nodeset2.xml");
 fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
+fetch_from_github(version, "Machinery/ProcessValues/Opc.Ua.Machinery.ProcessValues.NodeSet2.xml");
+fetch_from_github(version, "Machinery/Jobs/Opc.Ua.Machinery.Jobs.Nodeset2.xml");
+fetch_from_github(version, "Machinery/Result/Opc.Ua.Machinery.Result.NodeSet2.xml");
 fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
 fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
+fetch_from_github(version, "MetalForming/Opc.Ua.MetalForming.NodeSet2.xml");
+
 fetch_from_github(version, "PackML/Opc.Ua.PackML.NodeSet2.xml");
 fetch_from_github(version, "Robotics/Opc.Ua.Robotics.NodeSet2.xml");
 fetch_from_github(version, "Woodworking/Opc.Ua.Eumabois.Nodeset2.xml"); // lowercase 's' correct though inconsistent
 fetch_from_github(version, "Woodworking/Opc.Ua.Woodworking.NodeSet2.xml");
+fetch_from_github(version, "PADIM/Opc.Ua.IRDI.NodeSet2.xml");
+fetch_from_github(version, "PADIM/Opc.Ua.PADIM.NodeSet2.xml");
+fetch_from_github(version, "IJT/Base/Opc.Ua.Ijt.Base.NodeSet2.xml");
+fetch_from_github(version, "IJT/Tightening/Opc.Ua.Ijt.Tightening.NodeSet2.xml");
+
 /*
 fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
