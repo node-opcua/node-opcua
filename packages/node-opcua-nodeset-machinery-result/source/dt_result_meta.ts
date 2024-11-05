@@ -12,7 +12,7 @@ import { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
  * | nodeClass |DataType                                                    |
- * | name      |21:ResultMetaDataType                                       |
+ * | name      |ResultMetaDataType                                          |
  * | isAbstract|false                                                       |
  */
 export interface DTResultMeta extends DTStructure {
@@ -66,11 +66,11 @@ This ID is system-wide unique and it is assigned by the system.*/
 It is recommended to always provide the creationTime.*/
   creationTime?: Date; // DateTime ns=0;i=294
   /** Collection of different processing times that were needed to create the result.*/
-  processingTimes?: DTProcessingTimes; // ExtensionObject ns=21;i=3006
+  processingTimes?: DTProcessingTimes; // ExtensionObject ns=11;i=3006
   /** Path to the actual measured result, managed external to the server.*/
   resultUri?: UAString[]; // String ns=0;i=23751
   /** The ResultEvaluation indicates whether the result was in tolerance.*/
-  resultEvaluation?: EnumResultEvaluationEnum; // Int32 ns=21;i=3002
+  resultEvaluation?: EnumResultEvaluationEnum; // Int32 ns=11;i=3002
   /** Vendor-specific code describing more details on resultEvaluation.*/
   resultEvaluationCode?: Int64; // Int64 ns=0;i=8
   /** The optional EvaluationDetails provides high level status information in a user-friendly text. This can be left empty for successful operations.*/

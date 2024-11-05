@@ -7,7 +7,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CNC                             |
  * | nodeClass |DataType                                                    |
- * | name      |11:CncOperationMode                                         |
+ * | name      |CncOperationMode                                            |
  * | isAbstract|false                                                       |
  */
 export enum EnumCncOperationMode  {

@@ -10,6 +10,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |GuardVariableType i=15113                                   |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export type UAGuardVariable_Base<T extends LocalizedText> = UABaseDataVariable_Base<T, DataType.LocalizedText>;

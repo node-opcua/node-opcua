@@ -16,7 +16,8 @@ import { EnumAlarmState } from "./enum_alarm_state"
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |MVAOutputParameterType i=2010                               |
  * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAMVAOutputParameter_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {

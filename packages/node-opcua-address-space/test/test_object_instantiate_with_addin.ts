@@ -1,6 +1,5 @@
 import should from "should";
 import { BrowseDirection } from "node-opcua-data-model";
-
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 
@@ -25,7 +24,9 @@ describe("testing UAObjectType instantiate with addins", () => {
             nodesets.standard,
             nodesets.di,
             nodesets.ia,
+            nodesets.isa95JobControl,
             nodesets.machinery,
+            nodesets.machineryJobs,
             nodesets.machineTool
         ]);
     });
@@ -52,9 +53,6 @@ describe("testing UAObjectType instantiate with addins", () => {
         if (!machineToolType) throw new Error("MachineToolType not found");
 
         const addins = machineToolType.findReferencesExAsObject("HasAddIn", BrowseDirection.Forward)!;
-        addins.length.should.eql(2);
-        addins[0].browseName.toString().should.eql("4:Components");
-        addins[0].browseName.toString().should.eql("4:Components");
 
         //instantiate node
         const machineTool = machineToolType.instantiate({

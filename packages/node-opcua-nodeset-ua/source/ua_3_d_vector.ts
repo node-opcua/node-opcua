@@ -11,6 +11,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |typedDefinition |3DVectorType i=17716                                        |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DT3DVector i=18808                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UA3DVector_Base<T extends DT3DVector>  extends UAVector_Base<T> {

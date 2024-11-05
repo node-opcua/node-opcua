@@ -13,7 +13,7 @@ import { DTWwMessageArgumentValue } from "./dt_ww_message_argument_value"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
  * | nodeClass |DataType                                                    |
- * | name      |12:WwMessageArgumentDataType                                |
+ * | name      |WwMessageArgumentDataType                                   |
  * | isAbstract|false                                                       |
  */
 export interface DTWwMessageArgument extends DTArgument {
@@ -23,6 +23,6 @@ export interface DTWwMessageArgument extends DTArgument {
   arrayDimensions: UInt32[]; // UInt32 ns=0;i=7
   description: LocalizedText; // LocalizedText ns=0;i=21
   /** The variable contains the value of the argument*/
-  value: DTWwMessageArgumentValue; // ExtensionObject ns=12;i=3002
+  value: DTWwMessageArgumentValue; // ExtensionObject ns=16;i=3002
 }
 export interface UDTWwMessageArgument extends ExtensionObject, DTWwMessageArgument {};

@@ -11,6 +11,7 @@ import { UASessionDiagnosticsVariable } from "./ua_session_diagnostics_variable"
  * |typedDefinition |SessionDiagnosticsArrayType i=2196                          |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTSessionDiagnostics[] i=865                                |
+ * |value rank      |1                                                           |
  * |isAbstract      |false                                                       |
  */
 export interface UASessionDiagnosticsArray_Base<T extends DTSessionDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

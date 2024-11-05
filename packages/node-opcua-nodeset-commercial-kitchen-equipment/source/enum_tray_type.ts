@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:TrayTypeEnumeration                                       |
+ * | name      |TrayTypeEnumeration                                         |
  * | isAbstract|false                                                       |
  */
 export enum EnumTrayType  {

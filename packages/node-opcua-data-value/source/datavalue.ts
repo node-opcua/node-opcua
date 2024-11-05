@@ -12,7 +12,8 @@ import {
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
-    IStructuredTypeSchema
+    IStructuredTypeSchema,
+    FieldCategory
 } from "node-opcua-factory";
 import { coerceStatusCode, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, sameVariant, Variant, VariantArrayType, VariantOptions, VariantOptionsT, VariantT } from "node-opcua-variant";
@@ -226,7 +227,7 @@ function isValidDataValue(self: DataValue): boolean {
 const schemaDataValue: IStructuredTypeSchema = buildStructuredType({
     baseType: "BaseUAObject",
     name: "DataValue",
-
+    category: FieldCategory.basic,
     fields: [
         { name: "Value", fieldType: "Variant", defaultValue: null },
         { name: "StatusCode", fieldType: "StatusCode", defaultValue: StatusCodes.Good },

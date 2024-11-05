@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PADIM/                          |
  * | nodeClass |DataType                                                    |
- * | name      |19:ExecutionModeEnum                                        |
+ * | name      |ExecutionModeEnum                                           |
  * | isAbstract|false                                                       |
  */
 export enum EnumExecutionModeEnum  {

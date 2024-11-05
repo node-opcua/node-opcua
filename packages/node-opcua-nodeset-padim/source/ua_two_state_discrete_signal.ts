@@ -12,7 +12,7 @@ import { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal
  * |isAbstract      |false                                                       |
  */
 export interface UATwoStateDiscreteSignal_Base extends UASignal_Base {
-    twoStateDiscreteSignal: UATwoStateDiscreteSignalVariable<boolean>;
+    twoStateDiscreteSignal: UATwoStateDiscreteSignalVariable<(boolean | boolean[])>;
 }
 export interface UATwoStateDiscreteSignal extends UASignal, UATwoStateDiscreteSignal_Base {
 }

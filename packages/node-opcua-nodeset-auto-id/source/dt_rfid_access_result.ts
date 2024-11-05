@@ -11,7 +11,7 @@ import { DTScanData } from "./dt_scan_data"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RfidAccessResult                                          |
+ * | name      |RfidAccessResult                                            |
  * | isAbstract|false                                                       |
  */
 export interface DTRfidAccessResult extends DTAccessResult {

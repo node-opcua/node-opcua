@@ -37,17 +37,25 @@ export function constructNodesetFilename(filename: string) {
 //       By ensuring that dependencies are listed first, one can safely pass a mapping of this entire array
 //       as OPCUAServerOptions.nodeset_filename (e.g. when constructing `new OPCUAServer(...)`) without
 //       causing an error due to ordering.
-export const allNodesetMeta: NodesetMeta[] = nodesetCatalog.map(([name, packageSuffix, uri, xmlFileName, _requiredModels]) => ({
-    name,
-    packageName: `node-opcua-nodeset-${packageSuffix}`,
-    uri,
-    xmlFile: constructNodesetFilename(xmlFileName)
-}));
 
-export const nodesets = allNodesetMeta.reduce(
+export const nodesets = nodesetCatalog.reduce(
     (nodesetMap, meta) => {
-        nodesetMap[meta.name] = meta.xmlFile;
+        nodesetMap[meta.name] = constructNodesetFilename(meta.xmlFile);
         return nodesetMap;
     },
     <Record<NodesetName, string>>{}
 );
+
+export interface NodeSetMetaSummary {
+    packageName: string;
+    uri: string;
+    xmlFile: string;
+}
+export function makeNodeSetEntry(meta: NodesetMeta): NodeSetMetaSummary {
+    return {
+        packageName: `node-opcua-nodeset-${meta.packageName}`,
+        uri: meta.uri,
+        xmlFile: constructNodesetFilename(meta.xmlFile)
+    };
+}
+export const allNodesetMeta: NodeSetMetaSummary[] = nodesetCatalog.map(makeNodeSetEntry);

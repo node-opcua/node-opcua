@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-
  * |typedDefinition |ProcessDataVariableType i=2002                              |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions[] i=0                                        |
+ * |value rank      |1                                                           |
  * |isAbstract      |false                                                       |
  */
 export interface UAProcessDataVariable_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {

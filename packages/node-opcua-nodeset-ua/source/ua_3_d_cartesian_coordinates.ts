@@ -11,6 +11,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |typedDefinition |3DCartesianCoordinatesType i=18774                          |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DT3DCartesianCoordinates i=18810                            |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UA3DCartesianCoordinates_Base<T extends DT3DCartesianCoordinates>  extends UACartesianCoordinates_Base<T> {

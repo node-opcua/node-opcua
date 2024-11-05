@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PackML/                         |
  * | nodeClass |DataType                                                    |
- * | name      |15:ProductionMaintenanceModeEnum                            |
+ * | name      |ProductionMaintenanceModeEnum                               |
  * | isAbstract|false                                                       |
  */
 export enum EnumProductionMaintenanceModeEnum  {

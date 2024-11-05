@@ -8,7 +8,7 @@ import { DTParameterResult } from "./dt_parameter_result"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/DI/                             |
  * | nodeClass |DataType                                                    |
- * | name      |1:TransferResultDataDataType                                |
+ * | name      |TransferResultDataDataType                                  |
  * | isAbstract|false                                                       |
  */
 export interface DTTransferResultData extends DTFetchResult {

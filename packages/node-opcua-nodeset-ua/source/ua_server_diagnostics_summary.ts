@@ -11,6 +11,7 @@ import { DTServerDiagnosticsSummary } from "./dt_server_diagnostics_summary"
  * |typedDefinition |ServerDiagnosticsSummaryType i=2150                         |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTServerDiagnosticsSummary i=859                            |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAServerDiagnosticsSummary_Base<T extends DTServerDiagnosticsSummary>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

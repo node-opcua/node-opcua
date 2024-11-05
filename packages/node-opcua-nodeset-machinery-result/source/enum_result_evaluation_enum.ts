@@ -7,7 +7,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
  * | nodeClass |DataType                                                    |
- * | name      |21:ResultEvaluationEnum                                     |
+ * | name      |ResultEvaluationEnum                                        |
  * | isAbstract|false                                                       |
  */
 export enum EnumResultEvaluationEnum  {

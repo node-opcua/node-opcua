@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Glass/Flat/                     |
  * | nodeClass |DataType                                                    |
- * | name      |13:StructureAlignmentEnumeration                            |
+ * | name      |StructureAlignmentEnumeration                               |
  * | isAbstract|false                                                       |
  */
 export enum EnumStructureAlignment  {

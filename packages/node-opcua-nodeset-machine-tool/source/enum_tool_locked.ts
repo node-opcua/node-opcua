@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:ToolLocked                                               |
+ * | name      |ToolLocked                                                  |
  * | isAbstract|false                                                       |
  */
 export enum EnumToolLocked  {

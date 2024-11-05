@@ -219,6 +219,12 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         data.lines.push(str);
         return;
     }
+    if(fieldType === "DiagnosticInfo" && !field.isArray && value) {
+        value = value.toString(data);
+        str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString(data));
+        data.lines.push(str);
+        return;
+    }
 
     function _dump_enumeration_value(
         self: BaseUAObject,

@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:DhcpGeoConfCoordinate                                     |
+ * | name      |DhcpGeoConfCoordinate                                       |
  * | isAbstract|false                                                       |
  */
 export interface DTDhcpGeoConfCoordinate extends DTStructure {

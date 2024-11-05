@@ -7,7 +7,7 @@ import { DTResultId } from "./dt_result_id"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ResultTransferOptions                                     |
+ * | name      |ResultTransferOptions                                       |
  * | isAbstract|false                                                       |
  */
 export interface DTResultTransferOptions extends DTStructure {

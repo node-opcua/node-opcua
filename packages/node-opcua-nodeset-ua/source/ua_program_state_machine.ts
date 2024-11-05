@@ -7,17 +7,17 @@ import { StatusCode } from "node-opcua-status-code"
 import { UInt32, Int32, UAString } from "node-opcua-basic-types"
 import { DTProgramDiagnostic2 } from "./dt_program_diagnostic_2"
 import { DTArgument } from "./dt_argument"
-import { UAStateVariable } from "./ua_state_variable"
-import { UATransitionVariable } from "./ua_transition_variable"
+import { UAFiniteStateVariable } from "./ua_finite_state_variable"
+import { UAFiniteTransitionVariable } from "./ua_finite_transition_variable"
 import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine"
 import { UAProgramDiagnostic2 } from "./ua_program_diagnostic_2"
 import { UAState } from "./ua_state"
 import { UATransition } from "./ua_transition"
-export interface UAProgramStateMachine_currentState<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
+export interface UAProgramStateMachine_currentState<T extends LocalizedText> extends Omit<UAFiniteStateVariable<T>, "id"|"number"> { // Variable
       id: UAProperty<NodeId, DataType.NodeId>;
       number: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAProgramStateMachine_lastTransition<T extends LocalizedText> extends Omit<UATransitionVariable<T>, "id"|"number"|"transitionTime"> { // Variable
+export interface UAProgramStateMachine_lastTransition<T extends LocalizedText> extends Omit<UAFiniteTransitionVariable<T>, "id"|"number"|"transitionTime"> { // Variable
       id: UAProperty<NodeId, DataType.NodeId>;
       number: UAProperty<UInt32, DataType.UInt32>;
       transitionTime: UAProperty<Date, DataType.DateTime>;

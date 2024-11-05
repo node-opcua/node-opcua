@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RfidSighting                                              |
+ * | name      |RfidSighting                                                |
  * | isAbstract|false                                                       |
  */
 export interface DTRfidSighting extends DTStructure {

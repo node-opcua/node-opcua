@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/DI/                             |
  * | nodeClass |DataType                                                    |
- * | name      |1:ParameterResultDataType                                   |
+ * | name      |ParameterResultDataType                                     |
  * | isAbstract|false                                                       |
  */
 export interface DTParameterResult extends DTStructure {

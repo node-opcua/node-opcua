@@ -186,6 +186,7 @@ export interface UAResult_resultMetaData<T, DT extends DataType> extends UABaseD
  * |typedDefinition |ResultType i=2001                                           |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTResult i=3008                                             |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

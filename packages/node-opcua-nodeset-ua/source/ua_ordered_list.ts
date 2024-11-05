@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 export interface UAOrderedList_$OrderedObject$ extends UAObject { // Object
       numberInList: UAProperty<any, any>;

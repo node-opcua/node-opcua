@@ -16,12 +16,13 @@ import { UAChemometricModel, UAChemometricModel_Base } from "./ua_chemometric_mo
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |MVAModelType i=2009                                         |
  * |dataType        |ByteString                                                  |
- * |dataType Name   |Buffer i=15                                                 |
+ * |dataType Name   |(Buffer | Buffer[]) i=15                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export interface UAMVAModel_Base<T extends Buffer>  extends UAChemometricModel_Base<T> {
+export interface UAMVAModel_Base<T extends (Buffer | Buffer[])>  extends UAChemometricModel_Base<T> {
    // PlaceHolder for $User_defined_Output_$
     mainDataIndex: UAProperty<Int32, DataType.Int32>;
 }
-export interface UAMVAModel<T extends Buffer> extends Omit<UAChemometricModel<T>, "$User_defined_Output_$">, UAMVAModel_Base<T> {
+export interface UAMVAModel<T extends (Buffer | Buffer[])> extends Omit<UAChemometricModel<T>, "$User_defined_Output_$">, UAMVAModel_Base<T> {
 }

@@ -9,15 +9,15 @@ import { DTPackMLIngredients } from "./dt_pack_ml_ingredients"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PackML/                         |
  * | nodeClass |DataType                                                    |
- * | name      |15:PackMLProductDataType                                    |
+ * | name      |PackMLProductDataType                                       |
  * | isAbstract|false                                                       |
  */
 export interface DTPackMLProduct extends DTStructure {
   /** A unique number assigned to the product.*/
   productID: Int32; // Int32 ns=0;i=6
   /** The array of Process variables associated with this product*/
-  processVariables: DTPackMLDescriptor[]; // ExtensionObject ns=15;i=16
+  processVariables: DTPackMLDescriptor[]; // ExtensionObject ns=20;i=16
   /** The array of ingredients associated with this product.*/
-  ingredients: DTPackMLIngredients[]; // ExtensionObject ns=15;i=17
+  ingredients: DTPackMLIngredients[]; // ExtensionObject ns=20;i=17
 }
 export interface UDTPackMLProduct extends ExtensionObject, DTPackMLProduct {};

@@ -7,7 +7,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CNC                             |
  * | nodeClass |DataType                                                    |
- * | name      |11:CncSpindleStatus                                         |
+ * | name      |CncSpindleStatus                                            |
  * | isAbstract|false                                                       |
  */
 export enum EnumCncSpindleStatus  {

@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/ADI/                            |
  * | nodeClass |DataType                                                    |
- * | name      |2:AlarmStateEnumeration                                     |
+ * | name      |AlarmStateEnumeration                                       |
  * | isAbstract|false                                                       |
  */
 export enum EnumAlarmState  {

@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:LocalCoordinate                                           |
+ * | name      |LocalCoordinate                                             |
  * | isAbstract|false                                                       |
  */
 export interface DTLocalCoordinate extends DTStructure {

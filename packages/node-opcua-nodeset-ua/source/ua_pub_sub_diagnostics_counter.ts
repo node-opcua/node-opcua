@@ -13,6 +13,7 @@ import { EnumDiagnosticsLevel } from "./enum_diagnostics_level"
  * |typedDefinition |PubSubDiagnosticsCounterType i=19725                        |
  * |dataType        |UInt32                                                      |
  * |dataType Name   |UInt32 i=7                                                  |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAPubSubDiagnosticsCounter_Base<T extends UInt32>  extends UABaseDataVariable_Base<T, DataType.UInt32> {

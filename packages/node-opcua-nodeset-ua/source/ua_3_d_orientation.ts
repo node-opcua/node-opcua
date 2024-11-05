@@ -11,6 +11,7 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |typedDefinition |3DOrientationType i=18781                                   |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DT3DOrientation i=18812                                     |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UA3DOrientation_Base<T extends DT3DOrientation>  extends UAOrientation_Base<T> {

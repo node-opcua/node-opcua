@@ -12,6 +12,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |ReferenceDescriptionVariableType i=32657                    |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTReferenceDescription i=32659                              |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAReferenceDescriptionVariable_Base<T extends DTReferenceDescription>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

@@ -6,7 +6,7 @@ import { UInt32 } from "node-opcua-basic-types"
 import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
-import { UAStateVariable } from "node-opcua-nodeset-ua/source/ua_state_variable"
+import { UAFiniteStateVariable } from "node-opcua-nodeset-ua/source/ua_finite_state_variable"
 import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
 import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine"
 /**
@@ -20,7 +20,7 @@ import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machi
 export interface UAProductionStateMachine_Base extends UAFiniteStateMachine_Base {
     aborted: UAState;
     abortedToInitializing: UATransition;
-    currentState: UAStateVariable<LocalizedText>;
+    currentState: UAFiniteStateVariable<LocalizedText>;
     ended: UAState;
     endedToInitializing: UATransition;
     initializing: UAInitialState;

@@ -3,7 +3,7 @@ import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UInt16, UAString } from "node-opcua-basic-types"
-import { UAStateVariable } from "node-opcua-nodeset-ua/source/ua_state_variable"
+import { UAFiniteStateVariable } from "node-opcua-nodeset-ua/source/ua_finite_state_variable"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
 import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { UALockingServices } from "node-opcua-nodeset-di/source/ua_locking_services"
@@ -11,7 +11,7 @@ import { UAProductionStateMachine } from "./ua_production_state_machine"
 import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine"
 import { UAInstruction } from "./ua_instruction"
 export interface UAProductionJob_state extends Omit<UAProductionStateMachine, "currentState"> { // Object
-      currentState: UAStateVariable<LocalizedText>;
+      currentState: UAFiniteStateVariable<LocalizedText>;
       initializedState: UAInitializingSubStateMachine;
 }
 /**

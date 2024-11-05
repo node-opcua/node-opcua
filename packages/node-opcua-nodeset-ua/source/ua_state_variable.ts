@@ -12,6 +12,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |StateVariableType i=2755                                    |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAStateVariable_Base<T extends LocalizedText>  extends UABaseDataVariable_Base<T, DataType.LocalizedText> {

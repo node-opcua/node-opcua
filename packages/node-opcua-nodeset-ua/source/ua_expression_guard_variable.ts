@@ -12,6 +12,7 @@ import { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable"
  * |typedDefinition |ExpressionGuardVariableType i=15128                         |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAExpressionGuardVariable_Base<T extends LocalizedText>  extends UAGuardVariable_Base<T> {

@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:HygieneModeEnumeration                                    |
+ * | name      |HygieneModeEnumeration                                      |
  * | isAbstract|false                                                       |
  */
 export enum EnumHygieneMode  {

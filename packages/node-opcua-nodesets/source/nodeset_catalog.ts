@@ -1,6 +1,7 @@
 export type NodesetName =
     | "standard"
     | "di"
+    | "amb"
     | "adi"
     | "autoId"
     | "commercialKitchenEquipment"
@@ -10,13 +11,16 @@ export type NodesetName =
     | "ia"
     | "iolink"
     | "iolinkIODD"
+    | "ijtBase"
     | "irdi"
-    | "jobs"
+    | "isa95JobControl"
+    | "machineryJobs"
     | "machinery"
     | "machineryProcessValues"
     | "machineryResult"
     | "machineTool"
     | "machineVision"
+    | "metalForming"
     | "packML"
     | "padim"
     | "robotics"
@@ -32,82 +36,243 @@ export type NodesetMeta = {
     uri: string;
     /// path to local NodeSet2 XML file
     xmlFile: string;
+    dependencies: NodesetName[];
+
+    // the licence applicable to the typescript definition file
+    // "DUAL" means that the generated module is dual licenced under the Open Source APGL3
+    // and the commercial license
+    // MIT means that the generated module is licenced under the MIT license
+    licence?: "DUAL" | "MIT";
 };
+export const nodesetCatalog: NodesetMeta[] = [
+    {
+        name: 'standard',
+        packageName: 'ua',
+        uri: 'http://opcfoundation.org/UA/',
+        xmlFile: 'Opc.Ua.NodeSet2.xml',
+        dependencies: [],
+        licence: "MIT"
+    },
+    {
+        name: 'di',
+        packageName: 'di',
+        uri: 'http://opcfoundation.org/UA/DI/',
+        xmlFile: 'Opc.Ua.Di.NodeSet2.xml',
+        dependencies: [],
+        licence: "MIT"
+    },
+    {
+        name: 'adi',
+        packageName: 'adi',
+        uri: 'http://opcfoundation.org/UA/ADI/',
+        xmlFile: 'Opc.Ua.Adi.NodeSet2.xml',
+        dependencies: ['di'],
+        licence: "MIT"
+    },
+    {
+        name: 'autoId',
+        packageName: 'auto-id',
+        uri: 'http://opcfoundation.org/UA/AutoID/',
+        xmlFile: 'Opc.Ua.AutoID.NodeSet2.xml',
+        dependencies: ['di'],
+        licence: "MIT"
+    },
+    {
+        name: 'machineVision',
+        packageName: 'machine-vision',
+        uri: 'http://opcfoundation.org/UA/MachineVision',
+        xmlFile: 'Opc.Ua.MachineVision.NodeSet2.xml',
+        dependencies: [],
+        licence: "MIT"
+    },
+    {
+        name: 'commercialKitchenEquipment',
+        packageName: 'commercial-kitchen-equipment',
+        uri: 'http://opcfoundation.org/UA/CommercialKitchenEquipment/',
+        xmlFile: 'Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml',
+        dependencies: ['di'],
+        licence: "MIT"
+    },
+    {
+        name: 'amb',
+        packageName: 'amb',
+        uri: 'http://opcfoundation.org/UA/AMB/',
+        xmlFile: 'Opc.Ua.AMB.NodeSet2.xml',
+        dependencies: [],
+        licence: "DUAL"
+    },
+    {
+        name: 'gds',
+        packageName: 'gds',
+        uri: 'http://opcfoundation.org/UA/GDS/',
+        xmlFile: 'Opc.Ua.Gds.NodeSet2.xml',
+        dependencies: [],
+        licence: "DUAL"
+    },
+    {
+        name: 'robotics',
+        packageName: 'robotics',
+        uri: 'http://opcfoundation.org/UA/Robotics/',
+        xmlFile: 'Opc.Ua.Robotics.NodeSet2.xml',
+        dependencies: ['di'],
+        licence: "MIT"
 
-export const nodesetCatalog = <[NodesetName, string, string, string, NodesetName[], boolean?][]>[
-    ["standard", "ua", "http://opcfoundation.org/UA/", "Opc.Ua.NodeSet2.xml", []],
-    ["di", "di", "http://opcfoundation.org/UA/DI/", "Opc.Ua.Di.NodeSet2.xml", []],
-    ["adi", "adi", "http://opcfoundation.org/UA/ADI/", "Opc.Ua.Adi.NodeSet2.xml", ["di"]],
-    ["autoId", "auto-id", "http://opcfoundation.org/UA/AutoID/", "Opc.Ua.AutoID.NodeSet2.xml", ["di"]],
-    ["machineVision", "machine-vision", "http://opcfoundation.org/UA/MachineVision", "Opc.Ua.MachineVision.NodeSet2.xml", []],
-    [
-        "commercialKitchenEquipment",
-        "commercial-kitchen-equipment",
-        "http://opcfoundation.org/UA/CommercialKitchenEquipment/",
-        "Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml",
-        ["di"]
-    ],
-    ["amb", "amb", "http://opcfoundation.org/UA/AMB/", "Opc.Ua.AMB.NodeSet2.xml", []],
-    ["gds", "gds", "http://opcfoundation.org/UA/GDS/", "Opc.Ua.Gds.NodeSet2.xml", []],
-    ["robotics", "robotics", "http://opcfoundation.org/UA/Robotics/", "Opc.Ua.Robotics.NodeSet2.xml", ["di"]],
+    },
+    {
+        name: 'isa95JobControl',
+        packageName: 'isa-95-jobcontrol-v-2',
+        uri: 'http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/',
+        xmlFile: 'opc.ua.isa95-jobcontrol.nodeset2.xml',
+        dependencies: [],
+        licence: "DUAL"
+    },
+    {
+        name: 'machineryJobs',
+        packageName: 'machinery-jobs',
+        uri: 'http://opcfoundation.org/UA/Machinery/Jobs/',
+        xmlFile: 'Opc.Ua.Machinery.Jobs.Nodeset2.xml',
+        dependencies: ['isa95JobControl'],
+        licence: "DUAL"
 
-    ["isa95JobControl", "isa95-job-control", "http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/", "opc.ua.isa95-jobcontrol.nodeset2.xml", []],
+    },
+    {
+        name: 'machineryResult',
+        packageName: 'machinery-result',
+        uri: 'http://opcfoundation.org/UA/Machinery/Result/',
+        xmlFile: 'Opc.Ua.Machinery.Result.NodeSet2.xml',
+        dependencies: [],
+        licence: "DUAL"
 
+    },
+    {
+        name: 'machinery',
+        packageName: 'machinery',
+        uri: 'http://opcfoundation.org/UA/Machinery/',
+        xmlFile: 'Opc.Ua.Machinery.NodeSet2.xml',
+        dependencies: ['machineryJobs', 'isa95JobControl'],
+        licence: "DUAL"
+    },
+    {
+        name: 'ia',
+        packageName: 'ia',
+        uri: 'http://opcfoundation.org/UA/IA/',
+        xmlFile: 'Opc.Ua.IA.NodeSet2.xml',
+        dependencies: ['di'],
+        licence: "DUAL"
 
-    ["machineyJobs", "machiney-jobs", "http://opcfoundation.org/UA/Machinery/Jobs/", "Opc.Ua.Machinery.Jobs.Nodeset2.xml",
-        [
-            "isa95JobControl"
-        ]
-    ],
-    [
-        "machineryResult",
-        "machinery-result",
-        "http://opcfoundation.org/UA/Machinery/Result/",
-        "Opc.Ua.Machinery.Result.NodeSet2.xml",
-        , []
-    ],
+    },
+    {
+        name: 'machineTool',
+        packageName: 'machine-tool',
+        uri: 'http://opcfoundation.org/UA/MachineTool/',
+        xmlFile: 'Opc.Ua.MachineTool.NodeSet2.xml',
+        dependencies: ['di', 'machinery', 'ia'],
+        licence: "DUAL"
+    },
+    {
+        name: 'cnc',
+        packageName: 'cnc',
+        uri: 'http://opcfoundation.org/UA/CNC',
+        xmlFile: 'Opc.Ua.CNC.NodeSet.xml',
+        dependencies: [],
+        licence: "DUAL"
+    },
+    {
+        name: 'woodWorking',
+        packageName: 'woodworking',
+        uri: 'http://opcfoundation.org/UA/Woodworking/',
+        xmlFile: 'Opc.Ua.Woodworking.NodeSet2.xml',
+        dependencies: ['di', 'machinery'],
+        licence: "DUAL"
+    },
+    {
+        name: 'glass',
+        packageName: 'glass-flat',
+        uri: 'http://opcfoundation.org/UA/Glass/Flat/',
+        xmlFile: 'Opc.Ua.Glass.NodeSet2.xml',
+        dependencies: ['di', 'machinery'],
+        licence: "DUAL"
+    },
+    {
+        name: 'ijtBase',
+        packageName: 'ijt-base',
+        uri: 'http://opcfoundation.org/UA/IJT/Base/',
+        xmlFile: 'Opc.Ua.Ijt.Base.NodeSet2.xml',
+        dependencies: ['machineryResult', 'di', 'machinery', 'amb'],
+        licence: "DUAL"
+    },
+    {
+        name: 'tightening',
+        packageName: 'ijt-tightening',
+        uri: 'http://opcfoundation.org/UA/IJT/Tightening/',
+        xmlFile: 'Opc.Ua.Ijt.Tightening.NodeSet2.xml',
+        dependencies: ['machineryResult', 'di', 'machinery', 'ijtBase', 'amb'],
+        licence: "DUAL"
 
+    },
+    {
+        name: 'packML',
+        packageName: 'pack-ml',
+        uri: 'http://opcfoundation.org/UA/PackML/',
+        xmlFile: 'Opc.Ua.PackML.NodeSet2.xml',
+        dependencies: [],
+        licence: "DUAL"
+        
+    },
+    {
+        name: 'iolink',
+        packageName: 'io-link',
+        uri: 'http://opcfoundation.org/UA/IOLink/',
+        xmlFile: 'Opc.Ua.IOLink.NodeSet2.xml',
+        dependencies: ['di'],
+        licence: "DUAL"
+    },
+    {
+        name: 'iolinkIODD',
+        packageName: 'io-link-iodd',
+        uri: 'http://opcfoundation.org/UA/IOLink/IODD/',
+        xmlFile: 'Opc.Ua.IOLinkIODD.NodeSet2.xml',
+        dependencies: [],
+        licence: "DUAL"
+    },
+    {
+        name: 'irdi',
+        packageName: 'irdi',
+        uri: 'http://opcfoundation.org/UA/Dictionary/IRDI',
+        xmlFile: 'Opc.Ua.IRDI.NodeSet2.xml',
+        dependencies: []
 
-    ["machinery", "machinery", "http://opcfoundation.org/UA/Machinery/", "Opc.Ua.Machinery.NodeSet2.xml", ["machineyJobs", "isa95JobControl"]],
-    ["ia", "ia", "http://opcfoundation.org/UA/IA/", "Opc.Ua.IA.NodeSet2.xml", ["di"]],
-    [
-        "machineTool",
-        "machine-tool",
-        "http://opcfoundation.org/UA/MachineTool/",
-        "Opc.Ua.MachineTool.NodeSet2.xml",
-        ["di", "machinery", "ia"]
-    ],
-    ["cnc", "cnc", "http://opcfoundation.org/UA/CNC", "Opc.Ua.CNC.NodeSet.xml", []],
-    [
-        "woodWorking",
-        "woodworking",
-        "http://opcfoundation.org/UA/Woodworking/",
-        "Opc.Ua.Woodworking.NodeSet2.xml",
-        ["di", "machinery"]
-    ],
-    ["glass", "glass-flat", "http://opcfoundation.org/UA/Glass/Flat/", "Opc.Ua.Glass.NodeSet2.xml", ["di", "machinery"]],
+    },
+    {
+        name: 'padim',
+        packageName: 'padim',
+        uri: 'http://opcfoundation.org/UA/PADIM/',
+        xmlFile: 'Opc.Ua.PADIM.NodeSet2.xml',
+        dependencies: ['irdi', 'di'],
+        licence: "DUAL"        
+    },
+    {
+        name: 'machineryProcessValues',
+        packageName: 'machinery-process-values',
+        uri: 'http://opcfoundation.org/UA/Machinery/ProcessValues/',
+        xmlFile: 'Opc.Ua.Machinery.ProcessValues.NodeSet2.xml',
+        dependencies: ['di', 'irdi', 'padim'],
+        licence: "DUAL"        
+    },
+    {
+        name: 'metalForming',
+        packageName: 'metal-forming',
+        uri: 'http://opcfoundation.org/UA/MetalForming/',
+        xmlFile: 'Opc.Ua.MetalForming.NodeSet2.xml',
+        dependencies: [
+            'di',
+            'ia',
+            'machinery',
+            'irdi',
+            'padim',
+            'machineryProcessValues',
+            'machineTool'
+        ],
+        licence: "DUAL"        
+    }];
 
-
-    ["ijtBase", "ijt-base", "http://opcfoundation.org/UA/IJT/Base/", "Opc.Ua.Ijt.Base.NodeSet2.xml", ["machineryResult", "di", "machinery", "amb"]],
-    ["tightening", "ijt", "http://opcfoundation.org/UA/IJT/Tightening/", "Opc.Ua.Ijt.Tightening.NodeSet2.xml", ["machineryResult", "di", "machinery", "ijtBase", "amb"]],
-    ["packML", "pack-ml", "http://opcfoundation.org/UA/PackML/", "Opc.Ua.PackML.NodeSet2.xml", []],
-
-    ["iolink", "io-link", "http://opcfoundation.org/UA/IOLink/", "Opc.Ua.IOLink.NodeSet2.xml", ["di"]],
-    ["iolinkIODD", "io-link-iodd", "http://opcfoundation.org/UA/IOLink/IODD/", "Opc.Ua.IOLinkIODD.NodeSet2.xml", []],
-    ["irdi", "irdi", "http://opcfoundation.org/UA/Dictionary/IRDI", "Opc.Ua.IRDI.NodeSet2.xml", []],
-    ["padim", "padim", "http://opcfoundation.org/UA/PADIM/", "Opc.Ua.PADIM.NodeSet2.xml", ["irdi", "di"]],
-    [
-        "machineryProcessValues",
-        "machinery-process-values",
-        "http://opcfoundation.org/UA/Machinery/ProcessValues/",
-        "Opc.Ua.Machinery.ProcessValues.NodeSet2.xml",
-        ["di", "irdi", "padim"]
-    ],
-    [
-        "metalForming",
-        "metal-forming",
-        "http://opcfoundation.org/UA/MetalForming/",
-        "Opc.Ua.MetalForming.NodeSet2.xml",
-        ["di", "ia", "machinery", "irdi", "padim", "machineryProcessValues", "machineTool" ]
-    ]
-];

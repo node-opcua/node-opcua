@@ -8,13 +8,13 @@ import { DTPackMLDescriptor } from "./dt_pack_ml_descriptor"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PackML/                         |
  * | nodeClass |DataType                                                    |
- * | name      |15:PackMLIngredientsDataType                                |
+ * | name      |PackMLIngredientsDataType                                   |
  * | isAbstract|false                                                       |
  */
 export interface DTPackMLIngredients extends DTStructure {
   /** A unique number assigned to the ingredient.*/
   ingredientID: Int32; // Int32 ns=0;i=6
   /** The array of Parameters that correspond to the ingredient*/
-  parameter: DTPackMLDescriptor[]; // ExtensionObject ns=15;i=16
+  parameter: DTPackMLDescriptor[]; // ExtensionObject ns=20;i=16
 }
 export interface UDTPackMLIngredients extends ExtensionObject, DTPackMLIngredients {};

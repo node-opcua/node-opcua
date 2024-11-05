@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ProductIdDataType                                         |
+ * | name      |ProductIdDataType                                           |
  * | isAbstract|false                                                       |
  */
 export interface DTProductId extends DTStructure {

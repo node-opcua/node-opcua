@@ -10,6 +10,7 @@ import { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable"
  * |typedDefinition |ElseGuardVariableType i=15317                               |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export type UAElseGuardVariable_Base<T extends LocalizedText> = UAGuardVariable_Base<T>;

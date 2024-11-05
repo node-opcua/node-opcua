@@ -19,6 +19,23 @@ function getPackageFolder(dependency: string, options: Options) {
         }
         return d;
     }
+    //
+    console.log("cannot find package.json for ", dependency, " : creating it");
+    const packageoFolder = path.join(__dirname, "../../", dependency);
+    if (!fs.existsSync(packageoFolder)) {
+        fs.mkdirSync(packageoFolder);
+    }
+    const packageJson = path.join(packageoFolder, "package.json");
+    if (!fs.existsSync(packageJson)) {
+        fs.writeFileSync(packageJson, "{\n  \"name\": \"" + dependency + "\"\n}");
+    }
+    const sourceFolder = path.join(packageoFolder, "source");
+    if (!fs.existsSync(sourceFolder)) {
+        fs.mkdirSync(sourceFolder);
+    }
+    return packageJson;
+
+
     throw new Error("cannot find package.json for " + dependency);
 }
 function getPackageInfo(dependency: string, options: Options) {
@@ -54,7 +71,6 @@ export async function convertNamespaceTypeToTypescript(
             if (reference.nodeId.namespace !== namespaceIndex) {
                 return;
             }
-
             cache!.resetRequire();
 
             if (reference.nodeId.namespace === 0 && reference.nodeId.value === DataTypeIds.Enumeration) {
@@ -203,6 +219,47 @@ async function _output_tsconfig_json(info: Info, options: Options): Promise<void
         return !!c.match(/node_modules/);
     }
 }
+async function _output_licence(info: Info, options: Options): Promise<void> {
+
+    if (info.module === "node-opcua-nodeset-ua") {
+        return;
+    }
+    const licenseFile = path.join(info.folder, "LICENSE");
+
+    const content3: string[] = [];
+    content3.push(``);
+    const year = new Date().getFullYear();
+    content3.push(`The MIT License (MIT)
+
+Copyright (c) 2022-${year}  Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
+
+Copyright (c) 2014-2022 Etienne Rossignon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+`);
+
+
+    // content3.push(fs.readFileSync(path.join(__dirname, "../source/licences/agpl_v3.md"), "utf8"));
+    fs.writeFileSync(licenseFile, content3.join("\n"));
+
+
+
+}
 async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     const values = Object.values(infos) as Info[];
     if (values.length < 1) {
@@ -216,5 +273,7 @@ async function outputFiles(infos: { [key: string]: Info }, options: Options) {
         await _output_package_json(info, options);
 
         await _output_tsconfig_json(info, options);
+
+        await _output_licence(info, options);
     }
 }

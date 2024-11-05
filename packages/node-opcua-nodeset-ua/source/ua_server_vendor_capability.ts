@@ -9,6 +9,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |ServerVendorCapabilityType i=2137                           |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions i=0                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */
 export type UAServerVendorCapability_Base<T, DT extends DataType> = UABaseDataVariable_Base<T, DT>;

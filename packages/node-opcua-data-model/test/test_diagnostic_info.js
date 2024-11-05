@@ -249,4 +249,32 @@ describe("DiagnosticInfo", function () {
         const reloaded = new DiagnosticInfo();
         decodeDiagnosticInfo(stream, reloaded);
     });
+
+    it("DiagnosticInfo#toString", () => {
+        const diag = new DiagnosticInfo({
+            localizedText: 2345,
+            symbolicId: 3456,
+            namespaceURI: 1234
+        });
+        const str = diag.toString();
+        str.should.match(/namespaceUri/gm);
+        str.should.match(/localizedText/gm);
+        str.should.match(/symbolicId/gm);
+
+    });
+    it("DiagnosticInfo#toString", () => {
+        const diag = new DiagnosticInfo({
+            localizedText: 2345,
+            symbolicId: 3456,
+            namespaceURI: 1234,
+            additionalInfo: "Hello",
+            innerDiagnosticInfo: new DiagnosticInfo({ additionalInfo: "World" })
+        });
+        const str = diag.toString();
+        str.should.match(/namespaceUri/gm);
+        str.should.match(/localizedText/gm);
+        str.should.match(/symbolicId/gm);
+        str.should.match(/Hello/gm);
+    });
+
 });

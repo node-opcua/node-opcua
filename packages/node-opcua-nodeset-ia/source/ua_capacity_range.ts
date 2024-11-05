@@ -17,6 +17,7 @@ import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
  * |typedDefinition |CapacityRangeType i=2003                                    |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTRange i=884                                               |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UACapacityRange_Base<T extends DTRange>  extends UADataItem_Base<T, DataType.ExtensionObject> {

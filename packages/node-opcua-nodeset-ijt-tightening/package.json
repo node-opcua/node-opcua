@@ -1,0 +1,37 @@
+{
+    "name": "node-opcua-nodeset-ijt-tightening",
+    "version": "2.134.0",
+    "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-ijt-tightening",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "build": "tsc -b"
+    },
+    "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
+    "license": "MIT",
+    "dependencies": {
+        "node-opcua-basic-types": "2.134.0",
+        "node-opcua-data-access": "2.134.0",
+        "node-opcua-data-model": "2.134.0",
+        "node-opcua-nodeset-ijt-base": "2.134.0",
+        "node-opcua-nodeset-ua": "2.134.0",
+        "node-opcua-variant": "2.134.0"
+    },
+    "files": [
+        "dist",
+        "source"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/"
+}

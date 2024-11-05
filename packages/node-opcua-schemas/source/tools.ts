@@ -2,7 +2,6 @@
 /* eslint-disable max-statements */
 import { make_errorLog } from "node-opcua-debug";
 import {
-    buildStructuredType,
     ConstructorFuncWithSchema,
     DataTypeFactory,
     FieldCategory,

@@ -8,7 +8,7 @@ import { DTFetchResult } from "./dt_fetch_result"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/DI/                             |
  * | nodeClass |DataType                                                    |
- * | name      |1:TransferResultErrorDataType                               |
+ * | name      |TransferResultErrorDataType                                 |
  * | isAbstract|false                                                       |
  */
 export interface DTTransferResultError extends DTFetchResult {

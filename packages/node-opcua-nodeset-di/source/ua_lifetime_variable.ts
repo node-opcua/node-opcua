@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant, VariantOptions } from "node-opcua-variant"
+import { DataType, VariantOptions } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
@@ -15,7 +15,8 @@ import { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/source/ua
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |LifetimeVariableType i=468                                  |
  * |dataType        |Variant                                                     |
- * |dataType Name   |Variant i=26                                                |
+ * |dataType Name   |number i=26                                                 |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UALifetimeVariable_Base<T, DT extends DataType>  extends UAAnalogUnit_Base<T, DT> {

@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAMethod, UAProperty } from "node-opcua-address-space-base"
+import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
 import { Int32, UAString } from "node-opcua-basic-types"
@@ -9,7 +9,12 @@ import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
 import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
 import { UAConfigurableObject } from "node-opcua-nodeset-di/source/ua_configurable_object"
+import { UAGeneralDeviceConditionSet } from "./ua_general_device_condition_set"
 import { UASignalSet } from "./ua_signal_set"
+export interface UAPADIM_deviceConditionSet extends UAObject { // Object
+      deviceComponentConditions?: UAObject;
+      generalDeviceConditions?: UAGeneralDeviceConditionSet;
+}
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -36,6 +41,9 @@ export interface UAPADIM_Base extends UAComponent_Base {
     factoryReset?: UAMethod;
     assetId: UAProperty<UAString, DataType.String>;
     revisionCounter: UAProperty<Int32, DataType.Int32>;
+    deviceRevision?: UAProperty<UAString, DataType.String>;
+    defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
+    deviceConditionSet?: UAPADIM_deviceConditionSet;
 }
-export interface UAPADIM extends Omit<UAComponent, "manufacturer"|"manufacturerUri"|"model"|"serialNumber"|"softwareRevision"|"hardwareRevision"|"productCode"|"productInstanceUri"|"assetId"|"revisionCounter">, UAPADIM_Base {
+export interface UAPADIM extends Omit<UAComponent, "manufacturer"|"manufacturerUri"|"model"|"serialNumber"|"softwareRevision"|"hardwareRevision"|"productCode"|"productInstanceUri"|"assetId"|"revisionCounter"|"deviceRevision">, UAPADIM_Base {
 }

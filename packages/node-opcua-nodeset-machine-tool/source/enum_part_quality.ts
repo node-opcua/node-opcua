@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:PartQuality                                              |
+ * | name      |PartQuality                                                 |
  * | isAbstract|false                                                       |
  */
 export enum EnumPartQuality  {

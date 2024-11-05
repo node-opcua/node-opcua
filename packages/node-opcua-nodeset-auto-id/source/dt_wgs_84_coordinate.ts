@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:WGS84Coordinate                                           |
+ * | name      |WGS84Coordinate                                             |
  * | isAbstract|false                                                       |
  */
 export interface DTWGS84Coordinate extends DTStructure {

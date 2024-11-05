@@ -13,13 +13,15 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |TemperatureMeasurementVariableType i=1120                   |
  * |dataType        |Float                                                       |
- * |dataType Name   |number i=10                                                 |
+ * |dataType Name   |(number | number[]) i=10                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export interface UATemperatureMeasurementVariable_Base<T extends number>  extends UAAnalogSignalVariable_Base<T, DataType.Float> {
-    sensorType: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
-    sensorConnection?: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
-    sensorReference?: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
+export interface UATemperatureMeasurementVariable_Base<T extends (number | number[])>  extends UAAnalogSignalVariable_Base<T, DataType.Float> {
+    sensorType: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
+    sensorConnection?: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
+    sensorReference?: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
+    sensorClass?: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
 }
-export interface UATemperatureMeasurementVariable<T extends number> extends UAAnalogSignalVariable<T, DataType.Float>, UATemperatureMeasurementVariable_Base<T> {
+export interface UATemperatureMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UATemperatureMeasurementVariable_Base<T> {
 }

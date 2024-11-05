@@ -12,6 +12,7 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |typedDefinition |XYArrayItemType i=12038                                     |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTXV[] i=12080                                              |
+ * |value rank      |1                                                           |
  * |isAbstract      |false                                                       |
  */
 export interface UAXYArrayItem_Base<T extends DTXV[]>  extends UAArrayItem_Base<T, DataType.ExtensionObject> {

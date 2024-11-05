@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RfidPasswordTypeEnumeration                               |
+ * | name      |RfidPasswordTypeEnumeration                                 |
  * | isAbstract|false                                                       |
  */
 export enum EnumRfidPasswordType  {

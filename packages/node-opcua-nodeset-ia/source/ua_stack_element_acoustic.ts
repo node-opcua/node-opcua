@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UAOrderedList } from "node-opcua-nodeset-ua/source/ua_ordered_list"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"

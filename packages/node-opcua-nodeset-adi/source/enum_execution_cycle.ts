@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/ADI/                            |
  * | nodeClass |DataType                                                    |
- * | name      |2:ExecutionCycleEnumeration                                 |
+ * | name      |ExecutionCycleEnumeration                                   |
  * | isAbstract|false                                                       |
  */
 export enum EnumExecutionCycle  {

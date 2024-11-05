@@ -7,7 +7,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CNC                             |
  * | nodeClass |DataType                                                    |
- * | name      |11:CncSpindleTurnDirection                                  |
+ * | name      |CncSpindleTurnDirection                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumCncSpindleTurnDirection  {

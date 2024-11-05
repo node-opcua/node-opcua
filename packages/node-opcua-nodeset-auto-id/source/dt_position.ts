@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:Position                                                  |
+ * | name      |Position                                                    |
  * | isAbstract|false                                                       |
  */
 export interface DTPosition extends DTStructure {

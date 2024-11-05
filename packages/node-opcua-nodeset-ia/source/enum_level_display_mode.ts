@@ -9,7 +9,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/IA/                             |
  * | nodeClass |DataType                                                    |
- * | name      |9:LevelDisplayMode                                          |
+ * | name      |LevelDisplayMode                                            |
  * | isAbstract|false                                                       |
  */
 export enum EnumLevelDisplayMode  {

@@ -34,6 +34,8 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
 
     baseType: "BaseUAObject",
 
+    category: FieldCategory.basic,
+
     fields: [
         {
             name: "NamespaceUri",
@@ -86,6 +88,7 @@ export const schemaDiagnosticInfo: IStructuredTypeSchema = buildStructuredType({
         }
     ]
 });
+schemaDiagnosticInfo.category = FieldCategory.basic;
 
 export class DiagnosticInfo extends BaseUAObject {
     public static schema = schemaDiagnosticInfo;

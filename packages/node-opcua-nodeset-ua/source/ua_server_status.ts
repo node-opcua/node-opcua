@@ -15,6 +15,7 @@ import { UABuildInfo } from "./ua_build_info"
  * |typedDefinition |ServerStatusType i=2138                                     |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTServerStatus i=862                                        |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAServerStatus_Base<T extends DTServerStatus>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

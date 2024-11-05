@@ -7,7 +7,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CNC                             |
  * | nodeClass |DataType                                                    |
- * | name      |11:CncAxisStatus                                            |
+ * | name      |CncAxisStatus                                               |
  * | isAbstract|false                                                       |
  */
 export enum EnumCncAxisStatus  {

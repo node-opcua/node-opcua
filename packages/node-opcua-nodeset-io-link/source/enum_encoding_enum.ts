@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/IOLink/                         |
  * | nodeClass |DataType                                                    |
- * | name      |16:EncodingEnum                                             |
+ * | name      |EncodingEnum                                                |
  * | isAbstract|false                                                       |
  */
 export enum EnumEncodingEnum  {

@@ -11,6 +11,7 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |typedDefinition |CubeItemType i=12057                                        |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions[] i=0                                        |
+ * |value rank      |3                                                           |
  * |isAbstract      |false                                                       |
  */
 export interface UACubeItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T, DT> {

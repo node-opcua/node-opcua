@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/DI/                             |
  * | nodeClass |DataType                                                    |
- * | name      |1:SoftwareVersionFileType                                   |
+ * | name      |SoftwareVersionFileType                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumSoftwareVersionFile  {

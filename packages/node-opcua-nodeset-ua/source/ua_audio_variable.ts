@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |AudioVariableType i=17986                                   |
  * |dataType        |ByteString                                                  |
  * |dataType Name   |Buffer i=16307                                              |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAAudioVariable_Base<T extends Buffer>  extends UABaseDataVariable_Base<T, DataType.ByteString> {

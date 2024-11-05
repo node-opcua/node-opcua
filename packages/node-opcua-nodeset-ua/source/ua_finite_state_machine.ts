@@ -3,8 +3,8 @@ import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UAStateMachine, UAStateMachine_Base } from "./ua_state_machine"
-import { UAStateVariable } from "./ua_state_variable"
-import { UATransitionVariable } from "./ua_transition_variable"
+import { UAFiniteStateVariable } from "./ua_finite_state_variable"
+import { UAFiniteTransitionVariable } from "./ua_finite_transition_variable"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 /**
  * |                |                                                            |
@@ -15,8 +15,8 @@ import { UABaseDataVariable } from "./ua_base_data_variable"
  * |isAbstract      |true                                                        |
  */
 export interface UAFiniteStateMachine_Base extends UAStateMachine_Base {
-    currentState: UAStateVariable<LocalizedText>;
-    lastTransition?: UATransitionVariable<LocalizedText>;
+    currentState: UAFiniteStateVariable<LocalizedText>;
+    lastTransition?: UAFiniteTransitionVariable<LocalizedText>;
     availableStates?: UABaseDataVariable<NodeId[], DataType.NodeId>;
     availableTransitions?: UABaseDataVariable<NodeId[], DataType.NodeId>;
 }

@@ -10,7 +10,7 @@ import { DTBaseResultTransferOptions } from "./dt_base_result_transfer_options"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
  * | nodeClass |DataType                                                    |
- * | name      |21:ResultTransferOptionsDataType                            |
+ * | name      |ResultTransferOptionsDataType                               |
  * | isAbstract|false                                                       |
  */
 export interface DTResultTransferOptions extends DTBaseResultTransferOptions {

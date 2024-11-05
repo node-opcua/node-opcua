@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:LocationTypeEnumeration                                   |
+ * | name      |LocationTypeEnumeration                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumLocationType  {

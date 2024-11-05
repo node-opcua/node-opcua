@@ -63,7 +63,7 @@ export async function _exportDataTypeToTypescript(
     f.write(` * |-----------|${f2("-")}|`);
     f.write(` * | namespace |${f1(cache.namespace[nodeId.namespace].namespaceUri)}|`);
     f.write(` * | nodeClass |${f1(NodeClass[nodeClass])}|`);
-    f.write(` * | name      |${f1(browseName.toString())}|`);
+    f.write(` * | name      |${f1(browseName.name!.toString())}|`);
     f.write(` * | isAbstract|${f1(isAbstract.toString())}|`);
     f.write(` */`);
 

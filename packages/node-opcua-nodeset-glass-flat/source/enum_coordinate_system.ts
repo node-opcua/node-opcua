@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Glass/Flat/                     |
  * | nodeClass |DataType                                                    |
- * | name      |13:CoordinateSystemEnumeration                              |
+ * | name      |CoordinateSystemEnumeration                                 |
  * | isAbstract|false                                                       |
  */
 export enum EnumCoordinateSystem  {

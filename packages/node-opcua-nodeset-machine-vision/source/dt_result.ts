@@ -17,7 +17,7 @@ import { DTProcessingTimes } from "./dt_processing_times"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ResultDataType                                            |
+ * | name      |ResultDataType                                              |
  * | isAbstract|false                                                       |
  */
 export interface DTResult extends DTStructure {

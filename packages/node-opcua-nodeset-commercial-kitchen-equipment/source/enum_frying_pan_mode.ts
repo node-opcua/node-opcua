@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:FryingPanModeEnumeration                                  |
+ * | name      |FryingPanModeEnumeration                                    |
  * | isAbstract|false                                                       |
  */
 export enum EnumFryingPanMode  {

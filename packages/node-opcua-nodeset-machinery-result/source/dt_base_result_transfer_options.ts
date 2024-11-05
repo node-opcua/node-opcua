@@ -10,7 +10,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
  * | nodeClass |DataType                                                    |
- * | name      |21:BaseResultTransferOptionsDataType                        |
+ * | name      |BaseResultTransferOptionsDataType                           |
  * | isAbstract|true                                                        |
  */
 export interface DTBaseResultTransferOptions extends DTStructure {

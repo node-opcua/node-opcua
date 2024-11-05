@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PackML/                         |
  * | nodeClass |DataType                                                    |
- * | name      |15:PackMLDescriptorDataType                                 |
+ * | name      |PackMLDescriptorDataType                                    |
  * | isAbstract|false                                                       |
  */
 export interface DTPackMLDescriptor extends DTStructure {

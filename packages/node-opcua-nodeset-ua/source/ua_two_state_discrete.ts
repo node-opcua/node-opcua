@@ -10,12 +10,13 @@ import { UADiscreteItem, UADiscreteItem_Base } from "./ua_discrete_item"
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |TwoStateDiscreteType i=2373                                 |
  * |dataType        |Boolean                                                     |
- * |dataType Name   |boolean i=1                                                 |
+ * |dataType Name   |(boolean | boolean[]) i=1                                   |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export interface UATwoStateDiscrete_Base<T extends boolean>  extends UADiscreteItem_Base<T, DataType.Boolean> {
+export interface UATwoStateDiscrete_Base<T extends (boolean | boolean[])>  extends UADiscreteItem_Base<T, DataType.Boolean> {
     falseState: UAProperty<LocalizedText, DataType.LocalizedText>;
     trueState: UAProperty<LocalizedText, DataType.LocalizedText>;
 }
-export interface UATwoStateDiscrete<T extends boolean> extends UADiscreteItem<T, DataType.Boolean>, UATwoStateDiscrete_Base<T> {
+export interface UATwoStateDiscrete<T extends (boolean | boolean[])> extends UADiscreteItem<T, DataType.Boolean>, UATwoStateDiscrete_Base<T> {
 }

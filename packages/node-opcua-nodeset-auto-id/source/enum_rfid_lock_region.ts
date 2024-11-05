@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RfidLockRegionEnumeration                                 |
+ * | name      |RfidLockRegionEnumeration                                   |
  * | isAbstract|false                                                       |
  */
 export enum EnumRfidLockRegion  {

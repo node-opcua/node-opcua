@@ -11,13 +11,14 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |ControlVariableType i=1125                                  |
  * |dataType        |Float                                                       |
- * |dataType Name   |number i=10                                                 |
+ * |dataType Name   |(number | number[]) i=10                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export interface UAControlVariable_Base<T extends number>  extends UAAnalogSignalVariable_Base<T, DataType.Float> {
-    setpoint: UABaseAnalog<number, DataType.Float>;
+export interface UAControlVariable_Base<T extends (number | number[])>  extends UAAnalogSignalVariable_Base<T, DataType.Float> {
+    setpoint: UABaseAnalog<(number | number[]), DataType.Float>;
     operatingDirection: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
     actuatorType: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
 }
-export interface UAControlVariable<T extends number> extends UAAnalogSignalVariable<T, DataType.Float>, UAControlVariable_Base<T> {
+export interface UAControlVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UAControlVariable_Base<T> {
 }

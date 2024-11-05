@@ -8,7 +8,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
  * | nodeClass |DataType                                                    |
- * | name      |12:WwUnitModeEnumeration                                    |
+ * | name      |WwUnitModeEnumeration                                       |
  * | isAbstract|false                                                       |
  */
 export enum EnumWwUnitMode  {

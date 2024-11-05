@@ -8,9 +8,10 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |LevelMeasurementVariableType i=1123                         |
  * |dataType        |Float                                                       |
- * |dataType Name   |number i=10                                                 |
+ * |dataType Name   |(number | number[]) i=10                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export type UALevelMeasurementVariable_Base<T extends number> = UAAnalogSignalVariable_Base<T, DataType.Float>;
-export interface UALevelMeasurementVariable<T extends number> extends UAAnalogSignalVariable<T, DataType.Float>, UALevelMeasurementVariable_Base<T> {
+export type UALevelMeasurementVariable_Base<T extends (number | number[])> = UAAnalogSignalVariable_Base<T, DataType.Float>;
+export interface UALevelMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UALevelMeasurementVariable_Base<T> {
 }

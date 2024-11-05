@@ -3,7 +3,7 @@ import assert from "node-opcua-assert";
 import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { coerceQualifiedName, LocalizedTextLike, QualifiedNameLike } from "node-opcua-data-model";
 import { ConstructorFuncWithSchema } from "node-opcua-factory";
-import { ExpandedNodeId, NodeId, resolveNodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { createDynamicObjectConstructor } from "node-opcua-schemas";
 import { StructureDefinition, StructureDefinitionOptions } from "node-opcua-types";
 
@@ -72,7 +72,6 @@ export async function addExtensionObjectDataType(namespace: INamespace, options:
         // nodeId: defaultBinaryEncodingNode,
     })!;
     assert(defaultBinary.browseName.toString() === "Default Binary");
-
 
     const defaultXml = dataTypeEncodingType.instantiate({
         browseName: coerceQualifiedName("0:Default XML"),

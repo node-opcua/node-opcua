@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:ChannelMode                                              |
+ * | name      |ChannelMode                                                 |
  * | isAbstract|false                                                       |
  */
 export enum EnumChannelMode  {

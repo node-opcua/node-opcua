@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:ToolLifeIndication                                       |
+ * | name      |ToolLifeIndication                                          |
  * | isAbstract|false                                                       |
  */
 export enum EnumToolLifeIndication  {

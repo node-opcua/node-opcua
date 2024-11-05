@@ -16,6 +16,7 @@ import { UAOrientation } from "./ua_orientation"
  * |typedDefinition |FrameType i=18786                                           |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTFrame i=18813                                             |
+ * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */
 export interface UAFrame_Base<T extends DTFrame>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

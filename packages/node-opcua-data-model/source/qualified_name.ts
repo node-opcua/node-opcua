@@ -9,7 +9,8 @@ import {
     initialize_field,
     parameters,
     registerSpecialVariantEncoder,
-    IStructuredTypeSchema
+    IStructuredTypeSchema,
+    FieldCategory
 } from "node-opcua-factory";
 
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
@@ -20,7 +21,7 @@ import { decodeUAString, decodeUInt16, encodeUAString, encodeUInt16, Int32, UASt
 export const schemaQualifiedName = buildStructuredType({
     baseType: "BaseUAObject",
     name: "QualifiedName",
-
+    category: FieldCategory.basic,
     fields: [
         {
             name: "NamespaceIndex",

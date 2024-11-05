@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
@@ -14,7 +14,8 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "node-opcua-
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |ProcessValueVariableType i=2002                             |
  * |dataType        |Variant                                                     |
- * |dataType Name   |Variant i=26                                                |
+ * |dataType Name   |(number | number[]) i=26                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAProcessValueVariable_Base<T, DT extends DataType>  extends UAAnalogSignalVariable_Base<T, DT> {

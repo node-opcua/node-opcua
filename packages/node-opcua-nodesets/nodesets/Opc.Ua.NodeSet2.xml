@@ -16278,7 +16278,7 @@
   <UAObject NodeId="i=17594" BrowseName="Dictionaries">
     <DisplayName>Dictionaries</DisplayName>
     <Category>Address Space Dictionary Entries</Category>
-    <Documentation>https://reference.opcfoundation.org/v105/Core/docs/Part19/8.1</Documentation>
+    <Documentation>https://reference.obopcfoundation.org/v105/Core/docs/Part19/8.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent" IsForward="false">i=2253</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=17591</Reference>

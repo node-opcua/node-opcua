@@ -12,6 +12,7 @@ import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
  * |typedDefinition |FiniteStateVariableType i=2760                              |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAFiniteStateVariable_Base<T extends LocalizedText>  extends UAStateVariable_Base<T> {

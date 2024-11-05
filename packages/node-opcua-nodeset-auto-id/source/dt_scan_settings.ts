@@ -8,7 +8,7 @@ import { EnumLocationType } from "./enum_location_type"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:ScanSettings                                              |
+ * | name      |ScanSettings                                                |
  * | isAbstract|false                                                       |
  */
 export interface DTScanSettings extends DTStructure {

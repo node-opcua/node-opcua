@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:SpecialFunctionModeEnumeration                            |
+ * | name      |SpecialFunctionModeEnumeration                              |
  * | isAbstract|false                                                       |
  */
 export enum EnumSpecialFunctionMode  {

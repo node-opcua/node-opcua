@@ -8,7 +8,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/IA/                             |
  * | nodeClass |DataType                                                    |
- * | name      |9:StacklightOperationMode                                   |
+ * | name      |StacklightOperationMode                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumStacklightOperationMode  {

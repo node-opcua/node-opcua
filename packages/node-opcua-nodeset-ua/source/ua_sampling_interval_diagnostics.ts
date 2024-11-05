@@ -11,6 +11,7 @@ import { DTSamplingIntervalDiagnostics } from "./dt_sampling_interval_diagnostic
  * |typedDefinition |SamplingIntervalDiagnosticsType i=2165                      |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTSamplingIntervalDiagnostics i=856                         |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UASamplingIntervalDiagnostics_Base<T extends DTSamplingIntervalDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

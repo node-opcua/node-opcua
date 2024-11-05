@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
- * Copyright (c) 2005-2021 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2024 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  * 
@@ -35,7 +35,13 @@
   targetNamespace="http://opcfoundation.org/UA/2008/02/Types.xsd"
   elementFormDefault="qualified"
 >
-  <xs:element name="Boolean" nillable="true" type="xs:boolean" />
+  <xs:annotation>
+    <xs:appinfo>
+      <ua:Model ModelUri="http://opcfoundation.org/UA/" Version="1.05.03" PublicationDate="2023-12-15T00:00:00Z" />
+    </xs:appinfo>
+  </xs:annotation>
+  
+  <xs:element name="Boolean" type="xs:boolean" />
 
   <xs:complexType name="ListOfBoolean">
     <xs:sequence>
@@ -44,7 +50,7 @@
   </xs:complexType>
   <xs:element name="ListOfBoolean" type="tns:ListOfBoolean" nillable="true"></xs:element>
 
-  <xs:element name="SByte" nillable="true" type="xs:byte" />
+  <xs:element name="SByte" type="xs:byte" />
 
   <xs:complexType name="ListOfSByte">
     <xs:sequence>
@@ -53,7 +59,7 @@
   </xs:complexType>
   <xs:element name="ListOfSByte" type="tns:ListOfSByte" nillable="true"></xs:element>
 
-  <xs:element name="Byte" nillable="true" type="xs:unsignedByte" />
+  <xs:element name="Byte" type="xs:unsignedByte" />
 
   <xs:complexType name="ListOfByte">
     <xs:sequence>
@@ -62,7 +68,7 @@
   </xs:complexType>
   <xs:element name="ListOfByte" type="tns:ListOfByte" nillable="true"></xs:element>
 
-  <xs:element name="Int16" nillable="true" type="xs:short" />
+  <xs:element name="Int16" type="xs:short" />
 
   <xs:complexType name="ListOfInt16">
     <xs:sequence>
@@ -71,7 +77,7 @@
   </xs:complexType>
   <xs:element name="ListOfInt16" type="tns:ListOfInt16" nillable="true"></xs:element>
 
-  <xs:element name="UInt16" nillable="true" type="xs:unsignedShort" />
+  <xs:element name="UInt16" type="xs:unsignedShort" />
 
   <xs:complexType name="ListOfUInt16">
     <xs:sequence>
@@ -80,7 +86,7 @@
   </xs:complexType>
   <xs:element name="ListOfUInt16" type="tns:ListOfUInt16" nillable="true"></xs:element>
 
-  <xs:element name="Int32" nillable="true" type="xs:int" />
+  <xs:element name="Int32" type="xs:int" />
 
   <xs:complexType name="ListOfInt32">
     <xs:sequence>
@@ -89,7 +95,7 @@
   </xs:complexType>
   <xs:element name="ListOfInt32" type="tns:ListOfInt32" nillable="true"></xs:element>
 
-  <xs:element name="UInt32" nillable="true" type="xs:unsignedInt" />
+  <xs:element name="UInt32" type="xs:unsignedInt" />
 
   <xs:complexType name="ListOfUInt32">
     <xs:sequence>
@@ -98,7 +104,7 @@
   </xs:complexType>
   <xs:element name="ListOfUInt32" type="tns:ListOfUInt32" nillable="true"></xs:element>
 
-  <xs:element name="Int64" nillable="true" type="xs:long" />
+  <xs:element name="Int64" type="xs:long" />
 
   <xs:complexType name="ListOfInt64">
     <xs:sequence>
@@ -107,7 +113,7 @@
   </xs:complexType>
   <xs:element name="ListOfInt64" type="tns:ListOfInt64" nillable="true"></xs:element>
 
-  <xs:element name="UInt64" nillable="true" type="xs:unsignedLong" />
+  <xs:element name="UInt64" type="xs:unsignedLong" />
 
   <xs:complexType name="ListOfUInt64">
     <xs:sequence>
@@ -116,7 +122,7 @@
   </xs:complexType>
   <xs:element name="ListOfUInt64" type="tns:ListOfUInt64" nillable="true"></xs:element>
 
-  <xs:element name="Float" nillable="true" type="xs:float" />
+  <xs:element name="Float" type="xs:float" />
 
   <xs:complexType name="ListOfFloat">
     <xs:sequence>
@@ -125,7 +131,7 @@
   </xs:complexType>
   <xs:element name="ListOfFloat" type="tns:ListOfFloat" nillable="true"></xs:element>
 
-  <xs:element name="Double" nillable="true" type="xs:double" />
+  <xs:element name="Double" type="xs:double" />
 
   <xs:complexType name="ListOfDouble">
     <xs:sequence>
@@ -231,7 +237,7 @@
       <xs:element name="Code" type="xs:unsignedInt" minOccurs="0" />
     </xs:sequence>
   </xs:complexType>
-  <xs:element name="StatusCode" type="tns:StatusCode" nillable="true"></xs:element>
+  <xs:element name="StatusCode" type="tns:StatusCode"></xs:element>
 
   <xs:complexType name="ListOfStatusCode">
     <xs:sequence>
@@ -345,7 +351,21 @@
   </xs:complexType>
   <xs:element name="ListOfExtensionObject" type="tns:ListOfExtensionObject" nillable="true"></xs:element>
 
-  <!--
+  <xs:complexType name="Decimal">
+    <xs:sequence>
+      <xs:element name="TypeId" type="tns:NodeId" minOccurs="0" />
+      <xs:element name="Body" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="Scale" type="xs:short" />
+            <xs:element name="Value" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+    <!--
     Some WSDL/XML compilers have issues with the xs:choice construct. For that reason
     the default declaration of a Variant uses xs:any construct. The schema acutually
     defined by the specification is provided by the Matrix and VariantValue complex types
@@ -534,6 +554,23 @@
 
   <xs:element name="UriString" type="xs:string" />
 
+  <xs:simpleType  name="RedundantServerMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="PrimaryWithBackup_0" />
+      <xs:enumeration value="PrimaryOnly_1" />
+      <xs:enumeration value="BackupReady_2" />
+      <xs:enumeration value="BackupNotReady_3" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="RedundantServerMode" type="tns:RedundantServerMode" />
+
+  <xs:complexType name="ListOfRedundantServerMode">
+    <xs:sequence>
+      <xs:element name="RedundantServerMode" type="tns:RedundantServerMode" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfRedundantServerMode" type="tns:ListOfRedundantServerMode" nillable="true"></xs:element>
+
   <xs:element name="BitFieldMaskDataType" type="xs:unsignedLong" />
 
   <xs:element name="SemanticVersionString" type="xs:string" />
@@ -584,6 +621,28 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="ListOfEndpointType" type="tns:ListOfEndpointType" nillable="true"></xs:element>
+
+  <xs:element name="Handle" type="xs:unsignedInt" />
+
+  <xs:element name="TrimmedString" type="xs:string" />
+
+  <xs:complexType name="BitFieldDefinition">
+    <xs:sequence>
+      <xs:element name="Name" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Description" type="ua:LocalizedText" minOccurs="0" nillable="true" />
+      <xs:element name="Reserved" type="xs:boolean" minOccurs="0" />
+      <xs:element name="StartingBitPosition" type="xs:unsignedInt" minOccurs="0" />
+      <xs:element name="EndingBitPosition" type="xs:unsignedInt" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="BitFieldDefinition" type="tns:BitFieldDefinition" />
+
+  <xs:complexType name="ListOfBitFieldDefinition">
+    <xs:sequence>
+      <xs:element name="BitFieldDefinition" type="tns:BitFieldDefinition" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfBitFieldDefinition" type="tns:ListOfBitFieldDefinition" nillable="true"></xs:element>
 
   <xs:complexType name="RationalNumber">
     <xs:sequence>
@@ -801,6 +860,95 @@
   </xs:complexType>
   <xs:element name="ListOfCurrencyUnitType" type="tns:ListOfCurrencyUnitType" nillable="true"></xs:element>
 
+  <xs:complexType name="AnnotationDataType">
+    <xs:sequence>
+      <xs:element name="Annotation" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Discipline" type="xs:string" minOccurs="0" nillable="true" />
+      <xs:element name="Uri" type="xs:string" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AnnotationDataType" type="tns:AnnotationDataType" />
+
+  <xs:complexType name="ListOfAnnotationDataType">
+    <xs:sequence>
+      <xs:element name="AnnotationDataType" type="tns:AnnotationDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfAnnotationDataType" type="tns:ListOfAnnotationDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="LinearConversionDataType">
+    <xs:sequence>
+      <xs:element name="InitialAddend" type="xs:float" minOccurs="0" />
+      <xs:element name="Multiplicand" type="xs:float" minOccurs="0" />
+      <xs:element name="Divisor" type="xs:float" minOccurs="0" />
+      <xs:element name="FinalAddend" type="xs:float" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="LinearConversionDataType" type="tns:LinearConversionDataType" />
+
+  <xs:complexType name="ListOfLinearConversionDataType">
+    <xs:sequence>
+      <xs:element name="LinearConversionDataType" type="tns:LinearConversionDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfLinearConversionDataType" type="tns:ListOfLinearConversionDataType" nillable="true"></xs:element>
+
+  <xs:simpleType  name="ConversionLimitEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="NoConversion_0" />
+      <xs:enumeration value="Limited_1" />
+      <xs:enumeration value="Unlimited_2" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ConversionLimitEnum" type="tns:ConversionLimitEnum" />
+
+  <xs:complexType name="ListOfConversionLimitEnum">
+    <xs:sequence>
+      <xs:element name="ConversionLimitEnum" type="tns:ConversionLimitEnum" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfConversionLimitEnum" type="tns:ListOfConversionLimitEnum" nillable="true"></xs:element>
+
+  <xs:complexType name="QuantityDimension">
+    <xs:sequence>
+      <xs:element name="MassExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="LengthExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="TimeExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="ElectricCurrentExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="AmountOfSubstanceExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="LuminousIntensityExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="AbsoluteTemperatureExponent" type="xs:byte" minOccurs="0" />
+      <xs:element name="DimensionlessExponent" type="xs:byte" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="QuantityDimension" type="tns:QuantityDimension" />
+
+  <xs:complexType name="ListOfQuantityDimension">
+    <xs:sequence>
+      <xs:element name="QuantityDimension" type="tns:QuantityDimension" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfQuantityDimension" type="tns:ListOfQuantityDimension" nillable="true"></xs:element>
+
+  <xs:simpleType  name="AlarmMask">
+    <xs:restriction base="xs:unsignedShort">
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="AlarmMask" type="tns:AlarmMask" />
+
+  <xs:complexType name="ListOfAlarmMask">
+    <xs:sequence>
+      <xs:element name="AlarmMask" type="tns:AlarmMask" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfAlarmMask" type="tns:ListOfAlarmMask" nillable="true"></xs:element>
+
+  <xs:simpleType  name="TrustListValidationOptions">
+    <xs:restriction base="xs:unsignedInt">
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="TrustListValidationOptions" type="tns:TrustListValidationOptions" />
+
   <xs:simpleType  name="TrustListMasks">
     <xs:restriction base="xs:string">
       <xs:enumeration value="None_0" />
@@ -830,6 +978,22 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="ListOfTrustListDataType" type="tns:ListOfTrustListDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="TransactionErrorType">
+    <xs:sequence>
+      <xs:element name="TargetId" type="ua:NodeId" minOccurs="0" nillable="true" />
+      <xs:element name="Error" type="ua:StatusCode" minOccurs="0" />
+      <xs:element name="Message" type="ua:LocalizedText" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="TransactionErrorType" type="tns:TransactionErrorType" />
+
+  <xs:complexType name="ListOfTransactionErrorType">
+    <xs:sequence>
+      <xs:element name="TransactionErrorType" type="tns:TransactionErrorType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfTransactionErrorType" type="tns:ListOfTransactionErrorType" nillable="true"></xs:element>
 
   <xs:complexType name="DecimalDataType">
     <xs:sequence>
@@ -2310,6 +2474,8 @@
   </xs:complexType>
   <xs:element name="ListOfUserManagementDataType" type="tns:ListOfUserManagementDataType" nillable="true"></xs:element>
 
+  <xs:element name="EncodedTicket" type="xs:string" />
+
   <xs:simpleType  name="Duplex">
     <xs:restriction base="xs:string">
       <xs:enumeration value="Full_0" />
@@ -2486,6 +2652,39 @@
     </xs:sequence>
   </xs:complexType>
   <xs:element name="ListOfPriorityMappingEntryType" type="tns:ListOfPriorityMappingEntryType" nillable="true"></xs:element>
+
+  <xs:complexType name="ReferenceDescriptionDataType">
+    <xs:sequence>
+      <xs:element name="SourceNode" type="ua:NodeId" minOccurs="0" nillable="true" />
+      <xs:element name="ReferenceType" type="ua:NodeId" minOccurs="0" nillable="true" />
+      <xs:element name="IsForward" type="xs:boolean" minOccurs="0" />
+      <xs:element name="TargetNode" type="ua:ExpandedNodeId" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ReferenceDescriptionDataType" type="tns:ReferenceDescriptionDataType" />
+
+  <xs:complexType name="ListOfReferenceDescriptionDataType">
+    <xs:sequence>
+      <xs:element name="ReferenceDescriptionDataType" type="tns:ReferenceDescriptionDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfReferenceDescriptionDataType" type="tns:ListOfReferenceDescriptionDataType" nillable="true"></xs:element>
+
+  <xs:complexType name="ReferenceListEntryDataType">
+    <xs:sequence>
+      <xs:element name="ReferenceType" type="ua:NodeId" minOccurs="0" nillable="true" />
+      <xs:element name="IsForward" type="xs:boolean" minOccurs="0" />
+      <xs:element name="TargetNode" type="ua:ExpandedNodeId" minOccurs="0" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ReferenceListEntryDataType" type="tns:ReferenceListEntryDataType" />
+
+  <xs:complexType name="ListOfReferenceListEntryDataType">
+    <xs:sequence>
+      <xs:element name="ReferenceListEntryDataType" type="tns:ReferenceListEntryDataType" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ListOfReferenceListEntryDataType" type="tns:ListOfReferenceListEntryDataType" nillable="true"></xs:element>
 
   <xs:simpleType  name="IdType">
     <xs:restriction base="xs:string">
@@ -4395,6 +4594,17 @@
   </xs:complexType>
   <xs:element name="ReadEventDetails" type="tns:ReadEventDetails" />
 
+  <xs:complexType name="ReadEventDetails2">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:ReadEventDetails">
+        <xs:sequence>
+          <xs:element name="ReadModified" type="xs:boolean" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="ReadEventDetails2" type="tns:ReadEventDetails2" />
+
   <xs:complexType name="ReadRawModifiedDetails">
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryReadDetails">
@@ -4489,6 +4699,17 @@
   </xs:complexType>
   <xs:element name="HistoryEvent" type="tns:HistoryEvent" />
 
+  <xs:complexType name="HistoryModifiedEvent">
+    <xs:complexContent mixed="false">
+      <xs:extension base="tns:HistoryEvent">
+        <xs:sequence>
+          <xs:element name="ModificationInfos" type="tns:ListOfModificationInfo" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="HistoryModifiedEvent" type="tns:HistoryModifiedEvent" />
+
   <xs:complexType name="HistoryReadRequest">
     <xs:sequence>
       <xs:element name="RequestHeader" type="tns:RequestHeader" minOccurs="0" nillable="true" />
@@ -4545,7 +4766,6 @@
 
   <xs:complexType name="HistoryUpdateDetails">
     <xs:sequence>
-      <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
     </xs:sequence>
   </xs:complexType>
   <xs:element name="HistoryUpdateDetails" type="tns:HistoryUpdateDetails" />
@@ -4574,6 +4794,7 @@
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryUpdateDetails">
         <xs:sequence>
+          <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
           <xs:element name="PerformInsertReplace" type="tns:PerformUpdateType" minOccurs="0" />
           <xs:element name="UpdateValues" type="ua:ListOfDataValue" minOccurs="0" nillable="true" />
         </xs:sequence>
@@ -4586,6 +4807,7 @@
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryUpdateDetails">
         <xs:sequence>
+          <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
           <xs:element name="PerformInsertReplace" type="tns:PerformUpdateType" minOccurs="0" />
           <xs:element name="UpdateValues" type="ua:ListOfDataValue" minOccurs="0" nillable="true" />
         </xs:sequence>
@@ -4598,6 +4820,7 @@
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryUpdateDetails">
         <xs:sequence>
+          <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
           <xs:element name="PerformInsertReplace" type="tns:PerformUpdateType" minOccurs="0" />
           <xs:element name="Filter" type="tns:EventFilter" minOccurs="0" nillable="true" />
           <xs:element name="EventData" type="tns:ListOfHistoryEventFieldList" minOccurs="0" nillable="true" />
@@ -4611,6 +4834,7 @@
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryUpdateDetails">
         <xs:sequence>
+          <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
           <xs:element name="IsDeleteModified" type="xs:boolean" minOccurs="0" />
           <xs:element name="StartTime" type="xs:dateTime" minOccurs="0" />
           <xs:element name="EndTime" type="xs:dateTime" minOccurs="0" />
@@ -4624,6 +4848,7 @@
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryUpdateDetails">
         <xs:sequence>
+          <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
           <xs:element name="ReqTimes" type="ua:ListOfDateTime" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:extension>
@@ -4635,6 +4860,7 @@
     <xs:complexContent mixed="false">
       <xs:extension base="tns:HistoryUpdateDetails">
         <xs:sequence>
+          <xs:element name="NodeId" type="ua:NodeId" minOccurs="0" nillable="true" />
           <xs:element name="EventIds" type="ua:ListOfByteString" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:extension>

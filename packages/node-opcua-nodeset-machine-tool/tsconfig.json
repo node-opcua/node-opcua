@@ -15,7 +15,9 @@
      { "path": "../node-opcua-data-model" },
      { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-nodeset-ia" },
+     { "path": "../node-opcua-nodeset-isa-95-jobcontrol-v-2" },
      { "path": "../node-opcua-nodeset-machinery" },
+     { "path": "../node-opcua-nodeset-machinery-jobs" },
      { "path": "../node-opcua-nodeset-ua" },
      { "path": "../node-opcua-status-code" },
      { "path": "../node-opcua-variant" }

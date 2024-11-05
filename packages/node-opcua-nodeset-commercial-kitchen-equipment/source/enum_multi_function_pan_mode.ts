@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:MultiFunctionPanModeEnumeration                           |
+ * | name      |MultiFunctionPanModeEnumeration                             |
  * | isAbstract|false                                                       |
  */
 export enum EnumMultiFunctionPanMode  {

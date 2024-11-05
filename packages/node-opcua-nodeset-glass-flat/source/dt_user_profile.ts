@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Glass/Flat/                     |
  * | nodeClass |DataType                                                    |
- * | name      |13:UserProfileType                                          |
+ * | name      |UserProfileType                                             |
  * | isAbstract|false                                                       |
  */
 export interface DTUserProfile extends DTStructure {

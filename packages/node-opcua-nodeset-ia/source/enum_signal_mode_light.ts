@@ -8,7 +8,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/IA/                             |
  * | nodeClass |DataType                                                    |
- * | name      |9:SignalModeLight                                           |
+ * | name      |SignalModeLight                                             |
  * | isAbstract|false                                                       |
  */
 export enum EnumSignalModeLight  {

@@ -12,6 +12,7 @@ import { DTLocation } from "./dt_location"
  * |typedDefinition |LocationVariableType i=2002                                 |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTLocation i=3008                                           |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UALocationVariable_Base<T extends DTLocation>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

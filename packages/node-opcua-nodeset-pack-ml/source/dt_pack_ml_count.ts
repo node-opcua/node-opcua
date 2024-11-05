@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PackML/                         |
  * | nodeClass |DataType                                                    |
- * | name      |15:PackMLCountDataType                                      |
+ * | name      |PackMLCountDataType                                         |
  * | isAbstract|false                                                       |
  */
 export interface DTPackMLCount extends DTStructure {

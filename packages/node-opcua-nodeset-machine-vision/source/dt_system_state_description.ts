@@ -8,7 +8,7 @@ import { EnumSystemState } from "./enum_system_state"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:SystemStateDescriptionDataType                            |
+ * | name      |SystemStateDescriptionDataType                              |
  * | isAbstract|false                                                       |
  */
 export interface DTSystemStateDescription extends DTStructure {
