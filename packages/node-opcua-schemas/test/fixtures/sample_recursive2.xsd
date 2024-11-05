@@ -1,0 +1,56 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://opcfoundation.org/UA/Machinery/Jobs/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ns1="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://opcfoundation.org/UA/Machinery/Jobs/">
+ <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+ <opc:Import Namespace="http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/"/>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="BOMComponentInformationDataType">
+  <opc:Field TypeName="tns:OutputInformationDataType" Name="Identification"/>
+  <opc:Field TypeName="opc:Double" Name="Quantity"/>
+  <opc:Field TypeName="ua:EUInformation" Name="EngineeringUnits"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="BOMInformationDataType">
+  <opc:Field TypeName="tns:OutputInformationDataType" Name="Identification"/>
+  <opc:Field TypeName="opc:Int32" Name="NoOfComponentInformation"/>
+  <opc:Field LengthField="NoOfComponentInformation" TypeName="tns:BOMComponentInformationDataType" Name="ComponentInformation"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="OutputInformationDataType">
+  <opc:Field TypeName="opc:Bit" Name="OrderNumberSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="LotNumberSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="SerialNumberSpecified"/>
+  <opc:Field Length="29" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="opc:CharArray" Name="ItemNumber"/>
+  <opc:Field TypeName="tns:OutputInfoType" Name="OutputInfo"/>
+  <opc:Field SwitchField="OrderNumberSpecified" TypeName="opc:CharArray" Name="OrderNumber"/>
+  <opc:Field SwitchField="LotNumberSpecified" TypeName="opc:CharArray" Name="LotNumber"/>
+  <opc:Field SwitchField="SerialNumberSpecified" TypeName="opc:CharArray" Name="SerialNumber"/>
+ </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="OutputPerformanceInfoDataType">
+  <opc:Field TypeName="opc:Bit" Name="StartTimeSpecified"/>
+  <opc:Field TypeName="opc:Bit" Name="EndTimeSpecified"/>
+  <opc:Field Length="30" TypeName="opc:Bit" Name="Reserved1"/>
+  <opc:Field TypeName="tns:OutputInformationDataType" Name="Identification"/>
+  <opc:Field SwitchField="StartTimeSpecified" TypeName="opc:DateTime" Name="StartTime"/>
+  <opc:Field SwitchField="EndTimeSpecified" TypeName="opc:DateTime" Name="EndTime"/>
+  <opc:Field TypeName="opc:Int32" Name="NoOfParameters"/>
+  <opc:Field LengthField="NoOfParameters" TypeName="ns1:ISA95ParameterDataType" Name="Parameters"/>
+ </opc:StructuredType>
+ <opc:EnumeratedType LengthInBits="32" Name="JobExecutionMode">
+  <opc:EnumeratedValue Name="SimulationMode" Value="0"/>
+  <opc:EnumeratedValue Name="TestMode" Value="1"/>
+  <opc:EnumeratedValue Name="ProductionMode" Value="2"/>
+ </opc:EnumeratedType>
+ <opc:EnumeratedType LengthInBits="32" Name="JobResult">
+  <opc:EnumeratedValue Name="Unknown" Value="0"/>
+  <opc:EnumeratedValue Name="Successful" Value="1"/>
+  <opc:EnumeratedValue Name="Unsuccessful" Value="2"/>
+ </opc:EnumeratedType>
+ <opc:EnumeratedType LengthInBits="32" Name="ProcessIrregularity">
+  <opc:EnumeratedValue Name="CapabilityUnavailable" Value="0"/>
+  <opc:EnumeratedValue Name="Detected" Value="1"/>
+  <opc:EnumeratedValue Name="NotDetected" Value="2"/>
+  <opc:EnumeratedValue Name="NotYetDetermined" Value="3"/>
+ </opc:EnumeratedType>
+ <opc:EnumeratedType LengthInBits="8" Name="OutputInfoType" IsOptionSet="true">
+  <opc:EnumeratedValue Name="OrderNumber" Value="0"/>
+  <opc:EnumeratedValue Name="LotNumber" Value="1"/>
+  <opc:EnumeratedValue Name="SerialNumber" Value="2"/>
+ </opc:EnumeratedType>
+</opc:TypeDictionary>
