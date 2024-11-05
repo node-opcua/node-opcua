@@ -23,6 +23,7 @@ describe("Binary schema with recursive", () => {
     let dataTypeFactory: DataTypeFactory;
     let old_schema_helpers_doDebug = false;
     let sample: string;
+    let sample2: string
     before(async () => {
 
         const base_file = path.join(__dirname, "fixtures/sample_ua_base.xsd");
@@ -34,10 +35,11 @@ describe("Binary schema with recursive", () => {
         parameters.debugSchemaHelper = true;
         sample = fs.readFileSync(sample_file, "utf-8");
 
+        const sample2_file = path.join(__dirname, "fixtures/sample_recursive2.xsd");
+        sample2 = fs.readFileSync(sample2_file, "utf-8");
 
 
         dataTypeFactory = new DataTypeFactory([]);
-
         await parseBinaryXSDAsync(base, idProvider, dataTypeFactory);
 
     });
@@ -66,7 +68,26 @@ describe("Binary schema with recursive", () => {
         }) as any;
 
         console.log(a.toString());
-
         encode_decode_round_trip_test(a);
+    });
+
+    it("should process bsd file referencing ISA95ParameterDataType", async () => {
+
+        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSDAsync(sample2, idProvider, dataTypeFactory);
+
+        const structureInfo = dataTypeFactory.getStructureInfoByTypeName("OutputPerformanceInfoDataType");
+        const OutputPerformanceInfoDataType = structureInfo.constructor!;
+        const a = new OutputPerformanceInfoDataType({
+            parameters: [
+                {
+                    ID: "2",
+                    value: new Variant({ dataType: "Double", value: 2.0 }),
+                }
+            ]
+        });
+        console.log(a.toString());
+        encode_decode_round_trip_test(a);
+
     });
 });
