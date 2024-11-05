@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PADIM/                          |
  * | nodeClass |DataType                                                    |
- * | name      |19:ResetModeEnum                                            |
+ * | name      |ResetModeEnum                                               |
  * | isAbstract|false                                                       |
  */
 export enum EnumResetModeEnum  {

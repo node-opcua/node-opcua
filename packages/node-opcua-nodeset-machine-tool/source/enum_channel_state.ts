@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:ChannelState                                             |
+ * | name      |ChannelState                                                |
  * | isAbstract|false                                                       |
  */
 export enum EnumChannelState  {

@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:EDMGeneratorState                                        |
+ * | name      |EDMGeneratorState                                           |
  * | isAbstract|false                                                       |
  */
 export enum EnumEDMGeneratorState  {

@@ -7,7 +7,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/PackML/                         |
  * | nodeClass |DataType                                                    |
- * | name      |15:PackMLAlarmDataType                                      |
+ * | name      |PackMLAlarmDataType                                         |
  * | isAbstract|false                                                       |
  */
 export interface DTPackMLAlarm extends DTStructure {

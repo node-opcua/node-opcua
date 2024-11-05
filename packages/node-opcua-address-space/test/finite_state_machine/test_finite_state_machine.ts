@@ -398,7 +398,9 @@ describe("FSM3 - Finite State Machine - testing FiniteStateMachine from companio
             nodesets.di,
             nodesets.machinery,
             nodesets.ia,
-            nodesets.machineTool
+            nodesets.isa95JobControl,
+            nodesets.machineTool,
+            nodesets.machineryJobs
         ]);
         addressSpace.registerNamespace("urn:my");
         //        addressSpace.installAlarmsAndConditionsService();

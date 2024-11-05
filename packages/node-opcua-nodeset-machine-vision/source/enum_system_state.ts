@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:SystemStateDataType                                       |
+ * | name      |SystemStateDataType                                         |
  * | isAbstract|false                                                       |
  */
 export enum EnumSystemState  {

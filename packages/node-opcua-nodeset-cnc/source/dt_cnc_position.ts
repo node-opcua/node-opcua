@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CNC                             |
  * | nodeClass |DataType                                                    |
- * | name      |11:CncPositionDataType                                      |
+ * | name      |CncPositionDataType                                         |
  * | isAbstract|false                                                       |
  */
 export interface DTCncPosition extends DTStructure {

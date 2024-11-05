@@ -8,7 +8,7 @@ import { DTWGS84Coordinate } from "./dt_wgs_84_coordinate"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:Location                                                  |
+ * | name      |Location                                                    |
  * | isAbstract|false                                                       |
  */
 export interface DTLocation_0 extends DTUnion {

@@ -8,7 +8,7 @@ import path from 'path';
 //import { fileURLToPath } from 'url';
 //const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-import { allNodesetMeta } from "node-opcua-nodesets";
+import { nodesetCatalog } from "node-opcua-nodesets";
 
 export async function updateParentTSConfig() {
     const packagesFolder = path.join(__dirname, '..', '..');
@@ -23,15 +23,16 @@ export async function updateParentTSConfig() {
 
     type TSConfigReference = { path: string };
     const unlistedReferences: TSConfigReference[] = [];
-    for (const meta of allNodesetMeta) {
-        const nodesetPackageFolder = path.join(packagesFolder, meta.packageName);
+    for (const meta of nodesetCatalog) {
+        const packageName = `node-opcua-nodeset-${meta.packageName}`;
+        const nodesetPackageFolder = path.join(packagesFolder, packageName);
         if (!existsSync(nodesetPackageFolder)) {
             console.log(`Ignoring ${meta.packageName} since package folder does not exist (${nodesetPackageFolder})`);
             continue;
         }
-        if (!parentTSConfig.references.some((ref: TSConfigReference) => ref.path === meta.packageName)) {
-            console.log(`Found nodeset package that was not listed in tsconfig.json: ${meta.packageName}`);
-            unlistedReferences.push({ path: meta.packageName });
+        if (!parentTSConfig.references.some((ref: TSConfigReference) => ref.path === packageName)) {
+            console.log(`Found nodeset package that was not listed in tsconfig.json: ${packageName}`);
+            unlistedReferences.push({ path: packageName });
         }
     }
 

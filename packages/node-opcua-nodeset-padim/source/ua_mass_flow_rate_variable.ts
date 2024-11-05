@@ -8,9 +8,10 @@ import { UAFlowMeasurementVariable, UAFlowMeasurementVariable_Base } from "./ua_
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |MassFlowRateVariableType i=1133                             |
  * |dataType        |Float                                                       |
- * |dataType Name   |number i=10                                                 |
+ * |dataType Name   |(number | number[]) i=10                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export type UAMassFlowRateVariable_Base<T extends number> = UAFlowMeasurementVariable_Base<T>;
-export interface UAMassFlowRateVariable<T extends number> extends UAFlowMeasurementVariable<T>, UAMassFlowRateVariable_Base<T> {
+export type UAMassFlowRateVariable_Base<T extends (number | number[])> = UAFlowMeasurementVariable_Base<T>;
+export interface UAMassFlowRateVariable<T extends (number | number[])> extends UAFlowMeasurementVariable<T>, UAMassFlowRateVariable_Base<T> {
 }

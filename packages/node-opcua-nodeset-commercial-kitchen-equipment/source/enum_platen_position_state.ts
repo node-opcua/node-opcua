@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:PlatenPositionStateEnumeration                            |
+ * | name      |PlatenPositionStateEnumeration                              |
  * | isAbstract|false                                                       |
  */
 export enum EnumPlatenPositionState  {

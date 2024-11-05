@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:ProcessIrregularity                                      |
+ * | name      |ProcessIrregularity                                         |
  * | isAbstract|false                                                       |
  */
 export enum EnumProcessIrregularity  {

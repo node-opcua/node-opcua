@@ -45,6 +45,7 @@ describe("Convert to Typescript", function (this: any) {
     const options = {
         baseFolder: path.join(__dirname, "../tmp"),
         prefix: "node-opcua-nodeset-",
+        licence: <"MIT">"MIT"
     };
     const referenceFolder = path.join(__dirname,"./references/");
     const actualFolder = path.join(__dirname,"../tmp/");
@@ -117,7 +118,7 @@ describe("Convert to Typescript", function (this: any) {
                     return;
                 }
                 if (reference.parent && !parents[reference.parent.nodeId.toString()]) {
-                    const r = [];
+                    const r: ReferenceDescriptionEx[] = [];
                     let cur = reference;
                     while (cur.parent && !parents[cur.parent.nodeId.toString()]) {
                         r.push(cur.parent);
@@ -159,6 +160,7 @@ describe("Convert to Typescript", function (this: any) {
         const options = {
             baseFolder: path.join(__dirname, "../tmp/"),
             prefix: "node-opcua-nodeset-",
+            licence: <"MIT">"MIT"
         }
         const nsUA = 0;
         const nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");

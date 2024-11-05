@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:EnergySourceEnumeration                                   |
+ * | name      |EnergySourceEnumeration                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumEnergySource  {

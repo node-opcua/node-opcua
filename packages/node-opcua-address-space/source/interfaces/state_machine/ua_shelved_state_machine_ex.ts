@@ -12,7 +12,7 @@ export interface UAShelvedStateMachineHelper {
     _duration: number;
 }
 
-export interface UAShelvedStateMachineEx extends UAShelvedStateMachine_Base, UAStateMachineEx, UAShelvedStateMachineHelper {
+export interface UAShelvedStateMachineEx extends Omit<UAShelvedStateMachine_Base,"currentState" | "lastTransition">, UAStateMachineEx, UAShelvedStateMachineHelper {
     unshelveTime: UAProperty<number, /*z*/ DataType.Double>;
     unshelved: UAState;
     timedShelved: UAState;

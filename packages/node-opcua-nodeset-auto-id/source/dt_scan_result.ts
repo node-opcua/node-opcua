@@ -9,7 +9,7 @@ import { DTLocation } from "./dt_location"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:ScanResult                                                |
+ * | name      |ScanResult                                                  |
  * | isAbstract|true                                                        |
  */
 export interface DTScanResult extends DTStructure {

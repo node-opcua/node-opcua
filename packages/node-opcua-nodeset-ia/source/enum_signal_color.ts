@@ -8,7 +8,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/IA/                             |
  * | nodeClass |DataType                                                    |
- * | name      |9:SignalColor                                               |
+ * | name      |SignalColor                                                 |
  * | isAbstract|false                                                       |
  */
 export enum EnumSignalColor  {

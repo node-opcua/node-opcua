@@ -10,7 +10,7 @@ import { DTRotation } from "./dt_rotation"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RtlsLocationResult                                        |
+ * | name      |RtlsLocationResult                                          |
  * | isAbstract|false                                                       |
  */
 export interface DTRtlsLocationResult extends DTScanResult {

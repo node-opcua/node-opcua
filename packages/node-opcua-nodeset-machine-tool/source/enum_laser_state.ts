@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:LaserState                                               |
+ * | name      |LaserState                                                  |
  * | isAbstract|false                                                       |
  */
 export enum EnumLaserState  {

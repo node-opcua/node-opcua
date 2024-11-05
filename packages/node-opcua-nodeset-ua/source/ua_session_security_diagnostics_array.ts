@@ -11,6 +11,7 @@ import { UASessionSecurityDiagnostics } from "./ua_session_security_diagnostics"
  * |typedDefinition |SessionSecurityDiagnosticsArrayType i=2243                  |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTSessionSecurityDiagnostics[] i=868                        |
+ * |value rank      |1                                                           |
  * |isAbstract      |false                                                       |
  */
 export interface UASessionSecurityDiagnosticsArray_Base<T extends DTSessionSecurityDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

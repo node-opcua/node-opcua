@@ -5,7 +5,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/DI/                             |
  * | nodeClass |DataType                                                    |
- * | name      |1:FetchResultDataType                                       |
+ * | name      |FetchResultDataType                                         |
  * | isAbstract|true                                                        |
  */
 export type DTFetchResult = DTStructure;

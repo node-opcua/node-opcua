@@ -10,7 +10,7 @@ import { DTScanData } from "./dt_scan_data"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:AccessResult                                              |
+ * | name      |AccessResult                                                |
  * | isAbstract|false                                                       |
  */
 export interface DTAccessResult extends DTStructure {

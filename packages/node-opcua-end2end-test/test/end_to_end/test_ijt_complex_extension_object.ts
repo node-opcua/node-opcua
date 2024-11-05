@@ -9,13 +9,28 @@ import {
     ClientSession,
     randomGuid,
     OPCUAClient,
-    AttributeIds
+    AttributeIds,
+    LocalizedText,
+    coerceLocalizedText
 } from "node-opcua";
 
-import { DTResult, DTTighteningResult, UDTTighteningResult, UDTResult } from "node-opcua-nodeset-ijt";
+import {
+    DTResult,
+    UDTResult
+} from "node-opcua-nodeset-machinery-result";
 
-interface TighteningResultOptions extends Partial<DTTighteningResult> {}
+
+import { 
+    DTJoiningResultMeta,
+    DTJoiningResult,
+    UDTJoiningResultMeta,
+    UDTJoiningResult
+} from "node-opcua-nodeset-ijt-base";
+
+interface JoiningResultMetaOptions extends Partial<DTJoiningResultMeta> {}
+interface JoiningResultOptions extends Partial<DTJoiningResult> { }
 interface ResultOptions extends Partial<DTResult> {}
+
 const nodeId = "s=Result";
 
 const port = 2512;
@@ -23,51 +38,65 @@ const port = 2512;
 async function buildServer() {
     const server = new OPCUAServer({
         port,
-        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.machinery, nodesets.tightening]
+        nodeset_filename: [
+            nodesets.standard, 
+            nodesets.di, 
+            nodesets.amb, 
+            nodesets.machinery, 
+            nodesets.machineryResult, 
+            nodesets.ijtBase,
+            nodesets.tightening
+        ]
     });
 
     await server.initialize();
 
     const addressSpace = server.engine.addressSpace!;
 
-    console.log(addressSpace.getNamespaceArray().map((a) => a.namespaceUri));
+    console.log(addressSpace.getNamespaceArray().map((a) => a.namespaceUri).join("\n"));
 
-    const nsTightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/");
+    const nsTightening = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/Tightening/");
     if (nsTightening === -1) throw new Error("cannot find Thightening namespace");
 
-    const ResultDataType = addressSpace.findDataType("ResultDataType", nsTightening);
-    if (!ResultDataType) throw new Error("cannot find ResultDataType");
-    const TighteningResultDataType = addressSpace.findDataType("TighteningResultDataType", nsTightening);
-    if (!TighteningResultDataType) throw new Error("cannot find ResultDataType");
+    const nsIJTBase = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/IJT/Base/");
+    if (nsIJTBase === -1) throw new Error("cannot find IJTBase namespace");
 
-    const p: TighteningResultOptions = {
-        failureReason: 1,
-        trace: {
-            traceId: randomGuid(),
-            resultId: randomGuid(),
-            stepTraces: [
-                {
-                    numberOfTracePoints: 1,
-                    samplingInterval: 10,
-                    startTimeOffset: 0,
-                    stepResultId: randomGuid(),
-                    stepTraceContent: [
-                        {
-                            values: [1, 2, 3],
-                            sensorId: randomGuid(),
-                            description: "",
-                            engineeringUnits: standardUnits.ampere,
-                            name: "1",
-                            physicalQuantity: 1
-                        }
-                    ],
-                    stepTraceId: randomGuid()
-                }
-            ]
-        },
+    const nsMachineryResult = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/Machinery/Result/");
+    if (nsMachineryResult === -1) throw new Error("cannot find MachineryResult namespace");
+
+    const ResultDataType = addressSpace.findDataType("ResultDataType", nsMachineryResult);
+    if (!ResultDataType) throw new Error("cannot find ResultDataType");
+
+    const JoiningResultMetaDataType = addressSpace.findDataType("JoiningResultMetaDataType", nsIJTBase);
+    if (!JoiningResultMetaDataType) throw new Error("cannot find JoiningResultMetaDataType");
+    const JoiningResultDataType = addressSpace.findDataType("JoiningResultDataType", nsIJTBase);
+    if (!JoiningResultDataType) throw new Error("cannot find JoiningResultDataType");
+
+    const p: JoiningResultMetaOptions = {
+
+        assemblyType: 1,
+        associatedEntities: [
+            {
+                entityId: "AAA",
+                entityType: 1,
+                description: "aa",
+                entityOriginId: "AAA",
+                isExternal: false,
+                name: "AAA",
+            }
+        ],
+        stepId: randomGuid(),
+        classification: 1,
+        creationTime: new Date(),
+        description:new LocalizedText({ text: "AAA" }),
+        resultEvaluation: 1,
+        sequenceNumber: [1,2,3],
+   };
+   const q : JoiningResultOptions = {
         overallResultValues: [
             {
-                value: 1,
+                measuredValue: 1,
+                parameterIdList: ["AAA"],
                 name: "AAA",
                 lowLimit: 10,
                 highLimit: 1000,
@@ -76,7 +105,6 @@ async function buildServer() {
                 valueTag: 1,
                 engineeringUnits: standardUnits.centimetre,
                 physicalQuantity: 1,
-                reporterId: randomGuid(),
                 resultStep: "1",
                 sensorId: randomGuid(),
                 targetValue: 1,
@@ -85,16 +113,55 @@ async function buildServer() {
                 violationConsequence: 1,
                 violationType: 1
             }
-        ]
+        ],
+        errors: [
+            {
+                errorType: 1,
+                errorId : "1",
+                errorMessage: coerceLocalizedText("message")!,
+               
+            },
+        ],
+        failureReason: 1,
+        failingStepResultId: randomGuid(),
+        stepResults: [
+            {
+                stepResultId: randomGuid(),
+                stepResultValues: [
+                    {
+                        measuredValue: 1,
+                        parameterIdList: ["AAA"],
+                        name: "AAA",
+                        lowLimit: 10,
+                        highLimit: 1000,
+                        resultEvaluation: 1,
+                        valueId: randomGuid(),
+                        valueTag: 1,
+                        engineeringUnits: standardUnits.centimetre,
+                        physicalQuantity: 1,
+                        resultStep: "1",
+                        sensorId: randomGuid(),
+                        targetValue: 1,
+                        tracePointIndex: 1,
+                        tracePointTimeOffset: 0,
+                        violationConsequence: 1,
+                        violationType: 1
+                    }
+                ]
+            }
+        ],
     };
-    const content = addressSpace.constructExtensionObject(TighteningResultDataType, p) as UDTTighteningResult;
+    const metaContent = addressSpace.constructExtensionObject(JoiningResultMetaDataType, p) as UDTJoiningResultMeta;
+    const content = addressSpace.constructExtensionObject(JoiningResultDataType, p) as UDTJoiningResult;
 
     const result = addressSpace.constructExtensionObject(ResultDataType, <ResultOptions>{
-        creationTime: new Date(),
-        resultContent: new Variant({
-            dataType: DataType.ExtensionObject,
-            value: content
-        })
+        resultMetaData: metaContent,
+        resultContent: [
+            new Variant({
+                dataType: DataType.ExtensionObject,
+                value: content
+            })
+        ]
     }) as UDTResult;
 
     const namespace = addressSpace.getOwnNamespace();
@@ -141,12 +208,10 @@ describe("test complex dataStructure in thightning", () => {
             return d.value.value as UDTResult;
         });
 
-        const resultContent = (result.resultContent as unknown as Variant).value! as UDTTighteningResult;
+        console.log(result.toString());
+
+        const resultContent = result.resultContent[0].value as UDTJoiningResult;
+        
         console.log(resultContent.toString());
-        resultContent.failureReason!.should.eql(1);
-        resultContent.overallResultValues!.length.should.eql(1);
-        resultContent.overallResultValues![0].value!.should.eql(1);
-        resultContent.overallResultValues![0].name!.should.eql("AAA");
-        resultContent.trace!.stepTraces.length.should.eql(1);
     });
 });

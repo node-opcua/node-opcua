@@ -7,7 +7,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CNC                             |
  * | nodeClass |DataType                                                    |
- * | name      |11:CncChannelProgramStatus                                  |
+ * | name      |CncChannelProgramStatus                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumCncChannelProgramStatus  {

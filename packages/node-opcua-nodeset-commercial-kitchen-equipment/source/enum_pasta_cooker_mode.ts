@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:PastaCookerModeEnumeration                                |
+ * | name      |PastaCookerModeEnumeration                                  |
  * | isAbstract|false                                                       |
  */
 export enum EnumPastaCookerMode  {

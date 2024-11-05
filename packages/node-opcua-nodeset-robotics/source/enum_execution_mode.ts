@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Robotics/                       |
  * | nodeClass |DataType                                                    |
- * | name      |7:ExecutionModeEnumeration                                  |
+ * | name      |ExecutionModeEnumeration                                    |
  * | isAbstract|false                                                       |
  */
 export enum EnumExecutionMode  {

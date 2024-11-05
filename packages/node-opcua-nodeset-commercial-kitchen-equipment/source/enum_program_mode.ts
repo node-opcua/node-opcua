@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:ProgramModeEnumeration                                    |
+ * | name      |ProgramModeEnumeration                                      |
  * | isAbstract|false                                                       |
  */
 export enum EnumProgramMode  {

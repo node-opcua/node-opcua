@@ -19,12 +19,12 @@ describe("Testing address space with old and new nodeset", () => {
         addressSpace.dispose();
     });
 
-    it("should create a server with old and new nodeset", async () => {
+    it("should create a server with old and new nodeset - A", async () => {
         const new_opcua = nodesets.standard;
         const old = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_102_datatype.xml");
 
         await generateAddressSpace(addressSpace, [new_opcua, old]);
-        await addressSpace.registerNamespace("urn:OWN");
+        addressSpace.registerNamespace("urn:OWN");
 
 
         
@@ -49,7 +49,7 @@ describe("Testing address space with old and new nodeset", () => {
 
 
     });
-    it("should create a server with old and new nodeset", async () => {
+    it("should create a server with old and new nodeset - B", async () => {
         const new_opcua = nodesets.standard;
         const oldDI = path.join(__dirname, "../../node-opcua-nodesets/nodesets/1.02/Opc.Ua.Di.NodeSet2.xml");
         const oldADI = path.join(__dirname, "../../node-opcua-nodesets/nodesets/1.02/Opc.Ua.Adi.NodeSet2.xml");
@@ -72,7 +72,7 @@ describe("Testing address space with old and new nodeset", () => {
         }
         const data: any = addressSpace.constructExtensionObject(ParameterResultDataType, {});
 
-        console.log("data = ", data.toString());
+        // console.log("data = ", data.toString());
         should.exists(data.nodePath);
         should.exists(data.statusCode);
         should.exists(data.diagnostics);

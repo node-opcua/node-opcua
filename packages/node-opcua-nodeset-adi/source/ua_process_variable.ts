@@ -13,7 +13,8 @@ import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_dat
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |ProcessVariableType i=2008                                  |
  * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
 export type UAProcessVariable_Base<T, DT extends DataType> = UADataItem_Base<T, DT>;

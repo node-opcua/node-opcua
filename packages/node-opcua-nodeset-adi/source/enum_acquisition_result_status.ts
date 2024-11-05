@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/ADI/                            |
  * | nodeClass |DataType                                                    |
- * | name      |2:AcquisitionResultStatusEnumeration                        |
+ * | name      |AcquisitionResultStatusEnumeration                          |
  * | isAbstract|false                                                       |
  */
 export enum EnumAcquisitionResultStatus  {

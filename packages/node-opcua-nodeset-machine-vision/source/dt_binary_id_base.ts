@@ -8,7 +8,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:BinaryIdBaseDataType                                      |
+ * | name      |BinaryIdBaseDataType                                        |
  * | isAbstract|true                                                        |
  */
 export interface DTBinaryIdBase extends DTStructure {

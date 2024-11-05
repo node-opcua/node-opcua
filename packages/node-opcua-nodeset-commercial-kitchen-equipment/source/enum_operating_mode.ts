@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:OperatingModeEnumeration                                  |
+ * | name      |OperatingModeEnumeration                                    |
  * | isAbstract|false                                                       |
  */
 export enum EnumOperatingMode  {

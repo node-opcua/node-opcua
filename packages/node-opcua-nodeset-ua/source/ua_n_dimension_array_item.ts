@@ -11,6 +11,7 @@ import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
  * |typedDefinition |NDimensionArrayItemType i=12068                             |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions i=0                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UANDimensionArrayItem_Base<T, DT extends DataType>  extends UAArrayItem_Base<T, DT> {

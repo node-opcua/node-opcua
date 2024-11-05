@@ -8,7 +8,7 @@ import { DTBinaryIdBase } from "./dt_binary_id_base"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:RecipeIdInternalDataType                                  |
+ * | name      |RecipeIdInternalDataType                                    |
  * | isAbstract|false                                                       |
  */
 export interface DTRecipeIdInternal extends DTBinaryIdBase {

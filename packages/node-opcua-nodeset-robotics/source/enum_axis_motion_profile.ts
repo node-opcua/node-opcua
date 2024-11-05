@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Robotics/                       |
  * | nodeClass |DataType                                                    |
- * | name      |7:AxisMotionProfileEnumeration                              |
+ * | name      |AxisMotionProfileEnumeration                                |
  * | isAbstract|false                                                       |
  */
 export enum EnumAxisMotionProfile  {

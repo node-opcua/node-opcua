@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:BeverageSMLEnumeration                                    |
+ * | name      |BeverageSMLEnumeration                                      |
  * | isAbstract|false                                                       |
  */
 export enum EnumBeverageSML  {

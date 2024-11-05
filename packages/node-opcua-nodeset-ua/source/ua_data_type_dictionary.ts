@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |DataTypeDictionaryType i=72                                 |
  * |dataType        |ByteString                                                  |
  * |dataType Name   |Buffer i=15                                                 |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UADataTypeDictionary_Base<T extends Buffer>  extends UABaseDataVariable_Base<T, DataType.ByteString> {

@@ -10,12 +10,12 @@ import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
  * | nodeClass |DataType                                                    |
- * | name      |12:WwMessageArgumentValueDataType                           |
+ * | name      |WwMessageArgumentValueDataType                              |
  * | isAbstract|false                                                       |
  */
 export interface DTWwMessageArgumentValue_0 extends DTUnion {
   /** The content of the value as an array of the own type*/
-  array: DTWwMessageArgumentValue[]; // ExtensionObject ns=12;i=3002
+  array: DTWwMessageArgumentValue[]; // ExtensionObject ns=16;i=3002
   boolean?: never
   int16?: never
   int32?: never

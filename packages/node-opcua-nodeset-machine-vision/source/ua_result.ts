@@ -20,6 +20,7 @@ import { DTResultId } from "./dt_result_id"
  * |typedDefinition |ResultType i=2002                                           |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTResult i=3006                                             |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAResult_Base<T extends DTResult>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

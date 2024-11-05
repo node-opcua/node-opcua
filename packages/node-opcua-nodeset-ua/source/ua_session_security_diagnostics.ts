@@ -13,6 +13,7 @@ import { EnumMessageSecurityMode } from "./enum_message_security_mode"
  * |typedDefinition |SessionSecurityDiagnosticsType i=2244                       |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTSessionSecurityDiagnostics i=868                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UASessionSecurityDiagnostics_Base<T extends DTSessionSecurityDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

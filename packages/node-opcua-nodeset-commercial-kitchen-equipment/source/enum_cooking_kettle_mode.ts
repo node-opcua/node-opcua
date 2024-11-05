@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:CookingKettleModeEnumeration                              |
+ * | name      |CookingKettleModeEnumeration                                |
  * | isAbstract|false                                                       |
  */
 export enum EnumCookingKettleMode  {

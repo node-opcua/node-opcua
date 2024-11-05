@@ -11,6 +11,7 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |typedDefinition |MultiStateDiscreteSignalVariableType i=1142                 |
  * |dataType        |UInt32                                                      |
  * |dataType Name   |UInt32 i=7                                                  |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAMultiStateDiscreteSignalVariable_Base<T extends UInt32>  extends UAMultiStateDictionaryEntryDiscreteBase_Base<T, DataType.UInt32> {

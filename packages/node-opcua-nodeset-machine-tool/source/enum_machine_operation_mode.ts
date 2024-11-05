@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineTool/                    |
  * | nodeClass |DataType                                                    |
- * | name      |10:MachineOperationMode                                     |
+ * | name      |MachineOperationMode                                        |
  * | isAbstract|false                                                       |
  */
 export enum EnumMachineOperationMode  {

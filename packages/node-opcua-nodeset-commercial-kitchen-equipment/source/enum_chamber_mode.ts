@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:ChamberModeEnumeration                                    |
+ * | name      |ChamberModeEnumeration                                      |
  * | isAbstract|false                                                       |
  */
 export enum EnumChamberMode  {

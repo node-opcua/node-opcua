@@ -10,7 +10,7 @@ import { EnumApplication } from "node-opcua-nodeset-ua/source/enum_application"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/GDS/                            |
  * | nodeClass |DataType                                                    |
- * | name      |6:ApplicationRecordDataType                                 |
+ * | name      |ApplicationRecordDataType                                   |
  * | isAbstract|false                                                       |
  */
 export interface DTApplicationRecord extends DTStructure {

@@ -14,6 +14,7 @@ import { UADataItem, UADataItem_Base } from "./ua_data_item"
  * |typedDefinition |ArrayItemType i=12021                                       |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions i=0                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */
 export interface UAArrayItem_Base<T, DT extends DataType>  extends UADataItem_Base<T, DT> {

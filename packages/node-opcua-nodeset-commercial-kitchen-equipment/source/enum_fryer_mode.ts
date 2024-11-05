@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:FryerModeEnumeration                                      |
+ * | name      |FryerModeEnumeration                                        |
  * | isAbstract|false                                                       |
  */
 export enum EnumFryerMode  {

@@ -13,7 +13,9 @@ describe("AddIns", () => {
             nodesets.standard,
             nodesets.di,
             nodesets.ia,
+            nodesets.isa95JobControl,
             nodesets.machinery,
+            nodesets.machineryJobs,
             nodesets.machineTool
         ]);
     });

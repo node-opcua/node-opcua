@@ -9,6 +9,7 @@ import {
     buildStructuredType,
     check_options_correctness_against_schema,
     DecodeDebugOptions,
+    FieldCategory,
     initialize_field,
     IStructuredTypeSchema,
     parameters,
@@ -31,7 +32,7 @@ const schemaLocalizedText = buildStructuredType({
     name: "LocalizedText",
 
     baseType: "BaseUAObject",
-
+    category: FieldCategory.basic,
     fields: [
         {
             name: "Locale",

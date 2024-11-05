@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/DI/                             |
  * | nodeClass |DataType                                                    |
- * | name      |1:DeviceHealthEnumeration                                   |
+ * | name      |DeviceHealthEnumeration                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumDeviceHealth  {

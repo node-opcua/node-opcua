@@ -6,7 +6,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ProcessingTimesDataType                                   |
+ * | name      |ProcessingTimesDataType                                     |
  * | isAbstract|false                                                       |
  */
 export interface DTProcessingTimes extends DTStructure {

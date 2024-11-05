@@ -9,7 +9,7 @@ import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Machinery/Result/               |
  * | nodeClass |DataType                                                    |
- * | name      |21:ProcessingTimesDataType                                  |
+ * | name      |ProcessingTimesDataType                                     |
  * | isAbstract|false                                                       |
  */
 export interface DTProcessingTimes extends DTStructure {

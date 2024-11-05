@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
  * | nodeClass |DataType                                                    |
- * | name      |12:WwEventCategoryEnumeration                               |
+ * | name      |WwEventCategoryEnumeration                                  |
  * | isAbstract|false                                                       |
  */
 export enum EnumWwEventCategory  {

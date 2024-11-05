@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-
  * |typedDefinition |UIElementType i=6246                                        |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions i=0                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */
 export type UAUIElement_Base<T, DT extends DataType> = UABaseDataVariable_Base<T, DT>;

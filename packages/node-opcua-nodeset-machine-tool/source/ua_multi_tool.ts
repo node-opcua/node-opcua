@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UInt32 } from "node-opcua-basic-types"
 import { EnumToolManagement } from "./enum_tool_management"

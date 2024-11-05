@@ -8,7 +8,7 @@ import { DTScanDataEpc } from "./dt_scan_data_epc"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:ScanData                                                  |
+ * | name      |ScanData                                                    |
  * | isAbstract|false                                                       |
  */
 export interface DTScanData_0 extends DTUnion {

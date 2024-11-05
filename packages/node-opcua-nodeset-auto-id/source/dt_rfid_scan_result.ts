@@ -10,7 +10,7 @@ import { DTRfidSighting } from "./dt_rfid_sighting"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RfidScanResult                                            |
+ * | name      |RfidScanResult                                              |
  * | isAbstract|false                                                       |
  */
 export interface DTRfidScanResult extends DTScanResult {

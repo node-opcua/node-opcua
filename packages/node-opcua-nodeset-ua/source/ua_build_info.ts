@@ -11,6 +11,7 @@ import { DTBuildInfo } from "./dt_build_info"
  * |typedDefinition |BuildInfoType i=3051                                        |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTBuildInfo i=338                                           |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UABuildInfo_Base<T extends DTBuildInfo>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

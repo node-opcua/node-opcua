@@ -192,7 +192,7 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
         this.bitFields = options.bitFields;
 
         this.baseType = options.baseType;
-        this.category = FieldCategory.complex;
+        this.category = options.category ||  FieldCategory.complex;
 
         this._dataTypeFactory = options.dataTypeFactory;
         if (this._dataTypeFactory.hasBuiltInType(options.name)) {

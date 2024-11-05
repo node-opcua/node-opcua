@@ -11,7 +11,7 @@ import { DTPosition } from "./dt_position"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:OpticalScanResult                                         |
+ * | name      |OpticalScanResult                                           |
  * | isAbstract|false                                                       |
  */
 export interface DTOpticalScanResult extends DTScanResult {

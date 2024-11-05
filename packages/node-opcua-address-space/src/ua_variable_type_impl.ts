@@ -296,8 +296,10 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         const copyAlsoAllOptionals = options.copyAlsoAllOptionals || false;
 
         initialize_properties_and_components(
-            instance, baseVariableType, 
-            this, copyAlsoModellingRules, copyAlsoAllOptionals, options.optionals);
+            instance, baseVariableType, this, 
+            copyAlsoModellingRules,
+            copyAlsoAllOptionals,
+            options.optionals);
 
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue

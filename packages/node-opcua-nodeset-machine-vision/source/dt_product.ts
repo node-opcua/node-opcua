@@ -7,7 +7,7 @@ import { DTProductId } from "./dt_product_id"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ProductDataType                                           |
+ * | name      |ProductDataType                                             |
  * | isAbstract|false                                                       |
  */
 export interface DTProduct extends DTStructure {

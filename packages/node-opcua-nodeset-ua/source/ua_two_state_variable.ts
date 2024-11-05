@@ -11,6 +11,7 @@ import { UAStateVariable, UAStateVariable_Base } from "./ua_state_variable"
  * |typedDefinition |TwoStateVariableType i=8995                                 |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UATwoStateVariable_Base<T extends LocalizedText>  extends UAStateVariable_Base<T> {

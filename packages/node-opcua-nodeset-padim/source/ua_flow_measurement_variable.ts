@@ -14,12 +14,13 @@ import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |FlowMeasurementVariableType i=1122                          |
  * |dataType        |Float                                                       |
- * |dataType Name   |number i=10                                                 |
+ * |dataType Name   |(number | number[]) i=10                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
-export interface UAFlowMeasurementVariable_Base<T extends number>  extends UAAnalogSignalVariable_Base<T, DataType.Float> {
-    lowFlowCutOff: UAProperty<number, DataType.Float>;
-    flowDirection?: UAMultiStateDictionaryEntryDiscrete<UInt32, DataType.UInt32>;
+export interface UAFlowMeasurementVariable_Base<T extends (number | number[])>  extends UAAnalogSignalVariable_Base<T, DataType.Float> {
+    lowFlowCutOff: UAProperty<(number | number[]), DataType.Float>;
+    flowDirection?: UAMultiStateDictionaryEntryDiscrete<(UInt32 | UInt32[]), DataType.UInt32>;
 }
-export interface UAFlowMeasurementVariable<T extends number> extends UAAnalogSignalVariable<T, DataType.Float>, UAFlowMeasurementVariable_Base<T> {
+export interface UAFlowMeasurementVariable<T extends (number | number[])> extends UAAnalogSignalVariable<T, DataType.Float>, UAFlowMeasurementVariable_Base<T> {
 }

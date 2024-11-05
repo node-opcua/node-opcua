@@ -184,11 +184,22 @@ async function readBrowseName(session: IBasicSessionReadAsyncSimple, nodeId: Nod
     return dataTypeName;
 }
 
-interface DataTypeInfo {
+interface DataTypeInfoBasic {
+    type: "basic";
     dataType: DataType;
-    enumerationId?: NodeId;
+}
+interface DataTypeInfoEnum {
+    type: "enum";
+    dataType: DataType.Int32;
+    enumerationId: NodeId;
     enumerationType?: string;
 }
+interface DataTypeInfoGenericNumber {
+    type: "genericNumber";
+    dataTypeCombination: string;
+}
+type DataTypeInfo = DataTypeInfoBasic | DataTypeInfoEnum | DataTypeInfoGenericNumber;
+
 // see also client-proxy
 export async function _convertNodeIdToDataTypeAsync(
     session: IBasicSessionReadAsyncSimple & IBasicSessionBrowseAsyncSimple,
@@ -198,12 +209,32 @@ export async function _convertNodeIdToDataTypeAsync(
 
     let dataType: DataType;
 
+    if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Number) {
+        return {
+            type: "genericNumber",
+            dataTypeCombination: "DataType.Float | DataType.Double | " +
+                "DataType.UInt64 | DataType.UInt32 | DataType.UInt16 |  DataType.SByte | " +
+                "DataType.Int64 | DataType.Int32 | DataType.Int16 | DataType.Byte"
+        };
+    }
+    if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Integer) {
+        return {
+            type: "genericNumber",
+            dataTypeCombination: "DataType.Int64 | DataType.Int32 | DataType.Int16  | DataType.SByte"
+        };
+    }
+    if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.UInteger) {
+        return {
+            type: "genericNumber",
+            dataTypeCombination: "DataType.UInt64 | DataType.UInt32 | DataType.UInt16  | DataType.Byte"
+        };
+    }
     if (dataTypeId.namespace === 0 && dataTypeId.value === DataTypeIds.Enumeration) {
-        return { dataType: DataType.Int32, enumerationId: dataTypeId };
+        return { type: "enum", dataType: DataType.Int32, enumerationId: dataTypeId };
     }
     if (dataTypeId.namespace === 0 && DataType[dataTypeId.value as number]) {
         dataType = dataTypeId.value as DataType;
-        return { dataType };
+        return { type: "basic", dataType };
     }
 
     /// example => Duration (i=290) => Double (i=11)
@@ -225,7 +256,7 @@ export async function _convertNodeIdToDataTypeAsync(
     const nodeId = references[0].nodeId;
 
     const info = await _convertNodeIdToDataTypeAsync(session, nodeId);
-    if (info.enumerationId) {
+    if (info.type == "enum" && info.enumerationId) {
         return { ...info, enumerationId: dataTypeId, enumerationType: dataTypeName.name! };
     }
     return info;

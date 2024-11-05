@@ -30,7 +30,8 @@ import {
     initialize_field,
     registerSpecialVariantEncoder,
     registerType,
-    DecodeDebugOptions
+    DecodeDebugOptions,
+    FieldCategory
 } from "node-opcua-factory";
 
 import { isNullOrUndefined } from "node-opcua-utils";
@@ -45,6 +46,7 @@ const warningLog = make_warningLog(__filename);
 
 const schemaVariant = buildStructuredType({
     baseType: "BaseUAObject",
+    category: FieldCategory.basic,
     fields: [
         {
             defaultValue: DataType.Null,

@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:RfidLockOperationEnumeration                              |
+ * | name      |RfidLockOperationEnumeration                                |
  * | isAbstract|false                                                       |
  */
 export enum EnumRfidLockOperation  {

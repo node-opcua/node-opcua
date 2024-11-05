@@ -14,6 +14,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |ProgramDiagnosticType i=2380                                |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTProgramDiagnostic i=894                                   |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAProgramDiagnostic_Base<T extends DTProgramDiagnostic>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

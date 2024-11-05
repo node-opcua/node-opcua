@@ -12,6 +12,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |OrientationType i=18779                                     |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTOrientation i=18811                                       |
+ * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */
 export interface UAOrientation_Base<T extends DTOrientation>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

@@ -4,17 +4,17 @@ import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UInt32 } from "node-opcua-basic-types"
-import { UAStateVariable } from "node-opcua-nodeset-ua/source/ua_state_variable"
-import { UATransitionVariable } from "node-opcua-nodeset-ua/source/ua_transition_variable"
+import { UAFiniteStateVariable } from "node-opcua-nodeset-ua/source/ua_finite_state_variable"
+import { UAFiniteTransitionVariable } from "node-opcua-nodeset-ua/source/ua_finite_transition_variable"
 import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
 import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
 import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
-export interface UAProductionStateMachine_currentState<T extends LocalizedText> extends Omit<UAStateVariable<T>, "id"|"number"> { // Variable
+export interface UAProductionStateMachine_currentState<T extends LocalizedText> extends Omit<UAFiniteStateVariable<T>, "id"|"number"> { // Variable
       id: UAProperty<NodeId, DataType.NodeId>;
       number: UAProperty<UInt32, DataType.UInt32>;
 }
-export interface UAProductionStateMachine_lastTransition<T extends LocalizedText> extends Omit<UATransitionVariable<T>, "id"|"number"> { // Variable
+export interface UAProductionStateMachine_lastTransition<T extends LocalizedText> extends Omit<UAFiniteTransitionVariable<T>, "id"|"number"> { // Variable
       id: UAProperty<NodeId, DataType.NodeId>;
       number: UAProperty<UInt32, DataType.UInt32>;
 }

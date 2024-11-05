@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |OptionSetType i=11487                                       |
  * |dataType        |Null                                                        |
  * |dataType Name   |VariantOptions i=0                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAOptionSet_Base<T, DT extends DataType>  extends UABaseDataVariable_Base<T, DT> {

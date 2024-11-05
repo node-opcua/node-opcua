@@ -12,6 +12,7 @@ import { UATransitionVariable, UATransitionVariable_Base } from "./ua_transition
  * |typedDefinition |FiniteTransitionVariableType i=2767                         |
  * |dataType        |LocalizedText                                               |
  * |dataType Name   |LocalizedText i=21                                          |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAFiniteTransitionVariable_Base<T extends LocalizedText>  extends UATransitionVariable_Base<T> {

@@ -9,7 +9,8 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_va
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |DiscreteSignalVariableType i=1143                           |
  * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UADiscreteSignalVariable_Base<T, DT extends DataType>  extends UADiscreteItem_Base<T, DT> {

@@ -8,7 +8,7 @@ import { DTBinaryIdBase } from "./dt_binary_id_base"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ConfigurationIdDataType                                   |
+ * | name      |ConfigurationIdDataType                                     |
  * | isAbstract|false                                                       |
  */
 export interface DTConfigurationId extends DTBinaryIdBase {

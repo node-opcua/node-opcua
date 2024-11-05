@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:TriStateBooleanDataType                                   |
+ * | name      |TriStateBooleanDataType                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumTriStateBoolean  {

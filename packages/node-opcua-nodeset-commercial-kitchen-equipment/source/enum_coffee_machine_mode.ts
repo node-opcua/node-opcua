@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:CoffeeMachineModeEnumeration                              |
+ * | name      |CoffeeMachineModeEnumeration                                |
  * | isAbstract|false                                                       |
  */
 export enum EnumCoffeeMachineMode  {

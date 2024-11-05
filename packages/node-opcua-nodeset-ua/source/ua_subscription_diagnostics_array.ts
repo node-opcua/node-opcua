@@ -11,6 +11,7 @@ import { UASubscriptionDiagnostics } from "./ua_subscription_diagnostics"
  * |typedDefinition |SubscriptionDiagnosticsArrayType i=2171                     |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTSubscriptionDiagnostics[] i=874                           |
+ * |value rank      |1                                                           |
  * |isAbstract      |false                                                       |
  */
 export interface UASubscriptionDiagnosticsArray_Base<T extends DTSubscriptionDiagnostics[]>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

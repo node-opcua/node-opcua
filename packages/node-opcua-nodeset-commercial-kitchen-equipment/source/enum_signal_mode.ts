@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:SignalModeEnumeration                                     |
+ * | name      |SignalModeEnumeration                                       |
  * | isAbstract|false                                                       |
  */
 export enum EnumSignalMode  {

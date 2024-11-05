@@ -7,7 +7,7 @@ import { DTConfigurationId } from "./dt_configuration_id"
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/MachineVision                   |
  * | nodeClass |DataType                                                    |
- * | name      |4:ConfigurationDataType                                     |
+ * | name      |ConfigurationDataType                                       |
  * | isAbstract|false                                                       |
  */
 export interface DTConfiguration extends DTStructure {

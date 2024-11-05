@@ -11,10 +11,24 @@ export async function getCorrespondingJavascriptType2(
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void
-): Promise<{ dataType: DataType; jtype: string }> {
-    const q = await getCorrespondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
+): Promise<{ dataType: DataType; jtype: string, dataTypeCombination?: string, type: "enum" | "basic" | "genericNumber"}> {
+    const { dataType, jtype, dataTypeCombination, type} = await getCorrespondingJavascriptType(session, dataTypeNodeId, cache, importCollect);
     const valueRank = await getValueRank(session, nodeId);
-    return { dataType: q.dataType, jtype: q.jtype + (valueRank >= 1 ? "[]" : "") };
+    let jtype2 = "";
+    if (valueRank >= 0) {
+        jtype2 = jtype + "[]";
+    } else if (valueRank === -1) {
+        jtype2 = jtype;
+    } else if (valueRank === -2) {
+        //  The value can be a scalar or an array with any number of dimensions.
+        jtype2 = `(${jtype} | ${jtype}[])`;
+    } else if (valueRank === -3) {
+        // ScalarOrOneDimension (-3):  The value can be a scalar or a one dimensional array.
+        jtype2 = `(${jtype} | ${jtype}[])`;
+    } else {
+        throw new Error("Invalid valueRank " + valueRank);
+    }
+    return { dataType: dataType, jtype: jtype2, dataTypeCombination, type };
 }
 
 // eslint-disable-next-line complexity
@@ -23,22 +37,30 @@ export async function getCorrespondingJavascriptType(
     dataTypeNodeId: NodeId,
     cache: Cache,
     importCollect?: (t: Import) => void
-): Promise<{ enumerationType?: string; dataType: DataType; jtype: string }> {
-    const { dataType, enumerationType } = await _convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
+): Promise<{ 
+    enumerationType?: string; 
+    dataType: DataType; 
+    jtype: string,
+    type: "enum" | "basic" | "genericNumber",
+    dataTypeCombination?: string
+ }> {
 
-    if (enumerationType) {
+    const info = await _convertNodeIdToDataTypeAsync(session, dataTypeNodeId);
+    const { type } = info;
+
+    if (type == "enum" && info.enumerationType) {
         // we have a enmeration name here
         const jtypeImport = await referenceEnumeration(session, dataTypeNodeId);
         const jtype = jtypeImport.name;
         importCollect && importCollect(jtypeImport);
-        return { dataType, jtype };
+        return { dataType: info.dataType, jtype, type };
     }
 
-    if (dataType === DataType.ExtensionObject) {
+    if (type == "basic" && info.dataType === DataType.ExtensionObject) {
         const jtypeImport = await referenceExtensionObject(session, dataTypeNodeId);
         const jtype = jtypeImport.name;
         importCollect && importCollect(jtypeImport);
-        return { dataType, jtype };
+        return { dataType: info.dataType, jtype, type };
     }
     const referenceBasicType = (name: string): string => {
         const t = { name, namespace: -1, module: "BasicType" };
@@ -46,59 +68,64 @@ export async function getCorrespondingJavascriptType(
         cache.ensureImported(t);
         return t.name;
     };
-
-    switch (dataType) {
-        case DataType.Null:
-            return { dataType: DataType.Variant, jtype: referenceBasicType("VariantOptions") };
-        case DataType.Boolean:
-            return { dataType, jtype: "boolean" };
-        case DataType.Byte:
-            return { dataType, jtype: referenceBasicType("Byte") };
-        case DataType.ByteString:
-            return { dataType, jtype: "Buffer" };
-        case DataType.DataValue:
-            return { dataType, jtype: referenceBasicType("DataValue") };
-        case DataType.DateTime:
-            return { dataType, jtype: "Date" };
-        case DataType.DiagnosticInfo:
-            return { dataType, jtype: referenceBasicType("DiagnosticInfo") };
-        case DataType.Double:
-            return { dataType, jtype: "number" };
-        case DataType.Float:
-            return { dataType, jtype: "number" };
-        case DataType.Guid:
-            return { dataType, jtype: referenceBasicType("Guid") };
-        case DataType.Int16:
-            return { dataType, jtype: referenceBasicType("Int16") };
-        case DataType.Int32:
-            return { dataType, jtype: referenceBasicType("Int32") };
-        case DataType.UInt16:
-            return { dataType, jtype: referenceBasicType("UInt16") };
-        case DataType.UInt32:
-            return { dataType, jtype: referenceBasicType("UInt32") };
-        case DataType.UInt64:
-            return { dataType, jtype: referenceBasicType("UInt64") };
-        case DataType.Int64:
-            return { dataType, jtype: referenceBasicType("Int64") };
-        case DataType.LocalizedText:
-            return { dataType, jtype: referenceBasicType("LocalizedText") };
-        case DataType.NodeId:
-            return { dataType, jtype: referenceBasicType("NodeId") };
-        case DataType.ExpandedNodeId:
-            return { dataType, jtype: referenceBasicType("ExpandedNodeId") };
-        case DataType.QualifiedName:
-            return { dataType, jtype: referenceBasicType("QualifiedName") };
-        case DataType.SByte:
-            return { dataType, jtype: referenceBasicType("SByte") };
-        case DataType.StatusCode:
-            return { dataType, jtype: referenceBasicType("StatusCode") };
-        case DataType.String:
-            return { dataType, jtype: referenceBasicType("UAString") };
-        case DataType.Variant:
-            return { dataType, jtype: referenceBasicType("Variant") };
-        case DataType.XmlElement:
-            return { dataType, jtype: referenceBasicType("String") };
-        default:
-            throw new Error("Unsupported " + dataType + " " + DataType[dataType]);
+    if (type == "genericNumber") {
+        const { dataTypeCombination } = info;   
+        return { dataType: DataType.Variant, jtype: "number", type, dataTypeCombination };
+    } else {
+        const { dataType } = info;
+        switch (dataType) {
+            case DataType.Null:
+                return { dataType: DataType.Variant, jtype: referenceBasicType("VariantOptions"), type };
+            case DataType.Boolean:
+                return { dataType, jtype: "boolean", type };
+            case DataType.Byte:
+                return { dataType, jtype: referenceBasicType("Byte"), type };
+            case DataType.ByteString:
+                return { dataType, jtype: "Buffer", type };
+            case DataType.DataValue:
+                return { dataType, jtype: referenceBasicType("DataValue"), type };
+            case DataType.DateTime:
+                return { dataType, jtype: "Date", type };
+            case DataType.DiagnosticInfo:
+                return { dataType, jtype: referenceBasicType("DiagnosticInfo"), type };
+            case DataType.Double:
+                return { dataType, jtype: "number", type };
+            case DataType.Float:
+                return { dataType, jtype: "number", type };
+            case DataType.Guid:
+                return { dataType, jtype: referenceBasicType("Guid"), type };
+            case DataType.Int16:
+                return { dataType, jtype: referenceBasicType("Int16"), type };
+            case DataType.Int32:
+                return { dataType, jtype: referenceBasicType("Int32"), type };
+            case DataType.UInt16:
+                return { dataType, jtype: referenceBasicType("UInt16"), type };
+            case DataType.UInt32:
+                return { dataType, jtype: referenceBasicType("UInt32"), type };
+            case DataType.UInt64:
+                return { dataType, jtype: referenceBasicType("UInt64"), type };
+            case DataType.Int64:
+                return { dataType, jtype: referenceBasicType("Int64"), type };
+            case DataType.LocalizedText:
+                return { dataType, jtype: referenceBasicType("LocalizedText"), type };
+            case DataType.NodeId:
+                return { dataType, jtype: referenceBasicType("NodeId"), type };
+            case DataType.ExpandedNodeId:
+                return { dataType, jtype: referenceBasicType("ExpandedNodeId"), type };
+            case DataType.QualifiedName:
+                return { dataType, jtype: referenceBasicType("QualifiedName"), type };
+            case DataType.SByte:
+                return { dataType, jtype: referenceBasicType("SByte"), type };
+            case DataType.StatusCode:
+                return { dataType, jtype: referenceBasicType("StatusCode"), type };
+            case DataType.String:
+                return { dataType, jtype: referenceBasicType("UAString"), type };
+            case DataType.Variant:
+                return { dataType, jtype: referenceBasicType("Variant"), type };
+            case DataType.XmlElement:
+                return { dataType, jtype: referenceBasicType("String"), type };
+            default:
+                throw new Error("Unsupported " + dataType + " " + DataType[dataType]);
+        }
     }
 }

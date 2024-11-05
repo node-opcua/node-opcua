@@ -14,6 +14,7 @@ import { DTServiceCounter } from "./dt_service_counter"
  * |typedDefinition |SessionDiagnosticsVariableType i=2197                       |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTSessionDiagnostics i=865                                  |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UASessionDiagnosticsVariable_Base<T extends DTSessionDiagnostics>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

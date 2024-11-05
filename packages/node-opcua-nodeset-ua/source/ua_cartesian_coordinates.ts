@@ -12,6 +12,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |CartesianCoordinatesType i=18772                            |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTCartesianCoordinates i=18809                              |
+ * |value rank      |-1                                                          |
  * |isAbstract      |true                                                        |
  */
 export interface UACartesianCoordinates_Base<T extends DTCartesianCoordinates>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

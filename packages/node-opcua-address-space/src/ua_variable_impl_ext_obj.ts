@@ -204,7 +204,8 @@ function getOrCreateProperty(
 
     // istanbul ignore next
     if (field.dataType.value === DataType.Variant) {
-        warningLog("Warning : variant is not supported in ExtensionObject");
+       // this means that any type of extensions being used here
+       debugLog("Warning : variant is not supported in ExtensionObject");
     }
 
     if (selectedComponents.length === 1) {

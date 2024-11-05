@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Robotics/                       |
  * | nodeClass |DataType                                                    |
- * | name      |7:MotionDeviceCategoryEnumeration                           |
+ * | name      |MotionDeviceCategoryEnumeration                             |
  * | isAbstract|false                                                       |
  */
 export enum EnumMotionDeviceCategory  {

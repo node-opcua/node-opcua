@@ -12,6 +12,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |AlarmStateVariableType i=32244                              |
  * |dataType        |UInt16                                                      |
  * |dataType Name   |UInt16 i=32251                                              |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAAlarmStateVariable_Base<T extends UInt16>  extends UABaseDataVariable_Base<T, DataType.UInt16> {

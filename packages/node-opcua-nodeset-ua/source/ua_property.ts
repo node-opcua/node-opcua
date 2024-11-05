@@ -8,7 +8,8 @@ import { DataType } from "node-opcua-variant"
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |PropertyType i=68                                           |
  * |dataType        |Null                                                        |
- * |dataType Name   |VariantOptions i=0                                          |
+ * |dataType Name   |(VariantOptions | VariantOptions[]) i=0                     |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UAProperty_Base<T, DT extends DataType>  {

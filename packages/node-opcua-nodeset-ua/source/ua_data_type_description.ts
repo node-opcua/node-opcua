@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |DataTypeDescriptionType i=69                                |
  * |dataType        |String                                                      |
  * |dataType Name   |UAString i=12                                               |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UADataTypeDescription_Base<T extends UAString>  extends UABaseDataVariable_Base<T, DataType.String> {

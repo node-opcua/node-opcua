@@ -15,6 +15,7 @@ import { DTCncPosition } from "./dt_cnc_position"
  * |typedDefinition |CncPositionVariableType i=2001                              |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTCncPosition i=3007                                        |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UACncPositionVariable_Base<T extends DTCncPosition>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

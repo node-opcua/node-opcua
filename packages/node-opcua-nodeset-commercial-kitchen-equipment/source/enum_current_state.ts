@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/CommercialKitchenEquipment/     |
  * | nodeClass |DataType                                                    |
- * | name      |5:CurrentStateEnumeration                                   |
+ * | name      |CurrentStateEnumeration                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumCurrentState  {

@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, Variant } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_data_item"
 /**
@@ -14,7 +14,8 @@ import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_dat
  * |nodeClass       |VariableType                                                |
  * |typedDefinition |CalibrationValueType i=2002                                 |
  * |dataType        |Variant                                                     |
- * |dataType Name   |Variant i=26                                                |
+ * |dataType Name   |(number | number[]) i=26                                    |
+ * |value rank      |-2                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UACalibrationValue_Base<T, DT extends DataType>  extends UADataItem_Base<T, DT> {

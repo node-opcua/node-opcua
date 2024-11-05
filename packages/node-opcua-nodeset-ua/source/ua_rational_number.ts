@@ -11,6 +11,7 @@ import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_vari
  * |typedDefinition |RationalNumberType i=17709                                  |
  * |dataType        |ExtensionObject                                             |
  * |dataType Name   |DTRationalNumber i=18806                                    |
+ * |value rank      |-1                                                          |
  * |isAbstract      |false                                                       |
  */
 export interface UARationalNumber_Base<T extends DTRationalNumber>  extends UABaseDataVariable_Base<T, DataType.ExtensionObject> {

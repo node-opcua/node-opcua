@@ -5,7 +5,7 @@
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/AutoID/                         |
  * | nodeClass |DataType                                                    |
- * | name      |3:DeviceStatusEnumeration                                   |
+ * | name      |DeviceStatusEnumeration                                     |
  * | isAbstract|false                                                       |
  */
 export enum EnumDeviceStatus  {
