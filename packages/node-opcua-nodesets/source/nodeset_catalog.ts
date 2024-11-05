@@ -11,6 +11,7 @@ export type NodesetName =
     | "iolink"
     | "iolinkIODD"
     | "irdi"
+    | "jobs"
     | "machinery"
     | "machineryProcessValues"
     | "machineryResult"
@@ -46,9 +47,28 @@ export const nodesetCatalog = <[NodesetName, string, string, string, NodesetName
         "Opc.Ua.CommercialKitchenEquipment.NodeSet2.xml",
         ["di"]
     ],
+    ["amb", "amb", "http://opcfoundation.org/UA/AMB/", "Opc.Ua.AMB.NodeSet2.xml", []],
     ["gds", "gds", "http://opcfoundation.org/UA/GDS/", "Opc.Ua.Gds.NodeSet2.xml", []],
     ["robotics", "robotics", "http://opcfoundation.org/UA/Robotics/", "Opc.Ua.Robotics.NodeSet2.xml", ["di"]],
-    ["machinery", "machinery", "http://opcfoundation.org/UA/Machinery/", "Opc.Ua.Machinery.NodeSet2.xml", []],
+
+    ["isa95JobControl", "isa95-job-control", "http://opcfoundation.org/UA/ISA95-JOBCONTROL_V2/", "opc.ua.isa95-jobcontrol.nodeset2.xml", []],
+
+
+    ["machineyJobs", "machiney-jobs", "http://opcfoundation.org/UA/Machinery/Jobs/", "Opc.Ua.Machinery.Jobs.Nodeset2.xml",
+        [
+            "isa95JobControl"
+        ]
+    ],
+    [
+        "machineryResult",
+        "machinery-result",
+        "http://opcfoundation.org/UA/Machinery/Result/",
+        "Opc.Ua.Machinery.Result.NodeSet2.xml",
+        , []
+    ],
+
+
+    ["machinery", "machinery", "http://opcfoundation.org/UA/Machinery/", "Opc.Ua.Machinery.NodeSet2.xml", ["machineyJobs", "isa95JobControl"]],
     ["ia", "ia", "http://opcfoundation.org/UA/IA/", "Opc.Ua.IA.NodeSet2.xml", ["di"]],
     [
         "machineTool",
@@ -66,7 +86,10 @@ export const nodesetCatalog = <[NodesetName, string, string, string, NodesetName
         ["di", "machinery"]
     ],
     ["glass", "glass-flat", "http://opcfoundation.org/UA/Glass/Flat/", "Opc.Ua.Glass.NodeSet2.xml", ["di", "machinery"]],
-    ["tightening", "ijt", "http://opcfoundation.org/UA/IJT/", "Opc.Ua.Ijt.Tightening.NodeSet2.xml", ["di", "machinery"]],
+
+
+    ["ijtBase", "ijt-base", "http://opcfoundation.org/UA/IJT/Base/", "Opc.Ua.Ijt.Base.NodeSet2.xml", ["machineryResult", "di", "machinery", "amb"]],
+    ["tightening", "ijt", "http://opcfoundation.org/UA/IJT/Tightening/", "Opc.Ua.Ijt.Tightening.NodeSet2.xml", ["machineryResult", "di", "machinery", "ijtBase", "amb"]],
     ["packML", "pack-ml", "http://opcfoundation.org/UA/PackML/", "Opc.Ua.PackML.NodeSet2.xml", []],
 
     ["iolink", "io-link", "http://opcfoundation.org/UA/IOLink/", "Opc.Ua.IOLink.NodeSet2.xml", ["di"]],
@@ -81,10 +104,10 @@ export const nodesetCatalog = <[NodesetName, string, string, string, NodesetName
         ["di", "irdi", "padim"]
     ],
     [
-        "machineryResult",
-        "machinery-result",
-        "http://opcfoundation.org/UA/Machinery/Result/",
-        "Opc.Ua.Machinery.Result.NodeSet2.xml",
-        []
+        "metalForming",
+        "metal-forming",
+        "http://opcfoundation.org/UA/MetalForming/",
+        "Opc.Ua.MetalForming.NodeSet2.xml",
+        ["di", "ia", "machinery", "irdi", "padim", "machineryProcessValues", "machineTool" ]
     ]
 ];

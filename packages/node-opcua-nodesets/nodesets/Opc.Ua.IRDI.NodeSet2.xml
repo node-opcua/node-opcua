@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
- * Copyright (c) 2005-2020 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2023 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  * 
@@ -28,13 +28,13 @@
  * http://opcfoundation.org/License/MIT/1.00/
 -->
 
-<UANodeSet LastModified="2020-02-12T13:22:47.785Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+<UANodeSet LastModified="2023-10-27T18:48:18.617Z" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
     <NamespaceUris>
         <Uri>http://opcfoundation.org/UA/Dictionary/IRDI</Uri>
     </NamespaceUris>
     <Models>
-        <Model ModelUri="http://opcfoundation.org/UA/Dictionary/IRDI" PublicationDate="2020-02-04T00:00:00Z" Version="1.00">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2019-11-20T00:00:00Z" Version="1.04.4"/>
+        <Model ModelUri="http://opcfoundation.org/UA/Dictionary/IRDI" PublicationDate="2023-10-27T00:00:00Z" Version="1.01.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2022-06-28T00:00:00Z" Version="1.05.02"/>
         </Model>
     </Models>
     <Aliases>
@@ -45,7 +45,7 @@
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
     </Aliases>
-    <UAObject SymbolicName="http___opcfoundation_org_UA_Dictionary_IRDI" NodeId="ns=1;i=1000" BrowseName="1:http://opcfoundation.org/UA/Dictionary/IRDI">
+    <UAObject SymbolicName="http___opcfoundation_org_UA_Dictionary_IRDI" NodeId="ns=1;i=1000" BrowseName="1:http://opcfoundation.org/UA/Dictionary/IRDI" ParentNodeId="i=11715">
         <DisplayName>http://opcfoundation.org/UA/Dictionary/IRDI</DisplayName>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
@@ -68,7 +68,7 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
-            <uax:DateTime>2020-02-04T00:00:00Z</uax:DateTime>
+            <uax:DateTime>2023-10-27T00:00:00Z</uax:DateTime>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" NodeId="ns=1;i=1003" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=1000">
@@ -90,7 +90,7 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
-            <uax:String>1.00</uax:String>
+            <uax:String>1.01.0</uax:String>
         </Value>
     </UAVariable>
     <UAVariable DataType="i=256" ValueRank="1" NodeId="ns=1;i=1005" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=1000">
@@ -117,358 +117,1814 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
     </UAVariable>
-    <UAObject SymbolicName="S0112_2___61987_ABA565_007" NodeId="ns=1;s=0112/2///61987#ABA565#007" BrowseName="1:0112/2///61987#ABA565#007">
+    <UAObject SymbolicName="S0112_2___61987_ABA565_007" NodeId="ns=1;s=0112/2///61987#ABA565#007" BrowseName="1:0112/2///61987#ABA565#007" ParentNodeId="i=17594">
         <DisplayName>Manufacturer</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA565</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN597_001" NodeId="ns=1;s=0112/2///61987#ABN597#001" BrowseName="1:0112/2///61987#ABN597#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN597_001" NodeId="ns=1;s=0112/2///61987#ABN597#001" BrowseName="1:0112/2///61987#ABN597#001" ParentNodeId="i=17594">
         <DisplayName>Display language</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN597</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA300_006" NodeId="ns=1;s=0112/2///61987#ABA300#006" BrowseName="1:0112/2///61987#ABA300#006">
+    <UAObject SymbolicName="S0112_2___61987_ABA300_006" NodeId="ns=1;s=0112/2///61987#ABA300#006" BrowseName="1:0112/2///61987#ABA300#006" ParentNodeId="i=17594">
         <DisplayName>Product code</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA300</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA567_007" NodeId="ns=1;s=0112/2///61987#ABA567#007" BrowseName="1:0112/2///61987#ABA567#007">
+    <UAObject SymbolicName="S0112_2___61987_ABA567_007" NodeId="ns=1;s=0112/2///61987#ABA567#007" BrowseName="1:0112/2///61987#ABA567#007" ParentNodeId="i=17594">
         <DisplayName>Model</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA567</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA601_006" NodeId="ns=1;s=0112/2///61987#ABA601#006" BrowseName="1:0112/2///61987#ABA601#006">
+    <UAObject SymbolicName="S0112_2___61987_ABA601_006" NodeId="ns=1;s=0112/2///61987#ABA601#006" BrowseName="1:0112/2///61987#ABA601#006" ParentNodeId="i=17594">
         <DisplayName>Software revision</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA601</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA926_006" NodeId="ns=1;s=0112/2///61987#ABA926#006" BrowseName="1:0112/2///61987#ABA926#006">
+    <UAObject SymbolicName="S0112_2___61987_ABA926_006" NodeId="ns=1;s=0112/2///61987#ABA926#006" BrowseName="1:0112/2///61987#ABA926#006" ParentNodeId="i=17594">
         <DisplayName>Hardware revision</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA926</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA951_007" NodeId="ns=1;s=0112/2///61987#ABA951#007" BrowseName="1:0112/2///61987#ABA951#007">
+    <UAObject SymbolicName="S0112_2___61987_ABA951_007" NodeId="ns=1;s=0112/2///61987#ABA951#007" BrowseName="1:0112/2///61987#ABA951#007" ParentNodeId="i=17594">
         <DisplayName>Serial number</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA951</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN591_001" NodeId="ns=1;s=0112/2///61987#ABN591#001" BrowseName="1:0112/2///61987#ABN591#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN591_001" NodeId="ns=1;s=0112/2///61987#ABN591#001" BrowseName="1:0112/2///61987#ABN591#001" ParentNodeId="i=17594">
         <DisplayName>URI of Manufacturer</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN591</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN603_001" NodeId="ns=1;s=0112/2///61987#ABN603#001" BrowseName="1:0112/2///61987#ABN603#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN603_001" NodeId="ns=1;s=0112/2///61987#ABN603#001" BrowseName="1:0112/2///61987#ABN603#001" ParentNodeId="i=17594">
         <DisplayName>Revision counter</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN603</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN590_001" NodeId="ns=1;s=0112/2///61987#ABN590#001" BrowseName="1:0112/2///61987#ABN590#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN590_001" NodeId="ns=1;s=0112/2///61987#ABN590#001" BrowseName="1:0112/2///61987#ABN590#001" ParentNodeId="i=17594">
         <DisplayName>URI of Product instance</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN590</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA038_003" NodeId="ns=1;s=0112/2///61987#ABA038#003" BrowseName="1:0112/2///61987#ABA038#003">
+    <UAObject SymbolicName="S0112_2___61987_ABA038_003" NodeId="ns=1;s=0112/2///61987#ABA038#003" BrowseName="1:0112/2///61987#ABA038#003" ParentNodeId="i=17594">
         <DisplayName>Asset ID</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA038</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN604_001" NodeId="ns=1;s=0112/2///61987#ABN604#001" BrowseName="1:0112/2///61987#ABN604#001">
-        <DisplayName>Date of last change</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN604_001" NodeId="ns=1;s=0112/2///61987#ABN604#001" BrowseName="1:0112/2///61987#ABN604#001" ParentNodeId="i=17594">
+        <DisplayName>Date last change</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN604</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN609_001" NodeId="ns=1;s=0112/2///61987#ABN609#001" BrowseName="1:0112/2///61987#ABN609#001">
-        <DisplayName>Factory reset</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN609_001" NodeId="ns=1;s=0112/2///61987#ABN609#001" BrowseName="1:0112/2///61987#ABN609#001" ParentNodeId="i=17594">
+        <DisplayName>Reset</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN609</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB271_007" NodeId="ns=1;s=0112/2///61987#ABB271#007" BrowseName="1:0112/2///61987#ABB271#007">
+    <UAObject SymbolicName="S0112_2___61987_ABB271_007" NodeId="ns=1;s=0112/2///61987#ABB271#007" BrowseName="1:0112/2///61987#ABB271#007" ParentNodeId="i=17594">
         <DisplayName>Tag</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB271</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN611_001" NodeId="ns=1;s=0112/2///61987#ABN611#001" BrowseName="1:0112/2///61987#ABN611#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN611_001" NodeId="ns=1;s=0112/2///61987#ABN611#001" BrowseName="1:0112/2///61987#ABN611#001" ParentNodeId="i=17594">
         <DisplayName>Simulation state</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN611</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN634_001" NodeId="ns=1;s=0112/2///61987#ABN634#001" BrowseName="1:0112/2///61987#ABN634#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN634_001" NodeId="ns=1;s=0112/2///61987#ABN634#001" BrowseName="1:0112/2///61987#ABN634#001" ParentNodeId="i=17594">
         <DisplayName>Value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN634</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN644_001" NodeId="ns=1;s=0112/2///61987#ABN644#001" BrowseName="1:0112/2///61987#ABN644#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN644_001" NodeId="ns=1;s=0112/2///61987#ABN644#001" BrowseName="1:0112/2///61987#ABN644#001" ParentNodeId="i=17594">
         <DisplayName>Actual value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN644</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN613_001" NodeId="ns=1;s=0112/2///61987#ABN613#001" BrowseName="1:0112/2///61987#ABN613#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN613_001" NodeId="ns=1;s=0112/2///61987#ABN613#001" BrowseName="1:0112/2///61987#ABN613#001" ParentNodeId="i=17594">
         <DisplayName>Simulation value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN613</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABH526_002" NodeId="ns=1;s=0112/2///61987#ABH526#002" BrowseName="1:0112/2///61987#ABH526#002">
+    <UAObject SymbolicName="S0112_2___61987_ABH526_002" NodeId="ns=1;s=0112/2///61987#ABH526#002" BrowseName="1:0112/2///61987#ABH526#002" ParentNodeId="i=17594">
         <DisplayName>Damping</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABH526</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN614_001" NodeId="ns=1;s=0112/2///61987#ABN614#001" BrowseName="1:0112/2///61987#ABN614#001">
-        <DisplayName>Zero point adjustment</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN614_001" NodeId="ns=1;s=0112/2///61987#ABN614#001" BrowseName="1:0112/2///61987#ABN614#001" ParentNodeId="i=17594">
+        <DisplayName>Set zero point</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN614</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB088_002" NodeId="ns=1;s=0112/2///61987#ABB088#002" BrowseName="1:0112/2///61987#ABB088#002">
+    <UAObject SymbolicName="S0112_2___61987_ABB088_002" NodeId="ns=1;s=0112/2///61987#ABB088#002" BrowseName="1:0112/2///61987#ABB088#002" ParentNodeId="i=17594">
         <DisplayName>Sensor type</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB088</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB092_002" NodeId="ns=1;s=0112/2///61987#ABB092#002" BrowseName="1:0112/2///61987#ABB092#002">
+    <UAObject SymbolicName="S0112_2___61987_ABB092_002" NodeId="ns=1;s=0112/2///61987#ABB092#002" BrowseName="1:0112/2///61987#ABB092#002" ParentNodeId="i=17594">
         <DisplayName>Sensor type</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB092</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB091_002" NodeId="ns=1;s=0112/2///61987#ABB091#002" BrowseName="1:0112/2///61987#ABB091#002">
-        <DisplayName>RTD-Sensor connection</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABB091_002" NodeId="ns=1;s=0112/2///61987#ABB091#002" BrowseName="1:0112/2///61987#ABB091#002" ParentNodeId="i=17594">
+        <DisplayName>Number of wires</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB091</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB093_002" NodeId="ns=1;s=0112/2///61987#ABB093#002" BrowseName="1:0112/2///61987#ABB093#002">
-        <DisplayName>TC-Sensor reference</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABB093_002" NodeId="ns=1;s=0112/2///61987#ABB093#002" BrowseName="1:0112/2///61987#ABB093#002" ParentNodeId="i=17594">
+        <DisplayName>Ref. junction</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB093</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABJ724_002" NodeId="ns=1;s=0112/2///61987#ABJ724#002" BrowseName="1:0112/2///61987#ABJ724#002">
+    <UAObject SymbolicName="S0112_2___61987_ABF288_003" NodeId="ns=1;s=0112/2///61987#ABF288#003" BrowseName="1:0112/2///61987#ABF288#003" ParentNodeId="i=17594">
+        <DisplayName>Set connected probe type</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABF288</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABJ724_002" NodeId="ns=1;s=0112/2///61987#ABJ724#002" BrowseName="1:0112/2///61987#ABJ724#002" ParentNodeId="i=17594">
         <DisplayName>Low flow cut off</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABJ724</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN594_002" NodeId="ns=1;s=0112/2///61987#ABN594#002" BrowseName="1:0112/2///61987#ABN594#002">
+    <UAObject SymbolicName="S0112_2___61987_ABN594_002" NodeId="ns=1;s=0112/2///61987#ABN594#002" BrowseName="1:0112/2///61987#ABN594#002" ParentNodeId="i=17594">
         <DisplayName>Flow direction</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN594</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN607_001" NodeId="ns=1;s=0112/2///61987#ABN607#001" BrowseName="1:0112/2///61987#ABN607#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN607_001" NodeId="ns=1;s=0112/2///61987#ABN607#001" BrowseName="1:0112/2///61987#ABN607#001" ParentNodeId="i=17594">
         <DisplayName>Setpoint</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN607</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABD740_002" NodeId="ns=1;s=0112/2///61987#ABD740#002" BrowseName="1:0112/2///61987#ABD740#002">
-        <DisplayName>Operating direction</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABD740_002" NodeId="ns=1;s=0112/2///61987#ABD740#002" BrowseName="1:0112/2///61987#ABD740#002" ParentNodeId="i=17594">
+        <DisplayName>Operat. direction</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABD740</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABD742_002" NodeId="ns=1;s=0112/2///61987#ABD742#002" BrowseName="1:0112/2///61987#ABD742#002">
+    <UAObject SymbolicName="S0112_2___61987_ABD742_002" NodeId="ns=1;s=0112/2///61987#ABD742#002" BrowseName="1:0112/2///61987#ABD742#002" ParentNodeId="i=17594">
         <DisplayName>Actuator type</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABD742</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN726_001" NodeId="ns=1;s=0112/2///61987#ABN726#001" BrowseName="1:0112/2///61987#ABN726#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN726_001" NodeId="ns=1;s=0112/2///61987#ABN726#001" BrowseName="1:0112/2///61987#ABN726#001" ParentNodeId="i=17594">
         <DisplayName>Autoadjust</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN726</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA418_001" NodeId="ns=1;s=0112/2///61987#ABA418#001" BrowseName="1:0112/2///61987#ABA418#001">
+    <UAObject SymbolicName="S0112_2___61987_ABA418_001" NodeId="ns=1;s=0112/2///61987#ABA418#001" BrowseName="1:0112/2///61987#ABA418#001" ParentNodeId="i=17594">
         <DisplayName>Pulse value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA418</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABE882_001" NodeId="ns=1;s=0112/2///61987#ABE882#001" BrowseName="1:0112/2///61987#ABE882#001">
+    <UAObject SymbolicName="S0112_2___61987_ABE882_001" NodeId="ns=1;s=0112/2///61987#ABE882#001" BrowseName="1:0112/2///61987#ABE882#001" ParentNodeId="i=17594">
         <DisplayName>Pulse value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABE882</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA635_002" NodeId="ns=1;s=0112/2///61987#ABA635#002" BrowseName="1:0112/2///61987#ABA635#002">
+    <UAObject SymbolicName="S0112_2___61987_ABA635_002" NodeId="ns=1;s=0112/2///61987#ABA635#002" BrowseName="1:0112/2///61987#ABA635#002" ParentNodeId="i=17594">
         <DisplayName>Pulse width</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA635</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN636_001" NodeId="ns=1;s=0112/2///61987#ABN636#001" BrowseName="1:0112/2///61987#ABN636#001">
-        <DisplayName>MultiStateValue</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN636_001" NodeId="ns=1;s=0112/2///61987#ABN636#001" BrowseName="1:0112/2///61987#ABN636#001" ParentNodeId="i=17594">
+        <DisplayName>Multistate I/O value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN636</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN646_001" NodeId="ns=1;s=0112/2///61987#ABN646#001" BrowseName="1:0112/2///61987#ABN646#001">
-        <DisplayName>MultiStateActualValue</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN646_001" NodeId="ns=1;s=0112/2///61987#ABN646#001" BrowseName="1:0112/2///61987#ABN646#001" ParentNodeId="i=17594">
+        <DisplayName>Multistate actual value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN646</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN637_001" NodeId="ns=1;s=0112/2///61987#ABN637#001" BrowseName="1:0112/2///61987#ABN637#001">
-        <DisplayName>MultiStateSimulationValue</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN637_001" NodeId="ns=1;s=0112/2///61987#ABN637#001" BrowseName="1:0112/2///61987#ABN637#001" ParentNodeId="i=17594">
+        <DisplayName>Multistate value of simulation</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN637</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN635_001" NodeId="ns=1;s=0112/2///61987#ABN635#001" BrowseName="1:0112/2///61987#ABN635#001">
-        <DisplayName>TwoStateValue</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN635_001" NodeId="ns=1;s=0112/2///61987#ABN635#001" BrowseName="1:0112/2///61987#ABN635#001" ParentNodeId="i=17594">
+        <DisplayName>Two-state I/O value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN635</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN____001" NodeId="ns=1;s=0112/2///61987#ABN645#001" BrowseName="1:0112/2///61987#ABN645#001">
-        <DisplayName>TwoStateActualValue</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN645_001" NodeId="ns=1;s=0112/2///61987#ABN645#001" BrowseName="1:0112/2///61987#ABN645#001" ParentNodeId="i=17594">
+        <DisplayName>Two-state actual value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN645</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_xzx665_001" NodeId="ns=1;s=0112/2///61987#ABN632#001" BrowseName="1:0112/2///61987#ABN632#001">
-        <DisplayName>TwoStateSimulationValue</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABN632_001" NodeId="ns=1;s=0112/2///61987#ABN632#001" BrowseName="1:0112/2///61987#ABN632#001" ParentNodeId="i=17594">
+        <DisplayName>Two-state value of simulation</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN632</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA927_005" NodeId="ns=1;s=0112/2///61987#ABA927#005" BrowseName="1:0112/2///61987#ABA927#005">
+    <UAObject SymbolicName="S0112_2___61987_ABA927_005" NodeId="ns=1;s=0112/2///61987#ABA927#005" BrowseName="1:0112/2///61987#ABA927#005" ParentNodeId="i=17594">
         <DisplayName>Temperature</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA927</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN616_001" NodeId="ns=1;s=0112/2///61987#ABN616#001" BrowseName="1:0112/2///61987#ABN616#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN616_001" NodeId="ns=1;s=0112/2///61987#ABN616#001" BrowseName="1:0112/2///61987#ABN616#001" ParentNodeId="i=17594">
         <DisplayName>Pressure</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN616</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABH329_002" NodeId="ns=1;s=0112/2///61987#ABH329#002" BrowseName="1:0112/2///61987#ABH329#002">
+    <UAObject SymbolicName="S0112_2___61987_ABH329_002" NodeId="ns=1;s=0112/2///61987#ABH329#002" BrowseName="1:0112/2///61987#ABH329#002" ParentNodeId="i=17594">
         <DisplayName>Level</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABH329</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB290_005" NodeId="ns=1;s=0112/2///61987#ABB290#005" BrowseName="1:0112/2///61987#ABB290#005">
+    <UAObject SymbolicName="S0112_2___61987_ABB290_005" NodeId="ns=1;s=0112/2///61987#ABB290#005" BrowseName="1:0112/2///61987#ABB290#005" ParentNodeId="i=17594">
         <DisplayName>Mass flow rate</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB290</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB291_005" NodeId="ns=1;s=0112/2///61987#ABB291#005" BrowseName="1:0112/2///61987#ABB291#005">
+    <UAObject SymbolicName="S0112_2___61987_ABB291_005" NodeId="ns=1;s=0112/2///61987#ABB291#005" BrowseName="1:0112/2///61987#ABB291#005" ParentNodeId="i=17594">
         <DisplayName>Volume flow rate</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB291</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABB292_005" NodeId="ns=1;s=0112/2///61987#ABB292#005" BrowseName="1:0112/2///61987#ABB292#005">
-        <DisplayName>Normalized volume flow rate</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABB292_005" NodeId="ns=1;s=0112/2///61987#ABB292#005" BrowseName="1:0112/2///61987#ABB292#005" ParentNodeId="i=17594">
+        <DisplayName>Norm. volume flow</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB292</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA946_004" NodeId="ns=1;s=0112/2///61987#ABA946#004" BrowseName="1:0112/2///61987#ABA946#004">
+    <UAObject SymbolicName="S0112_2___61987_ABA946_004" NodeId="ns=1;s=0112/2///61987#ABA946#004" BrowseName="1:0112/2///61987#ABA946#004" ParentNodeId="i=17594">
         <DisplayName>Density</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA946</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABJ683_001" NodeId="ns=1;s=0112/2///61987#ABJ683#001" BrowseName="1:0112/2///61987#ABJ683#001">
-        <DisplayName>ControlReadback</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABJ683_001" NodeId="ns=1;s=0112/2///61987#ABJ683#001" BrowseName="1:0112/2///61987#ABJ683#001" ParentNodeId="i=17594">
+        <DisplayName>Readback</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABJ683</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABH327_001" NodeId="ns=1;s=0112/2///61987#ABH327#001" BrowseName="1:0112/2///61987#ABH327#001">
+    <UAObject SymbolicName="S0112_2___61987_ABH327_001" NodeId="ns=1;s=0112/2///61987#ABH327#001" BrowseName="1:0112/2///61987#ABH327#001" ParentNodeId="i=17594">
         <DisplayName>Mass</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABH327</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABH328_001" NodeId="ns=1;s=0112/2///61987#ABH328#001" BrowseName="1:0112/2///61987#ABH328#001">
+    <UAObject SymbolicName="S0112_2___61987_ABH328_001" NodeId="ns=1;s=0112/2///61987#ABH328#001" BrowseName="1:0112/2///61987#ABH328#001" ParentNodeId="i=17594">
         <DisplayName>Volume</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABH328</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABN972_001" NodeId="ns=1;s=0112/2///61987#ABN972#001" BrowseName="1:0112/2///61987#ABN972#001">
+    <UAObject SymbolicName="S0112_2___61987_ABN972_001" NodeId="ns=1;s=0112/2///61987#ABN972#001" BrowseName="1:0112/2///61987#ABN972#001" ParentNodeId="i=17594">
         <DisplayName>Device diagnostic status</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/ClassesAllVersions/0112-2---61987%23ABN972</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="S0112_2___61987_ABA968_002" NodeId="ns=1;s=0112/2///61987#ABA968#002" BrowseName="1:0112/2///61987#ABA968#002">
-        <DisplayName>UnitOfMeasure</DisplayName>
+    <UAObject SymbolicName="S0112_2___61987_ABA968_002" NodeId="ns=1;s=0112/2///61987#ABA968#002" BrowseName="1:0112/2///61987#ABA968#002" ParentNodeId="i=17594">
+        <DisplayName>Unit</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA968</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK976_001" NodeId="ns=1;s=0112/2///61987#ABK976#001" BrowseName="1:0112/2///61987#ABK976#001" ParentNodeId="i=17594">
+        <DisplayName>Cu1000</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK976</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK977_001" NodeId="ns=1;s=0112/2///61987#ABK977#001" BrowseName="1:0112/2///61987#ABK977#001" ParentNodeId="i=17594">
+        <DisplayName>Cu25</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK977</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK978_001" NodeId="ns=1;s=0112/2///61987#ABK978#001" BrowseName="1:0112/2///61987#ABK978#001" ParentNodeId="i=17594">
+        <DisplayName>Ni100</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK978</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK979_001" NodeId="ns=1;s=0112/2///61987#ABK979#001" BrowseName="1:0112/2///61987#ABK979#001" ParentNodeId="i=17594">
+        <DisplayName>Ni1000</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK979</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK980_001" NodeId="ns=1;s=0112/2///61987#ABK980#001" BrowseName="1:0112/2///61987#ABK980#001" ParentNodeId="i=17594">
+        <DisplayName>Ni120</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK980</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK981_001" NodeId="ns=1;s=0112/2///61987#ABK981#001" BrowseName="1:0112/2///61987#ABK981#001" ParentNodeId="i=17594">
+        <DisplayName>Ni25</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK981</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK982_001" NodeId="ns=1;s=0112/2///61987#ABK982#001" BrowseName="1:0112/2///61987#ABK982#001" ParentNodeId="i=17594">
+        <DisplayName>Ni50</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK982</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK983_001" NodeId="ns=1;s=0112/2///61987#ABK983#001" BrowseName="1:0112/2///61987#ABK983#001" ParentNodeId="i=17594">
+        <DisplayName>Pt10</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK983</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK984_001" NodeId="ns=1;s=0112/2///61987#ABK984#001" BrowseName="1:0112/2///61987#ABK984#001" ParentNodeId="i=17594">
+        <DisplayName>Pt100</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK984</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK985_001" NodeId="ns=1;s=0112/2///61987#ABK985#001" BrowseName="1:0112/2///61987#ABK985#001" ParentNodeId="i=17594">
+        <DisplayName>Pt1000</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK985</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK986_001" NodeId="ns=1;s=0112/2///61987#ABK986#001" BrowseName="1:0112/2///61987#ABK986#001" ParentNodeId="i=17594">
+        <DisplayName>Pt200</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK986</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK987_001" NodeId="ns=1;s=0112/2///61987#ABK987#001" BrowseName="1:0112/2///61987#ABK987#001" ParentNodeId="i=17594">
+        <DisplayName>Pt25</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK987</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK988_001" NodeId="ns=1;s=0112/2///61987#ABK988#001" BrowseName="1:0112/2///61987#ABK988#001" ParentNodeId="i=17594">
+        <DisplayName>Pt50</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK988</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK989_001" NodeId="ns=1;s=0112/2///61987#ABK989#001" BrowseName="1:0112/2///61987#ABK989#001" ParentNodeId="i=17594">
+        <DisplayName>Pt500</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK989</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK993_001" NodeId="ns=1;s=0112/2///61987#ABK993#001" BrowseName="1:0112/2///61987#ABK993#001" ParentNodeId="i=17594">
+        <DisplayName>Type B: Pt30Rh-Pt6Rh</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK993</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK994_001" NodeId="ns=1;s=0112/2///61987#ABK994#001" BrowseName="1:0112/2///61987#ABK994#001" ParentNodeId="i=17594">
+        <DisplayName>Type E: NiCr-CuNi</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK994</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK995_001" NodeId="ns=1;s=0112/2///61987#ABK995#001" BrowseName="1:0112/2///61987#ABK995#001" ParentNodeId="i=17594">
+        <DisplayName>Type J: Fe-CuNi</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK995</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK996_001" NodeId="ns=1;s=0112/2///61987#ABK996#001" BrowseName="1:0112/2///61987#ABK996#001" ParentNodeId="i=17594">
+        <DisplayName>Type K: NiCr-Ni</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK996</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK997_001" NodeId="ns=1;s=0112/2///61987#ABK997#001" BrowseName="1:0112/2///61987#ABK997#001" ParentNodeId="i=17594">
+        <DisplayName>Type N: NiCrSi-NiSi</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK997</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK998_001" NodeId="ns=1;s=0112/2///61987#ABK998#001" BrowseName="1:0112/2///61987#ABK998#001" ParentNodeId="i=17594">
+        <DisplayName>Type R: Pt13Rh-Pt</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK998</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABK999_001" NodeId="ns=1;s=0112/2///61987#ABK999#001" BrowseName="1:0112/2///61987#ABK999#001" ParentNodeId="i=17594">
+        <DisplayName>Type S: Pt10Rh-Pt</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABK999</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL000_001" NodeId="ns=1;s=0112/2///61987#ABL000#001" BrowseName="1:0112/2///61987#ABL000#001" ParentNodeId="i=17594">
+        <DisplayName>Type T: Cu-CuNi</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL000</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL001_001" NodeId="ns=1;s=0112/2///61987#ABL001#001" BrowseName="1:0112/2///61987#ABL001#001" ParentNodeId="i=17594">
+        <DisplayName>Type L: Fe-CuNi</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL001</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL002_001" NodeId="ns=1;s=0112/2///61987#ABL002#001" BrowseName="1:0112/2///61987#ABL002#001" ParentNodeId="i=17594">
+        <DisplayName>Type U: Cu-CuNi</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL002</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL003_001" NodeId="ns=1;s=0112/2///61987#ABL003#001" BrowseName="1:0112/2///61987#ABL003#001" ParentNodeId="i=17594">
+        <DisplayName>Type C: W5%-Re</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL003</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL004_001" NodeId="ns=1;s=0112/2///61987#ABL004#001" BrowseName="1:0112/2///61987#ABL004#001" ParentNodeId="i=17594">
+        <DisplayName>Type D: W3%-Re</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL004</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL113_001" NodeId="ns=1;s=0112/2///61987#ABL113#001" BrowseName="1:0112/2///61987#ABL113#001" ParentNodeId="i=17594">
+        <DisplayName>4-wire</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL113</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL114_001" NodeId="ns=1;s=0112/2///61987#ABL114#001" BrowseName="1:0112/2///61987#ABL114#001" ParentNodeId="i=17594">
+        <DisplayName>3-wire</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL114</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL115_001" NodeId="ns=1;s=0112/2///61987#ABL115#001" BrowseName="1:0112/2///61987#ABL115#001" ParentNodeId="i=17594">
+        <DisplayName>2-wire</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL115</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN416_001" NodeId="ns=1;s=0112/2///61987#ABN416#001" BrowseName="1:0112/2///61987#ABN416#001" ParentNodeId="i=17594">
+        <DisplayName>external cold junction</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN416</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN417_001" NodeId="ns=1;s=0112/2///61987#ABN417#001" BrowseName="1:0112/2///61987#ABN417#001" ParentNodeId="i=17594">
+        <DisplayName>internal cold junction</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN417</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABM885_001" NodeId="ns=1;s=0112/2///61987#ABM885#001" BrowseName="1:0112/2///61987#ABM885#001" ParentNodeId="i=17594">
+        <DisplayName>positive</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABM885</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABM886_001" NodeId="ns=1;s=0112/2///61987#ABM886#001" BrowseName="1:0112/2///61987#ABM886#001" ParentNodeId="i=17594">
+        <DisplayName>negative</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABM886</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL147_001" NodeId="ns=1;s=0112/2///61987#ABL147#001" BrowseName="1:0112/2///61987#ABL147#001" ParentNodeId="i=17594">
+        <DisplayName>direct</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL147</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL148_001" NodeId="ns=1;s=0112/2///61987#ABL148#001" BrowseName="1:0112/2///61987#ABL148#001" ParentNodeId="i=17594">
+        <DisplayName>reverse</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL148</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN145_001" NodeId="ns=1;s=0112/2///61987#ABN145#001" BrowseName="1:0112/2///61987#ABN145#001" ParentNodeId="i=17594">
+        <DisplayName>sliding-stem linear</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN145</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN146_001" NodeId="ns=1;s=0112/2///61987#ABN146#001" BrowseName="1:0112/2///61987#ABN146#001" ParentNodeId="i=17594">
+        <DisplayName>quarter-turn rotary</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN146</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL215_001" NodeId="ns=1;s=0112/2///61987#ABL215#001" BrowseName="1:0112/2///61987#ABL215#001" ParentNodeId="i=17594">
+        <DisplayName>open</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL215</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL216_001" NodeId="ns=1;s=0112/2///61987#ABL216#001" BrowseName="1:0112/2///61987#ABL216#001" ParentNodeId="i=17594">
+        <DisplayName>closed</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL216</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN836_001" NodeId="ns=1;s=0112/2///61987#ABN836#001" BrowseName="1:0112/2///61987#ABN836#001" ParentNodeId="i=17594">
+        <DisplayName>in-between</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN836</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABM627_001" NodeId="ns=1;s=0112/2///61987#ABM627#001" BrowseName="1:0112/2///61987#ABM627#001" ParentNodeId="i=17594">
+        <DisplayName>high</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABM627</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABM625_001" NodeId="ns=1;s=0112/2///61987#ABM625#001" BrowseName="1:0112/2///61987#ABM625#001" ParentNodeId="i=17594">
+        <DisplayName>low</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABM625</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN839_001" NodeId="ns=1;s=0112/2///61987#ABN839#001" BrowseName="1:0112/2///61987#ABN839#001" ParentNodeId="i=17594">
+        <DisplayName>moving</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN839</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN840_001" NodeId="ns=1;s=0112/2///61987#ABN840#001" BrowseName="1:0112/2///61987#ABN840#001" ParentNodeId="i=17594">
+        <DisplayName>true</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN840</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN841_001" NodeId="ns=1;s=0112/2///61987#ABN841#001" BrowseName="1:0112/2///61987#ABN841#001" ParentNodeId="i=17594">
+        <DisplayName>false</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABN841</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL213_001" NodeId="ns=1;s=0112/2///61987#ABL213#001" BrowseName="1:0112/2///61987#ABL213#001" ParentNodeId="i=17594">
+        <DisplayName>on</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL213</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABL214_001" NodeId="ns=1;s=0112/2///61987#ABL214#001" BrowseName="1:0112/2///61987#ABL214#001" ParentNodeId="i=17594">
+        <DisplayName>off</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABL214</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP718_001" NodeId="ns=1;s=0112/2///61987#ABP718#001" BrowseName="1:0112/2///61987#ABP718#001" ParentNodeId="i=17594">
+        <DisplayName>glass electrode</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP719_001" NodeId="ns=1;s=0112/2///61987#ABP719#001" BrowseName="1:0112/2///61987#ABP719#001" ParentNodeId="i=17594">
+        <DisplayName>ISFET</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP720_001" NodeId="ns=1;s=0112/2///61987#ABP720#001" BrowseName="1:0112/2///61987#ABP720#001" ParentNodeId="i=17594">
+        <DisplayName>ceramic electrode</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP721_001" NodeId="ns=1;s=0112/2///61987#ABP721#001" BrowseName="1:0112/2///61987#ABP721#001" ParentNodeId="i=17594">
+        <DisplayName>inductive</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP722_001" NodeId="ns=1;s=0112/2///61987#ABP722#001" BrowseName="1:0112/2///61987#ABP722#001" ParentNodeId="i=17594">
+        <DisplayName>conductive 2-electrodes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP723_001" NodeId="ns=1;s=0112/2///61987#ABP723#001" BrowseName="1:0112/2///61987#ABP723#001" ParentNodeId="i=17594">
+        <DisplayName>conductive 4-electrodes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP724_001" NodeId="ns=1;s=0112/2///61987#ABP724#001" BrowseName="1:0112/2///61987#ABP724#001" ParentNodeId="i=17594">
+        <DisplayName>no temperature compensation</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP725_001" NodeId="ns=1;s=0112/2///61987#ABP725#001" BrowseName="1:0112/2///61987#ABP725#001" ParentNodeId="i=17594">
+        <DisplayName>linear compensation</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP726_001" NodeId="ns=1;s=0112/2///61987#ABP726#001" BrowseName="1:0112/2///61987#ABP726#001" ParentNodeId="i=17594">
+        <DisplayName>NaCl (IEC 60746-3)</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP727_001" NodeId="ns=1;s=0112/2///61987#ABP727#001" BrowseName="1:0112/2///61987#ABP727#001" ParentNodeId="i=17594">
+        <DisplayName>water ISO 7888 (20°C)</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP728_001" NodeId="ns=1;s=0112/2///61987#ABP728#001" BrowseName="1:0112/2///61987#ABP728#001" ParentNodeId="i=17594">
+        <DisplayName>water ISO 7888 (25°C)</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP729_001" NodeId="ns=1;s=0112/2///61987#ABP729#001" BrowseName="1:0112/2///61987#ABP729#001" ParentNodeId="i=17594">
+        <DisplayName>UPW NaCl</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP730_001" NodeId="ns=1;s=0112/2///61987#ABP730#001" BrowseName="1:0112/2///61987#ABP730#001" ParentNodeId="i=17594">
+        <DisplayName>UPW HCl</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP731_001" NodeId="ns=1;s=0112/2///61987#ABP731#001" BrowseName="1:0112/2///61987#ABP731#001" ParentNodeId="i=17594">
+        <DisplayName>compensation table</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP732_001" NodeId="ns=1;s=0112/2///61987#ABP732#001" BrowseName="1:0112/2///61987#ABP732#001" ParentNodeId="i=17594">
+        <DisplayName>adjustment</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP733_001" NodeId="ns=1;s=0112/2///61987#ABP733#001" BrowseName="1:0112/2///61987#ABP733#001" ParentNodeId="i=17594">
+        <DisplayName>calibration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP734_001" NodeId="ns=1;s=0112/2///61987#ABP734#001" BrowseName="1:0112/2///61987#ABP734#001" ParentNodeId="i=17594">
+        <DisplayName>custody transfer</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABI407_004" NodeId="ns=1;s=0112/2///61987#ABI407#004" BrowseName="1:0112/2///61987#ABI407#004" ParentNodeId="i=17594">
+        <DisplayName>others</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/Terminologies/0112-2---61987%23ABI407</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP544_001" NodeId="ns=1;s=0112/2///61987#ABP544#001" BrowseName="1:0112/2///61987#ABP544#001" ParentNodeId="i=17594">
+        <DisplayName>Timestamp of calibration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABH609_001" NodeId="ns=1;s=0112/2///61987#ABH609#001" BrowseName="1:0112/2///61987#ABH609#001" ParentNodeId="i=17594">
+        <DisplayName>Type of calibration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP567_001" NodeId="ns=1;s=0112/2///61987#ABP567#001" BrowseName="1:0112/2///61987#ABP567#001" ParentNodeId="i=17594">
+        <DisplayName>pH sensing element slope</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP568_001" NodeId="ns=1;s=0112/2///61987#ABP568#001" BrowseName="1:0112/2///61987#ABP568#001" ParentNodeId="i=17594">
+        <DisplayName>pH sensing element asymmetry potential</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP569_001" NodeId="ns=1;s=0112/2///61987#ABP569#001" BrowseName="1:0112/2///61987#ABP569#001" ParentNodeId="i=17594">
+        <DisplayName>Settling time t90 at calibration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABF161_001" NodeId="ns=1;s=0112/2///61987#ABF161#001" BrowseName="1:0112/2///61987#ABF161#001" ParentNodeId="i=17594">
+        <DisplayName>Cell constant</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP572_001" NodeId="ns=1;s=0112/2///61987#ABP572#001" BrowseName="1:0112/2///61987#ABP572#001" ParentNodeId="i=17594">
+        <DisplayName>Amperometric sensing element slope</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP573_001" NodeId="ns=1;s=0112/2///61987#ABP573#001" BrowseName="1:0112/2///61987#ABP573#001" ParentNodeId="i=17594">
+        <DisplayName>Amperometric sensing element zero point</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP574_001" NodeId="ns=1;s=0112/2///61987#ABP574#001" BrowseName="1:0112/2///61987#ABP574#001" ParentNodeId="i=17594">
+        <DisplayName>Absolute air pressure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP586_001" NodeId="ns=1;s=0112/2///61987#ABP586#001" BrowseName="1:0112/2///61987#ABP586#001" ParentNodeId="i=17594">
+        <DisplayName>Optical fluorescence quenching sensing element slope</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP587_001" NodeId="ns=1;s=0112/2///61987#ABP587#001" BrowseName="1:0112/2///61987#ABP587#001" ParentNodeId="i=17594">
+        <DisplayName>Optical fluorescence quenching sensing element zero point</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP558_001" NodeId="ns=1;s=0112/2///61987#ABP558#001" BrowseName="1:0112/2///61987#ABP558#001" ParentNodeId="i=17594">
+        <DisplayName>Carrier gas volume flow</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP559_001" NodeId="ns=1;s=0112/2///61987#ABP559#001" BrowseName="1:0112/2///61987#ABP559#001" ParentNodeId="i=17594">
+        <DisplayName>Carrier gas pressure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP554_001" NodeId="ns=1;s=0112/2///61987#ABP554#001" BrowseName="1:0112/2///61987#ABP554#001" ParentNodeId="i=17594">
+        <DisplayName>TOC reactor temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP561_001" NodeId="ns=1;s=0112/2///61987#ABP561#001" BrowseName="1:0112/2///61987#ABP561#001" ParentNodeId="i=17594">
+        <DisplayName>Sample water volume flow</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP563_001" NodeId="ns=1;s=0112/2///61987#ABP563#001" BrowseName="1:0112/2///61987#ABP563#001" ParentNodeId="i=17594">
+        <DisplayName>Injection volume</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP564_001" NodeId="ns=1;s=0112/2///61987#ABP564#001" BrowseName="1:0112/2///61987#ABP564#001" ParentNodeId="i=17594">
+        <DisplayName>Injected volume</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP555_001" NodeId="ns=1;s=0112/2///61987#ABP555#001" BrowseName="1:0112/2///61987#ABP555#001" ParentNodeId="i=17594">
+        <DisplayName>Cooler temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP576_001" NodeId="ns=1;s=0112/2///61987#ABP576#001" BrowseName="1:0112/2///61987#ABP576#001" ParentNodeId="i=17594">
+        <DisplayName>Catalyst temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP578_001" NodeId="ns=1;s=0112/2///61987#ABP578#001" BrowseName="1:0112/2///61987#ABP578#001" ParentNodeId="i=17594">
+        <DisplayName>Fuel gas pressure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP579_001" NodeId="ns=1;s=0112/2///61987#ABP579#001" BrowseName="1:0112/2///61987#ABP579#001" ParentNodeId="i=17594">
+        <DisplayName>Air pressure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP577_001" NodeId="ns=1;s=0112/2///61987#ABP577#001" BrowseName="1:0112/2///61987#ABP577#001" ParentNodeId="i=17594">
+        <DisplayName>Block temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP553_001" NodeId="ns=1;s=0112/2///61987#ABP553#001" BrowseName="1:0112/2///61987#ABP553#001" ParentNodeId="i=17594">
+        <DisplayName>Chopper frequency (deviation)</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP560_001" NodeId="ns=1;s=0112/2///61987#ABP560#001" BrowseName="1:0112/2///61987#ABP560#001" ParentNodeId="i=17594">
+        <DisplayName>Sample gas pressure</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP556_001" NodeId="ns=1;s=0112/2///61987#ABP556#001" BrowseName="1:0112/2///61987#ABP556#001" ParentNodeId="i=17594">
+        <DisplayName>Sample cell temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP552_001" NodeId="ns=1;s=0112/2///61987#ABP552#001" BrowseName="1:0112/2///61987#ABP552#001" ParentNodeId="i=17594">
+        <DisplayName>Residual operational life of radiation source</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP557_001" NodeId="ns=1;s=0112/2///61987#ABP557#001" BrowseName="1:0112/2///61987#ABP557#001" ParentNodeId="i=17594">
+        <DisplayName>Reagent level</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP551_001" NodeId="ns=1;s=0112/2///61987#ABP551#001" BrowseName="1:0112/2///61987#ABP551#001" ParentNodeId="i=17594">
+        <DisplayName>Detector zero signal</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP562_001" NodeId="ns=1;s=0112/2///61987#ABP562#001" BrowseName="1:0112/2///61987#ABP562#001" ParentNodeId="i=17594">
+        <DisplayName>Sample gas volume flow</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP575_001" NodeId="ns=1;s=0112/2///61987#ABP575#001" BrowseName="1:0112/2///61987#ABP575#001" ParentNodeId="i=17594">
+        <DisplayName>Sample temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP565_001" NodeId="ns=1;s=0112/2///61987#ABP565#001" BrowseName="1:0112/2///61987#ABP565#001" ParentNodeId="i=17594">
+        <DisplayName>Temperature sensing element</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP582_001" NodeId="ns=1;s=0112/2///61987#ABP582#001" BrowseName="1:0112/2///61987#ABP582#001" ParentNodeId="i=17594">
+        <DisplayName>Transmission ratio</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP581_001" NodeId="ns=1;s=0112/2///61987#ABP581#001" BrowseName="1:0112/2///61987#ABP581#001" ParentNodeId="i=17594">
+        <DisplayName>Signal/noise ratio</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP583_001" NodeId="ns=1;s=0112/2///61987#ABP583#001" BrowseName="1:0112/2///61987#ABP583#001" ParentNodeId="i=17594">
+        <DisplayName>Laser temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP580_001" NodeId="ns=1;s=0112/2///61987#ABP580#001" BrowseName="1:0112/2///61987#ABP580#001" ParentNodeId="i=17594">
+        <DisplayName>Signal fit quality</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP585_001" NodeId="ns=1;s=0112/2///61987#ABP585#001" BrowseName="1:0112/2///61987#ABP585#001" ParentNodeId="i=17594">
+        <DisplayName>Relative heat output</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP640_001" NodeId="ns=1;s=0112/2///61987#ABP640#001" BrowseName="1:0112/2///61987#ABP640#001" ParentNodeId="i=17594">
+        <DisplayName>pH measuring method</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP566_001" NodeId="ns=1;s=0112/2///61987#ABP566#001" BrowseName="1:0112/2///61987#ABP566#001" ParentNodeId="i=17594">
+        <DisplayName>Days until next calibration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP570_001" NodeId="ns=1;s=0112/2///61987#ABP570#001" BrowseName="1:0112/2///61987#ABP570#001" ParentNodeId="i=17594">
+        <DisplayName>pH sensing element impedance</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP571_001" NodeId="ns=1;s=0112/2///61987#ABP571#001" BrowseName="1:0112/2///61987#ABP571#001" ParentNodeId="i=17594">
+        <DisplayName>pH reference system impedance</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP546_001" NodeId="ns=1;s=0112/2///61987#ABP546#001" BrowseName="1:0112/2///61987#ABP546#001" ParentNodeId="i=17594">
+        <DisplayName>CIP counter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP547_001" NodeId="ns=1;s=0112/2///61987#ABP547#001" BrowseName="1:0112/2///61987#ABP547#001" ParentNodeId="i=17594">
+        <DisplayName>SIP counter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP641_001" NodeId="ns=1;s=0112/2///61987#ABP641#001" BrowseName="1:0112/2///61987#ABP641#001" ParentNodeId="i=17594">
+        <DisplayName>Conductivity measuring method</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP642_001" NodeId="ns=1;s=0112/2///61987#ABP642#001" BrowseName="1:0112/2///61987#ABP642#001" ParentNodeId="i=17594">
+        <DisplayName>Temperature compensation</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP643_001" NodeId="ns=1;s=0112/2///61987#ABP643#001" BrowseName="1:0112/2///61987#ABP643#001" ParentNodeId="i=17594">
+        <DisplayName>Device revision</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP397_001" NodeId="ns=1;s=0112/2///61987#ABP397#001" BrowseName="1:0112/2///61987#ABP397#001" ParentNodeId="i=17594">
+        <DisplayName>Process analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP425_001" NodeId="ns=1;s=0112/2///61987#ABP425#001" BrowseName="1:0112/2///61987#ABP425#001" ParentNodeId="i=17594">
+        <DisplayName>Non-dispersive infrared gas analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP444_001" NodeId="ns=1;s=0112/2///61987#ABP444#001" BrowseName="1:0112/2///61987#ABP444#001" ParentNodeId="i=17594">
+        <DisplayName>TOC analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP410_001" NodeId="ns=1;s=0112/2///61987#ABP410#001" BrowseName="1:0112/2///61987#ABP410#001" ParentNodeId="i=17594">
+        <DisplayName>Flame ionisation detector</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP436_001" NodeId="ns=1;s=0112/2///61987#ABP436#001" BrowseName="1:0112/2///61987#ABP436#001" ParentNodeId="i=17594">
+        <DisplayName>Paramagnetic gas analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP453_001" NodeId="ns=1;s=0112/2///61987#ABP453#001" BrowseName="1:0112/2///61987#ABP453#001" ParentNodeId="i=17594">
+        <DisplayName>Thermal conductivity gas analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP435_001" NodeId="ns=1;s=0112/2///61987#ABP435#001" BrowseName="1:0112/2///61987#ABP435#001" ParentNodeId="i=17594">
+        <DisplayName>Tunable diode laser spectrometer</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP409_001" NodeId="ns=1;s=0112/2///61987#ABP409#001" BrowseName="1:0112/2///61987#ABP409#001" ParentNodeId="i=17594">
+        <DisplayName>Zirconium dioxide analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP440_001" NodeId="ns=1;s=0112/2///61987#ABP440#001" BrowseName="1:0112/2///61987#ABP440#001" ParentNodeId="i=17594">
+        <DisplayName>pH meter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP405_001" NodeId="ns=1;s=0112/2///61987#ABP405#001" BrowseName="1:0112/2///61987#ABP405#001" ParentNodeId="i=17594">
+        <DisplayName>Conductivity meter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP407_001" NodeId="ns=1;s=0112/2///61987#ABP407#001" BrowseName="1:0112/2///61987#ABP407#001" ParentNodeId="i=17594">
+        <DisplayName>Amperometric analyser</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP423_001" NodeId="ns=1;s=0112/2///61987#ABP423#001" BrowseName="1:0112/2///61987#ABP423#001" ParentNodeId="i=17594">
+        <DisplayName>Optical fluorescence quenching sensor</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP591_001" NodeId="ns=1;s=0112/2///61987#ABP591#001" BrowseName="1:0112/2///61987#ABP591#001" ParentNodeId="i=17594">
+        <DisplayName>Internal device temperature</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP595_001" NodeId="ns=1;s=0112/2///61987#ABP595#001" BrowseName="1:0112/2///61987#ABP595#001" ParentNodeId="i=17594">
+        <DisplayName>Residual operational life</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP550_001" NodeId="ns=1;s=0112/2///61987#ABP550#001" BrowseName="1:0112/2///61987#ABP550#001" ParentNodeId="i=17594">
+        <DisplayName>Power on duration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN639_001" NodeId="ns=1;s=0112/2///61987#ABN639#001" BrowseName="1:0112/2///61987#ABN639#001" ParentNodeId="i=17594">
+        <DisplayName>Operation duration</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP545_001" NodeId="ns=1;s=0112/2///61987#ABP545#001" BrowseName="1:0112/2///61987#ABP545#001" ParentNodeId="i=17594">
+        <DisplayName>Operation cycle counter</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP495_001" NodeId="ns=1;s=0112/2///61987#ABP495#001" BrowseName="1:0112/2///61987#ABP495#001" ParentNodeId="i=17594">
+        <DisplayName>Matrix of components/measurands</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP496_001" NodeId="ns=1;s=0112/2///61987#ABP496#001" BrowseName="1:0112/2///61987#ABP496#001" ParentNodeId="i=17594">
+        <DisplayName>Chemical component/measurand</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP541_001" NodeId="ns=1;s=0112/2///61987#ABP541#001" BrowseName="1:0112/2///61987#ABP541#001" ParentNodeId="i=17594">
+        <DisplayName>Two-state control value</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP542_001" NodeId="ns=1;s=0112/2///61987#ABP542#001" BrowseName="1:0112/2///61987#ABP542#001" ParentNodeId="i=17594">
+        <DisplayName>Two-state setpoint value</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP543_001" NodeId="ns=1;s=0112/2///61987#ABP543#001" BrowseName="1:0112/2///61987#ABP543#001" ParentNodeId="i=17594">
+        <DisplayName>Two-state fault value</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP644_001" NodeId="ns=1;s=0112/2///61987#ABP644#001" BrowseName="1:0112/2///61987#ABP644#001" ParentNodeId="i=17594">
+        <DisplayName>Discrete multi-state control value</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP645_001" NodeId="ns=1;s=0112/2///61987#ABP645#001" BrowseName="1:0112/2///61987#ABP645#001" ParentNodeId="i=17594">
+        <DisplayName>Discrete multi-state setpoint value</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP651_001" NodeId="ns=1;s=0112/2///61987#ABP651#001" BrowseName="1:0112/2///61987#ABP651#001" ParentNodeId="i=17594">
+        <DisplayName>Multi-state fault value</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP597_001" NodeId="ns=1;s=0112/2///61987#ABP597#001" BrowseName="1:0112/2///61987#ABP597#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP597#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP600_001" NodeId="ns=1;s=0112/2///61987#ABP600#001" BrowseName="1:0112/2///61987#ABP600#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP600#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP603_001" NodeId="ns=1;s=0112/2///61987#ABP603#001" BrowseName="1:0112/2///61987#ABP603#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP603#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP606_001" NodeId="ns=1;s=0112/2///61987#ABP606#001" BrowseName="1:0112/2///61987#ABP606#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP606#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP609_001" NodeId="ns=1;s=0112/2///61987#ABP609#001" BrowseName="1:0112/2///61987#ABP609#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP609#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP612_001" NodeId="ns=1;s=0112/2///61987#ABP612#001" BrowseName="1:0112/2///61987#ABP612#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP612#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP615_001" NodeId="ns=1;s=0112/2///61987#ABP615#001" BrowseName="1:0112/2///61987#ABP615#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP615#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP618_001" NodeId="ns=1;s=0112/2///61987#ABP618#001" BrowseName="1:0112/2///61987#ABP618#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP618#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP637_001" NodeId="ns=1;s=0112/2///61987#ABP637#001" BrowseName="1:0112/2///61987#ABP637#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP637#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP621_001" NodeId="ns=1;s=0112/2///61987#ABP621#001" BrowseName="1:0112/2///61987#ABP621#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP621#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP624_001" NodeId="ns=1;s=0112/2///61987#ABP624#001" BrowseName="1:0112/2///61987#ABP624#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP624#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP627_001" NodeId="ns=1;s=0112/2///61987#ABP627#001" BrowseName="1:0112/2///61987#ABP627#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP627#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP630_001" NodeId="ns=1;s=0112/2///61987#ABP630#001" BrowseName="1:0112/2///61987#ABP630#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP630#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP633_001" NodeId="ns=1;s=0112/2///61987#ABP633#001" BrowseName="1:0112/2///61987#ABP633#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP633#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP598_001" NodeId="ns=1;s=0112/2///61987#ABP598#001" BrowseName="1:0112/2///61987#ABP598#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP598#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP601_001" NodeId="ns=1;s=0112/2///61987#ABP601#001" BrowseName="1:0112/2///61987#ABP601#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP601#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP604_001" NodeId="ns=1;s=0112/2///61987#ABP604#001" BrowseName="1:0112/2///61987#ABP604#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP604#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP607_001" NodeId="ns=1;s=0112/2///61987#ABP607#001" BrowseName="1:0112/2///61987#ABP607#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP607#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP610_001" NodeId="ns=1;s=0112/2///61987#ABP610#001" BrowseName="1:0112/2///61987#ABP610#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP610#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP613_001" NodeId="ns=1;s=0112/2///61987#ABP613#001" BrowseName="1:0112/2///61987#ABP613#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP613#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP616_001" NodeId="ns=1;s=0112/2///61987#ABP616#001" BrowseName="1:0112/2///61987#ABP616#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP616#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP619_001" NodeId="ns=1;s=0112/2///61987#ABP619#001" BrowseName="1:0112/2///61987#ABP619#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP619#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP638_001" NodeId="ns=1;s=0112/2///61987#ABP638#001" BrowseName="1:0112/2///61987#ABP638#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP638#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP622_001" NodeId="ns=1;s=0112/2///61987#ABP622#001" BrowseName="1:0112/2///61987#ABP622#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP622#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP625_001" NodeId="ns=1;s=0112/2///61987#ABP625#001" BrowseName="1:0112/2///61987#ABP625#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP625#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP628_001" NodeId="ns=1;s=0112/2///61987#ABP628#001" BrowseName="1:0112/2///61987#ABP628#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP628#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP631_001" NodeId="ns=1;s=0112/2///61987#ABP631#001" BrowseName="1:0112/2///61987#ABP631#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP631#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABP634_001" NodeId="ns=1;s=0112/2///61987#ABP634#001" BrowseName="1:0112/2///61987#ABP634#001" ParentNodeId="i=17594">
+        <DisplayName>0112/2///61987#ABP634#001</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN628_002" NodeId="ns=1;s=0112/2///61987#ABN628#002" BrowseName="1:0112/2///61987#ABN628#002" ParentNodeId="i=17594">
+        <DisplayName>mass concentration (per volume)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN628</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN621_003" NodeId="ns=1;s=0112/2///61987#ABN621#003" BrowseName="1:0112/2///61987#ABN621#003" ParentNodeId="i=17594">
+        <DisplayName>volume concentration (per volume)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN621</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN622_002" NodeId="ns=1;s=0112/2///61987#ABN622#002" BrowseName="1:0112/2///61987#ABN622#002" ParentNodeId="i=17594">
+        <DisplayName>number concentration (per volume)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN622</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN701_002" NodeId="ns=1;s=0112/2///61987#ABN701#002" BrowseName="1:0112/2///61987#ABN701#002" ParentNodeId="i=17594">
+        <DisplayName>molar concentration (per volume)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN701</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN702_002" NodeId="ns=1;s=0112/2///61987#ABN702#002" BrowseName="1:0112/2///61987#ABN702#002" ParentNodeId="i=17594">
+        <DisplayName>mass concentration (per mass)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN702</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN703_002" NodeId="ns=1;s=0112/2///61987#ABN703#002" BrowseName="1:0112/2///61987#ABN703#002" ParentNodeId="i=17594">
+        <DisplayName>volume concentration (per mass)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN703</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN704_002" NodeId="ns=1;s=0112/2///61987#ABN704#002" BrowseName="1:0112/2///61987#ABN704#002" ParentNodeId="i=17594">
+        <DisplayName>number concentration (per mass)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN704</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN623_002" NodeId="ns=1;s=0112/2///61987#ABN623#002" BrowseName="1:0112/2///61987#ABN623#002" ParentNodeId="i=17594">
+        <DisplayName>molar concentration (per mass)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN623</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN617_002" NodeId="ns=1;s=0112/2///61987#ABN617#002" BrowseName="1:0112/2///61987#ABN617#002" ParentNodeId="i=17594">
+        <DisplayName>pH value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN617</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABA560_001" NodeId="ns=1;s=0112/2///61987#ABA560#001" BrowseName="1:0112/2///61987#ABA560#001" ParentNodeId="i=17594">
+        <DisplayName>electrical conductivity</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA560</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN630_002" NodeId="ns=1;s=0112/2///61987#ABN630#002" BrowseName="1:0112/2///61987#ABN630#002" ParentNodeId="i=17594">
+        <DisplayName>redox potential</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN630</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN705_002" NodeId="ns=1;s=0112/2///61987#ABN705#002" BrowseName="1:0112/2///61987#ABN705#002" ParentNodeId="i=17594">
+        <DisplayName>spectral linear absorption coefficient (SAC)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN705</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN706_002" NodeId="ns=1;s=0112/2///61987#ABN706#002" BrowseName="1:0112/2///61987#ABN706#002" ParentNodeId="i=17594">
+        <DisplayName>wavelength for SAC</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN706</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN719_002" NodeId="ns=1;s=0112/2///61987#ABN719#002" BrowseName="1:0112/2///61987#ABN719#002" ParentNodeId="i=17594">
+        <DisplayName>percentage turbidity (total solids)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN719</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN720_002" NodeId="ns=1;s=0112/2///61987#ABN720#002" BrowseName="1:0112/2///61987#ABN720#002" ParentNodeId="i=17594">
+        <DisplayName>percentage turbidity (suspended solids)</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN720</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN591_002" NodeId="ns=1;s=0112/2///61987#ABN591#002" BrowseName="1:0112/2///61987#ABN591#002" ParentNodeId="i=17594">
+        <DisplayName>URI manufacturer</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN591</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN603_002" NodeId="ns=1;s=0112/2///61987#ABN603#002" BrowseName="1:0112/2///61987#ABN603#002" ParentNodeId="i=17594">
+        <DisplayName>Revision counter</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN603</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN590_002" NodeId="ns=1;s=0112/2///61987#ABN590#002" BrowseName="1:0112/2///61987#ABN590#002" ParentNodeId="i=17594">
+        <DisplayName>URI product inst.</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN590</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABB271_008" NodeId="ns=1;s=0112/2///61987#ABB271#008" BrowseName="1:0112/2///61987#ABB271#008" ParentNodeId="i=17594">
+        <DisplayName>Tag</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABB271</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABJ724_003" NodeId="ns=1;s=0112/2///61987#ABJ724#003" BrowseName="1:0112/2///61987#ABJ724#003" ParentNodeId="i=17594">
+        <DisplayName>Low flow cut off</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABJ724</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN607_002" NodeId="ns=1;s=0112/2///61987#ABN607#002" BrowseName="1:0112/2///61987#ABN607#002" ParentNodeId="i=17594">
+        <DisplayName>Setpoint</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN607</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABA418_002" NodeId="ns=1;s=0112/2///61987#ABA418#002" BrowseName="1:0112/2///61987#ABA418#002" ParentNodeId="i=17594">
+        <DisplayName>Pulse value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA418</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABE882_002" NodeId="ns=1;s=0112/2///61987#ABE882#002" BrowseName="1:0112/2///61987#ABE882#002" ParentNodeId="i=17594">
+        <DisplayName>Pulse value</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABE882</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABA635_003" NodeId="ns=1;s=0112/2///61987#ABA635#003" BrowseName="1:0112/2///61987#ABA635#003" ParentNodeId="i=17594">
+        <DisplayName>Pulse width</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABA635</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S0112_2___61987_ABN597_002" NodeId="ns=1;s=0112/2///61987#ABN597#002" BrowseName="1:0112/2///61987#ABN597#002" ParentNodeId="i=17594">
+        <DisplayName>Display language</DisplayName>
+        <Description>https://cdd.iec.ch/cdd/iec61987/iec61987.nsf/PropertiesAllVersions/0112-2---61987%23ABN597</Description>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="S_DictionaryEntryName_" NodeId="ns=1;s=&lt;DictionaryEntryName>" BrowseName="1:&lt;DictionaryEntryName>" ParentNodeId="i=17594">
+        <DisplayName>&lt;DictionaryEntryName&gt;</DisplayName>
+        <Description>Placeholder, not intended to be referenced by instances</Description>
         <References>
             <Reference ReferenceType="HasComponent" IsForward="false">i=17594</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=17598</Reference>

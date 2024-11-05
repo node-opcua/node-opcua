@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
- * Copyright (c) 2005-2021 The OPC Foundation, Inc. All rights reserved.
+ * Copyright (c) 2005-2024 The OPC Foundation, Inc. All rights reserved.
  *
  * OPC Foundation MIT License 1.00
  * 
@@ -34,7 +34,7 @@
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.2" PublicationDate="2022-06-15T00:00:00Z">
+    <Model ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.2" PublicationDate="2024-02-28T00:00:00Z" ModelVersion="1.1.2">
       <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-01-24T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.03.1" PublicationDate="2021-09-07T00:00:00Z" />
     </Model>
@@ -81,7 +81,7 @@
   <UADataType NodeId="ns=1;i=3003" BrowseName="1:LevelDisplayMode">
     <DisplayName>LevelDisplayMode</DisplayName>
     <Description Locale="en">Contains the values used to indicate how a percentual value is displayed if the stacklight unit works in Levelmeter mode.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.3.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.2</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6001</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -164,7 +164,7 @@
   <UADataType NodeId="ns=1;i=3004" BrowseName="1:SignalColor">
     <DisplayName>SignalColor</DisplayName>
     <Description Locale="en">Holds the possible colour values for stacklight lamps.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.3.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.3</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -347,7 +347,7 @@
   <UADataType NodeId="ns=1;i=3005" BrowseName="1:SignalModeLight">
     <DisplayName>SignalModeLight</DisplayName>
     <Description Locale="en">Contains the values used to indicate in what way a lamp behaves when switched on.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.3.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.4</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -450,7 +450,7 @@
   <UADataType NodeId="ns=1;i=3002" BrowseName="1:StacklightOperationMode">
     <DisplayName>StacklightOperationMode</DisplayName>
     <Description Locale="en">Contains the values used to indicate how a stacklight (as a whole unit) is used.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.3.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.1</Documentation>
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
@@ -704,7 +704,7 @@
   <UAReferenceType NodeId="ns=1;i=4002" BrowseName="1:HasStatisticComponent">
     <DisplayName>HasStatisticComponent</DisplayName>
     <Description Locale="en">References of this type link Variables managing statistical data either directly or indirectly to an Object or ObjectType implementing the IStatisticsType interface.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/6.3.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/6.3.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
     </References>
@@ -713,7 +713,7 @@
   <UAReferenceType NodeId="ns=1;i=4003" BrowseName="1:HasReferenceMeasurementInstrument">
     <DisplayName>HasReferenceMeasurementInstrument</DisplayName>
     <Description Locale="en">Relates the source node to a reference measurement instrument, like for example a calibration target using a reference measurement instrument.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.6.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.6.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
     </References>
@@ -722,7 +722,7 @@
   <UAVariableType NodeId="ns=1;i=2002" BrowseName="1:CalibrationValueType" DataType="Number" ValueRank="-2">
     <DisplayName>CalibrationValueType</DisplayName>
     <Description Locale="en">Represents the specific quantity and value (with engineering unit) that a calibration target provides for calibration of equipment.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.5.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.5.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2365</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6057</Reference>
@@ -739,7 +739,7 @@
   <UAVariableType NodeId="ns=1;i=2003" BrowseName="1:CapacityRangeType" DataType="Range">
     <DisplayName>CapacityRangeType</DisplayName>
     <Description Locale="en">Represent a scale of calibration values. The value defines the range (lowest and highest value), and the resolution property the size of each step.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.5.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.5.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=2365</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6058</Reference>
@@ -765,7 +765,7 @@
   <UAObjectType NodeId="ns=1;i=1009" BrowseName="1:AcousticSignalType">
     <DisplayName>AcousticSignalType</DisplayName>
     <Description Locale="en">Represents an acoustic signal.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.9</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.9</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6029</Reference>
@@ -794,7 +794,7 @@
   <UAObjectType NodeId="ns=1;i=1014" BrowseName="1:BaseCalibrationTargetCategoryType" IsAbstract="true">
     <DisplayName>BaseCalibrationTargetCategoryType</DisplayName>
     <Description Locale="en">Abstract base type for categorizing calibration targets. Subtypes define the concrete categories.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.4.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
@@ -802,7 +802,7 @@
   <UAObjectType NodeId="ns=1;i=1018" BrowseName="1:DynamicCalibrationTargetCategoryType">
     <DisplayName>DynamicCalibrationTargetCategoryType</DisplayName>
     <Description Locale="en">Characterizes a calibration target to be used together with a measurement instrument, that determines the values to be calibrated. It can be a piece created during the normal production process or an item specifically created for calibration purposes. The calibration target represents an individual piece or item, that is, if a new piece should be used or item is created, a new Object of this ObjectType is created.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.4.6</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.6</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1014</Reference>
     </References>
@@ -810,7 +810,7 @@
   <UAObjectType NodeId="ns=1;i=1017" BrowseName="1:OneTimeCalibrationTargetCategoryType">
     <DisplayName>OneTimeCalibrationTargetCategoryType</DisplayName>
     <Description Locale="en">Categorizes a calibration target to be used only once, for example because the calibration destroys the target. Typically, Objects of this ObjectType do not represent one individual calibration target, but a batch of calibration targets with the same characteristics.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.4.5</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.5</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1014</Reference>
     </References>
@@ -818,7 +818,7 @@
   <UAObjectType NodeId="ns=1;i=1015" BrowseName="1:ReusableCalibrationTargetCategoryType">
     <DisplayName>ReusableCalibrationTargetCategoryType</DisplayName>
     <Description Locale="en">Categorizes a calibration target to be reused several times. For example, a calibration target like a meter, that is bought specifically for calibration and not destroyed by an individual usage is of this category.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.4.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1014</Reference>
     </References>
@@ -826,7 +826,7 @@
   <UAObjectType NodeId="ns=1;i=1016" BrowseName="1:ReusableDeviceCalibrationTargetCategoryType">
     <DisplayName>ReusableDeviceCalibrationTargetCategoryType</DisplayName>
     <Description Locale="en">Categorizes a calibration target to be a reusable device that produces a certain environment like pressure that can be used for calibration.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.4.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.4</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1015</Reference>
     </References>
@@ -834,7 +834,7 @@
   <UAObjectType NodeId="ns=1;i=1011" BrowseName="1:IStatisticsType" IsAbstract="true">
     <DisplayName>IStatisticsType</DisplayName>
     <Description Locale="en">Base interface for managing statistical data.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/6.2.1/#6.2.1.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/6.2.1/#6.2.1.1</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=17602</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=7001</Reference>
@@ -844,7 +844,7 @@
   <UAMethod NodeId="ns=1;i=7001" BrowseName="1:ResetStatistics" ParentNodeId="ns=1;i=1011">
     <DisplayName>ResetStatistics</DisplayName>
     <Description Locale="en">Restarts all statistical data, including a reset of the StartTime to the current time.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/6.2.1/#6.2.1.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/6.2.1/#6.2.1.2</Documentation>
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1011</Reference>
@@ -862,7 +862,7 @@
   <UAObjectType NodeId="ns=1;i=1012" BrowseName="1:IAggregateStatisticsType" IsAbstract="true">
     <DisplayName>IAggregateStatisticsType</DisplayName>
     <Description Locale="en">Base interface for managing statistical data that is not rolled over all data from the start of  tracking the statistical data are considered, until the tracking gets reset.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/6.2.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/6.2.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1011</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6047</Reference>
@@ -880,7 +880,7 @@
   <UAObjectType NodeId="ns=1;i=1013" BrowseName="1:IRollingStatisticsType" IsAbstract="true">
     <DisplayName>IRollingStatisticsType</DisplayName>
     <Description Locale="en">Base interface for managing statistical data that is rolled over, i.e. only a certain amount of data is considered for statistical data.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/6.2.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/6.2.3</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1011</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6048</Reference>
@@ -908,7 +908,7 @@
   <UAObjectType NodeId="ns=1;i=1019" BrowseName="1:CalibrationTargetType">
     <DisplayName>CalibrationTargetType</DisplayName>
     <Description Locale="en">Provides information about a calibration target.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/7.4.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.1</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5011</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5013</Reference>
@@ -1171,7 +1171,7 @@
   <UAObjectType NodeId="ns=1;i=1008" BrowseName="1:ControlChannelType">
     <DisplayName>ControlChannelType</DisplayName>
     <Description Locale="en">Used for control channels of single colour elements within a stack element (e.g. RGB elements would use three ControlChannels, one for each controllable colour).</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.8</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.8</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
@@ -1228,7 +1228,7 @@
   <UAObjectType NodeId="ns=1;i=1002" BrowseName="1:BasicStacklightType">
     <DisplayName>BasicStacklightType</DisplayName>
     <Description Locale="en">Entry point to a stacklight containing elements of the stacklight as well as additional information valid for the whole unit.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.1</Documentation>
     <References>
       <Reference ReferenceType="HasOrderedComponent">ns=1;i=5006</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=23518</Reference>
@@ -1315,7 +1315,7 @@
   <UAObjectType NodeId="ns=1;i=1010" BrowseName="1:StacklightType">
     <DisplayName>StacklightType</DisplayName>
     <Description Locale="en">Entry point to a stacklight with the possibility to show the stacklight’s health status.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.2</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.2</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=6038</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5007</Reference>
@@ -1344,7 +1344,7 @@
   <UAObjectType NodeId="ns=1;i=1005" BrowseName="1:StackElementType" IsAbstract="true">
     <DisplayName>StackElementType</DisplayName>
     <Description Locale="en">Base class for elements in a stacklight.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.5</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.5</Documentation>
     <References>
       <Reference ReferenceType="HasInterface">i=23513</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
@@ -1383,7 +1383,7 @@
   <UAObjectType NodeId="ns=1;i=1007" BrowseName="1:StackElementAcousticType">
     <DisplayName>StackElementAcousticType</DisplayName>
     <Description Locale="en">Represents an acoustic element in a stacklight.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.7</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.7</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5003</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6021</Reference>
@@ -1450,7 +1450,7 @@
   <UAObjectType NodeId="ns=1;i=1006" BrowseName="1:StackElementLightType">
     <DisplayName>StackElementLightType</DisplayName>
     <Description Locale="en">Represents a lamp element in a stacklight.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.6</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.6</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=5002</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6018</Reference>
@@ -1537,7 +1537,7 @@
   <UAObjectType NodeId="ns=1;i=1003" BrowseName="1:StackLevelType">
     <DisplayName>StackLevelType</DisplayName>
     <Description Locale="en">Contains information relevant to a stacklight operating as a level meter. The whole stack is controlled by a percentual value.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.3</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.3</Documentation>
     <References>
       <Reference ReferenceType="HasComponent">ns=1;i=6012</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6010</Reference>
@@ -1574,14 +1574,14 @@
   <UAObjectType NodeId="ns=1;i=1004" BrowseName="1:StackRunningType">
     <DisplayName>StackRunningType</DisplayName>
     <Description Locale="en">Contains information relevant to a stacklight operating as a running light. This base type does not define any specific information, but can be extended.</Description>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/5.2.4</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.4</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5008" BrowseName="1:http://opcfoundation.org/UA/IA/" SymbolicName="http___opcfoundation_org_UA_IA_">
     <DisplayName>http://opcfoundation.org/UA/IA/</DisplayName>
-    <Documentation>https://reference.opcfoundation.org/v105/IA/v102/docs/9.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/9.1</Documentation>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6039</Reference>
@@ -1611,7 +1611,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5008</Reference>
     </References>
     <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2022-06-15T00:00:00Z</uax:DateTime>
+      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2024-02-28T00:00:00Z</uax:DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6041" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5008" DataType="String">
