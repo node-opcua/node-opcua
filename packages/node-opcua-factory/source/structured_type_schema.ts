@@ -28,7 +28,6 @@ const errorLog = make_errorLog(__filename);
 
 function figureOutFieldCategory(field: FieldInterfaceOptions, dataTypeFactory: DataTypeFactory): FieldCategory {
     const fieldType = field.fieldType;
-
     if (field.category) {
         return field.category;
     }
@@ -86,7 +85,7 @@ function figureOutSchema(
                     warningLog("expecting a enumeration!");
                 }
                 returnValue = dataTypeFactory.getStructuredTypeSchema(fieldTypeWithoutNS);
-                
+
                 // istanbul ignore next
                 if (returnValue) {
                     warningLog("Why can't we find a basic type here ?");
@@ -105,14 +104,14 @@ function figureOutSchema(
         }
         throw new Error(
             "Cannot find Schema for field with name " +
-                field.name +
-                " fieldTypeWithoutNS= " +
-                fieldTypeWithoutNS +
-                " with type " +
-                field.fieldType +
-                " category = " +
-                category +
-                JSON.stringify(field, null, "\t")
+            field.name +
+            " fieldTypeWithoutNS= " +
+            fieldTypeWithoutNS +
+            " with type " +
+            field.fieldType +
+            " category = " +
+            category +
+            JSON.stringify(field, null, "\t")
         );
     }
     return returnValue;
@@ -124,20 +123,25 @@ function buildField(
     fieldLight: FieldInterfaceOptions,
     _index: number
 ): FieldType {
-    const category = figureOutFieldCategory(fieldLight, dataTypeFactory);
+
+    const category =
+        (fieldLight.fieldType == underConstructSchema.name)
+            ? underConstructSchema.category
+            : figureOutFieldCategory(fieldLight, dataTypeFactory);
+
     const schema = figureOutSchema(underConstructSchema, dataTypeFactory, fieldLight, category);
 
     /* istanbul ignore next */
     if (!schema) {
         throw new Error(
             "expecting a valid schema for field with name " +
-                fieldLight.name +
-                " with type " +
-                fieldLight.fieldType +
-                " category" +
-                category +
-                " at index" +
-                _index
+            fieldLight.name +
+            " with type " +
+            fieldLight.fieldType +
+            " category" +
+            category +
+            " at index" +
+            _index
         );
     }
 
@@ -229,13 +233,13 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
         for (const f of this.fields) {
             str.push(
                 "  field   =  " +
-                    f.name.padEnd(30) +
-                    " isArray= " +
-                    (f.isArray ? true : false) +
-                    " " +
-                    f.fieldType.toString().padEnd(30) +
-                    (f.switchBit !== undefined ? " switchBit " + f.switchBit : "") +
-                    (f.switchValue !== undefined ? " switchValue    " + f.switchValue : "")
+                f.name.padEnd(30) +
+                " isArray= " +
+                (f.isArray ? true : false) +
+                " " +
+                f.fieldType.toString().padEnd(30) +
+                (f.switchBit !== undefined ? " switchBit " + f.switchBit : "") +
+                (f.switchValue !== undefined ? " switchValue    " + f.switchValue : "")
             );
         }
         return str.join("\n");
