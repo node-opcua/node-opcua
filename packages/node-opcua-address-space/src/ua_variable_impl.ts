@@ -94,6 +94,7 @@ import {
 import { adjustDataValueStatusCode } from "./data_access/adjust_datavalue_status_code";
 import { _getBasicDataType } from "./get_basic_datatype";
 import { validateDataTypeCorrectness } from "./validate_data_type_correctness";
+import { DataTypeIds } from "node-opcua-constants";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -1310,6 +1311,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
     public getDataTypeNode(): UADataType {
         const addressSpace = this.addressSpace;
+        if (this.dataType.isEmpty()) {
+            this.dataType = this.resolveNodeId(DataType.Variant);
+        }
         const dt = addressSpace.findNode(this.dataType);
         // istanbul ignore next
         if (!dt) {

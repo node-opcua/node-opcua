@@ -320,7 +320,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
     function _translateNodeId(nodeId: string): NodeId {
         if (alias_map[nodeId]) {
-            return alias_map[nodeId];
+            // note alias are already translated to the right namespaces
+            const aliasedNodeId =  alias_map[nodeId];
+            return aliasedNodeId;
         }
         const m = nodeId.match(reg);
         if (m) {
