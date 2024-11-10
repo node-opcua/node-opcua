@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-discovery",
-    "version": "2.133.0",
+    "version": "2.134.0",
     "description": "pure nodejs OPCUA SDK - module service-discovery",
     "scripts": {
         "build": "tsc -b",
@@ -15,7 +15,7 @@
         "node-opcua-assert": "2.120.0",
         "node-opcua-debug": "2.133.0",
         "node-opcua-object-registry": "2.133.0",
-        "node-opcua-types": "2.133.0",
+        "node-opcua-types": "2.134.0",
         "sterfive-bonjour-service": "1.1.4"
     },
     "author": "Etienne Rossignon",
