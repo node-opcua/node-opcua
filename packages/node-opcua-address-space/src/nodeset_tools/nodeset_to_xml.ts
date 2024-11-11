@@ -190,26 +190,28 @@ function _dumpReferences(xw: XmlWriter, node: BaseNode) {
     xw.endElement();
 }
 function _dumpLocalizedText(xw: XmlWriter, v: LocalizedText) {
+    const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
     if (v.locale && v.locale.length) {
-        xw.startElement("Locale");
+        xw.startElement(`${uax}Locale`);
         xw.text(v.locale);
         xw.endElement();
     }
-    xw.startElement("Text");
+    xw.startElement(`${uax}Text`);
     if (v.text) {
         xw.text(v.text);
     }
     xw.endElement();
 }
 function _dumpQualifiedName(xw: XmlWriter, v: QualifiedName) {
+    const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
     const t = translateBrowseName(xw, v);
     if (t.name) {
-        xw.startElement("Name");
+        xw.startElement(`${uax}Name`);
         xw.text(t.name);
         xw.endElement();
     }
     if (t.namespaceIndex) {
-        xw.startElement("NamespaceIndex");
+        xw.startElement(`${uax}NamespaceIndex`);
         xw.text(t.namespaceIndex.toString());
         xw.endElement();
     }
@@ -1065,11 +1067,11 @@ function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
             // throw new Error(" cannot find datatype " + node.dataType);
             debugLog(
                 " cannot find datatype " +
-                    node.dataType +
-                    " for node " +
-                    node.browseName.toString() +
-                    " id =" +
-                    node.nodeId.toString()
+                node.dataType +
+                " for node " +
+                node.browseName.toString() +
+                " id =" +
+                node.nodeId.toString()
             );
         } else {
             const dataTypeName = b(xw, resolveDataTypeName(addressSpace, dataTypeNode.nodeId));

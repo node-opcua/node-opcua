@@ -913,4 +913,63 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         xml2.should.match(/<ListOfExtensionObject/gm);
         xml2.should.match(/<\/ListOfExtensionObject/gm);
     });
+
+    it("NSXML10 -Variable containing a LocalizedTest", async () => {
+
+        const v = namespace.addVariable({
+            browseName: "TestVariableLT",
+            dataType: DataTypeIds.LocalizedText,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.LocalizedText,
+                value: coerceLocalizedText("Hello")
+            }
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        doDebug && console.log(xml);
+        xml2.should.match(/<uax:LocalizedText>/gm);
+        xml2.should.match(/ <uax:Text>/gm);
+    });
+    it("NSXML11 -Variable containing a QualifiedName", async () => {
+
+        const value = coerceQualifiedName({ name: "Hello", namespaceIndex: 1 });
+        value.name!.should.eql("Hello");
+        value.namespaceIndex.should.eql(1);
+
+        const v = namespace.addVariable({
+            browseName: "TestVariableQN",
+            dataType: DataTypeIds.QualifiedName,
+            organizedBy: addressSpace.rootFolder.objects,
+            value: {
+                dataType: DataType.QualifiedName,
+                value
+            }
+        });
+
+        v.readValue().value.value.name!.should.eql(value.name);
+        v.readValue().value.value.namespaceIndex!.should.eql(value.namespaceIndex);
+
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+        doDebug && console.log(xml);
+        doDebug &&  console.log(r_xml2);
+        xml2.should.match(/<uax:QualifiedName>/gm);
+        xml2.should.match(/ <uax:Name>/gm);
+        xml2.should.match(/ <uax:NamespaceIndex>/gm);
+    });
+
+
 });
