@@ -331,6 +331,8 @@ function _dumpVariantInnerExtensionObject(
     const namespaceUri = findXsdNamespaceUri(xw, definition.defaultEncodingId);
     const ns = getPrefix(xw, namespaceUri);
 
+    const isUnion = definition.structureType === StructureType.Union || definition.structureType ===  StructureType.UnionWithSubtypedValues;
+
     for (const field of definition.fields || []) {
         const dataTypeNodeId = field.dataType;
 
@@ -385,6 +387,13 @@ function _dumpVariantInnerExtensionObject(
             }
             restoreDefaultNamespace(xw);
             xw.endElement();
+        } else {
+            if (!isUnion && !field.isOptional) {
+                // field is mandatory but is null=> provide an empty array
+                startElementEx(xw, ns, fieldName, namespaceUri);
+                restoreDefaultNamespace(xw);
+                xw.endElement();
+            }
         }
     }
 }

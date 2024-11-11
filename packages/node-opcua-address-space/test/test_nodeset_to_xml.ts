@@ -971,5 +971,43 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         xml2.should.match(/ <uax:NamespaceIndex>/gm);
     });
 
+    it("NSXML12 - instance of methods", async () => {
+        var objectType = namespace.addObjectType({
+            browseName: "MyObjectType"
+        });
+        var method = namespace.addMethod(objectType, {
+            browseName: "MyMethod",
+            componentOf: objectType,
+            modellingRule: "Mandatory",
+            inputArguments: [
+                { name: "ShutterLag", dataType: DataType.UInt32 },
+            ],
+            outputArguments: [
+                { name: "Image", dataType: DataType.ExtensionObject },
+            ]
+        });
+
+        var instance = objectType.instantiate({
+            browseName: "Instance",
+            organizedBy: addressSpace.rootFolder.objects
+        });
+
+        const xml = namespace.toNodeset2XML();
+        const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
+        fs.writeFileSync(tmpFilename, xml);
+        doDebug && console.log(xml);
+        const r_xml2 = await reloadedNodeSet(tmpFilename);
+
+        const xml22 = r_xml2.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
+        doDebug && console.log(xml22);
+
+        r_xml2.split("\n").should.eql(xml2.split("\n"));
+
+        const match = r_xml2.match(/\<ArrayDimensions\/\>/gm);
+        doDebug && console.log(match);
+        should(match).not.eql(null);    
+        match?.length.should.eql(4); // 2 of input and output argument in Type and 2 for instance     
+    });
 
 });
