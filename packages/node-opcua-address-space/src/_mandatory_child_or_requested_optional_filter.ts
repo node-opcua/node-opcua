@@ -16,8 +16,10 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly instance: BaseNode;
     private readonly optionalsMap: any;
     private readonly references: UAReference[];
+    private readonly copyAlsoAllOptionals: boolean = false;
 
-    constructor(instance: BaseNode, optionalsMap: any) {
+    constructor(instance: BaseNode,copyAlsoAllOptionals: boolean, optionalsMap: any) {
+        this.copyAlsoAllOptionals = copyAlsoAllOptionals;
         // should we clone the node to be a component or propertyOf of a instance
         assert(optionalsMap !== null && typeof optionalsMap === "object");
         assert(null !== instance);
@@ -74,7 +76,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
                 return true; // keep;
             case "Optional":
                 // only if in requested optionals
-                return node.browseName!.name! in this.optionalsMap;
+                return this.copyAlsoAllOptionals || (node.browseName!.name! in this.optionalsMap);
             case "OptionalPlaceholder":
                 return false; // ignored
             default:
@@ -92,7 +94,7 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
         }
         // istanbul ignore next
         doTrace && traceLog("filterFor ", browseName, map);
-        const newFilter = new MandatoryChildOrRequestedOptionalFilter(childInstance, map);
+        const newFilter = new MandatoryChildOrRequestedOptionalFilter(childInstance, false, map);
         return newFilter;
     }
 }
