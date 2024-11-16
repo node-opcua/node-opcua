@@ -1,12 +1,11 @@
 import should from "should";
-import { AttributeIds } from "node-opcua-data-model";
-import { NodeId } from "node-opcua-nodeid";
-import { StatusCodes } from "node-opcua-status-code";
-import { DataType } from "node-opcua-variant";
+import { BrowseDirection } from "node-opcua-data-model";
+
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace, SessionContext, UAObject } from "..";
+import { addDefaultInstanceBrowseName, instantiateAddIn } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
 const context = SessionContext.defaultContext;
@@ -16,7 +15,7 @@ const doDebug = checkDebugFlag("TEST");
 
 // tslint:disable-next-line:no-var-requires
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing UAObjectType", () => {
+describe("testing UAObjectType instantiate with addins", () => {
     let addressSpace: AddressSpace;
 
     before(async () => {
@@ -51,6 +50,12 @@ describe("testing UAObjectType", () => {
 
         const machineToolType = addressSpace.findObjectType("MachineToolType", nsMachineTool);
         if (!machineToolType) throw new Error("MachineToolType not found");
+
+        const addins = machineToolType.findReferencesExAsObject("HasAddIn", BrowseDirection.Forward)!;
+        addins.length.should.eql(2);
+        addins[0].browseName.toString().should.eql("4:Components");
+        addins[0].browseName.toString().should.eql("4:Components");
+
         //instantiate node
         const machineTool = machineToolType.instantiate({
             browseName: "Machine",
@@ -75,4 +80,76 @@ describe("testing UAObjectType", () => {
         should.not.exist(machineTool.getChildByName("ComponentName"), "ComponentName node should not appear on the machine");
         should.not.exist(machineTool.getChildByName("AssetId"), "AssetId node should not appear on the machine");
     });
+});
+
+
+
+describe("testing addins - case 1", () => {
+
+    let addressSpace: AddressSpace;
+    beforeEach(async () => {
+        addressSpace = AddressSpace.create();
+        addressSpace.registerNamespace("Private");
+        await generateAddressSpace(addressSpace, [
+            nodesets.standard]
+        );
+    });
+    afterEach(() => {
+        if (addressSpace) {
+            addressSpace.dispose();
+        }
+    });
+
+
+
+    it("should create a type that has a AddIn", async () => {
+
+        const namespace1 = addressSpace.registerNamespace("Model");
+
+
+        const jobManagementType = namespace1.addObjectType({
+            browseName: "JobManagementType",
+            subtypeOf: "BaseObjectType",
+            description: "JobManagementType",
+        });
+
+        addDefaultInstanceBrowseName(jobManagementType, "JobManager");
+        namespace1.addObject({
+            componentOf: jobManagementType,
+            browseName: "JobOrderControl",
+            typeDefinition: "FolderType",   
+            modellingRule: "Mandatory"
+        });
+        namespace1.addObject({
+            componentOf: jobManagementType,
+            browseName: "JobOrderResults",
+            typeDefinition: "FolderType",
+            modellingRule: "Mandatory"
+        });
+
+
+        const machineType = namespace1.addObjectType({
+            browseName: "MachineType",
+            subtypeOf: "BaseObjectType",
+            description: "MachineType",
+        });
+
+        instantiateAddIn(jobManagementType, {
+            addInOf: machineType,
+            modellingRule: "Mandatory"
+        });
+
+        // now instantiate a machine
+        const namespace2 = addressSpace.registerNamespace("Instance");
+
+        const machine = machineType.instantiate({
+            browseName: "Machine",
+            organizedBy: addressSpace.rootFolder.objects,
+            namespace: namespace2
+        });
+
+        doDebug && console.log(machine.toString());
+        doDebug && console.log(machine.getChildByName("JobManager",2)!.toString());
+    });
+
 });
