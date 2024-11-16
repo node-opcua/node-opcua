@@ -47,6 +47,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
     topMostType: T,
     typeDefinitionNode: T,
     copyAlsoModellingRules: boolean,
+    copyAlsoAllOptionals: boolean,
     optionalsMap: OptionalMap,
     extraInfo: CloneHelper,
     browseNameMap: Set<string>
@@ -65,7 +66,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         return; // nothing to do
     }
 
-    const filter = new MandatoryChildOrRequestedOptionalFilter(instance, optionalsMap);
+    const filter = new MandatoryChildOrRequestedOptionalFilter(instance, copyAlsoAllOptionals, optionalsMap);
 
     doTrace &&
         traceLog(
@@ -99,6 +100,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
         topMostType,
         baseTypeDefinition,
         copyAlsoModellingRules,
+        copyAlsoAllOptionals,
         optionalsMap,
         extraInfo,
         browseNameMap
@@ -109,7 +111,10 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
 export function initialize_properties_and_components<
     B extends UAObject | UAVariable | UAMethod,
     T extends UAVariableType | UAObjectType
->(instance: B, topMostType: T, nodeType: T, copyAlsoModellingRules: boolean, optionals?: string[]): void {
+>(instance: B, topMostType: T, nodeType: T,
+    copyAlsoModellingRules: boolean,
+    copyAlsoAllOptionals: boolean,
+    optionals?: string[]): void {
     const extraInfo = new CloneHelper();
 
     extraInfo.pushContext({
@@ -130,6 +135,7 @@ export function initialize_properties_and_components<
         topMostType,
         nodeType,
         copyAlsoModellingRules,
+        copyAlsoAllOptionals,
         optionalsMap,
         extraInfo,
         browseNameMap

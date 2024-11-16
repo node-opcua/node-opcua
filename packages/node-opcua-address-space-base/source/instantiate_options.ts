@@ -88,4 +88,5 @@ export interface InstantiateOptions {
      * shall we also replicate the HasModelling rule reference ?
      */
     copyAlsoModellingRules?: boolean;
+    copyAlsoAllOptionals?: boolean;
 }

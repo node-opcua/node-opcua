@@ -147,7 +147,10 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
 
         const instance = namespace.addObject(opts);
 
-        initialize_properties_and_components(instance, baseObjectType, this, copyAlsoModellingRules, options.optionals);
+        const copyAlsoAllOptionals = options.copyAlsoAllOptionals || false;
+        initialize_properties_and_components(
+            instance, baseObjectType, this, 
+            copyAlsoModellingRules, copyAlsoAllOptionals, options.optionals);
 
         assert(instance.typeDefinition.toString() === this.nodeId.toString());
 

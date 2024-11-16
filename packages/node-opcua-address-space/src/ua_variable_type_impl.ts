@@ -50,8 +50,13 @@ interface InstantiateS {
     propertyOf?: any;
     componentOf?: any;
     modellingRule?: ModellingRuleType;
+    copyAlsoModellingRules?: boolean;
+    copyAlsoAllOptionals?: boolean;
 }
 export function topMostParentIsObjectTypeOrVariableType(addressSpace: AddressSpacePrivate, options: InstantiateS): boolean {
+    if (options.copyAlsoModellingRules) {
+        return true;
+    }
     if (options.modellingRule) {
         return true;
     }
@@ -288,8 +293,11 @@ export class UAVariableTypeImpl extends BaseNodeImpl implements UAVariableType {
         const instance = namespace.addVariable(opts);
 
         // xx assert(instance.minimumSamplingInterval === options.minimumSamplingInterval);
+        const copyAlsoAllOptionals = options.copyAlsoAllOptionals || false;
 
-        initialize_properties_and_components(instance, baseVariableType, this, copyAlsoModellingRules, options.optionals);
+        initialize_properties_and_components(
+            instance, baseVariableType, 
+            this, copyAlsoModellingRules, copyAlsoAllOptionals, options.optionals);
 
         // if VariableType is a type of Structure DataType
         // we need to instantiate a dataValue

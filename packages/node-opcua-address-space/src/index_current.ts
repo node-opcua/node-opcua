@@ -59,3 +59,4 @@ export * from "node-opcua-nodeset-ua";
 
 export * from "../src/validate_data_type_correctness";
 export * from "../source/ua_addin";
+export * from "../source/ua_interface";
