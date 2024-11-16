@@ -13,7 +13,6 @@ export * from "../source/helpers/ensure_secure_access";
 export * from "../source/helpers/resolve_opaque_on_address_space";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
 export * from "../src/nodeset_tools/construct_namespace_dependency";
-export * from "../src/validate_data_type_correctness";
 
 
 export * from "../source/set_namespace_meta_data";
@@ -57,3 +56,6 @@ export * from "./alarms_and_conditions";
 export * from "./event_data";
 
 export * from "node-opcua-nodeset-ua";
+
+export * from "../src/validate_data_type_correctness";
+export * from "../source/ua_addin";
