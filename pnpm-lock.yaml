@@ -1816,7 +1816,7 @@ importers:
         specifier: 2.133.0
         version: link:../node-opcua-leak-detector
       should:
-        specifier: 13.2.3
+        specifier: ^13.2.3
         version: 13.2.3
 
   packages/node-opcua-nodeid:
