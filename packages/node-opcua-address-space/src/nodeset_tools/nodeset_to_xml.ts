@@ -46,7 +46,7 @@ import { NamespaceImpl } from "../namespace_impl";
 import { UAMethodImpl } from "../ua_method_impl";
 import { UADataTypeImpl } from "../ua_data_type_impl";
 import { UAVariableTypeImpl } from "../ua_variable_type_impl";
-import { SessionContext } from "../index_current";
+import { AddressSpace, SessionContext } from "../index_current";
 import { UAViewImpl } from "../ua_view_impl";
 
 import { DefinitionMap2 } from "../../source/loader/make_xml_extension_object_parser";
@@ -56,6 +56,7 @@ import {
     constructNamespaceDependency,
     constructNamespacePriorityTable
 } from "./construct_namespace_dependency";
+import { start } from "repl";
 
 // tslint:disable:no-var-requires
 const XMLWriter = require("xml-writer");
@@ -305,10 +306,13 @@ function _dumpNodeId(xw: XmlWriter, v: NodeId) {
     xw.endElement();
 }
 
-// eslint-disable-next-line complexity
-function _dumpVariantValue(xw: XmlWriter, dataType: DataType, node: UAVariable | UAVariableType, value: any) {
-    const dataTypeNode = node.addressSpace.findDataType(node.dataType)!;
-
+function _dumpVariantValue(
+    xw: XmlWriter,
+    dataTypeNodeId: NodeId,
+    dataType: DataType,
+    addressSpace: IAddressSpace,
+    value: any
+) {
     if (value === undefined || value === null) {
         return;
     }
@@ -317,8 +321,8 @@ function _dumpVariantValue(xw: XmlWriter, dataType: DataType, node: UAVariable |
     }
     const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
     xw.startElement(`${uax}${DataType[dataType]}`);
-    const definitionMap = makeDefinitionMap(node.addressSpace);
-    _dumpVariantInnerValue(xw, dataType, dataTypeNode.nodeId, definitionMap, value);
+    const definitionMap = makeDefinitionMap(addressSpace);
+    _dumpVariantInnerValue(xw, dataType, dataTypeNodeId, definitionMap, addressSpace, value);
     xw.endElement();
 }
 
@@ -326,12 +330,13 @@ function _dumpVariantInnerExtensionObject(
     xw: XmlWriter,
     definitionMap: DefinitionMap2,
     definition: StructureDefinition,
+    addressSpace: IAddressSpace,
     value: ExtensionObject
 ) {
     const namespaceUri = findXsdNamespaceUri(xw, definition.defaultEncodingId);
     const ns = getPrefix(xw, namespaceUri);
 
-    const isUnion = definition.structureType === StructureType.Union || definition.structureType ===  StructureType.UnionWithSubtypedValues;
+    const isUnion = definition.structureType === StructureType.Union || definition.structureType === StructureType.UnionWithSubtypedValues;
 
     for (const field of definition.fields || []) {
         const dataTypeNodeId = field.dataType;
@@ -358,12 +363,19 @@ function _dumpVariantInnerExtensionObject(
                 /** */
             };
             if (definition instanceof StructureDefinition) {
-                fun = _dumpVariantInnerExtensionObject.bind(null, xw, definitionMap, definition);
+                fun = _dumpVariantInnerExtensionObject.bind(null, xw, definitionMap, definition, addressSpace);
             } else if (definition instanceof EnumDefinition) {
                 fun = _dumpVariantInnerValueEnum.bind(null, xw, definition);
+            } else if (definition?.dataType == DataType.Variant) {
+                fun = (value: Variant)=> {
+                    
+                    xw.startElement("Value");
+                    _dumpVariantValue(xw, field.dataType, value.dataType, addressSpace, value.value);
+                    xw.endElement();
+                }
             } else {
                 const baseType = definition.dataType;
-                fun = _dumpVariantInnerValue.bind(null, xw, baseType, dataTypeNodeId, definitionMap);
+                fun = _dumpVariantInnerValue.bind(null, xw, baseType, dataTypeNodeId, definitionMap, addressSpace);
             }
             try {
                 if (field.valueRank === -1) {
@@ -412,6 +424,7 @@ function _dumpVariantInnerValue(
     dataType: DataType,
     dataTypeNodeId: NodeId,
     definitionMap: DefinitionMap2,
+    addressSpace: IAddressSpace,
     value: any
 ): void {
     const uax = getPrefix(xw, "http://opcfoundation.org/UA/2008/02/Types.xsd");
@@ -468,13 +481,16 @@ function _dumpVariantInnerValue(
             break;
 
         case DataType.ExtensionObject:
-            _dumpVariantExtensionObjectValue(xw, dataTypeNodeId, definitionMap, value as ExtensionObject);
+            _dumpVariantExtensionObjectValue(xw, dataTypeNodeId, definitionMap, addressSpace, value as ExtensionObject);
             break;
         case DataType.XmlElement:
             _dumpXmlElement(xw, value as string);
             break;
         case DataType.StatusCode:
             xw.text((value as StatusCode).value.toString());
+            break;
+        case DataType.Variant:
+            _dumpVariantInnerValue(xw, value.dataType, dataTypeNodeId, definitionMap, addressSpace, value.value);
             break;
         default:
             errorLog("_dumpVariantInnerValue incomplete " + value + " " + "DataType=" + dataType + "=" + DataType[dataType]);
@@ -494,6 +510,7 @@ function _dumpVariantExtensionObjectValue_Body(
     definitionMap: DefinitionMap2,
     name: string,
     definition: StructureDefinition,
+    addressSpace: IAddressSpace,
     value: any
 ) {
     if (value) {
@@ -501,7 +518,7 @@ function _dumpVariantExtensionObjectValue_Body(
         const ns = getPrefix(xw, namespaceUri);
         startElementEx(xw, ns, `${name}`, namespaceUri);
         if (value) {
-            _dumpVariantInnerExtensionObject(xw, definitionMap, definition, value);
+            _dumpVariantInnerExtensionObject(xw, definitionMap, definition, addressSpace, value);
         }
         restoreDefaultNamespace(xw);
         xw.endElement();
@@ -512,6 +529,7 @@ function _dumpVariantExtensionObjectValue(
     xw: XmlWriter,
     dataTypeNodeId: NodeId,
     definitionMap: DefinitionMap2,
+    addressSpace: IAddressSpace,
     value: ExtensionObject
 ) {
     const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
@@ -537,7 +555,13 @@ function _dumpVariantExtensionObjectValue(
         xw.endElement();
         startElementEx(xw, uax, "Body", "http://opcfoundation.org/UA/2008/02/Types.xsd");
 
-        _dumpVariantExtensionObjectValue_Body(xw, definitionMap, name, definition as StructureDefinition, value);
+        _dumpVariantExtensionObjectValue_Body(
+            xw,
+            definitionMap,
+            name,
+            definition as StructureDefinition,
+            addressSpace,
+            value);
 
         restoreDefaultNamespace(xw);
         xw.endElement();
@@ -554,7 +578,7 @@ function _dumpVariantExtensionObjectValue2(xw: XmlWriter, addressSpace: IAddress
         warningLog("_dumpVariantExtensionObjectValue2: Cannot find dataType for  ", dataTypeNodeId.toString());
         return;
     }
-    _dumpVariantExtensionObjectValue(xw, dataTypeNode.nodeId, definitionMap, value);
+    _dumpVariantExtensionObjectValue(xw, dataTypeNode.nodeId, definitionMap,addressSpace, value);
 }
 
 // eslint-disable-next-line complexity
@@ -677,7 +701,7 @@ function _dumpValue(xw: XmlWriter, node: UAVariable | UAVariableType, variant: V
                 errorLog("_dumpValue : unsupported arrayType: ", variant.arrayType);
         }
     } else {
-        const encodeXml = _dumpVariantValue.bind(null, xw, variant.dataType, node);
+        const encodeXml = _dumpVariantValue.bind(null, xw, node.dataType, variant.dataType, node.addressSpace);
         switch (variant.arrayType) {
             case VariantArrayType.Matrix:
             case VariantArrayType.Array:

@@ -639,8 +639,6 @@ describe("Testing variables loading ", function (this: any) {
         const ns = addressSpace.getNamespaceIndex("mydemo/");
 
         let variable = addressSpace.rootFolder.objects.getFolderElementByName("VariableTwoStateDiscrete", ns)! as UAVariable;
-        variable = variable || ((addressSpace.rootFolder.objects as any).variableTwoStateDiscrete as UAVariable);
-
         should.exists(variable);
 
         const trueState = variable.getChildByName("TrueState")! as UAVariable;

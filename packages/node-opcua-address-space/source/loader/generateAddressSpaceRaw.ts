@@ -1,7 +1,7 @@
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { CallbackT } from "node-opcua-status-code";
 import { IAddressSpace, RequiredModel } from "node-opcua-address-space-base";
-import { ReaderStateParserLike, Xml2Json } from "node-opcua-xml2json";
+import { ReaderStateParser, ReaderStateParserLike, Xml2Json } from "node-opcua-xml2json";
 import { getMinOPCUADate } from "node-opcua-date-time";
 import { adjustNamespaceArray } from "../../src/nodeset_tools/adjust_namespace_array";
 import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
@@ -25,14 +25,14 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
 
     const models: Model[] = [];
     let currentModel: Model | undefined = undefined;
-    const state0: ReaderStateParserLike = {
+    const state0: ReaderStateParser = {
         parser: {
             UANodeSet: {
                 parser: {
                     NamespaceUris: {
                         parser: {
-                            Uri: {
-                                finish() {
+                            Uri: <ReaderStateParserLike & { text: string }>{
+                                finish(this: ReaderStateParserLike & {text: string}) {
                                     namespaceUris.push(this.text);
                                 }
                             }

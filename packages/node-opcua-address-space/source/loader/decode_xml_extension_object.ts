@@ -1,7 +1,7 @@
 import { IAddressSpace, UADataType } from "node-opcua-address-space-base";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { NodeId } from "node-opcua-nodeid";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { NodeClass } from "node-opcua-types";
 import { Xml2Json } from "node-opcua-xml2json";
 
@@ -55,7 +55,8 @@ export function makeDefinitionMap(addressSpace: IAddressSpace): DefinitionMap2 {
 export function decodeXmlExtensionObject(
     addressSpace: IAddressSpace,
     encodingNodeId: NodeId,
-    xmlBody: string
+    xmlBody: string,
+    translateNodeId: (nodeId: string) => NodeId
 ): ExtensionObject | null {
     const definitionMap = makeDefinitionMap(addressSpace);
 
@@ -64,7 +65,7 @@ export function decodeXmlExtensionObject(
     //  const { name, definition } = definitionMap.findDefinition(dataType.nodeId);
     // const hasOptionalFields = definition.fields!.some((field) => field.isOptional);
 
-    const reader = makeXmlExtensionObjectReader(dataType.nodeId, definitionMap, {});
+    const reader = makeXmlExtensionObjectReader(dataType.nodeId, definitionMap, {}, translateNodeId);
     const parser2 = new Xml2Json(reader);
     const pojo = parser2.parseStringSync(xmlBody);
 

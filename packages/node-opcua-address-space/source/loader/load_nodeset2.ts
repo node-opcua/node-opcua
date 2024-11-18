@@ -18,31 +18,24 @@ import {
     UAVariableType
 } from "node-opcua-address-space-base";
 import { assert, renderError } from "node-opcua-assert";
-import { coerceInt64, coerceUInt64, Int64, isValidGuid, StatusCodes, UInt64 } from "node-opcua-basic-types";
-import { EUInformation } from "node-opcua-data-access";
+import { StatusCodes } from "node-opcua-basic-types";
 import {
     AccessLevelFlag,
     coerceLocalizedText,
-    LocalizedTextOptions,
+    LocalizedText,
     makeAccessLevelFlag,
     NodeClass,
     QualifiedName,
-    QualifiedNameOptions,
     stringToQualifiedName
 } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
 import { getBuiltInType } from "node-opcua-factory";
-import { NodeId, NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
-import { Argument } from "node-opcua-service-call";
+import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { ErrorCallback } from "node-opcua-status-code";
-import { EnumFieldOptions, EnumValueType, Range, StructureFieldOptions } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
+import { EnumFieldOptions, StructureFieldOptions } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType, VariantOptions, VariantOptionsT } from "node-opcua-variant";
 import {
     _definitionParser,
-    FragmentClonerParser,
-    InternalFragmentClonerReaderState,
-    ParserLike,
     ReaderState,
     ReaderStateParserLike,
     Xml2Json,
@@ -56,8 +49,9 @@ import { NamespacePrivate } from "../../src/namespace_private";
 import { NodeSetLoaderOptions } from "../interfaces/nodeset_loader_options";
 import { promoteObjectsAndVariables } from "./namespace_post_step";
 import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
-import { decodeXmlExtensionObject } from "./decode_xml_extension_object";
 import { makeSemverCompatible } from "./make_semver_compatible";
+import { makeVariantReader } from "./parsers/variant_parser";
+import { ExtensionObject } from "node-opcua-extension-object";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -91,7 +85,12 @@ function convertAccessLevel(accessLevel?: string | null): AccessLevelFlag {
 
 type Task = (addressSpace: IAddressSpace) => Promise<void>;
 
-function makeDefaultVariant(addressSpace: IAddressSpace, dataTypeNode: NodeId, valueRank: number, arrayDimensions?: number[]  |null): VariantOptions | undefined {
+function makeDefaultVariant(
+    addressSpace: IAddressSpace,
+    dataTypeNode: NodeId,
+    valueRank: number,
+    arrayDimensions?: number[] | null
+): VariantOptions | undefined {
     let variant: VariantOptions = { dataType: DataType.Null };
 
     const nodeDataType = addressSpace.findNode(dataTypeNode) as UADataType;
@@ -385,7 +384,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             }
         }
     };
-
+    // #region UAObject
     const state_UAObject = {
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
@@ -423,7 +422,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             References: references_parser
         }
     };
-
+    // #endregion
+    // #region UAObjectType
     const state_UAObjectType = {
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
@@ -454,7 +454,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             References: references_parser
         }
     };
-
+    // #endregion
+    // #region UAReferenceType
     const state_UAReferenceType = {
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
@@ -489,9 +490,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             References: references_parser
         }
     };
-
+    // #endregion
+    // #region UADataType
     const pendingSimpleTypeToRegister: any[] = [];
-
     const state_UADataType = {
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
@@ -562,778 +563,11 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             Definition: _definitionParser
         }
     };
-
-    const localizedText_parser = {
-        LocalizedText: {
-            init(this: any) {
-                this.localizedText = {};
-            },
-            parser: {
-                Locale: {
-                    finish(this: any) {
-                        this.parent.localizedText.locale = this.text.trim();
-                    }
-                },
-                Text: {
-                    finish(this: any) {
-                        this.parent.localizedText.text = this.text.trim();
-                    }
-                }
-            }
-        }
-    };
-    interface QualifiedNameParserChild {
-        parent: {
-            qualifiedName: QualifiedNameOptions;
-        };
-        text: string;
-    }
-    const qualifiedName_parser = {
-        QualifiedName: {
-            init(this: any) {
-                this.qualifiedName = {
-                    namespaceIndex: 0,
-                    name: null
-                } as QualifiedNameOptions;
-            },
-            parser: {
-                Name: {
-                    finish(this: QualifiedNameParserChild) {
-                        this.parent.qualifiedName.name = this.text.trim();
-                    }
-                },
-                NamespaceIndex: {
-                    finish(this: QualifiedNameParserChild) {
-                        const ns = parseInt(this.text, 10);
-                        const t = _translateNodeId(resolveNodeId(`ns=${ns};i=1`).toString());
-                        this.parent.qualifiedName.namespaceIndex = t.namespace;
-                    }
-                }
-            }
-        }
-    };
-    const nodeId_parser = {
-        NodeId: {
-            init(this: any) {
-                this.nodeId = "";
-            },
-            parser: {
-                Identifier: {
-                    finish(this: any) {
-                        this.parent.nodeId = _translateNodeId(resolveNodeId(this.text.trim()).toString());
-                    }
-                }
-            }
-        }
-    };
-    const enumValueType_parser = {
-        EnumValueType: {
-            init(this: any) {
-                this.enumValueType = new EnumValueType({
-                    description: undefined,
-                    displayName: undefined,
-                    value: coerceInt64(-1)
-                });
-            },
-            parser: {
-                Value: {
-                    // note: Value may be missing, in this case value shall be set to -1(64)
-                    finish(this: any) {
-                        // Low part
-                        this.parent.enumValueType.value = coerceInt64(parseInt(this.text, 10));
-                    }
-                },
-
-                DisplayName: {
-                    ...localizedText_parser.LocalizedText,
-                    finish(this: any) {
-                        this.parent.enumValueType.displayName = { ...this.localizedText };
-                    }
-                },
-
-                Description: {
-                    ...localizedText_parser.LocalizedText,
-                    finish(this: any) {
-                        this.parent.enumValueType.description = { ...this.localizedText };
-                    }
-                }
-            },
-            finish(this: any) {
-                this.enumValueType = new EnumValueType(this.enumValueType);
-            }
-        }
-    };
-
-    const argument_parser = {
-        Argument: {
-            init(this: any) {
-                this.argument = new Argument({});
-            },
-            parser: {
-                Name: {
-                    finish(this: any) {
-                        this.parent.argument.name = this.text.trim();
-                    }
-                },
-
-                DataType: {
-                    parser: {
-                        Identifier: {
-                            finish(this: any) {
-                                this.parent.parent.argument.dataType = _translateNodeId(resolveNodeId(this.text.trim()).toString());
-                            }
-                        }
-                    }
-                },
-                ValueRank: {
-                    finish(this: any) {
-                        this.parent.argument.valueRank = parseInt(this.text.trim(), 10);
-                    }
-                },
-
-                ArrayDimensions: {
-                    finish(this: any) {
-                        // xx  this.parent.argument.arrayDimensions =[];
-                    }
-                },
-                Description: {
-                    init(this: any) {
-                        this._text = "";
-                        this.locale = null;
-                        this.text = null;
-                    },
-                    parser: {
-                        Locale: {
-                            init(this: any) {
-                                this.text = "";
-                            },
-                            finish(this: any) {
-                                this.parent.locale = this.text.trim();
-                            }
-                        },
-                        Text: {
-                            finish(this: any) {
-                                this.text = this.text || "";
-                                this.parent._text = this.text.trim();
-                            }
-                        }
-                    },
-                    finish(this: any) {
-                        this.parent.argument.description = coerceLocalizedText(this._text);
-                    }
-                }
-            },
-            finish(this: any) {
-                // xx this.argument = new Argument(this.argument);
-            }
-        }
-    };
-
-    const Range_parser = {
-        Range: {
-            init(this: any) {
-                this.range = new Range({});
-            },
-            parser: {
-                Low: {
-                    finish(this: any) {
-                        this.parent.range.low = parseFloat(this.text);
-                    }
-                },
-
-                High: {
-                    finish(this: any) {
-                        this.parent.range.high = parseFloat(this.text);
-                    }
-                }
-            }
-        }
-    };
-
-    const EUInformation_parser = {
-        EUInformation: {
-            init(this: any) {
-                this.euInformation = new EUInformation({});
-            },
-            parser: {
-                NamespaceUri: {
-                    finish(this: any) {
-                        this.parent.euInformation.namespaceUri = this.text;
-                    }
-                },
-                UnitId: {
-                    finish(this: any) {
-                        this.parent.euInformation.unitId = parseInt(this.text, 10);
-                    }
-                },
-
-                DisplayName: {
-                    ...localizedText_parser.LocalizedText,
-                    finish(this: any) {
-                        this.parent.euInformation.displayName = { ...this.localizedText };
-                    }
-                },
-
-                Description: {
-                    ...localizedText_parser.LocalizedText,
-                    finish(this: any) {
-                        this.parent.euInformation.description = { ...this.localizedText };
-                    }
-                }
-            },
-            finish(this: any) {
-                this.euInformation = new EUInformation(this.euInformation);
-            }
-        }
-    };
-
-    const _extensionObject_inner_parser = {
-        TypeId: {
-            parser: {
-                Identifier: {
-                    finish(this: ExtensionObjectTypeIdIdentifierParser) {
-                        const typeDefinitionId = this.text.trim();
-                        const self = this.parent.parent; // ExtensionObject
-                        self.typeDefinitionId = resolveNodeId(typeDefinitionId);
-                    }
-                }
-            }
-        },
-
-        Body2: new FragmentClonerParser(),
-
-        Body: {
-            parser: {
-                Argument: argument_parser.Argument,
-                EUInformation: EUInformation_parser.EUInformation,
-                EnumValueType: enumValueType_parser.EnumValueType,
-                Range: Range_parser.Range
-            },
-            startElement(this: ExtensionObjectBodyParser, elementName: string, attrs: any) {
-                const self = this.parent; // ExtensionObject
-                self.extensionObject = null;
-                self.extensionObjectPojo = null;
-
-                if (!Object.prototype.hasOwnProperty.call(this.parser, elementName)) {
-                    // treat it as a opaque XML bloc for the time being
-                    // until we find the definition of this object, so we know how to interpret the fields
-                    this._cloneFragment = new InternalFragmentClonerReaderState();
-                    this.engine!._promote(this._cloneFragment, this.engine!.currentLevel, elementName, attrs);
-                }
-            },
-            finish(this: ExtensionObjectBodyParser) {
-                const self = this.parent; // ExtensionObject
-
-                // typeDefinitionId is also the "Default XML" encoding nodeId !
-                switch (self.typeDefinitionId.toString()) {
-                    case "i=7616": // EnumValueType
-                    case "ns=0;i=7616": // EnumValueType
-                        self.extensionObject = self.parser.Body.parser.EnumValueType.enumValueType;
-                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
-                        assert(self.extensionObject instanceof ExtensionObject);
-                        break;
-                    case "i=297": // Arguments
-                    case "ns=0;i=297": // Arguments
-                        self.extensionObject = self.parser.Body.parser.Argument.argument;
-                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
-                        assert(self.extensionObject instanceof ExtensionObject);
-                        break;
-                    case "i=888":
-                    case "ns=0;i=888": // EUInformation
-                        self.extensionObject = self.parser.Body.parser.EUInformation.euInformation;
-                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
-                        assert(self.extensionObject instanceof ExtensionObject);
-                        break;
-                    case "i=885": // Range
-                    case "ns=0;i=885":
-                        self.extensionObject = self.parser.Body.parser.Range.range;
-                        assert(self.extensionObject !== null && typeof self.extensionObject === "object");
-                        assert(self.extensionObject instanceof ExtensionObject);
-                        break;
-                    default: {
-                        // istanbul ignore next
-                        if (!this._cloneFragment) {
-                            // the XML file is probably not exposing standard UA extension object correctly.
-                            // this has been seen in some generated xml files using the dataType nodeId instead of the default encoding
-                            // nodeid
-                            errorLog(
-                                "[NODE-OPCUA-E12] standard OPCUA Extension object from (namespace=0) has a invalid TypeId",
-                                self.typeDefinitionId.toString()
-                            );
-                            break;
-                        }
-                        this.bodyXML = this._cloneFragment!.value;
-                        this._cloneFragment!.value = null;
-
-                        // the "Default Xml" encoding  nodeId
-                        const xmlEncodingNodeId = _translateNodeId(self.typeDefinitionId.toString());
-
-                        if (xmlEncodingNodeId.isEmpty()) {
-                            debugLog("xmlEncodingNodeId is empty for " + self.typeDefinitionId.toString());
-                            break;
-                        }
-                        let captureXmlBody = this.bodyXML;
-                        // istanbul ignore next
-                        if (doDebug) {
-                            debugLog("xxxx ", chalk.yellow(captureXmlBody));
-                        }
-                        // this is a user defined Extension Object
-                        // istanbul ignore next
-                        debugLog(
-                            "load nodeset2: typeDefinitionId in ExtensionObject Default XML = " + xmlEncodingNodeId.toString()
-                        );
-
-                        let captured = self.postTaskData;
-                        self.extensionObjectPojo = null;
-                        const task = async (addressSpace2: IAddressSpace) => {
-                            const extensionObject: ExtensionObject | null = await decodeXmlExtensionObject(
-                                addressSpace2,
-                                xmlEncodingNodeId,
-                                captureXmlBody
-                            );
-                            if (captured) {
-                                captured.postponedExtensionObject = extensionObject;
-                            }
-                            (captureXmlBody as any) = undefined;
-                            (captured as any) = undefined;
-                        };
-                        postTasks0_DecodePojoString.push(task);
-                        assert(!self.extensionObject || self.extensionObject instanceof ExtensionObject);
-
-                        break;
-                    }
-                }
-            }
-        }
-    };
-
-    const extensionObject_parser = {
-        ExtensionObject: {
-            init(this: ExtensionObjectParser) {
-                this.typeDefinitionId = NodeId.nullNodeId;
-                this.extensionObject = null;
-                this.extensionObjectPojo = null;
-                this.postTaskData = { postponedExtensionObject: null };
-            },
-            parser: _extensionObject_inner_parser,
-            finish(this: ExtensionObjectParser) {
-                /* empty */
-            }
-        }
-    };
-
-    function BasicType_parser<T>(dataType: string, parseFunc: (this: { value: T | undefined }, text: string) => any): ParserLike {
-        const _parser: ParserLike = {};
-
-        const r: ReaderStateParserLike = {
-            init(this: { value: T | undefined }, name: string, attrs: XmlAttributes) {
-                this.value = undefined;
-            },
-
-            finish(this: { value: T | undefined; text: string }) {
-                this.value = parseFunc.call(this, this.text);
-            }
-        };
-        _parser[dataType] = r;
-        return _parser;
-    }
-
-    function ListOf<T>(dataType: string, parseFunc: any) {
-        return {
-            init(this: ListOfTParser<T>) {
-                this.listData = [];
-            },
-
-            parser: BasicType_parser<T>(dataType, parseFunc),
-
-            finish(this: ListOfTParser<T>) {
-                this.parent.parent.obj.value = {
-                    arrayType: VariantArrayType.Array,
-                    dataType: (DataType as any)[dataType],
-                    value: this.listData
-                };
-            },
-            endElement(this: ListOfTParser<T>, element: string) {
-                this.listData.push(this.parser[dataType].value);
-            }
-        };
-    }
-
-    function parser2(type: string, p: (a: any) => any): any {
-        return {
-            finish(this: any) {
-                this.parent.parent.obj.value = {
-                    arrayType: VariantArrayType.Scalar,
-                    dataType: (DataType as any)[type],
-                    value: p(this.text)
-                };
-            }
-        };
-    }
-
-    interface PostExtensionObjectData {
-        postponedExtensionObject: ExtensionObject | null;
-        // variant: Variant;
-        // nodeId: NodeId;
-    }
-    interface ExtensionObjectParser {
-        parent: any;
-        typeDefinitionId: NodeId;
-        extensionObject: ExtensionObject | null;
-        extensionObjectPojo: any | null;
-        postTaskData?: PostExtensionObjectData;
-        parser: {
-            Body: ExtensionObjectBodyParser;
-        };
-    }
-
-    interface ExtensionObjectTypeIdParser {
-        parent: ExtensionObjectParser;
-    }
-    interface ExtensionObjectTypeIdIdentifierParser {
-        text: string;
-        parent: ExtensionObjectTypeIdParser;
-    }
-
-    interface ExtensionObjectBodyParser {
-        parent: ExtensionObjectParser;
-        _cloneFragment: InternalFragmentClonerReaderState;
-        bodyXML: string;
-        engine: any;
-        NodeSet2ParserEngine: any;
-        parser: any;
-    }
-
-    interface Parser {
-        parent: Parser | any;
-    }
-    interface ListOfTParser<T> extends Parser {
-        listData: T[];
-        parent: Parser;
-        parser: {
-            [key: string]: Parser | any;
-        };
-    }
-
-    interface ListOfExtensionObjectParser extends ListOfTParser<ExtensionObject> {
-        listExtensionObject: (ExtensionObject | null)[];
-        parser: {
-            ExtensionObject: ExtensionObjectParser;
-        };
-    }
-
-    const parseUInt64 = (str: string): UInt64 => coerceUInt64(str);
-    const parseInt64 = (str: string): Int64 => coerceInt64(str);
-
-    const state_Variant = {
-        init: () => {
-            /* empty */
-        },
-        parser: {
-            QualifiedName: {
-                ...qualifiedName_parser.QualifiedName,
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.QualifiedName,
-                        value: this.qualifiedName
-                    };
-                }
-            },
-            LocalizedText: {
-                ...localizedText_parser.LocalizedText,
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.LocalizedText,
-                        value: this.localizedText
-                    };
-                }
-            },
-            XmlElement: {
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.XmlElement,
-                        value: this.text
-                    };
-                }
-            },
-            String: {
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.String,
-                        value: this.text
-                    };
-                }
-            },
-
-            Guid: {
-                parser: {
-                    String: {
-                        finish(this: any) {
-                            const guid = this.text;
-                            if (!isValidGuid(guid)) {
-                                /* ?*/
-                            }
-                            this.parent.parent.parent.obj.value = {
-                                dataType: DataType.Guid,
-                                arrayType: VariantArrayType.Scalar,
-                                value: this.text
-                            };
-                        }
-                    }
-                }
-            },
-
-            NodeId: {
-                parser: {
-                    Identifier: {
-                        finish(this: any) {
-                            const nodeId = this.text;
-                            this.parent.parent.parent.obj.value = {
-                                dataType: DataType.NodeId,
-                                arrayType: VariantArrayType.Scalar,
-                                value: _translateNodeId(resolveNodeId(nodeId).toString())
-                            };
-                        }
-                    }
-                }
-            },
-
-            Boolean: parser2("Boolean", coerceBoolean),
-            Byte: parser2("Byte", parseInt),
-            Int16: parser2("Int16", parseInt),
-            Int32: parser2("Int32", parseInt),
-            Int8: parser2("Int8", parseInt),
-            SByte: parser2("SByte", parseInt),
-            UInt16: parser2("UInt16", parseInt),
-            UInt32: parser2("UInt32", parseInt),
-            UInt8: parser2("UInt8", parseInt),
-
-            UInt64: parser2("UInt64", parseUInt64),
-            Int64: parser2("Int64", parseInt64),
-
-            ByteString: {
-                init(this: any) {
-                    this.value = null;
-                },
-                finish(this: any) {
-                    const base64text = this.text;
-                    const byteString = Buffer.from(base64text, "base64");
-                    this.parent.parent.obj.value = {
-                        arrayType: VariantArrayType.Scalar,
-                        dataType: DataType.ByteString,
-                        value: byteString
-                    };
-                }
-            },
-            Float: {
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.Float,
-                        value: parseFloat(this.text)
-                    };
-                }
-            },
-
-            Double: {
-                finish(this: any) {
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.Double,
-                        value: parseFloat(this.text)
-                    };
-                }
-            },
-
-            ListOfExtensionObject: {
-                init(this: ListOfExtensionObjectParser) {
-                    this.listExtensionObject = [];
-                },
-                parser: extensionObject_parser,
-                finish(this: ListOfExtensionObjectParser) {
-                    installExtensionObjectListInitializationPostTask(this);
-                },
-                startElement(this: ListOfExtensionObjectParser, elementName: string) {
-                    /* empty */
-                    const extensionObjectParser = this.parser.ExtensionObject;
-                    extensionObjectParser.postTaskData = { postponedExtensionObject: null };
-                },
-                endElement(this: ListOfExtensionObjectParser, elementName: string) {
-                    const extensionObjectParser = this.parser.ExtensionObject;
-
-                    this.listExtensionObject.push(extensionObjectParser.extensionObject);
-                    if (this.parser.ExtensionObject.extensionObject === null) {
-                        // extension object creation will be postponed
-                        const index = this.listExtensionObject.length - 1;
-                        let capturedData = extensionObjectParser.postTaskData;
-
-                        // istanbul ignore next
-                        if (!capturedData) {
-                            throw new Error("Internal Error : postponedExtensionObject not resolved");
-                        }
-
-                        let listExtensionObject = this.listExtensionObject;
-                        const task = async (addressSpace2: IAddressSpace) => {
-                            // istanbul ignore next
-                            if (!capturedData!.postponedExtensionObject) {
-                                throw new Error("Internal Error : postponedExtensionObject not resolved");
-                            }
-                            listExtensionObject[index] = capturedData!.postponedExtensionObject!;
-                            capturedData = undefined;
-                            (listExtensionObject as any) = undefined;
-                        };
-                        postTasks2_AssignedExtensionObjectToDataValue.push(task);
-                    }
-                }
-            },
-
-            ListOfLocalizedText: {
-                init(this: ListOfTParser<LocalizedTextOptions>) {
-                    this.listData = [];
-                },
-                parser: localizedText_parser,
-                finish(this: ListOfTParser<QualifiedNameOptions>) {
-                    this.parent.parent.obj.value = {
-                        arrayType: VariantArrayType.Array,
-                        dataType: DataType.LocalizedText,
-                        value: this.listData
-                    };
-                },
-                endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
-                    this.listData.push(this.parser.LocalizedText.localizedText);
-                }
-            },
-            ListOfQualifiedName: {
-                init(this: ListOfTParser<QualifiedNameOptions>) {
-                    this.listData = [];
-                },
-                parser: qualifiedName_parser,
-                finish(this: ListOfTParser<QualifiedNameOptions>) {
-                    this.parent.parent.obj.value = {
-                        arrayType: VariantArrayType.Array,
-                        dataType: DataType.QualifiedName,
-                        value: this.listData
-                    };
-                },
-                endElement(this: ListOfTParser<QualifiedNameOptions> /*element*/) {
-                    this.listData.push(this.parser.QualifiedName.qualifiedName);
-                }
-            },
-            ListOfNodeId: {
-                init(this: ListOfTParser<NodeIdLike>) {
-                    this.listData = [];
-                },
-                parser: nodeId_parser,
-                finish(this: ListOfTParser<NodeIdLike>) {
-                    this.parent.parent.obj.value = {
-                        arrayType: VariantArrayType.Array,
-                        dataType: DataType.NodeId,
-                        value: this.listData
-                    };
-                },
-                endElement(this: ListOfTParser<NodeIdLike>, elementName: string) {
-                    this.listData.push(this.parser.NodeId.nodeId);
-                }
-            },
-
-            ListOfBoolean: ListOf<boolean>("Boolean", coerceBoolean),
-
-            ListOfByte: ListOf<number>("Byte", parseInt),
-
-            ListOfDouble: ListOf<number>("Double", parseFloat),
-
-            ListOfFloat: ListOf<number>("Float", parseFloat),
-
-            ListOfInt32: ListOf<number>("Int32", parseInt),
-
-            ListOfInt16: ListOf<number>("Int16", parseInt),
-
-            ListOfInt8: ListOf<number>("Int8", parseInt),
-
-            ListOfUInt32: ListOf<number>("UInt32", parseInt),
-
-            ListOfUInt16: ListOf<number>("UInt16", parseInt),
-
-            ListOfUInt8: ListOf<number>("UInt8", parseInt),
-
-            ListOfString: ListOf<string>("String", (value: string) => value),
-
-            ListOfXmlElement: ListOf<string>("XmlElement", (value: string) => value),
-
-            ExtensionObject: {
-                init(this: ExtensionObjectParser) {
-                    this.typeDefinitionId = NodeId.nullNodeId;
-                    this.extensionObject = null;
-                    this.postTaskData = { postponedExtensionObject: null };
-                },
-                parser: _extensionObject_inner_parser,
-                finish(this: ExtensionObjectParser) {
-                    // istanbul ignore next
-                    if (this.extensionObject && !(this.extensionObject instanceof ExtensionObject)) {
-                        throw new Error("expecting an extension object");
-                    }
-                    this.parent.parent.obj.value = {
-                        dataType: DataType.ExtensionObject,
-                        value: this.extensionObject
-                    };
-                    if (!this.extensionObject) {
-                        installExtensionObjectInitializationPostTask(this);
-                    }
-                }
-            }
-        }
-    };
-
-    function installExtensionObjectListInitializationPostTask(element: ListOfExtensionObjectParser) {
-        let listExtensionObject = element.listExtensionObject;
-        let nodeId = element.parent.parent.obj.nodeId;
-        assert(nodeId, "expecting a nodeid");
-        const task = async (addressSpace2: IAddressSpace) => {
-            const node = addressSpace2.findNode(nodeId)!;
-            if (!node) {
-                debugLog("Cannot find node with nodeId " + nodeId + ". may be the node was marked as deprecated");
-            } else if (node.nodeClass === NodeClass.Variable) {
-                const v = node as UAVariable;
-                assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");
-                v.bindExtensionObject(listExtensionObject as ExtensionObject[], { createMissingProp: false });
-            } else if (node.nodeClass === NodeClass.VariableType) {
-                // no need to bind a variable type
-                const v = node as UAVariableType;
-                (v as any) /*fix me*/.value.value = listExtensionObject;
-            }
-            listExtensionObject.slice(0);
-            (listExtensionObject as any) = undefined;
-            (nodeId as any) = undefined;
-        };
-        postTasks2_AssignedExtensionObjectToDataValue.push(task);
-    }
-
-    function installExtensionObjectInitializationPostTask(element: ExtensionObjectParser) {
-        // let's create the mechanism that postpone the creation of the
-        // extension object
-        let data = element.postTaskData!;
-        let variant = element.parent.parent.obj.value;
-        let nodeId = element.parent.parent.obj.nodeId;
-        const task = async (addressSpace2: IAddressSpace) => {
-            variant.value = data.postponedExtensionObject;
-            assert(nodeId, "expecting a nodeid");
-            const node = addressSpace2.findNode(nodeId)!;
-            if (node.nodeClass === NodeClass.Variable) {
-                const v = node as UAVariable;
-                assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");
-                v.bindExtensionObject(variant.value, { createMissingProp: false });
-            } else if (node.nodeClass === NodeClass.VariableType) {
-                const v = node as UAVariableType;
-                (v as any) /*fix me*/.value.value = variant.value;
-            }
-
-            data.postponedExtensionObject = null;
-            (data as any) = undefined;
-            (variant as any) = undefined;
-            (nodeId as any) = undefined;
-        };
-        postTasks2_AssignedExtensionObjectToDataValue.push(task);
-    }
-
-    const canIngore = ({ isDraft, isDeprecated }: { isDraft: boolean; isDeprecated: boolean }, node: BaseNode) => {
+    // #endregion
+    const canIngore = (
+        { isDraft, isDeprecated }: { isDraft: boolean; isDeprecated: boolean },
+        node: { browseName: QualifiedName; nodeClass: NodeClass }
+    ) => {
         if (isDraft && !options.loadDraftNodes) {
             debugLog("Ignoring Draft            =", NodeClass[node.nodeClass], node.browseName.toString());
             return true;
@@ -1344,33 +578,76 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         }
         return false;
     };
+
+    function fixExtensionObjectAndArray(obj: { nodeId: NodeId }, deferred: () => ExtensionObject | ExtensionObject[] | null) {
+        // let's create the mechanism that postpone the assignment of the extension object
+        let capturedNode = obj;
+        const task = async (addressSpace2: IAddressSpace) => {
+            const extensionObjOrArray = deferred();
+            let nodeId = capturedNode.nodeId;
+            assert(nodeId, "expecting a nodeid");
+            const node = addressSpace2.findNode(nodeId)!;
+
+            if (node.nodeClass === NodeClass.Variable) {
+                const v = node as UAVariable;
+                assert(v.getBasicDataType() === DataType.ExtensionObject, "expecting an extension object");
+                if (extensionObjOrArray != null) {
+                    v.bindExtensionObject(extensionObjOrArray, { createMissingProp: false });
+                }
+            } else if (node.nodeClass === NodeClass.VariableType) {
+                const v = node as UAVariableType;
+                (v as any) /*fix me*/.value.value = extensionObjOrArray;
+            }
+        };
+        postTasks2_AssignedExtensionObjectToDataValue.push(task);
+    }
+    // #region UAVariable
+    interface IUAVariableProps {
+        nodeId: NodeId | null;
+        value?: VariantOptions;
+        nodeClass: NodeClass;
+        browseName: QualifiedName;
+        displayName?: LocalizedText;
+        description?: LocalizedText;
+        parentNodeId: NodeId | null;
+        dataType: NodeId | null;
+        valueRank: number;
+        arrayDimensions: number[] | null;
+        minimumSamplingInterval: number;
+        historizing: boolean;
+        accessLevel: number;
+        userAccessLevel: number;
+    }
+    type ReaderUAVariableL1 = ReaderStateParserLike & { obj: IUAVariableProps; isDraft: boolean; isDeprecated: boolean };
+    type ReaderUAVariableL2 = ReaderStateParserLike & { parent: ReaderUAVariableL1; text: string };
+
     const state_UAVariable = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: ReaderUAVariableL1, name: string, attrs: XmlAttributes) {
             _perform();
 
-            this.obj = {};
-
-            this.obj.nodeClass = NodeClass.Variable;
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.parentNodeId = convertToNodeId(attrs.ParentNodeId);
-            this.obj.dataType = convertToNodeId(attrs.DataType);
-
-            this.obj.valueRank = attrs.ValueRank === undefined ? -1 : coerceInt32(attrs.ValueRank);
-            this.obj.arrayDimensions = this.obj.valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
-
-            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
-            this.obj.minimumSamplingInterval = parseInt(this.obj.minimumSamplingInterval, 10);
-
-            this.obj.historizing = false;
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-
-            this.obj.accessLevel = convertAccessLevel(attrs.AccessLevel);
-            this.obj.userAccessLevel = this.obj.accessLevel; // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
-
-            this.isDraft = attrs.ReleaseStatus === "Draft";
-            this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
+            const valueRank = attrs.ValueRank === undefined ? -1 : coerceInt32(attrs.ValueRank);
+            const accessLevel = convertAccessLevel(attrs.AccessLevel);
+            const nodeId = convertToNodeId(attrs.NodeId);
+            this.obj = {
+                value: undefined,//  { dataType: DataType.Null },
+                nodeClass: NodeClass.Variable,
+                browseName: convertQualifiedName(attrs.BrowseName),
+                parentNodeId: convertToNodeId(attrs.ParentNodeId),
+                dataType: convertToNodeId(attrs.DataType),
+                //description: null,
+                // displayName: coerceLocalizedText(attrs.BrowseName)!,
+                valueRank,
+                arrayDimensions: valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions),
+                minimumSamplingInterval: attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0,
+                historizing: false,
+                nodeId,
+                accessLevel: accessLevel,
+                userAccessLevel: accessLevel // convertAccessLevel(attrs.UserAccessLevel || attrs.AccessLevel);
+            };
+            this.isDraft = attrs.ReleaseStatus === "Draft" || false;
+            this.isDeprecated = attrs.ReleaseStatus === "Deprecated" || false;
         },
-        finish(this: any) {
+        finish(this: ReaderUAVariableL1) {
             if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
@@ -1385,8 +662,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             */
             // eslint-disable-next-line prefer-const
             let capturedVariable: UAVariable;
-            if (this.obj.value) {
-                let capturedValue = this.obj.value;
+            if (this.obj.value && this.obj.value.dataType !== DataType.Null) {
+                let capturedValue: any | undefined = this.obj.value;
                 const task = async (addressSpace2: IAddressSpace) => {
                     if (false && doDebug) {
                         debugLog("1 setting value to ", capturedVariable.nodeId.toString(), new Variant(capturedValue).toString());
@@ -1398,7 +675,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 if (capturedValue.dataType !== DataType.ExtensionObject) {
                     postTasks0_InitializeVariable.push(task);
                 } else {
-                    // do them later
+                    // do them later when every thing is created
                     postTasks1_InitializeVariable.push(task);
                 }
             } else {
@@ -1406,7 +683,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                     const dataTypeNode = capturedVariable.dataType;
                     const valueRank = capturedVariable.valueRank;
                     const arrayDimensions = capturedVariable.arrayDimensions;
-             
+
                     const value = makeDefaultVariant(addressSpace, dataTypeNode, valueRank, arrayDimensions);
                     if (value) {
                         if (false && doDebug) {
@@ -1422,80 +699,113 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 };
                 postTasks0_InitializeVariable.push(task);
             }
-            this.obj.value = undefined;
+            this.obj.value = {};
             capturedVariable = _internal_createNode(this.obj) as UAVariable;
         },
         parser: {
             DisplayName: {
-                finish(this: any) {
-                    this.parent.obj.displayName = this.text;
+                finish(this: ReaderUAVariableL2) {
+                    this.parent.obj.displayName = coerceLocalizedText(this.text)!;
                 }
             },
 
             Description: {
-                finish(this: any) {
-                    this.parent.obj.description = this.text;
+                finish(this: ReaderUAVariableL2) {
+                    this.parent.obj.description = coerceLocalizedText(this.text)!;
                 }
             },
             References: references_parser,
 
-            Value: state_Variant
+            Value: makeVariantReader<ReaderUAVariableL2>(
+                (self: ReaderUAVariableL2, data: VariantOptions) => {
+                    if (data.dataType === DataType.LocalizedText && 
+                        (data.value?.text === "PoweredOff" || data.value?.text === "PoweredOn" )) {
+                            console.log("br =", self.parent.obj.browseName.toString(), "data=", data);
+                            debugger;
+                        }
+                    self.parent.obj.value = data;
+                },
+                (self: ReaderUAVariableL2, data: VariantOptions, deferredTask) => {
+                    self.parent.obj.value = data;
+                    const capturedVariable = { nodeId: self.parent.obj.nodeId! };
+                    fixExtensionObjectAndArray(capturedVariable, deferredTask);
+                },
+                (task) => {
+                    postTasks0_DecodePojoString.push(task);
+                },
+                _translateNodeId
+            )
         }
     };
-
+    // #endregion
+    // #region UAVariableType
+    interface IUAVariableTypeProps extends Omit<IUAVariableProps, "accessLevel" | "userAccessLevel"> {
+        isAbstract: boolean;
+    }
+    type ReaderUAVariableTypeL1 = ReaderStateParserLike & { obj: IUAVariableTypeProps; isDraft: boolean; isDeprecated: boolean };
+    type ReaderUAVariableTypeL2 = ReaderStateParserLike & { parent: ReaderUAVariableTypeL1; text: string };
     const state_UAVariableType = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: ReaderUAVariableTypeL1, name: string, attrs: XmlAttributes) {
             _perform();
-
-            this.obj = {};
-            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
-
-            this.obj.nodeClass = NodeClass.VariableType;
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.parentNodeId = attrs.ParentNodeId || null;
-            this.obj.dataType = convertToNodeId(attrs.DataType) || null;
-
-            this.obj.valueRank = coerceInt32(attrs.ValueRank) || -1;
-            this.obj.arrayDimensions = this.obj.valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions);
-
-            this.obj.minimumSamplingInterval = attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0;
-
-            this.obj.historizing = false;
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-
+            const valueRank = coerceInt32(attrs.ValueRank) || -1;
+            this.obj = {
+                value: undefined,// { dataType: DataType.Null },
+                isAbstract: coerceBoolean(attrs.IsAbstract),
+                nodeClass: NodeClass.VariableType,
+                browseName: convertQualifiedName(attrs.BrowseName),
+                parentNodeId: convertToNodeId(attrs.ParentNodeId) || null,
+                dataType: convertToNodeId(attrs.DataType) || null,
+                valueRank,
+                arrayDimensions: valueRank <= 0 ? null : stringToUInt32Array(attrs.ArrayDimensions),
+                minimumSamplingInterval: attrs.MinimumSamplingInterval ? parseInt(attrs.MinimumSamplingInterval, 10) : 0,
+                historizing: false,
+                nodeId: convertToNodeId(attrs.NodeId) || null
+            };
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
-        finish(this: any) {
+        finish(this: ReaderUAVariableTypeL1) {
             if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             try {
                 _internal_createNode(this.obj);
             } /* istanbul ignore next */ catch (err) {
-                this.obj.addressSpace = null;
-                // tslint:disable:no-console
-                console.warn(" Cannot create object", JSON.stringify(this.obj, null, " "));
+                errorLog(" Cannot create object", JSON.stringify(this.obj, null, " "));
                 throw err;
             }
         },
         parser: {
             DisplayName: {
-                finish(this: any) {
-                    this.parent.obj.displayName = this.text;
+                finish(this: ReaderUAVariableTypeL2) {
+                    this.parent.obj.displayName = coerceLocalizedText(this.text || "")!;
                 }
             },
 
             Description: {
-                finish(this: any) {
-                    this.parent.obj.description = this.text;
+                finish(this: ReaderUAVariableTypeL2) {
+                    this.parent.obj.description = coerceLocalizedText(this.text || "")!;
                 }
             },
             References: references_parser,
-            Value: state_Variant
+            Value: makeVariantReader<ReaderUAVariableTypeL2>(
+                (self: ReaderUAVariableTypeL2, data: VariantOptions) => {
+                    self.parent.obj.value = data;
+                },
+                (self: ReaderUAVariableTypeL2, data: VariantOptions, deferredTask) => {
+                    self.parent.obj.value = data;
+                    const capturedVariable = { nodeId: self.parent.obj.nodeId! };
+                    fixExtensionObjectAndArray(capturedVariable, deferredTask);
+                },
+                (task) => {
+                    postTasks0_DecodePojoString.push(task);
+                },
+                _translateNodeId
+            )
         }
     };
-
+    // #endregion
+    // #region UAMethod
     const state_UAMethod = {
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
@@ -1527,7 +837,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             References: references_parser
         }
     };
-
+    // #endregion
+    // #region Model
     interface Model {
         modelUri: string;
         version: string;
@@ -1577,7 +888,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             models.push(model);
         }
     });
-
+    // #endregion
     function _updateTranslationTable() {
         _register_namespace_uri_in_translation_table("http://opcfoundation.org/UA/");
         for (const namespaceUri of _namespaceUris) {
