@@ -1,85 +1,17 @@
+import { IAddressSpace } from "node-opcua-address-space-base";
 import { Byte, coerceInt64, coerceUInt64, Int16, Int32, Int64, SByte, UAString, UInt16, UInt32, UInt64 } from "node-opcua-basic-types";
-import { LocalizedTextOptions } from "node-opcua-data-model";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { coerceNodeId, INodeId, NodeId, NodeIdType } from "node-opcua-nodeid";
 import { EnumDefinition, StructureDefinition } from "node-opcua-types";
 import { lowerFirstLetter } from "node-opcua-utils";
-import { DataType } from "node-opcua-variant";
-import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes } from "node-opcua-xml2json";
+import { DataType, VariantOptions, Variant } from "node-opcua-variant";
+import { ReaderState, ReaderStateParserLike, ParserLike, XmlAttributes, IReaderState, Xml2Json, ReaderStateParser } from "node-opcua-xml2json";
+import { localizedText_parser } from "./parsers/localized_text_parser";
+import { makeQualifiedNameParser } from "./parsers/qualified_name_parser";
+import { makeVariantReader } from "./parsers/variant_parser";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
-
-export interface QualifiedNameOptions {
-    namespaceIndex?: UInt16;
-    name?: UAString;
-}
-interface QualifiedNameParserChild {
-    parent: {
-        qualifiedName: QualifiedNameOptions;
-    };
-    text: string;
-}
-interface QualifiedNameParser {
-    value: QualifiedNameOptions;
-    qualifiedName: QualifiedNameOptions;
-    text: string;
-}
-
-const qualifiedNameReader: ReaderStateParserLike = {
-    init(this: QualifiedNameParser) {
-        this.qualifiedName = {};
-        this.value = {};
-    },
-    parser: {
-        Name: {
-            finish(this: QualifiedNameParserChild) {
-                this.parent.qualifiedName.name = this.text.trim();
-            }
-        },
-        NamespaceIndex: {
-            finish(this: QualifiedNameParserChild) {
-                const ns = parseInt(this.text, 10);
-                this.parent.qualifiedName.namespaceIndex = ns;
-            }
-        }
-    },
-    finish(this: QualifiedNameParser) {
-        this.value = this.qualifiedName;
-        this.value.name = "qdqsdqs";
-    }
-};
-
-interface LocalizedTextParser {
-    localizedText: LocalizedTextOptions;
-    value: LocalizedTextOptions;
-}
-interface LocalizedTextChildParser {
-    parent: LocalizedTextParser;
-    text: string;
-}
-const localizedTextReader: ReaderStateParserLike = {
-    init(this: LocalizedTextParser) {
-        this.localizedText = {};
-    },
-    parser: {
-        Locale: {
-            finish(this: LocalizedTextChildParser) {
-                this.parent.localizedText = this.parent.localizedText || {};
-                this.parent.localizedText.locale = this.text.trim();
-            }
-        },
-        Text: {
-            finish(this: LocalizedTextChildParser) {
-                this.parent.localizedText = this.parent.localizedText || {};
-                this.parent.localizedText.text = this.text.trim();
-            }
-        }
-    },
-    finish(this: LocalizedTextParser) {
-        this.value = this.localizedText;
-    }
-};
 
 function clamp(value: number, minValue: number, maxValue: number) {
     if (value < minValue) {
@@ -93,22 +25,22 @@ function clamp(value: number, minValue: number, maxValue: number) {
     return value;
 }
 
-interface Parser<T> {
+interface Parser<T> extends ReaderStateParserLike {
     value: T | null;
     parent: any;
     text: string;
 }
-const partials: { [key: string]: ReaderStateParserLike } = {
-    LocalizedText: localizedTextReader,
-    QualifiedName: qualifiedNameReader,
-    String: {
+const partials = {
+    LocalizedText: localizedText_parser.LocalizedText,
+    QualifiedName: makeQualifiedNameParser((nodeId: string) => coerceNodeId(nodeId)).QualifiedName,
+    String: <Parser<string>>{
         finish(this: Parser<string>) {
             this.value = this.text;
         }
     },
     Guid: {
         parser: {
-            String: {
+            String: <Parser<string>>{
                 finish(this: Parser<string>) {
                     this.parent.value = this.text;
                 }
@@ -116,91 +48,91 @@ const partials: { [key: string]: ReaderStateParserLike } = {
         }
     },
 
-    Boolean: {
+    Boolean: <Parser<boolean>>{
         finish(this: Parser<boolean>) {
             this.value = this.text.toLowerCase() === "true" ? true : false;
         }
     },
 
-    ByteString: {
-        init(this: Parser<Buffer>) {
+    ByteString: <Parser<Buffer>>{
+        init(this: Parser<Buffer>, name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) {
             this.value = null;
         },
-        finish(this: any) {
+        finish(this: Parser<Buffer>) {
             const base64text = this.text;
             const byteString = Buffer.from(base64text, "base64");
             this.value = byteString;
         }
     },
 
-    Float: {
+    Float: <Parser<number>> {
         finish(this: Parser<number>) {
             this.value = parseFloat(this.text);
         }
     },
 
-    Double: {
+    Double: <Parser<number>> {
         finish(this: Parser<number>) {
             this.value = parseFloat(this.text);
         }
     },
-    Byte: {
+    Byte: <Parser<Byte>>  {
         finish(this: Parser<Byte>) {
             this.value = clamp(parseInt(this.text, 10), 0, 255);
         }
     },
-    SByte: {
+    SByte: <Parser<SByte>> {
         finish(this: Parser<SByte>) {
             this.value = clamp(parseInt(this.text, 10), -128, 127);
         }
     },
-    Int8: {
+    Int8: <Parser<SByte>>  {
         finish(this: Parser<SByte>) {
             this.value = clamp(parseInt(this.text, 10), -128, 127);
         }
     },
 
-    Int16: {
+    Int16: <Parser<Int16>> {
         finish(this: Parser<Int16>) {
             this.value = clamp(parseInt(this.text, 10), -32768, 32767);
         }
     },
-    Int32: {
+    Int32: <Parser<Int32>>  {
         finish(this: Parser<Int32>) {
             this.value = clamp(parseInt(this.text, 10), -2147483648, 2147483647);
         }
     },
-    Int64: {
+    Int64: <Parser<Int64>>  {
         finish(this: Parser<Int64>) {
             this.value = coerceInt64(parseInt(this.text, 10));
         }
     },
 
-    UInt8: {
+    UInt8: <Parser<Byte>>  {
         finish(this: Parser<Byte>) {
             this.value = clamp(parseInt(this.text, 10), 0, 255);
         }
     },
 
-    UInt16: {
+    UInt16: <Parser<UInt16>>   {
         finish(this: Parser<UInt16>) {
             this.value = clamp(parseInt(this.text, 10), 0, 65535);
         }
     },
 
-    UInt32: {
+    UInt32: <Parser<UInt32>>{
         finish(this: Parser<UInt32>) {
             this.value = clamp(parseInt(this.text, 10), 0, 4294967295);
         }
     },
 
-    UInt64: {
+    UInt64: <Parser<UInt64>>{
         finish(this: Parser<UInt64>) {
             this.value = coerceUInt64(parseInt(this.text, 10));
         }
     },
 
-    DateTime: {
+    DateTime: <Parser<Date>>{
         finish(this: Parser<Date>) {
             // to do check Local or GMT
             this.value = new Date(this.text);
@@ -214,7 +146,7 @@ const partials: { [key: string]: ReaderStateParserLike } = {
         }
     },
 
-    NodeId: {
+    NodeId: <Parser<NodeId>> {
         finish(this: Parser<NodeId>) {
             // to do check Local or GMT
             this.value = coerceNodeId(this.text);
@@ -259,30 +191,33 @@ function _clone(a: any): any {
 function _makeTypeReader(
     dataTypeNodeId1: NodeId,
     definitionMap: DefinitionMap2,
-    readerMap: Record<string, ReaderStateParserLike>
-): { name: string; parser: ReaderStateParserLike } {
+    readerMap: Record<string, ReaderStateParserLike>,
+    translateNodeId: (nodeId: string) => NodeId
+): { name: string; reader: ReaderStateParser } {
     const n = dataTypeNodeId1 as INodeId;
     if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value === 0) {
         // a generic Extension Object
-        return { name: "Variant", parser: partials["Variant"] };
+        return { name: "Variant", reader: partials["Variant"] };
     }
+
     if (
         n.namespace === 0 &&
         n.identifierType === NodeIdType.NUMERIC &&
         n.value < DataType.ExtensionObject
     ) {
         const name = DataType[n.value as number] as string;
-        const parser = partials[name];
-        return { name, parser };
+        const reader = partials[name as keyof typeof partials] as ReaderStateParser;
+        return { name, reader };
     }
 
     const { name, definition } = definitionMap.findDefinition(n);
+
     const dataTypeName = name;
 
     let reader: ReaderStateParserLike = readerMap[dataTypeName]!;
 
     if (reader) {
-        return { name, parser: reader.parser! };
+        return { name, reader: reader.parser! };
     }
 
     reader = {
@@ -294,8 +229,8 @@ function _makeTypeReader(
 
     if (definition instanceof StructureDefinition) {
         for (const field of definition.fields || []) {
-            const typeReader = _makeTypeReader(field.dataType, definitionMap, readerMap);
-            const fieldParser = typeReader.parser;
+            const typeReader = _makeTypeReader(field.dataType, definitionMap, readerMap, translateNodeId);
+            const fieldParser = typeReader.reader;
             const fieldTypename = typeReader.name;
             // istanbul ignore next
             if (!fieldParser) {
@@ -351,7 +286,7 @@ function _makeTypeReader(
         // xx const parser: ParserLike = {};
         // xx parser[definition.name] = reader;
         readerMap[dataTypeName] = reader;
-        return { name, parser: reader };
+        return { name, reader: reader };
     } else if (definition instanceof EnumDefinition) {
         const turnToInt = (value: any) => {
             // Green_100
@@ -359,28 +294,57 @@ function _makeTypeReader(
         };
         return {
             name,
-            parser: {
+            reader: {
                 finish(this: any) {
                     this.value = turnToInt(this.text);
+                }
+            }
+        };
+    } else if (definition?.dataType == DataType.Variant) {
+        // <Value><String>Foo</String></Value>
+        type Task = (addressSpace: any) => Promise<void>;
+
+        let variantOptions: VariantOptions = {};
+
+        const variantReader = makeVariantReader(
+            (self, data: VariantOptions) => variantOptions = data,
+            /*setDeferredValue: */(self,data, deferedTask) => {
+                // to do
+            },
+            /* postExtensionObjectDecoding:*/(task: (addressSpace: IAddressSpace) => Promise<void>) => {
+                // to do
+            },
+            translateNodeId,
+        );
+        return {
+            name,
+            reader: {
+                init(this: any , name: string, attrs: XmlAttributes, parent: IReaderState, engine: Xml2Json) {
+                    this.obj = {};
+                },
+                ...variantReader,
+                finish(this: any & { value: Variant }) {
+                    this.value = new Variant(variantOptions);
                 }
             }
         };
     } else {
         // basic datatype
         const typeName: string = DataType[definition.dataType];
-        const parser = partials[typeName];
+        const reader = partials[typeName as keyof typeof partials] as ReaderStateParser;
         // istanbul ignore next
-        if (!parser) {
+        if (!reader) {
             throw new Error("missing parse for " + typeName);
         }
-        return { name, parser };
+        return { name, reader };
     }
 }
 
 export function makeXmlExtensionObjectReader(
     dataTypeNodeId: NodeId,
     definitionMap: DefinitionMap2,
-    readerMap: Record<string, ReaderStateParserLike>
+    readerMap: Record<string, ReaderStateParserLike>,
+    translateNodeId: (nodeId: string) => NodeId
 ): ReaderState {
     const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);
 
@@ -389,14 +353,14 @@ export function makeXmlExtensionObjectReader(
         throw new Error("Expecting StructureDefinition");
     }
     //
-    const reader1: ReaderStateParserLike = {
+    const reader1: ReaderStateParser = {
         parser: {},
         endElement(this: any) {
             this._pojo = this.parser[name].value;
         }
     };
-    const { parser } = _makeTypeReader(dataTypeNodeId, definitionMap, readerMap);
-    reader1.parser![name] = parser;
+    const { reader } = _makeTypeReader(dataTypeNodeId, definitionMap, readerMap, translateNodeId);
+    reader1.parser![name] = reader as ReaderStateParserLike;
 
     return new ReaderState(reader1);
 }

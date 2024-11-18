@@ -8,7 +8,6 @@ import { Xml2Json } from "node-opcua-xml2json";
 
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { decodeXmlExtensionObject } from "../source/loader/decode_xml_extension_object";
 import { makeXmlExtensionObjectReader } from "../source/loader/make_xml_extension_object_parser";
 
 describe("test xml decode", function () {
@@ -66,7 +65,8 @@ describe("test xml decode", function () {
 </ConnectionDetails>
 `;
 
-        const reader = makeXmlExtensionObjectReader(coerceNodeId("ns=1;i=1"), definitionMap, {});
+        const translateNodeId = (nodeId: string )=> resolveNodeId(nodeId);
+        const reader = makeXmlExtensionObjectReader(coerceNodeId("ns=1;i=1"), definitionMap, {}, translateNodeId);
         const parser2 = new Xml2Json(reader);
         const pojo = parser2.parseStringSync(xmlBody);
         console.log(util.inspect(pojo, { colors: true, depth: 10 }));
