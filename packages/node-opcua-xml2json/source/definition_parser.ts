@@ -33,7 +33,7 @@ export interface StructureFieldOptions {
     maxStringLength?: UInt32;
     isOptional?: UABoolean;
 }
-interface AA {
+interface AA extends ReaderStateParserLike {
     parent: {
         definitionFields: StructureFieldOptions[];
         nFields: number;
@@ -48,7 +48,7 @@ interface FieldParser {
     attrs: Record<string, string>;
 }
 export const _definitionParser: ReaderStateParserLike = {
-    init(this: AA, name: string, attrs: XmlAttributes) {
+    init(this: AA, name: string, attrs: XmlAttributes, parent: any, engine: any) {
         assert(!this.parent.nFields || this.parent.definitionFields.length === 0);
         this.parent.definitionFields = [];
         this.parent.definitionName = attrs.SymbolicName || attrs.Name;
@@ -106,11 +106,17 @@ export const _definitionParser: ReaderStateParserLike = {
         }
     }
 };
+
+interface IDefinitionParserReader { 
+    _pojo: any, 
+    definitionName: string, 
+    definitionFields: StructureFieldOptions[] 
+}
 export const definitionReaderStateParser: ReaderStateParserLike = {
     parser: {
         Definition: _definitionParser
     },
-    endElement(this: any) {
+    endElement(this) {
         this._pojo = {
             name: this.definitionName,
 
