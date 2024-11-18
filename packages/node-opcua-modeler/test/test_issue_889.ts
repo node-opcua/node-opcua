@@ -67,13 +67,8 @@ describe("loading very large DataType Definitions ", function (this: any) {
                 const options: ExtensionObjectDefinition = {
                     browseName: "T" + counter + "DataType",
                     isAbstract: false,
-
                     description: { text: "" },
-
                     structureDefinition,
-
-                    binaryEncoding: NodeId.nullNodeId,
-                    xmlEncoding: NodeId.nullNodeId,
                     subtypeOf
                 };
                 const dataType = await addExtensionObjectDataType(namespace, options);

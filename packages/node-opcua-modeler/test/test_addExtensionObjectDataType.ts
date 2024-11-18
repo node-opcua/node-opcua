@@ -67,9 +67,6 @@ describe("addExtensionObjectDataType", function (this: any) {
             description: "A Person!",
             isAbstract: false,
             structureDefinition,
-
-            binaryEncoding: NodeId.nullNodeId,
-            xmlEncoding: NodeId.nullNodeId
         };
         const dataType = await addExtensionObjectDataType(ns, options);
 
