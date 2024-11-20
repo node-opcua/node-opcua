@@ -57,7 +57,7 @@ const warningLog = make_warningLog(__filename);
 
 interface BaseNodeCacheInner {
     typeDefinition?: NodeId;
-    _childByNameMap?: Record<string, BaseNode>;
+    _childByNameMap?: Map<string, BaseNode>;
     typeDefinitionObj?: UAVariableType | UAObjectType | null;
     _aggregates?: BaseNode[];
     _components?: BaseNode[];
@@ -65,9 +65,9 @@ interface BaseNodeCacheInner {
     _notifiers?: BaseNode[];
     _eventSources?: BaseNode[];
     _methods?: UAMethod[];
-    _ref?: Record<string, UAReference[]>;
-    _encoding?: Record<string, UAObject | null>;
-    _subtype_idx?: Record<string, UAReferenceType> | null;
+    _ref?: Map<string, UAReference[]>;
+    _encoding?: Map<string, UAObject | null>;
+    _subtype_idx?: Map<string, UAReferenceType> | null;
     _subtype_idxVersion?: number;
     _allSubTypes?: UAReferenceType[] | null;
     _allSubTypesVersion?: number;
@@ -1082,7 +1082,7 @@ export function _handle_HierarchicalReference(node: BaseNode, reference: UARefer
             if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
                 assert(reference.isForward);
                 const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-                _cache._childByNameMap[targetNode.browseName!.name!.toString()] = targetNode;
+                _cache._childByNameMap.set(targetNode.browseName!.name!.toString(), targetNode);
             }
         }
     }
@@ -1099,7 +1099,7 @@ function _remove_HierarchicalReference(node: BaseNode, reference: UAReference) {
             if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
                 assert(reference.isForward);
                 const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-                delete _cache._childByNameMap[targetNode.browseName!.name!.toString()];
+                _cache._childByNameMap.delete(targetNode.browseName!.name!.toString());
             }
         }
     }
