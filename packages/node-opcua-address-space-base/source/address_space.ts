@@ -27,7 +27,7 @@ interface UARootFolder_Objects extends UAObject {
 export interface IAddressSpace {
     rootFolder: { objects: UARootFolder_Objects; views: UAObject; types: UAObject };
 
-    historizingNodes?: { [key: string]: UAVariable };
+    historizingNodes?: Set<UAVariable>;
 
     /**
      * when this flag is set, properties and components are not added as javascript

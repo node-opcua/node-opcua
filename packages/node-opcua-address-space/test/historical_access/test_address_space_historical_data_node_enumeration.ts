@@ -47,7 +47,7 @@ describe("Testing Historical Data Node Enumeration", () => {
     });
 
     it("should be easy to enumerate  UAVariable with History from a addressSpace", () => {
-        const historizingNode = Object.values(addressSpace.historizingNodes || {});
+        const historizingNode = [...addressSpace.historizingNodes!.values()];
         historizingNode.length.should.eql(3);
         historizingNode.map((x) => x.browseName.toString()).should.eql(["1:MyVar1", "1:MyVar2", "1:MyVar3"]);
     });

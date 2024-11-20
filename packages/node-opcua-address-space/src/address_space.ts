@@ -162,7 +162,7 @@ export class AddressSpace implements AddressSpacePrivate {
      */
     public suspendBackReference = false;
     public isFrugal = false;
-    public historizingNodes?: { [key: string]: UAVariable } = {};
+    public historizingNodes: Set<UAVariable> = new Set();
     public _condition_refresh_in_progress = false;
 
     public readonly isNodeIdString = isNodeIdString;
