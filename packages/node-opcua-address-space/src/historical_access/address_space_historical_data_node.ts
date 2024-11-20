@@ -696,7 +696,7 @@ export function AddressSpace_installHistoricalDataNode(
     };
 
     assert(node.nodeClass === NodeClass.Variable);
-    options = options || {};
+    options = options || Object.create(null);
 
     const addressSpace = node.addressSpace;
 
@@ -820,6 +820,6 @@ export function AddressSpace_installHistoricalDataNode(
     node.on("value_changed", on_value_change);
 
     // update the index of historizing nodes in the addressSpace
-    node.addressSpace.historizingNodes = node.addressSpace.historizingNodes || {};
-    node.addressSpace.historizingNodes[node.nodeId.toString()] = node;
+    node.addressSpace.historizingNodes = node.addressSpace.historizingNodes || new Set();
+    node.addressSpace.historizingNodes.add(node);
 }
