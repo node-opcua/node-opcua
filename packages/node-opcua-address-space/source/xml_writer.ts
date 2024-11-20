@@ -1,10 +1,9 @@
-export interface ITranslationTable {
-    [key: number]: number;
-}
+export type TranslationTable = Map<number, number>;
+
 export interface XmlWriter {
-    translationTable: ITranslationTable;
+    translationTable: TranslationTable;
     priorityTable: number[];
-    visitedNode: any;
+    visitedNode: Set<any>;
 
     startDocument(options: { encoding: string; version: string }): void;
     startElement(elementName: string): this;

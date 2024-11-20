@@ -23,7 +23,7 @@ function dumpEnumeratedType(xw: XmlWriter, e: EnumDefinition, name: string): voi
     }
     xw.endElement();
 }
-function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: string }, nodeId: NodeId): string {
+function buildXmlName(addressSpace: AddressSpacePrivate, map: Map<number,string>, nodeId: NodeId): string {
     if (NodeId.sameNodeId(nodeId, NodeId.nullNodeId)) {
         return "ua:ExtensionObject";
     }
@@ -35,7 +35,7 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: s
     const typeName = node.browseName.name!;
 
     const n = node.nodeId as INodeId;
-    const prefix = (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0) ? (n.value <= 15 ? "opc" : "ua") : map[node.nodeId.namespace];
+    const prefix = (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0) ? (n.value <= 15 ? "opc" : "ua") : map.get(node.nodeId.namespace);
     return prefix + ":" + (typeName === "Structure" && prefix === "ua" ? "ExtensionObject" : typeName);
 }
 
@@ -43,7 +43,7 @@ function buildXmlName(addressSpace: AddressSpacePrivate, map: { [key: number]: s
 function dumpDataTypeStructure(
     xw: XmlWriter,
     addressSpace: IAddressSpace,
-    map: { [key: number]: string },
+    map: Map<number,string>,
     structureDefinition: StructureDefinition,
     structureDefinitionBase: StructureDefinition | undefined | null,
     name: string,
@@ -129,7 +129,7 @@ function dumpDataTypeStructure(
     xw.endElement();
 }
 
-function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: { [key: number]: string }) {
+function dumpDataTypeToBSD(xw: XmlWriter, dataType: UADataType, map: Map<number,string>) {
     const addressSpace = dataType.addressSpace;
 
     const name: string = dataType.browseName.name!;
@@ -163,9 +163,9 @@ export function dumpToBSD(namespace: NamespacePrivate): string {
     xw.writeAttribute("xmlns:ua", "http://opcfoundation.org/UA/");
     xw.writeAttribute("xmlns:tns", namespace.namespaceUri);
 
-    const map: { [key: number]: string } = {};
+    const map: Map<number,string> = new Map();
 
-    map[namespace.index] = "tns";
+    map.set(namespace.index,"tns");
 
     for (const dependantNamespace of dependency) {
         const namespaceIndex = dependantNamespace.index;
@@ -173,7 +173,7 @@ export function dumpToBSD(namespace: NamespacePrivate): string {
             continue;
         }
         const ns = shortcut(dependantNamespace);
-        map[namespaceIndex] = ns;
+        map.set(namespaceIndex,ns);
         xw.writeAttribute(`xmlns:${ns}`, dependantNamespace.namespaceUri);
     }
 
