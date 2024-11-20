@@ -148,7 +148,7 @@ export class UAMultiStateValueDiscreteImpl<T, DT extends DataType>
     public _enumValueIndex(): Record<Int32, DTEnumValue> {
         // construct an index to quickly find a EnumValue from a value
         const enumValues: DTEnumValue[] = this.enumValues.readValue().value.value;
-        const enumValueIndex: Record<Int32, DTEnumValue> = {};
+        const enumValueIndex: Record<Int32, DTEnumValue> = Object.create(null);
         if (!enumValues || !enumValues.forEach) {
             return enumValueIndex;
         }
