@@ -65,6 +65,7 @@ export function wipeMemorizedStuff(node: any) {
         node.__cache = undefined;
     }
 }
+
 //  http://jsperf.com/underscore-js-memoize-refactor-test
 //  http://addyosmani.com/blog/faster-javascript-memoization/
 function wrap_memoize<T, P, R>(
@@ -75,18 +76,22 @@ function wrap_memoize<T, P, R>(
         hashFunc = (_p: T) => (_p as any).toString();
     }
 
+    const g_WeakMap = new WeakMap<any, Map<string, any>>();
+
     return function memoize(this: any, param: any) {
-        if (!this.__cache) {
-            this.__cache = {};
+
+        const self = this;
+        if (!g_WeakMap.has(self)) {
+            g_WeakMap.set(self,new Map());
         }
 
         const hash = hashFunc!.call(this, param);
 
-        let cache_value = this.__cache[hash];
+        let cache_value = g_WeakMap.get(self)!.get(hash);
 
         if (cache_value === undefined) {
             cache_value = func.call(this, param);
-            this.__cache[hash] = cache_value;
+            g_WeakMap.get(self)!.set(hash,cache_value);
         }
         return cache_value;
     };
@@ -101,6 +106,7 @@ export type IsSubtypeOfFunc<T extends UAType> = (this: T, baseType: T) => boolea
 export type UAType = UAReferenceType | UADataType | UAObjectType | UAVariableType;
 
 export function construct_isSubtypeOf<T extends UAType>(Class: typeof BaseNodeImpl): IsSubtypeOfFunc<T> {
+
     return wrap_memoize(function (this: T, baseType: T | NodeIdLike): boolean {
         if (!(baseType instanceof Class)) {
             throw new Error(
