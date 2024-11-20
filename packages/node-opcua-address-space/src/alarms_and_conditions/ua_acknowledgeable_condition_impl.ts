@@ -16,8 +16,6 @@ import { _install_TwoStateVariable_machinery } from "../state_machine/ua_two_sta
 import { UAAcknowledgeableConditionEx } from "../../source/interfaces/alarms_and_conditions/ua_acknowledgeable_condition_ex";
 import { ConditionSnapshot } from "../../source/interfaces/alarms_and_conditions/condition_snapshot";
 import { InstantiateAlarmConditionOptions } from "../../source/interfaces/alarms_and_conditions/instantiate_alarm_condition_options";
-
-import { _setAckedState } from "./condition";
 import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 import {  UAConditionImpl } from "./ua_condition_impl";
 
@@ -175,7 +173,7 @@ export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements U
     ): StatusCode {
         assert(typeof message === "string");
 
-        const statusCode = _setAckedState(branch as ConditionSnapshotImpl, true, conditionEventId, comment);
+        const statusCode = (branch as ConditionSnapshotImpl)._setAckedState(true, conditionEventId, comment);
         if (statusCode.isNotGood()) {
             return statusCode;
         }
