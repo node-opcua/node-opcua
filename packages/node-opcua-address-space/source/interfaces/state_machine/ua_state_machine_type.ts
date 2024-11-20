@@ -27,7 +27,9 @@ import { UATransitionEx } from "./ua_transition_ex";
 
 export type UtcTime = DateTime;
 
-export interface NonHierarchicalReferences extends UAReferenceType {}
+export interface NonHierarchicalReferences extends UAReferenceType {
+    /** empty interface */
+}
 
 export interface UAStateVariableType extends UAVariableTypeT<LocalizedText, DataType.LocalizedText> {
     // attributes
@@ -38,9 +40,14 @@ export interface StateB {
     stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }
 
-export interface UAStateType extends UAState_Base, UAObjectType {}
+export interface UAStateType extends UAState_Base, UAObjectType {
+    /** empty interface */
+}
 
-export interface UATransitionType extends UATransition_Base, UAObjectType {}
+/** empty interface */
+export interface UATransitionType extends UATransition_Base, UAObjectType {
+    /** empty interface */
+}
 
 /**
  * Initial State Type
@@ -63,9 +70,11 @@ export interface UATransitionType extends UATransition_Base, UAObjectType {}
  * entered directly, then the State of the SubStateMachine is server-specific.
  */
 
-export interface UAInitialStateType extends UAInitialState_Base, UAStateType {}
+export interface UAInitialStateType extends UAInitialState_Base, UAStateType {
+    /** empty interface */
+}
 
-// export interface UAInitialState extends InitialStateB, UAState {}
+// export interface UAInitialState extends InitialStateB, UAState {     /** empty interface */}
 
 /**
  * ToState Reference Type
@@ -255,7 +264,6 @@ export interface UAStateMachineHelper {
 
 export interface UAStateMachineEx extends UAObject, UAStateMachineHelper, UAStateMachine_Base {}
 
-
 export interface UAStateMachineTypeHelper extends UAObjectType {
     /**
      * return all state nodes associated with this state machine
@@ -268,7 +276,6 @@ export interface UAStateMachineTypeHelper extends UAObjectType {
     getTransitions(): UATransitionEx[];
 
     getStateByName(name: string): UAState | null;
-    
 }
 
 export interface UAStateMachineType extends UAObjectType, UAStateMachineTypeHelper, UAStateMachine_Base {

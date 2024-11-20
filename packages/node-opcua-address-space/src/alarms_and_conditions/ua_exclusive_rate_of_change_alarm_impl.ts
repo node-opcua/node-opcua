@@ -22,4 +22,6 @@ export interface UAExclusiveRateOfChangeAlarmEx
         UAExclusiveLimitAlarmEx {
     on(eventName: string, eventHandler: any): this;
 }
-export class UAExclusiveRateOfChangeAlarmImpl extends UAExclusiveLimitAlarmImpl implements UAExclusiveRateOfChangeAlarmEx {}
+export class UAExclusiveRateOfChangeAlarmImpl extends UAExclusiveLimitAlarmImpl implements UAExclusiveRateOfChangeAlarmEx {
+    /** empty interface */
+}

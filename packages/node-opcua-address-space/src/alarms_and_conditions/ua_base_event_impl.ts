@@ -10,8 +10,12 @@ import { UABaseEvent_Base, UABaseEvent } from "node-opcua-nodeset-ua";
 import { UAObjectImpl } from "../ua_object_impl";
 import { UABaseEventHelper } from "../../source/interfaces/alarms_and_conditions/ua_condition_ex";
 
-export interface UABaseEventEx extends UABaseEvent_Base, UABaseEventHelper {}
-export declare interface UABaseEventImpl extends UABaseEventEx {}
+export interface UABaseEventEx extends UABaseEvent_Base, UABaseEventHelper {
+    /** empty interface */
+}
+export declare interface UABaseEventImpl extends UABaseEventEx {
+    /** empty interface */
+}
 
 /**
  * @internal

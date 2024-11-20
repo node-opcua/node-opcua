@@ -14,7 +14,9 @@ import {  UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 const validState = ["HighHigh", "High", "Low", "LowLow", null];
 
-export declare interface UAExclusiveLimitAlarmImpl extends UAExclusiveLimitAlarmEx {}
+export declare interface UAExclusiveLimitAlarmImpl extends UAExclusiveLimitAlarmEx {
+    /** empty interface */
+}
 
 export class UAExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UAExclusiveLimitAlarmEx {
     /***

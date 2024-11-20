@@ -4,11 +4,13 @@ import { UAExclusiveLimitStateMachineEx } from "../state_machine/ua_exclusive_li
 import { UAShelvedStateMachineEx } from "../state_machine/ua_shelved_state_machine_ex";
 import { UALimitAlarmEx, UALimitAlarmHelper } from "./ua_limit_alarm_ex";
 
-export interface UAExclusiveLimitAlarmHelper extends UALimitAlarmHelper {}
+export interface UAExclusiveLimitAlarmHelper extends UALimitAlarmHelper {
+    /** empty interface */
+}
 export interface UAExclusiveLimitAlarmEx
     extends Omit<UAExclusiveLimitAlarm_Base, "limitState">,
-        UALimitAlarmEx,
-        UAExclusiveLimitAlarmHelper {
+    UALimitAlarmEx,
+    UAExclusiveLimitAlarmHelper {
     on(eventName: string, eventHandler: any): this;
 
     ackedState: UATwoStateVariableEx;
