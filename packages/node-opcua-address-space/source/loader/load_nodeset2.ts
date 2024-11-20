@@ -159,7 +159,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     const postTasks1_InitializeVariable: Task[] = [];
     const postTasks2_AssignedExtensionObjectToDataValue: Task[] = [];
 
-    let alias_map: { [key: string]: NodeId } = {};
+    let aliasMap: Map<string, NodeId> = new Map();
 
     /**
      * @param aliasName
@@ -168,33 +168,32 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         assert(typeof nodeIdInXmlContext === "string");
         const nodeId = _translateNodeId(nodeIdInXmlContext);
         assert(nodeId instanceof NodeId);
-        alias_map[aliasName] = nodeId;
+        aliasMap.set(aliasName, nodeId);
         addressSpace1.getNamespace(nodeId.namespace).addAlias(aliasName, nodeId);
     }
 
-    let namespace_uri_translation: { [key: number]: number } = {};
+    let namespaceUriTranslationMap: Map<number, number> = new Map();
     let namespaceCounter = 0;
-    let found_namespace_in_uri: { [key: string]: NamespacePrivate } = {};
+    let foundNamespaceMap: Map<string, NamespacePrivate> = new Map();
     let models: Model[] = [];
     let performedCalled = false;
 
     function _reset_namespace_translation() {
         debugLog("_reset_namespace_translation");
-        namespace_uri_translation = {};
-        found_namespace_in_uri = {};
+        namespaceUriTranslationMap.clear();
+        foundNamespaceMap.clear();
         namespaceCounter = 0;
-        alias_map = {};
+        aliasMap.clear();
         models = [];
         performedCalled = false;
     }
 
     function _translateNamespaceIndex(innerIndex: number) {
-        const namespaceIndex = namespace_uri_translation[innerIndex];
+        const namespaceIndex = namespaceUriTranslationMap.get(innerIndex);
 
         // istanbul ignore next
         if (namespaceIndex === undefined) {
-            errorLog("Warning: namespace_uri_translation = ", namespace_uri_translation);
-            errorLog("Error; namespace_uri_translation", namespace_uri_translation);
+            errorLog("Error; namespace_uri_translation", namespaceUriTranslationMap.entries());
             throw new Error("_translateNamespaceIndex() ! Cannot find namespace definition for index " + innerIndex);
         }
         return namespaceIndex;
@@ -221,7 +220,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     }
 
     function _register_namespace_uri_in_translation_table(namespaceUri: string): void {
-        if (found_namespace_in_uri[namespaceUri]) {
+        if (foundNamespaceMap.has(namespaceUri)) {
             return;
         }
         const namespace = addressSpace1.getNamespace(namespaceUri);
@@ -230,15 +229,15 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
-                    namespaceUri +
-                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
+                namespaceUri +
+                "\nplease make sure to initialize your address space with the corresponding nodeset files"
             );
         }
-        found_namespace_in_uri[namespaceUri] = namespace;
+        foundNamespaceMap.set(namespaceUri, namespace);
 
         const index_in_xml = namespaceCounter;
         namespaceCounter++;
-        namespace_uri_translation[index_in_xml] = namespace.index;
+        namespaceUriTranslationMap.set(index_in_xml, namespace.index);
 
         doDebug &&
             debugLog(
@@ -319,9 +318,9 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
     const reg = /ns=([0-9]+);(.*)/;
 
     function _translateNodeId(nodeId: string): NodeId {
-        if (alias_map[nodeId]) {
+        if (aliasMap.has(nodeId)) {
             // note alias are already translated to the right namespaces
-            const aliasedNodeId =  alias_map[nodeId];
+            const aliasedNodeId = aliasMap.get(nodeId)!;
             return aliasedNodeId;
         }
         const m = nodeId.match(reg);
@@ -391,13 +390,14 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
 
-            this.obj = {};
-            this.obj.nodeClass = NodeClass.Object;
-            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
-            this.obj.symbolicName = attrs.SymbolicName || null;
+            this.obj = {
+                nodeClass: NodeClass.Object,
+                isAbstract: coerceBoolean(attrs.IsAbstract),
+                nodeId: convertToNodeId(attrs.NodeId) || null,
+                browseName: convertQualifiedName(attrs.BrowseName),
+                eventNotifier: coerceByte(attrs.EventNotifier) || 0,
+                symbolicName: attrs.SymbolicName || null
+            };
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
@@ -430,12 +430,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
 
-            this.obj = {};
-            this.obj.nodeClass = NodeClass.ObjectType;
-            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.eventNotifier = coerceByte(attrs.EventNotifier) || 0;
+            this.obj = {
+                nodeClass: NodeClass.ObjectType,
+                isAbstract: coerceBoolean(attrs.IsAbstract),
+                nodeId: convertToNodeId(attrs.NodeId) || null,
+                browseName: convertQualifiedName(attrs.BrowseName),
+                eventNotifier: coerceByte(attrs.EventNotifier) || 0
+            };
         },
         finish(this: any) {
             _internal_createNode(this.obj);
@@ -462,11 +463,12 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
 
-            this.obj = {};
-            this.obj.nodeClass = NodeClass.ReferenceType;
-            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract);
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
+            this.obj = {
+                nodeClass: NodeClass.ReferenceType,
+                isAbstract: coerceBoolean(attrs.IsAbstract),
+                nodeId: convertToNodeId(attrs.NodeId) || null,
+                browseName: convertQualifiedName(attrs.BrowseName)
+            };
         },
         finish(this: any) {
             _internal_addReferenceType(this.obj);
@@ -499,14 +501,15 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
 
-            this.obj = {};
-            this.obj.nodeClass = NodeClass.DataType;
-            this.obj.isAbstract = coerceBoolean(attrs.IsAbstract) || false;
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.displayName = "";
-            this.obj.description = "";
-            this.obj.symbolicName = attrs.SymbolicName;
+            this.obj = {
+                nodeClass: NodeClass.DataType,
+                isAbstract: coerceBoolean(attrs.IsAbstract) || false,
+                nodeId: convertToNodeId(attrs.NodeId) || null,
+                browseName: convertQualifiedName(attrs.BrowseName),
+                displayName: "",
+                description: "",
+                symbolicName: attrs.SymbolicName
+            };
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
@@ -631,7 +634,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             const accessLevel = convertAccessLevel(attrs.AccessLevel);
             const nodeId = convertToNodeId(attrs.NodeId);
             this.obj = {
-                value: undefined,//  { dataType: DataType.Null },
+                value: undefined, //  { dataType: DataType.Null },
                 nodeClass: NodeClass.Variable,
                 browseName: convertQualifiedName(attrs.BrowseName),
                 parentNodeId: convertToNodeId(attrs.ParentNodeId),
@@ -701,7 +704,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 };
                 postTasks0_InitializeVariable.push(task);
             }
-            this.obj.value = {};
+            this.obj.value = Object.create(null);
             capturedVariable = _internal_createNode(this.obj) as UAVariable;
         },
         parser: {
@@ -720,11 +723,6 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             Value: makeVariantReader<ReaderUAVariableL2>(
                 (self: ReaderUAVariableL2, data: VariantOptions) => {
-                    if (data.dataType === DataType.LocalizedText && 
-                        (data.value?.text === "PoweredOff" || data.value?.text === "PoweredOn" )) {
-                            console.log("br =", self.parent.obj.browseName.toString(), "data=", data);
-                            debugger;
-                        }
                     self.parent.obj.value = data;
                 },
                 (self: ReaderUAVariableL2, data: VariantOptions, deferredTask) => {
@@ -751,7 +749,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             _perform();
             const valueRank = coerceInt32(attrs.ValueRank) || -1;
             this.obj = {
-                value: undefined,// { dataType: DataType.Null },
+                value: undefined, // { dataType: DataType.Null },
                 isAbstract: coerceBoolean(attrs.IsAbstract),
                 nodeClass: NodeClass.VariableType,
                 browseName: convertQualifiedName(attrs.BrowseName),
@@ -812,15 +810,15 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         init(this: any, name: string, attrs: XmlAttributes) {
             _perform();
 
-            this.obj = {};
-            this.obj.nodeClass = NodeClass.Method;
-            // MethodDeclarationId
-            // ParentNodeId
-            this.obj.browseName = convertQualifiedName(attrs.BrowseName);
-            this.obj.parentNodeId = attrs.ParentNodeId || null;
-            this.obj.nodeId = convertToNodeId(attrs.NodeId) || null;
-            this.obj.methodDeclarationId = attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null;
-
+            this.obj = {
+                nodeClass: NodeClass.Method,
+                // MethodDeclarationId
+                // ParentNodeId
+                browseName: convertQualifiedName(attrs.BrowseName),
+                parentNodeId: attrs.ParentNodeId || null,
+                nodeId: convertToNodeId(attrs.NodeId) || null,
+                methodDeclarationId: attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null,
+            };
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
@@ -995,7 +993,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         doDebug &&
             debugLog(
                 chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                    chalk.green("DONE")
+                chalk.green("DONE")
             );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
