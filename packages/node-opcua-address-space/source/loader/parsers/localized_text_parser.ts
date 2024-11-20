@@ -10,19 +10,19 @@ type LocalizedTextParserLikeL2 = { parent: LocalizedTextParserLikeL1; text: stri
 export const localizedText_parser = {
     LocalizedText: {
         init(this: LocalizedTextParserLikeL1) {
-            this.localizedText = {};
+            this.localizedText = { locale: undefined, text: undefined };
             this.value = null;
         },
         parser: {
             Locale: {
                 finish(this: LocalizedTextParserLikeL2) {
-                    this.parent.localizedText = this.parent.localizedText || {};
+                    this.parent.localizedText = this.parent.localizedText || { text: undefined};
                     this.parent.localizedText.locale = this.text.trim();
                 }
             },
             Text: {
                 finish(this: LocalizedTextParserLikeL2) {
-                    this.parent.localizedText = this.parent.localizedText || {};
+                    this.parent.localizedText = this.parent.localizedText || { text: undefined };
                     this.parent.localizedText.text = this.text.trim();
                 }
             }

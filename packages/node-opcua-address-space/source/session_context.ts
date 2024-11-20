@@ -193,7 +193,7 @@ export class SessionContext implements ISessionContext {
 
     public object: any;
     public currentTime?: PreciseClock;
-    public continuationPoints: any = {};
+    public continuationPoints: Buffer[] = [];
     public userIdentity?: string;
     public readonly session?: ISessionBase;
     public readonly server?: IServerBase;
