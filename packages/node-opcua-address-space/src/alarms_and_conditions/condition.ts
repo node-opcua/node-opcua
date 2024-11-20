@@ -1,40 +1,8 @@
 /**
  * @module node-opcua-address-space.AlarmsAndConditions
  */
-require("set-prototype-of");
-import { assert } from "node-opcua-assert";
-import { LocalizedText, LocalizedTextLike } from "node-opcua-data-model";
-import { getMinOPCUADate } from "node-opcua-basic-types";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { ISetStateOptions } from "../../source/interfaces/i_set_state_options";
-import { ConditionSnapshotImpl } from "./condition_snapshot_impl";
 
-export function _setAckedState(
-    self: ConditionSnapshotImpl,
-    requestedAckedState: boolean,
-    conditionEventId?: Buffer,
-    comment?: string | LocalizedText | LocalizedTextLike,
-    options?: ISetStateOptions
-): StatusCode {
-    assert(self instanceof ConditionSnapshotImpl);
 
-    const ackedState = self.getAckedState();
-
-    if (ackedState && requestedAckedState) {
-        return StatusCodes.BadConditionBranchAlreadyAcked;
-    }
-    self._set_twoStateVariable("AckedState", requestedAckedState, options);
-    return StatusCodes.Good;
-}
-
-// tslint:disable:max-classes-per-file
-function prepare_date(sourceTimestamp: { value: Date } | null) {
-    if (!sourceTimestamp || !sourceTimestamp.value) {
-        return getMinOPCUADate();
-    }
-    assert(sourceTimestamp.value instanceof Date);
-    return sourceTimestamp;
-}
 
 /*
  As per spec OPCUA 1.03 part 9:
