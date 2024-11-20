@@ -42,11 +42,13 @@ export interface UAMultiStateValueDiscreteArray_Base<T, DT extends DataType> ext
 
 export interface UAMultiStateValueDiscreteArray<T, DT extends DataType>
     extends UADiscreteItem<T, DT>,
-        UAMultiStateValueDiscreteArray_Base<T, DT> {}
+    UAMultiStateValueDiscreteArray_Base<T, DT> {
+    /** empty interface */
+}
 
 export interface UAMultiStateValueDiscreteArrayEx<T, DT extends DataType>
     extends UAVariableT<T, DT>,
-        UAMultiStateValueDiscreteArray_Base<T, DT> {
+    UAMultiStateValueDiscreteArray_Base<T, DT> {
     /**
      * EnumValues is an array of EnumValueType. Each entry of the array represents one enumeration
      * value with its integer notation, a human-readable representation, and help information.

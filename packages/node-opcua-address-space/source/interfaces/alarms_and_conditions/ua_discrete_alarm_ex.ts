@@ -19,7 +19,9 @@ export interface UADiscreteAlarmEx
             | "activeState"
             | "enabledState"
         >,
-        UADiscreteAlarmHelper {}
+        UADiscreteAlarmHelper {
+    /** empty interface */
+        }
 /*=
  *      +----------------------+
  *      | UAAlarmCondition     |

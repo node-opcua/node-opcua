@@ -6,7 +6,9 @@ import { InstantiateObjectOptions, UAMethod, UAObject, UAObjectType } from "node
 import { UAFiniteStateMachine, UAProgramStateMachine, UAProgramStateMachine_Base } from "node-opcua-nodeset-ua";
 import { UAStateMachineEx, UAStateMachineType } from "./ua_state_machine_type";
 
-export interface UAProgramStateMachineEx extends UAStateMachineEx {}
+export interface UAProgramStateMachineEx extends UAStateMachineEx {
+    /** empty interface */
+}
 
 export interface UAProgramStateMachineType extends UAProgramStateMachine_Base, UAObjectType {
     instantiate(options: InstantiateObjectOptions): UAProgramStateMachineEx;

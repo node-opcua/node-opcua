@@ -10,7 +10,9 @@ export interface UAExclusiveLimitStateMachineEx
     extends UAObject,
         Omit<UAExclusiveLimitStateMachine_Base, "currentState" | "lastTransition">,
         UAStateMachineHelper,
-        UAStateMachineEx {}
+        UAStateMachineEx {
+    /** empty interface */
+}
 
 export interface UAExclusiveLimitStateMachineType extends UAStateMachineType {
     isAbstract: false;
