@@ -151,9 +151,9 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
 
     public getEncodingNode(encoding_name: string): UAObject | null {
         const _cache = BaseNode_getCache(this);
-        _cache._encoding = _cache._encoding || {};
+        _cache._encoding = _cache._encoding || new Map();
         const key = encoding_name + "Node";
-        if (_cache._encoding[key] === undefined) {
+        if (!_cache._encoding.has(key)) {
             assert(encoding_name === "Default Binary" || encoding_name === "Default XML" || encoding_name === "Default JSON");
             // could be binary or xml
             const refs = this.findReferences("HasEncoding", true);
@@ -163,9 +163,10 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 .filter((obj: any) => obj !== null)
                 .filter((obj: any) => obj.browseName.toString() === encoding_name);
             const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
-            _cache._encoding[key] = node;
+            _cache._encoding.set(key,node);
+            return node
         }
-        return _cache._encoding[key];
+        return _cache._encoding.get(key) || null;
     }
 
     public getEncodingNodeId(encoding_name: string): ExpandedNodeId | null {

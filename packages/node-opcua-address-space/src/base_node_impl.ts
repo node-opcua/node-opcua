@@ -38,7 +38,7 @@ import {
     AccessRestrictionsFlag
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { dumpIf, make_debugLog,  make_warningLog, make_errorLog } from "node-opcua-debug";
+import { dumpIf, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
@@ -88,7 +88,7 @@ const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
 
 const HasEventSourceReferenceType = resolveNodeId("HasEventSource");
-const HasNotifierReferenceType = resolveNodeId("HasNotifier");  
+const HasNotifierReferenceType = resolveNodeId("HasNotifier");
 
 function defaultBrowseFilterFunc(context?: ISessionContext): boolean {
     return true;
@@ -432,17 +432,17 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             // throw new Error("expecting valid reference name " + strReference);
             return [];
         }
-        _cache._ref = _cache._ref || {};
+        _cache._ref = _cache._ref || new Map();
         const hash = "_ref_" + referenceTypeNode.nodeId.toString() + isForward.toString();
-        if (_cache._ref[hash]) {
-            return _cache._ref[hash];
+        if (_cache._ref.has(hash)) {
+            return _cache._ref.get(hash)!;
         }
         // istanbul ignore next
         if (doDebug && !this.addressSpace.findReferenceType(referenceTypeNode.nodeId)) {
             throw new Error("expecting valid reference name " + referenceType);
         }
         const result = this.findReferences_no_cache(referenceTypeNode, isForward);
-        _cache._ref[hash] = result;
+        _cache._ref.set(hash, result);
         return result;
     }
 
@@ -1103,15 +1103,15 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         const addressSpace = this.addressSpace;
 
         if (!_cache._childByNameMap) {
-            _cache._childByNameMap = {};
+            _cache._childByNameMap = new Map();
 
             const childReferenceTypes = this.findReferencesEx("HasChild");
             for (const r of childReferenceTypes) {
                 const child = resolveReferenceNode(addressSpace, r);
-                _cache._childByNameMap[child.browseName.name!.toString()] = child;
+                _cache._childByNameMap.set(child.browseName.name!.toString(),child);
             }
         }
-        const ret = _cache._childByNameMap[browseName.toString()] || null;
+        const ret = _cache._childByNameMap.get(browseName.toString()) || null;
         return ret;
     }
 
@@ -1509,11 +1509,11 @@ function _asObject<T extends BaseNode>(references: UAReference[], addressSpace: 
     function toObject(reference: UAReference): T {
         const obj = resolveReferenceNode(addressSpace, reference);
         // istanbul ignore next
-        if (doDebug&& !obj) {
+        if (doDebug && !obj) {
             debugLog(
                 chalk.red(" Warning :  object with nodeId ") +
-                chalk.cyan(reference.nodeId.toString()) +
-                chalk.red(" cannot be found in the address space !")
+                    chalk.cyan(reference.nodeId.toString()) +
+                    chalk.red(" cannot be found in the address space !")
             );
         }
         return obj as any as T;
@@ -1790,7 +1790,7 @@ function install_components_as_object_properties(parentObj: BaseNode) {
         doDebug && debugLog("Installing property " + name, " on ", parentObj.browseName.toString());
 
         const hasProperty = Object.prototype.hasOwnProperty.call(parentObj, name);
-        if (hasProperty && ((parentObj as any)[name] !== null && (parentObj as any)[name] !== undefined)) {
+        if (hasProperty && (parentObj as any)[name] !== null && (parentObj as any)[name] !== undefined) {
             continue;
         }
 

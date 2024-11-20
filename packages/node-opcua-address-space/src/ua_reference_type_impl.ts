@@ -53,17 +53,17 @@ function _getAllSubtypes(ref: UAReferenceType) {
     return _cache._allSubTypes;
 }
 
-function _internal_getSubtypeIndex(referenceType: UAReferenceType): { [key: string]: UAReferenceTypePublic } {
+function _internal_getSubtypeIndex(referenceType: UAReferenceType): Map<string,UAReferenceTypePublic> {
     const possibleReferenceTypes = _getAllSubtypes(referenceType);
     // create a index of reference type with browseName as key for faster search
-    const keys: Record<string, UAReferenceType> = {};
+    const keys: Map<string, UAReferenceType> = new Map();
     for (const refType of possibleReferenceTypes) {
-        keys[refType.nodeId.toString()] = refType;
+        keys.set(refType.nodeId.toString(),refType);
     }
     return keys;
 }
 
-function _getSubtypeIndex(referenceType: UAReferenceType): { [key: string]: UAReferenceTypePublic } {
+function _getSubtypeIndex(referenceType: UAReferenceType): Map<string, UAReferenceTypePublic> {
     const _cache = BaseNode_getCache(referenceType);
     if (!_cache._subtype_idx || (_cache._subtype_idxVersion && _cache._subtype_idxVersion < ReferenceTypeCounter.count)) {
         // the cache need to be invalidated
@@ -99,7 +99,7 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
      * returns true if self is  a super type of baseType
      */
     public isSubtypeOf = construct_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
-  
+
     /** @deprecated - use `isSubtypeOf` instead*/
     public isSupertypeOf = construct_isSubtypeOf<UAReferenceType>(UAReferenceTypeImpl);
 
@@ -166,6 +166,6 @@ export class UAReferenceTypeImpl extends BaseNodeImpl implements UAReferenceType
         const _index = _getSubtypeIndex(this);
         const referenceTypeNodeId = ref instanceof ReferenceImpl ? ref.nodeId : (ref as NodeId);
         const _key = referenceTypeNodeId.toString();
-        return !!_index[_key];
+        return _index.has(_key);
     }
 }
