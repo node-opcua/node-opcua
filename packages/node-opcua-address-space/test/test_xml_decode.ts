@@ -66,7 +66,7 @@ describe("test xml decode", function () {
 `;
 
         const translateNodeId = (nodeId: string )=> resolveNodeId(nodeId);
-        const reader = makeXmlExtensionObjectReader(coerceNodeId("ns=1;i=1"), definitionMap, {}, translateNodeId);
+        const reader = makeXmlExtensionObjectReader(coerceNodeId("ns=1;i=1"), definitionMap, new Map(), translateNodeId);
         const parser2 = new Xml2Json(reader);
         const pojo = parser2.parseStringSync(xmlBody);
         console.log(util.inspect(pojo, { colors: true, depth: 10 }));

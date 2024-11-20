@@ -65,7 +65,7 @@ export function decodeXmlExtensionObject(
     //  const { name, definition } = definitionMap.findDefinition(dataType.nodeId);
     // const hasOptionalFields = definition.fields!.some((field) => field.isOptional);
 
-    const reader = makeXmlExtensionObjectReader(dataType.nodeId, definitionMap, {}, translateNodeId);
+    const reader = makeXmlExtensionObjectReader(dataType.nodeId, definitionMap, new Map(), translateNodeId);
     const parser2 = new Xml2Json(reader);
     const pojo = parser2.parseStringSync(xmlBody);
 
