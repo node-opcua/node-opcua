@@ -192,13 +192,13 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
     private _branch0: ConditionSnapshot = null as any;
     private _previousRetainFlag = false;
-    private _branches: { [key: string]: ConditionSnapshot } = {};
+    private _branches: Map<string,ConditionSnapshot> = new Map()
 
     /**
      * @private
      */
     public initialize(): void {
-        this._branches = {};
+        this._branches = new Map();
     }
 
     /**
@@ -220,13 +220,11 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     }
 
     public getBranchCount(): number {
-        return Object.keys(this._branches).length;
+        return this._branches.size;
     }
 
     public getBranches(): ConditionSnapshot[] {
-        return Object.keys(this._branches).map((x) => {
-            return this._branches[x];
-        });
+        return [... this._branches.values()];
     }
 
     public getBranchIds(): NodeId[] {
@@ -238,7 +236,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     public createBranch(): ConditionSnapshot {
         const branchId = _create_new_branch_id();
         const snapshot = new ConditionSnapshotImpl(this, branchId);
-        this._branches[branchId.toString()] = snapshot;
+        this._branches.set(branchId.toString(),snapshot);
         return snapshot;
     }
 
@@ -247,8 +245,8 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
     public deleteBranch(branch: ConditionSnapshot): void {
         const key = branch.getBranchId().toString();
         assert(!sameNodeId(branch.getBranchId(), NodeId.nullNodeId), "cannot delete branch zero");
-        assert(Object.prototype.hasOwnProperty.call(this._branches, key));
-        delete this._branches[key];
+        assert(this._branches.has(key));
+        this._branches.delete(key);
         this.emit("branch_deleted", key);
     }
 
@@ -453,7 +451,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
             throw new Error("UACondition#raiseNewCondition Condition is not enabled");
         }
 
-        conditionInfo = conditionInfo || {};
+        conditionInfo = conditionInfo || { severity: UAConditionImpl.defaultSeverity };
 
         conditionInfo.severity = Object.prototype.hasOwnProperty.call(conditionInfo, "severity")
             ? conditionInfo.severity
@@ -612,7 +610,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         if (sameBuffer(this.eventId!.readValue().value.value, eventId)) {
             return this.currentBranch();
         }
-        const e = Object.values(this._branches).filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
+        const e = [...this._branches.values()].filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
         if (e.length === 1) {
             return e[0];
         }
@@ -730,7 +728,7 @@ function UACondition_instantiate(
         value: conditionType.nodeId
     });
 
-    data = data || {};
+    data = data || Object.create(null);
     // install initial branch ID (null NodeId);
     conditionNode.branchId.setValueFromSource({
         dataType: DataType.NodeId,
@@ -771,7 +769,7 @@ function UACondition_instantiate(
     conditionNode.enabledState.setValue(true);
 
     // set properties to in initial values
-    Object.entries(data).forEach(([key, value]) => {
+    Object.entries(data!).forEach(([key, value]) => {
         const varNode = _getCompositeKey(conditionNode, key);
         assert(varNode.nodeClass === NodeClass.Variable);
 
