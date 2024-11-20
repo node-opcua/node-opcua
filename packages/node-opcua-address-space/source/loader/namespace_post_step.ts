@@ -9,12 +9,13 @@ const doDebug = checkDebugFlag(__filename);
 
 export type Promoter = ((node: UAVariable) => UAVariable) | ((node: UAObject) => UAObject);
 
-export const g_promotableObject: {
-    [key: string]: {
+export const g_promotableObject: Map<
+    string,
+    {
         promoter: Promoter;
         onInstanceOnly: boolean;
-    };
-} = {};
+    }
+> = new Map();
 
 function parentIsObjectOrVariableType(node: UAVariable | UAObject): boolean {
     if (node.parent && (node.parent.nodeClass === NodeClass.VariableType || node.parent?.nodeClass === NodeClass.ObjectType)) {
@@ -34,7 +35,7 @@ export async function promoteObjectAndVariablesInNamespace(namespace: INamespace
             const aa = a as UAObject | UAVariable;
 
             if (aa.typeDefinition) {
-                const promoter = g_promotableObject[aa.typeDefinition.toString()];
+                const promoter = g_promotableObject.get(aa.typeDefinition.toString());
                 if (promoter) {
                     if (promoter.onInstanceOnly && parentIsObjectOrVariableType(aa)) {
                         continue;
