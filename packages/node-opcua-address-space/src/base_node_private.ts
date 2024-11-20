@@ -67,7 +67,6 @@ interface BaseNodeCacheInner {
     _methods?: UAMethod[];
     _ref?: Record<string, UAReference[]>;
     _encoding?: Record<string, UAObject | null>;
-    _subtype_id?: Record<string, UAReferenceType[]> | null;
     _subtype_idx?: Record<string, UAReferenceType> | null;
     _subtype_idxVersion?: number;
     _allSubTypes?: UAReferenceType[] | null;
@@ -84,8 +83,6 @@ interface BaseNodeCache {
     _parent?: BaseNode | null;
     _back_referenceIdx: { [key: string]: UAReference };
     _referenceIdx: { [key: string]: UAReference };
-    _subtype_idxVersion: number;
-    _subtype_idx: any;
 }
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
@@ -100,8 +97,6 @@ export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
         _description: undefined,
         _displayName: [],
         _parent: undefined,
-        _subtype_idx: {},
-        _subtype_idxVersion: 0
     };
     g_weakMap.set(self, _private);
     return _private;
