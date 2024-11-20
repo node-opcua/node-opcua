@@ -741,7 +741,7 @@ class UnionBaseClass extends BaseUAObject {
     }
 
     public toJSON(): any {
-        const pojo: any = {};
+        const pojo: any = Object.create(null);
         const switchFieldName = this.schema.fields[0].name;
         const switchValue = (this as any)[switchFieldName];
         if (typeof switchValue !== "number") {
