@@ -60,9 +60,12 @@ function _slow_isSubtypeOf<T extends UAType>(this: T, Class: typeof BaseNodeImpl
 
 export type MemberFuncValue<T, P, R> = (this: T, param: P) => R;
 
-export function wipeMemorizedStuff(node: any) {
-    if (!node.__cache) {
-        node.__cache = undefined;
+
+const g_WeakMap = new WeakMap<Object, Map<string, unknown>>();
+
+export function wipeMemorizedStuff(node: Object) {
+    if (g_WeakMap.has(node)) {
+        g_WeakMap.delete(node);
     }
 }
 
@@ -75,30 +78,25 @@ function wrap_memoize<T, P, R>(
     if (undefined === hashFunc) {
         hashFunc = (_p: T) => (_p as any).toString();
     }
-
-    const g_WeakMap = new WeakMap<any, Map<string, any>>();
-
     return function memoize(this: any, param: any) {
-
         const self = this;
         if (!g_WeakMap.has(self)) {
             g_WeakMap.set(self,new Map());
         }
+        const memoMap = g_WeakMap.get(self)!;
 
         const hash = hashFunc!.call(this, param);
-
-        let cache_value = g_WeakMap.get(self)!.get(hash);
-
-        if (cache_value === undefined) {
-            cache_value = func.call(this, param);
-            g_WeakMap.get(self)!.set(hash,cache_value);
+        if (memoMap.has(hash)) {
+            return memoMap.get(hash) as R;
         }
-        return cache_value;
+        const cache_value = func.call(this, param);
+        memoMap.set(hash,cache_value);
+        return cache_value as R;
     };
 }
 
 function hashBaseNode(e: BaseNode): string {
-    return e.nodeId.value.toString();
+    return e.nodeId.toString();
 }
 
 export type IsSubtypeOfFunc<T extends UAType> = (this: T, baseType: T) => boolean;
@@ -142,9 +140,9 @@ export function get_subtypeOf<T extends BaseNode>(this: T): NodeId | null {
 export function get_subtypeOfObj(this: BaseNode): BaseNode | null {
     const _cache = BaseNode_getCache(this);
 
-    if (!_cache._subtypeOfObj) {
+    if (_cache._subtypeOfObj == undefined) {
         const is_subtype_of_ref = this.findReference("HasSubtype", false);
-        if (is_subtype_of_ref) {
+        if (is_subtype_of_ref ) {
             _cache._subtypeOfObj = ReferenceImpl.resolveReferenceNode(this.addressSpace, is_subtype_of_ref);
         } else {
             _cache._subtypeOfObj = null;
