@@ -15,15 +15,14 @@ export interface ClientAlarmList {
 }
 // maintain a set of alarm list for a client
 export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlarm> {
-    private _map: { [key: string]: ClientAlarm } = {};
-
+    private _map: Map<string,ClientAlarm> = new Map();
     public constructor() {
         super();
     }
 
     public [Symbol.iterator](): Iterator<ClientAlarm> {
         let pointer = 0;
-        const components = Object.values(this._map);
+        const components = [...this._map.values()];
         return {
             next(): IteratorResult<ClientAlarm> {
                 if (pointer >= components.length) {
@@ -42,7 +41,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
     }
 
     public alarms(): ClientAlarm[] {
-        return Object.values(this._map);
+        return [...this._map.values()];
     }
 
     public update(eventField: EventStuff): void {
@@ -58,7 +57,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
         if (!alarm) {
             const key = this.makeKey(conditionId.value, eventType.value);
             const newAlarm = new ClientAlarm(eventField);
-            this._map[key] = newAlarm;
+            this._map.set(key,newAlarm);
             this.emit("newAlarm", newAlarm);
             this.emit("alarmChanged", newAlarm);
         } else {
@@ -76,7 +75,7 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
     }
 
     public get length(): number {
-        return Object.keys(this._map).length;
+        return this._map.size;
     }
     public purgeUnusedAlarms(): void {
         const alarms = this.alarms();
@@ -97,14 +96,14 @@ export class ClientAlarmList extends EventEmitter implements Iterable<ClientAlar
     }
     private findAlarm(conditionId: NodeId, eventType: NodeId): ClientAlarm | null {
         const key = this.makeKey(conditionId, eventType);
-        const _c = this._map[key];
+        const _c = this._map.get(key);
         return _c || null;
     }
     private deleteAlarm(conditionId: NodeId, eventType: NodeId): boolean {
         const key = this.makeKey(conditionId, eventType);
-        const _c = this._map[key];
+        const _c = this._map.has(key);
         if (_c) {
-            delete this._map[key];
+            this._map.delete(key);
             return true;
         }
         return false;
