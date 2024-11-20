@@ -191,7 +191,7 @@ function _clone(a: any): any {
 function _makeTypeReader(
     dataTypeNodeId1: NodeId,
     definitionMap: DefinitionMap2,
-    readerMap: Record<string, ReaderStateParserLike>,
+    readerMap: Map<string, ReaderStateParserLike>,
     translateNodeId: (nodeId: string) => NodeId
 ): { name: string; reader: ReaderStateParser } {
     const n = dataTypeNodeId1 as INodeId;
@@ -214,7 +214,7 @@ function _makeTypeReader(
 
     const dataTypeName = name;
 
-    let reader: ReaderStateParserLike = readerMap[dataTypeName]!;
+    let reader: ReaderStateParserLike = readerMap.get(dataTypeName)!;
 
     if (reader) {
         return { name, reader: reader.parser! };
@@ -224,7 +224,9 @@ function _makeTypeReader(
         finish(this: any) {
             /** empty  */
         },
-        parser: {}
+        parser: {
+            /** empty  */
+        }
     };
 
     if (definition instanceof StructureDefinition) {
@@ -254,7 +256,7 @@ function _makeTypeReader(
                         } else {
                             debugLog("xxx check " + fieldTypename);
                         }
-                        this.parent.value = this.parent.value || {};
+                        this.parent.value = this.parent.value || Object.create(null);
                         this.parent.value[elName] = _clone(this.value);
                     }
                 };
@@ -263,10 +265,10 @@ function _makeTypeReader(
                     init(this: any) {
                         this.value = [];
                     },
-                    parser: {},
+                    parser: { /** empty */},
                     finish(this: any) {
                         const elName = lowerFirstLetter(this.name);
-                        this.parent.value = this.parent.value || {};
+                        this.parent.value = this.parent.value || Object.create(null);
                         this.parent.value[elName] = this.value;
                         this.value = undefined;
                     },
@@ -283,10 +285,8 @@ function _makeTypeReader(
                 throw new Error("Unsupported ValueRank !");
             }
         }
-        // xx const parser: ParserLike = {};
-        // xx parser[definition.name] = reader;
-        readerMap[dataTypeName] = reader;
-        return { name, reader: reader };
+        readerMap.set(dataTypeName,reader);
+        return { name, reader };
     } else if (definition instanceof EnumDefinition) {
         const turnToInt = (value: any) => {
             // Green_100
@@ -304,7 +304,7 @@ function _makeTypeReader(
         // <Value><String>Foo</String></Value>
         type Task = (addressSpace: any) => Promise<void>;
 
-        let variantOptions: VariantOptions = {};
+        let variantOptions: VariantOptions = Object.create(null);
 
         const variantReader = makeVariantReader(
             (self, data: VariantOptions) => variantOptions = data,
@@ -343,7 +343,7 @@ function _makeTypeReader(
 export function makeXmlExtensionObjectReader(
     dataTypeNodeId: NodeId,
     definitionMap: DefinitionMap2,
-    readerMap: Record<string, ReaderStateParserLike>,
+    readerMap: Map<string, ReaderStateParserLike>,
     translateNodeId: (nodeId: string) => NodeId
 ): ReaderState {
     const { name, definition } = definitionMap.findDefinition(dataTypeNodeId);

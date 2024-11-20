@@ -12,16 +12,16 @@ const errorLog = make_errorLog(__filename);
 const doTrace = checkDebugFlag("INSTANTIATE");
 const traceLog = errorLog;
 
+export type OptionalMap = Record<string, string | Record<string, any>>;
 export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     private readonly instance: BaseNode;
-    private readonly optionalsMap: any;
+    private readonly optionalsMap: OptionalMap;
     private readonly references: UAReference[];
     private readonly copyAlsoAllOptionals: boolean = false;
 
-    constructor(instance: BaseNode,copyAlsoAllOptionals: boolean, optionalsMap: any) {
+    constructor(instance: BaseNode, copyAlsoAllOptionals: boolean, optionalsMap: OptionalMap) {
         this.copyAlsoAllOptionals = copyAlsoAllOptionals;
         // should we clone the node to be a component or propertyOf of a instance
-        assert(optionalsMap !== null && typeof optionalsMap === "object");
         assert(null !== instance);
         this.optionalsMap = optionalsMap;
         this.instance = instance;
@@ -87,10 +87,10 @@ export class MandatoryChildOrRequestedOptionalFilter implements CloneFilter {
     public filterFor(childInstance: UAVariable | UAObject | UAMethod): CloneFilter {
         const browseName: string = childInstance.browseName.name!;
 
-        let map = {};
+        let map: OptionalMap = Object.create(null);
 
         if (browseName in this.optionalsMap) {
-            map = this.optionalsMap[browseName];
+            map = this.optionalsMap[browseName] as any;
         }
         // istanbul ignore next
         doTrace && traceLog("filterFor ", browseName, map);

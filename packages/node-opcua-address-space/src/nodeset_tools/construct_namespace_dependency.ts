@@ -9,7 +9,7 @@ import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { NamespacePrivate } from "../namespace_private";
 import { BaseNodeImpl, getReferenceType } from "../base_node_impl";
 import { UAVariableImpl } from "../ua_variable_impl";
-import { ITranslationTable } from "../../source/xml_writer";
+import { TranslationTable } from "../../source/xml_writer";
 
 const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
@@ -201,7 +201,7 @@ export function _getCompleteRequiredModelsFromValuesAndReferences(
     const thisPriority = priorityList[namespace.index];
 
     const requiredNamespaceIndexes = _recomputeRequiredModelsFromTypes2(namespace, cache).requiredNamespaceIndexes;
-    const requiredModelsSet: Set<number> = new Set<number>([... requiredNamespaceIndexes]);
+    const requiredModelsSet: Set<number> = new Set<number>([...requiredNamespaceIndexes]);
 
     const consider = (requiredModel: number) => {
         if (requiredModel !== namespace.index && !requiredModelsSet.has(requiredModel)) {
@@ -323,26 +323,27 @@ export function constructNamespaceDependency(namespace: INamespace, priorityTabl
 /**
  * @private
  */
-export function _constructNamespaceTranslationTable(dependency: INamespace[], exportedNamespace: INamespace): ITranslationTable {
+export function _constructNamespaceTranslationTable(dependency: INamespace[], exportedNamespace: INamespace): TranslationTable {
+    const translationTable: TranslationTable = new Map();
     if (!dependency || dependency.length === 0) {
-        return { 0: 0 };
+        translationTable.set(0, 0);
+        return translationTable;
         // throw new Error("Cannot constructNamespaceTranslationTable on empty dependency");
     }
-    const translationTable: ITranslationTable = {};
     assert(dependency[0].namespaceUri === "http://opcfoundation.org/UA/");
 
     let counter = 0;
-    translationTable[dependency[0].index] = counter++;
+    translationTable.set(dependency[0].index, counter++);
     //
     if (exportedNamespace) {
-        translationTable[exportedNamespace.index] = counter++;
+        translationTable.set(exportedNamespace.index, counter++);
     }
     for (let i = 1; i < dependency.length; i++) {
         const dep = dependency[i];
         if (exportedNamespace && exportedNamespace === dep) {
             continue;
         }
-        translationTable[dep.index] = counter++;
+        translationTable.set(dep.index, counter++);
     }
     return translationTable;
 }

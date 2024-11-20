@@ -85,7 +85,7 @@ function _dumpDescription(xw: XmlWriter, node: { description?: LocalizedText }):
 
 function translateNodeId(xw: XmlWriter, nodeId: NodeId): NodeId {
     assert(nodeId instanceof NodeId);
-    const nn = xw.translationTable[nodeId.namespace];
+    const nn = xw.translationTable.get(nodeId.namespace);
     const translatedNode = new NodeId(nodeId.identifierType, nodeId.value, nn);
     return translatedNode;
 }
@@ -96,7 +96,7 @@ function n(xw: XmlWriter, nodeId: NodeId): string {
 
 function translateBrowseName(xw: XmlWriter, browseName: QualifiedName): QualifiedName {
     assert(browseName instanceof QualifiedName);
-    const nn = xw.translationTable[browseName.namespaceIndex];
+    const nn = xw.translationTable.get(browseName.namespaceIndex);
     const translatedBrowseName = new QualifiedName({ namespaceIndex: nn, name: browseName.name });
     return translatedBrowseName;
 }
@@ -781,7 +781,7 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
                     assert(typeDefinitionObj instanceof BaseNodeImpl);
                     if (typeDefinitionObj.nodeId.namespace === node.nodeId.namespace) {
                         // only output node if it is on the same namespace
-                        if (!xw.visitedNode[_hash(typeDefinitionObj)]) {
+                        if (!xw.visitedNode.has(_hash(typeDefinitionObj))) {
                             dumpNodeInXml(xw, typeDefinitionObj);
                         }
                     }
@@ -797,7 +797,7 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
                 assert(r.length === 1);
                 if (subTypeOf.nodeId.namespace === node.nodeId.namespace) {
                     // only output node if it is on the same namespace
-                    if (!xw.visitedNode[_hash(subTypeOf)]) {
+                    if (!xw.visitedNode.has(_hash(subTypeOf))) {
                         dumpNodeInXml(xw, subTypeOf);
                     }
                 }
@@ -809,7 +809,7 @@ function dumpReferencedNodes(xw: XmlWriter, node: BaseNode, forward: boolean) {
             const nodeChild = ReferenceImpl.resolveReferenceNode(addressSpace, reference) as BaseNode;
             assert(nodeChild instanceof BaseNodeImpl);
             if (nodeChild.nodeId.namespace === node.nodeId.namespace) {
-                if (!xw.visitedNode[_hash(nodeChild)]) {
+                if (!xw.visitedNode.has(_hash(nodeChild))) {
                     debugLog(
                         node.nodeId.toString(),
                         " dumping child ",
@@ -1026,14 +1026,14 @@ function dumpUADataType(xw: XmlWriter, node: UADataType) {
 }
 
 function _markAsVisited(xw: XmlWriter, node: BaseNode) {
-    xw.visitedNode = xw.visitedNode || {};
-    assert(!xw.visitedNode[_hash(node)]);
-    xw.visitedNode[_hash(node)] = 1;
+    xw.visitedNode = xw.visitedNode || new Set();
+    assert(!xw.visitedNode.has(_hash(node)));
+    xw.visitedNode.add(_hash(node));
 }
 
 function dumpUAVariable(xw: XmlWriter, node: UAVariable) {
     assert(node.nodeClass === NodeClass.Variable);
-    if (xw.visitedNode[_hash(node)]) {
+    if (xw.visitedNode.has(_hash(node))) {
         return;
     }
     _markAsVisited(xw, node);
@@ -1078,9 +1078,9 @@ function dumpUAVariable(xw: XmlWriter, node: UAVariable) {
 
 function dumpUAVariableType(xw: XmlWriter, node: UAVariableType) {
     assert(node.nodeClass === NodeClass.VariableType);
-    xw.visitedNode = xw.visitedNode || {};
-    assert(!xw.visitedNode[_hash(node)]);
-    xw.visitedNode[_hash(node)] = 1;
+    xw.visitedNode = xw.visitedNode || new Set();
+    assert(!xw.visitedNode.has(_hash(node)));
+    xw.visitedNode.add(_hash(node));
 
     dumpReferencedNodes(xw, node, false);
 
@@ -1136,9 +1136,9 @@ function dumpUAObject(xw: XmlWriter, node: UAObject) {
 
 function _dumpUAObject(xw: XmlWriter, node: UAObject) {
     assert(node.nodeClass === NodeClass.Object);
-    xw.visitedNode = xw.visitedNode || {};
-    assert(!xw.visitedNode[_hash(node)]);
-    xw.visitedNode[_hash(node)] = 1;
+    xw.visitedNode = xw.visitedNode || new Set();
+    assert(!xw.visitedNode.has(_hash(node)));
+    xw.visitedNode.add(_hash(node));
 
     // dump SubTypeOf and HasTypeDefinition
     dumpReferencedNodes(xw, node, false);
@@ -1164,7 +1164,7 @@ function dumpElementInFolder(xw: XmlWriter, node: BaseNodeImpl) {
             return;
         }
 
-        if (!xw.visitedNode[_hash(aggregate)]) {
+        if (!xw.visitedNode.has(_hash(aggregate))) {
             aggregate.dumpXML(xw);
         }
     }
@@ -1185,7 +1185,7 @@ function dumpAggregates(xw: XmlWriter, node: BaseNode) {
         if (_hasHigherPriorityThan(xw, aggregate.nodeId.namespace, node.nodeId.namespace)) {
             continue;
         }
-        if (!xw.visitedNode[_hash(aggregate)]) {
+        if (!xw.visitedNode.has(_hash(aggregate))) {
             (<BaseNodeImpl>aggregate).dumpXML(xw);
         }
     }
@@ -1247,14 +1247,14 @@ function resolveDataTypeName(addressSpace: IAddressSpace, dataType: string | Nod
 function buildUpAliases(node: BaseNode, xw: XmlWriter, data: BuildAliasesData) {
     const addressSpace = node.addressSpace;
 
-    if (!data.aliases_visited) data.aliases_visited = {};
+    if (!data.aliases_visited) data.aliases_visited = new Set();
 
     const k = _hash(node);
     // istanbul ignore next
-    if (data.aliases_visited[k]) {
+    if (data.aliases_visited.has(k)) {
         return;
     }
-    data.aliases_visited[k] = 1;
+    data.aliases_visited.add(k);
 
     // put datatype into aliases list
     if (node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.VariableType) {
@@ -1355,7 +1355,7 @@ type NodeIdString = string;
 
 export interface BuildAliasesData {
     aliases: Record<string, NodeIdString>;
-    aliases_visited?: Record<string, unknown>;
+    aliases_visited?: Set<string>;
 }
 interface DumpData extends BuildAliasesData {
     elements: Dumpable[];
@@ -1429,7 +1429,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
         if (namespace.index === 0) {
             continue;
         }
-        const translatedIndex = translationTable[namespace.index];
+        const translatedIndex = translationTable.get(namespace.index);
 
         const smallName = `ns${translatedIndex}`;
         xw.writeAttribute(`xmlns:${smallName}`, makeTypeXsd(namespace.namespaceUri));
@@ -1444,10 +1444,12 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.startElement("NamespaceUris");
 
     // let's sort the dependencies in the same order as the translation table
-    const sortedDependencies = dependency.sort((a, b) => (translationTable[a.index] > translationTable[b.index] ? 1 : -1));
+    const sortedDependencies = dependency.sort(
+        (a, b) => 
+            (translationTable.get(a.index)! > translationTable.get(b.index)! ? 1 : -1));
 
     doDebug && debugLog(sortedDependencies.map((a) => a.index + " + " + a.namespaceUri).join("\n"));
-    doDebug && debugLog("translation table ", translationTable);
+    doDebug && debugLog("translation table ", translationTable.entries());
 
     for (const depend of sortedDependencies) {
         if (depend.index === 0) {
@@ -1486,7 +1488,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     }
     writeAliases(xw, data.aliases);
 
-    xw.visitedNode = {};
+    xw.visitedNode = new Set();
 
     // -------------- writeReferences
     xw.writeComment("ReferenceTypes");
@@ -1518,7 +1520,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
         xw.writeComment("DataTypes");
         // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
         for (const dataType of dataTypes.sort(sortByNodeId)) {
-            if (!xw.visitedNode[_hash(dataType)]) {
+            if (!xw.visitedNode.has(_hash(dataType))) {
                 dumpNodeInXml(xw, dataType);
             }
         }
@@ -1563,7 +1565,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const objectTypes = [...this._objectTypeIterator()].sort(sortByBrowseName);
     // xx xw.writeComment(" "+ objectTypes.map(x=>x.browseName.name.toString()).join(" "));
     for (const objectType of objectTypes.sort(sortByNodeId)) {
-        if (!xw.visitedNode[_hash(objectType)]) {
+        if (!xw.visitedNode.has(_hash(objectType))) {
             dumpNodeInXml(xw, objectType);
         }
     }
@@ -1573,7 +1575,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     const variableTypes = [...this._variableTypeIterator()].sort(sortByBrowseName);
     // xx xw.writeComment("ObjectTypes "+ variableTypes.map(x=>x.browseName.name.toString()).join(" "));
     for (const variableType of variableTypes.sort(sortByNodeId)) {
-        if (!xw.visitedNode[_hash(variableType)]) {
+        if (!xw.visitedNode.has(_hash(variableType))) {
             dumpNodeInXml(xw, variableType);
         }
     }
@@ -1582,7 +1584,7 @@ NamespaceImpl.prototype.toNodeset2XML = function (this: NamespaceImpl) {
     xw.writeComment("Other Nodes");
     const nodes = [...this.nodeIterator()].sort(sortByBrowseName);
     for (const node of nodes.sort(sortByNodeId)) {
-        if (!xw.visitedNode[_hash(node)]) {
+        if (!xw.visitedNode.has(_hash(node))) {
             dumpNodeInXml(xw, node);
         }
     }

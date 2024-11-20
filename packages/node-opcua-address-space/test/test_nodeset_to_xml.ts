@@ -21,7 +21,14 @@ const { createCameraType } = require("./fixture_camera_type");
 
 function dumpXml(node: BaseNode): string {
     const xw = new XMLWriter(true);
-    xw.translationTable = { 0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 };
+    xw.translationTable = new Map([
+        [0, 0],
+        [1, 1],
+        [2, 2],
+        [3, 3],
+        [4, 4],
+        [5, 5]
+    ]);
     xw.priorityTable = [0, 1, 2, 3, 4, 5, 6];
     xw.startDocument({ encoding: "utf-8" });
     (node as any).dumpXML(xw);
@@ -915,7 +922,6 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
     });
 
     it("NSXML10 -Variable containing a LocalizedTest", async () => {
-
         const v = namespace.addVariable({
             browseName: "TestVariableLT",
             dataType: DataTypeIds.LocalizedText,
@@ -938,7 +944,6 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         xml2.should.match(/ <uax:Text>/gm);
     });
     it("NSXML11 -Variable containing a QualifiedName", async () => {
-
         const value = coerceQualifiedName({ name: "Hello", namespaceIndex: 1 });
         value.name!.should.eql("Hello");
         value.namespaceIndex.should.eql(1);
@@ -956,7 +961,6 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         v.readValue().value.value.name!.should.eql(value.name);
         v.readValue().value.value.namespaceIndex!.should.eql(value.namespaceIndex);
 
-
         const xml = namespace.toNodeset2XML();
         const xml2 = xml.replace(/LastModified="([^"]*)"/g, 'LastModified="YYYY-MM-DD"');
         const tmpFilename = getTempFilename("__generated_node_set_version_x.xml");
@@ -965,7 +969,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
         const r_xml2 = await reloadedNodeSet(tmpFilename);
         r_xml2.split("\n").should.eql(xml2.split("\n"));
         doDebug && console.log(xml);
-        doDebug &&  console.log(r_xml2);
+        doDebug && console.log(r_xml2);
         xml2.should.match(/<uax:QualifiedName>/gm);
         xml2.should.match(/ <uax:Name>/gm);
         xml2.should.match(/ <uax:NamespaceIndex>/gm);
@@ -979,12 +983,8 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
             browseName: "MyMethod",
             componentOf: objectType,
             modellingRule: "Mandatory",
-            inputArguments: [
-                { name: "ShutterLag", dataType: DataType.UInt32 },
-            ],
-            outputArguments: [
-                { name: "Image", dataType: DataType.ExtensionObject },
-            ]
+            inputArguments: [{ name: "ShutterLag", dataType: DataType.UInt32 }],
+            outputArguments: [{ name: "Image", dataType: DataType.ExtensionObject }]
         });
 
         var instance = objectType.instantiate({
@@ -1006,8 +1006,7 @@ describe("nodeset2.xml with more than one referenced namespace", function (this:
 
         const match = r_xml2.match(/\<ArrayDimensions\/\>/gm);
         doDebug && console.log(match);
-        should(match).not.eql(null);    
-        match?.length.should.eql(4); // 2 of input and output argument in Type and 2 for instance     
+        should(match).not.eql(null);
+        match?.length.should.eql(4); // 2 of input and output argument in Type and 2 for instance
     });
-
 });
