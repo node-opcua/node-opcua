@@ -6,7 +6,7 @@
         "clean": "npx rimraf node_modules dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
-        "test": "echo mocha test"
+        "test": "mocha test"
     },
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",

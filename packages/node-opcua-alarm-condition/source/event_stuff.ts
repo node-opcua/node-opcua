@@ -41,7 +41,7 @@ export function fieldsToJson(fields: string[], eventFields: Variant[], flat?: bo
             } else {
                 for (let i = 0; i < f.length - 1; i++) {
                     name = lowerFirstLetter(f[i]);
-                    _data[name] = _data[name] || {};
+                    _data[name] = _data[name] || Object.create(null);
                     _data = _data[name] as Record<string, unknown>;
                 }
                 name = lowerFirstLetter(f[f.length - 1]);
@@ -55,7 +55,14 @@ export function fieldsToJson(fields: string[], eventFields: Variant[], flat?: bo
     if (fields.length > eventFields.length) {
         warningLog("warning fields.length !==  eventFields.length", fields.length, eventFields.length);
     }
-    const data: any = {};
+
+    // use this Object.create(null) to construct an object with no prototype
+    // so that we immune from prototype pollution
+    const data: any = Object.create(null);
+    if (data.__proto__) {
+        throw new Error("expecting  __proto__ to be undefined");
+    }
+
     for (let index = 0; index < fields.length; index++) {
         const variant = eventFields[index];
         setProperty(data, fields[index], variant);
