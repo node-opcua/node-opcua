@@ -799,16 +799,8 @@ export class NamespaceImpl implements NamespacePrivate {
     }
 
     // ---------------------------------------------------------------------------------------------------
-    /**
-
-     * @param options
-     * @param options.browseName {String}
-     * @param options.definition {String}
-     * @param [options.valuePrecision {Double |null} =null]
-     * @param options.dataType {NodeId} // todo :check
-     * @param options.value
-     * @param options.componentOf
-     * @return {UAVariable}
+    /** 
+     * 
      */
     public addDataItem<T, DT extends DataType>(options: AddDataItemOptions): UADataItem<T, DT> {
         const addressSpace = this.addressSpace;
@@ -2134,12 +2126,28 @@ function _handle_event_hierarchy_parent(
 }
 
 export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, references: AddReferenceOpts[], options: any): void {
+    options.addInOf = _coerce_parent(addressSpace, options.addInOf, addressSpace._coerceNode);
     options.componentOf = _coerce_parent(addressSpace, options.componentOf, addressSpace._coerceNode);
     options.propertyOf = _coerce_parent(addressSpace, options.propertyOf, addressSpace._coerceNode);
     options.organizedBy = _coerce_parent(addressSpace, options.organizedBy, addressSpace._coerceFolder);
     options.encodingOf = _coerce_parent(addressSpace, options.encodingOf, addressSpace._coerceNode);
 
+    if (options.addInOf) {
+        assert(!options.componentOf);
+        assert(!options.propertyOf);
+        assert(!options.organizedBy);
+        assert(options.addInOf.nodeClass === NodeClass.Object || options.addInOf.nodeClass === NodeClass.ObjectType,
+            "addInOf must be of nodeClass Object or ObjectType"
+        );   
+        references.push({
+            isForward: false,
+            nodeId: options.addInOf.nodeId,
+            referenceType: "HasAddIn"
+        });
+    }
+
     if (options.componentOf) {
+        assert(!options.addInOf);
         assert(!options.propertyOf);
         assert(!options.organizedBy);
         assert(addressSpace.rootFolder.objects, "addressSpace must have a rootFolder.objects folder");
@@ -2155,6 +2163,7 @@ export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, refe
     }
 
     if (options.propertyOf) {
+        assert(!options.addInOf);
         assert(!options.componentOf);
         assert(!options.organizedBy);
         assert(
@@ -2169,6 +2178,7 @@ export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, refe
     }
 
     if (options.organizedBy) {
+        assert(!options.addInOf);
         assert(!options.propertyOf);
         assert(!options.componentOf);
         references.push({
@@ -2177,6 +2187,7 @@ export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, refe
             referenceType: "Organizes"
         });
     }
+    
     if (options.encodingOf) {
         // parent must be a DataType
         assert(options.encodingOf.nodeClass === NodeClass.DataType, "encodingOf must be toward a DataType");

@@ -82,8 +82,9 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
      * @param options
      * @param options.browseName
      * @param [options.description]
-     * @param [options.organizedBy] the parent Folder holding this object
+     * @param [options.organizedBy] the parent Folder holding this object 
      * @param [options.componentOf] the parent Object holding this object
+     * @param [options.addInOf]
      * @param [options.notifierOf]
      * @param [options.eventSourceOf]
      * @param [options.optionals = [] name of the optional child to create
@@ -132,6 +133,7 @@ export class UAObjectTypeImpl extends BaseNodeImpl implements UAObjectType {
             eventSourceOf: options.eventSourceOf,
             notifierOf: options.notifierOf,
             organizedBy: options.organizedBy,
+            addInOf: options.addInOf,
             references,
 
             typeDefinition: this.nodeId,

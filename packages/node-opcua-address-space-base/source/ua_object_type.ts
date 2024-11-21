@@ -14,6 +14,12 @@ export interface InstantiateObjectOptions extends InstantiateOptions {
     eventNotifier?: EventNotifierFlags;
     // for DataTypeEncodingType
     encodingOf?: NodeId | BaseNode;
+
+    /**
+     * note
+     *  - when addInOf  is specified, organizedBy nor componentOf must not be defined
+     */
+    addInOf?: NodeId | BaseNode;
 }
 
 export declare interface UAObjectType extends BaseNode, IPropertyAndComponentHolder {
