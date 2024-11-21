@@ -100,6 +100,8 @@ export interface AddObjectOptions extends AddBaseNodeOptions {
     typeDefinition?: string | NodeId | UAObjectType;
     nodeVersion?: string;
     encodingOf?: NodeId | BaseNode;
+
+    addInOf?: NodeId | BaseNode;
 }
 
 export interface AddViewOptions extends AddBaseNodeOptions {

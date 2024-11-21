@@ -31,14 +31,14 @@ export interface InstantiateOptions {
      * the parent Folder holding this object
      *
      * note
-     *  - when organizedBy is specified, componentOf must not be defined
+     *  - when organizedBy is specified, componentOf nor addInOf must not be defined
      */
     organizedBy?: NodeIdLike | BaseNode;
 
     /**
      *  the parent Object holding this object
      * note
-     *  - when componentOf is specified, organizedBy must not be defined
+     *  - when componentOf is specified, organizedBy nor addInOf must not be defined
      */
     componentOf?: NodeIdLike | BaseNode;
 

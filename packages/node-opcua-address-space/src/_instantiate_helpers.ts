@@ -71,7 +71,7 @@ function _initialize_properties_and_components<B extends UAObject | UAVariable |
     doTrace &&
         traceLog(
             chalk.cyan(extraInfo.pad(), "cloning relevant member of typeDefinition class"),
-            typeDefinitionNode.browseName.toString()
+            typeDefinitionNode.browseName.toString()+ "\n optionals" + (JSON.stringify(optionalsMap))
         );
 
     _clone_hierarchical_references(typeDefinitionNode, instance, copyAlsoModellingRules, filter, extraInfo, browseNameMap);

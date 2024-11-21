@@ -6,6 +6,7 @@ import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId }
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
 import { BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { getReferenceType } from "./base_node_impl";
+import { resolveReferenceNode, resolveReferenceType } from "./reference_impl";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -22,21 +23,49 @@ const regExp2 = /^ns=[0-9]+;(s|i|b|g)=/;
 const hasPropertyRefId = resolveNodeId("HasProperty");
 const hasComponentRefId = resolveNodeId("HasComponent");
 const hasOrderedComponentRefId = resolveNodeId("HasOrderedComponent");
+const hasAddIn = resolveNodeId("HasAddIn");
 const hasEncoding = resolveNodeId("HasEncoding");
 
 type Suffix = string;
 
-function _identifyParentInReference(references: UAReference[]): [NodeId, Suffix] | null {
-    const candidates = references.filter((r: UAReference) => {
-        return (
-            !r.isForward &&
-            (sameNodeId(r.referenceType, hasComponentRefId) ||
-                sameNodeId(r.referenceType, hasOrderedComponentRefId) ||
-                sameNodeId(r.referenceType, hasPropertyRefId) ||
-                sameNodeId(r.referenceType, hasEncoding))
-        );
-    });
-    assert(candidates.length <= 1);
+// function _identifyParentInReference(references: UAReference[]): [NodeId, Suffix] | null {
+//     const candidates = references.filter((r: UAReference) => {
+//         return (
+//             !r.isForward &&
+//             (sameNodeId(r.referenceType, hasComponentRefId) ||
+//                 sameNodeId(r.referenceType, hasOrderedComponentRefId) ||
+//                 sameNodeId(r.referenceType, hasPropertyRefId) ||
+//                 sameNodeId(r.referenceType, hasEncoding) ||
+//                 sameNodeId(r.referenceType, hasAddIn))
+//         );
+//     });
+//     assert(candidates.length <= 1);
+//     if (candidates.length === 0) {
+//         return null;
+//     }
+//     const ref = candidates[0];
+//     if (sameNodeId(ref.referenceType, hasEncoding)) {
+//         return [ref.nodeId, "_Encoding"];
+//     }
+//     return [ref.nodeId, ""];
+// }
+
+function checkAggregate(addressSpace: AddressSpacePartial, reference: UAReference, refType: UAReferenceType): boolean {
+    const r = resolveReferenceType(addressSpace, reference);
+    if (!r) {
+        return false;
+    }
+    return r.isSubtypeOf(refType)
+}
+function _filterAggregates(addressSpace: AddressSpacePartial, references: UAReference[]): [NodeId, Suffix] | null {
+
+    const aggregates = addressSpace.findNode(resolveNodeId("Aggregates")) as UAReferenceType;
+    
+    const candidates = references.filter((r: UAReference) =>
+        !r.isForward && checkAggregate(addressSpace, r, aggregates)
+    );
+
+    assert(candidates.length <= 1, "a node shall not have more than one parent (link to a parent with a reference derived from 'Aggregates')");
     if (candidates.length === 0) {
         return null;
     }
@@ -60,7 +89,7 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
         (ref as any).referenceType = (ref as any)._referenceType.nodeId;
     }
     // find HasComponent, or has Property reverse
-    return _identifyParentInReference(options.references);
+    return _filterAggregates(addressSpace, options.references);
 }
 
 function prepareName(browseName: QualifiedName): string {
@@ -83,7 +112,7 @@ export type NodeEntry = [string, number, NodeClass];
 export type NodeEntry1 = [string, number, string /*"Object" | "Variable" etc...*/];
 
 export class NodeIdManager {
-    private _cacheSymbolicName: { [key: string]: [number,NodeClass] } = {};
+    private _cacheSymbolicName: { [key: string]: [number, NodeClass] } = {};
     private _cacheSymbolicNameRev: Set<number> = new Set<number>();
 
     private _internal_id_counter: number;
@@ -174,11 +203,11 @@ export class NodeIdManager {
         }
         return this._constructNodeId(options);
     }
- 
+
     private _constructNodeId(options: ConstructNodeIdOptions): NodeId {
 
         let nodeId = options.nodeId;
-  
+
         if (!nodeId) {
             const parentInfo = this.findParentNodeId(options);
             if (parentInfo) {
@@ -190,7 +219,7 @@ export class NodeIdManager {
                     const childName = parentNodeId.value + NamespaceOptions.nodeIdNameSeparator + name;
                     nodeId = new NodeId(NodeId.NodeIdType.STRING, childName, parentNodeId.namespace);
                     return nodeId;
-                } 
+                }
             }
         } else if (typeof nodeId === "string") {
             if (this.namespaceIndex !== 0) {
@@ -218,7 +247,7 @@ export class NodeIdManager {
     }
 
     private _isInCache(nodeId: NodeId): boolean {
-        if( nodeId.namespace !== this.namespaceIndex || nodeId.identifierType !== NodeIdType.NUMERIC) return false;
+        if (nodeId.namespace !== this.namespaceIndex || nodeId.identifierType !== NodeIdType.NUMERIC) return false;
         return this._cacheSymbolicNameRev.has(nodeId.value as number) ? true : false;
     }
 }

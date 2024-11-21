@@ -24,18 +24,19 @@ export function instantiateAddIn(objectType: UAObjectType, options: InstantiateA
         browseName: browseName,
         modellingRule: options.modellingRule,
         copyAlsoModellingRules: options.copyAlsoModellingRules,
+        addInOf: options.addInOf
     });
-    options.addInOf.addReference({
-        referenceType: "HasAddIn",
-        nodeId: addIn.nodeId
-    })
     return addIn;
 }
 
-export function addDefaultInstanceBrowseName(objectType: UAObjectType, defaultBrowseName: string)
+export function addDefaultInstanceBrowseName(objectType: UAObjectType, defaultBrowseName: QualifiedName | string)
     : UAVariableT<QualifiedName, DataType.QualifiedName> {
 
     const namespace1 = objectType.namespace;
+    if (typeof defaultBrowseName === "string") {
+        defaultBrowseName = coerceQualifiedName({ name: defaultBrowseName, namespaceIndex: namespace1.index });
+    }
+
     const uaVaraible = namespace1.addVariable({
         browseName: coerceQualifiedName({ name: "DefaultInstanceBrowseName", namespaceIndex: 0 }),
         propertyOf: objectType,
@@ -43,9 +44,9 @@ export function addDefaultInstanceBrowseName(objectType: UAObjectType, defaultBr
         dataType: DataType.QualifiedName,
         value: {
             dataType: DataType.QualifiedName,
-            value: { namespaceIndex: namespace1.index, name: defaultBrowseName }
+            value: defaultBrowseName
         },
-        modellingRule: null
+        modellingRule: null // DefaultInstanceBrowseName must have no ModellingRule
     });
     return uaVaraible as UAVariableT<QualifiedName, DataType.QualifiedName>;
 

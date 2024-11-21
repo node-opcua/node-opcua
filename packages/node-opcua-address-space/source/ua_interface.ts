@@ -2,12 +2,13 @@
 
 import { UAObject, UAObjectType, UAVariable, UAVariableType } from "node-opcua-address-space-base";
 import { BrowseDirection } from "node-opcua-data-model";
+import { initialize_properties_and_components } from "../src/_instantiate_helpers";
 
-export function implementInterface(uaNode: UAObject | UAObjectType | UAVariable | UAVariableType, interfaceType: UAObjectType) {
+export function implementInterfaceBad(uaNode: UAObject | UAObjectType | UAVariable | UAVariableType, interfaceType: UAObjectType) {
 
     const addressSpace = uaNode.addressSpace;
     const tmp = interfaceType.instantiate({
-        browseName: "_tmp_",
+        browseName: uaNode.browseName,
         copyAlsoModellingRules: true,
         copyAlsoAllOptionals: true,
         modellingRule: "Mandatory"
@@ -33,6 +34,16 @@ export function implementInterface(uaNode: UAObject | UAObjectType | UAVariable 
         });
     }
     addressSpace.deleteNode(tmp);
-    console.log(uaNode.toString());
+}
+
+export function implementInterface(uaNode: UAObject | UAObjectType | UAVariable | UAVariableType, interfaceType: UAObjectType) {
+
+    const addressSpace = uaNode.addressSpace;
+    const topMost = addressSpace.findObjectType("BaseInterfaceType")!;
+    initialize_properties_and_components(uaNode as any, topMost, interfaceType, true, true, []);
+    uaNode.addReference({
+        nodeId: interfaceType,
+        referenceType: "HasInterface"
+    });
 
 }
