@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-aggregates",
-    "version": "2.137.0",
+    "version": "2.138.0",
     "description": "pure nodejs OPCUA SDK - module aggregates",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -12,14 +12,14 @@
         "clean": "npx rimraf node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.137.0",
+        "node-opcua-address-space": "2.138.0",
         "node-opcua-assert": "2.120.0",
         "node-opcua-constants": "2.125.0",
         "node-opcua-data-model": "2.137.0",
         "node-opcua-data-value": "2.137.0",
         "node-opcua-nodeid": "2.133.0",
         "node-opcua-numeric-range": "2.137.0",
-        "node-opcua-server": "2.137.0",
+        "node-opcua-server": "2.138.0",
         "node-opcua-service-history": "2.137.0",
         "node-opcua-status-code": "2.133.0",
         "node-opcua-types": "2.137.0",

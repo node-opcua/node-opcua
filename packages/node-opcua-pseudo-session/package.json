@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-pseudo-session",
-    "version": "2.137.0",
+    "version": "2.138.0",
     "description": "pure nodejs OPCUA SDK - module pseudo-session",
     "scripts": {
         "clean": "npx rimraf node_modules dist *.tsbuildinfo",
@@ -20,7 +20,7 @@
         "node-opcua-nodeid": "2.133.0",
         "node-opcua-service-browse": "2.137.0",
         "node-opcua-service-call": "2.137.0",
-        "node-opcua-service-filter": "2.137.0",
+        "node-opcua-service-filter": "2.138.0",
         "node-opcua-service-read": "2.137.0",
         "node-opcua-service-subscription": "2.137.0",
         "node-opcua-service-translate-browse-path": "2.137.0",

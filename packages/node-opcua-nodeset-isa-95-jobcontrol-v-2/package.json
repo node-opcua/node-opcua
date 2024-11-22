@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-isa-95-jobcontrol-v-2",
-    "version": "2.137.0",
+    "version": "2.138.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-isa-95-jobcontrol-v-2",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -10,13 +10,13 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.137.0",
+        "node-opcua-address-space-base": "2.138.0",
         "node-opcua-basic-types": "2.134.0",
         "node-opcua-data-access": "2.137.0",
         "node-opcua-data-model": "2.137.0",
         "node-opcua-extension-object": "2.137.0",
         "node-opcua-nodeid": "2.133.0",
-        "node-opcua-nodeset-ua": "2.137.0",
+        "node-opcua-nodeset-ua": "2.138.0",
         "node-opcua-variant": "2.137.0"
     },
     "files": [
