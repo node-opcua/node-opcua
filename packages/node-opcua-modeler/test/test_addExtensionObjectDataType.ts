@@ -15,8 +15,9 @@ import {
     //
     DataType,
     ExtensionObjectDefinition,
-    NodeId,
+    getSymbols,
     nodesets,
+    setSymbols,
     StructureDefinitionOptions
 } from "..";
 
@@ -66,7 +67,7 @@ describe("addExtensionObjectDataType", function (this: any) {
             browseName: "PersonDataType",
             description: "A Person!",
             isAbstract: false,
-            structureDefinition,
+            structureDefinition
         };
         const dataType = await addExtensionObjectDataType(ns, options);
 
@@ -148,17 +149,17 @@ describe("addExtensionObjectDataType", function (this: any) {
     });
 });
 describe("addVariableTypeForDataType", function (this: any) {
-    this.timeout(Math.max(12*1000,this.timeout()));
+    this.timeout(Math.max(12 * 1000, this.timeout()));
     const namespaceUri = "urn:name";
 
     let addressSpace: AddressSpace;
-    before(async () => {
+    beforeEach(async () => {
         addressSpace = AddressSpace.create();
         addressSpace.registerNamespace(namespaceUri);
         const nodesetsXML = [nodesets.standard];
         await generateAddressSpace(addressSpace, nodesetsXML);
     });
-    after(() => {
+    afterEach(() => {
         addressSpace.dispose();
     });
     it("ZZZE-2 should addVariableTypeForDataType", async () => {
@@ -301,5 +302,36 @@ describe("addVariableTypeForDataType", function (this: any) {
 </opc:TypeDictionary>`
         );
         */
+    });
+
+    it("ZZZE-3 should create an Structure datatype and handle Encoding symbols", async () => {
+        const ns = addressSpace.getOwnNamespace();
+        setSymbols(ns, []);
+
+        addExtensionObjectDataType(ns, {
+            browseName: "MyDataType",
+            isAbstract: false,
+            structureDefinition: {
+                baseDataType: "Structure",
+                fields: [
+                    {
+                        dataType: "Double",
+                        description: "the list of values",
+                        name: "Values",
+                        valueRank: 1
+                    }
+                ]
+            },
+            description: "A DataType"
+        });
+        const symbols = getSymbols(ns);
+        symbols
+            .map((x) => x[0])
+            .sort()
+            .should.eql([
+                "MyDataType",
+                "MyDataType_Encoding_DefaultBinary",
+                "MyDataType_Encoding_DefaultXML"
+            ].sort());
     });
 });
