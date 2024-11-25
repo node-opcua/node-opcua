@@ -1,4 +1,4 @@
-const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
+const { OPCUAServer, Variant, DataType, DataValue, StatusCodes } = require("node-opcua");
 
 (async () => {
     // Let's create an instance of OPCUAServer
@@ -25,7 +25,7 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
 
     // add some variables
     // add a variable named MyVariable1 to the newly created folder "MyDevice"
-    
+
 
     // emulate variable1 changing every 500 ms
 
@@ -42,12 +42,12 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
     addressSpace.registerShutdownTask(() => { clearInterval(timerId); });
 
 
-    const uaVariable2 =namespace.addVariable({
+    const uaVariable2 = namespace.addVariable({
         componentOf: device,
         nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
         browseName: "MyVariable2",
         dataType: "Double",
-        accessLevel: "CurrentRead | CurrentWrite",  
+        accessLevel: "CurrentRead | CurrentWrite",
     });
 
 
@@ -73,7 +73,24 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
         }
     });
 
-    server.start(function () {
+    const uaVariable3 = namespace.addVariable({
+        componentOf: device,
+        nodeId: "s=process_name", // a string nodeID
+        browseName: "ProcessName",
+        dataType: "Float",
+        minimumSamplingInterval: 100,
+        value: {
+            timestamped_get: () =>
+                new DataValue({
+                    statusCode: StatusCodes.Good,
+                    sourceTimestamp: new Date(),
+                    serverTimestamp: new Date(),
+                    value: new Variant({ dataType: DataType.Float, value: Math.random() })
+                })
+        }
+    });
+
+    server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);
         const endpointUrl = server.endpoints[0].endpointDescriptions()[0].endpointUrl;
