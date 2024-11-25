@@ -25,39 +25,32 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
 
     // add some variables
     // add a variable named MyVariable1 to the newly created folder "MyDevice"
-    let variable1 = 1;
+    
 
     // emulate variable1 changing every 500 ms
-    setInterval(() => {
-        variable1 += 1;
-    }, 500);
 
-    namespace.addVariable({
+    var uaVariable1 = namespace.addVariable({
         componentOf: device,
         browseName: "MyVariable1",
-        dataType: "Double",
-        value: {
-            get: () => new Variant({ dataType: DataType.Double, value: variable1 })
-        }
+        dataType: "Double"
     });
+    let variable1 = 1;
+    const timerId = setInterval(() => {
+        variable1 += 1;
+        uaVariable1.setValueFromSource(new Variant({ dataType: DataType.Double, value: variable1 }));
+    }, 500);
+    addressSpace.registerShutdownTask(() => { clearInterval(timerId); });
 
-    // add a variable named MyVariable2 to the newly created folder "MyDevice"
-    let variable2 = 10.0;
 
-    namespace.addVariable({
+    const uaVariable2 =namespace.addVariable({
         componentOf: device,
         nodeId: "ns=1;b=1020FFAA", // some opaque NodeId in namespace 4
         browseName: "MyVariable2",
         dataType: "Double",
-        minimumSamplingInterval: 1234, // we need to specify a minimumSamplingInterval when using a getter
-        value: {
-            get: () => new Variant({ dataType: DataType.Double, value: variable2 }),
-            set: (variant) => {
-                variable2 = parseFloat(variant.value);
-                return StatusCodes.Good;
-            }
-        }
+        accessLevel: "CurrentRead | CurrentWrite",  
     });
+
+
     const os = require("os");
     /**
      * returns the percentage of free memory on the running machine
@@ -74,6 +67,7 @@ const { OPCUAServer, Variant, DataType, StatusCodes } = require("node-opcua");
         nodeId: "s=free_memory", // a string nodeID
         browseName: "FreeMemory",
         dataType: "Double",
+        minimumSamplingInterval: 1000, // we need to specify a minimumSamplingInterval when using a getter
         value: {
             get: () => new Variant({ dataType: DataType.Double, value: available_memory() })
         }
