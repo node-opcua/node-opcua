@@ -125,26 +125,30 @@ export class MessageChunker {
         messageLength: number,
     ): { statusCode: StatusCode, chunkManager: SecureMessageChunkManager | null } {
         // calculate message size ( with its  encodingDefaultBinary)
-        const chunkManager = this.#_build_chunk_manager(msgType, params);
+        try {
+            const chunkManager = this.#_build_chunk_manager(msgType, params);
 
-        const { chunkCount, totalLength } = chunkManager.evaluateTotalLengthAndChunks(messageLength);
+            const { chunkCount, totalLength } = chunkManager.evaluateTotalLengthAndChunks(messageLength);
 
-        if (this.maxChunkCount > 0 && chunkCount > this.maxChunkCount) {
-            errorLog(
-                `[NODE-OPCUA-E10] message chunkCount ${chunkCount} exceeds the negotiated maximum chunk count ${this.maxChunkCount}, message current size is ${totalLength}`
-            );
-            errorLog(
-                `[NODE-OPCUA-E10] ${messageLength} totalLength = ${totalLength} chunkManager.maxBodySize = ${this.maxMessageSize}`
-            );
-            return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
+            if (this.maxChunkCount > 0 && chunkCount > this.maxChunkCount) {
+                errorLog(
+                    `[NODE-OPCUA-E10] message chunkCount ${chunkCount} exceeds the negotiated maximum chunk count ${this.maxChunkCount}, message current size is ${totalLength}`
+                );
+                errorLog(
+                    `[NODE-OPCUA-E10] ${messageLength} totalLength = ${totalLength} chunkManager.maxBodySize = ${this.maxMessageSize}`
+                );
+                return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
+            }
+            if (this.maxMessageSize > 0 && totalLength > this.maxMessageSize) {
+                errorLog(
+                    `[NODE-OPCUA-E11] message size ${totalLength} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${chunkCount}`
+                );
+                return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
+            }
+            return { statusCode: StatusCodes.Good, chunkManager: chunkManager };
+        } catch (err) {
+            return { statusCode: StatusCodes.BadTcpInternalError, chunkManager: null };
         }
-        if (this.maxMessageSize > 0 && totalLength > this.maxMessageSize) {
-            errorLog(
-                `[NODE-OPCUA-E11] message size ${totalLength} exceeds the negotiated message size ${this.maxMessageSize} nb chunks ${chunkCount}`
-            );
-            return { statusCode: StatusCodes.BadTcpMessageTooLarge, chunkManager: null };
-        }
-        return { statusCode: StatusCodes.Good, chunkManager: chunkManager };
     }
     public chunkSecureMessage(
         msgType: string,
@@ -173,10 +177,10 @@ export class MessageChunker {
         let nbChunks = 0;
         let totalSize = 0;
         chunkManager.on("chunk", (messageChunk: Buffer) => {
-                nbChunks++;
-                totalSize += messageChunk.length;
-                messageChunkCallback(messageChunk);
-            })
+            nbChunks++;
+            totalSize += messageChunk.length;
+            messageChunkCallback(messageChunk);
+        })
             .on("finished", () => {
                 if (doTraceChunk) {
                     console.log(
