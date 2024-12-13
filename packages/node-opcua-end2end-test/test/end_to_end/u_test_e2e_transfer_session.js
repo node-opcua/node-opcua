@@ -569,8 +569,8 @@ module.exports = function (test) {
                 password: (() => "password1")()
             };
             const user2 = new UserNameIdentityToken({
-                userName: "user1",
-                password: (() => "password1")()
+                userName: "user2",
+                password: (() => "password2")()
             });
             //xx console.log(" user1 ", user1.toString());
             async.series(
@@ -600,7 +600,15 @@ module.exports = function (test) {
                     function (callback) {
                         // reactivate session on second channel
                         // alter session1.userIdentityInfo
-                        client2.reactivateSession(session1, function (err) {
+
+                        // Scrap
+                        session1.userIdentityInfo = { type: UserTokenType.Anonymous };
+
+                        client2.reactivateSession(session1, (err) => {
+                            should.exist(
+                                err,
+                                "expecting an error here , client2 cannot reactivate session1 with different user identity token"
+                            );
                             err.message.should.match(/BadIdentityChangeNotSupported/);
                             _.contains(client1._sessions, session1).should.eql(true); // should have failed
                             callback();
