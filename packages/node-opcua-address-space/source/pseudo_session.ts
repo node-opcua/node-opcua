@@ -263,7 +263,7 @@ export class PseudoSession implements IBasicSession {
             }
             innerBrowseNext(
                 { continuationPointManager: this.continuationPointManager },
-                continuationPoints,
+                continuationPoints as Buffer[],
                 releaseContinuationPoints,
                 callback
             );
