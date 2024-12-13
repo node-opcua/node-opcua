@@ -202,7 +202,7 @@ export class ClientTCP_transport extends TCP_transport {
                  * @event connection_break
                  *
                  */
-                console.log("connection_break", endpointUrl);
+                warningLog("connection_break", endpointUrl);
                 this.emit("connection_break");
             }
         };
