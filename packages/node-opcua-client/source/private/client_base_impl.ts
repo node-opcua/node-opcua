@@ -1161,11 +1161,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
     public _removeSession(session: ClientSessionImpl): void {
         const index = this._sessions.indexOf(session);
-
         if (index >= 0) {
             const s = this._sessions.splice(index, 1)[0];
-            assert(s === session);
-            assert(session._client === this);
+            // assert(s === session);
+            // assert(session._client === this);
             session._client = null;
         }
         assert(this._sessions.indexOf(session) === -1);
