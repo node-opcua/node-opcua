@@ -456,8 +456,8 @@ function getTick() {
         console.log(asTree(result, true, true));
         console.log(" -----------------------");
 
-        let t1: number;
-        let t2: number;
+        let t1: number = 0 ;
+        let t2: number = 0;
 
         function print_stat() {
             t2 = Date.now();
