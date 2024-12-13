@@ -94,7 +94,7 @@ export function writeTCPMessageHeader(
     msgType: string,
     chunkType: string,
     totalLength: number,
-    stream: OutputBinaryStream | Buffer
+    stream: OutputBinaryStream
 ): void {
     if (stream instanceof Buffer) {
         stream = new BinaryStream(stream);
