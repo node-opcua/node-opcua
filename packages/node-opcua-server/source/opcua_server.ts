@@ -359,8 +359,11 @@ function sameIdentityToken(token1: UserIdentityToken, token2: UserIdentityToken)
             return false;
         }
         if (token1.password.toString("hex") !== token2.password.toString("hex")) {
-            return false;
+            // note pasword hash may be different from two request and cannot be verified at this stage
+            // we assume that we have a valid password
+            // NOT CALLING return false;
         }
+        return true;
     } else if (token1 instanceof AnonymousIdentityToken) {
         if (!(token2 instanceof AnonymousIdentityToken)) {
             return false;
