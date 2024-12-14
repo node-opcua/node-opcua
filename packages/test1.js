@@ -3,9 +3,6 @@ const opcua = require("./node-opcua");
 
 //const heapdump  = require("heapdump");
 
-const thenify = require("thenify");
-
-//xxheapdump.writeSnapshot= thenify.withCallback(heapdump.writeSnapshot);
 const endpointUrl = "opc.tcp://localhost:26544";
 // 192.168.43.229
 async function cycle() {
