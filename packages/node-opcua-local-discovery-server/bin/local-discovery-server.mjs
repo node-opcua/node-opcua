@@ -1,24 +1,17 @@
 #!/usr/bin/env node
-const os = require("os");
-const path = require("path");
-const fs = require("fs");
-const yargs = require("yargs/yargs");
+import os from "os";
+import path from "path";
+import fs from "fs";
 
-const {
-    assert,
-    OPCUACertificateManager,
-    OPCUADiscoveryServer,
-    extractFullyQualifiedDomainName,
-    makeApplicationUrn
-} = require("node-opcua");
-
-// Create a new instance of vantage.
-const Vorpal = require("vorpal");
-const vorpal_repl = require("vorpal-repl");
-const envPaths = require("env-paths");
-const { make_debugLog } = require("node-opcua-debug");
+import { assert, OPCUACertificateManager, OPCUADiscoveryServer, extractFullyQualifiedDomainName, makeApplicationUrn } from "node-opcua";
+import { input, select } from "@inquirer/prompts";
+import envPaths from "env-paths";
+import { make_debugLog } from "node-opcua-debug";
 
 const paths = envPaths("node-opcua-local-discovery-server");
+
+import yargs from "yargs/yargs.js";
+
 const configFolder = paths.config;
 const pkiFolder = path.join(configFolder, "PKI");
 const serverCertificateManager = new OPCUACertificateManager({
@@ -29,11 +22,11 @@ const serverCertificateManager = new OPCUACertificateManager({
 const debugLog = make_debugLog("LDS");
 
 async function getIpAddresses() {
-    const ipAddresses = [];
+    const ipAddresses /*: string[] */= [];
     const networkInterfaces = os.networkInterfaces();
     for (const [interfaceName, interfaces] of Object.entries(networkInterfaces)) {
         let alias = 0;
-        for (const iFace of interfaces) {
+        for (const iFace of interfaces || []) {
             if ("IPv4" !== iFace.family || iFace.internal !== false) {
                 // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
                 continue;
@@ -72,7 +65,7 @@ const argv = yargs(process.argv)
     .default("force", false)
 
     .string("alternateHostname")
-    .describe("alternateHostname ")
+    .describe("alternateHostname ", "alternate hostname to use in certificate")
     .string("hostname")
     .describe("hostname", "the hostname")
 
@@ -87,7 +80,15 @@ const argv = yargs(process.argv)
     .alias("f", "force")
     .alias("t", "tolerant")
 
-    .help(true).argv;
+    .help(true).argv/* as {
+        port: number,
+        tolerant: boolean,
+        force: boolean,
+        applicationName: string,
+        hostname?: string,
+        alternateHostname?: string
+    }*/
+   ;
 
 const port = argv.port;
 const automaticallyAcceptUnknownCertificate = argv.tolerant;
@@ -135,13 +136,12 @@ console.log("applicationName                         ", applicationName);
             certificateFile,
             privateKeyFile,
             serverCertificateManager,
-            automaticallyAcceptUnknownCertificate,
             serverInfo: {
                 applicationUri
             },
             hostname,
-            alternateHostname,
-            noUserIdentityTokens: true
+            alternateHostname: argv.alternateHostname ? [argv.alternateHostname] : [],
+            // noUserIdentityTokens: true
         });
 
         try {
@@ -157,39 +157,57 @@ console.log("applicationName                         ", applicationName);
         console.log("rejected Folder ", discoveryServer.serverCertificateManager.rejectedFolder);
         console.log("trusted  Folder ", discoveryServer.serverCertificateManager.trustedFolder);
 
-        const vorpal = new Vorpal();
-        vorpal
-            .command("info")
-            .description("display list of registered servers.")
-            .action(function (args, callback) {
-                this.log(discoveryServer.serverInfo.toString());
-                // xx this.log(discoveryServer.endpoints[0]);
 
-                {
-                    const servers = Object.keys(discoveryServer.registeredServers);
-                    this.log("number of registered servers : ", servers.length);
+        const commandPrompt = {
+            type: 'list',
+            name: 'direction',
+            message: 'select a command?',
+            choices: ['list servers', 'shutdown'],
+        };
 
-                    for (const serverKey of servers) {
-                        const server = discoveryServer.registeredServers[serverKey];
-                        this.log("key =", serverKey);
-                        this.log(server.toString());
-                    }
-                }
-                {
-                    const server2 = Object.keys(discoveryServer.mDnsResponder.registeredServers);
-                    this.log("number of mNDS registered servers : ", server2.length);
-                    for (const serverKey of server2) {
-                        const server = discoveryServer.mDnsResponder.registeredServers[serverKey];
-                        this.log("key =", serverKey);
-                        this.log(server.toString());
-                    }
-                }
-
-                callback();
+        while (true) {
+            const answer = await select({
+                choices: ['list servers', 'shutdown'],
+                message: 'select a command?',
             });
-        vorpal.delimiter("local-discovery-server$").use(vorpal_repl).show();
+            console.log("answer", answer);
+            if (answer === "shutdown") {
+                break;
+            }
+            displayRegisteredServersInfo(discoveryServer);
+        }
+        await discoveryServer.shutdown();
+        console.log("discovery server stopped");
+        process.exit(0);
+
     } catch (err) {
         console.log(err.message);
         console.log(err);
     }
 })();
+
+function displayRegisteredServersInfo(discoveryServer/*: OPCUADiscoveryServer*/) {
+    console.log(discoveryServer.serverInfo.toString());
+    // xx console.log(discoveryServer.endpoints[0]);
+
+    {
+        const servers = Object.keys(discoveryServer.registeredServers);
+        console.log("number of registered servers : ", servers.length);
+
+        for (const serverKey of servers) {
+            const server = discoveryServer.registeredServers[serverKey];
+            console.log("key =", serverKey);
+            console.log(server.toString());
+        }
+    }
+    if (discoveryServer.mDnsResponder) {
+
+        const server2 = Object.keys(discoveryServer.mDnsResponder.registeredServers);
+        console.log("number of mNDS registered servers : ", server2.length);
+        for (const serverKey of server2) {
+            const server = discoveryServer.mDnsResponder.registeredServers[serverKey];
+            console.log("key =", serverKey);
+            console.log(server.toString());
+        }
+    }
+}
