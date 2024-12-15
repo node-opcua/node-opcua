@@ -3,9 +3,9 @@
     "version": "2.138.1",
     "description": "pure nodejs OPCUA SDK - module local-discovery-server",
     "bin": {
-        "lds": "./bin/local-discovery-server.js",
-        "local-discovery-server": "./bin/local-discovery-server.js",
-        "node-opcua-local-discovery-server": "./bin/local-discovery-server.js"
+        "lds": "./bin/local-discovery-server.mjs",
+        "local-discovery-server": "./bin/local-discovery-server.mjs",
+        "node-opcua-local-discovery-server": "./bin/local-discovery-server.mjs"
     },
     "scripts": {
         "lint": "eslint source/**/*.ts",
@@ -27,11 +27,11 @@
         "internet of things"
     ],
     "dependencies": {
+        "@inquirer/prompts": "7.2.0",
         "env-paths": "2.2.1",
         "node-opcua": "2.138.1",
         "node-opcua-debug": "2.133.0",
-        "vorpal": "^1.12.0",
-        "vorpal-repl": "^1.1.8",
+        "tsx": "^4.19.2",
         "yargs": "15.4.1"
     },
     "homepage": "http://node-opcua.github.io/",
