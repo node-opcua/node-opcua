@@ -10,7 +10,7 @@
         "test": "mocha"
     },
     "dependencies": {
-        "@types/long": "4.0.0",
+        "@types/long": "4.0.2",
         "long": "4.0.0",
         "node-opcua-assert": "2.120.0",
         "node-opcua-binary-stream": "2.133.0",
