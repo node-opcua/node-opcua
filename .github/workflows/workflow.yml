@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [16.x, 18.x, 20.x, 22.x ]
+        node-version: [ 18.x, 20.x, 22.x ]
         include:
           - node-version: 18.x
             SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
@@ -66,7 +66,7 @@ jobs:
       with:
         path: ~/.pnpm-store
         key: ${{ runner.os }}-pnpm-store
-    - run: npm install -g pnpm@8
+    - run: npm install -g pnpm@9
     - run: pnpm recursive install --no-frozen-lockfile
     - run: pnpm run build
     - run: hostname 
@@ -75,6 +75,32 @@ jobs:
     - run: pnpm test
       env:
         SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
+
+
+  legacy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 16.x ]
+ 
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install -g pnpm@7
+    # remove pnpm-lock.yaml to avoid conflicts
+    - run: rm pnpm-lock.yaml
+    # also change the required version in package.json
+    - run: "sed -i 's/\"pnpm\": \".*\"/\"pnpm\": \">=7.0.0\"/' package.json"
+    - run: grep pnpm package.json
+    - run: pnpm recursive install --no-frozen-lockfile
+    - run: pnpm run build
+    - run: hostname 
+    - run: openssl version
+    - run: pnpm run pretest
+    - run: pnpm test
 
 
   coverage:
