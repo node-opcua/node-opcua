@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:slim
 WORKDIR /root
 COPY package.json .
 RUN npm init -y && npm install 
