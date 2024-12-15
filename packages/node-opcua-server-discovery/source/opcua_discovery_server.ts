@@ -99,11 +99,13 @@ function getDefaultCertificateManager(): OPCUACertificateManager {
 }
 
 export class OPCUADiscoveryServer extends OPCUABaseServer {
-    private mDnsResponder?: MDNSResponder;
-    private readonly registeredServers: RegisterServerMap;
+    public mDnsResponder?: MDNSResponder;
+    public readonly registeredServers: RegisterServerMap;
+
     private bonjourHolder: BonjourHolder;
     private _delayInit?: () => void;
 
+    
     constructor(options: OPCUADiscoveryServerOptions) {
         options.serverInfo = options.serverInfo || {};
         const serverInfo = options.serverInfo;
