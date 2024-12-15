@@ -6,7 +6,7 @@
         "test": "mocha",
         "lint": "eslint source test",
         "format": "prettier --write source test",
-        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b"
     },
     "main": "./dist/index.js",

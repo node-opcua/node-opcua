@@ -10,7 +10,7 @@
         "lint": "eslint source test",
         "format": "prettier --write source test",
         "build": "tsc -b",
-        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "test": "mocha "
     },
     "dependencies": {

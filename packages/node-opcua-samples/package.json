@@ -13,7 +13,7 @@
         "pretest": "npm run certificate",
         "certificate": "node bin/create_certificates.js demo --dev -s",
         "test": "echo no test",
-        "clean": "npx rimraf certificates"
+        "clean": "npx rimraf -g certificates"
     },
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",

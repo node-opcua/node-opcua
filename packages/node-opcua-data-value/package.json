@@ -9,7 +9,7 @@
         "test": "mocha",
         "lint": "eslint source test",
         "format": "prettier --write source test",
-        "clean": "npx rimraf node_modules dist *.tsbuildinfo"
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
         "node-opcua-assert": "2.120.0",

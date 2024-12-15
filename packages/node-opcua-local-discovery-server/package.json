@@ -10,6 +10,7 @@
     "scripts": {
         "lint": "eslint source/**/*.ts",
         "test": "echo no test",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo tmp",
         "build-docker": "docker build . -t lds"
     },
     "author": "Etienne Rossignon",

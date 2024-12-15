@@ -3,7 +3,7 @@
     "version": "2.138.1",
     "description": "pure nodejs OPCUA SDK - module client",
     "scripts": {
-        "clean": "npx rimraf node_modules dist *.tsbuildinfo certificates",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo certificates",
         "test": "mocha",
         "build": "tsc -b",
         "lint": "eslint source test test_helpers",

@@ -3,7 +3,7 @@
     "version": "2.125.0",
     "description": "pure nodejs OPCUA SDK - module constants",
     "scripts": {
-        "clean": "npx rimraf node_modules dist *.tsbuildinfo",
+        "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "build": "tsc -b",
         "lint": "eslint source/**/*.ts",
         "test": ""

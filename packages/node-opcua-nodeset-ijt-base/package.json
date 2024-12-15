@@ -5,6 +5,7 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
+        "clean": "npx rimraf -g  dist *.tsbuildinfo",
         "build": "tsc -b"
     },
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",

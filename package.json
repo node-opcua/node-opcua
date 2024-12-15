@@ -32,7 +32,7 @@
         "legal": "npx legally",
         "legal2": "npx npm-license-crawler",
         "legal3": " npx license-checker --production --summary",
-        "publish:lerna": "pnpm m run clean && npx rimraf packages/node_modules packages/*/dist  packages/*/*.tsbuildinfo && pnpm m i && npx lerna publish",
+        "publish:lerna": "pnpm m run clean && npx rimraf -g packages/node_modules packages/*/dist  packages/*/\"tsconfig.tsbuildinfo\" && pnpm m i && npx lerna publish",
         "makelinks": "npx tsx ../make-links/makelinks.ts"
     },
     "repository": {

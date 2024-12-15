@@ -7,7 +7,7 @@
         "test": "mocha",
         "lint": "eslint source test",
         "format": "prettier --write source test",
-        "clean": "npx rimraf _generated_ dist *.tsbuildinfo",
+        "clean": "npx rimraf -g _generated_ dist *.tsbuildinfo",
         "coverage": "npx nyc node ../../node_modules/mocha/bin/mocha"
     },
     "main": "./dist/index.js",
