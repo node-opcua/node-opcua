@@ -31,7 +31,7 @@
         "node-opcua-client-proxy": "2.139.0",
         "node-opcua-crypto": "4.15.0",
         "node-opcua-packet-analyzer": "2.139.0",
-        "node-opcua-pki": "4.17.0",
+        "node-opcua-pki": "4.18.0",
         "node-opcua-server-configuration": "2.139.0",
         "node-opcua-utils": "2.139.0",
         "node-opcua-vendor-diagnostic": "2.139.0",

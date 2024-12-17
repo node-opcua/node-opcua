@@ -125,7 +125,7 @@
         "mkdirp": "1.0.4",
         "mocha-clean": "^1.0.0",
         "node-opcua-crypto": "4.15.0",
-        "node-opcua-pki": "4.17.0",
+        "node-opcua-pki": "4.18.0",
         "object.values": "^1.2.0",
         "pretty-ms": "^9.2.0",
         "progress": "^2.0.3",
