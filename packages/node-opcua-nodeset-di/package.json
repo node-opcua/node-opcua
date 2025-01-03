@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-di",
-    "version": "2.139.0",
+    "version": "2.140.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-di",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -17,7 +17,7 @@
         "node-opcua-data-model": "2.139.0",
         "node-opcua-extension-object": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-nodeset-ua": "2.139.0",
+        "node-opcua-nodeset-ua": "2.140.0",
         "node-opcua-status-code": "2.139.0",
         "node-opcua-variant": "2.139.0"
     },
