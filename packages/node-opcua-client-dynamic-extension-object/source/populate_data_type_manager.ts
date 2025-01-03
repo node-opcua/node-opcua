@@ -31,16 +31,19 @@ export async function serverImplementsDataTypeDefinition(
     });
 
     let count103DataType = 0;
-    for (const ref of browseResult1.references || []) {
+
+    const innerF = async (ref: ReferenceDescription) => {
         const td = ref.typeDefinition;
-        if (!(td.namespace === 0 && td.value === VariableTypeIds.DataTypeDictionaryType)) continue;
+        if (!(td.namespace === 0 && td.value === VariableTypeIds.DataTypeDictionaryType)) {
+            return;
+        }
         // we have a type definition,
         // let check if there is a deprecated property
         const p = await session.translateBrowsePath(makeBrowsePath(ref.nodeId, "/Deprecated"));
         if (!p.statusCode.isGood() || !p.targets || p.targets.length === 0) {
             // the dataTypeDictionaryType is not exposing a Deprecated property
             count103DataType++;
-            continue;
+            return;
         }
         const deprecatedNodeId = p.targets[0].targetId;
         // we have a deprecated property => this is a 1.03 server or 1.04
@@ -49,9 +52,19 @@ export async function serverImplementsDataTypeDefinition(
         if (dataValue.statusCode.isGood() && dataValue.value.value === false) {
             // this is a 1.03 server
             count103DataType++;
-            continue;
+            return;
         }
     }
+
+    if (false) {
+        for (let r of (browseResult1.references || [])) {
+            await innerF(r);
+        }
+    } else {
+        const promises: Promise<void>[] = (browseResult1.references || []).map((a) => innerF(a));
+        await Promise.all(promises);
+    }
+    
     if (count103DataType >= 1) {
         // some namespace are old , we cannot assume that all namespace are 1.04
         return false;
@@ -120,7 +133,7 @@ export enum DataTypeExtractStrategy {
 
 export async function populateDataTypeManager(
     session: IBasicSessionAsync2,
-    dataTypeManager: ExtraDataTypeManager, 
+    dataTypeManager: ExtraDataTypeManager,
     strategy: DataTypeExtractStrategy
 ): Promise<void> {
     if (strategy === DataTypeExtractStrategy.Auto) {
@@ -134,7 +147,7 @@ export async function populateDataTypeManager(
         await populateDataTypeManager104(session, dataTypeManager);
         return;
     }
-    if (strategy == DataTypeExtractStrategy.Force103|| strategy == DataTypeExtractStrategy.Both) {
+    if (strategy == DataTypeExtractStrategy.Force103 || strategy == DataTypeExtractStrategy.Both) {
         await populateDataTypeManager103(session, dataTypeManager);
     }
     if (strategy == DataTypeExtractStrategy.Force104 || strategy == DataTypeExtractStrategy.Both) {

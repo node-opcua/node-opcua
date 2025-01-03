@@ -1208,9 +1208,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             }
 
             // perform ExtensionObject resolution
-            promoteOpaqueStructureWithCallback(this, response.results!, () => {
+            promoteOpaqueStructure(this, response.results!).then(() => {
                 response.results = response.results || /* istanbul ignore next */ [];
-                return callback(null, isArray ? response.results : response.results[0]);
+                callback(null, isArray ? response.results : response.results[0]);
+            }).catch((err) => {
+                callback(err);
             });
         });
     }
@@ -1708,8 +1710,10 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
             }
             response.results = response.results || [];
 
-            promoteOpaqueStructure3WithCallback(this, response.results, () => {
+            promoteOpaqueStructureForCall(this, response.results).then(() => {
                 callback(null, isArray ? response.results : response.results![0]);
+            }).catch((err) => {
+                callback(err);
             });
         });
     }
@@ -2145,13 +2149,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
     }
 }
 
-type promoteOpaqueStructure3WithCallbackFunc = (
-    session: IBasicSessionAsync2,
-    callMethodResults: CallMethodResult[],
-    callback: ErrorCallback
-) => void;
-
-async function promoteOpaqueStructure2(session: IBasicSessionAsync2, callMethodResult: CallMethodResult): Promise<void> {
+async function promoteOpaqueStructureForCallMethodResult(session: IBasicSessionAsync2, callMethodResult: CallMethodResult): Promise<void> {
     if (!callMethodResult || !callMethodResult.outputArguments || callMethodResult.outputArguments.length === 0) {
         return;
     }
@@ -2173,14 +2171,15 @@ function countOpaqueStructures(callMethodResults: CallMethodResult[]): number {
     }, 0);
     return opaqueStructureCount;
 }
-async function promoteOpaqueStructure3(session: IBasicSessionAsync2, callMethodResults: CallMethodResult[]): Promise<void> {
+
+async function promoteOpaqueStructureForCall(session: IBasicSessionAsync2, callMethodResults: CallMethodResult[]): Promise<void> {
     const opaqueStructureCount = countOpaqueStructures(callMethodResults);
     if (0 === opaqueStructureCount) return;
 
     // construct dataTypeManager if not already present
     await getExtraDataTypeManager(session);
 
-    const promises: Promise<void>[] = callMethodResults.map(async (x: CallMethodResult) => promoteOpaqueStructure2(session, x));
+    const promises: Promise<void>[] = callMethodResults.map(async (x: CallMethodResult) => promoteOpaqueStructureForCallMethodResult(session, x));
     await Promise.all(promises);
 }
 
@@ -2188,10 +2187,6 @@ async function promoteOpaqueStructure3(session: IBasicSessionAsync2, callMethodR
 // tslint:disable:max-line-length
 const thenify = require("thenify");
 const opts = { multiArgs: false };
-
-const promoteOpaqueStructureWithCallback = callbackify(promoteOpaqueStructure);
-const promoteOpaqueStructure3WithCallback = callbackify(promoteOpaqueStructure3) as promoteOpaqueStructure3WithCallbackFunc;
-// ClientSessionImpl.prototype.constructExtensionObject = callbackify(ClientSessionImpl.prototype.constructExtensionObject) as any;
 
 ClientSessionImpl.prototype.browse = thenify.withCallback(ClientSessionImpl.prototype.browse, opts);
 ClientSessionImpl.prototype.browseNext = thenify.withCallback(ClientSessionImpl.prototype.browseNext, opts);
