@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-machinery-jobs",
-    "version": "2.140.0",
+    "version": "2.139.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-machinery-jobs",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
