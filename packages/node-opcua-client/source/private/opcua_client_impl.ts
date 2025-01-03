@@ -518,7 +518,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
     public changeSessionIdentity(session: ClientSession, userIdentityInfo: UserIdentityInfo, callback: CallbackT<StatusCode>): void;
     public changeSessionIdentity(...args: any[]): any {
         warningLog(
-            "[NODE-OPCUA-W27] OPCUAClient.changeSessionIdentity(session,userIdentity) is deprecated use ClientSession.changeUser(userIdentity) instead"
+            "[NODE-OPCUA-W34] OPCUAClient.changeSessionIdentity(session,userIdentity) is deprecated use ClientSession.changeUser(userIdentity) instead"
         );
         const session = args[0] as ClientSessionImpl;
         const userIdentityInfo = args[1] as UserIdentityInfo;
@@ -612,12 +612,12 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         const endpointUrl: string = typeof connectionPoint === "string" ? connectionPoint : connectionPoint.endpointUrl;
         const userIdentity: UserIdentityInfo =
             typeof connectionPoint === "string" ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
-
-        await this.connect(endpointUrl);
-
+       
         this.on("backoff", (count, delay) => {
             warningLog("cannot connect to ", endpointUrl, "attempt #" + count, " retrying in ", delay);
         });
+       
+        await this.connect(endpointUrl);
 
         try {
             const session = await this.createSession2(userIdentity);

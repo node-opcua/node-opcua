@@ -23,6 +23,10 @@ export function extractDataValueToPromote(dataValues: PseudoDataValue[]): Pseudo
     );
     return dataValuesToFix;
 }
+/**
+ * 
+ * @private
+ */
 export async function promoteOpaqueStructure(session: IBasicSessionAsync2, dataValues: PseudoDataValue[]) {
     const dataValuesToFix = extractDataValueToPromote(dataValues);
     if (dataValuesToFix.length === 0) {

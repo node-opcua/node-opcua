@@ -27,6 +27,7 @@ import {
     CacheForFieldResolution,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
+import { DataValue } from "node-opcua-data-value";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -449,12 +450,13 @@ async function _extractDataTypeDictionary(
                 session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.BrowseName }),
                 _readNamespaceUriProperty(session, dataTypeDictionaryNodeId)
             ]);
-            doDebug && debugLog(
-                "DataTypeDictionary is deprecated or BSD schema stored in dataValue is null !",
-                chalk.cyan(name.value.value.toString()),
-                "namespace =",
-                namespace
-            );
+            doDebug &&
+                debugLog(
+                    "DataTypeDictionary is deprecated or BSD schema stored in dataValue is null !",
+                    chalk.cyan(name.value.value.toString()),
+                    "namespace =",
+                    namespace
+                );
             debugLog("let's use the new way (1.04) and let's explore all dataTypes exposed by this name space");
         }
         // dataType definition in store directly in UADataType under the definition attribute
@@ -465,7 +467,11 @@ async function _extractDataTypeDictionary(
         await _extractDataTypeDictionaryFromDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory2);
     } else {
         const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
-        doDebug && debugLog(" ----- Using old method for extracting schema => with BSD files -----", dataTypeDictionaryNodeId.namespaceUri);
+        doDebug &&
+            debugLog(
+                " ----- Using old method for extracting schema => with BSD files -----",
+                dataTypeDictionaryNodeId.namespaceUri
+            );
         // old method ( until 1.03 )
         // one need to read the schema file store in the dataTypeDictionary node and parse it !
         /* istanbul ignore next */
@@ -656,13 +662,19 @@ export async function populateDataTypeManager103(
         const infos: TypeDictionaryInfo[] = [];
         const innerMap: { [key: string]: TypeDictionaryInfo } = {};
 
-        for (const reference of references) {
+        const innerF = async (reference: ReferenceDescription) => {
             const dataTypeDictionaryNodeId = reference.nodeId;
-            const isDictionaryDeprecated = await _readDeprecatedFlag(session, dataTypeDictionaryNodeId);
-            const rawSchemaDataValue = await session.read({
+
+            const promises: [Promise<boolean>, Promise<DataValue>] = [
+                /* isDictionaryDeprecated: bool = await */ _readDeprecatedFlag(session, dataTypeDictionaryNodeId),
+                /* rawSchemaDataValue!: DataValue = await */ session.read({
                 attributeId: AttributeIds.Value,
                 nodeId: dataTypeDictionaryNodeId
-            });
+            })
+            ];
+
+            const [isDictionaryDeprecated, rawSchemaDataValue] = await Promise.all(promises);
+
             const rawSchema = rawSchemaDataValue.value.value ? rawSchemaDataValue.value.value.toString() : "";
 
             const info: TypeDictionaryInfo = {
@@ -716,7 +728,10 @@ export async function populateDataTypeManager103(
                 innerMap[info.targetNamespace] = info;
             }
             // assert(info.targetNamespace.length !== 0);
-        }
+        };
+        const promises: Promise<void>[] = references.map(innerF);
+        await Promise.all(promises);
+
         // ----------------------------------
         const orderedList: TypeDictionaryInfo[] = [];
         const visited: any = {};
@@ -745,17 +760,17 @@ export async function populateDataTypeManager103(
 
     // setup dependencies
     const map: { [key: string]: TypeDictionaryInfo } = {};
-     
     const map2: { [key: string]: DataTypeFactory[] } = {};
     for (const d of dataTypeDictionaryInfo) {
         map[d.targetNamespace] = d;
 
-        doDebug && debugLog(
-            " fixing based dataTypeFactory dependencies for  ",
-            d.targetNamespace,
-            "index = ",
-            d.dataTypeDictionaryNodeId.namespace
-        );
+        doDebug &&
+            debugLog(
+                " fixing based dataTypeFactory dependencies for  ",
+                d.targetNamespace,
+                "index = ",
+                d.dataTypeDictionaryNodeId.namespace
+            );
 
         const baseDataFactories: DataTypeFactory[] = [getStandardDataTypeFactory()];
         for (const namespace of Object.values(d.dependencies)) {
@@ -770,20 +785,20 @@ export async function populateDataTypeManager103(
             if (dataTypeManager.hasDataTypeFactory(namespaceIndex)) {
                 const dep = dataTypeManager.getDataTypeFactory(namespaceIndex);
                 baseDataFactories.push(dep);
-                doDebug && debugLog(
-                    "   considering , ",
-                    baseDataFactory.targetNamespace,
-                    "index = ",
-                    baseDataFactory.dataTypeDictionaryNodeId.namespace
-                );
+                doDebug &&
+                    debugLog(
+                        "   considering , ",
+                        baseDataFactory.targetNamespace,
+                        "index = ",
+                        baseDataFactory.dataTypeDictionaryNodeId.namespace
+                    );
             }
         }
-        doDebug && debugLog('    baseDataFactories = ', baseDataFactories.map((f) => f.targetNamespace).join(" "));
+        doDebug && debugLog("    baseDataFactories = ", baseDataFactories.map((f) => f.targetNamespace).join(" "));
         map2[d.targetNamespace] = baseDataFactories;
     }
 
-    namespaceArray =dataTypeManager.namespaceArray;
-
+    namespaceArray = dataTypeManager.namespaceArray;
 
     for (const d of dataTypeDictionaryInfo) {
         const set = new Set<DataTypeFactory>();
@@ -800,12 +815,11 @@ export async function populateDataTypeManager103(
                 if (visited.has(namespaceUri)) {
                     continue;
                 }
-                if (namespaceUri === d.targetNamespace) {   
+                if (namespaceUri === d.targetNamespace) {
                     continue;
                 }
-                var index  = namespaceArray.indexOf(namespaceUri);
-                if (index == -1) 
-                    continue;
+                var index = namespaceArray.indexOf(namespaceUri);
+                if (index == -1) continue;
 
                 var dd = dataTypeManager.getDataTypeFactory(index);
                 set.add(dd);
@@ -826,7 +840,6 @@ export async function populateDataTypeManager103(
     // --------------------
 
     // now investigate DataTypeDescriptionType
-
     async function processReferenceOnDataTypeDictionaryType(d: TypeDictionaryInfo): Promise<void> {
         debugLog(chalk.cyan("processReferenceOnDataTypeDictionaryType on  "), d.targetNamespace);
         const ref = d.reference;
@@ -845,10 +858,59 @@ export async function populateDataTypeManager103(
         await _exploreDataTypeDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory, dataTypeManager.namespaceArray);
     }
 
-    // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
-    for (const d of dataTypeDictionaryInfo) {
-        await processReferenceOnDataTypeDictionaryType(d);
+    // istanbul ignore next
+    if (doDebug) {
+        for (const d of dataTypeDictionaryInfo) {
+            console.log(d);
+        }
     }
 
-    debugLog("out ... populateDataTypeManager");
+
+    // https://medium.com/swlh/dealing-with-multiple-promises-in-javascript-41d6c21f20ff
+    if (false) {
+        // we need to read sequentially the dataTypeDictionaryInfo
+        // to esnsure that dependencies are resolved in the correct order
+        for (const d of dataTypeDictionaryInfo) {
+            await processReferenceOnDataTypeDictionaryType(d);
+        }
+    } else {
+        // attempt to load all dataTypeDictionary in parallel as much as possible
+        // by ensuring parallel operation happens only when dependencies are resolved
+        const canBeProcessed = (d: TypeDictionaryInfo, alreadyProcessed: Set<string>) => {
+            for (const namespace of Object.values(d.dependencies)) {
+                if (d.targetNamespace === namespace) {
+                    continue;
+                }
+                if (!alreadyProcessed.has(namespace)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        const alreadyProcessed = new Set<string>();
+        alreadyProcessed.add("http://opcfoundation.org/UA/");
+        alreadyProcessed.add("http://www.w3.org/2001/XMLSchema-instance");
+        alreadyProcessed.add("http://opcfoundation.org/BinarySchema/");
+        const queue: TypeDictionaryInfo[] = [...dataTypeDictionaryInfo];
+
+        while (queue.length > 0) {
+            doDebug && console.log("queue length = ", queue.length);
+            const toProcess = queue.splice(0);
+            const promises: Promise<void>[] = [];
+            for (const d of toProcess) {
+                if (canBeProcessed(d, alreadyProcessed)) {
+                    promises.push((async () => {
+                        await processReferenceOnDataTypeDictionaryType(d)
+                        alreadyProcessed.add(d.targetNamespace);
+                    })());
+                } else {
+                    queue.push(d);
+                }
+            }
+            // const promise: Promise<void>[] = dataTypeDictionaryInfo.map(processReferenceOnDataTypeDictionaryType);
+            await Promise.all(promises);
+        }
+    }
+    debugLog("out ... populateDataTypeManager103");
 }
