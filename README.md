@@ -341,5 +341,5 @@ You are strongly encouraged to apply to our [NodeOPCUA Membership](https://suppo
 ## Copyright
 
 
-Copyright (c) 2022-2024 Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
+Copyright (c) 2022-2025 Sterfive SAS - 833264583 RCS ORLEANS - France (https://www.sterfive.com)
 Copyright (c) 2014-2022 Etienne Rossignon
