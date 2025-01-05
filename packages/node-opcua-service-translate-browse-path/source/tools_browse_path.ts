@@ -2,7 +2,7 @@
  * @module node-opcua-service-translate-browse-path
  */
 import { ReferenceTypeIds } from "node-opcua-constants";
-import { QualifiedName } from "node-opcua-data-model";
+import { QualifiedName, QualifiedNameLike } from "node-opcua-data-model";
 import { makeNodeId, NodeId } from "node-opcua-nodeid";
 import { BrowsePath } from "./imports";
 
@@ -16,7 +16,7 @@ export { stringToQualifiedName } from "node-opcua-data-model";
  */
 export function constructBrowsePathFromQualifiedName(
     startingNode: { nodeId: NodeId },
-    targetNames: QualifiedName[] | null
+    targetNames: QualifiedNameLike[] | null
 ): BrowsePath {
     targetNames = targetNames || [];
 

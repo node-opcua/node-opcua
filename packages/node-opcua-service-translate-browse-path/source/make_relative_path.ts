@@ -4,7 +4,7 @@
 import { assert } from "node-opcua-assert";
 import { QualifiedName } from "node-opcua-data-model";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { RelativePath } from "node-opcua-types";
+import { RelativePath, RelativePathElement } from "node-opcua-types";
 /*=
  * Release 1.03 page 152 OPC Unified Architecture, Part 4
  * Annex A (informative) BNF definitions
@@ -73,17 +73,45 @@ const aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
 //  <reserved-char> ::= '/' | '.' | '<' | '>' | ':' | '#' | '!' | '&'
 //  <name-char> ::= All valid characters for a String (see Part 3) excluding reserved-chars.
 //
+
+// regular character
 const regCharacters = /[^/.<>:#!&]/;
+// reserved character
 const regReservedCharacters = /[/.<>:#!&]/;
+
 const regName = new RegExp("(" + regCharacters.source + "|(&" + regReservedCharacters.source + "))+");
+
 const regNamespaceIndex = /[0-9]+/;
+
 const regBrowseName = new RegExp("(" + regNamespaceIndex.source + ":)?(" + regName.source + ")");
+
 const regReferenceType = new RegExp("/|\\.|(<(#)?(!)?(" + regBrowseName.source + ")>)");
 
 const regRelativePath = new RegExp("(" + regReferenceType.source + ")(" + regBrowseName.source + ")?");
 
-function unescape(str: string): string {
-    return str.replace(/&/g, "");
+export function unescape(str: string): string {
+    // replace all &x by
+    str = str.replace(/&\//g, "/");
+    str = str.replace(/&\./g, ".");
+    str = str.replace(/&</g, "<");
+    str = str.replace(/&>/g, ">");
+    str = str.replace(/&:/g, ":");
+    str = str.replace(/&#/g, "#");
+    str = str.replace(/&!/g, "!");
+    return str.replace(/&&/g, "&");
+}
+
+export function escape(str: string): string {
+    // replace all &x by
+    str = str.replace(/&/g, "&&");
+    str = str.replace(/\//g, "&/");
+    str = str.replace(/\./g, "&.");
+    str = str.replace(/</g, "&<");
+    str = str.replace(/>/g, "&>");
+    str = str.replace(/:/g, "&:");
+    str = str.replace(/#/g, "&#");
+    str = str.replace(/!/g, "&!");
+    return str;
 }
 
 function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
@@ -94,6 +122,11 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
     const namespaceIndex = mm[11] ? parseInt(mm[11], 10) : 0;
     const name = unescape(mm[12]);
     return new QualifiedName({ namespaceIndex, name });
+}
+
+
+export interface RelativePathEx extends RelativePath {
+    elements: RelativePathElement[];
 }
 
 /**
@@ -109,7 +142,7 @@ function makeQualifiedName(mm: RegExpMatchArray): QualifiedName {
  *      var relativePath = makeRelativePath("/Server.ServerStatus.CurrentTime");
  *
  */
-export function makeRelativePath(str: string, addressSpace?: any): RelativePath {
+export function makeRelativePath(str: string, addressSpace?: any): RelativePathEx {
     let r: any = {
         elements: []
     };

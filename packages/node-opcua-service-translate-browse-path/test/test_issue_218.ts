@@ -1,8 +1,5 @@
-"use strict";
-const should = require("should");
-const tbp_service = require("..");
-const makeBrowsePath = tbp_service.makeBrowsePath;
-const BrowsePath = tbp_service.BrowsePath;
+import "should";
+import { makeBrowsePath, BrowsePath} from ".."
 
 describe("#makeBrowsePath", function () {
 

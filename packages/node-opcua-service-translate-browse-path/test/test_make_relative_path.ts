@@ -1,15 +1,14 @@
-"use strict";
-const should = require("should");
-const { makeNodeId , resolveNodeId}= require("node-opcua-nodeid");
-const { QualifiedName } = require("node-opcua-data-model");
-const { makeRelativePath, RelativePathElement } = require("..");
+import "should";
+import { makeNodeId, resolveNodeId } from "node-opcua-nodeid";
+import { QualifiedName } from "node-opcua-data-model";
+import  { makeRelativePath, RelativePathElement } from "..";
 
 describe("makeRelativePath", function () {
     const hierarchicalReferenceTypeNodeId = resolveNodeId("HierarchicalReferences");
     const aggregatesReferenceTypeNodeId = resolveNodeId("Aggregates");
     const sinon = require("sinon");
 
-    it("T1 should construct simple RelativePath for '/' ", function () {
+    it("MRP-01 should construct simple RelativePath for '/' ", function () {
         const relativePath = makeRelativePath("/");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -22,7 +21,7 @@ describe("makeRelativePath", function () {
         );
     });
 
-    it("T2 should construct simple RelativePath for '.' ", function () {
+    it("MRP-02 should construct simple RelativePath for '.' ", function () {
         const relativePath = makeRelativePath(".");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -35,7 +34,7 @@ describe("makeRelativePath", function () {
         );
     });
 
-    it("T3 should construct simple RelativePath for '<HasChild>' ", function () {
+    it("MRP-03 should construct simple RelativePath for '<HasChild>' ", function () {
         const relativePath = makeRelativePath("<HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -47,7 +46,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("T3 should construct simple RelativePath for '<!HasSubtype>' ", function () {
+    it("MRP-04 should construct simple RelativePath for '<!HasSubtype>' ", function () {
         const relativePath = makeRelativePath("<!HasSubtype>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -60,7 +59,7 @@ describe("makeRelativePath", function () {
         );
     });
 
-    it("T4 should construct simple RelativePath for '<#HasChild>' ", function () {
+    it("MRP-05 should construct simple RelativePath for '<#HasChild>' ", function () {
         const relativePath = makeRelativePath("<#HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -73,7 +72,7 @@ describe("makeRelativePath", function () {
         );
     });
 
-    it("T5 should construct simple RelativePath for '<!HasChild>' ", function () {
+    it("MRP-06 should construct simple RelativePath for '<!HasChild>' ", function () {
         const relativePath = makeRelativePath("<!HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -85,7 +84,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("T6 should construct simple RelativePath for '<#!HasChild>' ", function () {
+    it("MRP-07 should construct simple RelativePath for '<#!HasChild>' ", function () {
         const relativePath = makeRelativePath("<#!HasChild>");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -97,7 +96,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("T7 should construct simple RelativePath for '/3:Truck'", function () {
+    it("MRP-08 should construct simple RelativePath for '/3:Truck'", function () {
         const relativePath = makeRelativePath("/3:Truck");
         relativePath.elements.length.should.eql(1);
         relativePath.elements[0].should.eql(
@@ -113,7 +112,7 @@ describe("makeRelativePath", function () {
     // “/3:Truck.0:NodeVersion”
     //   Follows any forward hierarchical Reference with target BrowseName = “3:Truck” and from there a forward
     // Aggregates Reference to a target with BrowseName “0:NodeVersion”.
-    it("T8 should construct simple RelativePath for '/3:Truck.0:NodeVersion' ", function () {
+    it("MRP-09 should construct simple RelativePath for '/3:Truck.0:NodeVersion' ", function () {
         const relativePath = makeRelativePath("/3:Truck.0:NodeVersion");
         relativePath.elements.length.should.eql(2);
         relativePath.elements[0].should.eql(
@@ -135,7 +134,7 @@ describe("makeRelativePath", function () {
     });
 
     /// “/2:Block&.Output”  Follows any forward hierarchical Reference with target BrowseName = “2:Block.Output”.
-    it("T9 should construct simple RelativePath for '/2:Block&.Output'", function () {
+    it("MRP-10 should construct simple RelativePath for '/2:Block&.Output'", function () {
         const relativePath = makeRelativePath("/2:Block&.Output");
 
         relativePath.elements.length.should.eql(1);
@@ -153,7 +152,7 @@ describe("makeRelativePath", function () {
     // Follows any forward Reference with a BrowseName = ‘1:ConnectedTo’ and
     //  finds targets with BrowseName = ‘1:Boiler’. From there follows any hierarchical
     // Reference and find targets with BrowseName = ‘1:HeatSensor’.
-    it("TA should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/1:HeatSensor'", function () {
+    it("MRP-11 should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/1:HeatSensor'", function () {
         const sinon = require("sinon");
         const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
@@ -182,7 +181,7 @@ describe("makeRelativePath", function () {
     // “<1:ConnectedTo>1:Boiler/”
     //  Follows any forward Reference with a BrowseName = ‘1:ConnectedTo’ and finds targets
     // with BrowseName = ‘1:Boiler’. From there it finds all targets of hierarchical References.
-    it("TB should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/'", function () {
+    it("MRP-12 should construct simple RelativePath for '<1:ConnectedTo>1:Boiler/'", function () {
         const sinon = require("sinon");
         const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
@@ -215,7 +214,7 @@ describe("makeRelativePath", function () {
     //  Follows any forward Reference with a BrowseName = ‘HasChild’ and qualified
     // with the default OPC UA namespace. Then find targets with BrowseName =
     //     ‘Wheel’ qualified with namespace index ‘2’.
-    it("TC should construct simple RelativePath for '<0:HasChild>2:Wheel'", function () {
+    it("MRP-15 should construct simple RelativePath for '<0:HasChild>2:Wheel'", function () {
         const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
@@ -238,7 +237,7 @@ describe("makeRelativePath", function () {
     // “<!HasChild>Truck”
     //  Follows any inverse Reference with a BrowseName = ‘HasChild’. Then find targets with BrowseName = ‘Truck’.
     // In both cases, the namespace component of the BrowseName is assumed to be 0.
-    it("TD should construct simple RelativePath for '<!HasChild>2:Wheel'", function () {
+    it("MRP-14 should construct simple RelativePath for '<!HasChild>2:Wheel'", function () {
         const addressSpace = {
             findReferenceType: sinon.stub().returns(makeNodeId(555, 1))
         };
@@ -259,7 +258,7 @@ describe("makeRelativePath", function () {
     // “<0:HasChild>”
     // Finds all targets of forward References with a BrowseName = ‘HasChild’
     // and qualified with the default OPC UA namespace.
-    it("TE should construct simple RelativePath for '<0:HasChild>'", function () {
+    it("MRP-16 should construct simple RelativePath for '<0:HasChild>'", function () {
         const addressSpace = {
             findReferenceType: sinon.stub().returns(resolveNodeId("HasChild"))
         };
@@ -280,7 +279,7 @@ describe("makeRelativePath", function () {
         );
     });
 
-    it("TF should construct simple RelativePath for '<Organizes>Server.ServerStatus.CurrentTime'", function () {
+    it("MRP-17 should construct simple RelativePath for '<Organizes>Server.ServerStatus.CurrentTime'", function () {
         const relativePath = makeRelativePath("<Organizes>Server.ServerStatus.CurrentTime", null);
 
         relativePath.elements.length.should.eql(3);
@@ -311,7 +310,7 @@ describe("makeRelativePath", function () {
         );
     });
 
-    it("TG should construct simple RelativePath for '<Organizes>Server2.ServerStatus.1.2'", function () {
+    it("MRP-18 should construct simple RelativePath for '<Organizes>Server2.ServerStatus.1.2'", function () {
         const relativePath = makeRelativePath("<Organizes>Server2.ServerStatus.100.200", null);
 
         relativePath.elements.length.should.eql(4);
@@ -341,7 +340,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("TH should construct simple RelativePath for '/3:TOTO/1:Channel#1/2:TOTO'", function () {
+    it("MRP-19 should construct simple RelativePath for '/3:TOTO/1:Channel#1/2:TOTO'", function () {
         // note : # is a reserved char and must be prepended with &
         const relativePath = makeRelativePath("/3:Tag1/1:Channel&#1/2:Tag2", null);
 
@@ -370,7 +369,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("TI (issue#344) should construct simple RelativePath for '/0:Objects/2:test-path'", function () {
+    it("MRP-20 (issue#344) should construct simple RelativePath for '/0:Objects/2:test-path'", function () {
         // note : # is a reserved char and must be prepended with &
         const relativePath = makeRelativePath("/0:Objects/2:test-path", null);
 
@@ -391,7 +390,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("TJ should construct simple RelativePath for SessionDiagnostics.TotalRequestsCount.TotalCount", function () {
+    it("MRP-21 should construct simple RelativePath for SessionDiagnostics.TotalRequestsCount.TotalCount", function () {
         const relativePath = makeRelativePath(".SessionDiagnostics.TotalRequestsCount.TotalCount", null);
 
         relativePath.elements[0].should.eql(
@@ -419,7 +418,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("TK should construct simple RelativePath for /1:Browse& Name.2:Hello World", ()=>{
+    it("MRP-22 should construct simple RelativePath for /1:Browse& Name.2:Hello World", () => {
         const relativePath = makeRelativePath("/1:Browse Name.2:Hello World", null);
         relativePath.elements[0].should.eql(
             new RelativePathElement({
@@ -438,7 +437,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("TL should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
+    it("MRP-23 should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
         const relativePath = makeRelativePath("/1:Browse&.Name.2:Hello&.World", null);
         relativePath.elements[0].should.eql(
             new RelativePathElement({
@@ -457,7 +456,7 @@ describe("makeRelativePath", function () {
             })
         );
     });
-    it("TM should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
+    it("MRP-24 should construct simple RelativePath for /1:Browse& Name.2:Hello&.World", () => {
         const relativePath = makeRelativePath("/1:Browse&:Name.2:Hello&:&/World", null);
         relativePath.elements[0].should.eql(
             new RelativePathElement({
@@ -477,4 +476,50 @@ describe("makeRelativePath", function () {
         );
     });
 
+    // <reserved-char >::= '/' | '.' | '<' | '>' | ':' | '#' | '!' | '&'
+    const reservedChars = "\/\.\<\>\:\#\!\&";
+    reservedChars.split("").forEach((char, index) => {
+        it(`MRP-${index + 100} should construct simple RelativePath with reserved characters "${char}"`, () => {
+            const relativePath = makeRelativePath(`/1:Name_&${char}_.2:&${char}Special`, null);
+            relativePath.elements[0].should.eql(
+                new RelativePathElement({
+                    referenceTypeId: hierarchicalReferenceTypeNodeId,
+                    isInverse: false,
+                    includeSubtypes: true,
+                    targetName: new QualifiedName({ namespaceIndex: 1, name: `Name_${char}_` })
+                })
+            );
+            relativePath.elements[1].should.eql(
+                new RelativePathElement({
+                    referenceTypeId: aggregatesReferenceTypeNodeId,
+                    isInverse: false,
+                    includeSubtypes: true,
+                    targetName: new QualifiedName({ namespaceIndex: 2, name: `${char}Special` })
+                })
+            );
+        });
+    });
+    
+    const otherSpecialCharacters = " $£%@[د字" ;
+    otherSpecialCharacters.split("").forEach((char, index) => {
+        it(`MRP-${index + 200} should construct simple RelativePath with all sorts of special characters "${char}"`, () => {
+            const relativePath = makeRelativePath(`/1:Name_${char}_.2:${char}Special`, null);
+            relativePath.elements[0].should.eql(
+                new RelativePathElement({
+                    referenceTypeId: hierarchicalReferenceTypeNodeId,
+                    isInverse: false,
+                    includeSubtypes: true,
+                    targetName: new QualifiedName({ namespaceIndex: 1, name: `Name_${char}_` })
+                })
+            );
+            relativePath.elements[1].should.eql(
+                new RelativePathElement({
+                    referenceTypeId: aggregatesReferenceTypeNodeId,
+                    isInverse: false,
+                    includeSubtypes: true,
+                    targetName: new QualifiedName({ namespaceIndex: 2, name: `${char}Special` })
+                })
+            );
+        });
+    });
 });
