@@ -1145,14 +1145,14 @@ export class Subscription extends EventEmitter {
 
         monitoredItem.terminate();
 
-        monitoredItem.dispose();
-
         /**
          *
          * notify that a monitored item has been removed from the subscription
          * @param monitoredItem {MonitoredItem}
          */
         this.emit("removeMonitoredItem", monitoredItem);
+
+        monitoredItem.dispose();
 
         delete this.monitoredItems[monitoredItemId];
         this.globalCounter.totalMonitoredItemCount -= 1;
