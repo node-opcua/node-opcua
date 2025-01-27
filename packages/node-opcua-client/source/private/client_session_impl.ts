@@ -2185,44 +2185,44 @@ async function promoteOpaqueStructureForCall(session: IBasicSessionAsync2, callM
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
 
-ClientSessionImpl.prototype.browse = thenify.withCallback(ClientSessionImpl.prototype.browse, opts);
-ClientSessionImpl.prototype.browseNext = thenify.withCallback(ClientSessionImpl.prototype.browseNext, opts);
-ClientSessionImpl.prototype.readVariableValue = thenify.withCallback(ClientSessionImpl.prototype.readVariableValue, opts);
-ClientSessionImpl.prototype.readHistoryValue = thenify.withCallback(ClientSessionImpl.prototype.readHistoryValue, opts);
-ClientSessionImpl.prototype.readAggregateValue = thenify.withCallback(ClientSessionImpl.prototype.readAggregateValue, opts);
-ClientSessionImpl.prototype.historyRead = thenify.withCallback(ClientSessionImpl.prototype.historyRead, opts);
-ClientSessionImpl.prototype.write = thenify.withCallback(ClientSessionImpl.prototype.write, opts);
-ClientSessionImpl.prototype.writeSingleNode = thenify.withCallback(ClientSessionImpl.prototype.writeSingleNode, opts);
-ClientSessionImpl.prototype.readAllAttributes = thenify.withCallback(ClientSessionImpl.prototype.readAllAttributes, opts);
-ClientSessionImpl.prototype.read = thenify.withCallback(ClientSessionImpl.prototype.read, opts);
-ClientSessionImpl.prototype.createSubscription = thenify.withCallback(ClientSessionImpl.prototype.createSubscription, opts);
-ClientSessionImpl.prototype.createSubscription2 = thenify.withCallback(ClientSessionImpl.prototype.createSubscription2, opts);
-ClientSessionImpl.prototype.deleteSubscriptions = thenify.withCallback(ClientSessionImpl.prototype.deleteSubscriptions, opts);
-ClientSessionImpl.prototype.transferSubscriptions = thenify.withCallback(ClientSessionImpl.prototype.transferSubscriptions, opts);
-ClientSessionImpl.prototype.createMonitoredItems = thenify.withCallback(ClientSessionImpl.prototype.createMonitoredItems, opts);
-ClientSessionImpl.prototype.modifyMonitoredItems = thenify.withCallback(ClientSessionImpl.prototype.modifyMonitoredItems, opts);
-ClientSessionImpl.prototype.modifySubscription = thenify.withCallback(ClientSessionImpl.prototype.modifySubscription, opts);
-ClientSessionImpl.prototype.setTriggering = thenify.withCallback(ClientSessionImpl.prototype.setTriggering, opts);
-ClientSessionImpl.prototype.setMonitoringMode = thenify.withCallback(ClientSessionImpl.prototype.setMonitoringMode, opts);
-ClientSessionImpl.prototype.publish = thenify.withCallback(ClientSessionImpl.prototype.publish, opts);
-ClientSessionImpl.prototype.republish = thenify.withCallback(ClientSessionImpl.prototype.republish, opts);
-ClientSessionImpl.prototype.deleteMonitoredItems = thenify.withCallback(ClientSessionImpl.prototype.deleteMonitoredItems, opts);
-ClientSessionImpl.prototype.setPublishingMode = thenify.withCallback(ClientSessionImpl.prototype.setPublishingMode, opts);
-ClientSessionImpl.prototype.translateBrowsePath = thenify.withCallback(ClientSessionImpl.prototype.translateBrowsePath, opts);
-ClientSessionImpl.prototype.performMessageTransaction = thenify.withCallback(
+ClientSessionImpl.prototype.browse = withCallback(ClientSessionImpl.prototype.browse, opts);
+ClientSessionImpl.prototype.browseNext = withCallback(ClientSessionImpl.prototype.browseNext, opts);
+ClientSessionImpl.prototype.readVariableValue = withCallback(ClientSessionImpl.prototype.readVariableValue, opts);
+ClientSessionImpl.prototype.readHistoryValue = withCallback(ClientSessionImpl.prototype.readHistoryValue, opts);
+ClientSessionImpl.prototype.readAggregateValue = withCallback(ClientSessionImpl.prototype.readAggregateValue, opts);
+ClientSessionImpl.prototype.historyRead = withCallback(ClientSessionImpl.prototype.historyRead, opts);
+ClientSessionImpl.prototype.write = withCallback(ClientSessionImpl.prototype.write, opts);
+ClientSessionImpl.prototype.writeSingleNode = withCallback(ClientSessionImpl.prototype.writeSingleNode, opts);
+ClientSessionImpl.prototype.readAllAttributes = withCallback(ClientSessionImpl.prototype.readAllAttributes, opts);
+ClientSessionImpl.prototype.read = withCallback(ClientSessionImpl.prototype.read, opts);
+ClientSessionImpl.prototype.createSubscription = withCallback(ClientSessionImpl.prototype.createSubscription, opts);
+ClientSessionImpl.prototype.createSubscription2 = withCallback(ClientSessionImpl.prototype.createSubscription2, opts);
+ClientSessionImpl.prototype.deleteSubscriptions = withCallback(ClientSessionImpl.prototype.deleteSubscriptions, opts);
+ClientSessionImpl.prototype.transferSubscriptions = withCallback(ClientSessionImpl.prototype.transferSubscriptions, opts);
+ClientSessionImpl.prototype.createMonitoredItems = withCallback(ClientSessionImpl.prototype.createMonitoredItems, opts);
+ClientSessionImpl.prototype.modifyMonitoredItems = withCallback(ClientSessionImpl.prototype.modifyMonitoredItems, opts);
+ClientSessionImpl.prototype.modifySubscription = withCallback(ClientSessionImpl.prototype.modifySubscription, opts);
+ClientSessionImpl.prototype.setTriggering = withCallback(ClientSessionImpl.prototype.setTriggering, opts);
+ClientSessionImpl.prototype.setMonitoringMode = withCallback(ClientSessionImpl.prototype.setMonitoringMode, opts);
+ClientSessionImpl.prototype.publish = withCallback(ClientSessionImpl.prototype.publish, opts);
+ClientSessionImpl.prototype.republish = withCallback(ClientSessionImpl.prototype.republish, opts);
+ClientSessionImpl.prototype.deleteMonitoredItems = withCallback(ClientSessionImpl.prototype.deleteMonitoredItems, opts);
+ClientSessionImpl.prototype.setPublishingMode = withCallback(ClientSessionImpl.prototype.setPublishingMode, opts);
+ClientSessionImpl.prototype.translateBrowsePath = withCallback(ClientSessionImpl.prototype.translateBrowsePath, opts);
+ClientSessionImpl.prototype.performMessageTransaction = withCallback(
     ClientSessionImpl.prototype.performMessageTransaction,
     opts
 );
-ClientSessionImpl.prototype.close = thenify.withCallback(ClientSessionImpl.prototype.close, opts);
-ClientSessionImpl.prototype.call = thenify.withCallback(ClientSessionImpl.prototype.call, opts);
-ClientSessionImpl.prototype.getMonitoredItems = thenify.withCallback(ClientSessionImpl.prototype.getMonitoredItems, opts);
-ClientSessionImpl.prototype.getArgumentDefinition = thenify.withCallback(ClientSessionImpl.prototype.getArgumentDefinition, opts);
-ClientSessionImpl.prototype.queryFirst = thenify.withCallback(ClientSessionImpl.prototype.queryFirst, opts);
-ClientSessionImpl.prototype.registerNodes = thenify.withCallback(ClientSessionImpl.prototype.registerNodes, opts);
-ClientSessionImpl.prototype.unregisterNodes = thenify.withCallback(ClientSessionImpl.prototype.unregisterNodes, opts);
-ClientSessionImpl.prototype.readNamespaceArray = thenify.withCallback(ClientSessionImpl.prototype.readNamespaceArray, opts);
-ClientSessionImpl.prototype.getBuiltInDataType = thenify.withCallback(ClientSessionImpl.prototype.getBuiltInDataType, opts);
-ClientSessionImpl.prototype.changeUser = thenify.withCallback(ClientSessionImpl.prototype.changeUser, opts);
+ClientSessionImpl.prototype.close = withCallback(ClientSessionImpl.prototype.close, opts);
+ClientSessionImpl.prototype.call = withCallback(ClientSessionImpl.prototype.call, opts);
+ClientSessionImpl.prototype.getMonitoredItems = withCallback(ClientSessionImpl.prototype.getMonitoredItems, opts);
+ClientSessionImpl.prototype.getArgumentDefinition = withCallback(ClientSessionImpl.prototype.getArgumentDefinition, opts);
+ClientSessionImpl.prototype.queryFirst = withCallback(ClientSessionImpl.prototype.queryFirst, opts);
+ClientSessionImpl.prototype.registerNodes = withCallback(ClientSessionImpl.prototype.registerNodes, opts);
+ClientSessionImpl.prototype.unregisterNodes = withCallback(ClientSessionImpl.prototype.unregisterNodes, opts);
+ClientSessionImpl.prototype.readNamespaceArray = withCallback(ClientSessionImpl.prototype.readNamespaceArray, opts);
+ClientSessionImpl.prototype.getBuiltInDataType = withCallback(ClientSessionImpl.prototype.getBuiltInDataType, opts);
+ClientSessionImpl.prototype.changeUser = withCallback(ClientSessionImpl.prototype.changeUser, opts);

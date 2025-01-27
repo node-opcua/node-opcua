@@ -243,5 +243,5 @@ export class NodeCrawler extends NodeCrawlerBase {
 }
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
-NodeCrawler.prototype.read = thenify.withCallback(NodeCrawler.prototype.read);
+import { withCallback } from "thenify-ex";
+NodeCrawler.prototype.read = withCallback(NodeCrawler.prototype.read);

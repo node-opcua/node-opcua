@@ -583,7 +583,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         const session = await client.createSession2(userIdentity);
 
         const oldClose = session.close as any;
-        (session as any).close = thenify.withCallback((...args: any[]): any => {
+        (session as any).close = withCallback((...args: any[]): any => {
             if (args.length === 1) {
                 return session.close(true, args[0]);
             }
@@ -1214,7 +1214,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 /**
 
  *
@@ -1232,15 +1232,15 @@ const thenify = require("thenify");
  *     const session = client.createSession(userIdentityInfo);
  *
  */
-OPCUAClientImpl.prototype.createSession = thenify.withCallback(OPCUAClientImpl.prototype.createSession);
-OPCUAClientImpl.prototype.createSession2 = thenify.withCallback(OPCUAClientImpl.prototype.createSession2);
+OPCUAClientImpl.prototype.createSession = withCallback(OPCUAClientImpl.prototype.createSession);
+OPCUAClientImpl.prototype.createSession2 = withCallback(OPCUAClientImpl.prototype.createSession2);
 /**
  */
-OPCUAClientImpl.prototype.changeSessionIdentity = thenify.withCallback(OPCUAClientImpl.prototype.changeSessionIdentity);
+OPCUAClientImpl.prototype.changeSessionIdentity = withCallback(OPCUAClientImpl.prototype.changeSessionIdentity);
 /**
  * @example
  *    const session  = await client.createSession();
  *    await client.closeSession(session);
  */
-OPCUAClientImpl.prototype.closeSession = thenify.withCallback(OPCUAClientImpl.prototype.closeSession);
-OPCUAClientImpl.prototype.reactivateSession = thenify.withCallback(OPCUAClientImpl.prototype.reactivateSession);
+OPCUAClientImpl.prototype.closeSession = withCallback(OPCUAClientImpl.prototype.closeSession);
+OPCUAClientImpl.prototype.reactivateSession = withCallback(OPCUAClientImpl.prototype.reactivateSession);

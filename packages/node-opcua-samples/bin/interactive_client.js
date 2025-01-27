@@ -224,21 +224,14 @@ function moveToChild(browseName) {
     setCurrentNode(child);
 }
 
-function get_root_folder(callback) {
+async function getRootFolder() {
     if (!rootFolder) {
         rl.pause();
-        proxyManager.getObject(makeNodeId(ObjectIds.RootFolder), function (err, data) {
-            if (!err) {
-                rootFolder = data;
-                assert(rootFolder, "expecting rootFolder");
-                setRootNode(rootFolder);
-                rl.resume();
-            }
-            callback();
-        });
-    } else {
-        setCurrentNode(rootFolder);
-        callback();
+        await proxyManager.getObject(makeNodeId(ObjectIds.RootFolder));
+        rootFolder = data;
+        assert(rootFolder, "expecting rootFolder");
+        setRootNode(rootFolder);
+        rl.resume();
     }
 }
 
@@ -548,7 +541,7 @@ function process_line(line) {
 
         case "rootFolder":
             apply_on_valid_session(cmd, function (the_session, callback) {
-                get_root_folder(callback);
+                getRootFolder().then(()=>callback()).catch((err)=>callback(err));
             });
             break;
 
@@ -566,7 +559,7 @@ function process_line(line) {
                     endTime = startTime;
                     startTime = tmp;
                 }
-                nodes = nodes.map((n)=>coerceNodeId(n));
+                nodes = nodes.map((n) => coerceNodeId(n));
 
                 the_session.readHistoryValue(nodes, startTime, endTime, function (err, historyReadResults) {
                     if (err) {
@@ -593,7 +586,7 @@ function process_line(line) {
         case "read":
             apply_on_valid_session(cmd, function (the_session, callback) {
                 nodes = [args[1]];
-                nodes = nodes.map((n)=>coerceNodeId(n));
+                nodes = nodes.map((n) => coerceNodeId(n));
 
                 the_session.readVariableValue(nodes, function (err, dataValues) {
                     if (err) {

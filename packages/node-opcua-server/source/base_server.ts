@@ -625,8 +625,8 @@ function makeServiceFault(statusCode: StatusCode, messages: string[]): ServiceFa
 }
 
 // tslint:disable:no-var-requires
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
-OPCUABaseServer.prototype.resumeEndPoints = thenify.withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
-OPCUABaseServer.prototype.suspendEndPoints = thenify.withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
-OPCUABaseServer.prototype.shutdownChannels = thenify.withCallback(OPCUABaseServer.prototype.shutdownChannels, opts);
+OPCUABaseServer.prototype.resumeEndPoints = withCallback(OPCUABaseServer.prototype.resumeEndPoints, opts);
+OPCUABaseServer.prototype.suspendEndPoints = withCallback(OPCUABaseServer.prototype.suspendEndPoints, opts);
+OPCUABaseServer.prototype.shutdownChannels = withCallback(OPCUABaseServer.prototype.shutdownChannels, opts);

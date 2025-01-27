@@ -15,6 +15,7 @@ import {
     ICache,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
+import { StatusCodes } from "node-opcua-status-code";
 
 const errorLog = make_errorLog(__filename);
 const debugLog = make_debugLog(__filename);
@@ -32,7 +33,7 @@ export async function readDataTypeDefinitionAndBuildType(
         if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
             return;
         }
-        const [isAbstractDataValue, dataTypeDefinitionDataValue] = await session.read([
+        const [isAbstractDataValue, dataTypeDefinitionDataValue, browseNameDataValue] = await session.read([
             {
                 attributeId: AttributeIds.IsAbstract,
                 nodeId: dataTypeNodeId
@@ -40,11 +41,21 @@ export async function readDataTypeDefinitionAndBuildType(
             {
                 attributeId: AttributeIds.DataTypeDefinition,
                 nodeId: dataTypeNodeId
+            },
+            {
+                attributeId: AttributeIds.BrowseName,
+                nodeId: dataTypeNodeId
             }
         ]);
+        if (isAbstractDataValue.statusCode == StatusCodes.BadNodeIdUnknown) {
+            // may be model is incomplete and dataTypeNodeId is missing
+            debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
+            return;
+        }
         /* istanbul ignore next */
         if (isAbstractDataValue.statusCode.isNotGood()) {
-            throw new Error(" Cannot find dataType isAbstract ! with nodeId =" + dataTypeNodeId.toString());
+            errorLog("browseName", browseNameDataValue.value.toString());
+            throw new Error(" Cannot find dataType isAbstract ! with nodeId =" + dataTypeNodeId.toString() + " " + isAbstractDataValue.statusCode.toString());
         }
         const isAbstract = isAbstractDataValue.value.value as boolean;
 

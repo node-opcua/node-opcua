@@ -11,6 +11,7 @@ export class ProxyStateMachineType {
     public transitions: ProxyTransition[];
 
     constructor(obj: ProxyNode) {
+        
         const localInitialState = obj.$components.filter((component: any) => {
             if (!component.typeDefinition) {
                 return false;

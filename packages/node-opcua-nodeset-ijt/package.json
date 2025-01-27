@@ -17,7 +17,7 @@
         "node-opcua-extension-object": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
         "node-opcua-nodeset-machinery": "2.140.0",
-        "node-opcua-nodeset-ua": "2.139.0",
+        "node-opcua-nodeset-ua": "2.140.0",
         "node-opcua-variant": "2.139.0"
     },
     "files": [

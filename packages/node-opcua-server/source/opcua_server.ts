@@ -178,7 +178,7 @@ function isSubscriptionIdInvalid(subscriptionId: number): boolean {
 }
 
 // tslint:disable-next-line:no-var-requires
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 // tslint:disable-next-line:no-var-requires
 const package_info = require("../package.json");
 const debugLog = make_debugLog(__filename);
@@ -3934,6 +3934,6 @@ export interface OPCUAServer extends EventEmitter {
 }
 
 const opts = { multiArgs: false };
-OPCUAServer.prototype.start = thenify.withCallback(OPCUAServer.prototype.start, opts);
-OPCUAServer.prototype.initialize = thenify.withCallback(OPCUAServer.prototype.initialize, opts);
-OPCUAServer.prototype.shutdown = thenify.withCallback(OPCUAServer.prototype.shutdown, opts);
+OPCUAServer.prototype.start = withCallback(OPCUAServer.prototype.start, opts);
+OPCUAServer.prototype.initialize = withCallback(OPCUAServer.prototype.initialize, opts);
+OPCUAServer.prototype.shutdown = withCallback(OPCUAServer.prototype.shutdown, opts);

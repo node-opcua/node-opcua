@@ -1196,5 +1196,5 @@ export class NodeCrawlerBase extends EventEmitter implements NodeCrawlerEvents {
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
-NodeCrawlerBase.prototype.crawl = thenify.withCallback(NodeCrawlerBase.prototype.crawl);
+import { withCallback } from "thenify-ex";
+NodeCrawlerBase.prototype.crawl = withCallback(NodeCrawlerBase.prototype.crawl);

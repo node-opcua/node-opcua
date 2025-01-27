@@ -36,6 +36,6 @@ export class Xml2JsonFs extends Xml2Json {
     }
 }
 // tslint:disable:no-var-requires
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
-Xml2JsonFs.prototype.parse = thenify.withCallback(Xml2JsonFs.prototype.parse, opts);
+Xml2JsonFs.prototype.parse = withCallback(Xml2JsonFs.prototype.parse, opts);

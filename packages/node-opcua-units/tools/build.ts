@@ -121,7 +121,7 @@ async function main() {
             const code = u["Common\nCode"];
             if (code === undefined || code === "undefined") {
                 console.log(Object.keys(u).map((t)=>`"${t}`));
-                debugger;
+                // debugger;
             }
             const keyU = u.Name;
             const unit = makeU(keyU);

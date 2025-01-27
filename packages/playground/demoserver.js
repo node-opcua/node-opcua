@@ -16,7 +16,7 @@ const { constructNodesetFilename } = require("../node-opcua-nodesets/dist");
     await server.start();
 
     const id = setInterval(() => {
-        debugger;
+        //  debugger;
         console.log("Server is now listening ... ( press CTRL+C to stop)", server.getEndpointUrl());
     }, 6 * 1000);
     server.engine.addressSpace.registerShutdownTask(() => clearInterval(id));

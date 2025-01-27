@@ -8,7 +8,6 @@ import { CallMethodRequest } from "node-opcua-service-call";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { Variant } from "node-opcua-variant";
-import { ResponseCallback } from "node-opcua-pseudo-session";
 import { ISessionContext, IAddressSpace, UAMethod, UAObject } from "node-opcua-address-space-base";
 
 import { getMethodDeclaration_ArgumentList, verifyArguments_ArgumentList } from "./argument_list";
@@ -30,12 +29,11 @@ import { resolveOpaqueOnAddressSpace } from "./resolve_opaque_on_address_space";
 //                               A server shall accept a ByteString if an array of Byte is expected.
 // BadNoCommunication
 
-export function callMethodHelper(
+export async function callMethodHelper(
     context: ISessionContext,
     addressSpace: IAddressSpace,
-    callMethodRequest: CallMethodRequest,
-    callback: ResponseCallback<CallMethodResultOptions>
-): void {
+    callMethodRequest: CallMethodRequest
+): Promise<CallMethodResultOptions> {
     const objectId = callMethodRequest.objectId;
     const methodId = callMethodRequest.methodId;
     const inputArguments = callMethodRequest.inputArguments || [];
@@ -45,24 +43,24 @@ export function callMethodHelper(
 
     const object = addressSpace.findNode(objectId) as UAObject;
     if (!object) {
-        return callback(null, { statusCode: StatusCodes.BadNodeIdUnknown });
+        return { statusCode: StatusCodes.BadNodeIdUnknown };
     }
     if (object.nodeClass !== NodeClass.Object && object.nodeClass !== NodeClass.ObjectType) {
-        return callback(null, { statusCode: StatusCodes.BadNodeIdInvalid });
+        return { statusCode: StatusCodes.BadNodeIdInvalid };
     }
 
     const methodObj = addressSpace.findNode(methodId) as UAMethod;
     if (!methodObj) {
-        return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
+        return { statusCode: StatusCodes.BadMethodInvalid };
     }
     if (methodObj.nodeClass !== NodeClass.Method) {
-        return callback(null, { statusCode: StatusCodes.BadMethodInvalid });
+        return { statusCode: StatusCodes.BadMethodInvalid };
     }
 
     const response1 = getMethodDeclaration_ArgumentList(addressSpace, objectId, methodId);
 
     if (response1.statusCode.isNotGood()) {
-        return callback(null, { statusCode: response1.statusCode });
+        return { statusCode: response1.statusCode };
     }
     const methodDeclaration = response1.methodDeclaration!;
 
@@ -71,41 +69,34 @@ export function callMethodHelper(
 
     const response = verifyArguments_ArgumentList(addressSpace, methodInputArguments, inputArguments);
     if (response.statusCode.isNotGood()) {
-        return callback(null, response);
+        return response;
     }
 
-    resolveOpaqueOnAddressSpace(addressSpace, inputArguments)
-        .then(() => {
-            methodObj.execute(
-                object,
-                inputArguments,
-                context,
-                (err: Error | null, callMethodResponse?: CallMethodResultOptions) => {
-                    /* istanbul ignore next */
-                    if (err) {
-                        return callback(err);
-                    }
-                    if (!callMethodResponse) {
-                        return callback(new Error("internal Error"));
-                    }
 
-                    callMethodResponse.inputArgumentResults =
-                        callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
-                    assert(callMethodResponse.statusCode);
+    try {
+        await resolveOpaqueOnAddressSpace(addressSpace, inputArguments);
 
-                    if (callMethodResponse.statusCode?.isGood()) {
-                        assert(Array.isArray(callMethodResponse.outputArguments));
-                    }
+        const callMethodResponse = await methodObj.execute(
+            object,
+            inputArguments,
+            context);
+        callMethodResponse.inputArgumentResults =
+            callMethodResponse.inputArgumentResults || response.inputArgumentResults || [];
+        assert(callMethodResponse.statusCode);
 
-                    assert(Array.isArray(callMethodResponse.inputArgumentResults));
-                    assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
+        if (callMethodResponse.statusCode?.isGood()) {
+            assert(Array.isArray(callMethodResponse.outputArguments));
+        }
 
-                    const outputArguments = callMethodResponse.outputArguments || [];
-                    resolveOpaqueOnAddressSpace(addressSpace, outputArguments as Variant[])
-                        .then(() => callback(null, callMethodResponse))
-                        .catch(callback);
-                }
-            );
-        })
-        .catch((err) => callback(err));
+        assert(Array.isArray(callMethodResponse.inputArgumentResults));
+        assert(callMethodResponse.inputArgumentResults!.length === methodInputArguments.length);
+
+        const outputArguments = callMethodResponse.outputArguments || [];
+        await resolveOpaqueOnAddressSpace(addressSpace, outputArguments as Variant[]);
+
+        return callMethodResponse;
+    } catch (err) {
+        return { statusCode: StatusCodes.BadInternalError };
+    }
+
 }

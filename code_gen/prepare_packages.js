@@ -1,7 +1,6 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const async = require("async");
 const child_process = require("child_process");
 
 const packages_folder = path.join(__dirname, "../packages");

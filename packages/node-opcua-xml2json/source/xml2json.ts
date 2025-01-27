@@ -371,6 +371,6 @@ export class Xml2Json {
 }
 
 // tslint:disable:no-var-requires
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
-Xml2Json.prototype.parseString = thenify.withCallback(Xml2Json.prototype.parseString, opts);
+Xml2Json.prototype.parseString = withCallback(Xml2Json.prototype.parseString, opts);

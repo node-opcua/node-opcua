@@ -11,7 +11,7 @@ MyClass.prototype.open = function open(endpoint,callback)
         callback(null,42);
     },1000);
 };
-MyClass.prototype.open = thenify.withCallback(MyClass.prototype.open);
+MyClass.prototype.open = withCallback(MyClass.prototype.open);
 
 
 function test() {

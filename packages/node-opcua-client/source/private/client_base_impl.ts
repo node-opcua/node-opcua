@@ -1791,12 +1791,12 @@ class TmpClient extends ClientBaseImpl {
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
-ClientBaseImpl.prototype.connect = thenify.withCallback(ClientBaseImpl.prototype.connect);
-ClientBaseImpl.prototype.disconnect = thenify.withCallback(ClientBaseImpl.prototype.disconnect);
-ClientBaseImpl.prototype.getEndpoints = thenify.withCallback(ClientBaseImpl.prototype.getEndpoints);
-ClientBaseImpl.prototype.findServers = thenify.withCallback(ClientBaseImpl.prototype.findServers);
-ClientBaseImpl.prototype.findServersOnNetwork = thenify.withCallback(ClientBaseImpl.prototype.findServersOnNetwork);
+import { withCallback } from "thenify-ex";
+ClientBaseImpl.prototype.connect = withCallback(ClientBaseImpl.prototype.connect);
+ClientBaseImpl.prototype.disconnect = withCallback(ClientBaseImpl.prototype.disconnect);
+ClientBaseImpl.prototype.getEndpoints = withCallback(ClientBaseImpl.prototype.getEndpoints);
+ClientBaseImpl.prototype.findServers = withCallback(ClientBaseImpl.prototype.findServers);
+ClientBaseImpl.prototype.findServersOnNetwork = withCallback(ClientBaseImpl.prototype.findServersOnNetwork);
 
 OPCUAClientBase.create = (options: OPCUAClientBaseOptions): OPCUAClientBase => {
     return new ClientBaseImpl(options);
