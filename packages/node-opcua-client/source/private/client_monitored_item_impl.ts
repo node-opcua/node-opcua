@@ -386,12 +386,12 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
 
-ClientMonitoredItemImpl.prototype.terminate = thenify.withCallback(ClientMonitoredItemImpl.prototype.terminate);
-ClientMonitoredItemImpl.prototype.setMonitoringMode = thenify.withCallback(ClientMonitoredItemImpl.prototype.setMonitoringMode);
-ClientMonitoredItemImpl.prototype.modify = thenify.withCallback(ClientMonitoredItemImpl.prototype.modify);
+ClientMonitoredItemImpl.prototype.terminate = withCallback(ClientMonitoredItemImpl.prototype.terminate);
+ClientMonitoredItemImpl.prototype.setMonitoringMode = withCallback(ClientMonitoredItemImpl.prototype.setMonitoringMode);
+ClientMonitoredItemImpl.prototype.modify = withCallback(ClientMonitoredItemImpl.prototype.modify);
 
 ClientMonitoredItem.create = (
     subscription: ClientSubscription,

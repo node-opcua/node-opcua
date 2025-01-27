@@ -242,7 +242,7 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
         }
     }
 
-    it("should have an AnalyserDeviceStateMachineType", function (done) {
+    it("should have an AnalyserDeviceStateMachineType", async () => {
         /**
          @startuml
          [*] --> 5022
@@ -269,34 +269,17 @@ describe("ADI - Testing a server that exposes Analyser Devices", function () {
 
         analyserDeviceStateMachineType.browseName.toString().should.eql("3:AnalyserDeviceStateMachineType");
 
-        perform_operation_on_client_session(
-            client,
-            endpointUrl,
-            function (session, inner_done) {
-                const proxyManager = new UAProxyManager(session);
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            const proxyManager = new UAProxyManager(session);
 
-                async.series(
-                    [
-                        function (callback) {
-                            proxyManager.start(callback);
-                        },
-                        function (callback) {
-                            const stateMachineTypeId = analyserDeviceStateMachineType.nodeId;
-                            //"3:AnalyserDeviceStateMachineType";
+            await proxyManager.start();
 
-                            proxyManager.getStateMachineType(stateMachineTypeId, function (err, obj) {
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-                            proxyManager.stop(callback);
-                        }
-                    ],
-                    inner_done
-                );
-            },
-            done
-        );
+            const stateMachineTypeId = analyserDeviceStateMachineType.nodeId;
+            //"3:AnalyserDeviceStateMachineType";
+
+            await proxyManager.getStateMachineType(stateMachineTypeId);
+
+            await proxyManager.stop();
+        });
     });
-
 });

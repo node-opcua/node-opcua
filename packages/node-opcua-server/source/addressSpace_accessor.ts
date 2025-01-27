@@ -92,7 +92,7 @@ interface IAddressSpaceAccessorSingle {
 }
 
 export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpaceAccessorSingle {
-    constructor(public addressSpace: AddressSpace) {}
+    constructor(public addressSpace: AddressSpace) { }
 
     public async browse(context: ISessionContext, nodesToBrowse: BrowseDescriptionOptions[]): Promise<BrowseResult[]> {
         const results: BrowseResult[] = [];
@@ -336,15 +336,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
     }
 
     public async callMethod(context: ISessionContext, methodToCall: CallMethodRequest): Promise<CallMethodResultOptions> {
-        return await new Promise((resolve, reject) => {
-            callMethodHelper(context, this.addressSpace, methodToCall, (err, result) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(result!);
-                }
-            });
-        });
+        return await callMethodHelper(context, this.addressSpace, methodToCall);
     }
 
     public async historyReadNode(
@@ -404,7 +396,7 @@ export class AddressSpaceAccessor implements IAddressSpaceAccessor, IAddressSpac
             //    invalid attributes : BadNodeAttributesInvalid
             //    invalid range      : BadIndexRangeInvalid
             const result = await obj.historyRead(context, historyReadDetails, indexRange, dataEncoding, continuationData);
-    
+
             assert(result!.isValid());
             return result;
         }

@@ -126,9 +126,9 @@ export function readHistoryServerCapabilities(
     });
 }
 // tslint:disable:no-var-requires
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
-(module as any).exports.readHistoryServerCapabilities = thenify.withCallback(
+(module as any).exports.readHistoryServerCapabilities = withCallback(
     (module as any).exports.readHistoryServerCapabilities,
     opts
 );

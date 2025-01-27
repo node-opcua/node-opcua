@@ -1,8 +1,5 @@
 "use strict";
-
-const should = require("should");
-const thenify = require("thenify");
-
+require("should");
 const { OPCUAClient, MessageSecurityMode, SecurityPolicy, ServerSecureChannelLayer } = require("node-opcua");
 
 const doDebug = false;

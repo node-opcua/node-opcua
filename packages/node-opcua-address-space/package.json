@@ -18,7 +18,6 @@
     "dependencies": {
         "@types/lodash": "4.17.13",
         "@types/semver": "^7.5.8",
-        "async": "^3.2.6",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
@@ -38,7 +37,7 @@
         "node-opcua-extension-object": "2.139.0",
         "node-opcua-factory": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-nodeset-ua": "2.139.0",
+        "node-opcua-nodeset-ua": "2.140.0",
         "node-opcua-numeric-range": "2.139.0",
         "node-opcua-object-registry": "2.139.0",
         "node-opcua-pseudo-session": "2.140.0",
@@ -54,7 +53,7 @@
         "node-opcua-xml2json": "2.139.0",
         "semver": "^7.6.3",
         "set-prototype-of": "^1.0.0",
-        "thenify": "^3.3.1",
+        "thenify-ex": "4.2.0",
         "xml-writer": "^1.7.0"
     },
     "devDependencies": {

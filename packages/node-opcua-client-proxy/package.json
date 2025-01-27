@@ -12,7 +12,6 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
-        "async": "^3.2.6",
         "node-opcua-assert": "2.139.0",
         "node-opcua-constants": "2.139.0",
         "node-opcua-data-model": "2.139.0",
@@ -27,8 +26,7 @@
         "node-opcua-service-write": "2.139.0",
         "node-opcua-status-code": "2.139.0",
         "node-opcua-utils": "2.139.0",
-        "node-opcua-variant": "2.139.0",
-        "thenify": "^3.3.1"
+        "node-opcua-variant": "2.139.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

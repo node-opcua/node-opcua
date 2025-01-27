@@ -9,9 +9,7 @@ export interface ProxyNode {
     $components: ProxyNode[];
     typeDefinition?: { toString(): string };
 }
-/**
- * @module node-opcua-client-proxy
- */
+
 export class ProxyTransition {
     private _node: ProxyNode;
 

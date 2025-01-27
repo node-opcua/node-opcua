@@ -3,7 +3,6 @@
  */
 // tslint:disable:no-shadowed-variable
 import { EventEmitter } from "stream";
-import async from "async";
 import { assert } from "node-opcua-assert";
 
 import { AttributeIds, NodeClass, coerceAccessLevelFlag } from "node-opcua-data-model";
@@ -11,18 +10,17 @@ import { NodeId, coerceNodeId } from "node-opcua-nodeid";
 import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { NodeIdLike } from "node-opcua-nodeid";
 import { CreateSubscriptionRequestOptions, MonitoringParametersOptions } from "node-opcua-service-subscription";
-import { StatusCodes, CallbackT } from "node-opcua-status-code";
-import { ErrorCallback } from "node-opcua-status-code";
-import { IBasicSessionCallback } from "node-opcua-pseudo-session";
+import { StatusCodes } from "node-opcua-status-code";
+import { IBasicSessionAsync, IBasicSessionGetArgumentDefinitionAsync } from "node-opcua-pseudo-session";
 import { ReadValueIdOptions } from "node-opcua-service-read";
 import { Variant } from "node-opcua-variant";
 import { make_debugLog } from "node-opcua-debug";
 
 import { readUAStructure } from "./object_explorer";
 import { makeRefId } from "./proxy";
-import { ProxyBaseNode } from "./proxy_base_node";
 import { ProxyObject } from "./proxy_object";
 import { ProxyStateMachineType } from "./state_machine_proxy";
+import { ProxyNode } from "./proxy_transition";
 
 const debugLog = make_debugLog(__filename);
 
@@ -35,16 +33,18 @@ export interface IProxy1 {
 export interface IProxy extends EventEmitter, IProxy1 {
     dataValue: DataValue;
 }
-function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, options: any, callback: any) {
+
+async function internalGetObject(
+    proxyManager: UAProxyManager, 
+    nodeId: NodeIdLike | NodeId, options: any
+): Promise<ProxyNode> {
+   
     const session = proxyManager.session;
 
     nodeId = coerceNodeId(nodeId) as NodeId;
 
     if (nodeId.isEmpty()) {
-        setImmediate(() => {
-            callback(new Error(" Invalid empty node in getObject"));
-        });
-        return;
+        throw new Error(" Invalid empty node in getObject");
     }
 
     const nodesToRead = [
@@ -62,7 +62,7 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
         }
     ];
 
-    function read_accessLevels(clientObject: any, callback: ErrorCallback) {
+    async function read_accessLevels(clientObject: any) {
         const nodesToRead = [
             {
                 attributeId: AttributeIds.Value,
@@ -78,113 +78,74 @@ function getObject(proxyManager: UAProxyManager, nodeId: NodeIdLike | NodeId, op
             }
         ];
 
-        session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
-            if (err) {
-                return callback(err);
-            }
+        const dataValues = await session.read(nodesToRead);
 
-            dataValues = dataValues || [];
-
-            if (dataValues[0].statusCode.isGood()) {
-                clientObject.dataValue = dataValues[0].value;
-            }
-            if (dataValues[1].statusCode.isGood()) {
-                clientObject.userAccessLevel = coerceAccessLevelFlag(dataValues[1].value.value);
-            }
-            if (dataValues[2].statusCode.isGood()) {
-                clientObject.accessLevel = coerceAccessLevelFlag(dataValues[2].value.value);
-            }
-            callback(err!);
-        });
+        if (dataValues[0].statusCode.isGood()) {
+            clientObject.dataValue = dataValues[0].value;
+        }
+        if (dataValues[1].statusCode.isGood()) {
+            clientObject.userAccessLevel = coerceAccessLevelFlag(dataValues[1].value.value);
+        }
+        if (dataValues[2].statusCode.isGood()) {
+            clientObject.accessLevel = coerceAccessLevelFlag(dataValues[2].value.value);
+        }
     }
 
     let clientObject: any;
 
-    async.series(
-        [
-            (callback: ErrorCallback) => {
-                // readAttributes like browseName and references
-                session.read(nodesToRead, (err: Error | null, dataValues?: DataValue[]) => {
-                    if (!err) {
-                        dataValues = dataValues!;
+    const dataValues = await session.read(nodesToRead);
 
-                        if (dataValues[0].statusCode.equals(StatusCodes.BadNodeIdUnknown)) {
-                            return callback(new Error("Invalid Node " + nodeId.toString()));
-                        }
+    if (dataValues[0].statusCode.equals(StatusCodes.BadNodeIdUnknown)) {
+        throw new Error("Invalid Node " + nodeId.toString());
+    }
 
-                        clientObject = new ProxyObject(proxyManager, nodeId as NodeId);
+    clientObject = new ProxyObject(proxyManager, nodeId as NodeId);
 
-                        clientObject.browseName = dataValues[0].value.value;
-                        clientObject.description = dataValues[1].value ? dataValues[1].value.value : "";
-                        clientObject.nodeClass = dataValues[2].value.value;
+    clientObject.browseName = dataValues[0].value.value;
+    clientObject.description = dataValues[1].value ? dataValues[1].value.value : "";
+    clientObject.nodeClass = dataValues[2].value.value;
 
-                        if (clientObject.nodeClass === NodeClass.Variable) {
-                            return read_accessLevels(clientObject, callback);
-                        }
-                    }
-                    callback(err!);
-                });
-            },
+    if (clientObject.nodeClass === NodeClass.Variable) {
+        await read_accessLevels(clientObject);
+    }
+    // install monitored item
+    if (clientObject.nodeClass === NodeClass.Variable) {
+        await proxyManager._monitor_value(clientObject);
+    }
 
-            (callback: ErrorCallback) => {
-                // install monitored item
-                if (clientObject.nodeClass === NodeClass.Variable) {
-                    return proxyManager._monitor_value(clientObject, callback);
-                }
-                callback();
-            },
-
-            (callback: ErrorCallback) => {
-                readUAStructure(proxyManager, clientObject, callback);
-            }
-
-            //
-        ],
-        (err) => {
-            // istanbul ignore next
-            if (err) {
-                return callback(err);
-            }
-            callback(null, clientObject);
-        }
-    );
+    return await readUAStructure(proxyManager, clientObject);
 }
 
 export interface IClientSubscription {
     monitor(
         itemToMonitor: ReadValueIdOptions,
         monitoringParameters: MonitoringParametersOptions,
-        timestampToReturn: TimestampsToReturn,
-        callback: CallbackT<IClientMonitoredItemBase>
-    ): void;
+        timestampToReturn: TimestampsToReturn
+    ): Promise<IClientMonitoredItemBase>;
 
-    terminate(callback: () => void): void;
+    terminate(): Promise<void>;
     on(eventName: "terminated", eventHandler: () => void): void;
 }
 
 export interface IClientMonitoredItemBase {
     on(eventName: "changed", eventHandler: (data: DataValue | Variant[]) => void): void;
 }
-export interface IBasicSessionWithSubscription extends IBasicSessionCallback {
-    createSubscription2(options: CreateSubscriptionRequestOptions, callback: CallbackT<IClientSubscription>): void;
+export interface IBasicSessionWithSubscriptionAsync extends IBasicSessionAsync, IBasicSessionGetArgumentDefinitionAsync {
+    createSubscription2(options: CreateSubscriptionRequestOptions): Promise<IClientSubscription>;
 }
 
 // tslint:disable-next-line: max-classes-per-file
 export class UAProxyManager {
-    public readonly session: IBasicSessionWithSubscription;
+    public readonly session: IBasicSessionWithSubscriptionAsync;
     public subscription?: IClientSubscription;
-    private _map: any;
+    #_map: any;
 
-    constructor(session: IBasicSessionWithSubscription) {
+    constructor(session: IBasicSessionWithSubscriptionAsync) {
         this.session = session;
-        this._map = {};
-        // create a subscription
+        this.#_map = {};
     }
 
-    public async start(): Promise<void>;
-    public start(callback: (err?: Error) => void): void;
-    public start(...args: any[]): any {
-        const callback = args[0] as (err?: Error) => void;
+    public async start(): Promise<void> {
 
         const createSubscriptionRequest: CreateSubscriptionRequestOptions = {
             maxNotificationsPerPublish: 1000,
@@ -195,68 +156,44 @@ export class UAProxyManager {
             requestedPublishingInterval: 100
         };
 
-        this.session.createSubscription2(createSubscriptionRequest, (err: Error | null, subscription?: IClientSubscription) => {
-            if (err) {
-                return callback(err);
-            }
-            this.subscription = subscription!;
-            this.subscription!.on("terminated", () => {
-                this.subscription = undefined;
-            });
-            callback();
+        const subscription = await this.session.createSubscription2(createSubscriptionRequest);
+        this.subscription = subscription!;
+        this.subscription!.on("terminated", () => {
+            this.subscription = undefined;
         });
     }
 
-    public async stop(): Promise<void>;
-    public stop(callback: (err?: Error) => void): void;
-
-    public stop(...args: any[]): any {
-        const callback = args[0] as (err?: Error) => void;
-
+    public async stop(): Promise<void> {
         if (this.subscription) {
-            this.subscription.terminate(() => {
-                this.subscription = undefined;
-                callback();
-            });
+            await this.subscription.terminate();
+            this.subscription = undefined;
         } else {
-            callback(new Error("UAProxyManager already stopped ?"));
+            // throw new Error("UAProxyManager already stopped ?");
         }
     }
 
     // todo: rename getObject as getNode
-    public async getObject(nodeId: NodeIdLike): Promise<any>;
-
-    public getObject(nodeId: NodeIdLike, callback: (err: Error | null, object?: any) => void): void;
-    public getObject(...args: any[]): any {
-        const nodeId = args[0] as NodeIdLike;
-        const callback = args[1] as (err: Error | null, object?: any) => void;
-
+    public async getObject(nodeId: NodeIdLike): Promise<ProxyNode> {
         let options: any = {};
+        options = options || {};
+        options.depth = options.depth || 1;
 
-        setImmediate(() => {
-            options = options || {};
-            options.depth = options.depth || 1;
+        const key = nodeId.toString();
+        // the object already exist in the map ?
+        if (Object.prototype.hasOwnProperty.call(this.#_map, key)) {
+            return this.#_map[key];
+        }
 
-            const key = nodeId.toString();
-            // the object already exist in the map ?
-            if (Object.prototype.hasOwnProperty.call(this._map, key)) {
-                return callback(null, this._map[key]);
-            }
-
-            getObject(this, nodeId, options, (err: Error | null, obj?: ProxyBaseNode) => {
-                if (!err) {
-                    this._map[key] = obj;
-                }
-                callback(err, obj);
-            });
-        });
+        const obj = await internalGetObject(this, nodeId, options);
+        this.#_map[key] = obj;
+        return obj;
     }
 
-    public _monitor_value(proxyObject: IProxy, callback: ErrorCallback): void {
+    public async _monitor_value(proxyObject: IProxy): Promise<void> {
         if (!this.subscription) {
             // debugLog("cannot monitor _monitor_value: no subscription");
             // some server do not provide subscription support, do not treat this as an error.
-            return callback(); // new Error("No subscription"));
+            return; // new Error("No subscription"));
         }
 
         const itemToMonitor: ReadValueIdOptions = {
@@ -272,32 +209,25 @@ export class UAProxyManager {
         };
         const requestedParameters = TimestampsToReturn.Both;
 
-        this.subscription.monitor(
-            itemToMonitor,
-            monitoringParameters,
-            requestedParameters,
+        const monitoredItem = await this.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters);
 
-            (err: Error | null, monitoredItem?: IClientMonitoredItemBase) => {
-                Object.defineProperty(proxyObject, "__monitoredItem", { value: monitoredItem, enumerable: false });
-                proxyObject.__monitoredItem!.on("changed", (dataValue: DataValue) => {
-                    proxyObject.dataValue = dataValue;
-                    proxyObject.emit("value_changed", dataValue);
-                });
-                proxyObject.__monitoredItem!.on("err", (err: Error) => {
-                    debugLog("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
-                });
-                callback(err!);
-            }
-        );
+        Object.defineProperty(proxyObject, "__monitoredItem", { value: monitoredItem, enumerable: false });
+        proxyObject.__monitoredItem!.on("changed", (dataValue: DataValue) => {
+            proxyObject.dataValue = dataValue;
+            proxyObject.emit("value_changed", dataValue);
+        });
+        proxyObject.__monitoredItem!.on("err", (err: Error) => {
+            debugLog("Proxy: cannot monitor variable ", itemToMonitor.nodeId?.toString(), err.message);
+        });
     }
 
-    public _monitor_execution_flag(proxyObject: IProxy1, callback: (err?: Error) => void): void {
+    public async _monitor_execution_flag(proxyObject: IProxy1): Promise<void> {
         // note : proxyObject must wrap a method
         assert(proxyObject.nodeId instanceof NodeId);
 
         if (!this.subscription) {
             // some server do not provide subscription support, do not treat this as an error.
-            return callback(); // new Error("No subscription"));
+            return; // new Error("No subscription"));
         }
 
         const itemToMonitor = {
@@ -314,47 +244,22 @@ export class UAProxyManager {
         };
         const requestedParameters = TimestampsToReturn.Neither;
 
-        this.subscription.monitor(
-            itemToMonitor,
-            monitoringParameters,
-            requestedParameters,
-            (err: Error | null, monitoredItem?: IClientMonitoredItemBase) => {
-                Object.defineProperty(proxyObject, "__monitoredItem_execution_flag", {
-                    value: monitoredItem,
+        const monitoredItem = await this.subscription.monitor(itemToMonitor, monitoringParameters, requestedParameters);
+        Object.defineProperty(proxyObject, "__monitoredItem_execution_flag", {
+            value: monitoredItem,
 
-                    enumerable: false
-                });
-                proxyObject.__monitoredItem_execution_flag!.on("changed", (dataValue: DataValue) => {
-                    proxyObject.executableFlag = dataValue.value.value;
-                });
-
-                callback(err!);
-            }
-        );
+            enumerable: false
+        });
+        proxyObject.__monitoredItem_execution_flag!.on("changed", (dataValue: DataValue) => {
+            proxyObject.executableFlag = dataValue.value.value;
+        });
     }
-
-    public getStateMachineType(
-        nodeId: NodeIdLike,
-        callback: (err: Error | null, stateMachineType?: ProxyStateMachineType) => void
-    ): void {
+    public async getStateMachineType(nodeId: NodeIdLike): Promise<ProxyStateMachineType> {
         if (typeof nodeId === "string") {
             const org_nodeId = nodeId;
             nodeId = makeRefId(nodeId);
         }
-
-        this.getObject(nodeId, (err: Error | null, obj: any) => {
-            // read fromState and toState Reference on
-            let stateMachineType;
-            if (!err) {
-                stateMachineType = new ProxyStateMachineType(obj);
-            }
-            callback(err, stateMachineType);
-        });
+        const obj = await this.getObject(nodeId);
+        return new ProxyStateMachineType(obj);
     }
 }
-
-// tslint:disable-next-line:no-var-requires
-const thenify = require("thenify");
-UAProxyManager.prototype.start = thenify.withCallback(UAProxyManager.prototype.start);
-UAProxyManager.prototype.stop = thenify.withCallback(UAProxyManager.prototype.stop);
-UAProxyManager.prototype.getObject = thenify.withCallback(UAProxyManager.prototype.getObject);

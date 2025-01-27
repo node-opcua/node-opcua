@@ -16,7 +16,7 @@
     "dependencies": {
         "async": "^3.2.6",
         "chalk": "4.1.2",
-        "thenify": "^3.3.1"
+        "thenify-ex": "4.2.0"
     },
     "peerDependencies": {
         "node-opcua-client": ">=2.124.0"

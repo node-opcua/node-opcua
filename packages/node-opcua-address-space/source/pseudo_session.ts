@@ -2,8 +2,6 @@
  * @module node-opcua-address-space
  */
 import { promisify } from "util";
-import async from "async";
-
 import { assert } from "node-opcua-assert";
 import { DataValue } from "node-opcua-data-value";
 import { make_errorLog } from "node-opcua-debug";
@@ -198,38 +196,26 @@ export class PseudoSession implements IBasicSession {
         const _nodesToRead = nodesToRead as ReadValueIdOptions[];
         const context = this[$context];
 
-        setImmediate(() => {
-            async.map(
-                _nodesToRead,
-                (nodeToRead: ReadValueIdOptions, innerCallback: any) => {
-                    const obj = this[$addressSpace].findNode(nodeToRead.nodeId!);
-                    if (!obj || obj.nodeClass !== NodeClass.Variable || nodeToRead.attributeId !== AttributeIds.Value) {
-                        return innerCallback();
-                    }
-                    (obj as UAVariable).readValueAsync(context, innerCallback);
-                },
-                (err) => {
-                    const dataValues = _nodesToRead.map((nodeToRead: ReadValueIdOptions) => {
-                        assert(!!nodeToRead.nodeId, "expecting a nodeId");
-                        assert(!!nodeToRead.attributeId, "expecting a attributeId");
-
-                        const nodeId = nodeToRead.nodeId!;
-                        const attributeId = nodeToRead.attributeId!;
-                        const indexRange = nodeToRead.indexRange;
-                        const dataEncoding = nodeToRead.dataEncoding;
-                        const obj = this[$addressSpace].findNode(nodeId);
-                        if (!obj) {
-                            return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
-                        }
-                        const context = this[$context];
-                        const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
-                        return dataValue;
-                    });
-
-                    callback!(null, isArray ? dataValues : dataValues[0]);
-                }
-            );
-        });
+        const readV = async (nodeToRead: ReadValueIdOptions): Promise<DataValue> => {
+            const obj = this[$addressSpace].findNode(nodeToRead.nodeId!);
+            if (!obj) {
+                return new DataValue({ statusCode: StatusCodes.BadNodeIdUnknown });
+            }
+            // refresh the variable value if the attribute to read is the Value attribute
+            if (obj.nodeClass === NodeClass.Variable && nodeToRead.attributeId == AttributeIds.Value) {
+                (obj as UAVariable).readValueAsync(context);
+            }
+            assert(!!nodeToRead.nodeId, "expecting a nodeId");
+            assert(!!nodeToRead.attributeId, "expecting a attributeId");
+            const attributeId = nodeToRead.attributeId!;
+            const indexRange = nodeToRead.indexRange;
+            const dataEncoding = nodeToRead.dataEncoding;
+            const dataValue = obj.readAttribute(context, attributeId, indexRange, dataEncoding);
+            return dataValue;
+        };
+        Promise.all(_nodesToRead.map(async (nodeToRead: ReadValueIdOptions) => await readV(nodeToRead)))
+            .then((dataValues) => callback!(null, isArray ? dataValues : dataValues[0]))
+            .catch((err) => callback!(err));
     }
 
     public browseNext(
@@ -280,34 +266,24 @@ export class PseudoSession implements IBasicSession {
         if (!isArray) {
             methodsToCall = [methodsToCall as CallMethodRequestLike];
         }
-
-        async.map(
-            methodsToCall as CallMethodRequestLike[],
-            (methodToCall, innerCallback: (err: Error | null, result?: CallMethodResult) => void) => {
-                const callMethodRequest = new CallMethodRequest(methodToCall);
-
-                callMethodHelper(
-                    this[$context],
-                    this[$addressSpace],
-                    callMethodRequest,
-                    (err: Error | null, result?: CallMethodResultOptions) => {
-                        let callMethodResult: CallMethodResult;
-                        if (err) {
-                            errorLog("Internal Error = ", err);
-                            callMethodResult = new CallMethodResult({
-                                statusCode: StatusCodes.BadInternalError
-                            });
-                        } else {
-                            callMethodResult = new CallMethodResult(result);
-                        }
-                        innerCallback(null, callMethodResult);
-                    }
-                );
-            },
-            (err?: Error | null, callMethodResults?: any) => {
-                callback!(null, isArray ? callMethodResults! : callMethodResults![0]);
+        Promise.all((methodsToCall as CallMethodRequestLike[]).map(async (methodToCall) => {
+            const callMethodRequest = new CallMethodRequest(methodToCall);
+            try {
+                const result = await callMethodHelper(this[$context], this[$addressSpace], callMethodRequest);
+                return new CallMethodResult(result);
+            } catch (err) {
+                errorLog("Internal Error = ", err);
+                return new CallMethodResult({
+                    statusCode: StatusCodes.BadInternalError
+                });
             }
-        );
+        }))
+            .then((callMethodResults) => {
+                callback!(null, isArray ? callMethodResults : callMethodResults[0]);
+            })
+            .catch((err) => {
+                callback!(err);
+            });
     }
 
     public getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
@@ -373,11 +349,11 @@ export class PseudoSession implements IBasicSession {
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
-PseudoSession.prototype.read = thenify.withCallback(PseudoSession.prototype.read);
-PseudoSession.prototype.write = thenify.withCallback(PseudoSession.prototype.write);
-PseudoSession.prototype.browse = thenify.withCallback(PseudoSession.prototype.browse);
-PseudoSession.prototype.browseNext = thenify.withCallback(PseudoSession.prototype.browseNext);
-PseudoSession.prototype.getArgumentDefinition = thenify.withCallback(PseudoSession.prototype.getArgumentDefinition);
-PseudoSession.prototype.call = thenify.withCallback(PseudoSession.prototype.call);
-PseudoSession.prototype.translateBrowsePath = thenify.withCallback(PseudoSession.prototype.translateBrowsePath);
+import { withCallback } from "thenify-ex";
+PseudoSession.prototype.read = withCallback(PseudoSession.prototype.read);
+PseudoSession.prototype.write = withCallback(PseudoSession.prototype.write);
+PseudoSession.prototype.browse = withCallback(PseudoSession.prototype.browse);
+PseudoSession.prototype.browseNext = withCallback(PseudoSession.prototype.browseNext);
+PseudoSession.prototype.getArgumentDefinition = withCallback(PseudoSession.prototype.getArgumentDefinition);
+PseudoSession.prototype.call = withCallback(PseudoSession.prototype.call);
+PseudoSession.prototype.translateBrowsePath = withCallback(PseudoSession.prototype.translateBrowsePath);

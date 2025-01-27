@@ -307,5 +307,5 @@ export class UAMethodImpl extends BaseNodeImpl implements UAMethod {
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
-UAMethodImpl.prototype.execute = thenify.withCallback(UAMethodImpl.prototype.execute);
+import { withCallback } from "thenify-ex";
+UAMethodImpl.prototype.execute = withCallback(UAMethodImpl.prototype.execute);

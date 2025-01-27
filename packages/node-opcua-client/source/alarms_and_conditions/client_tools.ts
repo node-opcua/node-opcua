@@ -66,9 +66,9 @@ ClientSessionImpl.prototype.acknowledgeCondition = function (
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
-ClientSessionImpl.prototype.addCommentCondition = thenify.withCallback(ClientSessionImpl.prototype.addCommentCondition, opts);
-ClientSessionImpl.prototype.findMethodId = thenify.withCallback(ClientSessionImpl.prototype.findMethodId, opts);
-ClientSessionImpl.prototype.confirmCondition = thenify.withCallback(ClientSessionImpl.prototype.confirmCondition, opts);
-ClientSessionImpl.prototype.acknowledgeCondition = thenify.withCallback(ClientSessionImpl.prototype.acknowledgeCondition, opts);
+ClientSessionImpl.prototype.addCommentCondition = withCallback(ClientSessionImpl.prototype.addCommentCondition, opts);
+ClientSessionImpl.prototype.findMethodId = withCallback(ClientSessionImpl.prototype.findMethodId, opts);
+ClientSessionImpl.prototype.confirmCondition = withCallback(ClientSessionImpl.prototype.confirmCondition, opts);
+ClientSessionImpl.prototype.acknowledgeCondition = withCallback(ClientSessionImpl.prototype.acknowledgeCondition, opts);

@@ -215,14 +215,14 @@ Please investigate the code of the event handler function to fix the error.`
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
 
-ClientMonitoredItemGroupImpl.prototype.terminate = thenify.withCallback(ClientMonitoredItemGroupImpl.prototype.terminate);
-ClientMonitoredItemGroupImpl.prototype.setMonitoringMode = thenify.withCallback(
+ClientMonitoredItemGroupImpl.prototype.terminate = withCallback(ClientMonitoredItemGroupImpl.prototype.terminate);
+ClientMonitoredItemGroupImpl.prototype.setMonitoringMode = withCallback(
     ClientMonitoredItemGroupImpl.prototype.setMonitoringMode
 );
-ClientMonitoredItemGroupImpl.prototype.modify = thenify.withCallback(ClientMonitoredItemGroupImpl.prototype.modify);
+ClientMonitoredItemGroupImpl.prototype.modify = withCallback(ClientMonitoredItemGroupImpl.prototype.modify);
 
 ClientMonitoredItemGroup.create = (
     subscription: ClientSubscription,

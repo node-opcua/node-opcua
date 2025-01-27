@@ -52,45 +52,16 @@ describe("testing client Proxy", function () {
         await server.shutdown();
     });
 
-    it("Proxy1 - client should expose a nice little handy javascript object that proxies the HVAC UAObject", function (done) {
+    it("Proxy1 - client should expose a nice little handy javascript object that proxies the HVAC UAObject", async () => {
         let proxyManager;
-        perform_operation_on_client_session(
-            client,
-            endpointUrl,
-            function (session, inner_done) {
-                proxyManager = new UAProxyManager(session);
-
-                let hvac;
-                async.series(
-                    [
-                        function (callback) {
-                            proxyManager.start(callback);
-                        },
-                        function (callback) {
-                            proxyManager.getObject(hvacNodeId, function (err, data) {
-                                if (!err) {
-                                    hvac = data;
-
-                                    // console.log("Interior temperature", hvac.interiorTemperature.value);
-                                    hvac.interiorTemperature.readValue(function (err, value) {
-                                        // console.log(" Interior temperature updated ...", value.toString());
-                                        callback(err);
-                                    });
-
-                                    return;
-                                }
-                                callback(err);
-                            });
-                        },
-                        function (callback) {
-                            proxyManager.stop(callback);
-                        }
-                    ],
-                    inner_done
-                );
-            },
-            done
-        );
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            proxyManager = new UAProxyManager(session);
+            await proxyManager.start();
+            const hvac = await proxyManager.getObject(hvacNodeId);
+            const value = await hvac.interiorTemperature.readValue();
+            // console.log("Interior temperature", hvac.interiorTemperature.value);
+            await proxyManager.stop();
+        });
     });
 
     it("Proxy2 - client should expose a nice little handy javascript object that proxies the server UAObject", async () => {
@@ -99,9 +70,8 @@ describe("testing client Proxy", function () {
             await proxyManager.start();
 
             const serverNodeId = opcua.coerceNodeId("i=2253");
-            
-            const serverObject = await proxyManager.getObject(serverNodeId);
 
+            const serverObject = await proxyManager.getObject(serverNodeId);
 
             if (!(typeof serverObject.getMonitoredItems === "function")) {
                 throw new Error("Cannot find serverObject.getMonitoredItems");
@@ -122,207 +92,106 @@ describe("testing client Proxy", function () {
             // now call getMonitoredItems
             const subscriptionId = proxyManager.subscription ? proxyManager.subscription.subscriptionId || 1 : 1;
             console.log(" SubscriptionID= ", subscriptionId);
-            
+
             const outputArgs = await serverObject.getMonitoredItems({ subscriptionId });
         });
     });
 
-    it("Proxy3 - one can subscribe to proxy object property change", function (done) {
+    it("Proxy3 - one can subscribe to proxy object property change", async () => {
         this.timeout(Math.max(20000, this.timeout()));
-        let proxyManager;
-        perform_operation_on_client_session(
-            client,
-            endpointUrl,
-            function (session, inner_done) {
-                proxyManager = new UAProxyManager(session);
 
-                let hvac;
-                async.series(
-                    [
-                        function (callback) {
-                            proxyManager.start(callback);
-                        },
-                        function (callback) {
-                            proxyManager.getObject(hvacNodeId, function (err, data) {
-                                if (!err) {
-                                    hvac = data;
+        await client.withSessionAsync(endpointUrl, async (session) => {
+            const proxyManager = new UAProxyManager(session);
 
-                                    hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
-                                    hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double);
-                                    hvac.setTargetTemperature.inputArguments[0].valueRank.should.eql(-1);
-                                    hvac.setTargetTemperature.outputArguments.length.should.eql(0);
+            await proxyManager.start();
+            const hvac = await proxyManager.getObject(hvacNodeId);
+            hvac.setTargetTemperature.inputArguments[0].name.should.eql("targetTemperature");
+            hvac.setTargetTemperature.inputArguments[0].dataType.value.should.eql(DataType.Double);
+            hvac.setTargetTemperature.inputArguments[0].valueRank.should.eql(-1);
+            hvac.setTargetTemperature.outputArguments.length.should.eql(0);
 
-                                    //  console.log("Interior temperature",hvac.interiorTemperature.dataValue);
+            //  console.log("Interior temperature",hvac.interiorTemperature.dataValue);
 
-                                    hvac.interiorTemperature.on("value_changed", function (value) {
-                                        console.log(
-                                            chalk.yellow("  EVENT: interiorTemperature has changed to "),
-                                            value.value.toString()
-                                        );
-                                    });
-                                    hvac.targetTemperature.on("value_changed", function (value) {
-                                        console.log(
-                                            chalk.cyan("  EVENT: targetTemperature has changed to "),
-                                            value.value.toString()
-                                        );
-                                    });
-                                }
-                                callback(err);
-                            });
-                        },
+            hvac.interiorTemperature.on("value_changed", function (value) {
+                console.log(chalk.yellow("  EVENT: interiorTemperature has changed to "), value.value.toString());
+            });
+            hvac.targetTemperature.on("value_changed", function (value) {
+                console.log(chalk.cyan("  EVENT: targetTemperature has changed to "), value.value.toString());
+            });
 
-                        function (callback) {
-                            hvac.interiorTemperature.readValue(function (err, value) {
-                                // console.log"(" reading Interior temperature, got = ...", value.toString());
-                                callback(err);
-                            });
-                        },
+            const value = await hvac.interiorTemperature.readValue();
 
-                        function (callback) {
-                            //xx console.log(" Access Level = ",hvac.interiorTemperature.accessLevel);
+            // it should not be possible to set the interiorTemperature => ReadOnly from the outside
+            const statusCode = await hvac.interiorTemperature.writeValue({
+                value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.0 })
+            });
+            statusCode.toString().should.match(/BadNotWritable/);
 
-                            // it should not be possible to set the interiorTemperature => ReadOnly from the outside
-                            hvac.interiorTemperature.writeValue(
-                                {
-                                    value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.0 })
-                                },
-                                function (err) {
-                                    should(err).not.eql(null, " it should not be possible to set readonly interiorTemperature");
-                                    err.message.should.match(/BadNotWritable/);
-                                    callback();
-                                }
-                            );
-                        },
+            // it should  be possible to set the targetTemperature
+            // it should not be possible to set the interiorTemperature => ReadOnly from the outside
+            const statusCode2 = await hvac.interiorTemperature.writeValue({
+                value: new opcua.Variant({
+                    dataType: opcua.DataType.Double,
+                    value: 100.0
+                })
+            });
+            statusCode2.toString().should.match(/BadNotWritable/);
 
-                        // it should  be possible to set the targetTemperature
-                        function (callback) {
-                            // it should not be possible to set the interiorTemperature => ReadOnly from the outside
-                            hvac.interiorTemperature.writeValue(
-                                {
-                                    value: new opcua.Variant({ dataType: opcua.DataType.Double, value: 100.0 })
-                                },
-                                function (err) {
-                                    should.exist(err);
-                                    err.message.should.match(/BadNotWritable/);
-                                    callback();
-                                }
-                            );
-                        },
+            // setting the TargetTemperature outside instrumentRange shall return an error
+            {
+                const { statusCode, output } = await hvac.setTargetTemperature({ targetTemperature: 10000 });
+                statusCode.toString().should.match(/BadOutOfRange/);
+            }
 
-                        // setting the TargetTemperature outside instrumentRange shall return an error
-                        function (callback) {
-                            hvac.setTargetTemperature({ targetTemperature: 10000 }, (err, results) => {
-                                should.exist(err);
-                                //xx console.log("result",err,results);
-                                callback();
-                            });
-                        },
-                        function (callback) {
-                            hvac.setTargetTemperature({ targetTemperature: 37 }, (err, results) => {
-                                //xx console.log("result",results);
-                                callback();
-                            });
-                        },
-                        function (callback) {
-                            // wait for temperature to settle down
-                            setTimeout(callback, 2000);
-                        },
-                        function (callback) {
-                            hvac.setTargetTemperature({ targetTemperature: 18 }, (err, results) => {
-                                callback();
-                            });
-                        },
-                        function (callback) {
-                            // wait for temperature to settle down
-                            setTimeout(callback, 2000);
-                        },
-                        function (callback) {
-                            //xx console.log("stopping proxy");
-                            proxyManager.stop(callback);
-                        }
-                    ],
-                    inner_done
-                );
-            },
-            done
-        );
-    });
+            {
+                const { statusCode } = await hvac.setTargetTemperature({ targetTemperature: 37 });
+                statusCode.toString().should.match(/Good/)
+            }
+            
+            // wait for temperature to settle down
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    it("Proxy4 - should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", function (done) {
-        let proxyManager;
+            await hvac.setTargetTemperature({ targetTemperature: 18 });
+            // wait for temperature to settle down
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-        perform_operation_on_client_session(
-            client,
-            endpointUrl,
-            function (session, inner_done) {
-                proxyManager = new UAProxyManager(session);
+            await proxyManager.stop();
+        });
+
+        it("Proxy4 - should expose a SubscriptionDiagnostics in Server.ServerDiagnostics.SubscriptionDiagnosticsArray", async () => {
+            await client.withSessionAsync(endpointUrl, async (session) => {
+                const proxyManager = new UAProxyManager(session);
 
                 const makeNodeId = opcua.makeNodeId;
 
-                let subscriptionDiagnosticsArray = null;
+                await proxyManager.start();
 
-                let subscriptionId = null;
-
-                async.series(
-                    [
-                        function (callback) {
-                            proxyManager.start(callback);
-                        },
-                        function (callback) {
-                            proxyManager.getObject(
-                                makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray),
-                                (err, data) => {
-                                    if (!err) {
-                                        subscriptionDiagnosticsArray = data;
-                                    }
-                                    callback(err);
-                                }
-                            );
-                        },
-                        function (callback) {
-                            // subscriptionDiagnosticsArray should have no elements this time
-                            //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
-                            subscriptionDiagnosticsArray.$components.length.should.be.greaterThan(1);
-                            //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
-
-                            callback();
-                        },
-
-                        // now create a subscription
-                        function (callback) {
-                            session.createSubscription(
-                                {
-                                    requestedPublishingInterval: 100, // Duration
-                                    requestedLifetimeCount: 6000, // Counter
-                                    requestedMaxKeepAliveCount: 10, // Counter
-                                    maxNotificationsPerPublish: 100, // Counter
-                                    publishingEnabled: true, // Boolean
-                                    priority: 14 // Byte
-                                },
-                                function (err, response) {
-                                    if (!err) {
-                                        subscriptionId = response.subscriptionId;
-                                    }
-                                    callback(err);
-                                }
-                            );
-                        },
-
-                        // verify that we have a subscription diagnostics array now
-                        function (callback) {
-                            // subscriptionDiagnosticsArray should have no elements this time
-                            //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
-                            //xx subscriptionDiagnosticsArray.$components.length.should.eql(0);
-                            //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
-
-                            callback();
-                        }
-                    ],
-                    inner_done
+                const subscriptionDiagnosticsArray = await proxyManager.getObject(
+                    makeNodeId(opcua.VariableIds.Server_ServerDiagnostics_SubscriptionDiagnosticsArray)
                 );
-            },
-            done
-        );
+                // subscriptionDiagnosticsArray should have no elements this time
+                //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
+                subscriptionDiagnosticsArray.$components.length.should.be.greaterThan(1);
+                //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
+
+                const subscription = await session.createSubscription({
+                    requestedPublishingInterval: 100, // Duration
+                    requestedLifetimeCount: 6000, // Counter
+                    requestedMaxKeepAliveCount: 10, // Counter
+                    maxNotificationsPerPublish: 100, // Counter
+                    publishingEnabled: true, // Boolean
+                    priority: 14 // Byte
+                });
+
+                // verify that we have a subscription diagnostics array now
+                // subscriptionDiagnosticsArray should have no elements this time
+                //xx console.log(subscriptionDiagnosticsArray.$components[0].toString());
+                //xx subscriptionDiagnosticsArray.$components.length.should.eql(0);
+                //xx subscriptionDiagnosticsArray.dataValue.value.dataType.should.eql(opcua.DataType.Null);
+
+                await proxyManager.stop();
+            });
+        });
     });
 
     it("Proxy5", async () => {

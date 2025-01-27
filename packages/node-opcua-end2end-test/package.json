@@ -45,7 +45,7 @@
         "node-opcua-service-read": "2.139.0",
         "node-opcua-service-secure-channel": "2.139.0",
         "node-opcua-variant": "2.139.0",
-        "thenify": "^3.3.1",
+        "thenify-ex": "4.2.0",
         "underscore": "^1.13.7",
         "yargs": "15.4.1"
     },

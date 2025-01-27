@@ -91,6 +91,6 @@ export function findServersOnNetwork(
 }
 
 // tslint:disable:no-var-requires
-const thenify = require("thenify");
-(module.exports as any).findServersOnNetwork = thenify.withCallback((module.exports as any).findServersOnNetwork);
-(module.exports as any).findServers = thenify.withCallback((module.exports as any).findServers);
+import { withCallback } from "thenify-ex";
+(module.exports as any).findServersOnNetwork = withCallback((module.exports as any).findServersOnNetwork);
+(module.exports as any).findServers = withCallback((module.exports as any).findServers);

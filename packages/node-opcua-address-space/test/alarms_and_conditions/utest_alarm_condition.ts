@@ -1,5 +1,4 @@
 // tslint:disable:no-console
-import async from "async";
 import should from "should";
 import sinon from "sinon";
 
@@ -7,22 +6,13 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { LocalizedText } from "node-opcua-data-model";
 import { coerceLocalizedText } from "node-opcua-data-model";
 import { NodeId } from "node-opcua-nodeid";
-import { CallMethodResult } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { CallMethodResultOptions } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { Variant } from "node-opcua-variant";
 
 import { DataValue } from "node-opcua-data-value";
-import {
-    AddressSpace,
-    BaseNode,
-    ConditionSnapshot,
-    SessionContext,
-    UAAlarmConditionEx,
-    UAObject,
-    UAVariable
-} from "../..";
+import { AddressSpace, BaseNode, ConditionSnapshot, SessionContext, UAAlarmConditionEx, UAObject, UAVariable } from "../..";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -77,7 +67,7 @@ export function utest_alarm_condition(test: any): void {
                 browseName: "AlarmCondition3",
                 componentOf: source,
                 conditionSource: source,
-                inputNode: new NodeId(),
+                inputNode: new NodeId()
             });
             alarm.inputNode.readValue().value.value.should.eql(NodeId.nullNodeId);
 
@@ -369,7 +359,7 @@ export function utest_alarm_condition(test: any): void {
             engine = test.engine;
         });
 
-        it("should follow the example opcua 1.03 part 9 - annexe B  B.1.2 ", (done: any) => {
+        it("should follow the example opcua 1.03 part 9 - annexe B  B.1.2 ", async () => {
             // case of a Alarm Condition with a (optional) ConfirmedState
 
             const condition = addressSpace.getOwnNamespace().instantiateAlarmCondition("AlarmConditionType", {
@@ -426,262 +416,243 @@ export function utest_alarm_condition(test: any): void {
             const confirmed_spy = sinon.spy();
             condition.on("confirmed", confirmed_spy);
 
-            async.series(
-                [
-                    function step0(callback) {
-                        //    initial states:
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        // 0) null      |  false   | true  | true      | false  |
+            //           function step0(callback) {
+            {
+                //    initial states:
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                // 0) null      |  false   | true  | true      | false  |
 
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Inactive");
-                        should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                        should(condition.retain.readValue().value.value).eql(false);
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Inactive");
+                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain.readValue().value.value).eql(false);
 
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(false);
-                        condition.currentBranch().getAckedState().should.eql(true);
-                        condition.currentBranch().getConfirmedState().should.eql(true);
-                        condition.currentBranch().getRetain().should.eql(false);
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(false);
+                condition.currentBranch().getAckedState().should.eql(true);
+                condition.currentBranch().getConfirmedState().should.eql(true);
+                condition.currentBranch().getRetain().should.eql(false);
+            }
+            // step1_alarm_goes_active(callback) {
+            {
+                // Step 1 : Alarm goes active
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                // 1) null      |  true    | false | true      | true   |
 
-                        callback();
-                    },
-                    function step1_alarm_goes_active(callback) {
-                        // Step 1 : Alarm goes active
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        // 1) null      |  true    | false | true      | true   |
+                condition.activateAlarm();
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Active");
+                should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain!.readValue().value.value).eql(true);
 
-                        condition.activateAlarm();
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Active");
-                        should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                        should(condition.retain!.readValue().value.value).eql(true);
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(true);
+                condition.currentBranch().getAckedState().should.eql(false);
+                condition.currentBranch().getConfirmedState().should.eql(true);
+                condition.currentBranch().getRetain().should.eql(true);
+            }
+            //  step2_condition_acknowledged
+            {
+                // Step 2 : Condition acknowledged :=> Confirmed required
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                // 1) null      |  true    | true  | false      | true   |
 
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(true);
-                        condition.currentBranch().getAckedState().should.eql(false);
-                        condition.currentBranch().getConfirmedState().should.eql(true);
-                        condition.currentBranch().getRetain().should.eql(true);
-
-                        callback();
-                    },
-
-                    function step2_condition_acknowledged(callback) {
-                        // Step 2 : Condition acknowledged :=> Confirmed required
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        // 1) null      |  true    | true  | false      | true   |
-
-                        const context = new SessionContext({ object: condition });
-                        const param = [
-                            // the eventId
-                            { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
-                            //
-                            { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
-                        ];
-                        condition.acknowledge.execute(
-                            null,
-                            param,
-                            context,
-                            (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                                callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
-                            }
-                        );
-
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Active");
-                        should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
-                        should(condition.retain!.readValue().value.value).eql(true);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(true);
-                        condition.currentBranch().getAckedState().should.eql(true);
-                        condition.currentBranch().getConfirmedState().should.eql(false);
-                        condition.currentBranch().getRetain().should.eql(true);
-
-                        // --------------------- the 'acknowledge' event must have been raised
-                        acknowledged_spy.callCount.should.eql(1);
-                        acknowledged_spy.getCall(0).args.length.should.eql(3);
-                        should.not.exist(acknowledged_spy.getCall(0).args[0], "eventId is null");
-                        acknowledged_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
-                        // acknowledged_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
-                        acknowledged_spy.thisValues[0].should.eql(condition);
-                        callback();
-                    },
-                    function step3_alarm_goes_inactive(callback) {
-                        // Step 3 : Alarm goes inactive
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        // 1) null      |  False   | true  | false     | true   |
-                        condition.deactivateAlarm();
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Inactive");
-                        should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
-                        should(condition.retain!.readValue().value.value).eql(true);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(false);
-                        condition.currentBranch().getAckedState().should.eql(true);
-                        condition.currentBranch().getConfirmedState().should.eql(false);
-                        condition.currentBranch().getRetain().should.eql(true);
-
-                        callback();
-                    },
-
-                    function step4_condition_confirmed(callback) {
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        //    null      |  False   | true  | true      | false   |
-
-                        const context = new SessionContext({ object: condition });
-
-                        const param = [
-                            // the eventId
-                            { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
-                            //
-                            { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
-                        ];
-                        condition.confirm!.execute(
-                            null,
-                            param,
-                            context,
-                            (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                                callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
-                            }
-                        );
-
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Inactive");
-                        should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                        should(condition.retain!.readValue().value.value).eql(false);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(false);
-                        condition.currentBranch().getAckedState().should.eql(true);
-                        condition.currentBranch().getConfirmedState().should.eql(true);
-                        condition.currentBranch().getRetain().should.eql(false);
-
-                        // --------------------- the 'confirmed' event must have been raised
-                        confirmed_spy.callCount.should.eql(1);
-                        confirmed_spy.getCall(0).args.length.should.eql(3);
-                        confirmed_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
-                        // xx confirmed_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
-
-                        callback();
-                    },
-
-                    function step5_alarm_goes_active(callback) {
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        //    null      |  true    | false | true      | true   |
-
-                        condition.activateAlarm();
-
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Active");
-                        should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                        should(condition.retain!.readValue().value.value).eql(true);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(true);
-                        condition.currentBranch().getAckedState().should.eql(false);
-                        condition.currentBranch().getConfirmedState().should.eql(true);
-                        condition.currentBranch().getRetain().should.eql(true);
-
-                        callback();
-                    },
-                    function step6_alarm_goes_inactive(callback) {
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        //    null      |  fals    | false | true      | true   |
-
-                        condition.deactivateAlarm();
-
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.activeState.readValue().value.value.text).eql("Inactive");
-                        should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                        should(condition.retain!.readValue().value.value).eql(true);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(false);
-                        condition.currentBranch().getAckedState().should.eql(false);
-                        condition.currentBranch().getConfirmedState().should.eql(true);
-                        condition.currentBranch().getRetain().should.eql(true);
-
-                        callback();
-                    },
-                    function step7_condition_acknowledge_confirmed_require(callback) {
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        //    null      |  false   | true  | false     | true   |
-
-                        const context = new SessionContext({ object: condition });
-                        const param = [
-                            // the eventId
-                            { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
-                            //
-                            { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
-                        ];
-                        condition.acknowledge.execute(
-                            null,
-                            param,
-                            context,
-                            (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                                callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
-                            }
-                        );
-
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
-                        should(condition.retain!.readValue().value.value).eql(true);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(false);
-                        condition.currentBranch().getAckedState().should.eql(true);
-                        condition.currentBranch().getConfirmedState().should.eql(false);
-                        condition.currentBranch().getRetain().should.eql(true);
-
-                        callback();
-                    },
-
-                    function step8_condition_confirmed(callback) {
-                        //    branchId  |  Active  | Acked | Confirmed | Retain |
-                        //    null      |  false   | true  | true      | false   |
-
-                        const context = new SessionContext({ object: condition });
-                        const param = [
-                            // the eventId
-                            { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
-                            //
-                            { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
-                        ];
-                        condition.confirm!.execute(
-                            null,
-                            param,
-                            context,
-                            (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
-                                callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
-                            }
-                        );
-
-                        should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
-                        should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
-                        should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
-                        should(condition.retain!.readValue().value.value).eql(false);
-
-                        condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
-                        condition.currentBranch().getActiveState().should.eql(false);
-                        condition.currentBranch().getAckedState().should.eql(true);
-                        condition.currentBranch().getConfirmedState().should.eql(true);
-                        condition.currentBranch().getRetain().should.eql(false);
-
-                        callback();
+                const context = new SessionContext({ object: condition });
+                const param = [
+                    // the eventId
+                    { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
+                    //
+                    { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
+                ];
+                condition.acknowledge.execute(
+                    null,
+                    param,
+                    context,
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
                     }
-                ],
-                done
-            );
+                );
+
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Active");
+                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
+                should(condition.retain!.readValue().value.value).eql(true);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(true);
+                condition.currentBranch().getAckedState().should.eql(true);
+                condition.currentBranch().getConfirmedState().should.eql(false);
+                condition.currentBranch().getRetain().should.eql(true);
+
+                // --------------------- the 'acknowledge' event must have been raised
+                acknowledged_spy.callCount.should.eql(1);
+                acknowledged_spy.getCall(0).args.length.should.eql(3);
+                should.not.exist(acknowledged_spy.getCall(0).args[0], "eventId is null");
+                acknowledged_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
+                // acknowledged_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
+                acknowledged_spy.thisValues[0].should.eql(condition);
+                //  step3_alarm_goes_inactive(callback) {
+                // Step 3 : Alarm goes inactive
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                // 1) null      |  False   | true  | false     | true   |
+                condition.deactivateAlarm();
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Inactive");
+                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
+                should(condition.retain!.readValue().value.value).eql(true);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(false);
+                condition.currentBranch().getAckedState().should.eql(true);
+                condition.currentBranch().getConfirmedState().should.eql(false);
+                condition.currentBranch().getRetain().should.eql(true);
+            }
+            // step4_condition_confirmed
+            {
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                //    null      |  False   | true  | true      | false   |
+
+                const context = new SessionContext({ object: condition });
+
+                const param = [
+                    // the eventId
+                    { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
+                    //
+                    { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
+                ];
+                condition.confirm!.execute(
+                    null,
+                    param,
+                    context,
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    }
+                );
+
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Inactive");
+                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain!.readValue().value.value).eql(false);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(false);
+                condition.currentBranch().getAckedState().should.eql(true);
+                condition.currentBranch().getConfirmedState().should.eql(true);
+                condition.currentBranch().getRetain().should.eql(false);
+
+                // --------------------- the 'confirmed' event must have been raised
+                confirmed_spy.callCount.should.eql(1);
+                confirmed_spy.getCall(0).args.length.should.eql(3);
+                confirmed_spy.getCall(0).args[1].should.be.instanceOf(LocalizedText);
+                // xx confirmed_spy.getCall(0).args[2].should.be.instanceOf(ConditionSnapshot);
+            }
+            //  step5_alarm_goes_active(callback)
+            {
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                //    null      |  true    | false | true      | true   |
+
+                condition.activateAlarm();
+
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Active");
+                should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain!.readValue().value.value).eql(true);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(true);
+                condition.currentBranch().getAckedState().should.eql(false);
+                condition.currentBranch().getConfirmedState().should.eql(true);
+                condition.currentBranch().getRetain().should.eql(true);
+            }
+            // step6_alarm_goes_inactive(callback)
+            {
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                //    null      |  fals    | false | true      | true   |
+
+                condition.deactivateAlarm();
+
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.activeState.readValue().value.value.text).eql("Inactive");
+                should(condition.ackedState.readValue().value.value.text).eql("Unacknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain!.readValue().value.value).eql(true);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(false);
+                condition.currentBranch().getAckedState().should.eql(false);
+                condition.currentBranch().getConfirmedState().should.eql(true);
+                condition.currentBranch().getRetain().should.eql(true);
+            }
+            // step7_condition_acknowledge_confirmed_require(callback)
+            {
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                //    null      |  false   | true  | false     | true   |
+
+                const context = new SessionContext({ object: condition });
+                const param = [
+                    // the eventId
+                    { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
+                    //
+                    { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
+                ];
+                condition.acknowledge.execute(
+                    null,
+                    param,
+                    context,
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    }
+                );
+
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Unconfirmed");
+                should(condition.retain!.readValue().value.value).eql(true);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(false);
+                condition.currentBranch().getAckedState().should.eql(true);
+                condition.currentBranch().getConfirmedState().should.eql(false);
+                condition.currentBranch().getRetain().should.eql(true);
+            }
+            // step8_condition_confirmed(callback)
+            {
+                //    branchId  |  Active  | Acked | Confirmed | Retain |
+                //    null      |  false   | true  | true      | false   |
+
+                const context = new SessionContext({ object: condition });
+                const param = [
+                    // the eventId
+                    { dataType: DataType.ByteString, value: condition.eventId.readValue().value.value },
+                    //
+                    { dataType: DataType.LocalizedText, value: coerceLocalizedText("Some message") }
+                ];
+                condition.confirm!.execute(
+                    null,
+                    param,
+                    context,
+                    (err: Error | null, callMethodResult?: CallMethodResultOptions) => {
+                        callMethodResult!.statusCode!.should.equal(StatusCodes.Good);
+                    }
+                );
+
+                should(condition.branchId.readValue().value.value).eql(NodeId.nullNodeId);
+                should(condition.ackedState.readValue().value.value.text).eql("Acknowledged");
+                should(condition.confirmedState!.readValue().value.value.text).eql("Confirmed");
+                should(condition.retain!.readValue().value.value).eql(false);
+
+                condition.currentBranch().getBranchId().should.eql(NodeId.nullNodeId);
+                condition.currentBranch().getActiveState().should.eql(false);
+                condition.currentBranch().getAckedState().should.eql(true);
+                condition.currentBranch().getConfirmedState().should.eql(true);
+                condition.currentBranch().getRetain().should.eql(false);
+            }
         });
     });
 }

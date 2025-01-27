@@ -180,12 +180,12 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
 
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
 
-OPCUACertificateManager.prototype.checkCertificate = thenify.withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
-OPCUACertificateManager.prototype.getTrustStatus = thenify.withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
-OPCUACertificateManager.prototype.initialize = thenify.withCallback(OPCUACertificateManager.prototype.initialize, opts);
+OPCUACertificateManager.prototype.checkCertificate = withCallback(OPCUACertificateManager.prototype.checkCertificate, opts);
+OPCUACertificateManager.prototype.getTrustStatus = withCallback(OPCUACertificateManager.prototype.getTrustStatus, opts);
+OPCUACertificateManager.prototype.initialize = withCallback(OPCUACertificateManager.prototype.initialize, opts);
 
 export function getDefaultCertificateManager(name: "PKI" | "UserPKI"): OPCUACertificateManager {
     const config = envPaths("node-opcua-default").config;

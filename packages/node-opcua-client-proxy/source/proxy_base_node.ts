@@ -8,9 +8,9 @@ import { DataValue } from "node-opcua-data-value";
 import { NodeId } from "node-opcua-nodeid";
 import { Argument } from "node-opcua-service-call";
 import { WriteValueOptions } from "node-opcua-service-write";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import { UAProxyManager } from "./proxy_manager";
+import { StatusCode } from "node-opcua-status-code";
 
 export interface ArgumentEx extends Argument {
     _basicDataType: DataType;
@@ -100,7 +100,7 @@ export class ProxyBaseNode extends EventEmitter {
     /**
      * get a updated Value of the Variable , by using a ReadRequest
      */
-    public readValue(callback: (err: Error | null, variant?: Variant) => void): void {
+    public async readValue(): Promise<Variant> {
         assert(this.proxyManager);
 
         const session = this.proxyManager.session;
@@ -110,20 +110,15 @@ export class ProxyBaseNode extends EventEmitter {
             attributeId: AttributeIds.Value,
             nodeId: this.nodeId
         };
-        this.proxyManager.session.read(nodeToRead, (err: Error | null, dataValue?: DataValue) => {
-            // istanbul ignore next
-            if (err) {
-                return callback(err);
-            }
-            const data = dataValue!.value;
-            callback(null, data);
-        });
+        const dataValue = await this.proxyManager.session.read(nodeToRead);
+        const data = dataValue!.value;
+        return data;
     }
 
     /**
      * set the Value of the Variable, by using a WriteRequest
      */
-    public writeValue(dataValue: DataValue, callback: (err?: Error) => void): void {
+    public async writeValue(dataValue: DataValue): Promise<StatusCode> {
         assert(this.proxyManager);
 
         const session = this.proxyManager.session;
@@ -134,17 +129,9 @@ export class ProxyBaseNode extends EventEmitter {
             nodeId: this.nodeId,
             value: dataValue
         };
-        this.proxyManager.session.write(nodeToWrite, (err: Error | null, statusCode?: StatusCode) => {
-            // istanbul ignore next
-            if (err) {
-                return callback(err);
-            }
-            if (statusCode && statusCode.isNotGood()) {
-                callback(new Error(statusCode!.toString()));
-            } else {
-                callback();
-            }
-        });
+        const statusCode = await this.proxyManager.session.write(nodeToWrite);
+       
+        return statusCode;
     }
 
     public toString(): string {
@@ -158,7 +145,3 @@ export class ProxyBaseNode extends EventEmitter {
         return str.join("\n");
     }
 }
-// tslint:disable:no-var-requires
-const thenify = require("thenify");
-ProxyBaseNode.prototype.readValue = thenify.withCallback(ProxyBaseNode.prototype.readValue);
-ProxyBaseNode.prototype.writeValue = thenify.withCallback(ProxyBaseNode.prototype.writeValue);

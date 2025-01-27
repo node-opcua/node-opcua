@@ -615,7 +615,7 @@ function _isValidServerType(serverType: ApplicationType): boolean {
 );
 
 // tslint:disable-next-line: no-var-requires
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
-OPCUADiscoveryServer.prototype.start = thenify.withCallback(OPCUADiscoveryServer.prototype.start, opts);
-OPCUADiscoveryServer.prototype.shutdown = thenify.withCallback(OPCUADiscoveryServer.prototype.shutdown, opts);
+OPCUADiscoveryServer.prototype.start = withCallback(OPCUADiscoveryServer.prototype.start, opts);
+OPCUADiscoveryServer.prototype.shutdown = withCallback(OPCUADiscoveryServer.prototype.shutdown, opts);

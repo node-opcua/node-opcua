@@ -863,16 +863,16 @@ export function ClientMonitoredItem_create(
 }
 // tslint:disable:no-var-requires
 // tslint:disable:max-line-length
-const thenify = require("thenify");
+import { withCallback } from "thenify-ex";
 const opts = { multiArgs: false };
 
-ClientSubscriptionImpl.prototype.setPublishingMode = thenify.withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
-ClientSubscriptionImpl.prototype.monitor = thenify.withCallback(ClientSubscriptionImpl.prototype.monitor);
-ClientSubscriptionImpl.prototype.monitorItems = thenify.withCallback(ClientSubscriptionImpl.prototype.monitorItems);
-ClientSubscriptionImpl.prototype.setTriggering = thenify.withCallback(ClientSubscriptionImpl.prototype.setTriggering);
-ClientSubscriptionImpl.prototype.modify = thenify.withCallback(ClientSubscriptionImpl.prototype.modify);
-ClientSubscriptionImpl.prototype.terminate = thenify.withCallback(ClientSubscriptionImpl.prototype.terminate);
-ClientSubscriptionImpl.prototype.getMonitoredItems = thenify.withCallback(ClientSubscriptionImpl.prototype.getMonitoredItems);
+ClientSubscriptionImpl.prototype.setPublishingMode = withCallback(ClientSubscriptionImpl.prototype.setPublishingMode);
+ClientSubscriptionImpl.prototype.monitor = withCallback(ClientSubscriptionImpl.prototype.monitor);
+ClientSubscriptionImpl.prototype.monitorItems = withCallback(ClientSubscriptionImpl.prototype.monitorItems);
+ClientSubscriptionImpl.prototype.setTriggering = withCallback(ClientSubscriptionImpl.prototype.setTriggering);
+ClientSubscriptionImpl.prototype.modify = withCallback(ClientSubscriptionImpl.prototype.modify);
+ClientSubscriptionImpl.prototype.terminate = withCallback(ClientSubscriptionImpl.prototype.terminate);
+ClientSubscriptionImpl.prototype.getMonitoredItems = withCallback(ClientSubscriptionImpl.prototype.getMonitoredItems);
 
 ClientSubscription.create = (clientSession: ClientSession, options: ClientSubscriptionOptions) => {
     return new ClientSubscriptionImpl(clientSession, options);

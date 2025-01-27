@@ -21,7 +21,7 @@
         "node-opcua-object-registry": "2.139.0",
         "node-opcua-pki": "4.18.0",
         "node-opcua-status-code": "2.139.0",
-        "thenify": "^3.3.1"
+        "thenify-ex": "4.2.0"
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.139.0"

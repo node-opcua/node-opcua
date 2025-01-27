@@ -1854,12 +1854,12 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 }
 
 // tslint:disable:no-var-requires
-const thenify = require("thenify");
-UAVariableImpl.prototype.asyncRefresh = thenify.withCallback(UAVariableImpl.prototype.asyncRefresh);
-UAVariableImpl.prototype.writeValue = thenify.withCallback(UAVariableImpl.prototype.writeValue);
-UAVariableImpl.prototype.writeAttribute = thenify.withCallback(UAVariableImpl.prototype.writeAttribute);
-UAVariableImpl.prototype.historyRead = thenify.withCallback(UAVariableImpl.prototype.historyRead);
-UAVariableImpl.prototype.readValueAsync = thenify.withCallback(UAVariableImpl.prototype.readValueAsync);
+import { withCallback } from "thenify-ex";
+UAVariableImpl.prototype.asyncRefresh = withCallback(UAVariableImpl.prototype.asyncRefresh);
+UAVariableImpl.prototype.writeValue = withCallback(UAVariableImpl.prototype.writeValue);
+UAVariableImpl.prototype.writeAttribute = withCallback(UAVariableImpl.prototype.writeAttribute);
+UAVariableImpl.prototype.historyRead = withCallback(UAVariableImpl.prototype.historyRead);
+UAVariableImpl.prototype.readValueAsync = withCallback(UAVariableImpl.prototype.readValueAsync);
 
 export interface UAVariableImplExtArray {
     $$variableType?: UAVariableType;

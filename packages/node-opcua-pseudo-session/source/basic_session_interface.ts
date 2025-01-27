@@ -266,9 +266,7 @@ export interface IBasicSessionAsyncSimple extends
         IBasicSessionCallAsyncSimple,
         IBasicSessionTranslateBrowsePathAsyncSimple {}
 
-export interface IBasicSessionGetArgumentDefinitionAsync {
-    getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
-}
+
 export interface IBasicSessionAsyncMultiple extends 
         IBasicSessionBrowseAsyncMultiple,
         IBasicSessionReadAsyncMultiple,
@@ -290,8 +288,14 @@ export interface ITransportSettingProvider {
 
 export interface IBasicSessionGetArgumentDefinitionCallback {
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
-
+}
+export interface IBasicSessionGetArgumentDefinitionAsync {
+    getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
+}
+export interface IBasicSessionGetArgumentDefinition extends IBasicSessionGetArgumentDefinitionAsync, IBasicSessionGetArgumentDefinitionCallback {
+    getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
     getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
+
 }
 
 export type IBasicSessionCallback = IBasicSessionReadCallback &
@@ -309,9 +313,7 @@ export interface IBasicSession
         IBasicSessionRead,
         IBasicSessionTranslateBrowsePath,
         IBasicSessionWrite,
-        IBasicSessionGetArgumentDefinitionAsync {
-    getArgumentDefinition(methodId: MethodId): Promise<ArgumentDefinition>;
-    getArgumentDefinition(methodId: MethodId, callback: (err: Error | null, args?: ArgumentDefinition) => void): void;
+        IBasicSessionGetArgumentDefinition {
 }
 
 export type PrivateKeyPEM = string;

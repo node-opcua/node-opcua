@@ -1,26 +1,19 @@
 "use strict";
-
-const async = require("async");
 require("should");
 const { UAProxyManager } = require("node-opcua-client-proxy");
 const { getAddressSpaceFixture } = require("node-opcua-address-space/testHelpers");
 
 const { build_client_server_session } = require("../../test_helpers/build_client_server_session");
 
-
-
 // eslint-disable-next-line import/order
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing client Proxy State Machine", function() {
-
     this.timeout(Math.max(200000, this.timeout()));
 
     const port = 2245;
     const serverOptions = {
         port,
-        nodeset_filename: [
-            getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml"),
-        ]
+        nodeset_filename: [getAddressSpaceFixture("fixture_simple_statemachine_nodeset2.xml")]
     };
 
     let session;
@@ -36,13 +29,11 @@ describe("testing client Proxy State Machine", function() {
         console.log("            bytesRead  ", client.bytesRead, " bytes");
         console.log("            bytesRead  ", client.bytesRead, " bytes");
         console.log("transactionsPerformed  ", client.transactionsPerformed, " ");
-
     }
-    after( async () => {
+    after(async () => {
         dumpStats();
         await client_server.shutdown();
     });
-
 
     /*
      @startuml exclusiveLimitStateMachineType
@@ -58,76 +49,50 @@ describe("testing client Proxy State Machine", function() {
 
      @enduml
      */
-    it("Z1a should read a state machine", function(done) {
-
+    it("Z1a should read a state machine", async () => {
         dumpStats();
 
         const proxyManager = new UAProxyManager(session);
 
-        async.series([
-            function(callback) {
-                proxyManager.start(callback);
-            },
-            function(callback) {
-                const exclusiveLimitStateMachineType = "ExclusiveLimitStateMachineType";
+        await proxyManager.start();
+        const exclusiveLimitStateMachineType = "ExclusiveLimitStateMachineType";
 
-                proxyManager.getStateMachineType(exclusiveLimitStateMachineType, function(err, obj) {
+        const obj = await proxyManager.getStateMachineType(exclusiveLimitStateMachineType);
 
-                    dumpStats();
+        dumpStats();
 
-                    if (!err) {
+        console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
 
-                        console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
+        console.log(
+            "States       = ",
+            obj.states.map((state) => state.browseName.toString())
+        );
+        console.log(
+            "Transitions  = ",
+            obj.transitions.map((transition) => transition.browseName.toString())
+        );
 
-                        console.log("States       = ", obj.states.map(function(state) {
-                            return state.browseName.toString();
-                        }));
-                        console.log("Transitions  = ", obj.transitions.map(function(transition) {
-                            return transition.browseName.toString();
-                        }));
-
-                    }
-                    callback(err);
-                });
-            },
-            function(callback) {
-                proxyManager.stop(callback);
-            }
-        ], done);
+        await proxyManager.stop();
     });
 
-    it("Z1b should read a state machine", function(done) {
-
-
+    it("Z1b should read a state machine", async () => {
         const proxyManager = new UAProxyManager(session);
 
-        async.series([
-            function(callback) {
-                proxyManager.start(callback);
-            },
-            function(callback) {
-                const ShelvedStateMachineType = "ShelvedStateMachineType";
+        await proxyManager.start();
 
-                proxyManager.getStateMachineType(ShelvedStateMachineType, function(err, obj) {
+        const ShelvedStateMachineType = "ShelvedStateMachineType";
 
-                    if (!err) {
+        const obj = await proxyManager.getStateMachineType(ShelvedStateMachineType);
+        console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
 
-                        console.log("InitialState = ", obj.initialState ? obj.initialState.toString() : "<null>");
-
-                        console.log("States       = ", obj.states.map(function(state) {
-                            return state.browseName.toString();
-                        }));
-                        console.log("Transitions  = ", obj.transitions.map(function(transition) {
-                            return transition.browseName.toString();
-                        }));
-
-                    }
-                    callback(err);
-                });
-            },
-            function(callback) {
-                proxyManager.stop(callback);
-            }
-        ], done);
+        console.log(
+            "States       = ",
+            obj.states.map((state) => state.browseName.toString())
+        );
+        console.log(
+            "Transitions  = ",
+            obj.transitions.map((transition) => transition.browseName.toString())
+        );
+        await proxyManager.stop();
     });
 });
