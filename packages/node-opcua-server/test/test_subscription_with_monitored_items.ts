@@ -848,6 +848,59 @@ describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
         subscription.dispose();
     });
 
+    it("SM1-11 a monitored item should be disposed after the event removeMonitoredItem", async () => {
+        const subscription = makeSubscription({
+            publishingInterval: 1000,
+            maxKeepAliveCount: 20,
+            publishEngine: fake_publish_engine,
+            globalCounter: { totalMonitoredItemCount: 0 },
+            serverCapabilities: { maxMonitoredItems: 10000, maxMonitoredItemsPerSubscription: 1000 }
+        });
+
+        let createdMonitoredItemId = 0;
+        subscription.on("monitoredItem", function (monitoredItem) {
+            createdMonitoredItemId = monitoredItem.monitoredItemId;
+            monitoredItem.samplingFunc = install_spying_samplingFunc();
+        });
+
+        const removeMonitoredItemStub = sinon.stub().callsFake((monitoredItem: MonitoredItem) => {
+            monitoredItem.monitoredItemId.should.not.eql(0);
+            monitoredItem.monitoredItemId.should.eql(createdMonitoredItemId);
+
+            should(monitoredItem.$subscription).eql(subscription);
+            should(monitoredItem.itemToMonitor).not.be.null;
+            monitoredItem.itemToMonitor.nodeId.should.eql(someVariableNode);
+        });
+        subscription.on("removeMonitoredItem", removeMonitoredItemStub);
+
+        const monitoredItemCreateRequest = new MonitoredItemCreateRequest({
+            itemToMonitor: { nodeId: someVariableNode },
+            monitoringMode: MonitoringMode.Reporting,
+
+            requestedParameters: {
+                queueSize: 10,
+                samplingInterval: 100
+            }
+        });
+
+        const createResult = await subscription.createMonitoredItem(
+            addressSpace,
+            TimestampsToReturn.Both,
+            monitoredItemCreateRequest
+        );
+
+        subscription.terminate();
+        subscription.dispose();
+        removeMonitoredItemStub.callCount.should.eql(1);
+
+        let removedMonitoredItem = removeMonitoredItemStub.getCall(0).args[0];
+        removedMonitoredItem.monitoredItemId.should.eql(0);        
+        should(removedMonitoredItem.$subscription).be.undefined;
+        should(removedMonitoredItem.itemToMonitor).be.null;
+
+        subscription.monitoredItemCount.should.eql(0);
+    });
+
     describe("SM1-A MonitoredItem - Access Right - and Unknown Nodes", () => {
         let subscription: Subscription | undefined = undefined;
 
@@ -1666,7 +1719,7 @@ describe("SM2 - MonitoredItem advanced", function (this: any) {
         //
         xit(
             '#monitoringMode Publish / should always result in the server sending an "initial" data change. ' +
-                " after monitoringMode is set to Disabled and then Reporting,",
+            " after monitoringMode is set to Disabled and then Reporting,",
             function (done) {
                 // todo
 
