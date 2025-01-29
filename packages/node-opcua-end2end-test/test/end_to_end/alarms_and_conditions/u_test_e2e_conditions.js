@@ -6,7 +6,6 @@ const { assert } = require("node-opcua-assert");
 const async = require("async");
 const should = require("should");
 const sinon = require("sinon");
-const _ = require("underscore");
 
 const {
     OPCUAClient,
@@ -63,18 +62,16 @@ module.exports = function(test) {
         });
 
         function dump_field_values(fields, values) {
-            _.zip(fields, values).forEach(function(a) {
-                const e = a[0];
-                const v = a[1] || "null";
 
+            fields.map((field, index) => [field, values[index]]).forEach(([field,value]) => {
                 let str = "";
-                if (v.dataType === DataType.NodeId) {
-                    const node = test.server.engine.addressSpace.findNode(v.value);
+                if (value.dataType === DataType.NodeId) {
+                    const node = test.server.engine.addressSpace.findNode(value?.value||"null");
                     str = node ? node.browseName.toString() : " Unknown Node";
                 }
                 console.log(
-                    chalk.yellow(e + "                             ".substring(0, 25)),
-                    v.toString() + " " + chalk.white.bold(str)
+                    chalk.yellow(field + "                             ".substring(0, 25)),
+                    (value||"").toString() + " " + chalk.white.bold(str)
                 );
             });
             console.log("--------------------");

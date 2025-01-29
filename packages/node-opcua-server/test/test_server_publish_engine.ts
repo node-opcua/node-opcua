@@ -35,12 +35,13 @@
 
 import sinon from "sinon";
 import should from "should";
-import { property } from "underscore";
 
 import { PublishRequest, PublishResponse } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 import { SessionContext } from "node-opcua-address-space";
 import { ServerSidePublishEngine, Subscription, SubscriptionOptions, SubscriptionState } from "../source";
+
+const property = (key: string) => (obj: Record<string,any>) => obj[key];
 
 // tslint:disable-next-line: no-var-requires
 const { add_mock_monitored_item } = require("./helper");

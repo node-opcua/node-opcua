@@ -82,7 +82,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
             try {
                 mkdirp.sync(location);
             } catch (err) {
-                errorLog(" cannot create folder ", location  , fs.existsSync(location));
+                errorLog(" cannot create folder ", location, fs.existsSync(location));
             }
         }
 
@@ -102,7 +102,7 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
     public initialize(...args: any[]): any {
         const callback = args[0];
         assert(callback && typeof callback === "function");
-        return super.initialize(callback);
+        return super.initialize().then(() => callback()).catch((err) => callback(err));
     }
 
     public async dispose(): Promise<void> {
@@ -120,58 +120,50 @@ export class OPCUACertificateManager extends CertificateManager implements ICert
         if (!callback || typeof callback !== "function") {
             throw new Error("Internal error");
         }
+        this.#checkCertificate(certificateChain)
+            .then((status) => callback(null, status))
+            .catch((err) => callback(err));
+    }
+    async #checkCertificate(certificateChain: Certificate): Promise<StatusCode> {
+        const status = await this.verifyCertificate(certificateChain);
+          
+        const statusCode = (StatusCodes as any)[status!];
+        const certificates = split_der(certificateChain);
 
-        this.verifyCertificate(certificateChain, (err1?: Error | null, status?: string) => {
-            // istanbul ignore next
-            if (err1) {
-                return callback!(err1);
+        debugLog("checkCertificate => StatusCode = ", statusCode.toString());
+        if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
+            const topCertificateInChain = certificates[0];
+            const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
+            if (this.automaticallyAcceptUnknownCertificate) {
+                debugLog("automaticallyAcceptUnknownCertificate = true");
+                debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
+                await this.trustCertificate(topCertificateInChain);
+                return StatusCodes.Good;
+            } else {
+                debugLog("automaticallyAcceptUnknownCertificate = false");
+                debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
+                await this.rejectCertificate(topCertificateInChain);
+                return  StatusCodes.BadCertificateUntrusted;
             }
-            const statusCode = (StatusCodes as any)[status!];
-            const certificates = split_der(certificateChain);
-
-            debugLog("checkCertificate => StatusCode = ", statusCode.toString());
-            if (statusCode.equals(StatusCodes.BadCertificateUntrusted)) {
-                const topCertificateInChain = certificates[0];
-                const thumbprint = makeSHA1Thumbprint(topCertificateInChain).toString("hex");
-                if (this.automaticallyAcceptUnknownCertificate) {
-                    debugLog("automaticallyAcceptUnknownCertificate = true");
-                    debugLog("certificate with thumbprint " + thumbprint + " is now trusted");
-                    return this.trustCertificate(topCertificateInChain, () => callback!(null, StatusCodes.Good));
-                } else {
-                    debugLog("automaticallyAcceptUnknownCertificate = false");
-                    debugLog("certificate with thumbprint " + thumbprint + " is now rejected");
-                    return this.rejectCertificate(topCertificateInChain, () =>
-                        callback!(null, StatusCodes.BadCertificateUntrusted)
-                    );
+        } else if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
+            // put all certificates of the chain in the rejected folder
+            const rejectAll = async (certificates: Certificate[]) => {
+                for (const certificate of certificates) {
+                    await this.rejectCertificate(certificate);
                 }
-            } else  if (statusCode.equals(StatusCodes.BadCertificateChainIncomplete)) {
-                // put all certificates of the chain in the rejected folder
-                const rejectAll = async (certificates: Certificate[]) => {
-                    for (const certificate of certificates) {
-                        await this.rejectCertificate(certificate);
-                    }
-                };
-
-                rejectAll(certificates)
-                    .then(() => {
-                        callback!(null, statusCode);
-                    })
-                    .catch((err) => {
-                        callback!(err);
-                    });
-                return;
-            }
-
-            callback!(null, statusCode);
-        });
+            };
+            await rejectAll(certificates);
+            return statusCode;
+        }
+        return statusCode;
     }
 
     public async getTrustStatus(certificate: Certificate): Promise<StatusCode>;
     public getTrustStatus(certificate: Certificate, callback: StatusCodeCallback): void;
     public getTrustStatus(certificate: Certificate, callback?: StatusCodeCallback): any {
-        this.isCertificateTrusted(certificate, (err: Error | null, trustedStatus?: string) => {
-            callback!(err, err ? undefined : (StatusCodes as any)[trustedStatus!]);
-        });
+        this.isCertificateTrusted(certificate)
+            .then((trustedStatus) => callback!(null, (StatusCodes as any)[trustedStatus!]))
+            .catch((err) => callback!(err));
     }
     public async withLock2<T>(action: () => Promise<T>): Promise<T> {
         return await super.withLock2(action);

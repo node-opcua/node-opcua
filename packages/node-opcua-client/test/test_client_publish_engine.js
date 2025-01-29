@@ -1,6 +1,5 @@
 "use strict";
 const should = require("should");
-const _ = require("underscore");
 const sinon = require("sinon");
 const Dequeue = require("dequeue");
 
@@ -53,7 +52,7 @@ describe("Testing the client publish engine", function () {
 
         // args[0] shall be a Publish Request
         publish_spy.getCall(0).args[0].schema.name.should.equal("PublishRequest");
-        assert(_.isFunction(publish_spy.getCall(0).args[1]));
+        should(typeof publish_spy.getCall(0).args[1]).be.eql("function");
 
         publish_spy.restore();
     });
@@ -93,7 +92,7 @@ describe("Testing the client publish engine", function () {
 
         // args[0] shall be a Publish Request
         spy.getCall(0).args[0].schema.name.should.equal("PublishRequest");
-        assert(_.isFunction(spy.getCall(0).args[1]));
+        should(typeof spy.getCall(0).args[1]).be.eql("function");
 
         spy.restore();
     });

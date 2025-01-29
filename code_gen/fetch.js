@@ -4,7 +4,6 @@ const https = require('https');
 let http = require('http');
 const fs = require("fs");
 const ProgressBar = require('progress');
-const _ = require("underscore");
 
 
 const force = true;
@@ -42,7 +41,7 @@ function wget(dest_folder, file_url) {
         let res_data = '';
         // console.log(response);
         let fileBytes = parseInt(response.headers['content-length'], 10);
-        if (!_.isFinite(fileBytes)) {
+        if (!Number.isFinite(fileBytes)) {
             fileBytes = 10000;
         }
         const bar = new ProgressBar('  downloading ' + file_url + '[:bar] :percent :etas', {

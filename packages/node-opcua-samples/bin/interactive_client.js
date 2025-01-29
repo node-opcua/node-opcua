@@ -12,8 +12,6 @@ const chalk = require("chalk");
 const treeify = require("treeify");
 const { sprintf } = require("sprintf-js");
 
-const _ = require("underscore");
-
 const { DataType, OPCUAClient, makeNodeId, coerceNodeId, ObjectIds, StatusCodes, parseEndpointUrl } = require("node-opcua");
 const { UAProxyManager } = require("node-opcua-client-proxy");
 const { analyze_object_binary_encoding } = require("node-opcua-packet-analyzer");
@@ -109,7 +107,7 @@ rl.setPrompt(the_prompt);
 rl.prompt();
 
 function save_history(callback) {
-    const history_uniq = _.uniq(rl.history);
+    const history_uniq = [ ... new Set(rl.history)];
     fs.writeFileSync(history_file, history_uniq.join("\n"), "utf-8");
     callback();
 }
