@@ -223,30 +223,21 @@ function __findEndpoint(this: ClientBaseImpl, endpointUrl: string, params: FindE
 /**
  * check if certificate is trusted or untrusted
  */
-function _verify_serverCertificate(
+async function _verify_serverCertificate(
     certificateManager: OPCUACertificateManager,
-    serverCertificate: Certificate,
-    callback: ErrorCallback
-) {
-    certificateManager.checkCertificate(serverCertificate, (err: Error | null, status?: StatusCode) => {
-        if (err) {
-            return callback(err);
+    serverCertificate: Certificate) {
+    const status = await certificateManager.checkCertificate(serverCertificate);
+    if (status !== StatusCodes.Good) {
+        // istanbul ignore next
+        if (doDebug) {
+            // do it again for debug purposes
+            const status1 = await certificateManager.verifyCertificate(serverCertificate);
+            debugLog(status1);
         }
-        if (status !== StatusCodes.Good) {
-            // istanbul ignore next
-            if (doDebug) {
-                // do it again for debug purposes
-                certificateManager.verifyCertificate(serverCertificate, (err1: Error | null, status1?: VerificationStatus) => {
-                    debugLog(status1);
-                });
-            }
-            warningLog("serverCertificate = ", makeSHA1Thumbprint(serverCertificate).toString("hex"));
-            warningLog("serverCertificate = ", serverCertificate.toString("base64"));
-
-            return callback(new Error("server Certificate verification failed with err " + status?.toString()));
-        }
-        callback();
-    });
+        warningLog("serverCertificate = ", makeSHA1Thumbprint(serverCertificate).toString("hex"));
+        warningLog("serverCertificate = ", serverCertificate.toString("base64"));
+        throw new Error("server Certificate verification failed with err " + status?.toString());
+    }
 }
 
 const forceEndpointDiscoveryOnConnect = !!parseInt(process.env.NODEOPCUA_CLIENT_FORCE_ENDPOINT_DISCOVERY || "0", 10);
@@ -1436,8 +1427,12 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
             assert(endpoint);
 
-            _verify_serverCertificate(this.clientCertificateManager, endpoint.serverCertificate, (err1?: Error) => {
-                if (err1) {
+            _verify_serverCertificate(this.clientCertificateManager, endpoint.serverCertificate)
+                .then(() => {
+                    this.serverCertificate = endpoint.serverCertificate;
+                    callback(null, endpoint.endpointUrl!);
+                })
+                .catch((err1: Error) => {
                     warningLog("[NODE-OPCUA-W25] client's server certificate verification has failed ", err1.message);
                     warningLog("                 clientCertificateManager.rootDir = ", this.clientCertificateManager.rootDir);
 
@@ -1462,10 +1457,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         );
                     }
                     return callback(err1);
-                }
-                this.serverCertificate = endpoint.serverCertificate;
-                callback(null, endpoint.endpointUrl!);
-            });
+                });
         });
     }
     private _accumulate_statistics() {

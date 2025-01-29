@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 "use strict";
 const should = require("should");
-const _ = require("underscore");
 const { registerEnumeration, registerBasicType } = require("node-opcua-factory");
 const { StatusCodes } = require("node-opcua-status-code");
 const { ExtensionObject } = require("node-opcua-status-code");

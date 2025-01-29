@@ -26,8 +26,7 @@
         "node-opcua-binary-stream": "2.139.0",
         "node-opcua-extension-object": "2.139.0",
         "node-opcua-packet-analyzer": "2.139.0",
-        "node-opcua-status-code": "2.139.0",
-        "underscore": "^1.13.7"
+        "node-opcua-status-code": "2.139.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

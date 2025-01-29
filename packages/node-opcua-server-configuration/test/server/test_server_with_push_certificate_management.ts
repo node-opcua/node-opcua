@@ -106,8 +106,8 @@ describe("Testing server configured with push certificate management", () => {
         // make sure that CA Certificate and revocation list are trusted in clientCertificateManager
         {
             const { certificate, crl } = await _getFakeAuthorityCertificate(_folder);
-            clientCertificateManager.addIssuer(certificate);
-            clientCertificateManager.addRevocationList(crl);
+            await clientCertificateManager.addIssuer(certificate);
+            await clientCertificateManager.addRevocationList(crl);
         }
     });
 
@@ -510,6 +510,7 @@ describe("Testing server configured with push certificate management", () => {
         );
         await onGoingSession.close();
         await onGoingClient.disconnect();
+        await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
     function step(title: string) {
@@ -702,6 +703,7 @@ describe("Testing server configured with push certificate management", () => {
             await stopOnGoingConnection();
             // now stop the server
             await server.shutdown();
+            await new Promise((resolve) => setTimeout(resolve, 500));
         }
     });
 
@@ -740,6 +742,8 @@ describe("Testing server configured with push certificate management", () => {
             await new Promise((resolve) => setTimeout(resolve, 3000));
 
             await testWithSimpleClient(endpointUrl);
+
+            await new Promise((resolve) => setTimeout(resolve, 3000));
 
             onGoingClient.isReconnecting.should.eql(false, "client shall not be reconnected");
         } catch (err) {

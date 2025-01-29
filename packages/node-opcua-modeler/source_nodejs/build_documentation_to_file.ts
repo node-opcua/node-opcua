@@ -6,7 +6,7 @@ export async function buildDocumentationToFile(namespace: Namespace, filename: s
     const str = await buildDocumentationToString(namespace, options);
     const stream = fs.createWriteStream("documentation.md");
     stream.write(str);
-    await new Promise((resolve) => {
+    await new Promise<void>((resolve) => {
         stream.on("finish", resolve);
         stream.end();
     });
