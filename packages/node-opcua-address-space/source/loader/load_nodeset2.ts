@@ -142,8 +142,8 @@ function makeDefaultVariant(
     return variant;
 }
 export interface NodeSet2ParserEngine {
-    addNodeSet: (xmlData: string, callback1: SimpleCallback) => void;
-    terminate: (callback: SimpleCallback) => void;
+    addNodeSet: (xmlData: string) => Promise<void>;
+    terminate: () => Promise<void>;
 }
 
 function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLoaderOptions): NodeSet2ParserEngine {
@@ -229,8 +229,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
-                namespaceUri +
-                "\nplease make sure to initialize your address space with the corresponding nodeset files"
+                    namespaceUri +
+                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
             );
         }
         foundNamespaceMap.set(namespaceUri, namespace);
@@ -817,7 +817,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 browseName: convertQualifiedName(attrs.BrowseName),
                 parentNodeId: attrs.ParentNodeId || null,
                 nodeId: convertToNodeId(attrs.NodeId) || null,
-                methodDeclarationId: attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null,
+                methodDeclarationId: attrs.MethodDeclarationId ? _translateNodeId(attrs.MethodDeclarationId) : null
             };
             this.isDraft = attrs.ReleaseStatus === "Draft";
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
@@ -971,7 +971,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
     const parser = new Xml2Json(state_0);
 
-    function terminate(callback: SimpleCallback) {
+    async function terminate() {
         make_back_references(addressSpace1);
 
         // setting up Server_NamespaceArray
@@ -993,7 +993,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         doDebug &&
             debugLog(
                 chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                chalk.green("DONE")
+                    chalk.green("DONE")
             );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
@@ -1050,16 +1050,16 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             doDebug && debugLog(chalk.bgGreenBright("Performing post variable initialization ---------------------"));
             promoteObjectsAndVariables(addressSpace);
         }
-        finalSteps()
-            .then(() => callback!())
-            .catch((err1: Error) => {
-                errorLog("Error ", renderError(err1));
-                callback!(err1);
-            });
+
+        try {
+            await finalSteps();
+        } catch (err) {
+            renderError(err);
+        }
     }
-    function addNodeSet(xmlData: string, callback1: SimpleCallback) {
+    async function addNodeSet(xmlData: string): Promise<void> {
         _reset_namespace_translation();
-        parser.parseString(xmlData, callback1);
+        parser.parseString(xmlData);
     }
 
     return {
@@ -1077,22 +1077,11 @@ export class NodeSetLoader {
         this._s = makeNodeSetParserEngine(addressSpace, options || {});
     }
 
-    addNodeSet(xmlData: string, callback: ErrorCallback): void {
-        if (!callback) {
-            throw new Error("Expecting callback function");
-        }
-        return this._s.addNodeSet(xmlData, callback);
-    }
-
     async addNodeSetAsync(xmlData: string): Promise<void> {
-        return promisify(this.addNodeSet).call(this, xmlData);
+        return await this._s.addNodeSet(xmlData);
     }
 
-    terminate(callback: ErrorCallback): void {
-        this._s.terminate(callback);
-    }
-
-    async terminateAsync(): Promise<void> {
-        return promisify(this.terminate).call(this);
+    async terminate(): Promise<void> {
+        await this._s.terminate();
     }
 }

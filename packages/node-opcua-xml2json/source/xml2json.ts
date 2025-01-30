@@ -3,29 +3,13 @@
  * node -> see if https://github.com/isaacs/sax-js could be used instead
  */
 
-// tslint:disable:max-classes-per-file
-// tslint:disable:no-var-requires
-// tslint:disable:unified-signatures
 
 import { assert } from "node-opcua-assert";
-const LtxParser = require("ltx/lib/parsers/ltx.js");
+import { SaxLtx } from "./thirdparties/parser/lts";
 
 export type SimpleCallback = (err?: Error) => void;
 export type Callback<T> = (err?: Error | null, result?: T) => void;
 
-declare interface LtxParser {
-    write(str: string): void;
-
-    end(): void;
-
-    on(eventName: "startElement", eventHandler: (name: string, attrs: XmlAttributes) => void): void;
-
-    on(eventName: "endElement", eventHandler: (name: string) => void): void;
-
-    on(eventName: "text", eventHandler: (name: string) => void): void;
-
-    on(eventName: "close", eventHandler: () => void): void;
-}
 
 export interface Parser {
     [key: string]: ReaderState;
@@ -88,8 +72,8 @@ export interface IReaderState {
     _on_text(text: string): void;
 }
 
-export class ReaderStateBase {}
-export interface ReaderStateBase extends IReaderState {}
+export class ReaderStateBase { }
+export interface ReaderStateBase extends IReaderState { }
 /**
  * @private
  */
@@ -281,22 +265,8 @@ export class Xml2Json {
         this._promote(state, 0);
     }
 
-    public parseStringSync(xml_text: string): Record<string, unknown> {
-        let retValue: Record<string, unknown> = {};
-        const parser = this._prepareParser((err: Error | null | undefined, r: Record<string, unknown>) => (retValue = r));
-        parser.write(xml_text);
-        parser.end();
-        return retValue;
-    }
-    /**
-     * @deprecated
-     */
-    public parseString(xml_text: string): Promise<any>;
-    public parseString(xml_text: string, callback: Callback<any> | SimpleCallback): void;
-    public parseString(xml_text: string, callback?: Callback<any> | SimpleCallback): any {
-        const parser = this._prepareParser(callback!);
-        parser.write(xml_text);
-        parser.end();
+    public parseString(xml_text: string): Record<string, unknown> {
+        return this.__parseInternal(xml_text);
     }
     /**
      * @private
@@ -331,9 +301,8 @@ export class Xml2Json {
      * @private
      * @internal
      */
-    protected _prepareParser(callback: Callback<any> | SimpleCallback): LtxParser {
-        assert(typeof callback === "function");
-        const parser = new LtxParser();
+    protected __parseInternal(data: string): Record<string, unknown> {
+        const parser = new SaxLtx();
         this.currentLevel = 0;
         parser.on("startElement", (name: string, attrs: XmlAttributes) => {
             const tag_ns = resolve_namespace(name);
@@ -361,16 +330,16 @@ export class Xml2Json {
                 this.current_state._on_text(text);
             }
         });
-        parser.once("close", () => {
-            if (callback) {
-                (callback as any)(null, (this.current_state! as any)._pojo);
-            }
-        });
-        return parser;
+        parser.write(data);
+        parser.end("");
+        return (this.current_state! as any)._pojo;
+        /*
+        return await new Promise((resolve) => {
+            parser.once("close", () => {
+                resolve((this.current_state! as any)._pojo);
+            });
+            //parser.write(data);
+            parser.end(data);
+        })*/
     }
 }
-
-// tslint:disable:no-var-requires
-import { withCallback } from "thenify-ex";
-const opts = { multiArgs: false };
-Xml2Json.prototype.parseString = withCallback(Xml2Json.prototype.parseString, opts);

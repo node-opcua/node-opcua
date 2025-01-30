@@ -1,8 +1,8 @@
 
-const LtxParser = require("ltx/lib/parsers/ltx.js");
+import { SaxLtx } from "../dist/source/thirdparties/parser/lts";
 
 function testString(xml_text: string) {
-    const parser = new LtxParser();
+    const parser = new SaxLtx();
     let attributes ={};
     let content = "";
     parser.on("startElement", (name: string, _attributes: any) => {

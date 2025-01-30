@@ -29,7 +29,7 @@
         "node-opcua-types": "2.142.0",
         "node-opcua-utils": "2.139.0",
         "node-opcua-variant": "2.142.0",
-        "thenify-ex": "4.2.0"
+        "thenify-ex": "4.4.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

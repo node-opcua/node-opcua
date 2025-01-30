@@ -2,7 +2,7 @@ import "should";
 import should from "should";
 import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { DataTypeAndEncodingId, parseBinaryXSDAsync } from "node-opcua-schemas";
+import { DataTypeAndEncodingId, parseBinaryXSD } from "node-opcua-schemas";
 import { MockProvider } from "node-opcua-schemas/test/mock_id_provider";
 import { StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
@@ -60,7 +60,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
 `;
 
         const dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(schema1, idProvider, dataTypeFactory);
+        await parseBinaryXSD(schema1, idProvider, dataTypeFactory);
 
         for (const f of dataTypeFactory.getStructureIterator()) {
             const ss = convertStructureTypeSchemaToStructureDefinition(f.schema);
@@ -156,7 +156,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
             }
         };
         const dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(schema1, idProvider, dataTypeFactory);
+        await parseBinaryXSD(schema1, idProvider, dataTypeFactory);
 
         const e = dataTypeFactory.getEnumeration("MyEnumeration");
 

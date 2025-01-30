@@ -5,7 +5,7 @@ import should from "should";
 import { DataTypeFactory, parameters } from "node-opcua-factory";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/dist/test_helpers";
 
-import { getOrCreateConstructor, parseBinaryXSDAsync } from "..";
+import { getOrCreateConstructor, parseBinaryXSD } from "..";
 import { MockProvider } from "./mock_id_provider";
 
 class MockProvider2 extends MockProvider {
@@ -36,7 +36,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
     });
 
     it("should XCVB", async () => {
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
 
         const structureInfo = dataTypeFactory.getStructureInfoByTypeName("Recipe_BMD_Rep");
         const Recipe_BMD_Rep = structureInfo.constructor!;

@@ -11,7 +11,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
     it("should parse a simple xml file to json", async () => {
         const parser = new Xml2JsonPojo();
 
-        const json =parser.parseStringSync("<Machine>" + "<DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</Machine>");
+        const json =parser.parseString("<Machine>" + "<DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</Machine>");
 
         json.should.eql({
             machine: {
@@ -23,7 +23,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
     it("should parse a xml file containing an array to json", async () => {
         const parser = new Xml2JsonPojo();
 
-        const json = parser.parseStringSync(
+        const json = parser.parseString(
             `
 <Plant>
 <ListOfMachines>
@@ -89,7 +89,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
             }
         });
 
-        const obj = parser.parseStringSync(
+        const obj = parser.parseString(
             `<employees>
              <person name='John'>F
                <address>Paris</address>
@@ -190,7 +190,7 @@ describe("It should parse XML doc into json (deprecated)", () => {
 
         const parser = new Xml2Json(reader);
 
-        const result = parser.parseStringSync(
+        const result = parser.parseString(
             `<Stuff>
 <ListOfExtensionObject>
     <ExtensionObject>

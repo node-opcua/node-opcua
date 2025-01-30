@@ -80,7 +80,7 @@ async function parseDependencies(xmlData: string): Promise<NodesetInfo> {
         }
     };
     const parser = new Xml2Json(state0);
-    parser.parseStringSync(xmlData);
+    parser.parseString(xmlData);
     if (models.length === 0 && namespaceUris.length >= 1) {
         models.push({
             modelUri: namespaceUris[0],
@@ -210,7 +210,7 @@ export async function generateAddressSpaceRaw(
         }
     }
 
-    await nodesetLoader.terminateAsync();
+    await nodesetLoader.terminate();
     adjustNamespaceArray(addressSpace);
     // however process them in series
 }

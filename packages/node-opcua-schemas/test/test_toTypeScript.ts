@@ -5,7 +5,7 @@ import { DataTypeFactory } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import "node-opcua-data-model";
 import "node-opcua-variant";
-import { parseBinaryXSDAsync, toTypeScript, InternalTypeDictionary } from "../source";
+import { parseBinaryXSD, toTypeScript, InternalTypeDictionary } from "../source";
 import { MockProvider } from "./mock_id_provider";
 
 function n(i: number): NodeId {
@@ -21,7 +21,7 @@ describe("CTS-1 convert Extension Object definition to Typescript 1", () => {
         const sample = fs.readFileSync(sample_file, "utf-8");
 
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     it("should convert a dynamic object definition to typescript - 1", () => {
@@ -96,7 +96,7 @@ describe("convert Extension Object definition to Typescript 2", () => {
         const sample_file = path.join(__dirname, "fixtures/sample_type2.xsd");
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     it("should convert a dynamic object definition to typescript - 2", () => {

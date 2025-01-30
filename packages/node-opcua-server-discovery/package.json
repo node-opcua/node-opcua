@@ -25,7 +25,7 @@
         "node-opcua-service-endpoints": "2.142.0",
         "node-opcua-status-code": "2.139.0",
         "sterfive-bonjour-service": "1.1.4",
-        "thenify-ex": "4.2.0"
+        "thenify-ex": "4.4.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

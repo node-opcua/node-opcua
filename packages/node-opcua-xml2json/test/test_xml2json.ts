@@ -13,7 +13,7 @@ const _should = should;
 type ErrorCallback = (err?: Error) => void;
 
 describe("XMLToJSON", () => {
-    it("should parse a simple xml data string", (done: ErrorCallback) => {
+    it("should parse a simple xml data string", () => {
         let init_called = false;
         let finish_called = false;
         const parser = new Xml2Json({
@@ -48,19 +48,17 @@ describe("XMLToJSON", () => {
         });
 
         parser.parseString(
-            "<employees>" + "   <person name='John'>" + "     <address>Paris</address>" + "   </person>" + "</employees>",
-            () => {
-                init_called.should.equal(true);
-
-                finish_called.should.equal(true);
-
-                (parser as any).obj.should.eql({ name: "John", address: "Paris" });
-                done();
-            }
+            "<employees>" + "   <person name='John'>" + "     <address>Paris</address>" + "   </person>" + "</employees>"
         );
+
+        init_called.should.equal(true);
+
+        finish_called.should.equal(true);
+
+        (parser as any).obj.should.eql({ name: "John", address: "Paris" });
     });
 
-    it("should parse a UTF8 encoded xml file with a BOM", function (this: any, done: ErrorCallback) {
+    it("should parse a UTF8 encoded xml file with a BOM", function () {
         // accommodate for slow RPI
         if (process.arch === "arm") {
             this.timeout(40000);
@@ -68,12 +66,10 @@ describe("XMLToJSON", () => {
         }
         const xml_file = nodesets.standard;
         const parser = new Xml2JsonFs({});
-        parser.parse(xml_file, (err?: Error) => {
-            done(err);
-        });
+        parser.parse(xml_file);
     });
 
-    it("should parse a escaped string", (done: ErrorCallback) => {
+    it("should parse a escaped string", () => {
         let displayName: string | null = null;
 
         const parser = new Xml2Json({
@@ -86,14 +82,15 @@ describe("XMLToJSON", () => {
             }
         });
 
-        parser.parseString("<object>" + "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</object>", () => {
-            displayName!.should.eql("<HelloWorld>");
+        parser.parseString("<object>" + "  <DisplayName>&lt;HelloWorld&gt;</DisplayName>" + "</object>");
+        displayName!.should.eql("<HelloWorld>");
 
-            done();
-        });
+
     });
 
-    it("should parse a array", (done: ErrorCallback) => {
+    it("should parse a array", () => {
+
+
         function BasicType_parser1(dataType: string, parseFunc: (this: any, text: string) => any): ParserLike {
             const _parser: ParserLike = {};
 
@@ -153,13 +150,9 @@ describe("XMLToJSON", () => {
                 <uax:Float>32</uax:Float>
                 <uax:Float>33</uax:Float>
             </uax:ListOfFloat>
-        </Value>`,
-            () => {
-                done();
-            }
-        );
+        </Value>`);
+        
     });
-    it("should parse a array 2", (done: ErrorCallback) => {
-        done();
+    it("should parse a array 2", () => {
     });
 });

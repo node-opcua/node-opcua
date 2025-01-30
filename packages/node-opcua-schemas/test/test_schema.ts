@@ -11,7 +11,7 @@ import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { ExtensionObject } from "node-opcua-extension-object";
 import { encode_decode_round_trip_test } from "node-opcua-packet-analyzer/test_helpers";
 
-import { getOrCreateConstructor, parseBinaryXSDAsync } from "..";
+import { getOrCreateConstructor, parseBinaryXSD } from "..";
 
 import { MockProvider } from "./mock_id_provider";
 
@@ -29,7 +29,7 @@ describe("BSHA - Binary Schemas Helper 1", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -234,7 +234,7 @@ describe("BSHB - Binary Schemas Helper 2", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -310,7 +310,7 @@ describe("BSHC - Binary Schemas Helper 3 (with bit fields)", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -428,7 +428,7 @@ describe("BSHD - Binary Schemas Helper 4", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -454,7 +454,7 @@ describe("BSHE - Binary Schemas Helper 5 (Union)", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -535,7 +535,7 @@ describe("BSSGF - Binary Schemas Helper 5 (DerivedType -1)", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {
@@ -563,7 +563,7 @@ describe("BSHG - Binary Schema Helper 6 - Milo", () => {
         parameters.debugSchemaHelper = true;
         const sample = fs.readFileSync(sample_file, "utf-8");
         dataTypeFactory = new DataTypeFactory([]);
-        await parseBinaryXSDAsync(sample, idProvider, dataTypeFactory);
+        await parseBinaryXSD(sample, idProvider, dataTypeFactory);
     });
 
     after(() => {

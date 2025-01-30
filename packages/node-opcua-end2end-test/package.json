@@ -45,7 +45,7 @@
         "node-opcua-service-read": "2.142.0",
         "node-opcua-service-secure-channel": "2.142.0",
         "node-opcua-variant": "2.142.0",
-        "thenify-ex": "4.2.0",
+        "thenify-ex": "4.4.0",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",

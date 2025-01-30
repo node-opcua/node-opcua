@@ -24,7 +24,7 @@ import {
     IStructuredTypeSchema
 } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
-import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSDAsync } from "node-opcua-schemas";
+import { DataTypeAndEncodingId, MapDataTypeAndEncodingIdProvider, parseBinaryXSD } from "node-opcua-schemas";
 
 import { writeStructuredType } from "./factory_code_generator";
 import { LineFile1 } from "./utils/line_file";
@@ -174,7 +174,7 @@ export async function generate(filename: string, generatedTypescriptFilename: st
     };
 
     const dataTypeFactory = new DataTypeFactory([getStandardDataTypeFactory()]);
-    await parseBinaryXSDAsync(content, idProvider, dataTypeFactory);
+    await parseBinaryXSD(content, idProvider, dataTypeFactory);
 
     write(
         `// tslint:disable:no-this-assignment

@@ -12,10 +12,8 @@
         "test": "mocha"
     },
     "dependencies": {
-        "ltx": "^3.1.2",
         "node-opcua-assert": "2.139.0",
         "node-opcua-utils": "2.139.0",
-        "thenify-ex": "4.2.0",
         "xml-writer": "^1.7.0"
     },
     "author": "Etienne Rossignon",

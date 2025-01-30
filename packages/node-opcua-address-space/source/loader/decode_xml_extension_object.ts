@@ -67,7 +67,7 @@ export function decodeXmlExtensionObject(
 
     const reader = makeXmlExtensionObjectReader(dataType.nodeId, definitionMap, new Map(), translateNodeId);
     const parser2 = new Xml2Json(reader);
-    const pojo = parser2.parseStringSync(xmlBody);
+    const pojo = parser2.parseString(xmlBody);
 
     const userDefinedExtensionObject = addressSpace.constructExtensionObject(dataType, pojo);
 

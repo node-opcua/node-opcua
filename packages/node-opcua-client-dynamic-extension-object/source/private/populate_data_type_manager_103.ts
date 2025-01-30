@@ -15,7 +15,7 @@ import {
     createDynamicObjectConstructor,
     DataTypeAndEncodingId,
     MapDataTypeAndEncodingIdProvider,
-    parseBinaryXSDAsync
+    parseBinaryXSD
 } from "node-opcua-schemas";
 import { BrowseDescriptionOptions, BrowseDirection, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
@@ -482,7 +482,7 @@ async function _extractDataTypeDictionary(
         }
         const idProvider = await _extractNodeIds(session, dataTypeDictionaryNodeId);
         const dataTypeFactory1 = dataTypeManager.getDataTypeFactory(dataTypeDictionaryNodeId.namespace);
-        await parseBinaryXSDAsync(rawSchema, idProvider, dataTypeFactory1);
+        await parseBinaryXSD(rawSchema, idProvider, dataTypeFactory1);
     }
 }
 

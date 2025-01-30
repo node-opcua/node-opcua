@@ -362,103 +362,84 @@ export interface MapDataTypeAndEncodingIdProvider {
 interface WithTypeDictionary extends Xml2Json {
     typeDictionary: InternalTypeDictionary;
 }
-export function parseBinaryXSD(
-    xmlString: string,
-    idProvider: MapDataTypeAndEncodingIdProvider,
-    dataTypeFactory: DataTypeFactory,
-    callback: (err?: Error | null) => void
-): void {
-    const parser = new Xml2Json(state0) as WithTypeDictionary;
-    const typeDictionary = new InternalTypeDictionary();
-    parser.typeDictionary = typeDictionary;
-    if (!xmlString || xmlString.length === 0) {
-        return callback();
-    }
-    parser.parseString(xmlString, (err?: Error | null) => {
-        // resolve and prepare enumerations
-        for (const enumeratedType of typeDictionary.getEnumerations()) {
-            if (Object.keys(enumeratedType.enumeratedValues).length >= 1) {
-                const e = new EnumerationDefinitionSchema(NodeId.nullNodeId, {
-                    lengthInBits: enumeratedType.lengthInBits || 32,
-                    enumValues: enumeratedType.enumeratedValues,
-                    name: enumeratedType.name
-                });
-                dataTypeFactory.registerEnumeration(e);
-            }
-        }
-
-        // istanbul ignore next
-        if (doDebug) {
-            debugLog("------------------------------- Resolving complex Type");
-            typeDictionary.getStructures().map((x: any) => debugLog(x.name));
-        }
-
-        // create area in navigation order
-        function createExplorationOrder(): StructureTypeRaw[] {
-            const array: StructureTypeRaw[] = [];
-            const _map: Record<string, string> = {};
-            function alreadyVisited(name: string) {
-                name = name.split(":")[1] || name;
-                return !!_map[name];
-            }
-            function markAsVisited(name: string) {
-                name = name.split(":")[1] || name;
-                _map[name] = "1";
-            }
-            function visitStructure(structuredType: StructureTypeRaw) {
-                if (!structuredType || structuredType.name === "ua:ExtensionObject") {
-                    return;
-                }
-                if (alreadyVisited(structuredType.name)) {
-                    return;
-                }
-                markAsVisited(structuredType.name);
-                if (structuredType.baseType && structuredType.baseType !== "ua:ExtensionObject") {
-                    const base = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
-                    if (base && base.baseType) {
-                        doDebug && debugLog("  investigating  base", chalk.cyan(base.name));
-                        visitStructure(base);
-                    }
-                }
-                for (const f of structuredType.fields) {
-                    const s = typeDictionary.getStructuredTypesRawByName(f.fieldType);
-                    if (s !== structuredType && s) {
-                        visitStructure(s);
-                    } else {
-                        markAsVisited(f.fieldType);
-                    }
-                }
-                doDebug && debugLog("processing ", chalk.cyan(structuredType.name));
-                array.push(structuredType);
-            }
-
-            for (const structuredType of typeDictionary.getStructures()) {
-                visitStructure(structuredType);
-            }
-            return array;
-        }
-        // resolve complex types
-        const schemaInVisitingOrder = createExplorationOrder();
-        for (const structuredType of schemaInVisitingOrder) {
-            getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
-        }
-        callback(err);
-    });
-}
-
-export async function parseBinaryXSDAsync(
+export async function parseBinaryXSD(
     xmlString: string,
     idProvider: MapDataTypeAndEncodingIdProvider,
     dataTypeFactory: DataTypeFactory
 ): Promise<void> {
-    debugLog("parseBinaryXSDAsync");
-    return new Promise((resolve, reject) => {
-        parseBinaryXSD(xmlString, idProvider, dataTypeFactory, (err?: Error | null) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
+    const parser = new Xml2Json(state0) as WithTypeDictionary;
+    const typeDictionary = new InternalTypeDictionary();
+    parser.typeDictionary = typeDictionary;
+    if (!xmlString || xmlString.length === 0) {
+        return;
+    }
+    await parser.parseString(xmlString);
+    // resolve and prepare enumerations
+    for (const enumeratedType of typeDictionary.getEnumerations()) {
+        if (Object.keys(enumeratedType.enumeratedValues).length >= 1) {
+            const e = new EnumerationDefinitionSchema(NodeId.nullNodeId, {
+                lengthInBits: enumeratedType.lengthInBits || 32,
+                enumValues: enumeratedType.enumeratedValues,
+                name: enumeratedType.name
+            });
+            dataTypeFactory.registerEnumeration(e);
+        }
+    }
+
+    // istanbul ignore next
+    if (doDebug) {
+        debugLog("------------------------------- Resolving complex Type");
+        typeDictionary.getStructures().map((x: any) => debugLog(x.name));
+    }
+
+    // create area in navigation order
+    function createExplorationOrder(): StructureTypeRaw[] {
+        const array: StructureTypeRaw[] = [];
+        const _map: Record<string, string> = {};
+        function alreadyVisited(name: string) {
+            name = name.split(":")[1] || name;
+            return !!_map[name];
+        }
+        function markAsVisited(name: string) {
+            name = name.split(":")[1] || name;
+            _map[name] = "1";
+        }
+        function visitStructure(structuredType: StructureTypeRaw) {
+            if (!structuredType || structuredType.name === "ua:ExtensionObject") {
+                return;
             }
-        });
-    });
+            if (alreadyVisited(structuredType.name)) {
+                return;
+            }
+            markAsVisited(structuredType.name);
+            if (structuredType.baseType && structuredType.baseType !== "ua:ExtensionObject") {
+                const base = typeDictionary.getStructuredTypesRawByName(structuredType.baseType);
+                if (base && base.baseType) {
+                    doDebug && debugLog("  investigating  base", chalk.cyan(base.name));
+                    visitStructure(base);
+                }
+            }
+            for (const f of structuredType.fields) {
+                const s = typeDictionary.getStructuredTypesRawByName(f.fieldType);
+                if (s !== structuredType && s) {
+                    visitStructure(s);
+                } else {
+                    markAsVisited(f.fieldType);
+                }
+            }
+            doDebug && debugLog("processing ", chalk.cyan(structuredType.name));
+            array.push(structuredType);
+        }
+
+        for (const structuredType of typeDictionary.getStructures()) {
+            visitStructure(structuredType);
+        }
+        return array;
+    }
+    // resolve complex types
+    const schemaInVisitingOrder = createExplorationOrder();
+    for (const structuredType of schemaInVisitingOrder) {
+        getOrCreateStructuredTypeSchema(structuredType.name, typeDictionary, dataTypeFactory, idProvider);
+    }
 }
+

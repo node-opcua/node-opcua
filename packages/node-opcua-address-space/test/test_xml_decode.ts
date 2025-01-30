@@ -68,7 +68,7 @@ describe("test xml decode", function () {
         const translateNodeId = (nodeId: string )=> resolveNodeId(nodeId);
         const reader = makeXmlExtensionObjectReader(coerceNodeId("ns=1;i=1"), definitionMap, new Map(), translateNodeId);
         const parser2 = new Xml2Json(reader);
-        const pojo = parser2.parseStringSync(xmlBody);
+        const pojo = parser2.parseString(xmlBody);
         console.log(util.inspect(pojo, { colors: true, depth: 10 }));
         (pojo.certificates as Buffer[]).length.should.eql(2);
         (pojo.certificates as Buffer[])[0]!.toString("utf-8").should.eql("Hello");

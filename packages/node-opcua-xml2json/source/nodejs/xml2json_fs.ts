@@ -5,37 +5,13 @@ export class Xml2JsonFs extends Xml2Json {
     /**
      * @param xmlFile - the name of the xml file to parse.
      */
-    public async parse(xmlFile: string): Promise<any>;
-    public parse(xmlFile: string, callback: Callback<any> | SimpleCallback): void;
-    public parse(xmlFile: string, callback?: Callback<any> | SimpleCallback): any {
-        if (!callback) {
-            throw new Error("internal error");
+    public async parse(xmlFile: string): Promise<any> {
+        // slightly faster but require more memory ..
+        let data = await fs.promises.readFile(xmlFile);
+        if (data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
+            data = data.subarray(3);
         }
-        const readWholeFile = true;
-        if (readWholeFile) {
-            // slightly faster but require more memory ..
-            fs.readFile(xmlFile, (err: Error | null, data: Buffer) => {
-                if (err) {
-                    return callback(err);
-                }
-                if (data[0] === 0xef && data[1] === 0xbb && data[2] === 0xbf) {
-                    data = data.subarray(3);
-                }
-                const dataAsString = data.toString();
-                const parser = this._prepareParser(callback);
-                parser.write(dataAsString);
-                parser.end();
-            });
-        } else {
-            const Bomstrip = require("bomstrip");
-
-            const parser = this._prepareParser(callback);
-
-            fs.createReadStream(xmlFile, { autoClose: true, encoding: "utf8" }).pipe(new Bomstrip()).pipe(parser);
-        }
+        const dataAsString = data.toString();
+        return this.__parseInternal(dataAsString);
     }
 }
-// tslint:disable:no-var-requires
-import { withCallback } from "thenify-ex";
-const opts = { multiArgs: false };
-Xml2JsonFs.prototype.parse = withCallback(Xml2JsonFs.prototype.parse, opts);
