@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-local-discovery-server",
-    "version": "2.141.0",
+    "version": "2.142.0",
     "description": "pure nodejs OPCUA SDK - module local-discovery-server",
     "bin": {
         "lds": "./bin/local-discovery-server.mjs",
@@ -30,7 +30,7 @@
     "dependencies": {
         "@inquirer/prompts": "7.2.4",
         "env-paths": "2.2.1",
-        "node-opcua": "2.141.0",
+        "node-opcua": "2.142.0",
         "node-opcua-debug": "2.139.0",
         "tsx": "^4.19.2",
         "yargs": "15.4.1"
