@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-generator",
-    "version": "2.142.0",
+    "version": "2.143.0",
     "description": "pure nodejs OPCUA SDK - module generator",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -18,7 +18,7 @@
         "node-opcua-debug": "2.139.0",
         "node-opcua-factory": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-schemas": "2.142.0",
+        "node-opcua-schemas": "2.143.0",
         "node-opcua-utils": "2.139.0"
     },
     "devDependencies": {
