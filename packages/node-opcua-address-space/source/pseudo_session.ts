@@ -203,7 +203,7 @@ export class PseudoSession implements IBasicSession {
             }
             // refresh the variable value if the attribute to read is the Value attribute
             if (obj.nodeClass === NodeClass.Variable && nodeToRead.attributeId == AttributeIds.Value) {
-                (obj as UAVariable).readValueAsync(context);
+               return await (obj as UAVariable).readValueAsync(context);
             }
             assert(!!nodeToRead.nodeId, "expecting a nodeId");
             assert(!!nodeToRead.attributeId, "expecting a attributeId");
