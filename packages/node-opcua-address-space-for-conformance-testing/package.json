@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-address-space-for-conformance-testing",
-    "version": "2.143.0",
+    "version": "2.144.0",
     "description": "pure nodejs OPCUA SDK - module address-space-for-conformance-testing",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
-        "node-opcua-address-space": "2.143.0",
+        "node-opcua-address-space": "2.144.0",
         "node-opcua-assert": "2.139.0",
         "node-opcua-basic-types": "2.139.0",
         "node-opcua-data-access": "2.143.0",
