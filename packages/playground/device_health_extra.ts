@@ -150,6 +150,7 @@ function _createXXXXAlarm(
 
     (alarmNode as any)._updateAlarmState = UADeviceHealthDiagnosticAlarmEx.prototype._updateAlarmState;
     (alarmNode as any)._calculateConditionInfo = UADeviceHealthDiagnosticAlarmEx.prototype._calculateConditionInfo;
+    (alarmNode as any).getLastDeviceError = UADeviceHealthDiagnosticAlarmEx.prototype.getLastDeviceError;
 
     // Object.setPrototypeOf(alarmNode, UADeviceHealthDiagnosticAlarm.prototype);
 
