@@ -134,10 +134,7 @@ async function main() {
         const content = str.join("\n");
         fs.promises.writeFile(path.join(__dirname, "../source/_generated_categorized_units.ts"), content);
         str.splice(0);
-        // const sectors2 =[... new Set(annex2_3.map((x)=>x.Sector))];
-        // console.log(sectors2);
-        // for(const entry of annex1) {
-        // }
+
     }
     {
         const units: Record<string, Entry> = {};
