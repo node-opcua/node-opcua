@@ -543,7 +543,11 @@ async function _exploreDataTypeDefinition(
             debugLog("      type ", name.padEnd(30, " "), binaryEncoding.toString());
             // let's verify that constructor is operational
             try {
-                const Constructor = dataTypeFactory.getStructureInfoByTypeName(name).constructor;
+                const structureInfo = dataTypeFactory.getStructureInfoByTypeName(name);
+                if (structureInfo.schema.isAbstract) {
+                    continue;
+                }
+                const Constructor = structureInfo.constructor;
                 if (!Constructor) {
                     throw new Error(`Cannot instantiate abstract DataType(name=${name})`);
                 }
@@ -876,39 +880,79 @@ export async function populateDataTypeManager103(
     } else {
         // attempt to load all dataTypeDictionary in parallel as much as possible
         // by ensuring parallel operation happens only when dependencies are resolved
-        const canBeProcessed = (d: TypeDictionaryInfo, alreadyProcessed: Set<string>) => {
-            for (const namespace of Object.values(d.dependencies)) {
-                if (d.targetNamespace === namespace) {
+        const alreadyProcessed = new Set<string>();
+        alreadyProcessed.add("http://opcfoundation.org/UA/");
+        alreadyProcessed.add("http://www.w3.org/2001/XMLSchema-instance");
+        alreadyProcessed.add("http://opcfoundation.org/BinarySchema/");
+
+        const unquote = (s: string) => {
+            // remove starting and ending ' or " if any ...
+            if (s.startsWith("'") || s.startsWith('"')) {
+                s = s.substring(1);
+            }
+            if (s.endsWith("'") || s.endsWith('"')) {
+                s = s.substring(0, s.length - 1);
+            }
+            return s;
+        } 
+        // check if all dependencies have been processed for this dataTypeDictionary
+        const allDependenciesAlreadyProcessed = (typeDictionaryInfo: TypeDictionaryInfo) => {
+
+            for (const [key, namespace1] of Object.entries(typeDictionaryInfo.dependencies)) {
+                // codesys may add quotes around the namespace
+                const namespace = unquote(namespace1);
+                if (typeDictionaryInfo.targetNamespace === namespace) {
                     continue;
                 }
                 if (!alreadyProcessed.has(namespace)) {
+                console.log(alreadyProcessed.values(), "vs", namespace)
                     return false;
                 }
             }
             return true;
         }
 
-        const alreadyProcessed = new Set<string>();
-        alreadyProcessed.add("http://opcfoundation.org/UA/");
-        alreadyProcessed.add("http://www.w3.org/2001/XMLSchema-instance");
-        alreadyProcessed.add("http://opcfoundation.org/BinarySchema/");
         const queue: TypeDictionaryInfo[] = [...dataTypeDictionaryInfo];
 
-        while (queue.length > 0) {
-            doDebug && console.log("queue length = ", queue.length);
+        // we load typeDictionary in parallel by processing all 
+        // typeDictionary that have all their dependencies resolved
+        const extractIndependantTypeInfo = (queue: TypeDictionaryInfo[]): TypeDictionaryInfo[] => {
             const toProcess = queue.splice(0);
-            const promises: Promise<void>[] = [];
-            for (const d of toProcess) {
-                if (canBeProcessed(d, alreadyProcessed)) {
-                    promises.push((async () => {
-                        await processReferenceOnDataTypeDictionaryType(d)
-                        alreadyProcessed.add(d.targetNamespace);
-                    })());
+            const result: TypeDictionaryInfo[]=[];
+            for (const typeDictionaryInfo of toProcess) {
+                if (allDependenciesAlreadyProcessed(typeDictionaryInfo)) {
+                    // extract this typeDictionaryInfo
+                    result.push(typeDictionaryInfo);
                 } else {
-                    queue.push(d);
+                    // keep it for later
+                    queue.push(typeDictionaryInfo);
                 }
             }
-            // const promise: Promise<void>[] = dataTypeDictionaryInfo.map(processReferenceOnDataTypeDictionaryType);
+            return result;
+        }
+        const processFunc = async (typeDictionaryInfo: TypeDictionaryInfo) => {
+            try {
+                doDebug && debugLog("processing ", typeDictionaryInfo.targetNamespace);
+                await processReferenceOnDataTypeDictionaryType(typeDictionaryInfo);
+            } catch (err) {
+                errorLog("Error in processReferenceOnDataTypeDictionaryType", err);
+            }
+            alreadyProcessed.add(unquote(typeDictionaryInfo.targetNamespace));
+        }
+        while (queue.length > 0) {
+            for (const d of queue) {
+                console.log({ t: d.targetNamespace, d: d.dependencies });
+            }
+
+            doDebug && console.log("queue length = ", queue.length);
+            const readyToProcess  = extractIndependantTypeInfo(queue);
+            if (readyToProcess.length === 0) {
+                // we are stuck
+                errorLog("Cannot process any more dataTypeDictionary");
+                break;
+            }
+            const promises: Promise<void>[] = 
+                readyToProcess.map((typeDictionaryInfo) => processFunc(typeDictionaryInfo));
             await Promise.all(promises);
         }
     }
