@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-woodworking",
-    "version": "2.145.0",
+    "version": "2.147.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-woodworking",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -17,9 +17,9 @@
         "node-opcua-data-model": "2.139.0",
         "node-opcua-extension-object": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-nodeset-di": "2.143.0",
-        "node-opcua-nodeset-machinery": "2.145.0",
-        "node-opcua-nodeset-ua": "2.143.0",
+        "node-opcua-nodeset-di": "2.145.0",
+        "node-opcua-nodeset-machinery": "2.147.0",
+        "node-opcua-nodeset-ua": "2.145.0",
         "node-opcua-variant": "2.142.0"
     },
     "files": [
