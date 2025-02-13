@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-ua",
-    "version": "2.147.0",
+    "version": "2.148.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-ua",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
