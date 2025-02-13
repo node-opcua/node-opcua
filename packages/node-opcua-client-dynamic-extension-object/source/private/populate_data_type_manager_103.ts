@@ -905,7 +905,7 @@ export async function populateDataTypeManager103(
                     continue;
                 }
                 if (!alreadyProcessed.has(namespace)) {
-                console.log(alreadyProcessed.values(), "vs", namespace)
+                    doDebug && debugLog(alreadyProcessed.values(), "vs", namespace);
                     return false;
                 }
             }
