@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-isa-95-jobcontrol-v-2",
-    "version": "2.144.0",
+    "version": "2.145.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-isa-95-jobcontrol-v-2",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

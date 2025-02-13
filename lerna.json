@@ -1,6 +1,9 @@
 {
-    "packages": ["packages/*", "packages_extra/*"],
-    "version": "2.144.0",
-    "npmClient": "pnpm",
-    "exact": true
+  "packages": [
+    "packages/*",
+    "packages_extra/*"
+  ],
+  "version": "2.145.0",
+  "npmClient": "pnpm",
+  "exact": true
 }

@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-machinery-process-values",
-    "version": "2.144.0",
+    "version": "2.145.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-machinery-process-values",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
