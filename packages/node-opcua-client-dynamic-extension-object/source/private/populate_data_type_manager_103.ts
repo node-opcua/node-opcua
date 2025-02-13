@@ -865,7 +865,7 @@ export async function populateDataTypeManager103(
     // istanbul ignore next
     if (doDebug) {
         for (const d of dataTypeDictionaryInfo) {
-            console.log(d);
+            debugLog(d);
         }
     }
 
@@ -894,7 +894,7 @@ export async function populateDataTypeManager103(
                 s = s.substring(0, s.length - 1);
             }
             return s;
-        } 
+        }
         // check if all dependencies have been processed for this dataTypeDictionary
         const allDependenciesAlreadyProcessed = (typeDictionaryInfo: TypeDictionaryInfo) => {
 
@@ -918,7 +918,7 @@ export async function populateDataTypeManager103(
         // typeDictionary that have all their dependencies resolved
         const extractIndependantTypeInfo = (queue: TypeDictionaryInfo[]): TypeDictionaryInfo[] => {
             const toProcess = queue.splice(0);
-            const result: TypeDictionaryInfo[]=[];
+            const result: TypeDictionaryInfo[] = [];
             for (const typeDictionaryInfo of toProcess) {
                 if (allDependenciesAlreadyProcessed(typeDictionaryInfo)) {
                     // extract this typeDictionaryInfo
@@ -940,18 +940,23 @@ export async function populateDataTypeManager103(
             alreadyProcessed.add(unquote(typeDictionaryInfo.targetNamespace));
         }
         while (queue.length > 0) {
-            for (const d of queue) {
-                console.log({ t: d.targetNamespace, d: d.dependencies });
+
+            // istanbul ignore next
+            if (doDebug) {
+                for (const d of queue) {
+                    debugLog({ t: d.targetNamespace, d: d.dependencies });
+                }
             }
 
-            doDebug && console.log("queue length = ", queue.length);
-            const readyToProcess  = extractIndependantTypeInfo(queue);
+            doDebug && debugLog("queue length = ", queue.length);
+
+            const readyToProcess = extractIndependantTypeInfo(queue);
             if (readyToProcess.length === 0) {
                 // we are stuck
                 errorLog("Cannot process any more dataTypeDictionary");
                 break;
             }
-            const promises: Promise<void>[] = 
+            const promises: Promise<void>[] =
                 readyToProcess.map((typeDictionaryInfo) => processFunc(typeDictionaryInfo));
             await Promise.all(promises);
         }
