@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-io-link",
-    "version": "2.143.0",
+    "version": "2.144.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-io-link",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

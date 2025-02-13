@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-commercial-kitchen-equipment",
-    "version": "2.143.0",
+    "version": "2.144.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-commercial-kitchen-equipment",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
         "node-opcua-basic-types": "2.139.0",
         "node-opcua-data-access": "2.143.0",
         "node-opcua-data-model": "2.139.0",
-        "node-opcua-nodeset-di": "2.143.0",
+        "node-opcua-nodeset-di": "2.144.0",
         "node-opcua-nodeset-ua": "2.143.0",
         "node-opcua-variant": "2.142.0"
     },
