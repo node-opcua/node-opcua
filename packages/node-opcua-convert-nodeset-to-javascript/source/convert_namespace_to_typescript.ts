@@ -129,7 +129,7 @@ async function _output_index_ts_file(info: Info): Promise<void> {
 }
 async function _output_package_json(info: Info, options: Options): Promise<void> {
     const packagejson = path.join(info.folder, "package.json");
-    const version = getPackageInfo("node-opcua", options).version;
+    const version = getPackageInfo("node-opcua-address-space-base", options).version;
 
     const content2: string[] = [];
     content2.push(`{`);
