@@ -11,13 +11,13 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.143.0",
+        "node-opcua-address-space-base": "2.148.0",
         "node-opcua-basic-types": "2.139.0",
         "node-opcua-data-access": "2.143.0",
         "node-opcua-data-model": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-nodeset-di": "2.145.0",
-        "node-opcua-nodeset-ua": "2.145.0",
+        "node-opcua-nodeset-di": "2.148.0",
+        "node-opcua-nodeset-ua": "2.148.0",
         "node-opcua-variant": "2.142.0"
     },
     "files": [

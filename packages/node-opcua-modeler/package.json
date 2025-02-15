@@ -15,7 +15,7 @@
         "cli-table3": "^0.6.5",
         "csv-parse": "5.6.0",
         "node-opcua-address-space": "2.148.0",
-        "node-opcua-address-space-base": "2.143.0",
+        "node-opcua-address-space-base": "2.148.0",
         "node-opcua-assert": "2.139.0",
         "node-opcua-basic-types": "2.139.0",
         "node-opcua-client-dynamic-extension-object": "2.147.0",

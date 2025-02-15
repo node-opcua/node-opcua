@@ -10,7 +10,7 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.143.0",
+        "node-opcua-address-space-base": "2.148.0",
         "node-opcua-assert": "2.139.0",
         "node-opcua-basic-types": "2.139.0",
         "node-opcua-constants": "2.139.0",
