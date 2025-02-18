@@ -32,7 +32,6 @@
         "env-paths": "2.2.1",
         "node-opcua": "2.148.0",
         "node-opcua-debug": "2.139.0",
-        "tsx": "^4.19.2",
         "yargs": "15.4.1"
     },
     "homepage": "http://node-opcua.github.io/",
