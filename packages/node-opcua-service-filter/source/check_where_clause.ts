@@ -18,28 +18,48 @@ import { resolveOperand } from "./resolve_operand";
 
 const warningLog = make_warningLog("Filter");
 
-function _coerceToBoolean(value: Variant | number | string | null | boolean): boolean {
+function _coerceToBoolean(value: Variant | string| number | null ): boolean {
     if (value instanceof Variant) {
-        return _coerceToBoolean(value.value);
+        return !!value.value;
     }
     return !!value;
 }
-function _coerceToNumber(value: Variant | number | string | null | boolean): number {
+function _coerceToCompareable(value: Variant): string | number {
     if (value instanceof Variant) {
-        return _coerceToNumber(value.value);
+        switch (value.dataType) {
+            case DataType.String:
+                return value.value;
+            case DataType.Byte:
+            case DataType.SByte:
+            case DataType.Int16:
+            case DataType.Int32:
+            case DataType.UInt16:
+            case DataType.UInt32:
+                return value.value;
+            case DataType.Double:
+                return value.value;
+            case DataType.DateTime:
+                return value.value.getTime();
+            case DataType.Guid:
+                return value.value.toLowerCase();
+            case DataType.ByteString:
+                return value.value.toString("hex");
+            case DataType.XmlElement:
+                return value.value;
+            case DataType.LocalizedText:
+                return value.value.text;
+            case DataType.QualifiedName:
+                return value.value.name; // not sure about this one
+            default:
+                return "";
+        }
     }
-    if (typeof value === "string") {
-        return parseInt(value, 10);
-    }
-    if (typeof value === "boolean") {
-        return value ? 1 : 0;
-    }
-    if (typeof value === "number") {
-        return value;
-    }
-    return 0;
+    return "";
 }
 
+function _coerceToEqualable(value: Variant): Variant {
+    return value;
+}
 function evaluateOperand<T>(
     filterContext: FilterContext,
     filter: ContentFilter,
@@ -130,32 +150,75 @@ function checkAnd(filterContext: FilterContext, filter: ContentFilter, filteredO
     return operandA && operandB;
 }
 function checkLessThan(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
-    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToNumber);
-    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToNumber);
+    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
+    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA < operandB;
 }
 
 function checkLessThanOrEqual(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
-    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToNumber);
-    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToNumber);
+    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
+    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA <= operandB;
 }
 
 function checkGreaterThan(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
-    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToNumber);
-    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToNumber);
+    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
+    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA > operandB;
 }
 
 function checkGreaterThanOrEqual(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
-    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToNumber);
-    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToNumber);
+    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
+    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
     return operandA >= operandB;
 }
+
+const isVariantEqual = (a: Variant, b: Variant): boolean => {
+
+    switch (a.dataType) {
+        case DataType.Null:
+            return b.dataType === DataType.Null;
+        case DataType.Boolean:
+            return a.value === b.value;
+        case DataType.Byte:
+        case DataType.SByte:
+        case DataType.Int16:
+        case DataType.Int32:
+        case DataType.UInt16:
+        case DataType.UInt32:
+            return a.value === b.value;
+        case DataType.Double:
+            return a.value === b.value;
+        case DataType.String:
+            return a.value === b.value;
+        case DataType.NodeId:
+            return sameNodeId(a.value as NodeId, b.value as NodeId);
+        case DataType.DateTime:
+            return (a.value as Date)?.getTime() === (b.value as Date).getTime();
+        case DataType.Guid:
+            return a.value.toLowerCase() === ("" + (b.value || "")).toLowerCase();
+        case DataType.ByteString:
+            if (b.dataType !== DataType.ByteString) {
+                return false;
+            }
+            return a.value.toString("hex") === b.value.toString("hex");
+        case DataType.XmlElement:
+            return a.value === b.value;
+        case DataType.LocalizedText:
+            return a.value?.text === b.value?.text;
+        case DataType.QualifiedName:
+            return a.value?.namespaceIndex === b.value?.namespaceIndex && a.value?.name === b.value?.name;
+        case DataType.ExtensionObject:
+            console.log("isVariantEqual: Not implemented for DataType.ExtensionObject");
+        default:
+            return false; // not sure how to do
+    }
+}
+
 function checkEquals(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
-    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToNumber);
-    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToNumber);
-    return operandA === operandB;
+    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToEqualable);
+    const operandB = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToEqualable);
+    return isVariantEqual(operandA, operandB);
 }
 /**
  *
@@ -170,9 +233,9 @@ function checkEquals(filterContext: FilterContext, filter: ContentFilter, filter
  * for more information how to convert operands of different types.
  */
 function checkBetween(filterContext: FilterContext, filter: ContentFilter, filteredOperands: FilterOperand[]): boolean {
-    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToNumber);
-    const operandLow = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToNumber);
-    const operandHigh = evaluateOperand(filterContext, filter, filteredOperands[2], _coerceToNumber);
+    const operandA = evaluateOperand(filterContext, filter, filteredOperands[0], _coerceToCompareable);
+    const operandLow = evaluateOperand(filterContext, filter, filteredOperands[1], _coerceToCompareable);
+    const operandHigh = evaluateOperand(filterContext, filter, filteredOperands[2], _coerceToCompareable);
     return operandA >= operandLow && operandA <= operandHigh;
 }
 

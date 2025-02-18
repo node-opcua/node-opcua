@@ -11,7 +11,7 @@ import {
 } from "node-opcua-types";
 import { AttributeIds, NodeClass } from "node-opcua-data-model";
 import { resolveNodeId, NodeId } from "node-opcua-nodeid";
-import { Variant, DataType } from "node-opcua-variant";
+import { Variant, DataType, VariantOptions } from "node-opcua-variant";
 import { ofType } from "node-opcua-service-filter";
 
 import { FilterContextOnAddressSpace, extractEventFields } from "node-opcua-service-filter/source/on_address_space/index";
@@ -25,7 +25,9 @@ import {
     UAVariable,
     IEventData,
     UAVariableT,
-    UAExclusiveDeviationAlarmEx
+    UAExclusiveDeviationAlarmEx,
+    PseudoVariantString,
+    PseudoVariantDateTime
 } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { checkFilter } from "node-opcua-service-filter";
@@ -44,6 +46,8 @@ interface This extends Mocha.Suite {
 // https://reference.opcfoundation.org/v105/Core/docs/Part4/7.7.3/
 
 describe("Testing extract EventField", function (this: Mocha.Suite) {
+
+
     let addressSpace: AddressSpace;
     let source: UAObject;
     const test = this as This;
@@ -104,23 +108,32 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         addressSpace.dispose();
     });
 
-    function createEventData(eventTypeName: string): IEventData {
+    function createEventData(eventTypeName: string, options?:  
+        { message?: PseudoVariantString, localTime?: PseudoVariantDateTime }): IEventData {
+
+        const message = options?.message ;
+        const localTime = options?.localTime;
+
         const eventTypeNode = addressSpace.findNode(eventTypeName)! as UAEventType;
 
         should.exist(eventTypeNode);
         eventTypeNode.nodeClass.should.eql(NodeClass.ObjectType);
 
-        const data: RaiseEventData = {};
+        const data: RaiseEventData & { message?: VariantOptions } = {};
         data.$eventDataSource = eventTypeNode;
         data.sourceNode = {
             dataType: DataType.NodeId,
-            value: test.source.nodeId
+            value: test.source.nodeId,
+
         };
+        data.message = message;
+        data.localTime = localTime; 
+
         const eventData = addressSpace.constructEventData(eventTypeNode, data);
         return eventData;
     }
 
-    it("EV01- EventFilter", () => {
+    it("EV01 - EventFilter", () => {
         const eventFilter = new EventFilter({
             selectClauses: [
                 {
@@ -157,7 +170,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         result[1].value.toString().should.eql(resolveNodeId("EventQueueOverflowEventType").toString());
         result[2].value.toString().should.eql(test.source.nodeId.toString());
     });
-    it("EV01b ", () => {
+    it("EV02 - EventFilter - verification", () => {
         const selectClauses = [
             new SimpleAttributeOperand({
                 attributeId: AttributeIds.Value,
@@ -174,7 +187,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         result[0].value.toString().should.eql(resolveNodeId("EventQueueOverflowEventType").toString());
     });
 
-    it("EV02- check Where Clause OfType", () => {
+    it("EV03 - check Where Clause OfType", () => {
         const contentFilter = new ContentFilter({
             elements /* ContentFilterElem[] */: [
                 {
@@ -207,7 +220,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
 
-    it("EV03- check Where Clause InList OfType", () => {
+    it("EV04 - check Where Clause InList OfType", () => {
         const contentFilter = new ContentFilter({
             elements /* ContentFilterElem[] */: [
                 {
@@ -258,8 +271,113 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
 
-    it("EV04- check WhereClause with Not Operand #810", () => {
+    it("EV05 - check Where Clause with Equal FilterOperand and NodeIds as arguments", () => {
         const contentFilter = new ContentFilter({
+            elements /* ContentFilterElem[] */: [
+                {
+                    filterOperator /* FilterOperator      */: FilterOperator.Equals,
+
+                    filterOperands /* ExtensionObject  [] */: [
+                        new SimpleAttributeOperand({
+                            attributeId: AttributeIds.Value,
+                            browsePath: ["EventType"],
+                            typeDefinitionId: new NodeId()
+                        }),
+                        new LiteralOperand({
+                            value: new Variant({
+                                dataType: DataType.NodeId,
+                                value: resolveNodeId("AuditCertificateExpiredEventType")
+                            })
+                        }),
+
+                    ]
+                }
+            ]
+        });
+        const sessionContext = SessionContext.defaultContext;
+        {
+            const eventData1 = createEventData("AuditCertificateExpiredEventType");
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(true);
+        }
+        {
+            const eventData1 = createEventData("DeviceFailureEventType");
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(false);
+        }
+    });
+
+    it("EV06 - check Where Clause = with Equal FilterOperand and LocalTime as arguments", () => {
+
+        const expectedDate = new Date("2019-01-01");
+        const contentFilter = new ContentFilter({
+            elements /* ContentFilterElem[] */: [
+                {
+                    filterOperator /* FilterOperator      */: FilterOperator.Equals,
+
+                    filterOperands /* ExtensionObject  [] */: [
+                        new SimpleAttributeOperand({
+                            attributeId: AttributeIds.Value,
+                            browsePath: ["LocalTime"],
+                            typeDefinitionId: new NodeId()
+                        }),
+                        new LiteralOperand({
+                            value: new Variant({
+                                dataType: DataType.DateTime,
+                                value: expectedDate
+                            })
+                        }),
+
+                    ]
+                }
+            ]
+        });
+        const sessionContext = SessionContext.defaultContext;
+        {
+            const eventData1 = createEventData("AuditCertificateExpiredEventType", { localTime: { dataType: DataType.DateTime, value: new Date(expectedDate)} });
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(true);
+        }
+        {
+            const eventData1 = createEventData("AuditCertificateExpiredEventType", { localTime: { dataType: DataType.DateTime, value: new Date("2000-01-01") } });
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(false);
+        }
+    });
+
+    it("EV07 - check Where Clause = with Equal FilterOperand and String as arguments", () => {
+        const contentFilter = new ContentFilter({
+            elements /* ContentFilterElem[] */: [
+                {
+                    filterOperator /* FilterOperator      */: FilterOperator.Equals,
+
+                    filterOperands /* ExtensionObject  [] */: [
+                        new SimpleAttributeOperand({
+                            attributeId: AttributeIds.Value,
+                            browsePath: ["Message"],
+                            typeDefinitionId: new NodeId()
+                        }),
+                        new LiteralOperand({
+                            value: new Variant({
+                                dataType: DataType.String,
+                                value: "Hello World"
+                            })
+                        }),
+
+                    ]
+                }
+            ]
+        });
+        const sessionContext = SessionContext.defaultContext;
+        {
+            const eventData1 = createEventData("AuditCertificateExpiredEventType", { message: { dataType: DataType.String, value: "Hello World" } });
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(true);
+        }
+        {
+            const eventData1 = createEventData("DeviceFailureEventType", { message: { dataType:  DataType.String, value: "Bye Bye" } });
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(false);
+        }
+    });
+
+
+    it("EV08 - check WhereClause with Not Operand #810 (Not(OfType(...))", () => {
+        const contentFilter1 = new ContentFilter({
             elements: [
                 {
                     /*0*/ filterOperator /* FilterOperator      */: FilterOperator.Not,
@@ -272,16 +390,25 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
                 ofType("GeneralModelChangeEventType") // (ns = 0; i=2133))
             ]
         });
+        const contentFilter2 = new ContentFilter({
+            elements: [
+               
+                ofType("GeneralModelChangeEventType") // (ns = 0; i=2133))
+            ]
+        });
+
 
         const sessionContext = SessionContext.defaultContext;
 
         {
             const eventData1 = createEventData("AuditCertificateExpiredEventType");
-            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(true);
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter1, eventData1).should.eql(true);
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter2, eventData1).should.eql(false);
         }
         {
             const eventData1 = createEventData("GeneralModelChangeEventType");
-            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter, eventData1).should.eql(false);
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter2, eventData1).should.eql(true);
+            checkWhereClauseOnAdressSpace(addressSpace, sessionContext, contentFilter1, eventData1).should.eql(false);
         }
     });
 
@@ -303,7 +430,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         { op: FilterOperator.GreaterThanOrEqual, result: [false, true, true] },
         { op: FilterOperator.Equals, result: [false, true, false] }
     ].forEach(({ op, result }) =>
-        it(`EV05-${op} - check checkFilter with ${FilterOperator[op]} operand`, () => {
+        it(`EV08-${FilterOperator[op]} - check checkFilter with ${FilterOperator[op]} operand`, () => {
             const contentFilter = new ContentFilter({
                 elements: [
                     {
@@ -342,7 +469,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         })
     );
 
-    it("EV06 - checkFilter with Or operand", () => {
+    it("EV09 - checkFilter with Or operand", () => {
         const contentFilter = new ContentFilter({
             elements: [
                 {
@@ -420,7 +547,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
 
-    it("EV07 - checkFilter with Between operand", () => {
+    it("EV10 - checkFilter with Between operand", () => {
         const whereClause = new ContentFilter({
             elements: [
                 {
@@ -478,7 +605,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
 
-    it("EV08 - checkFilter with And operand", () => {
+    it("EV11 - checkFilter with And operand", () => {
         const contentFilter = new ContentFilter({
             elements: [
                 {
@@ -510,7 +637,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
 
-    it("EV09 - checkFilter with (unsupported) Like operand", () => {
+    it("EV12 - checkFilter with (unsupported) Like operand", () => {
         const contentFilter = new ContentFilter({
             elements: [
                 {
@@ -525,7 +652,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
             checkFilter(filterContext, contentFilter).should.eql(false);
         }
     });
-    it("EV10 - checkFilter empty", () => {
+    it("EV13 - checkFilter empty", () => {
         const contentFilter = new ContentFilter({
             elements: null
         });
@@ -536,7 +663,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         }
     });
 
-    it("EV11 - checkFilter OfType with Variable", () => {
+    it("EV14 - checkFilter OfType with Variable", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -552,7 +679,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter2).should.eql(false);
     });
 
-    it("EV12 - checkFilter OfType with Object", () => {
+    it("EV15 - checkFilter OfType with Object", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -568,7 +695,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter2).should.eql(true);
     });
 
-    it("EV13 - checkFilter OfType with DataType", () => {
+    it("EV16 - checkFilter OfType with DataType", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -589,7 +716,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter3).should.eql(false);
     });
 
-    it("EV14 - checkFilter OfType with ReferenceType", () => {
+    it("EV17 - checkFilter OfType with ReferenceType", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -611,7 +738,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter3).should.eql(false);
     });
 
-    it("EV15 - checkFilter OfType with ObjectType   ", () => {
+    it("EV18 - checkFilter OfType with ObjectType   ", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -633,7 +760,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter3).should.eql(false);
     });
 
-    it("EV16 - checkFilter OfType with VariableType   ", () => {
+    it("EV19 - checkFilter OfType with VariableType   ", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -654,7 +781,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
         checkFilter(filterContext, contentFilter2).should.eql(false);
         checkFilter(filterContext, contentFilter3).should.eql(false);
     });
-    it("EV16 - checkFilter OfType with VariableType - no Root   ", () => {
+    it("EV20 - checkFilter OfType with VariableType - no Root   ", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
@@ -665,7 +792,7 @@ describe("Testing extract EventField", function (this: Mocha.Suite) {
 
         checkFilter(filterContext, contentFilter).should.eql(false);
     });
-    it("EV17 - checkFilter OfType with VariableType - root is Method ( no sense !)   ", () => {
+    it("EV21 - checkFilter OfType with VariableType - root is Method ( no sense !)   ", () => {
         const filterContext = getFilterContext();
 
         const contentFilter = new ContentFilter({
