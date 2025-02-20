@@ -1,3 +1,4 @@
+import "should";
 import { AttributeIds, BrowseDirection, makeNodeClassMask } from "node-opcua-data-model";
 import { NodeClass } from "node-opcua-data-model";
 import { redirectToFile } from "node-opcua-debug/nodeJS";

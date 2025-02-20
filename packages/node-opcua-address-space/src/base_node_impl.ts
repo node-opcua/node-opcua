@@ -940,10 +940,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         const addressSpace = this.addressSpace as AddressSpacePrivate;
 
-        // istanbul ignore next
-        if (!addressSpace) {
-            debugLog("Where is addressSpace ?");
-        }
         const reference = addressSpace.normalizeReferenceTypes([referenceOpts!])![0];
         const h = (<ReferenceImpl>reference).hash;
 
@@ -1015,6 +1011,15 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         if (addressSpace.isFrugal) {
             // skipping
             return;
+        }
+        if (!reference.isForward) {
+            const parentNode = resolveReferenceNode(addressSpace, reference);
+            // uninstall backward
+            (parentNode as BaseNodeImpl).uninstall_extra_properties({
+                isForward: true,
+                nodeId: this.nodeId,
+                referenceType: reference.referenceType
+            });
         }
         const childNode = resolveReferenceNode(addressSpace, reference);
 
