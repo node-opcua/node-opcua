@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-client-crawler",
     "private": true,
-    "version": "2.148.0",
+    "version": "2.149.0",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "deprecated": true,
@@ -22,10 +22,10 @@
         "node-opcua-client": ">=2.124.0"
     },
     "devDependencies": {
-        "node-opcua": "2.148.0",
-        "node-opcua-address-space": "2.148.0",
+        "node-opcua": "2.149.0",
+        "node-opcua-address-space": "2.149.0",
         "node-opcua-assert": "2.139.0",
-        "node-opcua-client": "2.148.0",
+        "node-opcua-client": "2.149.0",
         "node-opcua-constants": "2.139.0",
         "node-opcua-data-model": "2.139.0",
         "node-opcua-debug": "2.139.0",
