@@ -197,6 +197,9 @@ importers:
       yargs:
         specifier: 15.4.1
         version: 15.4.1
+    dependenciesMeta:
+      '*':
+        injected: true
     devDependencies:
       '@types/mocha':
         specifier: ^10.0.10
@@ -249,9 +252,6 @@ importers:
       typescript:
         specifier: 5.7.3
         version: 5.7.3
-    dependenciesMeta:
-      '*':
-        injected: true
 
   packages/node-opcua:
     dependencies:
