@@ -104,7 +104,12 @@ describe("Testing Server Side PushCertificateManager", () => {
         await wrongCertificateManager.initialize();
         const filename = await wrongCertificateManager.createCertificateRequest({
             startDate: new Date(),
-            validity: 365
+            validity: 365,
+            subject: "/O=NodeOPCUA/CN=NodeOPCUA-Server",
+            applicationUri: "urn:APPLICATION:URI",
+            dns: ["localhost", "my.domain.com"],
+            ip: ["192.123.145.121"],
+            
         });
         const certificateSigningRequestPEM = await readFile(filename, "utf-8");
         const certificateSigningRequest = convertPEMtoDER(certificateSigningRequestPEM);
