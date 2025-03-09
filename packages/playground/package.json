@@ -9,7 +9,7 @@
     },
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",
-        "bcryptjs": "^2.4.3",
+        "bcryptjs": "^3.0.2",
         "chalk": "4.1.2",
         "node-opcua": "2.149.0",
         "node-opcua-client": "2.149.0",

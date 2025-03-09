@@ -37,7 +37,7 @@
         "node-opcua-nodeset-ijt-tightening": "2.149.0",
         "node-opcua-nodeset-machinery-result": "2.149.0",
         "node-opcua-packet-analyzer": "2.139.0",
-        "node-opcua-pki": "5.1.0",
+        "node-opcua-pki": "5.2.0",
         "node-opcua-server": "2.149.0",
         "node-opcua-server-discovery": "2.149.0",
         "node-opcua-service-browse": "2.143.0",
@@ -66,6 +66,6 @@
     "files": [],
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",
-        "bcryptjs": "^2.4.3"
+        "bcryptjs": "^3.0.2"
     }
 }
