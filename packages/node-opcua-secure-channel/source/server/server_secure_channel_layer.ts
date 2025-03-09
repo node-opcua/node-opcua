@@ -146,15 +146,16 @@ function isValidSecurityPolicy(securityPolicy: SecurityPolicy) {
     }
 }
 
+export type Nonce = Buffer;
 /**
  * returns true if the nonce is null or zero (all bytes set to 0)
  */
-export function isEmptyNonce(nonce: Buffer): boolean {
+export function isEmptyNonce(nonce: Nonce): boolean {
     const countZero = nonce.reduce((accumulator: number, currentValue: number) => accumulator + (currentValue === 0 ? 1 : 0), 0);
     return countZero === nonce.length;
 }
 const g_alreadyUsedNonce: any = {};
-export function nonceAlreadyBeenUsed(nonce?: Buffer): boolean {
+export function nonceAlreadyBeenUsed(nonce?: Nonce): boolean {
     if (!nonce || isEmptyNonce(nonce)) {
         return false;
     }
@@ -259,7 +260,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     #messageBuilder?: MessageBuilder;
 
-    public get clientCertificate() {
+    public get clientCertificate(): Certificate | null {
         return this.#clientCertificate;
     }
     /**
@@ -275,7 +276,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     readonly #protocolVersion: number;
     #lastTokenId: number;
     readonly #defaultSecureTokenLifetime: number;
-    #clientCertificate: Buffer | null;
+    #clientCertificate: Certificate | null;
     #clientPublicKey: PublicKey | null;
     #clientPublicKeyLength: number;
     readonly #messageChunker: MessageChunker;
@@ -1203,7 +1204,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         return securityHeader;
     }
 
-    #_check_client_nonce(clientNonce: Buffer): StatusCode {
+    #_check_client_nonce(clientNonce: Nonce): StatusCode {
         if (this.securityMode !== MessageSecurityMode.None) {
             const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy);
             if (!cryptoFactory) {
@@ -1238,7 +1239,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         return StatusCodes.Good;
     }
-    #_make_serverNonce(): Buffer | null {
+    #_make_serverNonce(): Nonce | null {
         if (this.securityMode !== MessageSecurityMode.None) {
             const cryptoFactory = getCryptoFactory(this.#messageBuilder!.securityPolicy)!;
             // serverNonce: A random number that shall not be used in any other request. A new
@@ -1249,7 +1250,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         }
         return null;
     }
-    #_make_derivedKeys(serverNonce: Buffer | null, clientNonce: Buffer | null): DerivedKeys1 | null {
+    #_make_derivedKeys(serverNonce: Nonce | null, clientNonce: Nonce | null): DerivedKeys1 | null {
         if (this.securityMode !== MessageSecurityMode.None) {
             if (!serverNonce || !clientNonce) {
                 throw new Error("Internal Error");

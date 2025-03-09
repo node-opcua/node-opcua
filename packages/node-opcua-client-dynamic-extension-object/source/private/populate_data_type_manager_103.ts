@@ -108,9 +108,8 @@ async function _enrichWithDescriptionOf(
     session: IBasicSessionAsync2,
     dataTypeDescriptions: IDataTypeDescription[]
 ): Promise<NodeId[]> {
-    const nodesToBrowse3: BrowseDescriptionOptions[] = [];
-    for (const dataTypeDescription of dataTypeDescriptions) {
-        nodesToBrowse3.push({
+    const nodesToBrowse3: BrowseDescriptionOptions[] =
+        dataTypeDescriptions.map((dataTypeDescription) => ({
             browseDirection: BrowseDirection.Inverse,
             includeSubtypes: false,
             nodeClassMask: makeNodeClassMask("Object"),
@@ -118,8 +117,9 @@ async function _enrichWithDescriptionOf(
             referenceTypeId: resolveNodeId("HasDescription"),
             //            resultMask: makeResultMask("NodeId | ReferenceType | BrowseName | NodeClass | TypeDefinition")
             resultMask: makeResultMask("NodeId")
-        });
-    }
+        }))
+        ;
+
     /* istanbul ignore next */
     if (nodesToBrowse3.length === 0) {
         return [];
