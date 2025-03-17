@@ -3620,10 +3620,17 @@ export class OPCUAServer extends OPCUABaseServer {
     }
 }
 
-const userIdentityTokenPasswordRemoved = (userIdentityToken: any) => {
-    const a = userIdentityToken.clone();
-    // remove password
-    a.password = "*************";
+const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken): UserIdentityToken => {
+    if (!userIdentityToken) return new AnonymousIdentityToken();
+    const a: UserIdentityToken  = userIdentityToken.clone();
+    // For Username/Password tokens the password shall not be included.
+    if (a instanceof UserNameIdentityToken) {
+        // remove password
+        a.password = Buffer.from("*************","ascii");
+    }
+    // if (a instanceof X509IdentityToken) {
+    //     a.certificateData = Buffer.alloc(0);
+    // }
     return a;
 };
 
