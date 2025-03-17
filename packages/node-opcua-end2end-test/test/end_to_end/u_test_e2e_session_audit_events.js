@@ -8,8 +8,32 @@ const OPCUAClient = opcua.OPCUAClient;
 
 const sinon = require("sinon");
 
-module.exports = function (test) {
-    describe("ZZZB Testing AuditSessionEventType", function () {
+
+async function waitUntil(lambda /*: () => boolean */, timeout /*: number,*/)/*: Promise<void>*/ {
+    await new Promise/* < void> */((resolve, reject) => {
+        let timerId/*: NodeJS.Timeout | undefined */= setTimeout(() => {
+            timerId = undefined;
+            reject(new Error(errorMessage));
+        }, timeout);
+
+        function _waitAndTest() {
+            setTimeout(() => {
+                if (lambda()) {
+                    if (timerId) {
+                        clearTimeout(timerId);
+                        timerId = undefined;
+                    }
+                    resolve();
+                } else {
+                    _waitAndTest();
+                }
+            }, 100);
+        }
+        _waitAndTest();
+    });
+}
+module.exports = function(test) {
+    describe("ZZZB Testing AuditSessionEventType", function() {
         // Auditing for session Set
 
         // All Services in this Service Set for Servers that support auditing may generate audit entries and shall
@@ -61,7 +85,7 @@ module.exports = function (test) {
             events_received = [];
         }
 
-        const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message", "SessionId"];
+        const fields = ["EventType", "SourceName", "EventId", "ReceiveTime", "Severity", "Message", "SessionId", "UserIdentityToken"];
 
         function w(str, l) {
             return (str + Array(30).join(" ")).substring(0, l);
@@ -69,11 +93,11 @@ module.exports = function (test) {
 
         function recordEvent(eventFields) {
             const e = {};
-            eventFields.forEach(function (eventField, index) {
+            eventFields.forEach(function(eventField, index) {
                 e[fields[index]] = eventField;
             });
 
-            Object.keys(e).forEach(function (key) {
+            Object.keys(e).forEach(function(key) {
                 const value = e[key];
                 //xx console.log(chalk.yellow(w(key,20)),value.toString());
                 //,chalk.yellow(w(eventField.dataType.toString(),15)),eventField.value.toString());
@@ -85,7 +109,7 @@ module.exports = function (test) {
 
         let previous_isAuditing;
 
-        beforeEach(function () {
+        beforeEach(function() {
             resetEventLog();
         });
 
@@ -137,7 +161,7 @@ module.exports = function (test) {
                 requestedParameters,
                 opcua.TimestampsToReturn.Both
             );
-            auditing_monitoredItem.on("changed", function (eventFields) {
+            auditing_monitoredItem.on("changed", function(eventFields) {
                 recordEvent(eventFields);
             });
             // attempt to set auditing flag
@@ -200,7 +224,7 @@ module.exports = function (test) {
             client1.requestedSessionTimeout = 1000;
 
             const session = await client1.createSession();
-            
+
             console.log("requestedSessionTimeout = ", client1.requestedSessionTimeout);
             console.log("actualSessionTimeout = ", session.timeout);
 
@@ -211,7 +235,8 @@ module.exports = function (test) {
             await client1.disconnect();
 
             // wait for event to propagate on subscriptions
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // await new Promise((resolve) => setTimeout(resolve, 2000));
+            await waitUntil(() => events_received.length === 3, 10000); 
 
             events_received.length.should.eql(3);
 
@@ -268,7 +293,8 @@ module.exports = function (test) {
             await client1.disconnect();
 
             // wait for event to propagate on subscriptions
-            await new Promise((callback) => setTimeout(callback, 3000));
+            // await new Promise((callback) => setTimeout(callback, 3000));
+            await waitUntil(() => events_received.length === 3, 10000);
 
             events_received.length.should.eql(3);
             // Session/CreateSession, Session/ActivateSession , Session/CloseSession
@@ -283,11 +309,70 @@ module.exports = function (test) {
             events_received[1].SourceName.value.should.eql("Session/ActivateSession");
             events_received[1].SessionId.value.toString().should.eql(the_session.sessionId.toString());
             events_received[1].EventType.value.toString().should.eql(AuditActivateSessionEventTypeNodeIdString);
+            events_received[1].UserIdentityToken.value.should.be.instanceOf(opcua.AnonymousIdentityToken);
+
 
             // "AuditSessionEventType"
             events_received[2].SourceName.value.should.eql("Session/CloseSession");
             events_received[2].SessionId.value.toString().should.eql(the_session.sessionId.toString());
             events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
         });
+
+        it("NomincalCase: - auditing secure client connections", async () => {
+            const client1 = OPCUAClient.create({
+                keepSessionAlive: true
+            });
+
+
+
+            const sessionId = await client1.withSessionAsync({
+                endpointUrl: test.endpointUrl,
+                userIdentity: {
+                    type: opcua.UserTokenType.UserName,
+                    userName: "user1",
+                    password: "password1"
+                }
+            }, async (session) => {
+                // do something
+                console.log("Session created");
+                return session.sessionId;
+            });
+
+            await waitUntil(() => events_received.length === 3, 10000);  
+            // wait for event to propagate on subscriptions
+            //  await new Promise((callback) => setTimeout(callback, 3000));
+
+            events_received.length.should.eql(3);
+            // Session/CreateSession, Session/ActivateSession , Session/CloseSession
+
+            //
+            // "AuditCreateSessionEventType"
+            events_received[0].SourceName.value.should.eql("Session/CreateSession");
+            events_received[0].SessionId.value.toString().should.eql(sessionId.toString());
+            events_received[0].EventType.value.toString().should.eql(AuditCreateSessionEventTypeNodeIdString);
+
+            // "AuditActivateSessionEventType"
+            events_received[1].SourceName.value.should.eql("Session/ActivateSession");
+            events_received[1].SessionId.value.toString().should.eql(sessionId.toString());
+            events_received[1].EventType.value.toString().should.eql(AuditActivateSessionEventTypeNodeIdString);
+            events_received[1].UserIdentityToken.value.should.be.instanceOf(opcua.UserNameIdentityToken);
+
+            // console.log(JSON.stringify(events_received[1], null, " "));
+            // console.log(JSON.stringify(events_received[2], null, " "));
+
+            const userIdentityToken = events_received[1].UserIdentityToken.value; // as pcua.UserNameIdentityToken;
+            userIdentityToken.userName.should.eql("user1");
+            userIdentityToken.password.toString().should.eql("*************");    // password should be masked
+
+
+        
+            // "AuditSessionEventType"
+            events_received[2].SourceName.value.should.eql("Session/CloseSession");
+            events_received[2].SessionId.value.toString().should.eql(sessionId.toString());
+            events_received[2].EventType.value.toString().should.eql(AuditSessionEventTypeNodeIdString);
+
+
+        });
+
     });
 };
