@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-schemas",
-    "version": "2.143.0",
+    "version": "2.150.0",
     "description": "pure nodejs OPCUA SDK - module schemas",
     "main": "dist/source/index.js",
     "types": "dist/source/index.d.ts",
@@ -19,7 +19,7 @@
         "node-opcua-extension-object": "2.139.0",
         "node-opcua-factory": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-variant": "2.142.0",
+        "node-opcua-variant": "2.150.0",
         "node-opcua-xml2json": "2.143.0"
     },
     "devDependencies": {
