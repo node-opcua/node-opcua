@@ -574,6 +574,7 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         for (const task of this._shutdownTasks) {
             await task.call(this);
         }
+        this.setServerState(ServerState.Invalid);
 
         this.dispose();
     }
