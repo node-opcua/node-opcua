@@ -12,6 +12,7 @@ export interface UAExclusiveLimitAlarmEx
     UALimitAlarmEx,
     UAExclusiveLimitAlarmHelper {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
 
     ackedState: UATwoStateVariableEx;
     activeState: UATwoStateVariableEx;

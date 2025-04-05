@@ -24,6 +24,7 @@ import { UANonExclusiveLimitAlarmImpl } from "./ua_non_exclusive_limit_alarm_imp
 
 export declare interface UANonExclusiveDeviationAlarmImpl extends UANonExclusiveLimitAlarmImpl, UANonExclusiveDeviationAlarmEx {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
     get addressSpace(): AddressSpace;
 }
 

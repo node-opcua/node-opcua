@@ -3,6 +3,7 @@ import { UAAlarmConditionEx, UAAlarmConditionHelper } from "./ua_alarm_condition
 
 export interface UADiscreteAlarmHelper extends UAAlarmConditionHelper {
     on(eventName: string, eventHandle: any): this;
+    once(eventName: string, eventHandle: any): this;
 }
 export interface UADiscreteAlarmEx
     extends UAAlarmConditionEx,

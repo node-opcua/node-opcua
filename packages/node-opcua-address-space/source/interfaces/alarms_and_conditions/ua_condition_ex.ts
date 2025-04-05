@@ -25,6 +25,12 @@ export interface UAConditionHelper {
     // -- Events
     on(eventName: "addComment", eventHandler: AddCommentEventHandler): this;
     on(eventName: "branch_deleted", eventHandler: (branchId: string) => void): this;
+
+
+    once(eventName: string, eventHandler: (...args: any[]) => void): this;
+    // -- Events
+    once(eventName: "addComment", eventHandler: AddCommentEventHandler): this;
+    once(eventName: "branch_deleted", eventHandler: (branchId: string) => void): this;
 }
 
 
@@ -50,6 +56,8 @@ export interface UAConditionHelper extends UABaseEventHelper {
 export interface UAConditionEx extends UAObject, UACondition_Base, UAConditionHelper {
     enabledState: UATwoStateVariableEx;
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
+
     //
     conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
     conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;

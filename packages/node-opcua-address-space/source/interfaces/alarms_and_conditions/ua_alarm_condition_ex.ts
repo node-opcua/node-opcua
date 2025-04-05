@@ -25,6 +25,7 @@ export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper
 
 export interface UAAlarmConditionEx extends UAAlarmConditionHelper, UAAlarmCondition_Base, UAAcknowledgeableConditionEx {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
 
     enabledState: UATwoStateVariableEx;
     activeState: UATwoStateVariableEx;

@@ -41,6 +41,7 @@ export declare interface UAOffNormalAlarmEx
 
 export declare interface UAOffNormalAlarmImpl extends UAOffNormalAlarmEx, UADiscreteAlarmImpl {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
 }
 /**
  * The OffNormalAlarmType is a specialization of the DiscreteAlarmType intended to represent a

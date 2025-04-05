@@ -456,12 +456,12 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         MonitoredItem.registry.register(this);
     }
 
-    public setNode(node: BaseNode): void {
+    public setNode(node: UAVariable | UAObject): void {
         assert(!this.node || this.node === node, "node already set");
         this._node = node;
         this._semantic_version = (node as any).semantic_version;
         this._on_node_disposed_listener = () => this._on_node_disposed(this._node!);
-        this._node.on("dispose", this._on_node_disposed_listener);
+        (this._node as BaseNode).on("dispose", this._on_node_disposed_listener);
     }
 
     public setMonitoringMode(monitoringMode: MonitoringMode): void {
@@ -1097,7 +1097,9 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             if (!this._on_opcua_event_received_callback) {
                 // we are monitoring OPCUA Event
                 this._on_opcua_event_received_callback = this._on_opcua_event.bind(this);
-                this.node.on("event", this._on_opcua_event_received_callback);
+                if (this.node && this.node.nodeClass == NodeClass.Object) {
+                    this.node.on("event", this._on_opcua_event_received_callback);
+                }
             }
             return;
         }
@@ -1109,7 +1111,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
             if (!this._attribute_changed_callback) {
                 this._attribute_changed_callback = this._on_value_changed.bind(this);
                 const event_name = makeAttributeEventName(this.itemToMonitor.attributeId);
-                this.node.on(event_name, this._attribute_changed_callback);
+                (this.node as BaseNode).on(event_name, this._attribute_changed_callback);
             }
 
             if (recordInitialValue) {
@@ -1127,8 +1129,10 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 assert(!this._semantic_changed_callback);
                 this._value_changed_callback = this._on_value_changed.bind(this);
                 this._semantic_changed_callback = this._on_semantic_changed.bind(this);
-                this.node.on("value_changed", this._value_changed_callback);
-                this.node.on("semantic_changed", this._semantic_changed_callback);
+                if (this.node.nodeClass == NodeClass.Variable) {
+                    this.node.on("value_changed", this._value_changed_callback);
+                    this.node.on("semantic_changed", this._semantic_changed_callback);
+                } 
             }
 
             // initiate first read
