@@ -25,6 +25,8 @@ import {  UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 export declare interface UAExclusiveDeviationAlarmImpl extends UAExclusiveDeviationAlarmEx, UAExclusiveLimitAlarmImpl {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
+
     get addressSpace(): AddressSpace;
 }
 

@@ -57,6 +57,7 @@ const warningLog = make_warningLog(__filename);
 
 export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
     conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
     conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
     conditionSubClassId: UAProperty<NodeId[], DataType.NodeId>;

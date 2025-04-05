@@ -17,6 +17,7 @@ import { UALimitAlarmImpl } from "./ua_limit_alarm_impl";
 
 export declare interface UANonExclusiveLimitAlarmImpl extends UANonExclusiveLimitAlarmEx, UALimitAlarmImpl {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
 }
 export class UANonExclusiveLimitAlarmImpl extends UALimitAlarmImpl implements UANonExclusiveLimitAlarmEx {
     public static instantiate(

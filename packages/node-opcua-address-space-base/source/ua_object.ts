@@ -180,6 +180,9 @@ export interface UAObject extends BaseNode, EventRaiser, IPropertyAndComponentHo
     raiseEvent(eventType: EventTypeLike | BaseNode, eventData: RaiseEventData): void;
 
     on(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
+    on(eventName: "dispose", eventHandler: () => void): this;
+    once(eventName: "event", eventHandler: (eventData: IEventData) => void): this;
+    once(eventName: "dispose", eventHandler: () => void): this;
 
     setEventNotifier(eventNotifierFlags: EventNotifierFlags): void;
 

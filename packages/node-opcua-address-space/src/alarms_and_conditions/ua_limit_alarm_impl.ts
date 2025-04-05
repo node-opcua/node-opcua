@@ -20,6 +20,7 @@ const warningLog = make_warningLog("AlarmsAndConditions");
 
 export declare interface UALimitAlarmImpl extends UALimitAlarmEx, UAAlarmConditionImpl {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
 }
 
 const uaLimitAlarmInputSupportedDataType: DataType[] = [

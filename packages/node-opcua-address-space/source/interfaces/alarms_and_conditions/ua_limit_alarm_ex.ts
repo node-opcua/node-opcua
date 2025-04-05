@@ -15,6 +15,7 @@ export interface UALimitAlarmHelper extends UAAlarmConditionHelper {
 }
 export interface UALimitAlarmEx extends UALimitAlarm_Base, UAAlarmConditionEx, UALimitAlarmHelper {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
 
     enabledState: UATwoStateVariableEx;
     ackedState: UATwoStateVariableEx;

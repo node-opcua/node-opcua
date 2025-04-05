@@ -1039,8 +1039,8 @@ export class Subscription extends EventEmitter {
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
 
-        const node = addressSpace.findNode(itemToMonitor.nodeId);
-        if (!node) {
+        const node = addressSpace.findNode(itemToMonitor.nodeId) as UAObject | UAVariable;
+        if (!node || (node.nodeClass != NodeClass.Variable && node.nodeClass != NodeClass.Object)) {
             return handle_error(StatusCodes.BadNodeIdUnknown);
         }
 

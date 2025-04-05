@@ -13,6 +13,7 @@ export interface UAAcknowledgeableConditionHelper {
 export interface UAAcknowledgeableConditionHelper extends UAConditionHelper {
     ///
     on(eventName: string, eventHandler: (...args: any[]) => void): this;
+    once(eventName: string, eventHandler: (...args: any[]) => void): this;
 
     on(
         eventName: "acknowledged" | "confirmed",
@@ -25,8 +26,11 @@ export interface UAAcknowledgeableConditionEx
     extends UAAcknowledgeableCondition_Base,
         UAAcknowledgeableConditionHelper,
         UAConditionEx {
-    on(eventName: string, eventHandler: any): this;
 
+    on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
+
+    
     enabledState: UATwoStateVariableEx;
     ackedState: UATwoStateVariableEx;
     confirmedState?: UATwoStateVariableEx;

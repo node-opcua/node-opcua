@@ -23,6 +23,8 @@ const debugLog = make_debugLog(__filename);
 const doDebug = false;;
 export declare interface UAAcknowledgeableConditionImpl extends UAAcknowledgeableConditionEx, UAConditionImpl {
     on(eventName: string, eventHandler: any): this;
+    once(eventName: string, eventHandler: any): this;
+
 }
 
 export class UAAcknowledgeableConditionImpl extends UAConditionImpl implements UAAcknowledgeableConditionEx {
