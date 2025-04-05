@@ -605,6 +605,21 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public sabotageConnection() {
         this.#_closeWithError(new Error("Sabotage"), StatusCodes.Bad);
     }
+
+    /**
+     * forceConnectionBreak is a private api method that 
+     * can be used to simulate a connection break or
+     * terminate the channel in case of a socket timeout that 
+     * do not produce a socket close event 
+     * @private
+     */
+    public forceConnectionBreak() {
+        const transport = this.#_transport;
+        if (!transport) {
+            return;
+        }
+        transport.forceConnectionBreak();
+    }
     public abortConnection(callback: ErrorCallback): void {
         if (this.#_isDisconnecting) {
             doDebug && debugLog("abortConnection already aborting!");

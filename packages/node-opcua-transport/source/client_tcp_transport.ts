@@ -37,6 +37,11 @@ function createClientSocket(endpointUrl: string, timeout: number): ISocketLike {
             socket = createConnection({ host: hostname, port, timeout }, () => {
                 doDebug && debugLog(`connected to server! ${hostname}:${port} timeout:${timeout} `);
             });
+            
+            socket.setNoDelay(false);
+            socket.setKeepAlive(true, timeout >> 1);
+
+
             return socket;
         case "fake:":
             assert(ep.protocol === "fake:", " Unsupported transport protocol");
@@ -172,6 +177,11 @@ export class ClientTCP_transport extends TCP_transport {
         let socket: ISocketLike | null = null;
         try {
             socket = createClientSocket(endpointUrl, this.timeout);
+          
+            socket.setTimeout(this.timeout >> 1, () => {
+                this.forceConnectionBreak();
+            });
+            
         } catch (err) {
             /* istanbul ignore next */
             doDebug && debugLog("CreateClientSocket has failed");
