@@ -992,6 +992,10 @@ function __check_same_object(o1: any, o2: any): boolean {
             }
             return true;
         }
+        case "[object BigInt64Array]":
+        case "[object BigUint64Array]": 
+        case "[object Uint8ClampedArray]":
+
         case "[object Float32Array]":
         case "[object Float64Array]":
         case "[object Int32Array]":
@@ -1004,6 +1008,10 @@ function __check_same_object(o1: any, o2: any): boolean {
             const b2 = Buffer.from(o2.buffer, o2.byteOffset, o2.byteLength);
             return b1.equals(b2);
         }
+        case "[object BigInt]": 
+           return o1 === o2;
+        case "[object Date]": 
+            return o1.getTime() == o2.getTime();
         default:
             return o1 === o2;
     }
