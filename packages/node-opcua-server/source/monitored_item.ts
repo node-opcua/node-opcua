@@ -4,7 +4,7 @@
 import { EventEmitter } from "events";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { ISessionContext } from "node-opcua-address-space-base";
+import { ISessionContext, UAObject } from "node-opcua-address-space-base";
 import { BaseNode, IEventData, makeAttributeEventName, SessionContext, UAVariable, AddressSpace } from "node-opcua-address-space";
 import { extractEventFields } from "node-opcua-service-filter";
 import { DateTime, UInt32 } from "node-opcua-basic-types";
@@ -56,6 +56,7 @@ import { appendToTimer, removeFromTimer } from "./node_sampler";
 import { validateFilter } from "./validate_filter";
 import { checkWhereClauseOnAdressSpace as checkWhereClauseOnAddressSpace } from "./filter/check_where_clause_on_address_space";
 import { SamplingFunc } from "./sampling_func";
+import { MonitoredItemBase } from "./server_subscription";
 
 const errorLog = make_errorLog(__filename);
 
@@ -374,12 +375,12 @@ const badDataUnavailable = new DataValue({ statusCode: StatusCodes.BadDataUnavai
  * - It is up to the  event receiver to call {{#crossLink "MonitoredItem/recordValue:method"}}{{/crossLink}}.
  *
  */
-export class MonitoredItem extends EventEmitter {
-    public get node(): BaseNode | null {
+export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
+    public get node(): UAVariable | UAObject | null {
         return this._node;
     }
 
-    public set node(someNode: BaseNode | null) {
+    public set node(someNode: UAVariable | UAObject | null) {
         throw new Error("Unexpected way to set node");
     }
 
@@ -403,7 +404,7 @@ export class MonitoredItem extends EventEmitter {
     public _samplingId?: NodeJS.Timeout | string;
     public samplingFunc: SamplingFunc | null = null;
 
-    private _node: BaseNode | null;
+    private _node: UAVariable | UAObject | null;
     public queue: QueueItem[];
     private _semantic_version: number;
     private _is_sampling = false;
