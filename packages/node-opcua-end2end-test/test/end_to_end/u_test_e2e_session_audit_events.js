@@ -11,7 +11,7 @@ const sinon = require("sinon");
 
 async function waitUntil(lambda /*: () => boolean */, timeout /*: number,*/)/*: Promise<void>*/ {
     await new Promise/* < void> */((resolve, reject) => {
-        let timerId/*: NodeJS.Timeout | undefined */= setTimeout(() => {
+        let timerId/*: NodeJS.Timeout | undefined */ = setTimeout(() => {
             timerId = undefined;
             reject(new Error(errorMessage));
         }, timeout);
@@ -93,11 +93,9 @@ module.exports = function(test) {
 
         function recordEvent(eventFields) {
             const e = {};
-            eventFields.forEach(function(eventField, index) {
-                e[fields[index]] = eventField;
-            });
+            eventFields.forEach((eventField, index) => e[fields[index]] = eventField);
 
-            Object.keys(e).forEach(function(key) {
+            Object.keys(e).forEach((key) => {
                 const value = e[key];
                 //xx console.log(chalk.yellow(w(key,20)),value.toString());
                 //,chalk.yellow(w(eventField.dataType.toString(),15)),eventField.value.toString());
@@ -236,7 +234,7 @@ module.exports = function(test) {
 
             // wait for event to propagate on subscriptions
             // await new Promise((resolve) => setTimeout(resolve, 2000));
-            await waitUntil(() => events_received.length === 3, 10000); 
+            await waitUntil(() => events_received.length === 3, 10000);
 
             events_received.length.should.eql(3);
 
@@ -338,7 +336,7 @@ module.exports = function(test) {
                 return session.sessionId;
             });
 
-            await waitUntil(() => events_received.length === 3, 10000);  
+            await waitUntil(() => events_received.length === 3, 10000);
             // wait for event to propagate on subscriptions
             //  await new Promise((callback) => setTimeout(callback, 3000));
 
@@ -365,7 +363,7 @@ module.exports = function(test) {
             userIdentityToken.password.toString().should.eql("*************");    // password should be masked
 
 
-        
+
             // "AuditSessionEventType"
             events_received[2].SourceName.value.should.eql("Session/CloseSession");
             events_received[2].SessionId.value.toString().should.eql(sessionId.toString());
