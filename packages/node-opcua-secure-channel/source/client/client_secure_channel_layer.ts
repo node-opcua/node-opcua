@@ -90,7 +90,7 @@ import {
     traceClientResponseContent,
     traceClientConnectionClosed
 } from "../utils";
-import { durationToString } from "./duration_to_string";
+import { absoluteDurationToString, durationToString } from "./duration_to_string";
 import { TokenStack } from "../token_stack";
 import { SecurityHeader } from "../secure_message_chunk_manager";
 
@@ -376,6 +376,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
     get bytesWritten(): number {
         return this.#_bytesWritten + (this.#_transport ? this.#_transport.bytesWritten : 0);
+    }
+
+    get timeDrift(): number {
+        return this.#_timeDrift;
     }
 
     get transactionsPerformed(): number {
@@ -1211,6 +1215,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 // Check time
                 const endDate = new Date();
                 const midDate = new Date((startDate.getTime() + endDate.getTime()) / 2);
+
                 if (securityToken.createdAt) {
                     const delta = securityToken.createdAt.getTime() - midDate.getTime();
                     this.#_timeDrift = delta;
@@ -1221,7 +1226,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                                 " please check both server and client clocks are properly set !\n" +
                                 ` server time :${chalk.cyan(securityToken.createdAt?.toISOString())}\n` +
                                 ` client time :${chalk.cyan(midDate.toISOString())}\n` +
-                                ` transaction duration = ${durationToString(endDate.getTime() - startDate.getTime())}\n` +
+                                ` transaction duration = ${absoluteDurationToString(endDate.getTime() - startDate.getTime())}\n` +
                                 ` server URL = ${this.endpointUrl} \n` +
                                 ` token.createdAt  has been updated to reflect client time`
                         );
