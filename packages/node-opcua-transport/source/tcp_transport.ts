@@ -385,7 +385,8 @@ export class TCP_transport extends EventEmitter {
         // set socket timeout
         debugLog("  TCP_transport#install => setting " + this.name + " _socket.setTimeout to ", this.timeout);
         // let use a large timeout here to make sure that we not conflict with our internal timeout
-        this._socket.setTimeout(this.timeout);
+        this._socket.setTimeout(this.timeout, ()=>{
+        });
 
         // istanbul ignore next
         doDebug && debugLog("  TCP_transport#_install_socket ", this.name);
@@ -434,6 +435,14 @@ export class TCP_transport extends EventEmitter {
             this.dispose();
         }
     }
+    public forceConnectionBreak() {
+        const socket = this._socket;
+        if (!socket) return;
+        socket.end();
+        socket.emit("error", new Error("ECONNRESET"));
+        socket.destroy(new Error("ECONNRESET"));
+    }
+
     /**
 
      *

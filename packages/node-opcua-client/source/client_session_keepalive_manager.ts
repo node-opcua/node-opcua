@@ -12,6 +12,7 @@ import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug
 import { coerceNodeId } from "node-opcua-nodeid";
 import { ClientSecureChannelLayer } from "node-opcua-secure-channel";
 import { ClientSessionImpl } from "./private/client_session_impl";
+import { IClientBase } from "./private/i_private_client";
 
 const serverStatusStateNodeId = coerceNodeId(VariableIds.Server_ServerStatus_State);
 
@@ -164,6 +165,14 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
                          * the keep alive read Variable value transaction
                          */
                         this.emit("failure");
+
+            
+                        // also simulate a connection by closing the channel abruptly from our end ... 
+                        warningLog("Keep alive has failed, considering a network outage is in place, forcing a reconnection");
+
+                        terminateConnection(session._client);
+
+
                         resolve(0);
                         return;
                     }
@@ -189,4 +198,16 @@ export class ClientSessionKeepAliveManager extends EventEmitter implements Clien
             );
         });
     }
+}
+
+
+function terminateConnection(client: IClientBase | null) {
+    if (!client) return;
+
+    const channel: ClientSecureChannelLayer = (client as any)._secureChannel;
+    if (!channel) {
+        return;
+    }
+    channel.forceConnectionBreak();
+   
 }
