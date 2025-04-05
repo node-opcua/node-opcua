@@ -7,6 +7,7 @@ async function main(): Promise<void> {
 
   const client = OPCUAClient.create({
     endpointMustExist: false,
+    keepSessionAlive: true,
     // requestedSessionTimeout: 3 * 1000,
     // tokenRenewalInterval: 10* 1000,
     // defaultSecureTokenLifetime: 10*1000
@@ -21,8 +22,7 @@ async function main(): Promise<void> {
     priority: 10,
   };
 
-  await client.withSubscriptionAsync(endpointUrl, subscriptionParamters, async (session, subscription) => {
-
+  await client.withSessionAsync(endpointUrl, async (session) => {
 
 
       console.log("CTRL+C to stop");
