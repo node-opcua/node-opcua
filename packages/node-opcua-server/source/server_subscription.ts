@@ -13,7 +13,9 @@ import {
     Duration,
     UAObjectType,
     ISessionContext,
-    IAddressSpace
+    IAddressSpace,
+    UAVariable,
+    UAObject
 } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { Byte, UInt32 } from "node-opcua-basic-types";
@@ -40,7 +42,7 @@ import {
     MonitoredItemCreateRequest
 } from "node-opcua-service-subscription";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
-import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult, NotificationData } from "node-opcua-types";
+import { AggregateFilterResult, ContentFilterResult, EventFieldList, EventFilterResult, MonitoringFilter, NotificationData } from "node-opcua-types";
 import { Queue } from "./queue";
 
 import { MonitoredItem, MonitoredItemOptions, QueueItem } from "./monitored_item";
@@ -465,7 +467,14 @@ export interface InternalCreateMonitoredItemResult {
 }
 
 export interface MonitoredItemBase {
-    node: any | null;
+    node: UAVariable | UAObject | null;
+    // from monitoring parameters
+    filter: MonitoringFilter | null;
+    monitoringMode: MonitoringMode;
+    timestampsToReturn: TimestampsToReturn;
+    discardOldest: boolean;
+    queueSize: number;
+    clientHandle: UInt32;
 }
 export type CreateMonitoredItemHook = (subscription: Subscription, monitoredItem: MonitoredItemBase) => Promise<StatusCode>;
 export type DeleteMonitoredItemHook = (subscription: Subscription, monitoredItem: MonitoredItemBase) => Promise<StatusCode>;
