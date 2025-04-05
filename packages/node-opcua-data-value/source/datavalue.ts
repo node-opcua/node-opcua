@@ -692,19 +692,6 @@ export function sameDataValue(v1: DataValue, v2: DataValue, timestampsToReturn?:
         return false;
     }
 
-    /*
-  //
-  // For performance reason, sourceTimestamp is
-  // used to determine if a dataValue has changed.
-  // if sourceTimestamp and sourcePicoseconds are identical
-  // then we make the assumption that Variant value is identical too.
-  // This will prevent us to deep compare potential large arrays.
-  // but before this is possible, we need to implement a mechanism
-  // that ensure that date() is always strictly increasing
-  if ((v1.sourceTimestamp && v2.sourceTimestamp) && !sourceTimestampHasChanged(v1, v2)) {
-      return true;
-  }
-  */
     if (timestampHasChanged(v1, v2, timestampsToReturn)) {
         return false;
     }
