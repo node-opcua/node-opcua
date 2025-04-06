@@ -3,7 +3,7 @@ import should from "should";
 import { messageLogger } from "node-opcua-debug";
 import { OPCUAClient, TimestampsToReturn } from "node-opcua-client";
 
-const doDebug =false;
+const doDebug = false;
 export function t(test: any) {
     describe("testing long operation detection", function () {
         it("should warning the user about long operations in monitoredItem.on('change', eventHandler)", async () => {
@@ -35,10 +35,10 @@ export function t(test: any) {
 
                     monitoredItem.on("changed", (dataValue: any) => {
                         notificationCount++;
-                        // simulate a long blocking operation > 200 ms
+                        // simulate a long blocking operation > 150 ms
                         const start = Date.now();
                         let cur = Date.now();
-                        while (cur - start < 200) {
+                        while (cur - start < 150) {
                             cur = Date.now();
                         }
                         doDebug && console.log("dataValue = ", dataValue.toString());
