@@ -51,14 +51,14 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
             it(`NOS-${index * n + 1} - OPCUAClient.createSession - should retry to connect a session`, async () => {
                 
                 // Given client1 connected to the server ( which has one allowed session)
-                const client1 = OPCUAClient.create({});
+                const client1 = OPCUAClient.create({  clientName: "1 " + __filename });
                 await client1.connect(server.getEndpointUrl());
 
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();
 
                 // Given a second connected client
-                const client2 = OPCUAClient.create({});
+                const client2 = OPCUAClient.create({ clientName: "2 " + __filename });
                 await client2.connect(server.getEndpointUrl());
 
                 let _err: Error | null = null;
@@ -100,13 +100,13 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
                 }
 
                 // Given client1 connected to the server ( which has one allowed session)
-                const client1 = OPCUAClient.create({});
+                const client1 = OPCUAClient.create({ clientName: "3 " + __filename });
                 await client1.connect(server.getEndpointUrl());
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();
 
                 // Given a second connected client
-                const client2 = OPCUAClient.create({});
+                const client2 = OPCUAClient.create({ clientName: "4 " + __filename });
                 await client2.connect(server.getEndpointUrl());
 
                 let _err: Error | null = null;
@@ -164,7 +164,7 @@ describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns
                 }
 
                 // Given client1 connected to the server ( which has one allowed session)
-                const client1 = OPCUAClient.create({});
+                const client1 = OPCUAClient.create({ clientName: "5 " + __filename });
                 await client1.connect(server.getEndpointUrl());
                 // Given client1 is consuming the only session exposed by the server
                 const session1 = await client1.createSession();

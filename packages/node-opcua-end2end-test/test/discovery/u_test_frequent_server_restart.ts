@@ -102,7 +102,7 @@ export function t(test: any) {
                 }
                 const client = OPCUAClient.create({
                     requestedSessionTimeout: 10000,
-                    clientName: "Client-" + clientCount
+                    clientName: "Client-" + clientCount + "__" + __filename
                 });
                 clientCount += 1;
 
@@ -260,7 +260,9 @@ export function t(test: any) {
         });
 
         it("DISCO4-D - should cancel a client that is attempting a connection on an existing server", function (done) {
-            const client = OPCUAClient.create({});
+            const client = OPCUAClient.create({
+                clientName: "DISCO4-D " + __filename
+            });
             const endpoint = discoveryServerEndpointUrl;
             async.series(
                 [

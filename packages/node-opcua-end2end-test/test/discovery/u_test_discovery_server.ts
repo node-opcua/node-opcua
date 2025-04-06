@@ -89,7 +89,8 @@ export function t(test: any) {
             externalFunc: any
         ): Promise<void> {
             const client = OPCUAClient.create({
-                endpointMustExist: false
+                endpointMustExist: false,
+                clientName: __filename
             });
             client.on("backoff", () => {
                 console.log("cannot connect to " + discoveryServerEndpointUrl);

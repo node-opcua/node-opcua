@@ -53,7 +53,9 @@ module.exports = function(test) {
 
             construct_demo_alarm_in_address_space(test, addressSpace);
 
-            client = OPCUAClient.create({});
+            client = OPCUAClient.create({
+                clientName: __filename
+            });
             done();
         });
         afterEach(function(done) {

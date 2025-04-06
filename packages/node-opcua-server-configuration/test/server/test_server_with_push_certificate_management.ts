@@ -174,7 +174,9 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+            clientName: "1 " + __filename,
+
         });
 
         try {
@@ -239,7 +241,9 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+            clientName: "1 " + __filename,
+
         });
 
         try {
@@ -422,7 +426,10 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+
+            clientName: "1 " + __filename,
+
         });
         try {
             await client.connect(endpointUri);
@@ -445,7 +452,10 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+
+            clientName: "1 " + __filename,
+
         });
         onGoingClient.on("start_reconnection", () => {
             debugLog(chalk.bgWhite.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting Reconnection !!!!!!!!!!!!!!!!!!!"));
@@ -600,7 +610,9 @@ describe("Testing server configured with push certificate management", () => {
             certificateFile: clientCertificateFile,
 
             securityMode: MessageSecurityMode.SignAndEncrypt,
-            securityPolicy: SecurityPolicy.Basic256Sha256
+            securityPolicy: SecurityPolicy.Basic256Sha256,
+
+            clientName: "1 " + __filename
         });
 
         client.on("start_reconnection", () => {

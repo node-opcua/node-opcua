@@ -26,7 +26,9 @@ export function t(test: any) {
             done: (err?: Error | null) => void
         ) {
             let connected = false;
-            const client = OPCUAClient.create({});
+            const client = OPCUAClient.create({
+                clientName: __filename
+            });
             const tasks = [
                 function (callback: ErrorCallback) {
                     client.connect(endpointUrl, (err) => {

@@ -15,7 +15,7 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 fs.existsSync(mini_nodeset_filename).should.eql(true, " expecting " + mini_nodeset_filename + " to exist");
 
-const port = 2022;
+const port = 2023;
 
 interface OPCUAServerPriv extends Omit<OPCUAServer, "createSession"> {
     createSession: (options?: any) => any;
@@ -152,7 +152,8 @@ describe("OPCUAServer-4", () => {
 
     before(async () => {
         client = OPCUAClient.create({
-            endpointMustExist: false
+            endpointMustExist: false,
+            clientName: __filename
         });
         const options = {
             port

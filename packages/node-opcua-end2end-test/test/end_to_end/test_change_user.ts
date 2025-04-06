@@ -121,7 +121,7 @@ async function doTest(session: IBasicSessionReadAsyncSimple): Promise<DataValue>
 }
 
 async function test_with_anonymous_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "A " + __filename });
 
     const dataValue = await client.withSessionAsync(
         {
@@ -136,7 +136,7 @@ async function test_with_anonymous_user() {
 }
 
 async function test_with_admin_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false,  clientName: "B "+ __filename });
 
     return await client.withSessionAsync(
         {
@@ -154,7 +154,7 @@ async function test_with_admin_user() {
 }
 
 async function test_with_wrong_user_should_throw() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "C " + __filename });
 
     let _err: Error | undefined = undefined;
     try {
@@ -180,7 +180,7 @@ async function test_with_wrong_user_should_throw() {
 }
 
 async function test_with_admin_user_changing_to_anonymous() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "D " + __filename });
 
     return await client.withSessionAsync(
         {
@@ -201,7 +201,7 @@ async function test_with_admin_user_changing_to_anonymous() {
 }
 
 async function test_with_anonymous_user_changing_to_admin() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "E " + __filename });
 
     return await client.withSessionAsync(
         {
@@ -219,7 +219,7 @@ async function test_with_anonymous_user_changing_to_admin() {
     );
 }
 async function test_with_admin_user_changing_to_wrong_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "F " + __filename });
 
     return await client.withSessionAsync(
         {
@@ -244,7 +244,7 @@ async function test_with_admin_user_changing_to_wrong_user() {
 
 async function test_with_admin_changing_to_make_is_valid_user_crash() {
     // make_me_crash
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "G " + __filename });
 
     return await client.withSessionAsync(
         {
@@ -265,7 +265,7 @@ async function test_with_admin_changing_to_make_is_valid_user_crash() {
     );
 }
 async function test_with_anonymous_user_changing_to_wrong_user() {
-    const client = OPCUAClient.create({ endpointMustExist: false });
+    const client = OPCUAClient.create({ endpointMustExist: false, clientName: "H " + __filename });
 
     return await client.withSessionAsync(
         {
@@ -361,7 +361,7 @@ describe("Testing subscription and  security", function (this: any) {
     });
 
     it("should not be possible to monitor a restricted variable", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "I " + __filename });
 
         const dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -412,7 +412,7 @@ describe("Testing subscription and  security", function (this: any) {
     });
 
     it("should stop monitoring a restricted variable when user change with lesser access right", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "J " + __filename });
 
         let dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
@@ -479,7 +479,7 @@ describe("Testing subscription and  security", function (this: any) {
         }
     });
     it("should start monitoring a restricted variable when user change with great access right", async () => {
-        const client = OPCUAClient.create({ endpointMustExist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "K " + __filename });
 
         let dataValues: DataValue[] = [];
         await client.withSubscriptionAsync(
