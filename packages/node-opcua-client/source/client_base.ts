@@ -96,29 +96,71 @@ export interface OPCUAClientBaseOptions {
     securityPolicy?: SecurityPolicy | string;
 
     /**
-     * can be set when the client doesn't create subscription. In this case,
-     * the client will send a dummy request on a regular basis to keep the
-     * connection active.
+     * When set to true, the session will send a Read request on a regular interval specified by the `keepAliveInterval`.
+     * 
+     * This ensure that the connection will remain active and that the socket will not timeout.
+     * 
+     * When the keepAlive manager is not able to perform the Read operation, then it breaks the connection 
+     * and force the client to enter a reconnection phase. 
+     * 
+     * On some network settings and operating system, it might be quite tricky to detect when the communication 
+     * as the the 
+     * 
+     * 
+     * Tips:
+     *  
+     * You don't ned to use `keepSessionAlive: true`  when your session have a subscription active. 
+     * A OPCUA subscription has already a built-in keepAlive mechanism that can replace the regular Read pooling 
+     * offered by this flag. 
+     * 
      * @default false
      */
     keepSessionAlive?: boolean;
     /**
-     * the number of milliseconds that the client should wait until it sends a keep alive message to the server.
+     * The number of milliseconds that the client should wait until it sends a keep alive message to the server.
+     * 
+     * If not specified, node-opcua will use a suitable default value.
+     * 
+     * Tips:
+     * 
+     * - make sure to tune the value appropriately to be lesser than the sessionTimeOut and the tcp.ip socket 
+     * timeout. 
      */
     keepAliveInterval?: number;
 
     /**
-     * certificate Manager
+     * The certificate Manager
+     * 
+     * If not specified your Client will create and use a default Certificate manager.
+     * 
+     * You will have pass your own OPCUACertificateManager if you are in one of the following situation:
+     * 
+     *  - you want to control the location of your PKI
+     *  - you want multiple instances of OPCUAClient to share the same OPCUACertificateManager
+     * 
      */
     clientCertificateManager?: OPCUACertificateManager;
 
     /**
-     * client certificate pem file.
+     * The client certificate pem file.
+     * 
+     * Note: 
+     *   - most of the time, you won't need to overload the certificate PEM fiel
+     *   - don't  specify the certificateFile if you are using the PushCertificate built-in feature
+     *     provided by NodeOPCUA as it may interfere. 
+     * 
      * @default `${clientCertificateManager/rootFolder}/own/certs/client_certificate.pem"
      */
     certificateFile?: string;
+
     /**
      * client private key pem file.
+     * Note: 
+     *   - most of the time, you won't need to overload the private key file
+     *   - don't  specify the privateKeyFile if you are using the PushCertificate built-in feature
+     *     provided by NodeOPCUA as it may interfere. 
+     *   - ensure that the provided client certificate matches the private pey.
+     * 
      * @default `${clientCertificateManager/rootFolder}/own/private/private_key.pem"
      */
     privateKeyFile?: string;
@@ -141,6 +183,9 @@ export interface OPCUAClientBaseOptions {
   
     /**
      * transport timeout
+     * 
+     * - the devffault
+     * @default 
      */
     transportTimeout?: number;
     /**
