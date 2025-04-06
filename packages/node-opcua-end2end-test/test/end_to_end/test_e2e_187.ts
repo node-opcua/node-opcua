@@ -10,7 +10,7 @@ const context = SessionContext.defaultContext;
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 describe("testing monitoring Executable flags on methods", function (this: any) {
 
     this.timeout(Math.max(60000, this.timeout()));
@@ -56,11 +56,14 @@ describe("testing monitoring Executable flags on methods", function (this: any) 
     });
 
     beforeEach(async () => {
-        client = OPCUAClient.create({});
+        client = OPCUAClient.create({ clientName: "1 " + __filename });
     });
 
     afterEach(async () => {
-        client = undefined;
+        if (client ) {
+            await client.disconnect();
+            client = undefined;
+        }
     });
 
     after(async () => {
