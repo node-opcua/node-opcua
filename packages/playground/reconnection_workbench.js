@@ -211,7 +211,7 @@ function installDelayedConnection(delay) {
     };
 }
 
-function simulateConnectionBreak(client, socketError, breakDuration) {
+function simulateConnectionBreak(client, breakDuration) {
     if (!client) return;
 
     console.log(
@@ -228,14 +228,7 @@ function simulateConnectionBreak(client, socketError, breakDuration) {
     if (!channel) {
         return;
     }
-    const transport = channel._transport;
-    if (!transport) {
-        return;
-    }
-    const clientSocket = transport._socket;
-    clientSocket.end();
-    clientSocket.destroy();
-    clientSocket.emit("error", new Error(socketError));
+    client.simulateConnectionBreak();
 }
 let randomCrashTimer = null;
 function stopRandomCrash() {
@@ -263,7 +256,7 @@ function toggleRandomCrash(client) {
                 }
                 console.log(" crashType = ", crashType, breakDuration);
                 randomCrashTimer = null;
-                simulateConnectionBreak(client, "ECONNRESET", breakDuration);
+                simulateConnectionBreak(client, breakDuration);
                 crash(breakDuration);
             },
             minimumDelay + Math.ceil(Math.random() * 10000)
@@ -382,16 +375,16 @@ async function createClient() {
             toggleRandomCrash(client);
         } else if (key.name === "b") {
             console.log(" Simulating break");
-            simulateConnectionBreak(client, "ECONNRESET", 0);
+            simulateConnectionBreak(client, 0);
         } else if (key.name === "w") {
             console.log(" Simulating  a very long break 3 minutes");
-            simulateConnectionBreak(client, "ECONNRESET", 180 * 1000);
+            simulateConnectionBreak(client,  180 * 1000);
         } else if (key.name === "l") {
             console.log(" Simulating long break (30 second)");
-            simulateConnectionBreak(client, "ECONNRESET", 30 * 1000);
+            simulateConnectionBreak(client, 30 * 1000);
         } else if (key.name === "m") {
             console.log(" Simulating long break (10 second)");
-            simulateConnectionBreak(client, "ECONNRESET", 10 * 1000);
+            simulateConnectionBreak(client, 10 * 1000);
         } else if (key.name == "h") {
             rl.prompt();
         } else {
