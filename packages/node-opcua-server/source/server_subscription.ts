@@ -15,7 +15,8 @@ import {
     ISessionContext,
     IAddressSpace,
     UAVariable,
-    UAObject
+    UAObject,
+    UAMethod
 } from "node-opcua-address-space";
 import { assert } from "node-opcua-assert";
 import { Byte, UInt32 } from "node-opcua-basic-types";
@@ -467,7 +468,7 @@ export interface InternalCreateMonitoredItemResult {
 }
 
 export interface MonitoredItemBase {
-    node: UAVariable | UAObject | null;
+    node: UAVariable | UAObject | UAMethod | null;
     // from monitoring parameters
     filter: MonitoringFilter | null;
     monitoringMode: MonitoringMode;
@@ -1039,8 +1040,8 @@ export class Subscription extends EventEmitter {
 
         const itemToMonitor = monitoredItemCreateRequest.itemToMonitor;
 
-        const node = addressSpace.findNode(itemToMonitor.nodeId) as UAObject | UAVariable;
-        if (!node || (node.nodeClass != NodeClass.Variable && node.nodeClass != NodeClass.Object)) {
+        const node = addressSpace.findNode(itemToMonitor.nodeId) as UAObject | UAVariable | UAMethod;
+        if (!node || (node.nodeClass !== NodeClass.Variable && node.nodeClass !== NodeClass.Object && node.nodeClass !== NodeClass.Method)) {
             return handle_error(StatusCodes.BadNodeIdUnknown);
         }
 
