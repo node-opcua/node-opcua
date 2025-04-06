@@ -4,7 +4,7 @@
 import { EventEmitter } from "events";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
-import { ISessionContext, UAObject } from "node-opcua-address-space-base";
+import { ISessionContext, UAMethod, UAObject } from "node-opcua-address-space-base";
 import { BaseNode, IEventData, makeAttributeEventName, SessionContext, UAVariable, AddressSpace } from "node-opcua-address-space";
 import { extractEventFields } from "node-opcua-service-filter";
 import { DateTime, UInt32 } from "node-opcua-basic-types";
@@ -376,11 +376,11 @@ const badDataUnavailable = new DataValue({ statusCode: StatusCodes.BadDataUnavai
  *
  */
 export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
-    public get node(): UAVariable | UAObject | null {
+    public get node(): UAVariable | UAObject | UAMethod |null {
         return this._node;
     }
 
-    public set node(someNode: UAVariable | UAObject | null) {
+    public set node(someNode: UAVariable | UAObject | UAMethod | null) {
         throw new Error("Unexpected way to set node");
     }
 
@@ -404,7 +404,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public _samplingId?: NodeJS.Timeout | string;
     public samplingFunc: SamplingFunc | null = null;
 
-    private _node: UAVariable | UAObject | null;
+    private _node: UAVariable | UAObject | UAMethod | null;
     public queue: QueueItem[];
     private _semantic_version: number;
     private _is_sampling = false;
@@ -456,7 +456,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         MonitoredItem.registry.register(this);
     }
 
-    public setNode(node: UAVariable | UAObject): void {
+    public setNode(node: UAVariable | UAObject | UAMethod): void {
         assert(!this.node || this.node === node, "node already set");
         this._node = node;
         this._semantic_version = (node as any).semantic_version;
