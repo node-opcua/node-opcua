@@ -1956,8 +1956,9 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
         str += "\n keepAlive ................ " + this._keepAliveManager ? true : false;
         if (this._keepAliveManager) {
-            str += "\n keepAlive checkInterval.. " + this._keepAliveManager.checkInterval;
-            str += "\n defaultTransportTimeout.. " + ClientSecureChannelLayer.defaultTransportTimeout;
+            str += "\n keepAlive checkInterval.. " + this._keepAliveManager.checkInterval + " ms";
+            str += "\n (defaultTransportTimeout)." + ClientSecureChannelLayer.defaultTransportTimeout + " ms";
+            str += "\n session timeout           " + this.timeout + " ms";
         }
         return str;
     }
