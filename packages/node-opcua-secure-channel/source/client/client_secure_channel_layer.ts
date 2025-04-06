@@ -481,6 +481,10 @@ export class ClientSecureChannelLayer extends EventEmitter {
         return { maxMessageSize: maxMessageSize || 0 };
     }
 
+    public get transportTimeout() {
+        return this.#transportTimeout;
+    }
+    
     public getPrivateKey(): PrivateKey | null {
         return this.#parent ? this.#parent.getPrivateKey() : null;
     }
