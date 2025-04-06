@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@types/lodash": "4.17.16",
-        "@types/semver": "^7.5.8",
+        "@types/semver": "^7.7.0",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
