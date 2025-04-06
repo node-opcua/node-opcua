@@ -30,7 +30,7 @@
         "node-opcua-client-proxy": "2.150.0",
         "node-opcua-crypto": "4.16.0",
         "node-opcua-packet-analyzer": "2.139.0",
-        "node-opcua-pki": "5.2.0",
+        "node-opcua-pki": "5.3.0",
         "node-opcua-server-configuration": "2.150.0",
         "node-opcua-utils": "2.139.0",
         "node-opcua-vendor-diagnostic": "2.150.0",

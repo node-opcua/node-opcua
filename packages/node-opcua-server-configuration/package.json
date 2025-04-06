@@ -30,7 +30,7 @@
         "node-opcua-file-transfer": "2.150.0",
         "node-opcua-hostname": "2.139.0",
         "node-opcua-nodeid": "2.139.0",
-        "node-opcua-pki": "5.2.0",
+        "node-opcua-pki": "5.3.0",
         "node-opcua-pseudo-session": "2.150.0",
         "node-opcua-secure-channel": "2.150.0",
         "node-opcua-server": "2.150.0",

@@ -36,7 +36,7 @@
         "node-opcua-nodeset-ijt-tightening": "2.150.0",
         "node-opcua-nodeset-machinery-result": "2.150.0",
         "node-opcua-packet-analyzer": "2.139.0",
-        "node-opcua-pki": "5.2.0",
+        "node-opcua-pki": "5.3.0",
         "node-opcua-server": "2.150.0",
         "node-opcua-server-discovery": "2.150.0",
         "node-opcua-service-browse": "2.150.0",
