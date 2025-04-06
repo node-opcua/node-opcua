@@ -59,7 +59,10 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
 
     it("should readHistory with continuation point", async () => {
         const endpointUrl = server.getEndpointUrl();
-        const client = OPCUAClient.create({ endpointMustExist: false });
+        const client = OPCUAClient.create({
+            endpointMustExist: false,
+            clientName: __filename
+        });
 
         await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
             const historyReadDetails = new ReadRawModifiedDetails({
@@ -262,32 +265,32 @@ describe("Testing Historical Data Node historyRead with continuation points", ()
             cont3.statusCode.should.eql(StatusCodes.Good);
         });
     });
-        it("the server shall reject call with BadNoConnectionPoints if they are too many pending requests with continuation points.", async () => {
-            const endpointUrl = server.getEndpointUrl();
-            const client = OPCUAClient.create({ endpointMustExist: false });
+    it("the server shall reject call with BadNoConnectionPoints if they are too many pending requests with continuation points.", async () => {
+        const endpointUrl = server.getEndpointUrl();
+        const client = OPCUAClient.create({ endpointMustExist: false });
 
-            // Server_ServerCapabilities_MaxHistoryContinuationPoints
-             
+        // Server_ServerCapabilities_MaxHistoryContinuationPoints
 
-            await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
 
-              const maxHistoryContinuationPoint = (await session.read({
-                  nodeId: VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
-                  attributeId: 13
-              })).value.value;
-         
-                // given that the client has sent a first historyRead request that generated a continuation point
-                const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
-                cont1.statusCode.should.eql(StatusCodes.Good);
+        await client.withSessionAsync(endpointUrl, async (session: ClientSession) => {
 
-                // and given that the client send a second historyRead request again
-                const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
-                cont2.statusCode.should.eql(StatusCodes.Good);
+            const maxHistoryContinuationPoint = (await session.read({
+                nodeId: VariableIds.Server_ServerCapabilities_MaxHistoryContinuationPoints,
+                attributeId: 13
+            })).value.value;
 
-                // when the client try to read again with the continuation point of the first request
-                const cont3 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, cont1.continuationPoint);
-                // then the server shall return with Good status code
-                cont3.statusCode.should.eql(StatusCodes.Good);
-            });
+            // given that the client has sent a first historyRead request that generated a continuation point
+            const cont1 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
+            cont1.statusCode.should.eql(StatusCodes.Good);
+
+            // and given that the client send a second historyRead request again
+            const cont2 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, undefined, false);
+            cont2.statusCode.should.eql(StatusCodes.Good);
+
+            // when the client try to read again with the continuation point of the first request
+            const cont3 = await sendHistoryReadWithContinuationPointReturnContinuationPoint(session, cont1.continuationPoint);
+            // then the server shall return with Good status code
+            cont3.statusCode.should.eql(StatusCodes.Good);
         });
+    });
 });

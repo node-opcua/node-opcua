@@ -30,7 +30,7 @@ describe("#1002 - ability to set transport timeout ", () => {
     });
     it("A- using default transport timeout", async () => {
         const endpointUrl = server.getEndpointUrl();
-        const client = OPCUAClient.create({});
+        const client = OPCUAClient.create({ clientName: "1 " + __filename });
         const spyConnectionLost = sinon.spy();
         const spyClose = sinon.spy();
         const spyConnectionReestablished = sinon.spy();
@@ -55,6 +55,7 @@ describe("#1002 - ability to set transport timeout ", () => {
 
         const transportTimeout = 1234;
         const client = OPCUAClient.create({
+            clientName: "2 " + __filename,
             transportTimeout,
             connectionStrategy: { maxRetry: 0 } // we don't want automatic reconnection => maxRetry = 0
         });
@@ -91,6 +92,7 @@ describe("#1002 - ability to set transport timeout ", () => {
 
         const transportTimeout = 1000;
         const client = OPCUAClient.create({
+            clientName: "3 " + __filename,
             transportTimeout,
             connectionStrategy: { maxRetry: 1 } // we WANT automatic reconnection => maxRetry <> 1
         });

@@ -140,7 +140,8 @@ describe("Test CertificateExpiredAlarm", function (this: any) {
             endpointMustExist: false,
             securityMode: MessageSecurityMode.SignAndEncrypt,
             securityPolicy: SecurityPolicy.Basic256Sha256,
-            clientCertificateManager
+            clientCertificateManager,
+            clientName: "1 " + __filename,
         });
         await client.clientCertificateManager.initialize();
         return client;

@@ -69,7 +69,7 @@ describe("building server with an AlternateName", () => {
             console.log(" cannot run test because no IPV4 address available", ip);
             return;
         }
-        const client = OPCUAClient.create({ endpointMustExist: false });
+        const client = OPCUAClient.create({ endpointMustExist: false, clientName: "1 " + __filename });
         client.on("backoff", () => {
             if (doDebug) {
                 console.log("keep trying", endpointUri);

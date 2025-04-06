@@ -100,7 +100,8 @@ module.exports = function(test) {
             const addressSpace = test.server.engine.addressSpace;
             construct_demo_alarm_in_address_space(test, addressSpace);
             client = OPCUAClient.create({
-                keepSessionAlive: true
+                keepSessionAlive: false,
+                clientName: __filename
             });
 
             resetConditions(test);
