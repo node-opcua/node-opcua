@@ -1376,7 +1376,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 let should_abort = this.#_isDisconnecting;
 
                 if (err.message.match(/ECONNRESET/)) {
-                    should_abort = true;
+                   // this situation could arise when the socket try to connect and timeouts...  should_abort = false;
                 }
                 if (err.message.match(/BadProtocolVersionUnsupported/)) {
                     should_abort = true;
