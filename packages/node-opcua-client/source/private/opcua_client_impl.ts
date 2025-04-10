@@ -295,7 +295,9 @@ function createUserNameIdentityToken(
     let identityToken;
     let serverCertificate: Buffer | string | null = session.serverCertificate;
     // if server does not provide certificate use unencrypted password
-    if (!serverCertificate) {
+    if (!serverCertificate || serverCertificate.length == 0) {
+        // When server doesn't provide certificate, the password
+        // need to be transmitted unencrypted !
         identityToken = new UserNameIdentityToken({
             encryptionAlgorithm: null,
             password: Buffer.from(password as string, "utf-8"),
