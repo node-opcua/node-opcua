@@ -41,8 +41,7 @@ function fixFile(file: SourceFile) {
             });
 
             if (!isUsed) {
-
-                console.log(name);
+                console.log("removing unused variable=", name );
                 if (!dryRun)
                     declaration.remove();
             }
@@ -51,7 +50,7 @@ function fixFile(file: SourceFile) {
         try {
             // If no declarations left in this statement, remove the whole statement
             if (variableStatement.getDeclarations().length === 0) {
-                console.log(variableStatement);
+               //  console.log(variableStatement);
                 if (!dryRun) {
                     variableStatement.remove();
                 }
@@ -85,24 +84,3 @@ export async function cleanUpTypescriptModule(moduleFolder: string) {
     }
 
 }
-
-
-async function main() {
-
-    const d = await fs.promises.readdir("..");
-    for (let f of d) {
-        if (f.match(/node-opcua-nodeset-.*/)) {
-            console.log(f);
-            const fullPath = path.join("..", f);
-            try {
-                await cleanUpTypescriptModule(fullPath);
-            }
-            catch (err) {
-                console.log((err as Error).message);
-            }
-        }
-    }
-    //   
-    cleanUpTypescriptModule("../node-opcua-units");
-}
-main()
