@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UAConfigurableObject, UAConfigurableObject_Base } from "node-opcua-nodeset-di/source/ua_configurable_object"
+import { UAConfigurableObject, UAConfigurableObject_Base } from "node-opcua-nodeset-di/dist/ua_configurable_object"
 import { UAAccessorySlotStateMachine } from "./ua_accessory_slot_state_machine"
 /**
  * Organizes zero or more Accessory objects

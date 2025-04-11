@@ -186,6 +186,7 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
                 nodeId: resolveNodeId(ObjectIds.ObjectsFolder),
                 organizedBy: rootFolder
             });
+            objectsFolder;
 
             assert(rootFolder.getFolderElementByName("Objects")!.browseName.toString() === "Objects");
         }
@@ -202,6 +203,7 @@ export function create_minimalist_address_space_nodeset(addressSpace: AddressSpa
                     nodeId: resolveNodeId(DataTypeIds.Double),
                     organizedBy: dataTypeFolder
                 });
+                doubleDataType;
             }
         }
     }

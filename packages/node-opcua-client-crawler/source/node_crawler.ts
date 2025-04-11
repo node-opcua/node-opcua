@@ -3,10 +3,8 @@ import async from "async";
 
 import {
     assert,
-    checkDebugFlag,
     ErrorCallback,
     lowerFirstLetter,
-    make_debugLog,
     make_warningLog,
     NodeClass,
     NodeIdLike,
@@ -18,9 +16,7 @@ import { NodeCrawlerBase, NodeCrawlerClientSession, ObjectMap, Pojo, UserData } 
 import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
 import { TaskReconstruction, EmptyCallback, removeCycle } from "./private";
 
-const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
 
 type Queue = async.QueueObject<TaskReconstruction>;
 

@@ -1,5 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UALimitAlarm, UALimitAlarm_Base } from "./ua_limit_alarm"
 import { UATwoStateVariable } from "./ua_two_state_variable"

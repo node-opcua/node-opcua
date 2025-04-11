@@ -1,12 +1,11 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
+import { UInt16, UAString } from "node-opcua-basic-types"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
 import { DTISA95JobOrderAndState } from "./dt_isa_95_job_order_and_state"
 import { DTISA95WorkMaster } from "./dt_isa_95_work_master"
 /**

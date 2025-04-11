@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { VariantOptions } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
-import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
+import { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union"
 import { DTScanDataEpc } from "./dt_scan_data_epc"
 /**
  * |           |                                                            |

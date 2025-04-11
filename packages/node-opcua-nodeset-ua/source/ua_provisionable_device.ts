@@ -1,9 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { DTArgument } from "./dt_argument"
-import { EnumApplication } from "./enum_application"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

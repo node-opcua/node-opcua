@@ -2,7 +2,7 @@
  * @module node-opcua-utils
  */
 export let get_clock_tick: () => number;
-import { hrtime } from "./hrtime";
+import "./hrtime";
 
 if (typeof process === "object" && process.hrtime) {
     const tickOrigin = process.hrtime();

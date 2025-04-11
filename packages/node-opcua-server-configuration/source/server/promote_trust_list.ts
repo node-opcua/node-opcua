@@ -30,6 +30,7 @@ import { rolePermissionAdminOnly } from "./roles_and_permissions";
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
+doDebug;
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = debugLog;
 

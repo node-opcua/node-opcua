@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { UADiscreteItem, UADiscreteItem_Base } from "node-opcua-nodeset-ua/source/ua_discrete_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { DataType } from "node-opcua-variant"
+import { UADiscreteItem, UADiscreteItem_Base } from "node-opcua-nodeset-ua/dist/ua_discrete_item"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

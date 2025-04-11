@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

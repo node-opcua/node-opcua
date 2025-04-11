@@ -1,8 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/source/ua_base_interface"
+import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
 import { EnumMaintenanceMethodEnum } from "./enum_maintenance_method_enum"
 import { DTNameNodeId } from "./dt_name_node_id"
 import { UAMaintenanceEventStateMachine } from "./ua_maintenance_event_state_machine"

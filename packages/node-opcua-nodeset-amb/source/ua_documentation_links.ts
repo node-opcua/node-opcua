@@ -2,8 +2,7 @@
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
+
 /**
  * AddIn to link documentation provided by the
  * manufacturer and / or end-user.

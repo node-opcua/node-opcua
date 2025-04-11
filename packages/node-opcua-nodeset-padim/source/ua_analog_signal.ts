@@ -1,10 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
 import { UInt32 } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_dictionary_entry_discrete"
+import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
 import { UACalibrationPointSet } from "./ua_calibration_point_set"
 import { UASignal, UASignal_Base } from "./ua_signal"
 import { UAAnalogSignalVariable } from "./ua_analog_signal_variable"

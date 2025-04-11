@@ -10,8 +10,6 @@ import { installPushCertificateManagement } from "node-opcua-server-configuratio
 import yargs from "yargs";
 import bcrypt from "bcryptjs";
 
-const rootFolder = path.join(__dirname, "../../..");
-
 import envPaths from "env-paths";
 const config = envPaths("node-opcua-default").config;
 const pkiFolder = path.join(config, "PKI");
@@ -95,6 +93,7 @@ async function main() {
     const addressSpace = server.engine.addressSpace!;
     // to do: expose new nodeid here
     const ns = addressSpace.getNamespaceIndex("http://yourorganisation.org/my_data_type/");
+    ns;
 
     await installPushCertificateManagement(addressSpace, {
         applicationGroup: server.serverCertificateManager,

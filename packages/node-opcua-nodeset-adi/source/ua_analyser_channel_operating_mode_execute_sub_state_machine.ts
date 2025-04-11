@@ -2,10 +2,10 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
-import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
+import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
 export interface UAAnalyserChannel_OperatingModeExecuteSubStateMachine_selectExecutionCycle extends Omit<UAInitialState, "stateNumber"> { // Object
       stateNumber: UAProperty<UInt32, DataType.UInt32>;
 }

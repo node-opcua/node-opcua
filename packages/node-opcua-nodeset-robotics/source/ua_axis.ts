@@ -1,8 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 import { EnumAxisMotionProfile } from "./enum_axis_motion_profile"
 import { UALoad } from "./ua_load"
 export interface UAAxis_parameterSet extends UAObject { // Object

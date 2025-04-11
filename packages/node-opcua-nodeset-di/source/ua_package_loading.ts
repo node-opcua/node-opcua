@@ -2,9 +2,9 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
-import { UInt32, UAString } from "node-opcua-basic-types"
-import { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/source/ua_temporary_file_transfer"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UInt32 } from "node-opcua-basic-types"
+import { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UASoftwareLoading, UASoftwareLoading_Base } from "./ua_software_loading"
 import { UASoftwareVersion } from "./ua_software_version"
 /**

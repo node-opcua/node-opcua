@@ -1,12 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/source/ua_transition_event"
+import { DataType } from "node-opcua-variant"
+import { UInt32, UAString } from "node-opcua-basic-types"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event"
 export interface UAProductionJobTransitionEvent_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       isValid: UAProperty<boolean, DataType.Boolean>;
 }

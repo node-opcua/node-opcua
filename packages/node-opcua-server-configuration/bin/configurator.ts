@@ -25,8 +25,8 @@ import { CertificateAuthority } from "node-opcua-pki";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { TrustListDataType } from "node-opcua-types";
 
-import { CertificateType } from "../source";
-import { ClientPushCertificateManagement } from "../source/clientTools";
+import { CertificateType } from "..";
+import { ClientPushCertificateManagement } from "..";
 
 const endpointUrl = "opc.tcp://localhost:48010";
 

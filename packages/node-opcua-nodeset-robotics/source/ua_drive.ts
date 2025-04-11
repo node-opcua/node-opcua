@@ -2,7 +2,7 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
-import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/source/ua_device"
+import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device"
 /**
  * Drives (multi-slot or single-slot axis amplifier)
  * mounted in a controller cabinet or a motion

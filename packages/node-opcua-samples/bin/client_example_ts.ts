@@ -10,7 +10,6 @@ import Table from "easy-table";
 
 import {
     ApplicationType,
-    assert,
     AttributeIds,
     BrowseDirection,
     callConditionRefresh,
@@ -21,7 +20,6 @@ import {
     coerceNodeId,
     coerceSecurityPolicy,
     constructEventFilter,
-    DataType,
     DataValue,
     dumpEvent,
     hexDump,
@@ -46,7 +44,7 @@ import {
 
 import { Certificate, toPem } from "node-opcua-crypto";
 
-const { asTree, TreeObject } = require("treeify");
+const { asTree } = require("treeify");
 
 function w(str: string, l: number): string {
     return str.padEnd(l).substring(0, l);
@@ -533,6 +531,7 @@ function getTick() {
             };
 
             const queryFirstResult = await session.queryFirst(queryFirstRequest);
+            queryFirstResult;
             console.log(
                 " -----------------------------------------------------------------------------------------------------------------"
             );

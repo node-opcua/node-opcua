@@ -1,4 +1,4 @@
-import { PermissionFlag, makePermissionFlag, permissionFlagToString, allPermissions } from "../source/permission_flag";
+import { PermissionFlag, makePermissionFlag, permissionFlagToString, allPermissions } from "..";
 import "should";
 
 describe("Testing PermissionFlag", function () {

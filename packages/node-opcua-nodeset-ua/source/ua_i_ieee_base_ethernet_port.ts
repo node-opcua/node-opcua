@@ -1,6 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
 import { UInt64, UInt16 } from "node-opcua-basic-types"
 import { EnumDuplex } from "./enum_duplex"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"

@@ -21,8 +21,8 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
         throw new Error("Invalid version");
     }   
     const major = parseInt(version[1], 10);
-    const minor = parseInt(version[2], 10);
-    const patch = parseInt(version[3], 10);
+    const minor = parseInt(version[2], 10); minor;
+    const patch = parseInt(version[3], 10); patch;
     if (major < 20) {
         return; // skip test
     }
@@ -45,6 +45,7 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
     // export public key as base64 string and save to file
     const exportedPublicKey = await subtle.exportKey("spki", keyPair.publicKey);
     const publicKey = Buffer.from(exportedPublicKey).toString("base64");
+    publicKey;
 
     const privateKeyPem = await privateKeyToPEM(keyPair.privateKey);
     // const privateKeyFilename = ""; // fs.mkdtemp((), ".t.pem");

@@ -2,7 +2,6 @@
 import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device"
 /**
  * |                |                                                            |

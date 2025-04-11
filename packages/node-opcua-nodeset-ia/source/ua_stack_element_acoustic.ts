@@ -1,9 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAOrderedList } from "node-opcua-nodeset-ua/source/ua_ordered_list"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
+import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
 /**
  * Represents an acoustic element in a stacklight.

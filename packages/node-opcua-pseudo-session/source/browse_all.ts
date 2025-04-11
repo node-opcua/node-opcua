@@ -4,10 +4,10 @@
 import { assert } from "node-opcua-assert";
 import { AttributeIds } from "node-opcua-basic-types";
 import { VariableIds } from "node-opcua-constants";
-import { make_debugLog, make_warningLog } from "node-opcua-debug";
+import { make_debugLog } from "node-opcua-debug";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
-import { StatusCode, StatusCodes } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import {
     IBasicSessionReadAsyncMultiple,
     IBasicSessionBrowseAsyncMultiple,
@@ -15,7 +15,6 @@ import {
     BrowseDescriptionLike
 } from "./basic_session_interface";
 
-const warningLog = make_warningLog(__filename);
 const debugLog = make_debugLog(__filename);
 
 async function readLimits(session: IBasicSessionReadAsyncMultiple) {

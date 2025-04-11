@@ -1,9 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
-import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
+import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
 import { UAProductionStateMachine, UAProductionStateMachine_Base } from "./ua_production_state_machine"
 /**
  * |                |                                                            |

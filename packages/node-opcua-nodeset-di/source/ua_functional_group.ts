@@ -1,6 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
+import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAUIElement } from "./ua_ui_element"
 /**
  * FolderType is used to organize the Parameters and

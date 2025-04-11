@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 /**
  * Defines a general pattern to expose and configure
  * modular components

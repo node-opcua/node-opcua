@@ -378,6 +378,7 @@ function dump1(a: ClassifiedReferenceDescriptions): void {
             .join(" ")
     );
 }
+dump1;
 
 function getSameInBaseClass(parent: ClassDefinitionB | null, browseName: QualifiedName): ClassMember | null {
     if (!parent || !parent.baseClassDef) return null;
@@ -463,8 +464,8 @@ async function extractVariableExtra(
     if (nodeClass === NodeClass.Variable) {
         const dataTypeNodeId = await getDataTypeNodeId(session, nodeId);
         const valueRank = await getValueRank(session, nodeId);
-
-        const { dataType, jtype, dataTypeCombination, type } = await getCorrespondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
+        valueRank;
+        const { dataType, jtype, dataTypeCombination } = await getCorrespondingJavascriptType2(session, nodeId, dataTypeNodeId!, cache, importCollector);
 
         cache && cache.referenceBasicType("DataType");
         importCollector({ name: "DataType", namespace: -1, module: "BasicType" });
@@ -655,7 +656,7 @@ async function preDumpChildren(padding: string, classDef: ClassDefinition, f: Li
     f = f || new LineFile();
 
     for (const memberDef of classDef.members) {
-        const { innerClass, suffix2, suffix3, nodeClass, childBase, chevrons } = memberDef;
+        const { innerClass, suffix2, nodeClass, childBase } = memberDef;
         if (!innerClass || !childBase) {
             continue; // no need to expose inner class
         }
@@ -684,7 +685,7 @@ function dumpChildren(padding: string, children: ClassMemberBasic[], f: LineFile
     f = f || new LineFile();
 
     for (const def of children) {
-        const { suffixInstantiate, name, childType, modellingRule, isOptional, description } = def;
+        const { suffixInstantiate, name, childType, isOptional, description } = def;
         def.typeToReference.forEach((t) => cache.ensureImported(t));
 
         if (isPlaceHolder(def)) {
@@ -707,7 +708,7 @@ function dumpChildren(padding: string, children: ClassMemberBasic[], f: LineFile
 // now from other namespace
 const getSubSymbolList = (s: RequestedSubSymbol) => {
     const subSymbolList: string[] = [];
-    for (const [subSymbol, count] of Object.entries(s.subSymbols)) {
+    for (const [subSymbol] of Object.entries(s.subSymbols)) {
         subSymbolList.push(subSymbol);
     }
     return subSymbolList;
@@ -753,7 +754,6 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
     }
     for (let ns = 0; ns < cache.requestedSymbols.namespace.length; ns++) {
         const n = cache.namespace[ns];
-        const sourceFolder = n.sourceFolder;
         const module = n.module;
         if (ns === namespaceIndex) {
             // include individuals stuff
@@ -769,7 +769,7 @@ function dumpUsedExport(currentType: string, namespaceIndex: number, cache: Cach
                 for (const [symbol, s] of Object.entries(cache.requestedSymbols.namespace[ns].symbols)) {
                     const subSymbolList = getSubSymbolList(s);
                     const filename = toFilename(symbol);
-                    f.write(`import { ${subSymbolList.join(", ")} } from "${module}/source/${filename}"`);
+                    f.write(`import { ${subSymbolList.join(", ")} } from "${module}/dist/${filename}"`);
                 }
             }
         }

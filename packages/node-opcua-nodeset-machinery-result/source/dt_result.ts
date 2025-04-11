@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { Variant } from "node-opcua-variant"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 import { DTResultMeta } from "./dt_result_meta"
 /**
  * Contains fields that were created during the

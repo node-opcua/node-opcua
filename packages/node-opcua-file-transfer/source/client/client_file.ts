@@ -10,10 +10,9 @@ import { BrowsePath, makeBrowsePath } from "node-opcua-service-translate-browse-
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { MethodIds } from "node-opcua-constants";
 
-import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("FileType");
-const errorLog = make_errorLog("FileType");
 const doDebug = checkDebugFlag("FileType");
 
 import { OpenFileMode } from "../open_mode";

@@ -5,7 +5,6 @@ import path from "path";
 import chalk from "chalk";
 import { nodesets, OPCUAServer } from "node-opcua";
 import yargs from "yargs";
-import { Argv } from "yargs";
 
 Error.stackTraceLimit = Infinity;
 

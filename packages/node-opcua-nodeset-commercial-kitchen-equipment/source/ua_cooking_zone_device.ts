@@ -2,10 +2,9 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
-import { Int32, UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
-import { EnumCurrentState } from "./enum_current_state"
+import { Int32 } from "node-opcua-basic-types"
+import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
+import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
 import { EnumEnergySource } from "./enum_energy_source"
 import { UACommercialKitchenDevice, UACommercialKitchenDevice_Base } from "./ua_commercial_kitchen_device"
 export interface UACookingZoneDevice_nominalVoltage<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable

@@ -2,8 +2,8 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
-import { Int32, UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-di/source/ua_i_vendor_nameplate"
+import { UInt16, Byte, UAString } from "node-opcua-basic-types"
+import { UAIVendorNameplate, UAIVendorNameplate_Base } from "node-opcua-nodeset-di/dist/ua_i_vendor_nameplate"
 /**
  * Interface containing identification and nameplate
  * information for a MachineryItem provided by the

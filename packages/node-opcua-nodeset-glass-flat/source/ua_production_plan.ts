@@ -1,12 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { UInt64, UInt16, UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/source/ua_ordered_list"
-import { DTFileFormat } from "./dt_file_format"
+import { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

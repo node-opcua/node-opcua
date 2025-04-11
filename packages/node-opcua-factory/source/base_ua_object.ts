@@ -22,13 +22,10 @@ import {
     StructuredTypeField,
     BuiltInTypeDefinition,
     FieldType,
-    CommonInterface,
     Func1,
     IStructuredTypeSchema,
     IBaseUAObject,
-    DecodeDebugOptions,
-    ConstructorFunc
-} from "./types";
+    DecodeDebugOptions} from "./types";
 
 const errorLog = make_errorLog(__filename);
 

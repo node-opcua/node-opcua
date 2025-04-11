@@ -104,7 +104,7 @@ export async function addExtensionObjectDataType(namespace: INamespace, options:
         cache
     );
     const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as ConstructorFuncWithSchema;
-
+    Constructor;
     return dataType;
 }
 
@@ -142,7 +142,7 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
                 description: field.description,
                 modellingRule: "Mandatory",
                 valueRank: field.valueRank === undefined ? -1 : field.valueRank
-            });
+            }); comp;
         } else {
             const comp = namespace.addVariable({
                 browseName: field.name!,
@@ -152,7 +152,7 @@ export function addVariableTypeForDataType(namespace: INamespace, dataType: UADa
                 modellingRule: "Mandatory",
                 typeDefinition,
                 valueRank: field.valueRank === undefined ? -1 : field.valueRank
-            });
+            }); comp;
         }
     }
     return variableType;

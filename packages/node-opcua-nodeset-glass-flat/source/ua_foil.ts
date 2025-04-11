@@ -1,7 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UABaseMaterial, UABaseMaterial_Base } from "./ua_base_material"
 /**
  * |                |                                                            |

@@ -13,7 +13,6 @@ import { getBuiltInType as getBuiltInType, hasBuiltInType } from "./builtin_type
 import { EnumerationDefinitionSchema, getBuiltInEnumeration, hasBuiltInEnumeration } from "./enumerations";
 import {
     CommonInterface,
-    StructuredTypeField,
     IStructuredTypeSchema,
     ConstructorFuncWithSchema,
     ConstructorFunc,

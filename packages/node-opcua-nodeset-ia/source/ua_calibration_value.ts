@@ -2,7 +2,7 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
-import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_data_item"
+import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item"
 /**
  * Represents the specific quantity and value (with
  * engineering unit) that a calibration target

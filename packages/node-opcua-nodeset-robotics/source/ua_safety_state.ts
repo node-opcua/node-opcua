@@ -1,9 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 import { EnumOperationalMode } from "./enum_operational_mode"
 export interface UASafetyState_parameterSet extends UAObject { // Object
       /**

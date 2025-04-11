@@ -1,4 +1,4 @@
-import { StatusCode, UInt32 } from "node-opcua-basic-types";
+import { StatusCode } from "node-opcua-basic-types";
 
 /**
  * @module node-opcua-server-configuration

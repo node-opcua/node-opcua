@@ -4,7 +4,7 @@ import chalk from "chalk";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { hexDump } from "node-opcua-debug";
 import { ExpandedNodeId } from "node-opcua-nodeid";
-import { BaseUAObject, ConstructorFuncWithSchema, getStandardDataTypeFactory } from "node-opcua-factory";
+import { BaseUAObject, getStandardDataTypeFactory } from "node-opcua-factory";
 import { assert_arrays_are_equal } from "node-opcua-test-helpers";
 import should from "should";
 

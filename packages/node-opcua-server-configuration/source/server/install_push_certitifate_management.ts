@@ -14,7 +14,6 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import {
     Certificate,
     convertPEMtoDER,
-    makeSHA1Thumbprint,
     PrivateKey,
     split_der
 } from "node-opcua-crypto/web";
@@ -34,6 +33,7 @@ const { readFile } = fs.promises;
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
+doDebug;
 
 export interface OPCUAServerPartial extends ICertificateKeyPairProviderPriv {
     serverInfo?: ApplicationDescriptionOptions;
@@ -145,8 +145,6 @@ function getCertificateChainEP(this: OPCUAServerEndPoint): Certificate {
     const certificateFile = path.join(this.certificateManager.rootDir, "own/certs/certificate.pem");
     const certificatePEM = fs.readFileSync(certificateFile, "utf8");
     const $$certificateChain = convertPEMtoDER(certificatePEM);
-    const thumbprint = makeSHA1Thumbprint($$certificateChain);
-
     return $$certificateChain;
 }
 

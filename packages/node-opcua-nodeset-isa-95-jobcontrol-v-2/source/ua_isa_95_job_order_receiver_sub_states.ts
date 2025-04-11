@@ -1,9 +1,6 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
 import { UAISA95JobOrderReceiverObject, UAISA95JobOrderReceiverObject_Base } from "./ua_isa_95_job_order_receiver_object"
 import { UAISA95PrepareStateMachine } from "./ua_isa_95_prepare_state_machine"
 import { UAISA95EndedStateMachine } from "./ua_isa_95_ended_state_machine"
