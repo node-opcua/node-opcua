@@ -19,8 +19,7 @@ import {
 } from "node-opcua-schemas";
 import { BrowseDescriptionOptions, BrowseDirection, BrowseResult, ReferenceDescription } from "node-opcua-service-browse";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
-import { StatusCodes } from "node-opcua-status-code";
-import { BrowsePath, ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
+import { ReadValueIdOptions, StructureDefinition } from "node-opcua-types";
 
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
 import {
@@ -670,8 +669,8 @@ export async function populateDataTypeManager103(
             const dataTypeDictionaryNodeId = reference.nodeId;
 
             const promises: [Promise<boolean>, Promise<DataValue>] = [
-                /* isDictionaryDeprecated: bool = await */ _readDeprecatedFlag(session, dataTypeDictionaryNodeId),
-                /* rawSchemaDataValue!: DataValue = await */ session.read({
+                    /* isDictionaryDeprecated: bool = await */ _readDeprecatedFlag(session, dataTypeDictionaryNodeId),
+                    /* rawSchemaDataValue!: DataValue = await */ session.read({
                 attributeId: AttributeIds.Value,
                 nodeId: dataTypeDictionaryNodeId
             })

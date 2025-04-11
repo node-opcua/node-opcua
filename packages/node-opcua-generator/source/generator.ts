@@ -19,6 +19,7 @@ import { get_class_TScript_filename, produce_TScript_code } from "./factory_code
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
+doDebug;
 
 /**
  * @module opcua.miscellaneous
@@ -51,6 +52,7 @@ function compileTScriptCode(typescriptFilename: string): string {
 
     return res1.outputText;
 }
+compileTScriptCode;
 
 export const verbose = false;
 
@@ -173,8 +175,7 @@ export async function registerObject(schema: string, generateCodeFolder?: string
     if (!module) {
         throw new Error("cannot find " + schemaFile);
     }
-    const schemaObj = module[schemaName];
-
+  
     await generateCode(schemaName, schemaFile, generateCodeFolder);
 
     return null;
