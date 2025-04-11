@@ -30,7 +30,7 @@ const debugLog = make_debugLog("FileType");
 const errorLog = make_errorLog("FileType");
 const warningLog = make_warningLog("FileType");
 const doDebug = checkDebugFlag("FileType");
-
+doDebug;
 /**
  *
  */

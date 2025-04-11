@@ -13,7 +13,7 @@ import {
     VariableTypeIds
 } from "node-opcua-constants";
 import { emptyGuid, Guid, isValidGuid, normalizeGuid } from "node-opcua-guid";
-const doDebug = false;
+
 /**
  * `NodeIdType` an enumeration that specifies the possible types of a `NodeId` value.
  */
@@ -294,11 +294,6 @@ const regexNamespaceB = /ns=([0-9]+);b=(.*)/;
 const regexNamespaceG = /ns=([0-9]+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
 
 const regexNSU = /nsu=(.*);(.*)/;
-const regexNamespaceNSU_I = /nsu=(.+);i=([0-9]+)/;
-const regexNamespaceNSU_S = /nsu=(.+);s=(.*)/;
-const regexNamespaceNSU_B = /nsu=(.+);b=(.*)/;
-const regexNamespaceNSU_G = /nsu=(.+);g=([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/;
-
 
 /**
  * 

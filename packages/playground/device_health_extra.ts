@@ -23,7 +23,7 @@ import {
     ConditionInfoImpl
 } from "node-opcua-address-space/dist/src/alarms_and_conditions/condition_info_impl";
 
-import { EnumDeviceHealth } from "../source/enum_device_health";
+import { EnumDeviceHealth } from "../enum_device_health";
 
 export interface UADeviceHealthDiagnosticAlarmEx extends UAAlarmConditionEx {}
 export class UADeviceHealthDiagnosticAlarmEx extends UAAlarmConditionImpl {
