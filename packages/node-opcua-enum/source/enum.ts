@@ -116,7 +116,7 @@ export function adaptTypescriptEnum(map: _TypescriptEnum | string[]) {
     return map as _TypescriptEnum;
 }
 
-const regexpSignedNumber = /^[-+]?[0-9]+$/;
+
 /**
  * @class Enum
  * @constructor

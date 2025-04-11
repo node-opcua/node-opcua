@@ -256,7 +256,6 @@ export class UAProxyManager {
     }
     public async getStateMachineType(nodeId: NodeIdLike): Promise<ProxyStateMachineType> {
         if (typeof nodeId === "string") {
-            const org_nodeId = nodeId;
             nodeId = makeRefId(nodeId);
         }
         const obj = await this.getObject(nodeId);

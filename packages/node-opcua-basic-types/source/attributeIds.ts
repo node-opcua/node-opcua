@@ -1,8 +1,6 @@
 /**
  * @module node-opcua-basic-types
  */
-import { assert } from "node-opcua-assert";
-
 export enum AttributeIds {
     NodeId = 1,
     NodeClass = 2,

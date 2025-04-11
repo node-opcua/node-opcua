@@ -19,7 +19,7 @@ import {
     coercePrivateKeyPem,
 } from "node-opcua-crypto/web";
 
-import {readPrivateKey, readCertificate, asn1 } from "node-opcua-crypto";
+import {readPrivateKey, readCertificate } from "node-opcua-crypto";
 
 // fixme: use the one from node-opcua-crypto
 export interface DirectoryName {
@@ -50,6 +50,7 @@ const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 const warningLog = make_warningLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
+doDebug;
 
 const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultApplicationGroup");
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
@@ -487,6 +488,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 warningLog("certificate doesn't match privateKey");
                 /* debug code */
                 const certificatePEM = toPem(certificate, "CERTIFICATE");
+                certificatePEM;
                 //xx const privateKeyPEM = toPem(privateKeyDER, "RSA PRIVATE KEY");
                 //xx const initialBuffer = Buffer.from("Lorem Ipsum");
                 //xx const encryptedBuffer = publicEncrypt_long(initialBuffer, certificatePEM, 256, 11);

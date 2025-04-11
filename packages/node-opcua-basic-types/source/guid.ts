@@ -4,7 +4,7 @@
 
 import assert from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
-import { emptyGuid, isValidGuid } from "node-opcua-guid";
+import { isValidGuid } from "node-opcua-guid";
 
 import { getRandomInt } from "./utils";
 
@@ -45,7 +45,7 @@ assert(hexCharToNum("b".charCodeAt(0)) === 11);
 assert(hexCharToNum("B".charCodeAt(0)) === 11);
 assert(hexCharToNum("0".charCodeAt(0)) === 0);
 assert(hexCharToNum("9".charCodeAt(0)) === 9);
-const doDebug = false;
+
 
 function write_UInt32(stream: OutputBinaryStream, guid: string, starts: number[]) {
     const n = starts.length;

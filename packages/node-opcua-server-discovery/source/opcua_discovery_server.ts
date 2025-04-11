@@ -326,7 +326,7 @@ export class OPCUADiscoveryServer extends OPCUABaseServer {
         function sendError(statusCode: StatusCode) {
             const response1 = new FindServersOnNetworkResponse({ responseHeader: { serviceResult: statusCode } });
             return channel.send_response("MSG", response1, message);
-        }
+        } sendError;
 
         //     startingRecordId         Counter Only records with an identifier greater than this number will be
         //                              returned.

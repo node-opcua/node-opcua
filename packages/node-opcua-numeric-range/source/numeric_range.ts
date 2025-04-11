@@ -1,10 +1,9 @@
 /**
  * @module node-opcua-numeric-range
  */
-import { debuglog } from "util";
 import { assert } from "node-opcua-assert";
 
-import { decodeString, encodeString, UAString, UInt8 } from "node-opcua-basic-types";
+import { decodeString, encodeString, UAString } from "node-opcua-basic-types";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { registerBasicType } from "node-opcua-factory";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";

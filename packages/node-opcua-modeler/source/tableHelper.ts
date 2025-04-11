@@ -8,6 +8,7 @@ const chars1 = {
     , "left": "|", "left-mid": "+", "mid": "-", "mid-mid": "+"
     , "right": "|", "right-mid": "+", "middle": "|"
 };
+
 const chars2 = {
     // tslint:disable-next-line: object-literal-sort-keys
     "top": " ", "top-mid": "   ", "top-left": "  ", "top-right": "  "
@@ -22,6 +23,9 @@ const chars3 = {
     , "left": "| ", "left-mid": "", "mid": "-", "mid-mid": " | "
     , "right": " |", "right-mid": "", "middle": " | "
 };
+chars1;
+chars2;
+chars3;
 
 function toMarkdownTable(table: { head: string[], rows: string[][] }): string {
 

@@ -22,7 +22,6 @@ import { ProxyVariable } from "./proxy_variable";
 import { MethodDescription, ArgumentEx } from "./proxy_base_node";
 
 const doDebug = false;
-const errorLog = make_errorLog("Proxy");
 const debugLog = make_debugLog("Proxy");
 
 export interface ObjectExplorerOptions {
@@ -237,7 +236,6 @@ async function add_method(proxyManager: UAProxyManager, obj: any, reference: Ref
 
 async function add_component(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
     const name = lowerFirstLetter(reference.browseName.name || "");
-    let childObj1 = await proxyManager.getObject(reference.nodeId);
     const childObj = new ObjectExplorer({
         name,
         nodeId: reference.nodeId,
@@ -250,7 +248,6 @@ async function add_component(proxyManager: UAProxyManager, obj: any, reference: 
 }
 
 async function addFolderElement(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
-    const session = proxyManager.session;
 
     const name = lowerFirstLetter(reference.browseName.name || "");
 
@@ -267,8 +264,7 @@ async function addFolderElement(proxyManager: UAProxyManager, obj: any, referenc
 }
 
 async function add_property(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
-    const session = proxyManager.session;
-
+  
     const name = lowerFirstLetter(reference.browseName.name || "");
 
     obj[name] = new ProxyVariable(proxyManager, reference.nodeId, reference);
@@ -276,7 +272,6 @@ async function add_property(proxyManager: UAProxyManager, obj: any, reference: R
 }
 
 async function add_typeDefinition(proxyManager: UAProxyManager, obj: any, references: ReferenceDescription[]): Promise<void> {
-    const session = proxyManager.session;
     references = references || [];
     if (references.length !== 1) {
         return;

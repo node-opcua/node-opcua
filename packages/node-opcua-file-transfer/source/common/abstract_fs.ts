@@ -1,4 +1,4 @@
-import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions , ReadStream } from "fs";
+import { Stats, PathLike, OpenMode, NoParamCallback, WriteFileOptions } from "fs";
 
 export interface ReadStreamOptions {
 

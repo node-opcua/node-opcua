@@ -27,7 +27,6 @@ const serverConfigurationNodeId = resolveNodeId("ServerConfiguration");
 const createSigningRequestMethod = resolveNodeId("ServerConfiguration_CreateSigningRequest");
 const getRejectedListMethod = resolveNodeId("ServerConfiguration_GetRejectedList");
 const updateCertificateMethod = resolveNodeId("ServerConfiguration_UpdateCertificate");
-const certificateGroups = resolveNodeId("ServerConfiguration_CertificateGroups");
 const applyChangesMethod = resolveNodeId("ServerConfiguration_ApplyChanges");
 const supportedPrivateKeyFormatsNodeId = resolveNodeId("ServerConfiguration_SupportedPrivateKeyFormats");
 
@@ -35,9 +34,6 @@ const defaultApplicationGroup = resolveNodeId("ServerConfiguration_CertificateGr
 const defaultHttpsGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultHttpsGroup");
 const defaultUserTokenGroup = resolveNodeId("ServerConfiguration_CertificateGroups_DefaultUserTokenGroup");
 
-function findCertificateGroupName(certificateGroupNodeId: NodeId): string {
-    return "todo";
-}
 
 function findCertificateGroupNodeId(certificateGroup: NodeId | string): NodeId {
     if (certificateGroup instanceof NodeId) {
@@ -184,7 +180,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
      */
     async readTrustedCertificateList(): Promise<TrustListDataType> {
         // const size = await this.size();
-        const fileHandle = await this.open(OpenFileMode.Read);
+        await this.open(OpenFileMode.Read);
         const buff = await this.read(65525);
         await this.close();
         const stream = new BinaryStream(buff);
@@ -194,7 +190,7 @@ export class TrustListClient extends ClientFile implements ITrustList {
     }
     async readTrustedCertificateListWithMasks(trustListMask: TrustListMasks): Promise<TrustListDataType> {
         // const size = await this.size();
-        const fileHandle = await this.openWithMasks(trustListMask);
+        await this.openWithMasks(trustListMask);
         const buff = await this.read(65525);
         await this.close();
         const stream = new BinaryStream(buff);
