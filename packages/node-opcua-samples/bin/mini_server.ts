@@ -7,7 +7,6 @@ import chalk from "chalk";
 import {
     makeApplicationUrn,
     get_mini_nodeset_filename,
-    nodesets,
     OPCUAServer,
     ServerSession,
     OPCUACertificateManager,

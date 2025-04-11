@@ -2,7 +2,7 @@
 import path from "path";
 import fs from "fs";
 
-import { IBasicSessionAsync, IBasicSessionReadAsyncSimple } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync } from "node-opcua-pseudo-session";
 import { DataTypeIds } from "node-opcua-constants";
 import { ReferenceDescriptionEx, walkThroughDataTypes, walkThroughObjectTypes, walkThroughVariableTypes } from "./walk_through";
 import { convertTypeToTypescript } from "./convert_to_typescript";

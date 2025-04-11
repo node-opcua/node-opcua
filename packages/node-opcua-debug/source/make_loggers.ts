@@ -113,10 +113,10 @@ const loggers = {
         }
     },
     traceLogger: (context: Context, ...args: [any, ...any[]]) => {
-        const output = dump(context, "T", args);
+        dump(context, "T", args);
     },
     debugLogger: (context: Context, ...args: [any, ...any[]]) => {
-        const output = dump(context, "D", args);
+        dump(context, "D", args);
     }
 };
 

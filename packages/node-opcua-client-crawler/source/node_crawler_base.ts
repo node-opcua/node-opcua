@@ -51,8 +51,7 @@ import {
     Task,
     TaskBase,
     TaskBrowseNode,
-    TaskBrowseNext,
-    EmptyCallback,
+     EmptyCallback,
     TaskCrawl,
     TaskProcessBrowseResponse,
     dedup_reference

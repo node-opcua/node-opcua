@@ -7,7 +7,6 @@ import { assert } from "node-opcua-assert";
 import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
 
 const MAXUINT32 = 4294967295; // 2**32 -1;
-const noAssert = false;
 const performCheck = false;
 
 /**

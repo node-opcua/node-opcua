@@ -7,7 +7,6 @@ import {
     QualifiedName,
     QualifiedNameOptions,
     coerceQualifiedName,
-    stringToQualifiedName
 } from "node-opcua-data-model";
 
 import { ContentFilter, ContentFilterElement, ContentFilterOptions, EventFilter, SimpleAttributeOperand } from "./imports";

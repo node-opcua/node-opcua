@@ -89,7 +89,7 @@ export function getChildInTypeOrBaseType(
 export function promoteToMandatory(node: UAObjectType | UAVariableType, propertyName: string, namespaceIndex: number): UAConcrete {
     // get base node
 
-    const { propInSuperType, reference } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
+    const { propInSuperType } = getChildInTypeOrBaseType(node, propertyName, namespaceIndex);
 
     // check mandatory
     /* istanbul ignore next */

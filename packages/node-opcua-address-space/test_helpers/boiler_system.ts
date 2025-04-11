@@ -256,7 +256,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
     hotFlowTo.isSubtypeOf(addressSpace.findReferenceType("FlowTo", namespace.index)!);
 
     const NonHierarchicalReferences = addressSpace.findReferenceType("NonHierarchicalReferences");
-
+    NonHierarchicalReferences;
     // --------------------------------------------------------
     // EventTypes
     // --------------------------------------------------------
@@ -264,6 +264,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         browseName: "BoilerHaltedEventType",
         subtypeOf: "TransitionEventType"
     }) as BoilerHaltedEventType;
+    boilerHaltedEventType;
 
     // --------------------------------------------------------
     // CustomControllerType
@@ -280,6 +281,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
+    input1;
 
     const input2: UAVariable = namespace.addVariable({
         browseName: "Input2",
@@ -287,6 +289,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
+    input2;
 
     const input3: UAVariable = namespace.addVariable({
         browseName: "Input3",
@@ -294,6 +297,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
+    input3;
 
     const controlOut: UAVariable = namespace.addVariable({
         browseName: "ControlOut",
@@ -301,6 +305,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
+    controlOut;
 
     const description: UAVariable = namespace.addVariable({
         browseName: "Description",
@@ -308,6 +313,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         modellingRule: "Mandatory",
         propertyOf: customControllerType
     });
+    description;
 
     // --------------------------------------------------------
     // GenericSensorType
@@ -513,6 +519,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as CustomController;
+    customController;
 
     // BoilerType.FlowController (FlowController)
     const flowController = flowControllerType.instantiate({
@@ -520,6 +527,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as FlowController;
+    flowController;
 
     // BoilerType.LevelController (LevelControllerType)
     const levelController = levelControllerType.instantiate({
@@ -527,6 +535,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         componentOf: boilerType,
         modellingRule: "Mandatory"
     }) as LevelController;
+    levelController;
 
     // BoilerType.LevelIndicator (BoilerInputPipeType)
     const inputPipe = boilerInputPipeType.instantiate({
@@ -563,6 +572,7 @@ export function createBoilerType(namespace: Namespace): BoilerType {
         eventSourceOf: boilerType,
         modellingRule: "Mandatory"
     }) as BoilerStateMachine;
+    simulation;
 
     addRelation(inputPipe, flowTo, boilerDrum);
     addRelation(boilerDrum, hotFlowTo, outputPipe);

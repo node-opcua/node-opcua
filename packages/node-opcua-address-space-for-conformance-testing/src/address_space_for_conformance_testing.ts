@@ -136,7 +136,6 @@ function _add_variable(
     arrayDimensions: number[] | null,
     extra_name: string
 ): UAVariable {
-    const addressSpace = namespace.addressSpace;
     assert(typeof extra_name === "string");
 
     const arrayType = valueRank <= 0 ? VariantArrayType.Scalar : valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix;
@@ -517,6 +516,7 @@ async function add_static_variables(namespace: Namespace, scalarFolder: UAObject
 
         imageNode.bindVariable(options, /*overwrite=*/ true);
     }
+    setImage2;
 
     async function setImage(imageType: string, filename: string): Promise<void> {
         const fullPath = path.join(__dirname, "../data", filename);
@@ -727,16 +727,19 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             componentOf: has3ForwardReferences1,
             dataType: "UInt32"
         });
+        referenceNode1;
         const referenceNode2 = namespace.addVariable({
             browseName: "ReferenceNode2",
             componentOf: has3ForwardReferences1,
             dataType: "UInt32"
         });
+        referenceNode2;
         const referenceNode3 = namespace.addVariable({
             browseName: "ReferenceNode3",
             componentOf: has3ForwardReferences1,
             dataType: "UInt32"
         });
+        referenceNode3;
     })();
 
     (() => {
@@ -746,21 +749,23 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             componentOf: referenceFolder,
             typeDefinition: "FolderType"
         });
+        has3ForwardReferences2;
         const baseDataVariable = namespace.addVariable({
             browseName: "BaseDataVariable",
             componentOf: has3ForwardReferences2,
             dataType: "UInt32"
         });
-        const method1 = namespace.addMethod(has3ForwardReferences2, {
+        baseDataVariable;
+        namespace.addMethod(has3ForwardReferences2, {
             browseName: "Method1"
         });
-        const method2 = namespace.addMethod(has3ForwardReferences2, {
+        namespace.addMethod(has3ForwardReferences2, {
             browseName: "Method2"
         });
-        const method3 = namespace.addMethod(has3ForwardReferences2, {
+        namespace.addMethod(has3ForwardReferences2, {
             browseName: "Method3"
         });
-        const property = namespace.addVariable({
+        namespace.addVariable({
             browseName: "Property",
             propertyOf: has3ForwardReferences2,
             dataType: "UInt32"
@@ -806,17 +811,17 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             componentOf: referenceFolder,
             typeDefinition: "FolderType"
         });
-        const prop1 = namespace.addVariable({
+        namespace.addVariable({
             browseName: "ReferenceNode1",
             propertyOf: has3ForwardReferences4,
             dataType: "UInt32"
         });
-        const prop2 = namespace.addVariable({
+        namespace.addVariable({
             browseName: "ReferenceNode2",
             propertyOf: has3ForwardReferences4,
             dataType: "UInt32"
         });
-        const prop3 = namespace.addVariable({
+        namespace.addVariable({
             browseName: "ReferenceNode3",
             propertyOf: has3ForwardReferences4,
             dataType: "UInt32"
@@ -838,7 +843,7 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
             propertyOf: has3ForwardReferences5,
             dataType: "UInt32"
         });
-        const method3 = namespace.addMethod(has3ForwardReferences5, {
+        namespace.addMethod(has3ForwardReferences5, {
             browseName: "ReferenceNode3"
         });
     })();
@@ -865,6 +870,7 @@ function add_node_with_references(namespace: Namespace, simulation_folder: UAObj
         componentOf: referenceFolder,
         typeDefinition: "FolderType"
     });
+    hasReferencesWithDifferentParentTypes;
     (() => {
         const hasReferencesOfAReferenceTypeAndSubType = namespace.addObject({
             browseName: "HasReferencesOfAReferenceTypeAndSubType",
@@ -1169,6 +1175,7 @@ function add_multi_state_discrete_variable(namespace: Namespace, parentFolder: U
         enumStrings: ["Red", "Orange", "Green"],
         value: 1 // Orange
     });
+    multiStateDiscrete001;
 
     // MultiStateDiscrete002
     namespace.addMultiStateDiscrete({
@@ -1224,7 +1231,7 @@ function add_multi_state_value_discrete_variables(namespaceDemo: Namespace, pare
         const name = dataType + "MultiStateValueDiscrete";
         const nodeId = "s=" + name;
 
-        const prop = namespaceDemo.addMultiStateValueDiscrete({
+        namespaceDemo.addMultiStateValueDiscrete({
             organizedBy: parentFolder,
             browseName: name,
             nodeId,
@@ -1444,8 +1451,10 @@ function add_trigger_nodes(namespace: Namespace, parentFolder: UAObject): void {
         organizedBy: parentFolder
     });
     const triggerNode01 = _add_trigger_node(sampleTriggerNode, "TriggerNode01", "s=TriggerNode01");
+    triggerNode01;
 
     const triggerNode02 = _add_trigger_node(sampleTriggerNode, "TriggerNode02", "s=TriggerNode02");
+    triggerNode02;
 }
 
 function add_sampleView(namespace: Namespace): void {
@@ -1470,6 +1479,7 @@ function add_sampleView(namespace: Namespace): void {
         browseName: "OtherSampleView",
         nodeId: "s=OtherSampleView"
     });
+    view2;
 }
 
 export async function build_address_space_for_conformance_testing(addressSpace: AddressSpace, options: any): Promise<void> {

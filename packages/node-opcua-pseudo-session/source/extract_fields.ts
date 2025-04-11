@@ -42,10 +42,6 @@ export async function extractFields(
         }
     }
 
-    interface S {
-        browseName: QualifiedName;
-        nodeToBrowse: BrowseDescriptionOptions;
-    }
     interface IStackElement {
         parent: QualifiedName[];
         nodeId: NodeId;

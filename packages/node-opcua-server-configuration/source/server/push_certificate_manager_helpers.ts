@@ -36,6 +36,7 @@ import { installCertificateFileWatcher } from "./install_certificate_file_watche
 
 const debugLog = make_debugLog("ServerConfiguration");
 const doDebug = checkDebugFlag("ServerConfiguration");
+doDebug;
 const warningLog = make_warningLog("ServerConfiguration");
 const errorLog = debugLog;
 
@@ -343,6 +344,7 @@ function setNotifierOfChain(childObject: UAObject | null) {
             nodeId: parentObject.nodeId,
             isForward: false
         });
+        notifierOfNode;
     }
     parentObject.setEventNotifier(parentObject.eventNotifier | EventNotifierFlags.SubscribeToEvents);
     if (parentObject.nodeId.namespace === 0 && parentObject.nodeId.value === ObjectIds.Server) {

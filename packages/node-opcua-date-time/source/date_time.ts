@@ -84,7 +84,7 @@ export function bn_dateToHundredNanoSecondFrom1601(date: Date, picoseconds: numb
 
     const high_low = [a.getHighBits(), a.getLowBits()];
     const picoseconds2 = excess100nanosecond * 10000 + +picoseconds;
-
+    picoseconds2;
     return high_low;
 }
 

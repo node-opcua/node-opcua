@@ -13,7 +13,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { DataType } from "node-opcua-variant";
 import { TableHelper } from "./tableHelper";
 
-const a = "ⓂⓄⓋⓥⓇ❗⟵	⟶⟷";
+
 function symbol(nodeClass: NodeClass) {
     switch (nodeClass) {
         case NodeClass.DataType:
