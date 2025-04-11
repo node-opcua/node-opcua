@@ -2,7 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { Int16, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 import { DTEntity } from "./dt_entity"
 /**
  * This structure provides the meta data which

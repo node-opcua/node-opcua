@@ -2,10 +2,10 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt16 } from "node-opcua-basic-types"
-import { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/source/ua_analog_unit_range"
-import { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_value_discrete"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UAAnalogUnitRange, UAAnalogUnitRange_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
+import { UAMultiStateValueDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_value_discrete"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 /**
  * Define the desired value of the Variable it
  * belongs to.

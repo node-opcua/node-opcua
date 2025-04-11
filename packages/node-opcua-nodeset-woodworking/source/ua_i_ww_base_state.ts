@@ -1,12 +1,10 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UInt64, UInt32, UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/source/ua_base_analog"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/source/ua_base_interface"
+import { DataType } from "node-opcua-variant"
+import { UInt64, UInt32 } from "node-opcua-basic-types"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
+import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
 import { EnumWwUnitMode } from "./enum_ww_unit_mode"
 import { EnumWwUnitState } from "./enum_ww_unit_state"
 export interface UAIWwBaseState_flags extends UAObject { // Object

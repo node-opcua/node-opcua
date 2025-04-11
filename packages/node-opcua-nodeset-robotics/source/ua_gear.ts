@@ -3,10 +3,10 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
-import { DTRationalNumber } from "node-opcua-nodeset-ua/source/dt_rational_number"
-import { UARationalNumber } from "node-opcua-nodeset-ua/source/ua_rational_number"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { DTRationalNumber } from "node-opcua-nodeset-ua/dist/dt_rational_number"
+import { UARationalNumber } from "node-opcua-nodeset-ua/dist/ua_rational_number"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 /**
  * The GearType describes a gear in a powertrain,
  * e.g. a gear box or a spindle.

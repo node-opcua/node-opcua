@@ -1,13 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
+import { DataType } from "node-opcua-variant"
 import { UInt32, UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_discrete"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/source/ua_topology_element"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
+import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
 export interface UAIOLinkMaster_capabilities extends UAFunctionalGroup { // Object
       maxNumberOfPorts: UABaseDataVariable<Byte, DataType.Byte>;
       maxPowerSupply: UABaseDataVariable<number, DataType.Double>;

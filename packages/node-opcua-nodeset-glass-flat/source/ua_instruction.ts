@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UAFile } from "node-opcua-nodeset-ua/source/ua_file"
+import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
 import { DTFileFormat } from "./dt_file_format"
 /**
  * |                |                                                            |

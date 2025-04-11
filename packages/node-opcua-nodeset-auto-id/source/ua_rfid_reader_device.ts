@@ -1,11 +1,10 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UInt32, Int32, UInt16, SByte } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_discrete"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
+import { UInt32, Int32, SByte } from "node-opcua-basic-types"
+import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { DTAntennaNameIdPair } from "./dt_antenna_name_id_pair"
 import { UAAutoIdDevice_diagnostics, UAAutoIdDevice_runtimeParameters, UAAutoIdDevice, UAAutoIdDevice_Base } from "./ua_auto_id_device"
 export interface UARfidReaderDevice_diagnostics extends UAAutoIdDevice_diagnostics { // Object

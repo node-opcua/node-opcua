@@ -1,10 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/source/ua_analog_unit_range"
+import { DataType } from "node-opcua-variant"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
 import { EnumChannelMode } from "./enum_channel_mode"
 import { EnumChannelState } from "./enum_channel_state"
 import { UAElementMonitoring, UAElementMonitoring_Base } from "./ua_element_monitoring"

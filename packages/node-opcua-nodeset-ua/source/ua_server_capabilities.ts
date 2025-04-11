@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
 import { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate"

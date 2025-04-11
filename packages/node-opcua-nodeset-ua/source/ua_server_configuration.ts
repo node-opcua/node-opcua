@@ -1,12 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
 import { UInt32, UAString } from "node-opcua-basic-types"
 import { EnumApplication } from "./enum_application"
-import { DTArgument } from "./dt_argument"
-import { DTTransactionError } from "./dt_transaction_error"
 import { UACertificateGroupFolder } from "./ua_certificate_group_folder"
 import { UATransactionDiagnostics } from "./ua_transaction_diagnostics"
 /**

@@ -5,7 +5,7 @@ import { LocalizedText } from "node-opcua-data-model"
 import { UInt32 } from "node-opcua-basic-types"
 import { DTUserManagement } from "./dt_user_management"
 import { DTRange } from "./dt_range"
-import { DTArgument } from "./dt_argument"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

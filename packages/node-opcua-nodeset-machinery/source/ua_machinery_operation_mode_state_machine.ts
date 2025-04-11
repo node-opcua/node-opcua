@@ -2,10 +2,9 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
 /**
  * State machine representing the operation mode of
  * a MachineryItem

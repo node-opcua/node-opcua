@@ -1,12 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
+import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

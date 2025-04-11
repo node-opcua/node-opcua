@@ -1,10 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/source/ua_analog_unit_range"
-import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "node-opcua-nodeset-padim/source/ua_analog_signal_variable"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
+import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "node-opcua-nodeset-padim/dist/ua_analog_signal_variable"
 /**
  * Provides a process value and additional meta data
  *

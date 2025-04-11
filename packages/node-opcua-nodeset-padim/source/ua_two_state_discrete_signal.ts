@@ -1,6 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
 import { UASignal, UASignal_Base } from "./ua_signal"
 import { UATwoStateDiscreteSignalVariable } from "./ua_two_state_discrete_signal_variable"
 /**

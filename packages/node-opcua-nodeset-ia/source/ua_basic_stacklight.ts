@@ -1,11 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/source/ua_ordered_list"
-import { EnumLevelDisplayMode } from "./enum_level_display_mode"
+import { DataType } from "node-opcua-variant"
+import { UAOrderedList, UAOrderedList_Base } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
 import { EnumStacklightOperationMode } from "./enum_stacklight_operation_mode"
 import { UAStackLevel } from "./ua_stack_level"
 import { UAStackRunning } from "./ua_stack_running"

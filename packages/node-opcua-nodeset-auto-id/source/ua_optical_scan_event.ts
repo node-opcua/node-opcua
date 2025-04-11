@@ -1,7 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { DTScanResult } from "./dt_scan_result"
 import { DTOpticalScanResult } from "./dt_optical_scan_result"
 import { UAAutoIdScanEvent, UAAutoIdScanEvent_Base } from "./ua_auto_id_scan_event"
 /**

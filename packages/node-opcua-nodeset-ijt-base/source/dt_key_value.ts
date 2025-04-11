@@ -2,7 +2,7 @@
 import { VariantOptions } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
  * This structure is similar to 0:KeyValuePair which
  * uses 0:TrimmedString instead of 0:QualifiedName.

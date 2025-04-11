@@ -1,11 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
+import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UAAnalogUnit, UAAnalogUnit_Base } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 /**
  * Remaining lifetime
  *

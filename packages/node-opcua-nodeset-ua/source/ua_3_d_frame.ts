@@ -1,9 +1,6 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
 import { DT3DFrame } from "./dt_3_d_frame"
-import { DTCartesianCoordinates } from "./dt_cartesian_coordinates"
 import { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates"
-import { DTOrientation } from "./dt_orientation"
 import { DT3DOrientation } from "./dt_3_d_orientation"
 import { UAFrame, UAFrame_Base } from "./ua_frame"
 import { UA3DCartesianCoordinates } from "./ua_3_d_cartesian_coordinates"

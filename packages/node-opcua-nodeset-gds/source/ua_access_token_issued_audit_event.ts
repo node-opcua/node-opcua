@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-opcua-nodeset-ua/source/ua_audit_update_method_event"
+import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-opcua-nodeset-ua/dist/ua_audit_update_method_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

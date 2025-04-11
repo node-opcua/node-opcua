@@ -1,14 +1,11 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
+import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
-import { UInt32 } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UAPackMLMachineStateMachine } from "./ua_pack_ml_machine_state_machine"
 /**
  * |                |                                                            |

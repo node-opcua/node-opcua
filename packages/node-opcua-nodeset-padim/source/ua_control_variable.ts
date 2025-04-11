@@ -1,8 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/source/ua_base_analog"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_dictionary_entry_discrete"
+import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
+import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
 import { UAAnalogSignalVariable, UAAnalogSignalVariable_Base } from "./ua_analog_signal_variable"
 /**
  * |                |                                                            |

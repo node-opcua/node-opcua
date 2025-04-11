@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 /**
  * The PowerTrainType represents instances of
  * powertrains of a motion device.

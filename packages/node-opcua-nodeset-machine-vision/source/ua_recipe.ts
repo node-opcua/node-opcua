@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UAFile } from "node-opcua-nodeset-ua/source/ua_file"
+import { UAFile } from "node-opcua-nodeset-ua/dist/ua_file"
 import { DTRecipeIdExternal } from "./dt_recipe_id_external"
 import { DTRecipeIdInternal } from "./dt_recipe_id_internal"
 import { DTProductId } from "./dt_product_id"

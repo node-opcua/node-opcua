@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UASystemConditionClass, UASystemConditionClass_Base } from "node-opcua-nodeset-ua/source/ua_system_condition_class"
+import { UASystemConditionClass, UASystemConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_system_condition_class"
 /**
  * Out of resources issues
  *

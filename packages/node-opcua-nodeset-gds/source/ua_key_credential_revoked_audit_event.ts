@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-opcua-nodeset-ua/source/ua_key_credential_audit_event"
+import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-opcua-nodeset-ua/dist/ua_key_credential_audit_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

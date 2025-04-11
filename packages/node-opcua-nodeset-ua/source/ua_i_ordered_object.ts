@@ -1,6 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 /**
  * |                |                                                            |

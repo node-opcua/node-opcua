@@ -2,7 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { Int64, Int32, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 import { DTProcessingTimes } from "./dt_processing_times"
 import { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum"
 /**

@@ -1,14 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { StatusCode } from "node-opcua-status-code"
-import { Int64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/source/ua_acknowledgeable_condition"
-import { DTEntity } from "./dt_entity"
-import { DTReportedValue } from "./dt_reported_value"
+import { UAAcknowledgeableCondition, UAAcknowledgeableCondition_Base } from "node-opcua-nodeset-ua/dist/ua_acknowledgeable_condition"
 import { UAJoiningSystemEventContent } from "./ua_joining_system_event_content"
 /**
  * The JoiningSystemConditionType is used to send

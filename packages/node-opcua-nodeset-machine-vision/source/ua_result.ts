@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { Int32 } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { DTResult } from "./dt_result"
 import { DTConfigurationId } from "./dt_configuration_id"
 import { DTRecipeIdExternal } from "./dt_recipe_id_external"

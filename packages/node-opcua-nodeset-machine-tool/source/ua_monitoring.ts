@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { UABasicStacklight } from "node-opcua-nodeset-ia/source/ua_basic_stacklight"
+import { UABasicStacklight } from "node-opcua-nodeset-ia/dist/ua_basic_stacklight"
 import { UAMachineOperationMonitoring } from "./ua_machine_operation_monitoring"
 /**
  * |                |                                                            |

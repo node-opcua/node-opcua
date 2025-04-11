@@ -1,8 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { DTArgument } from "./dt_argument"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

@@ -2,8 +2,8 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { UInt32 } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
-import { DTRelativePath } from "node-opcua-nodeset-ua/source/dt_relative_path"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+import { DTRelativePath } from "node-opcua-nodeset-ua/dist/dt_relative_path"
 /**
  * Defines the information needed to schedule and
  * execute a job.

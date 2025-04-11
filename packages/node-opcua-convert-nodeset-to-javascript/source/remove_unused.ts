@@ -17,14 +17,13 @@ function fixFile(file: SourceFile) {
 
         // If none are used, remove whole import
         if (usedNamedImports.length === 0) {
-            console.log("removing wholee import", importDecl.getFullText());
+            console.log("removing wholee import", importDecl.getText());
             importDecl.remove();
         } else if (usedNamedImports.length < namedImports.length) {
             // Remove only unused named imports
             namedImports.forEach(named => {
                 if (!usedNamedImports.includes(named)) {
-
-                    console.log("removing name in import ", named);
+                    console.log("removing name in import ", named.getText());
                     named.remove();
                 }
             });
@@ -42,18 +41,15 @@ function fixFile(file: SourceFile) {
 
             if (!isUsed) {
                 console.log("removing unused variable=", name );
-                if (!dryRun)
-                    declaration.remove();
+                declaration.remove();
             }
         });
 
         try {
             // If no declarations left in this statement, remove the whole statement
             if (variableStatement.getDeclarations().length === 0) {
-               //  console.log(variableStatement);
-                if (!dryRun) {
-                    variableStatement.remove();
-                }
+                console.log("removing variable statement:", variableStatement.getText());
+                variableStatement.remove();
             }
         } catch (err) {
             console.log((err as Error).message);
@@ -77,7 +73,7 @@ export async function cleanUpTypescriptModule(moduleFolder: string) {
 
     const dirFiles = await fs.promises.readdir(sourceFolder);
     for (let f of dirFiles) {
-        console.log("f= ", f);
+        console.log("processing file: ", f);
         const fullPath = path.join(sourceFolder, f);
         const sourceFile = project.getSourceFileOrThrow(fullPath);
         fixFile(sourceFile);

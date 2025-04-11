@@ -1,8 +1,8 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { Int64, Int32, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { DTProcessingTimes } from "./dt_processing_times"
 import { EnumResultEvaluationEnum } from "./enum_result_evaluation_enum"
 import { DTResult } from "./dt_result"
