@@ -261,6 +261,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 }
+import { cleanUpTypescriptModule } from "./remove_unused";
+function _tidyUpImports(folder: string) {
+    cleanUpTypescriptModule(folder);
+}
 async function outputFiles(infos: { [key: string]: Info }, options: Options) {
     const values = Object.values(infos) as Info[];
     if (values.length < 1) {
@@ -276,5 +280,8 @@ async function outputFiles(infos: { [key: string]: Info }, options: Options) {
         await _output_tsconfig_json(info, options);
 
         await _output_licence(info, options);
+
+
+        await _tidyUpImports(info.folder);
     }
 }
