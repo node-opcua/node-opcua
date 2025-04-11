@@ -1,7 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
 import { UInt64, UAString } from "node-opcua-basic-types"
 import { EnumInterfaceAdminStatus } from "./enum_interface_admin_status"
 import { EnumInterfaceOperStatus } from "./enum_interface_oper_status"

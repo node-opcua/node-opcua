@@ -1,6 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
 import { DTSessionDiagnostics } from "./dt_session_diagnostics"
 import { UASessionDiagnosticsArray } from "./ua_session_diagnostics_array"
 import { DTSessionSecurityDiagnostics } from "./dt_session_security_diagnostics"

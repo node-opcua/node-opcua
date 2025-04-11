@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 import { DTISA95JobOrder } from "./dt_isa_95_job_order"
 import { DTISA95State } from "./dt_isa_95_state"
 /**

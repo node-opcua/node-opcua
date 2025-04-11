@@ -2,7 +2,7 @@
 import { EUInformation } from "node-opcua-data-access"
 import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
  * This structure contains the Calibration
  * information. It is used as an input argument in

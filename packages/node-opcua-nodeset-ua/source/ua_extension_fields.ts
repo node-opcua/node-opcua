@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

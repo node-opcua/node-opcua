@@ -1,8 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { UABaseAnalog } from "node-opcua-nodeset-ua/source/ua_base_analog"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { UABaseAnalog } from "node-opcua-nodeset-ua/dist/ua_base_analog"
 import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
 export interface UATocSignal_signalConditionSet extends UAObject { // Object
       absoluteSampleGasPressure?: UAAnalogUnit<number, DataType.Float>;

@@ -2,7 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 import { DTISA95Parameter } from "./dt_isa_95_parameter"
 /**
  * Defines a Work Master ID and the defined

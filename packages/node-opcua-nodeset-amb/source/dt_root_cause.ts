@@ -2,7 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
  * Root cause of an alarm
  *

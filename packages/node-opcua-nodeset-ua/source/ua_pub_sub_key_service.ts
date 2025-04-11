@@ -1,7 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTArgument } from "./dt_argument"
 import { UASecurityGroupFolder } from "./ua_security_group_folder"
 import { UAPubSubKeyPushTargetFolder } from "./ua_pub_sub_key_push_target_folder"
 /**

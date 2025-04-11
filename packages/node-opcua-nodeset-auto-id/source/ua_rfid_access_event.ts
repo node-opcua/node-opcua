@@ -1,7 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { DTAccessResult } from "./dt_access_result"
 import { DTRfidAccessResult } from "./dt_rfid_access_result"
 import { UAAutoIdAccessEvent, UAAutoIdAccessEvent_Base } from "./ua_auto_id_access_event"
 /**

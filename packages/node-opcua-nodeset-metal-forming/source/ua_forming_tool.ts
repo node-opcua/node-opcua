@@ -2,8 +2,8 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt16, UAString } from "node-opcua-basic-types"
-import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/source/ua_analog_unit_range"
-import { UABaseTool_location, UABaseTool, UABaseTool_Base } from "node-opcua-nodeset-machine-tool/source/ua_base_tool"
+import { UAAnalogUnitRange } from "node-opcua-nodeset-ua/dist/ua_analog_unit_range"
+import { UABaseTool_location, UABaseTool, UABaseTool_Base } from "node-opcua-nodeset-machine-tool/dist/ua_base_tool"
 export interface UAFormingTool_location extends UABaseTool_location { // Object
       name: UAProperty<UAString, DataType.String>;
       orientation?: UAProperty<UAString, DataType.String>;

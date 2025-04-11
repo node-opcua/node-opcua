@@ -3,7 +3,7 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UABaseMaterial } from "./ua_base_material"
 import { UAProductionJob, UAProductionJob_Base } from "./ua_production_job"
 export interface UAProcessingJob_$InputMaterial$ extends Omit<UABaseMaterial, "$description"|"identifier"|"location"|"materialIdentifier"|"weight"|"x"|"y"|"z"> { // Object

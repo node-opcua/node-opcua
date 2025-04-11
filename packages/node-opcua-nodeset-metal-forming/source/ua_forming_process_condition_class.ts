@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcua-nodeset-ua/source/ua_process_condition_class"
+import { UAProcessConditionClass, UAProcessConditionClass_Base } from "node-opcua-nodeset-ua/dist/ua_process_condition_class"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

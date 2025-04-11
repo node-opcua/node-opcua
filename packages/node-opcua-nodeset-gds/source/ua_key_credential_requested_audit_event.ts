@@ -1,8 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { NodeId } from "node-opcua-nodeid"
-import { UAString } from "node-opcua-basic-types"
-import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-opcua-nodeset-ua/source/ua_key_credential_audit_event"
+import { UAKeyCredentialAuditEvent, UAKeyCredentialAuditEvent_Base } from "node-opcua-nodeset-ua/dist/ua_key_credential_audit_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

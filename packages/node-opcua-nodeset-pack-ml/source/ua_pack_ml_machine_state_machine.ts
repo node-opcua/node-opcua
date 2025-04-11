@@ -2,10 +2,10 @@
 import { UAMethod } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
 import { UAPackMLExecuteStateMachine } from "./ua_pack_ml_execute_state_machine"
 /**
  * |                |                                                            |

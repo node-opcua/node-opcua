@@ -2,7 +2,7 @@
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
+
 /**
  * The JoiningSystemAssetMethodSetType provides a
  * set of methods for various assets in a joining

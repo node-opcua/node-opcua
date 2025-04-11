@@ -1,25 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { EUInformation } from "node-opcua-data-access"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32, Int32, UInt16, UAString } from "node-opcua-basic-types"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { DT3DFrame } from "node-opcua-nodeset-ua/source/dt_3_d_frame"
-import { DTFrame } from "node-opcua-nodeset-ua/source/dt_frame"
-import { DTCartesianCoordinates } from "node-opcua-nodeset-ua/source/dt_cartesian_coordinates"
-import { DTOrientation } from "node-opcua-nodeset-ua/source/dt_orientation"
-import { DT3DCartesianCoordinates } from "node-opcua-nodeset-ua/source/dt_3_d_cartesian_coordinates"
-import { DT3DOrientation } from "node-opcua-nodeset-ua/source/dt_3_d_orientation"
-import { DT3DVector } from "node-opcua-nodeset-ua/source/dt_3_d_vector"
-import { DTVector } from "node-opcua-nodeset-ua/source/dt_vector"
-import { DTRationalNumber } from "node-opcua-nodeset-ua/source/dt_rational_number"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
-import { EnumMotionDeviceCategory } from "./enum_motion_device_category"
-import { EnumAxisMotionProfile } from "./enum_axis_motion_profile"
-import { EnumExecutionMode } from "./enum_execution_mode"
-import { EnumOperationalMode } from "./enum_operational_mode"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
+
 /**
  * Contains the set of controllers and motion
  * devices in a closely-coupled motion device system.

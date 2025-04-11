@@ -2,7 +2,6 @@
 import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { DTPublishedVariable } from "./dt_published_variable"
-import { DTArgument } from "./dt_argument"
 import { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set"
 /**
  * |                |                                                            |

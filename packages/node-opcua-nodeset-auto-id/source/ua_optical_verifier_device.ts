@@ -1,7 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
 import { UAOpticalReaderDevice, UAOpticalReaderDevice_Base } from "./ua_optical_reader_device"
 /**
  * |                |                                                            |

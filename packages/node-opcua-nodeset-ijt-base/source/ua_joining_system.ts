@@ -1,11 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { UAString } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set"
 import { UAJoiningSystemIdentification } from "./ua_joining_system_identification"
 import { UAJoiningSystemResultManagement } from "./ua_joining_system_result_management"

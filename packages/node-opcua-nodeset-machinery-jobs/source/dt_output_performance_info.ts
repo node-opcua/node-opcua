@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
-import { DTISA95Parameter } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/source/dt_isa_95_parameter"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
+import { DTISA95Parameter } from "node-opcua-nodeset-isa-95-jobcontrol-v-2/dist/dt_isa_95_parameter"
 import { DTOutputInformation } from "./dt_output_information"
 /**
  * |           |                                                            |

@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_dictionary_entry_discrete"
+import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
 import { UAMultiStateDiscreteSignalVariable, UAMultiStateDiscreteSignalVariable_Base } from "./ua_multi_state_discrete_signal_variable"
 /**
  * |                |                                                            |

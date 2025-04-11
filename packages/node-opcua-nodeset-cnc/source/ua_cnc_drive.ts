@@ -3,9 +3,9 @@ import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
 import { NodeId } from "node-opcua-nodeid"
-import { UAAnalogItem } from "node-opcua-nodeset-ua/source/ua_analog_item"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
-import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
+import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
+import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
+import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
 import { UACncComponent, UACncComponent_Base } from "./ua_cnc_component"
 export interface UACncDrive_actLoad<T, DT extends DataType> extends Omit<UAAnalogItem<T, DT>, "engineeringUnits"|"euRange"> { // Variable
       engineeringUnits: UAProperty<EUInformation, DataType.ExtensionObject>;

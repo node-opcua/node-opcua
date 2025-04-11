@@ -2,10 +2,10 @@
 import { UAObject, UAMethod } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
-import { UADataItem } from "node-opcua-nodeset-ua/source/ua_data_item"
-import { EnumDeviceHealth } from "node-opcua-nodeset-di/source/enum_device_health"
-import { UAFunctionalGroup } from "node-opcua-nodeset-di/source/ua_functional_group"
-import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/source/ua_topology_element"
+import { UADataItem } from "node-opcua-nodeset-ua/dist/ua_data_item"
+import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
+import { UATopologyElement, UATopologyElement_Base } from "node-opcua-nodeset-di/dist/ua_topology_element"
 import { UAAnalyserChannelStateMachine } from "./ua_analyser_channel_state_machine"
 export interface UAAnalyserChannel_parameterSet extends UAObject { // Object
       /**

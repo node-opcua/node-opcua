@@ -1,11 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt16, UAString } from "node-opcua-basic-types"
-import { DTTimeZone } from "node-opcua-nodeset-ua/source/dt_time_zone"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_base_event"
+import { DataType } from "node-opcua-variant"
+import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
 import { DTISA95JobOrder } from "./dt_isa_95_job_order"
 import { DTISA95JobResponse } from "./dt_isa_95_job_response"
 import { DTISA95State } from "./dt_isa_95_state"

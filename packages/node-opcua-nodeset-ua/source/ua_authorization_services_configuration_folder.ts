@@ -1,6 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
  * |                |                                                            |

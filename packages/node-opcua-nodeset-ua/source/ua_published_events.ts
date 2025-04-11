@@ -4,7 +4,6 @@ import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
 import { DTSimpleAttributeOperand } from "./dt_simple_attribute_operand"
 import { DTContentFilter } from "./dt_content_filter"
-import { DTArgument } from "./dt_argument"
 import { UAPublishedDataSet, UAPublishedDataSet_Base } from "./ua_published_data_set"
 /**
  * |                |                                                            |

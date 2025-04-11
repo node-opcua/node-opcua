@@ -1,7 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAString } from "node-opcua-basic-types"
-import { DTCyclicProcessValue } from "./dt_cyclic_process_value"
 import { UAProcessWorkingUnit, UAProcessWorkingUnit_Base } from "./ua_process_working_unit"
 import { UAFormingPositions } from "./ua_forming_positions"
 /**

@@ -2,7 +2,7 @@
 import { QualifiedName, DiagnosticInfo } from "node-opcua-data-model"
 import { StatusCode } from "node-opcua-status-code"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

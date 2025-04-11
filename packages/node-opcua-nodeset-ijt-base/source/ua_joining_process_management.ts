@@ -2,7 +2,7 @@
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
+
 /**
  * The JoiningProcessManagementType provides access
  * to various joining processes in a joining system.

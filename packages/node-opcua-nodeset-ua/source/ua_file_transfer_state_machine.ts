@@ -1,7 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { UInt32 } from "node-opcua-basic-types"
 import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "./ua_finite_state_machine"
 import { UAInitialState } from "./ua_initial_state"
 import { UAState } from "./ua_state"

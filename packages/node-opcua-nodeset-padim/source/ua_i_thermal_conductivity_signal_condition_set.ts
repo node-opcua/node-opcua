@@ -1,8 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/source/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

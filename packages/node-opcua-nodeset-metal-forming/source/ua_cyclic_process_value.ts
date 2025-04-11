@@ -1,6 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { UAProcessValue, UAProcessValue_Base } from "node-opcua-nodeset-machinery-process-values/source/ua_process_value"
+import { UAProcessValue, UAProcessValue_Base } from "node-opcua-nodeset-machinery-process-values/dist/ua_process_value"
 import { DTCyclicProcessValue } from "./dt_cyclic_process_value"
 import { UACyclicProcessValueVariable } from "./ua_cyclic_process_value_variable"
 /**

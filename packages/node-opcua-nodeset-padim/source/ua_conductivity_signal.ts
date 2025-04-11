@@ -2,8 +2,8 @@
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/source/ua_multi_state_dictionary_entry_discrete"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { UAMultiStateDictionaryEntryDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_dictionary_entry_discrete"
 import { UAAnalogSignal_$SignalCalibrationIdentifier$ } from "./ua_analog_signal"
 import { UAAnalyticalSignal, UAAnalyticalSignal_Base } from "./ua_analytical_signal"
 export interface UAConductivitySignal_$SignalCalibrationIdentifier$ extends UAAnalogSignal_$SignalCalibrationIdentifier$ { // Object

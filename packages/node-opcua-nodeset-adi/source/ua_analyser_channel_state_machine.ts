@@ -1,10 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
-import { UInt32 } from "node-opcua-basic-types"
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UAInitialState } from "node-opcua-nodeset-ua/source/ua_initial_state"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
 import { UAAnalyserChannel_OperatingModeSubStateMachine } from "./ua_analyser_channel_operating_mode_sub_state_machine"
 import { UAAnalyserChannelOperatingState } from "./ua_analyser_channel_operating_state"
 import { UAAnalyserChannelLocalState } from "./ua_analyser_channel_local_state"

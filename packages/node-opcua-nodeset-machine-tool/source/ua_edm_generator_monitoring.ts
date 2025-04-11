@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { EnumEDMGeneratorState } from "./enum_edm_generator_state"
 import { UAWorkingUnitMonitoring, UAWorkingUnitMonitoring_Base } from "./ua_working_unit_monitoring"
 /**

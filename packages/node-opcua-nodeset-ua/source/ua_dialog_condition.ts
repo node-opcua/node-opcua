@@ -3,7 +3,6 @@ import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { Int32 } from "node-opcua-basic-types"
-import { DTArgument } from "./dt_argument"
 import { UACondition, UACondition_Base } from "./ua_condition"
 import { UATwoStateVariable } from "./ua_two_state_variable"
 /**

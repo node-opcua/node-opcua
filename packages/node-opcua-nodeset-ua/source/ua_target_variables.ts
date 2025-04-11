@@ -2,7 +2,6 @@
 import { UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { DTFieldTarget } from "./dt_field_target"
-import { DTArgument } from "./dt_argument"
 import { UASubscribedDataSet, UASubscribedDataSet_Base } from "./ua_subscribed_data_set"
 /**
  * |                |                                                            |

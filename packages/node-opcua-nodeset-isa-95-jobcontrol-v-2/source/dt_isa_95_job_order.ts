@@ -2,7 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { Int16, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 import { DTISA95WorkMaster } from "./dt_isa_95_work_master"
 import { DTISA95Parameter } from "./dt_isa_95_parameter"
 import { DTISA95Personnel } from "./dt_isa_95_personnel"

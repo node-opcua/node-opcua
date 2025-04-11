@@ -1,5 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
 import { UASignal, UASignal_Base } from "./ua_signal"
 import { UADiscreteSignalVariable } from "./ua_discrete_signal_variable"
 /**
