@@ -236,6 +236,7 @@ async function add_method(proxyManager: UAProxyManager, obj: any, reference: Ref
 
 async function add_component(proxyManager: UAProxyManager, obj: any, reference: ReferenceDescription): Promise<void> {
     const name = lowerFirstLetter(reference.browseName.name || "");
+    await proxyManager.getObject(reference.nodeId);
     const childObj = new ObjectExplorer({
         name,
         nodeId: reference.nodeId,
