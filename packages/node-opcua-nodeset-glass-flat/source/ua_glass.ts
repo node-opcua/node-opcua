@@ -1,9 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
 import { UAString } from "node-opcua-basic-types"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { EnumCoatingClass } from "./enum_coating_class"
 import { EnumSignificantSide } from "./enum_significant_side"
 import { EnumStructureAlignment } from "./enum_structure_alignment"

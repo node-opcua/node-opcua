@@ -1,10 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
 import { UInt32 } from "node-opcua-basic-types"
-import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/source/ua_base_interface"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dist/ua_base_interface"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

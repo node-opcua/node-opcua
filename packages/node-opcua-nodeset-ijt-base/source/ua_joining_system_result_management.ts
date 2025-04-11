@@ -1,12 +1,6 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
-import { UInt32 } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
-import { DTResult } from "node-opcua-nodeset-machinery-result/source/dt_result"
-import { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/source/ua_result_management"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+import { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_management"
 /**
  * The JoiningSystemResultManagementType is a
  * subtype of ResultManagementType and provides

@@ -1,9 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UInt64, UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { DTArgument } from "node-opcua-nodeset-ua/source/dt_argument"
-import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/source/ua_folder"
+import { UAString } from "node-opcua-basic-types"
+import { UAFolder, UAFolder_Base } from "node-opcua-nodeset-ua/dist/ua_folder"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

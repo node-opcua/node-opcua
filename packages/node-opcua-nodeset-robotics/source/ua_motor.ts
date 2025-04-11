@@ -3,9 +3,9 @@ import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UInt16, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/source/ua_component"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 export interface UAMotor_parameterSet extends UAObject { // Object
       /**
        * brakeReleased

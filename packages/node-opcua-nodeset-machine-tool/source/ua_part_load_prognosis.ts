@@ -3,7 +3,7 @@ import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UAPrognosis, UAPrognosis_Base } from "./ua_prognosis"
 /**
  * |                |                                                            |

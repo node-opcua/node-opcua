@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { LocalizedText } from "node-opcua-data-model"
 import { Int64, UInt64, UInt32, Int32, UInt16, Int16, Byte, SByte, UAString, Guid } from "node-opcua-basic-types"
-import { DTUnion } from "node-opcua-nodeset-ua/source/dt_union"
+import { DTUnion } from "node-opcua-nodeset-ua/dist/dt_union"
 /**
  * The WwArgumentValueDataType definition defines
  * the possible types of an argument value.

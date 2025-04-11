@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_data_item"
+import { DataType } from "node-opcua-variant"
+import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item"
 /**
  * Expose key results of an analyser and the
  * associated values that qualified it

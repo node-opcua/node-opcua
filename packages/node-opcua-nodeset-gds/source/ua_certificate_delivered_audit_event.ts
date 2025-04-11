@@ -2,7 +2,7 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { NodeId } from "node-opcua-nodeid"
-import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-opcua-nodeset-ua/source/ua_audit_update_method_event"
+import { UAAuditUpdateMethodEvent, UAAuditUpdateMethodEvent_Base } from "node-opcua-nodeset-ua/dist/ua_audit_update_method_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

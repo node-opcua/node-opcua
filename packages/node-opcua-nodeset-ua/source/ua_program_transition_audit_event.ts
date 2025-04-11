@@ -1,7 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
-import { NodeId } from "node-opcua-nodeid"
 import { UAAuditUpdateStateEvent, UAAuditUpdateStateEvent_Base } from "./ua_audit_update_state_event"
 import { UAFiniteTransitionVariable } from "./ua_finite_transition_variable"
 /**

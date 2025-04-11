@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_base_event"
+import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
 import { DTJobId } from "./dt_job_id"
 /**
  * |                |                                                            |

@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { DTAxisInformation } from "./dt_axis_information"
 import { UAArrayItem, UAArrayItem_Base } from "./ua_array_item"
 /**

@@ -2,7 +2,7 @@
 import { LocalizedText } from "node-opcua-data-model"
 import { Byte, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "node-opcua-nodeset-ua/source/dt_structure"
+import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
  * This structure represents the errors occurred in
  * the system which are outside the boundaries of

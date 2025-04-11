@@ -1,5 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { UADataType } from "node-opcua-address-space-base"
 import { ExtensionObject } from "node-opcua-extension-object"
 /**
  * |           |                                                            |

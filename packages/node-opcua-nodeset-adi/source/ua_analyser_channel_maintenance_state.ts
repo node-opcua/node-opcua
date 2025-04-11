@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAState, UAState_Base } from "node-opcua-nodeset-ua/source/ua_state"
+import { UAState, UAState_Base } from "node-opcua-nodeset-ua/dist/ua_state"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

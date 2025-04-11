@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UInt32, UInt16 } from "node-opcua-basic-types"
+import { UInt32 } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 import { UAAlarmRateVariable } from "./ua_alarm_rate_variable"
 /**

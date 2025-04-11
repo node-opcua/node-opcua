@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
 import { UASelectionList } from "./ua_selection_list"
 import { DTKeyValuePair } from "./dt_key_value_pair"

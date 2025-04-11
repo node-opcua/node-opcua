@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UAPADIM_deviceConditionSet } from "./ua_padim"
 import { UAProcessAnalyser, UAProcessAnalyser_Base } from "./ua_process_analyser"
 export interface UATocAnalyser_deviceConditionSet extends UAPADIM_deviceConditionSet { // Object

@@ -1,10 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { DataType } from "node-opcua-variant"
-import { LocalizedText } from "node-opcua-data-model"
 import { Int64, Byte, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/source/ua_machinery_item_identification"
-import { DTSignal } from "./dt_signal"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification"
 import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
 import { UAJoiningDataVariable } from "./ua_joining_data_variable"
 export interface UAIBattery_parameters extends UAIJoiningSystemAsset_parameters { // Object

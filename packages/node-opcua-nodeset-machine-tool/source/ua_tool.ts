@@ -2,7 +2,7 @@
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32 } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { EnumToolLocked } from "./enum_tool_locked"
 import { UABaseTool, UABaseTool_Base } from "./ua_base_tool"
 import { EnumToolManagement } from "./enum_tool_management"

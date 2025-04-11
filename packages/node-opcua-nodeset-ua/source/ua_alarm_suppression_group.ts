@@ -1,5 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
 import { UAAlarmGroup, UAAlarmGroup_Base } from "./ua_alarm_group"
 /**
  * |                |                                                            |

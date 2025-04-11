@@ -1,11 +1,11 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UAAnalogUnit } from "node-opcua-nodeset-ua/source/ua_analog_unit"
-import { DT3DFrame } from "node-opcua-nodeset-ua/source/dt_3_d_frame"
-import { UA3DFrame } from "node-opcua-nodeset-ua/source/ua_3_d_frame"
-import { DT3DVector } from "node-opcua-nodeset-ua/source/dt_3_d_vector"
-import { UA3DVector } from "node-opcua-nodeset-ua/source/ua_3_d_vector"
+import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
+import { DT3DFrame } from "node-opcua-nodeset-ua/dist/dt_3_d_frame"
+import { UA3DFrame } from "node-opcua-nodeset-ua/dist/ua_3_d_frame"
+import { DT3DVector } from "node-opcua-nodeset-ua/dist/dt_3_d_vector"
+import { UA3DVector } from "node-opcua-nodeset-ua/dist/ua_3_d_vector"
 /**
  * The LoadType is for describing loads mounted on
  * the motion device typically by an integrator or a

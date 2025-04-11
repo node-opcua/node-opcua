@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
-import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/source/ua_condition"
+import { UACondition, UACondition_Base } from "node-opcua-nodeset-ua/dist/ua_condition"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

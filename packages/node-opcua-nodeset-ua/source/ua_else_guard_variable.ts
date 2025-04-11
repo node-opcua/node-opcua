@@ -1,5 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAGuardVariable, UAGuardVariable_Base } from "./ua_guard_variable"
 /**

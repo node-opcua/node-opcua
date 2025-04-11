@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { EUInformation } from "node-opcua-data-access"
 import { DTRange } from "./dt_range"

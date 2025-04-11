@@ -1,5 +1,4 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UABaseEvent, UABaseEvent_Base } from "./ua_base_event"
 import { UATransitionVariable } from "./ua_transition_variable"

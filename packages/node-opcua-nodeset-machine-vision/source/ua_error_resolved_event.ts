@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/source/ua_transition_event"
+import { UATransitionEvent, UATransitionEvent_Base } from "node-opcua-nodeset-ua/dist/ua_transition_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

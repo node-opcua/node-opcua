@@ -1,12 +1,12 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { LocalizedText, QualifiedName } from "node-opcua-data-model"
+import { DataType } from "node-opcua-variant"
+import { LocalizedText } from "node-opcua-data-model"
 import { UInt16, Byte, UAString } from "node-opcua-basic-types"
-import { UAFolder } from "node-opcua-nodeset-ua/source/ua_folder"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAUIElement } from "node-opcua-nodeset-di/source/ua_ui_element"
-import { UAMachineIdentification } from "node-opcua-nodeset-machinery/source/ua_machine_identification"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAUIElement } from "node-opcua-nodeset-di/dist/ua_ui_element"
+import { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification"
 import { UAWwEventsDispatcher } from "./ua_ww_events_dispatcher"
 export interface UAWwMachine_identification extends Omit<UAMachineIdentification, "assetId"|"componentName"|"deviceClass"|"hardwareRevision"|"initialOperationDate"|"location"|"manufacturer"|"manufacturerUri"|"model"|"monthOfConstruction"|"productCode"|"productInstanceUri"|"serialNumber"|"softwareRevision"|"uiElement"|"yearOfConstruction"> { // Object
       /**

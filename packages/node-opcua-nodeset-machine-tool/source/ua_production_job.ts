@@ -2,8 +2,8 @@
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt32, UInt16, UAString } from "node-opcua-basic-types"
-import { UABaseDataVariable } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { UAOrderedList } from "node-opcua-nodeset-ua/source/ua_ordered_list"
+import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAOrderedList } from "node-opcua-nodeset-ua/dist/ua_ordered_list"
 import { UAProductionJobStateMachine } from "./ua_production_job_state_machine"
 export interface UAProductionJob_runsPlanned<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       isValid: UAProperty<boolean, DataType.Boolean>;

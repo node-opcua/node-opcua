@@ -1,8 +1,5 @@
 // ----- this file has been automatically generated - do not edit
 import { UAMethod } from "node-opcua-address-space-base"
-import { DataType } from "node-opcua-variant"
-import { DTDataSetMeta } from "./dt_data_set_meta"
-import { DTArgument } from "./dt_argument"
 import { UAFolder, UAFolder_Base } from "./ua_folder"
 /**
  * |                |                                                            |

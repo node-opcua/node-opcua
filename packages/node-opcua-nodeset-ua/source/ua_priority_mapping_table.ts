@@ -2,7 +2,7 @@
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { DTPriorityMappingEntry } from "./dt_priority_mapping_entry"
-import { DTArgument } from "./dt_argument"
+
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

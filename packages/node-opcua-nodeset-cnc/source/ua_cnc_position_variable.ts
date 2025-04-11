@@ -2,8 +2,8 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { EUInformation } from "node-opcua-data-access"
-import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/source/ua_base_data_variable"
-import { DTRange } from "node-opcua-nodeset-ua/source/dt_range"
+import { UABaseDataVariable, UABaseDataVariable_Base } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { DTRange } from "node-opcua-nodeset-ua/dist/dt_range"
 import { DTCncPosition } from "./dt_cnc_position"
 /**
  * Group of position values.

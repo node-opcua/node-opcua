@@ -1,10 +1,8 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { EUInformation } from "node-opcua-data-access"
+import { DataType } from "node-opcua-variant"
 import { UInt64, UAString } from "node-opcua-basic-types"
 import { EnumInterfaceAdminStatus } from "./enum_interface_admin_status"
 import { EnumInterfaceOperStatus } from "./enum_interface_oper_status"
-import { DTRange } from "./dt_range"
 import { UABaseInterface, UABaseInterface_Base } from "./ua_base_interface"
 import { UABaseDataVariable } from "./ua_base_data_variable"
 import { UAAnalogUnit } from "./ua_analog_unit"

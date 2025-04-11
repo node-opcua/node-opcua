@@ -2,7 +2,7 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UInt16 } from "node-opcua-basic-types"
-import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/source/ua_base_event"
+import { UABaseEvent, UABaseEvent_Base } from "node-opcua-nodeset-ua/dist/ua_base_event"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

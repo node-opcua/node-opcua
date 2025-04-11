@@ -2,7 +2,7 @@
 import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
-import { DTUserTokenPolicy } from "node-opcua-nodeset-ua/source/dt_user_token_policy"
+import { DTUserTokenPolicy } from "node-opcua-nodeset-ua/dist/dt_user_token_policy"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

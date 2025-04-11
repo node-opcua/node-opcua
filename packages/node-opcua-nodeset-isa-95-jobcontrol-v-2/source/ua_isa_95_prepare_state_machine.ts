@@ -1,7 +1,7 @@
 // ----- this file has been automatically generated - do not edit
-import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/source/ua_finite_state_machine"
-import { UATransition } from "node-opcua-nodeset-ua/source/ua_transition"
-import { UAState } from "node-opcua-nodeset-ua/source/ua_state"
+import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
+import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
+import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

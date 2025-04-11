@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
-import { DataType, VariantOptions } from "node-opcua-variant"
-import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/source/ua_data_item"
+import { DataType } from "node-opcua-variant"
+import { UADataItem, UADataItem_Base } from "node-opcua-nodeset-ua/dist/ua_data_item"
 /**
  * Provides a stable address space view from the
  * user point of view even if the ADI server address

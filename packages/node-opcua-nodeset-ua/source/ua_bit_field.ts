@@ -1,6 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
-import { DataType, VariantOptions } from "node-opcua-variant"
+import { DataType } from "node-opcua-variant"
 import { DTBitFieldDefinition } from "./dt_bit_field_definition"
 import { UABaseDataVariable, UABaseDataVariable_Base } from "./ua_base_data_variable"
 /**
