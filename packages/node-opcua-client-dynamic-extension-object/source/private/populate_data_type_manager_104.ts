@@ -1,6 +1,6 @@
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { DataTypeFactory } from "node-opcua-factory";
+import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { NodeId, resolveNodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IBasicSessionAsync2, IBasicSessionBrowseAsync, IBasicSessionBrowseNext, IBasicSessionReadAsync, IBasicSessionTranslateBrowsePathAsync, browseAll } from "node-opcua-pseudo-session";
 import { createDynamicObjectConstructor as createDynamicObjectConstructorAndRegister } from "node-opcua-schemas";
@@ -22,16 +22,19 @@ const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
+type DependentNamespaces = Set<number>
+
 export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string,
     dataTypeFactory: DataTypeFactory,
     cache: ICache
-): Promise<void> {
+): Promise<DependentNamespaces> {
+    const dependentNamespaces: DependentNamespaces = new Set();
     try {
         if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
-            return;
+            return dependentNamespaces;
         }
         const [isAbstractDataValue, dataTypeDefinitionDataValue, browseNameDataValue] = await session.read([
             {
@@ -50,7 +53,7 @@ export async function readDataTypeDefinitionAndBuildType(
         if (isAbstractDataValue.statusCode == StatusCodes.BadNodeIdUnknown) {
             // may be model is incomplete and dataTypeNodeId is missing
             debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
-            return;
+            return dependentNamespaces;
         }
         /* istanbul ignore next */
         if (isAbstractDataValue.statusCode.isNotGood()) {
@@ -71,10 +74,21 @@ export async function readDataTypeDefinitionAndBuildType(
                     { nodeId: dataTypeNodeId, attributeId: AttributeIds.BrowseName }
                 ]);
                 warningLog(" Cannot find dataType Definition ! with nodeId =" + dataTypeNodeId.toString(), browseNameDV.value?.value?.toString(), isAbstract2.value?.value);
-                return;
+                return dependentNamespaces;
             }
             // it is OK to not have dataTypeDefinition for Abstract type!
             dataTypeDefinition = new StructureDefinition();
+        }
+
+        // get dependencies of struct
+        if (dataTypeDefinition instanceof StructureDefinition && dataTypeDefinition.fields) {
+            for (const field of dataTypeDefinition.fields){
+                const dataTypeNamespace = field.dataType.namespace
+                if (dataTypeNamespace === dataTypeDefinition.defaultEncodingId.namespace) {
+                    continue; // not dependent on own namespace
+                };
+                dependentNamespaces.add(dataTypeNamespace);
+            }
         }
 
         const schema = await convertDataTypeDefinitionToStructureTypeSchema(
@@ -96,6 +110,7 @@ export async function readDataTypeDefinitionAndBuildType(
     } catch (err) {
         errorLog("Error", err);
     }
+    return dependentNamespaces;
 }
 
 export async function populateDataTypeManager104(
@@ -103,7 +118,7 @@ export async function populateDataTypeManager104(
     dataTypeManager: ExtraDataTypeManager
 ): Promise<void> {
 
-
+    const dataFactoriesDependencies = new Map<number, DependentNamespaces>();
 
     const cache: ICache = {};
 
@@ -127,7 +142,17 @@ export async function populateDataTypeManager104(
             }
             // extract it formally
             doDebug && debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
-            await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, cache);
+            const dependentNamespaces = await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, cache);
+            
+            // add dependent namespaces to dataFactoriesDependencies
+            let dataFactoryDependencies = dataFactoriesDependencies.get(dataTypeNodeId.namespace);
+            if (!dataFactoryDependencies){
+                // add new dependencies set if not already existing
+                dataFactoryDependencies = new Set([0]); // always dependent on UA node set
+                dataFactoriesDependencies.set(dataTypeNodeId.namespace, dataFactoryDependencies);
+            }
+            dependentNamespaces.forEach((ns) => dataFactoryDependencies.add(ns));
+
         } catch (err) {
             errorLog("err=", err);
         }
@@ -142,6 +167,22 @@ export async function populateDataTypeManager104(
         resultMask: 0xff
     };
     await applyOnReferenceRecursively(session, resolveNodeId("Structure"), nodeToBrowse, withDataType);
+
+    // set factory dependencies
+    for (const [namespace, dependentNamespaces] of dataFactoriesDependencies){
+
+        const namespaceDataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(namespace);
+        const dependentTypeFactories = new Set<DataTypeFactory>([getStandardDataTypeFactory()]); 
+        
+        for (const dependentNamespace of dependentNamespaces) {
+            if (dependentNamespace === 0) continue; // already added above
+            const dependentTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dependentNamespace);
+            dependentTypeFactories.add(dependentTypeFactory);
+        }
+
+        const baseDataFactories = Array.from(dependentTypeFactories);
+        namespaceDataTypeFactory.repairBaseDataFactories(baseDataFactories);
+    }
 }
 async function applyOnReferenceRecursively(
     session: IBasicSessionTranslateBrowsePathAsync & IBasicSessionReadAsync & IBasicSessionBrowseAsync & IBasicSessionBrowseNext,
