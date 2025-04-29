@@ -7,7 +7,7 @@
     "scripts": {
         "build": "tsc -b",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "test": "echo no test"
+        "test": "mocha"
     },
     "dependencies": {
         "chalk": "4.1.2",
