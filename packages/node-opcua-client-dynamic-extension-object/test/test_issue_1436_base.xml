@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:s1="http://baseDataTypeFactoryBugExample.org/base/Types.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://baseDataTypeFactoryBugExample.org/base/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://baseDataTypeFactoryBugExample.org/base/" Version="1.0.0" PublicationDate="2025-04-22T06:24:09Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.03" PublicationDate="2023-12-15T00:00:00Z"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+    </Aliases>
+    <UADataType SymbolicName="Base01Struct" NodeId="ns=1;i=3003" BrowseName="1:BaseStruct">
+        <DisplayName>BaseStruct</DisplayName>
+        <References>
+            <Reference IsForward="false" ReferenceType="HasSubtype">i=22</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
+        </References>
+        <Definition Name="1:BaseStruct">
+            <Field DataType="Boolean" Name="ExampleBoolean"/>
+        </Definition>
+    </UADataType>
+    <UAVariable ParentNodeId="ns=1;i=6001" DataType="String" ReleaseStatus="Deprecated" NodeId="ns=1;i=6007" BrowseName="1:Base01Struct">
+        <DisplayName>Base01Struct</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">ns=1;i=6001</Reference>
+            <Reference IsForward="false" ReferenceType="HasDescription">ns=1;i=5001</Reference>
+        </References>
+        <Value>
+            <uax:String>Base01Struct</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=6004" DataType="String" ReleaseStatus="Deprecated" NodeId="ns=1;i=6008" BrowseName="1:Base01Struct">
+        <DisplayName>Base01Struct</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">ns=1;i=6004</Reference>
+            <Reference IsForward="false" ReferenceType="HasDescription">ns=1;i=5002</Reference>
+        </References>
+        <Value>
+            <uax:String>//xs:element[@name='Base01Struct']</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="ByteString" ReleaseStatus="Deprecated" SymbolicName="TypeDictionary_BinarySchema" NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary">
+        <DisplayName>TypeDictionary</DisplayName>
+        <Description>Collects the data type descriptions of http://baseDataTypeFactoryBugExample.org/base/</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">i=93</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6007</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
+        </References>
+        <Value>
+            <uax:ByteString>PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZ
+        W1hLWluc3RhbmNlIiBEZWZhdWx0Qnl0ZU9yZGVyPSJMaXR0bGVFbmRpYW4iIHhtbG5zOnRuc
+        z0iaHR0cDovL2Jhc2VEYXRhVHlwZUZhY3RvcnlCdWdFeGFtcGxlLm9yZy9iYXNlLyIgeG1sb
+        nM6b3BjPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvQmluYXJ5U2NoZW1hLyIgVGFyZ2V0T
+        mFtZXNwYWNlPSJodHRwOi8vYmFzZURhdGFUeXBlRmFjdG9yeUJ1Z0V4YW1wbGUub3JnL2Jhc
+        2UvIiB4bWxuczp1YT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBLyI+CiA8b3BjOkltc
+        G9ydCBOYW1lc3BhY2U9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS8iLz4KIDxvcGM6U
+        3RydWN0dXJlZFR5cGUgQmFzZVR5cGU9InVhOkV4dGVuc2lvbk9iamVjdCIgTmFtZT0iQmFzZ
+        VN0cnVjdCI+CiAgPG9wYzpGaWVsZCBOYW1lPSJFeGFtcGxlQm9vbGVhbiIgVHlwZU5hbWU9I
+        m9wYzpCb29sZWFuIi8+CiA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4KPC9vcGM6VHlwZURpY3Rpb
+        25hcnk+Cg==</uax:ByteString>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=6001" DataType="Boolean" ReleaseStatus="Deprecated" NodeId="ns=1;i=6003" BrowseName="Deprecated">
+        <DisplayName>Deprecated</DisplayName>
+        <Description>Indicates that all of the DataType definitions represented by the DataTypeDictionaryType are available through a DataTypeDefinition Attribute.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=6001</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>true</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=6001" DataType="String" ReleaseStatus="Deprecated" NodeId="ns=1;i=6002" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=6001</Reference>
+        </References>
+        <Value>
+            <uax:String>http://baseDataTypeFactoryBugExample.org/base/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="ByteString" ReleaseStatus="Deprecated" SymbolicName="TypeDictionary_XmlSchema" NodeId="ns=1;i=6004" BrowseName="1:TypeDictionary">
+        <DisplayName>TypeDictionary</DisplayName>
+        <Description>Collects the data type descriptions of http://baseDataTypeFactoryBugExample.org/base/</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">i=92</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6008</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6005</Reference>
+        </References>
+        <Value>
+            <uax:ByteString>PHhzOnNjaGVtYSB4bWxuczp0bnM9Imh0dHA6Ly9iYXNlRGF0YVR5cGVGYWN0b3J5QnVnRXhhbXBsZS5vc
+        mcvYmFzZS9UeXBlcy54c2QiIHhtbG5zOnhzPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNT
+        FNjaGVtYSIgZWxlbWVudEZvcm1EZWZhdWx0PSJxdWFsaWZpZWQiIHhtbG5zOnVhPSJodHRwO
+        i8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wMi9UeXBlcy54c2QiIHRhcmdldE5hbWVzc
+        GFjZT0iaHR0cDovL2Jhc2VEYXRhVHlwZUZhY3RvcnlCdWdFeGFtcGxlLm9yZy9iYXNlL1R5c
+        GVzLnhzZCI+CiA8eHM6aW1wb3J0IG5hbWVzcGFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub
+        3JnL1VBLzIwMDgvMDIvVHlwZXMueHNkIi8+CiA8eHM6Y29tcGxleFR5cGUgbmFtZT0iQmFzZ
+        VN0cnVjdCI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiI
+        G1heE9jY3Vycz0iMSIgdHlwZT0ieHM6Ym9vbGVhbiIgbmFtZT0iRXhhbXBsZUJvb2xlYW4iL
+        z4KICA8L3hzOnNlcXVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5c
+        GU9InRuczpCYXNlU3RydWN0IiBuYW1lPSJCYXNlU3RydWN0Ii8+CiA8eHM6Y29tcGxleFR5c
+        GUgbmFtZT0iTGlzdE9mQmFzZVN0cnVjdCI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlb
+        WVudCBuaWxsYWJsZT0idHJ1ZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91bmRlZ
+        CIgdHlwZT0idG5zOkJhc2VTdHJ1Y3QiIG5hbWU9IkJhc2VTdHJ1Y3QiLz4KICA8L3hzOnNlc
+        XVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IG5pbGxhYmxlPSJ0cnVlI
+        iB0eXBlPSJ0bnM6TGlzdE9mQmFzZVN0cnVjdCIgbmFtZT0iTGlzdE9mQmFzZVN0cnVjdCIvP
+        go8L3hzOnNjaGVtYT4K</uax:ByteString>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=6004" DataType="Boolean" ReleaseStatus="Deprecated" NodeId="ns=1;i=6006" BrowseName="Deprecated">
+        <DisplayName>Deprecated</DisplayName>
+        <Description>Indicates that all of the DataType definitions represented by the DataTypeDictionaryType are available through a DataTypeDefinition Attribute.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=6004</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>true</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=6004" DataType="String" ReleaseStatus="Deprecated" NodeId="ns=1;i=6005" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=6004</Reference>
+        </References>
+        <Value>
+            <uax:String>http://baseDataTypeFactoryBugExample.org/base/Types.xsd</uax:String>
+        </Value>
+    </UAVariable>
+    <UAObject SymbolicName="http___baseDataTypeFactoryBugExample_org_base_" NodeId="ns=1;i=5003" BrowseName="1:http://baseDataTypeFactoryBugExample.org/base/">
+        <DisplayName>http://baseDataTypeFactoryBugExample.org/base/</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">i=11715</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6009</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6010</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6012</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6015</Reference>
+        </References>
+    </UAObject>
+    <UAVariable ParentNodeId="ns=1;i=5003" DataType="Boolean" NodeId="ns=1;i=6009" BrowseName="IsNamespaceSubset">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>false</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5003" DataType="DateTime" NodeId="ns=1;i=6010" BrowseName="NamespacePublicationDate">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2025-04-22T06:24:09Z</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5003" DataType="String" NodeId="ns=1;i=6011" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+        <Value>
+            <uax:String>http://baseDataTypeFactoryBugExample.org/base/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5003" DataType="String" NodeId="ns=1;i=6012" BrowseName="NamespaceVersion">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+        <Value>
+            <uax:String>1.0.0</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable ArrayDimensions="0" ParentNodeId="ns=1;i=5003" DataType="IdType" NodeId="ns=1;i=6013" BrowseName="StaticNodeIdTypes" ValueRank="1">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+        <Value>
+            <uax:ListOfInt32>
+                <uax:Int32>0</uax:Int32>
+            </uax:ListOfInt32>
+        </Value>
+    </UAVariable>
+    <UAVariable ArrayDimensions="0" ParentNodeId="ns=1;i=5003" DataType="NumericRange" NodeId="ns=1;i=6014" BrowseName="StaticNumericNodeIdRange" ValueRank="1">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5003" DataType="String" NodeId="ns=1;i=6015" BrowseName="StaticStringNodeIdPattern">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5003</Reference>
+        </References>
+    </UAVariable>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference IsForward="false" ReferenceType="HasEncoding">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6007</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference IsForward="false" ReferenceType="HasEncoding">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6008</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>
