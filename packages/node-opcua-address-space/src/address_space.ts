@@ -54,7 +54,8 @@ import {
     UAView,
     IAddressSpace,
     ShutdownTask,
-    RaiseEventData
+    RaiseEventData,
+    UAVariableT
 } from "node-opcua-address-space-base";
 import { make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
 
@@ -1533,9 +1534,13 @@ function _isFolder(addressSpace: AddressSpace, folder: UAObject): boolean {
 }
 
 function _increase_version_number(node: BaseNode | null) {
-    if (node && node.nodeVersion) {
-        const previousValue = parseInt(node.nodeVersion.readValue().value.value!, 10);
-        node.nodeVersion.setValueFromSource({
+    var uaNodeVersion = node?.getChildByName("NodeVersion", 0) as UAVariableT<string, DataType.String>;
+    if (uaNodeVersion) {
+        let previousValue = parseInt(uaNodeVersion.readValue().value.value!, 10);
+        if (Number.isNaN(previousValue)) {
+            previousValue = 0;
+        }
+        uaNodeVersion.setValueFromSource({
             dataType: DataType.String,
             value: (previousValue + 1).toString()
         });

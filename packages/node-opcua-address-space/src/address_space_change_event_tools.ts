@@ -46,7 +46,7 @@ export function _handle_add_reference_change_event(node1: BaseNode, node2id: Nod
 
     const node2 = addressSpace.findNode(node2id)! as BaseNode;
 
-    if (node1.nodeVersion || (node2 && node2.nodeVersion)) {
+    if (node1.getChildByName("NodeVersion",0) || (node2 && node2.getChildByName("NodeVersion", 0))) {
         // a event has to be send
         addressSpace.modelChangeTransaction(() => {
             function _getTypeDef(node: BaseNode) {
@@ -109,7 +109,7 @@ export function _handle_model_change_event(node: BaseNodeImpl): void {
         typeDefinitionNodeId = node.typeDefinitionObj.nodeId;
     }
     for (const parent of [...parents, ...containingFolders]) {
-        if (parent && (parent as BaseNode).nodeVersion) {
+        if (parent && (parent as BaseNode).getChildByName("NodeVersion",0)) {
             addressSpace.modelChangeTransaction(() => {
                 const modelChange1 = new ModelChangeStructureDataType({
                     affected: node.nodeId,
@@ -151,7 +151,7 @@ export function _handle_delete_node_model_change_event(node: BaseNode): void {
 
     const versionableNodes = parentNodes.filter((n: BaseNode) => !!n?.getChildByName("NodeVersion", 0));
 
-    if (versionableNodes.length >= 1 || !!node.nodeVersion) {
+    if (versionableNodes.length >= 1 || !!node.getChildByName("NodeVersion",0)) {
         addressSpace.modelChangeTransaction(() => {
             // ...
             for (const r of references) {
