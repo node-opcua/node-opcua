@@ -1534,10 +1534,12 @@ function _isFolder(addressSpace: AddressSpace, folder: UAObject): boolean {
 }
 
 function _increase_version_number(node: BaseNode | null) {
-    var uaNodeVersion = node?.getChildByName("NodeVersion", 0) as UAVariableT<string, DataType.String>;
+    var uaNodeVersion = node?.getChildByName("NodeVersion", 0) as UAVariableT<string, DataType.String> |null | undefined;
     if (uaNodeVersion) {
-        let previousValue = parseInt(uaNodeVersion.readValue().value.value!, 10);
+        let rawValue = uaNodeVersion.readValue().value.value || ""
+        let previousValue = parseInt(rawValue || "0", 10);
         if (Number.isNaN(previousValue)) {
+            warningLog("NodeVersion was ", rawValue );
             previousValue = 0;
         }
         uaNodeVersion.setValueFromSource({

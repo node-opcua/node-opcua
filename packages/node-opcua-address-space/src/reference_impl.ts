@@ -118,11 +118,9 @@ export class ReferenceImpl implements UAReference {
         this.referenceType = coerceNodeId(options.referenceType);
         this.isForward = options.isForward === undefined ? true : !!options.isForward;
         this.nodeId = _localCoerceToNodeID(options.nodeId);
-
         // optional to speed up when AddReferenceOpts is in fact a Reference !
         this._referenceType = (options as any)._referenceType;
-        this.node = (options as any).node;
-
+        this.node = options.node;
         assert(is_valid_reference(this));
     }
 

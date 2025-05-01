@@ -1,12 +1,16 @@
-import { ModellingRuleType, UAObject, UAObjectType, UAVariableT } from "node-opcua-address-space-base";
+import { INamespace, ModellingRuleType, UAObject, UAObjectType, UAVariableT } from "node-opcua-address-space-base";
 import { DataType } from "node-opcua-basic-types";
 import { coerceQualifiedName, QualifiedName, QualifiedNameLike } from "node-opcua-data-model";
+import { NodeIdLike } from "node-opcua-nodeid";
 
 export interface InstantiateAddInOptions {
     defaultName?: QualifiedNameLike;
     modellingRule?: ModellingRuleType;
     addInOf: UAObject | UAObjectType;
     copyAlsoModellingRules?: boolean;
+
+    namespace?: INamespace;
+    nodeId?: NodeIdLike;
 }
 
 export function instantiateAddIn(objectType: UAObjectType, options: InstantiateAddInOptions): UAObject {
@@ -20,11 +24,12 @@ export function instantiateAddIn(objectType: UAObjectType, options: InstantiateA
 
     const browseName = coerceQualifiedName(defaultName || defaultInstanceBrowseName.readValue().value.value as QualifiedName);
     const addIn = objectType.instantiate({
-        namespace: objectType.namespace,
+        namespace: options.namespace || objectType.namespace,
         browseName: browseName,
         modellingRule: options.modellingRule,
         copyAlsoModellingRules: options.copyAlsoModellingRules,
-        addInOf: options.addInOf
+        addInOf: options.addInOf,
+        nodeId: options.nodeId
     });
     return addIn;
 }
