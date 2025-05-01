@@ -183,9 +183,32 @@ describe("testing address space", () => {
         should(object.getChildByName("Property2")).eql(null);
     });
 
+    it("AddressSpace#deleteNode - should remove a component with HasOrderedComponent -reverse", () => {
+        
+        const object = namespace.addObject({ browseName: "MyObject1" });
+
+        const component = namespace.addObject({ browseName: "MyComponent" });
+
+        // component <- HasOrderedCOmpoentn -- object
+        component.addReference({
+            nodeId: object,
+            referenceType: resolveNodeId(ReferenceTypeIds.HasOrderedComponent),
+            isForward: false
+        });
+        
+      
+        should.exist(object.getChildByName("MyComponent"));
+        object.getComponentByName("MyComponent")!.browseName.toString().should.eql("1:MyComponent");
+
+        addressSpace.deleteNode(component);
+        should.not.exist(object.getChildByName("MyComponent"));
+
+        
+    });
     it("AddressSpace#deleteNode - should remove a component with HasOrderedComponent", () => {
         const object = namespace.addObject({ browseName: "MyObject1" });
 
+        // object - HasOrderedCOmpoentn -> component
         const component = namespace.addObject({ browseName: "MyComponent" });
         object.addReference({
             nodeId: component,

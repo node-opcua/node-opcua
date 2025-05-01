@@ -206,6 +206,12 @@ export declare class BaseNode extends EventEmitter {
 
     public allReferences(): UAReference[];
 
+    /**
+     * Get the Child by name, if browseName is string and namespaceIndex undefined
+     * then the search doesn't care about namespace matching
+     * 
+     * @param browseName 
+     */
     public getChildByName(browseName: QualifiedNameOptions): BaseNode | null;
     public getChildByName(browseName: string, namespaceIndex?: number): BaseNode | null;
 

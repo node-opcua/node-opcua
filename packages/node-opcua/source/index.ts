@@ -9,13 +9,13 @@
 import chalk from "chalk";
 
 const semver = require("semver");
-const minimumNodeVersionRequired = ">=16.7.0"; // minimum
+const minimumNodeJsVersionRequired = ">=16.7.0"; // minimum
 
 // istanbul ignore next
-if (typeof process === "object" && !semver.satisfies(process.version, minimumNodeVersionRequired)) {
+if (typeof process === "object" && !semver.satisfies(process.version, minimumNodeJsVersionRequired)) {
     console.log(
         chalk.cyan(
-            `warning node-opcua: Required nodejs version ${minimumNodeVersionRequired} not satisfied with current nodejs version ${process.version}.`
+            `warning node-opcua: Required nodejs version ${minimumNodeJsVersionRequired} not satisfied with current nodejs version ${process.version}.`
         )
     );
 }

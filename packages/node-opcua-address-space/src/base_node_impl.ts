@@ -471,11 +471,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * return an array with the Aggregates of this object.
      */
     public getAggregates(): BaseNode[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._aggregates) {
-        //     _cache._aggregates = this.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
-        // }
-        // return _cache._aggregates;
         return this.findReferencesExAsObject("Aggregates", BrowseDirection.Forward);
     }
 
@@ -483,11 +478,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * return an array with the components of this object.
      */
     public getComponents(): BaseNode[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._components) {
-        //     _cache._components = this.findReferencesExAsObject("HasComponent", BrowseDirection.Forward);
-        // }
-        // return _cache._components;
         return this.findReferencesExAsObject("HasComponent", BrowseDirection.Forward);
     }
 
@@ -495,12 +485,11 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      *  return a array with the properties of this object.
      */
     public getProperties(): BaseNode[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._properties) {
-        //     _cache._properties = this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
-        // }
-        // return _cache._properties;
         return this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
+    }
+
+    public getChildren(): BaseNode[] {
+        return this.findReferencesExAsObject("HasChild", BrowseDirection.Forward);
     }
 
     /**
@@ -508,11 +497,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * only reference of exact type HasNotifier are returned.
      */
     public getNotifiers(): BaseNode[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._notifiers) {
-        //     _cache._notifiers = this.findReferencesAsObject("HasNotifier", true);
-        // }
-        // return _cache._notifiers;
         return this.findReferencesAsObject(HasNotifierReferenceType, true);
     }
 
@@ -521,11 +505,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      *  only reference of exact type HasEventSource are returned.
      */
     public getEventSources(): BaseNode[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._eventSources) {
-        //     _cache._eventSources = this.findReferencesAsObject("HasEventSource", true);
-        // }
-        // return _cache._eventSources;
         return this.findReferencesAsObject(HasEventSourceReferenceType, true);
     }
 
@@ -533,11 +512,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * return a array of the objects for which this node is an EventSource
      */
     public getEventSourceOfs(): BaseNode[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._eventSources) {
-        //     _cache._eventSources = this.findReferencesAsObject("HasEventSource", false);
-        // }
-        // return _cache._eventSources;
         return this.findReferencesAsObject(HasEventSourceReferenceType, false);
     }
 
@@ -604,12 +578,6 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * Note: internally, methods are special types of components
      */
     public getMethods(): UAMethod[] {
-        // const _cache = BaseNode_getCache(this);
-        // if (!_cache._methods) {
-        //     const components = this.getComponents();
-        //     _cache._methods = components.filter((obj) => obj.nodeClass === NodeClass.Method) as UAMethod[];
-        // }
-        // return _cache._methods;
         const components = this.getComponents();
         return components.filter((obj) => obj.nodeClass === NodeClass.Method) as UAMethod[];
     }
@@ -1095,31 +1063,15 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     public getChildByName(browseName: QualifiedNameOptions): BaseNode | null;
     public getChildByName(browseName: string, namespaceIndex?: number): BaseNode | null;
+    // 
     public getChildByName(browseName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null {
         // Attention: getChild doesn't care about namespace on browseName
         //            !!!!
-        if (browseName instanceof QualifiedName) {
-            browseName = browseName.name!.toString();
-        }
-        assert(typeof browseName === "string");
-
-        const _cache = BaseNode_getCache(this);
-
-        const addressSpace = this.addressSpace;
-
-        if (!_cache._childByNameMap) {
-            _cache._childByNameMap = new Map();
-
-            const childReferenceTypes = this.findReferencesEx("HasChild");
-            for (const r of childReferenceTypes) {
-                const child = resolveReferenceNode(addressSpace, r);
-                _cache._childByNameMap.set(child.browseName.name!.toString(),child);
-            }
-        }
-        const ret = _cache._childByNameMap.get(browseName.toString()) || null;
-        return ret;
+        const properties = this.getChildren();
+        const select = _filter_by_browse_name(properties, browseName, namespaceIndex);
+        assert(select.length <= 1, "BaseNode#getPropertyByName found duplicated reference");
+        return select.length === 1 ? select[0] : null;
     }
-
     get toStateNode(): BaseNode | null {
         const nodes = this.findReferencesAsObject("ToState", true);
         assert(nodes.length <= 1);
@@ -1135,6 +1087,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     /**
      * this methods propagates the forward references to the pointed node
      * by inserting backward references to the counter part node
+     * @private
      */
     public propagate_back_references(): void {
         const _private = BaseNode_getPrivate(this);
@@ -1153,8 +1106,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      * the dispose method should be called when the node is no longer used, to release
      * back pointer to the address space and clear caches.
      *
-
-     *
+     * @private
      */
     public dispose(): void {
         this.emit("dispose");
@@ -1562,8 +1514,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
 
     // istanbul ignore next
     if (!referenceType) {
-        // tslint:disable-next-line:no-console
-        console.error(chalk.red(" ERROR"), " cannot find reference ", reference.referenceType, reference.toString());
+        errorLog(chalk.red(" ERROR"), " cannot find reference ", reference.referenceType, reference.toString());
     }
 
     // ------------------------------- Filter out back reference when reference type
@@ -1575,9 +1526,10 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
     if (!referenceType || _is_massively_used_reference(referenceType)) {
         return;
     }
-    // ------------------------------- EXPERIMENT
+   
 
-    // xx if (!referenceType.isSubtypeOf(hierarchicalReferencesId)) { return; }
+
+
     const related_node = resolveReferenceNode(addressSpace, reference) as BaseNodeImpl;
     if (related_node) {
         // verify that reference doesn't point to object it this (see mantis 3099)
@@ -1585,7 +1537,7 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
             // istanbul ignore next
             if (displayWarningReferencePointingToItSelf) {
                 // this could happen with method
-                console.warn("  Warning: a Reference is pointing to this ", this.nodeId.toString(), this.browseName.toString());
+                warningLog("  Warning: a Reference is pointing to source ", this.nodeId.toString(), this.browseName.toString(), ". Is this intentional ?");
                 displayWarningReferencePointingToItSelf = false;
             }
         }

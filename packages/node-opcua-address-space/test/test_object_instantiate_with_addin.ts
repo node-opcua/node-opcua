@@ -55,6 +55,7 @@ describe("testing UAObjectType instantiate with addins", () => {
 
         const addins = machineToolType.findReferencesExAsObject("HasAddIn", BrowseDirection.Forward)!;
 
+        const nsOwn = addressSpace.getOwnNamespace().index;
         //instantiate node
         const machineTool = machineToolType.instantiate({
             browseName: "Machine",
@@ -73,8 +74,8 @@ describe("testing UAObjectType instantiate with addins", () => {
         console.log(machineTool.toString());
         console.log(identification.toString());
 
-        should.exist(identification.getChildByName("ComponentName", nsDI));
-        should.exist(identification.getChildByName("AssetId", nsDI));
+        should.exist(identification.getChildByName("ComponentName"));
+        should.exist(identification.getChildByName("AssetId"));
 
         should.not.exist(machineTool.getChildByName("ComponentName"), "ComponentName node should not appear on the machine");
         should.not.exist(machineTool.getChildByName("AssetId"), "AssetId node should not appear on the machine");
@@ -245,6 +246,7 @@ describe("testing addins - case 1", () => {
         });
 
         addDefaultInstanceBrowseName(jobManagementType, "JobManager");
+
         namespace1.addObject({
             componentOf: jobManagementType,
             browseName: "JobOrderControl",
@@ -294,9 +296,9 @@ describe("testing addins - case 1", () => {
         doDebug && console.log(machine.getChildByName("JobManager1", 2)!.toString());
         doDebug && console.log(machine.getChildByName("JobManager3", 2)!.toString());
         
-        should.exist(machine.getChildByName("JobManager", 2));  
-        should.exist(machine.getChildByName("JobManager1", 2));
-        should.exist(machine.getChildByName("JobManager3", 2));
+        should.exist(machine.getChildByName("JobManager"));  
+        should.exist(machine.getChildByName("JobManager1"));
+        should.exist(machine.getChildByName("JobManager3"));
 
         const xml = namespace2.toNodeset2XML();
         const symbols = getSymbols(namespace1);
@@ -317,6 +319,8 @@ describe("testing addins - case 1", () => {
         addDefaultInstanceBrowseName(jobManagementType, "JobManager");
 
 
+        const myNs = namespace1.index;
+
         const uaObjectInstance = namespace1.addObject({
             organizedBy: addressSpace.rootFolder.objects,
             browseName: "ParentObject",
@@ -327,13 +331,17 @@ describe("testing addins - case 1", () => {
             addInOf: uaObjectInstance,
             modellingRule: "Mandatory"
         });
+
         instantiateAddIn(jobManagementType, {
             addInOf: uaObjectInstance,
             defaultName: "JobManager1",
             modellingRule: "Mandatory"
         });
-        should.exist(uaObjectInstance.getChildByName("JobManager", 2));
-        should.exist(uaObjectInstance.getChildByName("JobManager1", 2));
+        should.exist(uaObjectInstance.getChildByName("JobManager", myNs));
+
+        const inst1 = uaObjectInstance.getChildByName("JobManager1");
+        should.exist(inst1)
+        inst1?.nodeId.namespace.should.eql(2);
     });
 
 

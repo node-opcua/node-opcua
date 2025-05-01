@@ -1097,7 +1097,10 @@ function _remove_HierarchicalReference(node: BaseNode, reference: UAReference) {
         if (referenceType) {
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
             if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
-                assert(reference.isForward);
+                if (!reference.isForward) {
+                    warningLog(" Invalid hiearchical reference", reference.toString());
+                    throw new Error("Invalid");
+                }
                 const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
                 _cache._childByNameMap.delete(targetNode.browseName!.name!.toString());
             }
