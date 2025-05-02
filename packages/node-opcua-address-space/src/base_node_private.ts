@@ -35,16 +35,18 @@ import {
     UAReference,
     CloneOptions,
     CloneHelper,
-    fullPath2
+    fullPath2,
+    UAVariableT
 } from "node-opcua-address-space-base";
 import { DataValue } from "node-opcua-data-value";
 import { ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
 
 import { UANamespace_process_modelling_rule } from "./namespace_private";
-import { ReferenceImpl } from "./reference_impl";
+import { ReferenceImpl, resolveReferenceNode } from "./reference_impl";
 import { BaseNodeImpl, getReferenceType } from "./base_node_impl";
 import { AddressSpacePrivate } from "./address_space_private";
 import { wipeMemorizedStuff } from "./tool_isSubtypeOf";
+import { DataType } from "node-opcua-basic-types";
 
 // eslint-disable-next-line prefer-const
 const errorLog = make_errorLog(__filename);
@@ -57,11 +59,13 @@ const warningLog = make_warningLog(__filename);
 
 interface BaseNodeCacheInner {
     typeDefinition?: NodeId;
-    _childByNameMap?: Map<string, BaseNode>;
     typeDefinitionObj?: UAVariableType | UAObjectType | null;
     _aggregates?: BaseNode[];
     _components?: BaseNode[];
     _properties?: BaseNode[];
+    _children?: BaseNode[];
+    _versionNode?: UAVariableT<string, DataType.String> | null;
+
     _notifiers?: BaseNode[];
     _eventSources?: BaseNode[];
     _methods?: UAMethod[];
@@ -74,23 +78,28 @@ interface BaseNodeCacheInner {
     _subtypeOfObj?: BaseNode | null;
 }
 
+export type UAReferenceWithNodeRef = UAReference & { node: BaseNode };
+export type HierarchicalIndexMap = Map<string, UAReferenceWithNodeRef | UAReferenceWithNodeRef[]>;
+
 interface BaseNodeCache {
+
+    _childByNameMap?: HierarchicalIndexMap;
     __address_space: IAddressSpace | null;
     _browseFilter?: (this: BaseNode, context?: ISessionContext) => boolean;
     _cache: BaseNodeCacheInner;
     _description?: LocalizedText;
     _displayName: LocalizedText[];
     _parent?: BaseNode | null;
-    _back_referenceIdx: { [key: string]: UAReference };
-    _referenceIdx: { [key: string]: UAReference };
+    _back_referenceIdx: Map<string, UAReference>;
+    _referenceIdx: Map<string, UAReference>;
 }
 
 export function BaseNode_initPrivate(self: BaseNode): BaseNodeCache {
     const _private: BaseNodeCache = {
         __address_space: null,
 
-        _referenceIdx: {},
-        _back_referenceIdx: {},
+        _referenceIdx: new Map(),
+        _back_referenceIdx: new Map(),
 
         _browseFilter: undefined,
         _cache: {},
@@ -109,8 +118,8 @@ export function BaseNode_removePrivate(self: BaseNode): void {
     const _private = BaseNode_getPrivate(self);
     _private._cache = {};
     _private.__address_space = null;
-    _private._back_referenceIdx = {};
-    _private._referenceIdx = {};
+    _private._back_referenceIdx = new Map();
+    _private._referenceIdx = new Map();
     _private._description = undefined;
     _private._displayName = [];
 }
@@ -189,8 +198,8 @@ export function BaseNode_toString(this: BaseNode, options: ToStringOption): void
     options.add(options.padding + chalk.yellow("          browseName          : ") + this.browseName.toString());
     options.add(
         options.padding +
-            chalk.yellow("          displayName         : ") +
-            this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
+        chalk.yellow("          displayName         : ") +
+        this.displayName.map((f) => f.locale + " " + f.text).join(" | ")
     );
 
     options.add(
@@ -209,9 +218,9 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
 
     options.add(
         options.padding +
-            chalk.yellow("    references                : ") +
-            "  length =" +
-            Object.keys(_private._referenceIdx).length
+        chalk.yellow("    references                : ") +
+        "  length =" +
+        _private._referenceIdx.size
     );
 
     function dump_reference(follow: boolean, reference: UAReference | null) {
@@ -250,12 +259,12 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
             })();
         options.add(
             options.padding +
-                chalk.yellow("      +-> ") +
-                reference.toString(displayOptions) +
-                " " +
-                chalk.cyan(name.padEnd(25, " ")) +
-                " " +
-                chalk.magentaBright(extra)
+            chalk.yellow("      +-> ") +
+            reference.toString(displayOptions) +
+            " " +
+            chalk.cyan(name.padEnd(25, " ")) +
+            " " +
+            chalk.magentaBright(extra)
         );
 
         // ignore HasTypeDefinition as it has been already handled
@@ -278,30 +287,33 @@ export function BaseNode_References_toString(this: BaseNode, options: ToStringOp
     }
 
     // direct reference
-    (Object.values(_private._referenceIdx) as UAReference[]).forEach(dump_reference.bind(null, true));
+    for (var r of _private._referenceIdx.values()) {
+        dump_reference(false, r);
+    }
 
-    const br = Object.values(_private._back_referenceIdx).map((x) => x);
 
     options.add(
         options.padding +
-            chalk.yellow("    back_references                 : ") +
-            chalk.cyan("  length =") +
-            br.length +
-            chalk.grey(" ( references held by other nodes involving this node)")
+        chalk.yellow("    back_references                 : ") +
+        chalk.cyan("  length =") +
+        _private._back_referenceIdx.size +
+        chalk.grey(" ( references held by other nodes involving this node)")
     );
+    for (const r of _private._back_referenceIdx.values()) {
+        dump_reference(false, r);
+    }
     // backward reference
-    br.forEach(dump_reference.bind(null, false));
 }
 
 function _UAType_toString(this: UAReferenceType | UADataType | UAObjectType | UAVariableType, options: ToStringOption): void {
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOf           : ") +
-                this.subtypeOfObj.browseName.toString() +
-                " (" +
-                this.subtypeOfObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          subtypeOf           : ") +
+            this.subtypeOfObj.browseName.toString() +
+            " (" +
+            this.subtypeOfObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -310,11 +322,11 @@ function _UAInstance_toString(this: UAVariable | UAMethod | UAObject, options: T
     if (this.typeDefinitionObj) {
         options.add(
             options.padding +
-                chalk.yellow("          typeDefinition      : ") +
-                this.typeDefinitionObj.browseName.toString() +
-                " (" +
-                this.typeDefinitionObj.nodeId.toString() +
-                ")"
+            chalk.yellow("          typeDefinition      : ") +
+            this.typeDefinitionObj.browseName.toString() +
+            " (" +
+            this.typeDefinitionObj.nodeId.toString() +
+            ")"
         );
     }
 }
@@ -421,9 +433,9 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
         if (_dataValue) {
             options.add(
                 options.padding +
-                    chalk.yellow("          value               : ") +
-                    "\n" +
-                    options.indent(_dataValue.toString(), options.padding + "                        | ")
+                chalk.yellow("          value               : ") +
+                "\n" +
+                options.indent(_dataValue.toString(), options.padding + "                        | ")
             );
         }
     }
@@ -440,19 +452,19 @@ export function VariableOrVariableType_toString(this: UAVariableType | UAVariabl
     if (this.minimumSamplingInterval !== undefined) {
         options.add(
             options.padding +
-                chalk.yellow(" minimumSamplingInterval      : ") +
-                " " +
-                this.minimumSamplingInterval.toString() +
-                " ms"
+            chalk.yellow(" minimumSamplingInterval      : ") +
+            " " +
+            this.minimumSamplingInterval.toString() +
+            " ms"
         );
     }
     if (this.arrayDimensions) {
         options.add(
             options.padding +
-                chalk.yellow(" arrayDimension               : ") +
-                " [" +
-                this.arrayDimensions.join(",").toString() +
-                " ]"
+            chalk.yellow(" arrayDimension               : ") +
+            " [" +
+            this.arrayDimensions.join(",").toString() +
+            " ]"
         );
     }
 }
@@ -628,11 +640,11 @@ function _clone_collection_new(
             // tslint:disable-next-line:no-console
             warningLog(
                 chalk.red("Warning : cannot clone node ") +
-                    fullPath2(node) +
-                    " of class " +
-                    NodeClass[node.nodeClass].toString() +
-                    " while cloning " +
-                    fullPath2(newParent)
+                fullPath2(node) +
+                " of class " +
+                NodeClass[node.nodeClass].toString() +
+                " while cloning " +
+                fullPath2(newParent)
             );
             continue;
         }
@@ -1026,7 +1038,7 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
             let typeDefinitionNode: UAVariableType | UAObjectType | null = originalNode.typeDefinitionObj;
 
             extraInfo.pushContext({
-                clonedParent : clonedNode,
+                clonedParent: clonedNode,
                 originalParent: originalNode
             });
 
@@ -1070,39 +1082,83 @@ export function _clone<T extends UAObject | UAVariable | UAMethod>(
     return clonedNode;
 }
 
+function _add(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithNodeRef)  
+{
+    assert(reference.node);// const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
+    const targetNode = reference.node;
+    const hash = targetNode.browseName!.name || "";
+    const existing = _childByNameMap.get(hash);
+    if (existing) {
+        if (Array.isArray(existing)) {
+            existing.push(reference);
+        } else {
+            _childByNameMap.set(hash, [existing, reference as UAReferenceWithNodeRef]);
+        }
+    } else {
+        _childByNameMap.set(hash, reference as UAReferenceWithNodeRef);
+    }
+}
+
+function sameRef(a: UAReference, b: UAReference) {
+    if (a.isForward !=  b.isForward) return false;
+    if (!sameNodeId(a.nodeId, b.nodeId)) return false;
+    if (!sameNodeId(a.referenceType, b.referenceType)) return false;
+    return true;
+}
+function _remove(_childByNameMap: HierarchicalIndexMap, reference: UAReferenceWithNodeRef) {
+
+    const target = reference.node;
+    const hash = target.browseName.name || "";
+    const existing = _childByNameMap.get(hash);
+    if (Array.isArray(existing)) {
+        existing.filter(r=>!sameRef(r, reference));
+    } else {
+        _childByNameMap.delete(hash);
+    }
+}
 export function _handle_HierarchicalReference(node: BaseNode, reference: UAReference): void {
-    const _cache = BaseNode_getCache(node);
+    const _private = BaseNode_getPrivate(node);
     if (!reference.isForward) return;
-    if (_cache._childByNameMap) {
+    if (_private._childByNameMap) {
         const addressSpace = node.addressSpace;
         const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
 
         if (referenceType) {
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
             if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
-                assert(reference.isForward);
-                const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-                _cache._childByNameMap.set(targetNode.browseName!.name!.toString(), targetNode);
+                ReferenceImpl.resolveReferenceNode(addressSpace, reference);
+                _add(_private._childByNameMap, reference as UAReferenceWithNodeRef)
             }
         }
     }
 }
 
-function _remove_HierarchicalReference(node: BaseNode, reference: UAReference) {
-    const _cache = BaseNode_getCache(node);
-    if (_cache._childByNameMap) {
+export function _get_HierarchicalReference(node: BaseNode): HierarchicalIndexMap {
+    const addressSpace = node.addressSpace;
+    const _private = BaseNode_getPrivate(node);
+    if (!_private._childByNameMap) {
+        _private._childByNameMap = new Map();
+        const references = node.findReferencesEx("HierarchicalReferences");
+        for (var reference of references) {
+            ReferenceImpl.resolveReferenceNode(addressSpace, reference);
+            _add(_private._childByNameMap, reference as UAReferenceWithNodeRef);
+        }
+    }
+    return _private._childByNameMap;
+
+}
+export function _remove_HierarchicalReference(node: BaseNodeImpl, reference: UAReference) {
+    const _private = BaseNode_getPrivate(node);
+    if (_private._childByNameMap && reference.isForward) {
         const addressSpace = node.addressSpace;
         const referenceType = ReferenceImpl.resolveReferenceType(addressSpace, reference);
 
         if (referenceType) {
             const HierarchicalReferencesType = addressSpace.findReferenceType("HierarchicalReferences");
             if (referenceType.isSubtypeOf(HierarchicalReferencesType!)) {
-                if (!reference.isForward) {
-                    warningLog(" Invalid hiearchical reference", reference.toString());
-                    throw new Error("Invalid");
-                }
-                const targetNode = ReferenceImpl.resolveReferenceNode(addressSpace, reference);
-                _cache._childByNameMap.delete(targetNode.browseName!.name!.toString());
+                
+                ReferenceImpl.resolveReferenceNode(addressSpace, reference);
+                _remove(_private._childByNameMap, reference as UAReferenceWithNodeRef);
             }
         }
     }
@@ -1154,39 +1210,38 @@ export function _constructReferenceDescription(
     return references.map((reference: UAReference) => _makeReferenceDescription(addressSpace, reference, resultMask));
 }
 
-export function BaseNode_remove_backward_reference(this: BaseNode, reference: UAReference): void {
+export function BaseNode_remove_backward_reference(this: BaseNodeImpl, reference: UAReference): void {
     const _private = BaseNode_getPrivate(this);
     _remove_HierarchicalReference(this, reference);
     const h = (<ReferenceImpl>reference).hash;
-    if (_private._back_referenceIdx && _private._back_referenceIdx[h]) {
+    if (_private._back_referenceIdx?.has(h)) {
         // note : h may not exist in _back_referenceIdx since we are not indexing
         //        _back_referenceIdx to UAObjectType and UAVariableType for performance reasons
-        (<ReferenceImpl>_private._back_referenceIdx[h]).dispose();
-        delete _private._back_referenceIdx[h];
+        (<ReferenceImpl>_private._back_referenceIdx.get(h)).dispose();
+        _private._back_referenceIdx.delete(h);
     }
     (<ReferenceImpl>reference).dispose();
 }
 
-export function BaseNode_add_backward_reference(this: BaseNode, reference: UAReference): void {
+export function BaseNode_add_backward_reference(this: BaseNodeImpl, reference: UAReference): void {
     const _private = BaseNode_getPrivate(this);
-
     const h = (<ReferenceImpl>reference).hash;
     assert(typeof h === "string");
     // istanbul ignore next
-    if (_private._referenceIdx[h]) {
+    if (_private._referenceIdx.has(h)) {
         //  the reference exists already in the forward references
         //  this append for instance when the XML NotSetFile has redundant <UAReference>
         //  in this case there is nothing to do
         return;
     }
     // istanbul ignore next
-    if (_private._back_referenceIdx[h]) {
+    if (_private._back_referenceIdx.has(h)) {
         const opts = { addressSpace: this.addressSpace };
         warningLog(" Warning !", this.browseName.toString());
         warningLog("    ", reference.toString(opts));
         warningLog(" already found in ===>");
         warningLog(
-            (Object.values(_private._back_referenceIdx) as UAReference[]).map((c: UAReference) => c.toString(opts)).join("\n")
+            [..._private._back_referenceIdx.values()].map((c: UAReference) => c.toString(opts)).join("\n")
         );
         // tslint:disable-next-line:no-console
         warningLog("===>");
@@ -1197,7 +1252,7 @@ export function BaseNode_add_backward_reference(this: BaseNode, reference: UARef
         const stop_here = 1;
     }
     //  assert(reference._referenceType instanceof ReferenceType);
-    _private._back_referenceIdx[h] = reference;
+    _private._back_referenceIdx.set(h, reference);
     _handle_HierarchicalReference(this, reference);
-    (this as any)._clear_caches();
+    BaseNode_clearCache(this);
 }

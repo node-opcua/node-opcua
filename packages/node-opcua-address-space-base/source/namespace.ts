@@ -1,4 +1,4 @@
-import { QualifiedNameLike, AccessRestrictionsFlag, LocalizedTextLike } from "node-opcua-data-model";
+import { QualifiedNameLike, AccessRestrictionsFlag, LocalizedTextLike, NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import {
     ArgumentOptions,
@@ -30,9 +30,42 @@ import { UAView } from "./ua_view";
 import { UAEventType } from "./ua_event_type";
 import { UAMethod } from "./ua_method";
 
+
+export interface CreateNodeOptions {
+
+    addressSpace?: IAddressSpace;
+    browseName:  QualifiedNameLike;
+    nodeId? : NodeIdLike | BaseNode | null ;
+    nodeClass?: NodeClass;
+
+    displayName?: LocalizedTextLike | LocalizedTextLike[] | null;
+    description?: LocalizedTextLike |  null;
+
+    rolePermissions?: RolePermissionTypeOptions[];
+
+    references?: AddReferenceOpts[];
+
+    typeDefinition?: NodeIdLike | BaseNode | null;
+    componentOf?: NodeIdLike | BaseNode | null;
+    eventSourceOf?: NodeIdLike | BaseNode | null;
+    notifierOf?: NodeIdLike | BaseNode | null;
+    organizedBy?: NodeIdLike | BaseNode | null;
+    propertyOf?: NodeIdLike | BaseNode | null;
+    
+    subtypeOf?: NodeIdLike | string | BaseNode |null;
+
+    isAbstract?: boolean;
+
+    nodeVersion?: string;
+
+    modellingRule?: ModellingRuleType;
+    eventNotifier?: number;
+
+    postInstantiateFunc?: (instance: BaseNode, tpyeNode: BaseNode, opts?: any) => void;
+   
+}
 export interface AddBaseNodeOptions {
     browseName: QualifiedNameLike;
-
     nodeId?: NodeIdLike;
 
     displayName?: LocalizedTextLike | LocalizedTextLike[];
@@ -250,7 +283,7 @@ export interface AddYArrayItemOptions extends AddVariableOptions {
     xAxisDefinition?: AxisInformationOptions;
 }
 
-export type CreateNodeOptions = any;
+
 
 export interface RequiredModel {
     modelUri: string;

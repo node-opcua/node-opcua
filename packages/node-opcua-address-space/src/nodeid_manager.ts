@@ -1,10 +1,10 @@
 /* eslint-disable max-depth */
 /* eslint-disable max-statements */
 import { assert } from "node-opcua-assert";
-import { NodeClass, QualifiedName } from "node-opcua-data-model";
+import { NodeClass, QualifiedName, QualifiedNameLike, QualifiedNameOptions } from "node-opcua-data-model";
 import { makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { make_debugLog, make_warningLog } from "node-opcua-debug";
-import { BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
+import { AddReferenceOpts, BaseNode, UAReference, UAReferenceType } from "node-opcua-address-space-base";
 import { getReferenceType } from "./base_node_impl";
 import { resolveReferenceNode, resolveReferenceType } from "./reference_impl";
 
@@ -69,8 +69,8 @@ function _findParentNodeId(addressSpace: AddressSpacePartial, options: Construct
     return _filterAggregates(addressSpace, options.references);
 }
 
-function prepareName(browseName: QualifiedName): string {
-    const m = browseName.name!.toString().replace(/[ ]/g, "").replace(/(<|>)/g, "");
+function prepareName(browseName?: QualifiedName | QualifiedNameOptions): string {
+    const m = browseName!.name!.toString().replace(/[ ]/g, "").replace(/(<|>)/g, "");
     return m;
 }
 
@@ -79,9 +79,9 @@ export interface AddressSpacePartial {
     findReferenceType(refType: NodeIdLike, namespaceIndex?: number): UAReferenceType | null;
 }
 export interface ConstructNodeIdOptions {
-    nodeId?: string | NodeIdLike | null;
-    browseName: QualifiedName;
-    nodeClass: NodeClass;
+    nodeId?: string | NodeIdLike | BaseNode | null;
+    browseName: QualifiedNameOptions;
+    nodeClass?: NodeClass;
     references?: UAReference[];
     registerSymbolicNames?: boolean;
 }
@@ -148,6 +148,7 @@ export class NodeIdManager {
 
         const compose = (left: string, right: string) => { return right ? (left ? left + '_' + right : right) : left };
 
+        
         const buildUpName2 = (nodeId: NodeId, suffix: string) => {
             const namespaceIndex = nodeId.namespace;
             let name = "";
@@ -167,13 +168,13 @@ export class NodeIdManager {
                 const [parentNodeId, suffix] = parentInfo;
                 fullParentName = buildUpName2(parentNodeId, suffix);
             }
-            const fullName = compose(fullParentName, prepareName(options.browseName));
+            const fullName = compose(fullParentName, prepareName(options.browseName!));
             if (this._cacheSymbolicName[fullName]) {
                 return makeNodeId(this._cacheSymbolicName[fullName][0], this.namespaceIndex);
             }
             const nodeId = this._constructNodeId(options);
             if (nodeId.identifierType === NodeIdType.NUMERIC) {
-                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass];
+                this._cacheSymbolicName[fullName] = [nodeId.value as number, options.nodeClass!];
                 this._cacheSymbolicNameRev.add(nodeId.value as number);
             }
             return nodeId;
@@ -182,6 +183,9 @@ export class NodeIdManager {
     }
 
     private _constructNodeId(options: ConstructNodeIdOptions): NodeId {
+
+        const resolveNodeIdEx = (nodeId: BaseNode | NodeIdLike) =>
+            (nodeId && typeof nodeId == "object" && nodeId instanceof BaseNode) ? nodeId.nodeId : resolveNodeId(nodeId);
 
         let nodeId = options.nodeId;
 
@@ -214,7 +218,7 @@ export class NodeIdManager {
             assert(nodeId.namespace === this.namespaceIndex);
             return nodeId;
         }
-        nodeId = resolveNodeId(nodeId);
+        nodeId = resolveNodeIdEx(nodeId);
         assert(nodeId.namespace === this.namespaceIndex);
         return nodeId;
     }
