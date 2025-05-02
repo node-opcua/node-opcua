@@ -465,7 +465,17 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
                     session as ClientSessionImpl,
                     userIdentityInfo,
                     (err1: Error | null, session2?: ClientSessionImpl) => {
-                        callback(err1, session2);
+
+                        if (err1) {
+                            session.close(true).then(() => {
+                                callback(err1, null);
+                            }).catch((err2) => {
+                                err2;
+                                callback(err1, null);
+                            });
+                        } else {
+                            callback(null, session2);
+                        }
                     }
                 );
             }
@@ -532,7 +542,7 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
      */
     public closeSession(session: ClientSession, deleteSubscriptions: boolean): Promise<void>;
     public closeSession(session: ClientSession, deleteSubscriptions: boolean, callback: (err?: Error) => void): void;
- 
+
     /**
      * @internal
      */
@@ -612,11 +622,11 @@ export class OPCUAClientImpl extends ClientBaseImpl implements OPCUAClient {
         const endpointUrl: string = typeof connectionPoint === "string" ? connectionPoint : connectionPoint.endpointUrl;
         const userIdentity: UserIdentityInfo =
             typeof connectionPoint === "string" ? { type: UserTokenType.Anonymous } : connectionPoint.userIdentity;
-       
+
         this.on("backoff", (count, delay) => {
             warningLog("cannot connect to ", endpointUrl, "attempt #" + count, " retrying in ", delay);
         });
-       
+
         await this.connect(endpointUrl);
 
         try {
