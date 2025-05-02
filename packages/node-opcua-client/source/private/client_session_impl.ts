@@ -1488,11 +1488,11 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         }
         this.#reprocessRequest(0, request, callback);
     }
-    #reprocessRequest = (
+    #reprocessRequest(
         attemptCount: number,
         request: Request,
         callback: (err: Error | null, response?: Response) => void
-    ): void => {
+    ): void {
         attemptCount > 0 &&
             warningLog("reprocessRequest => ", request.constructor.name, this._reconnecting.pendingTransactions.length);
         this._performMessageTransaction(request, (err: null | Error, response?: Response) => {

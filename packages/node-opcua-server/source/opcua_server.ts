@@ -2094,7 +2094,6 @@ export class OPCUAServer extends OPCUABaseServer {
             const response1 = new ActivateSessionResponse({ responseHeader: { serviceResult: statusCode } });
 
             channel.send_response("MSG", response1, message);
-            // and close !
         }
 
         let response;
