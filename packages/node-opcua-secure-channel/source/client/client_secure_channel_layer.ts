@@ -359,6 +359,18 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public static minTransactionTimeout = 5 * 1000; // 5 sec
     public static defaultTransactionTimeout = 15 * 1000; // 15 seconds
     public static defaultTransportTimeout = 60 * 1000; // 60 seconds
+    
+    /**
+     * 
+     * maxClockSkew: The amount of clock skew that can be tolerated between server and client clocks
+     * 
+     * from https://reference.opcfoundation.org/Core/Part6/v104/docs/6.3
+     * 
+     *  The amount of clock skew that can be tolerated depends on the system security requirements
+     *  and applications shall allow administrators to configure the acceptable clock skew when
+     *  verifying times. A suitable default value is 5 minutes.
+     */
+    public static maxClockSkew = 5 * 60 * 1000; // 5 minutes
 
     public defaultTransactionTimeout: number;
     /**
@@ -484,7 +496,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     public get transportTimeout() {
         return this.#transportTimeout;
     }
-    
+
     public getPrivateKey(): PrivateKey | null {
         return this.#parent ? this.#parent.getPrivateKey() : null;
     }
@@ -847,7 +859,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
 
         this.#messageBuilder
             .on("message", (response: BaseUAObject, msgType: string, securityHeader, requestId: number, channelId: number) => {
-                this.emit("message", response, msgType, securityHeader, requestId, channelId );
+                this.emit("message", response, msgType, securityHeader, requestId, channelId);
                 this.#_on_message_received(response as Response, msgType, securityHeader, requestId);
             })
             .on("startChunk", () => {
@@ -893,8 +905,8 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (!requestData) {
                     warningLog("requestData not found for requestId = ", requestId);
                     // istanbul ignore next
-                    doDebug &&warningLog("err = ", err);
-                    
+                    doDebug && warningLog("err = ", err);
+
                     return;
                 }
 
@@ -1238,16 +1250,16 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 if (securityToken.createdAt) {
                     const delta = securityToken.createdAt.getTime() - midDate.getTime();
                     this.#_timeDrift = delta;
-                    if (Math.abs(delta) > 1000 * 5) {
+                    if (Math.abs(delta) > ClientSecureChannelLayer.maxClockSkew) {
                         warningLog(
                             `[NODE-OPCUA-W33]  client : server token creation date exposes a time discrepancy ${durationToString(delta)}\n` +
-                                "remote server clock doesn't match this computer date !\n" +
-                                " please check both server and client clocks are properly set !\n" +
-                                ` server time :${chalk.cyan(securityToken.createdAt?.toISOString())}\n` +
-                                ` client time :${chalk.cyan(midDate.toISOString())}\n` +
-                                ` transaction duration = ${absoluteDurationToString(endDate.getTime() - startDate.getTime())}\n` +
-                                ` server URL = ${this.endpointUrl} \n` +
-                                ` token.createdAt  has been updated to reflect client time`
+                            "remote server clock doesn't match this computer date !\n" +
+                            " please check both server and client clocks are properly set !\n" +
+                            ` server time :${chalk.cyan(securityToken.createdAt?.toISOString())}\n` +
+                            ` client time :${chalk.cyan(midDate.toISOString())}\n` +
+                            ` transaction duration = ${absoluteDurationToString(endDate.getTime() - startDate.getTime())}\n` +
+                            ` server URL = ${this.endpointUrl} \n` +
+                            ` token.createdAt  has been updated to reflect client time`
                         );
                     }
                 }
@@ -1376,7 +1388,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
                 let should_abort = this.#_isDisconnecting;
 
                 if (err.message.match(/ECONNRESET/)) {
-                   // this situation could arise when the socket try to connect and timeouts...  should_abort = false;
+                    // this situation could arise when the socket try to connect and timeouts...  should_abort = false;
                 }
                 if (err.message.match(/BadProtocolVersionUnsupported/)) {
                     should_abort = true;
@@ -1476,7 +1488,7 @@ export class ClientSecureChannelLayer extends EventEmitter {
     /**
      * @private internal function
      */
-    public beforeSecurityRenew = async () => {};
+    public beforeSecurityRenew = async () => { };
     #_renew_security_token() {
         this.beforeSecurityRenew()
             .then(() => {
