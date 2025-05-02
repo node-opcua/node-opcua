@@ -67,7 +67,10 @@ export function dumpBrowseDescription(node: BaseNode, _browseDescription: Browse
 
 /**
  */
-export function dumpReferences(addressSpace: IAddressSpace, references: UAReference[]): void {
+export function dumpReferences(
+    addressSpace: IAddressSpace, 
+    references: UAReference[] |MapIterator<UAReference>
+): void {
     assert(addressSpace);
     for (const reference of references) {
         const referenceType = resolveReferenceType(addressSpace, reference);
