@@ -4,10 +4,10 @@ import sinon from "sinon";
 import { nodesets } from "node-opcua-nodesets";
 import { DataType } from "node-opcua-variant";
 import { generateAddressSpace } from "../nodeJS";
-import { AddObjectOptions, AddressSpace, EventData, Namespace, UAObject, UAVariable, UAVariableT } from "..";
+import { AddObjectOptions, AddressSpace, EventData, Namespace, UAObject, UAProperty, UAVariable } from "..";
 
 interface UAObjectWithVersion extends UAObject {
-    nodeVersion: UAVariableT<string, DataType.String>;
+    nodeVersion: UAProperty<string, DataType.String>;
 }
 
 function createNodeWithNodeVersion(addressSpace: AddressSpace, options: AddObjectOptions): UAObjectWithVersion {

@@ -22,6 +22,7 @@ describe("Test low level routine for typescript d.ts creation", () => {
     let cache: Cache2;
 
     let nsADI = 0;
+    let nsDI = 0;
     let spectrometerDeviceTypeNode: UAObjectType;
     before(async () => {
         addressSpace = AddressSpace.create();
@@ -46,6 +47,8 @@ describe("Test low level routine for typescript d.ts creation", () => {
 
         nsADI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/ADI/");
         if (nsADI <= 0) throw new Error("Cannot find ADI ");
+        nsDI = addressSpace.getNamespaceIndex("http://opcfoundation.org/UA/DI/");
+        if (nsDI <= 0) throw new Error("Cannot find DI ");
         spectrometerDeviceTypeNode = addressSpace.findObjectType("SpectrometerDeviceType", nsADI)!;
         if (!spectrometerDeviceTypeNode) throw new Error("cannot find SpectrometerDeviceType");
     });
@@ -145,7 +148,8 @@ describe("Test low level routine for typescript d.ts creation", () => {
         should.exist(a.innerClass);
     });
     it("LD-7", async () => {
-        const nodeId = spectrometerDeviceTypeNode.getChildByName("ParameterSet", nsADI)!.nodeId;
+
+        const nodeId = spectrometerDeviceTypeNode.getChildByName("ParameterSet", nsDI)!.nodeId;
 
         const parentNodeId = spectrometerDeviceTypeNode.nodeId;
         const classDef = await extractClassDefinition(session, parentNodeId, cache);
