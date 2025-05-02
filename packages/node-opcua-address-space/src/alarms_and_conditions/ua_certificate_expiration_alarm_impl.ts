@@ -6,7 +6,7 @@ import { DateTime, getMinOPCUADate, isMinDate, StatusCodes } from "node-opcua-ba
 import { make_warningLog } from "node-opcua-debug";
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantOptions } from "node-opcua-variant";
-import { INamespace, UAObject, UAProperty } from "node-opcua-address-space-base";
+import { INamespace, UAObject, UAProperty, UAVariable } from "node-opcua-address-space-base";
 import { ObjectTypeIds } from "node-opcua-constants";
 import { makeAccessLevelExFlag } from "node-opcua-data-model";
 import { UACertificateExpirationAlarmEx } from "../../source/interfaces/alarms_and_conditions/ua_certificate_expiration_alarm_ex";
@@ -57,6 +57,7 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
         options: InstantiateOffNormalAlarmOptions
         // data?: Record<string, VariantOptions>
     ): UACertificateExpirationAlarmImpl {
+        
         const alarm = UASystemOffNormalAlarmImpl.instantiate(
             namespace,
             alarmType || "CertificateExpirationAlarmType",
@@ -68,7 +69,7 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
     }
 
     public getExpirationDate(): DateTime | null {
-        return this.expirationDate.readValue().value.value;
+        return (this.getChildByName("ExpirationDate") as UAVariable)?.readValue().value.value;
     }
 
     public updateAlarmState2(isActive: boolean, severity: number, message: string) {
@@ -157,7 +158,7 @@ class UACertificateExpirationAlarmImpl extends UASystemOffNormalAlarmImpl implem
     }
 
     public getCertificate(): Certificate | null {
-        return (this.certificate.readValue().value.value as Certificate | null) || null;
+        return (this.getChildByName("Certificate") as UAVariable)?.readValue().value.value as Certificate || null;
     }
 
     private _extractAndSetExpiryDate(certificate: Certificate | null): void {

@@ -22,11 +22,12 @@ describe("BrowseNext", function () {
             nodeId: "s=MyObjectWith3References",
             organizedBy: addressSpace.rootFolder.objects
         });
+        
         namespace.addObject({
             browseName: "SomeObject1",
-
             componentOf: uaObjectWith3References
         });
+
         namespace.addObject({
             browseName: "SomeObject2",
             componentOf: uaObjectWith3References

@@ -113,7 +113,7 @@ describe("promoteToMandatory", () => {
                 browseName: "SpecialBoiler",
                 organizedBy: addressSpace.rootFolder.objects
             });
-            const parameterSet3 = specialBoiler.getChildByName("ParameterSet", ns.index)!;
+            const parameterSet3 = specialBoiler.getChildByName("ParameterSet", nsDI)!;
             should.exist(parameterSet3);
 
             const param3 = parameterSet3.getChildByName("Parameter1", ns.index)!;
