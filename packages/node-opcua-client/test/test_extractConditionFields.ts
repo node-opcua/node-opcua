@@ -20,6 +20,7 @@ import {
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("extractConditionFields", () => {
     let addressSpace: AddressSpace;
     const test = {} as IAlarmTestData;
