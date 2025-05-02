@@ -264,13 +264,13 @@ describe("Testing automatic reconnection to a server when credential have change
     it("#1662-D should reconnected automatically - back again", async () => {
         const { client, session } = await createAndConnectClient();
 
-        await shutDownServerChangePasswordAndRestart(1000, "password1-New");
+        await shutDownServerChangePasswordAndRestart(10*1000, "password1-New");
         await wait(5 * 1000);
-        await shutDownServerChangePasswordAndRestart(1000, "password1-Old");
+        await shutDownServerChangePasswordAndRestart(10 * 1000, "password1-Old");
         await wait(6 * 1000);
 
         await session.close();
         await client.disconnect();
-        await wait(1000);
+        await wait(10*1000);
     });
 });

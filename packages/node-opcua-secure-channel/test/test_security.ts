@@ -203,7 +203,7 @@ describe("Testing secure client and server connection", function (this: any) {
                 maxRetry: 0
             },
             defaultSecureTokenLifetime: 1000000,
-            tokenRenewalInterval: 1000, // very short ! but not zero
+            tokenRenewalInterval: 200, // very short ! but not zero
             defaultTransactionTimeout: 1000000,
             parent: parentC,
             securityMode: param.securityMode,
