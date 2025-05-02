@@ -6,6 +6,7 @@ import { ClientSubscriptionImpl } from "../source/private/client_subscription_im
 import { ClientSessionImpl } from "../source/private/client_session_impl";
 const { ClientMonitoredItemGroup, ClientSubscription } = require("..");
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing the Monitored Items Group", () => {
     let sandbox: SinonSandbox;
     let monitoredItemGroup: any;

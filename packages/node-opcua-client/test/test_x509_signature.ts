@@ -121,6 +121,7 @@ function rebuildSignature(
     return userTokenSignature;
 }
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("X509 - Wireshark Analysis", () => {
     async function performTest(
         _messageCreateSessionResponsePacket: Buffer,

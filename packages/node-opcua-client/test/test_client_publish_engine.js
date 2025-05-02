@@ -16,6 +16,7 @@ function noop() {
     /** */
 }
 
+const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing the client publish engine", function () {
     beforeEach(function () {
         this.clock = sinon.useFakeTimers();

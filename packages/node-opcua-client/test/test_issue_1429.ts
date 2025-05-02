@@ -30,7 +30,7 @@ const endpointUrl = "opc.tcp://10.20.30.40:4840"; // arbitrary IP, no opc ua ser
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("issue_1429", function (this: any) {
     this.timeout(40*1000);
-    it("should issue wa backoff event if the endpoint is not reachable", async () => {
+    it("should issue a backoff event if the endpoint is not reachable", async () => {
         // setup  connect with infinit retries
         const connectionStrategy: ConnectionStrategyOptions = {
             maxRetry: -1, // infinit retries
@@ -62,7 +62,7 @@ describe("issue_1429", function (this: any) {
                 // force disconnection after 20 seconds
                 await client.disconnect();
                 timerId = undefined;
-            }, 5 * 1000);
+            }, 10 * 1000);
 
 
             await client.connect(endpointUrl);
