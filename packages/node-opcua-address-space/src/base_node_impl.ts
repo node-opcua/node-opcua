@@ -19,7 +19,9 @@ import {
     UAReferenceType,
     IAddressSpace,
     INamespace,
-    BrowseDescriptionOptions2
+    BrowseDescriptionOptions2,
+    UAVariableT,
+    UAProperty
 } from "node-opcua-address-space-base";
 import { assert } from "node-opcua-assert";
 import {
@@ -39,7 +41,7 @@ import {
 } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
 import { dumpIf, make_debugLog, make_warningLog, make_errorLog } from "node-opcua-debug";
-import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
+import { coerceNodeId, makeNodeId, NodeId, NodeIdLike, NodeIdType, resolveNodeId, sameNodeId } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { ReferenceDescription } from "node-opcua-service-browse";
 import { StatusCode, StatusCodes } from "node-opcua-status-code";
@@ -54,7 +56,7 @@ import { lowerFirstLetter } from "node-opcua-utils";
 import { DataType, VariantArrayType } from "node-opcua-variant";
 
 import { UAStateVariable } from "node-opcua-nodeset-ua";
-import { ObjectTypeIds, VariableTypeIds } from "node-opcua-constants";
+import { ObjectTypeIds, ReferenceTypeIds, VariableTypeIds } from "node-opcua-constants";
 
 import { XmlWriter } from "../source/xml_writer";
 import { dumpReferenceDescriptions, dumpReferences } from "../source/helpers/dump_tools";
@@ -65,18 +67,22 @@ import { AddressSpacePrivate } from "./address_space_private";
 import {
     _constructReferenceDescription,
     _handle_HierarchicalReference,
+    _get_HierarchicalReference,
+    _remove_HierarchicalReference,
     BaseNode_add_backward_reference,
+    BaseNode_remove_backward_reference,
     BaseNode_getPrivate,
     BaseNode_initPrivate,
-    BaseNode_remove_backward_reference,
     BaseNode_removePrivate,
     BaseNode_toString,
     ToStringBuilder,
     BaseNode_getCache,
-    BaseNode_clearCache
+    BaseNode_clearCache,
+    HierarchicalIndexMap,
 } from "./base_node_private";
 import { MinimalistAddressSpace, ReferenceImpl } from "./reference_impl";
 import { coerceRolePermissions } from "./role_permissions";
+import { UAString } from "node-opcua-basic-types";
 
 // tslint:disable:no-var-requires
 // tslint:disable:no-bitwise
@@ -303,7 +309,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     public readonly nodeId: NodeId;
     public readonly browseName: QualifiedName;
 
-    protected _postInstantiateFunc?: any;
+    protected _postInstantiateFunc?: (instance: BaseNode, instanceType: BaseNode, options?: any) => void;
 
     /**
      * @internal
@@ -389,9 +395,8 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         const isForward = browseDirection === BrowseDirection.Forward;
         const results: UAReference[] = [];
 
-        const process = (referenceIdx: { [key: string]: UAReference }) => {
-            const references = Object.values(referenceIdx);
-            for (const ref of references) {
+        const process = (referenceIdx: Map<string, UAReference>) => {
+            for (const ref of referenceIdx.values()) {
                 if (ref.isForward === isForward && referenceTypeNode && referenceTypeNode.checkHasSubtype(ref.referenceType)) {
                     results.push(ref);
                 }
@@ -406,7 +411,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     public findReferences_no_cache(referenceTypeNode: UAReferenceType, isForward = true): UAReference[] {
         const _private = BaseNode_getPrivate(this);
         const result: UAReference[] = [];
-        for (const ref of Object.values(_private._referenceIdx)) {
+        for (const ref of _private._referenceIdx.values()) {
             if (ref.isForward === isForward) {
                 if (sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
                     result.push(ref);
@@ -414,7 +419,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             }
         }
 
-        for (const ref of Object.values(_private._back_referenceIdx)) {
+        for (const ref of _private._back_referenceIdx.values()) {
             if (ref.isForward === isForward) {
                 if (sameNodeId(ref.referenceType, referenceTypeNode.nodeId)) {
                     result.push(ref);
@@ -432,8 +437,11 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             // throw new Error("expecting valid reference name " + strReference);
             return [];
         }
+
         _cache._ref = _cache._ref || new Map();
-        const hash = "_ref_" + referenceTypeNode.nodeId.toString() + isForward.toString();
+
+        const hash = `r|${referenceTypeNode.nodeId.toString()}|${isForward ? "f" : "b"}`;
+
         if (_cache._ref.has(hash)) {
             return _cache._ref.get(hash)!;
         }
@@ -488,8 +496,14 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         return this.findReferencesExAsObject("HasProperty", BrowseDirection.Forward);
     }
 
+    private static _hasChild: NodeId = new NodeId(NodeIdType.NUMERIC, ReferenceTypeIds.HasChild);
     public getChildren(): BaseNode[] {
-        return this.findReferencesExAsObject("HasChild", BrowseDirection.Forward);
+        // return this.findReferencesExAsObject(BaseNodeImpl._hasChild, BrowseDirection.Forward);
+        const _cache = BaseNode_getCache(this);
+        if (!_cache._children) {
+            _cache._children = this.findReferencesExAsObject(BaseNodeImpl._hasChild, BrowseDirection.Forward);
+        };
+        return _cache._children;
     }
 
     /**
@@ -709,7 +723,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     public ownReferences(): UAReference[] {
         const _private = BaseNode_getPrivate(this);
-        return Object.values(_private._referenceIdx);
+        return [..._private._referenceIdx.values()];
     }
 
     /**
@@ -839,7 +853,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         /* istanbul ignore next */
         if (do_debug) {
             debugLog("all references :", this.nodeId.toString(), this.browseName.toString());
-            dumpReferences(addressSpace, (Object as any).values(_private._referenceIdx));
+            dumpReferences(addressSpace, _private._referenceIdx.values());
         }
 
         // filter out references not matching referenceType
@@ -866,7 +880,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
     public allReferences(): UAReference[] {
         const _private = BaseNode_getPrivate(this);
-        return Object.values(_private._referenceIdx).concat(Object.values(_private._back_referenceIdx));
+        return [..._private._referenceIdx.values(), ..._private._back_referenceIdx.values()];
     }
 
     /**
@@ -884,15 +898,13 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
      *     myDevice1.addReference({ referenceType: "OrganizedBy", nodeId: view });
      */
     public addReference(reference: AddReferenceOpts): void {
-        const referenceNode = this.__addReference(reference);
 
+        const referenceNode = this.__addReference(reference);
         const addressSpace = this.addressSpace;
 
         if (!resolveReferenceType(addressSpace, referenceNode)) {
             throw new Error("BaseNode#addReference : invalid reference  " + reference.toString());
         }
-
-        this._clear_caches();
 
         _propagate_ref.call(this, addressSpace, referenceNode);
         this.install_extra_properties();
@@ -913,26 +925,25 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         const relatedNode = addressSpace.findNode(reference.nodeId)!;
 
-        const invReference = new ReferenceImpl({
+        const backwardReference = new ReferenceImpl({
             isForward: !reference.isForward,
             nodeId: this.nodeId,
             referenceType: reference.referenceType
         });
 
-        if (_private._referenceIdx[h]) {
-            delete _private._referenceIdx[h];
-            BaseNode_remove_backward_reference.call(relatedNode as BaseNode, invReference);
-        } else if (_private._back_referenceIdx[h]) {
-            (relatedNode as any).removeReference(invReference);
+        if (_private._referenceIdx.has(h)) {
+            _private._referenceIdx.delete(h);
+            BaseNode_remove_backward_reference.call(relatedNode as BaseNodeImpl, backwardReference);
+            _remove_HierarchicalReference(this, reference);
+            this.uninstall_extra_properties(reference);
+            this._clear_caches();
+
+        } else if (_private._back_referenceIdx.has(h)) {
+            return relatedNode.removeReference(backwardReference);
         } else {
-            //            throw new Error("Cannot find reference " + reference);
+            warningLog("Cannot find reference to remove: " + reference.toString());
         }
 
-        _handle_HierarchicalReference(this, reference);
-
-        this.uninstall_extra_properties(reference);
-
-        this._clear_caches();
     }
 
     /**
@@ -1065,13 +1076,42 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     public getChildByName(browseName: string, namespaceIndex?: number): BaseNode | null;
     // 
     public getChildByName(browseName: QualifiedNameLike, namespaceIndex?: number): BaseNode | null {
-        // Attention: getChild doesn't care about namespace on browseName
-        //            !!!!
-        const properties = this.getChildren();
-        const select = _filter_by_browse_name(properties, browseName, namespaceIndex);
-        assert(select.length <= 1, "BaseNode#getPropertyByName found duplicated reference");
-        return select.length === 1 ? select[0] : null;
+
+        var childrenMap = _get_HierarchicalReference(this);
+        const select = _select_by_browse_name(childrenMap, browseName, namespaceIndex);
+        if (select.length == 0) {
+            return null;
+        }
+        const ref = select[0];
+        const r = this.addressSpace.findReferenceType(ref.referenceType);
+        if (!r) return null;
+        const hasChild = this.addressSpace.findReferenceType("HasChild");
+        if (!hasChild) {
+            return null; // too early, bmy be namespace 0 is still loading
+        }
+        if (r.isSubtypeOf(hasChild)) {
+            return ref.node!;
+        }
+        return null;
     }
+    public getNodeVersion(): UAProperty<UAString, DataType.String> | null {
+        return this.getChildByName("NodeVersion", 0) as UAProperty<UAString, DataType.String> | null;
+        /*
+        const cache = BaseNode_getCache(this);
+        if (cache._versionNode == undefined) {
+            cache._versionNode = this.getChildByName("NodeVersion", 0) as UAProperty<string, DataType.String> | null;
+        }
+        return cache._versionNode as UAProperty<UAString, DataType.String> | null;
+        */
+    }
+
+    public get nodeVersion(): UAProperty<UAString, DataType.String> | undefined {
+        return this.getNodeVersion() || undefined;
+    }
+    public set nodeVersion(n: any) {
+        assert(false);
+    }
+
     get toStateNode(): BaseNode | null {
         const nodes = this.findReferencesAsObject("ToState", true);
         assert(nodes.length <= 1);
@@ -1097,7 +1137,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
             return;
         }
         const addressSpace = this.addressSpace;
-        for (const reference of Object.values(_private._referenceIdx)) {
+        for (const reference of _private._referenceIdx.values()) {
             _propagate_ref.call(this, addressSpace, reference);
         }
     }
@@ -1115,8 +1155,13 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         this._clear_caches();
 
         const _private = BaseNode_getPrivate(this);
-        Object.values(_private._back_referenceIdx).forEach((ref) => (ref as ReferenceImpl).dispose());
-        Object.values(_private._referenceIdx).forEach((ref) => (ref as ReferenceImpl).dispose());
+        for (let ref of _private._back_referenceIdx.values()) {
+            (ref as ReferenceImpl).dispose();
+        }
+
+        for (let ref of _private._referenceIdx.values()) {
+            (ref as ReferenceImpl).dispose();
+        }
 
         BaseNode_removePrivate(this);
     }
@@ -1140,7 +1185,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
 
         const addressSpace = this.addressSpace;
 
-        for (const reference of Object.values(_private._referenceIdx) as UAReference[]) {
+        for (const reference of _private._referenceIdx.values()) {
             // filter out non  Hierarchical References
             const referenceType = resolveReferenceType(addressSpace, reference);
 
@@ -1149,7 +1194,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
                 console.error(chalk.red(" ERROR"), " cannot find reference ", reference.referenceType, reference.toString());
             }
 
-            const related_node = resolveReferenceNode(addressSpace, reference) as BaseNode;
+            const related_node = resolveReferenceNode(addressSpace, reference) as BaseNodeImpl;
             if (related_node) {
                 assert(reference.nodeId.toString() !== this.nodeId.toString());
                 BaseNode_remove_backward_reference.call(
@@ -1164,7 +1209,7 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         }
     }
 
-    public installPostInstallFunc(f: () => void): void {
+    public installPostInstallFunc(f: (instance: BaseNode, tpyeNode: BaseNode, opts?: any) => void): void {
         if (!f) {
             // nothing to do
             return;
@@ -1184,8 +1229,20 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
         this._postInstantiateFunc = chain.call(this, this._postInstantiateFunc, f);
     }
 
-    public _on_child_added(): void {
+    public _on_child_added(childNode: BaseNode): void {
+
+        // this._clear_caches();
+        // return;
+        const cache = BaseNode_getCache(this);
+        const tmpV = cache._versionNode;
+        const tmpC = cache._children;
         this._clear_caches();
+        const newCache = BaseNode_getCache(this);
+        newCache._versionNode = tmpV;
+        newCache._children = tmpC;
+        if (newCache._children) {
+            newCache._children!.push(childNode);
+        }
     }
 
     public _on_child_removed(obj: BaseNode): void {
@@ -1224,22 +1281,23 @@ export class BaseNodeImpl extends EventEmitter implements BaseNode {
     }
 
     private __addReference(referenceOpts: AddReferenceOpts): UAReference {
-        const _private = BaseNode_getPrivate(this);
 
+        const addressSpace = this.addressSpace as AddressSpacePrivate;
+        const _private = BaseNode_getPrivate(this);
         assert(Object.prototype.hasOwnProperty.call(referenceOpts, "referenceType"));
         // xx isForward is optional : assert(Object.prototype.hasOwnProperty.call(reference,"isForward"));
         assert(Object.prototype.hasOwnProperty.call(referenceOpts, "nodeId"));
 
-        const addressSpace = this.addressSpace as AddressSpacePrivate;
         const reference: UAReference = addressSpace.normalizeReferenceTypes([referenceOpts])[0];
         assert(reference instanceof ReferenceImpl);
 
         const h = (<ReferenceImpl>reference).hash;
-        assert(!_private._back_referenceIdx[h], "reference exists already in _back_references");
-        assert(!_private._referenceIdx[h], "reference exists already in _references");
+        assert(!_private._back_referenceIdx.has(h), "reference exists already in _back_references");
+        assert(!_private._referenceIdx.has(h), "reference exists already in _references");
 
-        _private._referenceIdx[h] = reference;
+        _private._referenceIdx.set(h, reference);
         _handle_HierarchicalReference(this, reference);
+        this._clear_caches();
         return reference;
     }
 
@@ -1426,15 +1484,16 @@ function toString_ReferenceDescription(ref: UAReference, options: { addressSpace
     return str;
 }
 
-function _setup_parent_item(this: BaseNode, references: { [key: string]: any }): BaseNode | null {
-    references = Object.values(references);
+function _setup_parent_item(this: BaseNode, referencesMap: Map<string, UAReference>): BaseNode | null {
+
+    let references: UAReference[] | MapIterator<UAReference> = referencesMap.values();
 
     const _private = BaseNode_getPrivate(this);
     assert(!_private._parent, "_setup_parent_item has been already called");
 
     const addressSpace = this.addressSpace;
 
-    if (references.length > 0) {
+    if (referencesMap.size > 0) {
         references = this.findReferencesEx("Aggregates", BrowseDirection.Inverse);
 
         if (references.length >= 1) {
@@ -1462,31 +1521,67 @@ function _setup_parent_item(this: BaseNode, references: { [key: string]: any }):
     return null;
 }
 
+function toObject(addressSpace: IAddressSpace, reference: UAReference): BaseNode {
+    const obj = resolveReferenceNode(addressSpace, reference);
+    // istanbul ignore next
+    if (doDebug && !obj) {
+        debugLog(
+            chalk.red(" Warning :  object with nodeId ") +
+            chalk.cyan(reference.nodeId.toString()) +
+            chalk.red(" cannot be found in the address space !")
+        );
+    }
+    return obj;
+}
+
+
 function _asObject<T extends BaseNode>(references: UAReference[], addressSpace: IAddressSpace): T[] {
-    function toObject(reference: UAReference): T {
-        const obj = resolveReferenceNode(addressSpace, reference);
-        // istanbul ignore next
-        if (doDebug && !obj) {
-            debugLog(
-                chalk.red(" Warning :  object with nodeId ") +
-                    chalk.cyan(reference.nodeId.toString()) +
-                    chalk.red(" cannot be found in the address space !")
-            );
+
+    return references.map((a) => toObject(addressSpace, a)).filter((o) => o != null && o != undefined) as T[];
+}
+
+function _select_by_browse_name(
+    map: HierarchicalIndexMap,
+    browseName: QualifiedNameLike, namespaceIndex?: number
+): UAReference[] {
+ 
+    if ((namespaceIndex === null || namespaceIndex === undefined) && typeof browseName === "string") {
+
+        // no namespace specified and needed
+        const result = map.get(browseName);
+        if (result) {
+            if (Array.isArray(result)) {
+                return result;
+            } 
+            return [result];
         }
-        return obj as any as T;
-    }
 
-    function remove_null(o: any): boolean {
-        return !!o;
+    } else {
+        const _browseName = coerceQualifiedName(
+            typeof browseName === "string" ? { name: browseName, namespaceIndex } : browseName
+        )!;
+        const result = map.get(_browseName.name || "");
+        if (result) {
+            if (Array.isArray(result)) {
+                // only select the one with the matching namepsace index
+                return result.filter((t) => t.node.browseName.namespaceIndex == _browseName.namespaceIndex);
+            } else {
+                if (result.node.browseName.namespaceIndex == _browseName.namespaceIndex) {
+                   return [result];
+                }
+                return [];
+            }
+        }
     }
+    return [];
 
-    return references.map(toObject)!.filter(remove_null)! as T[];
 }
 
 function _filter_by_browse_name<T extends BaseNode>(components: T[], browseName: QualifiedNameLike, namespaceIndex?: number): T[] {
     let select: T[] = [];
     if ((namespaceIndex === null || namespaceIndex === undefined) && typeof browseName === "string") {
-        select = components.filter((c: T) => c.browseName.name!.toString() === browseName);
+
+        select = components.filter((c: T) => c.browseName.name === browseName);
         if (select && select.length > 1) {
             warningLog("Multiple children exist with name ", browseName, " please specify a namespace index");
         }
@@ -1526,9 +1621,6 @@ function _propagate_ref(this: BaseNode, addressSpace: MinimalistAddressSpace, re
     if (!referenceType || _is_massively_used_reference(referenceType)) {
         return;
     }
-   
-
-
 
     const related_node = resolveReferenceNode(addressSpace, reference) as BaseNodeImpl;
     if (related_node) {

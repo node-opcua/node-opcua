@@ -53,7 +53,7 @@ export function _handle_add_reference_change_event(node1: BaseNode, node2id: Nod
     const node2 = addressSpace.findNode(node2id);
     if (!node2) return;
 
-    if (!!node1.getChildByName("NodeVersion",0) || (!!node2.getChildByName("NodeVersion", 0))) {
+    if (node1.getNodeVersion() ||node2.getNodeVersion()) {
 
         // a event has to be send
         addressSpace.modelChangeTransaction(() => {
@@ -71,7 +71,7 @@ export function _handle_add_reference_change_event(node1: BaseNode, node2id: Nod
                 affectedType: _getTypeDef(node2),
                 verb: makeVerb("ReferenceAdded")
             });
-            
+
             addressSpace._collectModelChange(null, modelChangeTgt);
         });
     }
@@ -113,7 +113,7 @@ export function _handle_model_change_event(node: BaseNodeImpl): void {
         typeDefinitionNodeId = node.typeDefinitionObj.nodeId;
     }
     for (const parent of [...parents, ...containingFolders]) {
-        if (parent && parent.getChildByName("NodeVersion",0)) {
+        if (parent && parent.getNodeVersion()) {
             addressSpace.modelChangeTransaction(() => {
                 const modelChange1 = new ModelChangeStructureDataType({
                     affected: node.nodeId,
@@ -130,7 +130,7 @@ export function _handle_model_change_event(node: BaseNodeImpl): void {
                 addressSpace._collectModelChange(null, modelChangeSrc);
 
                 // bidirectional
-                if ((node as BaseNode).nodeVersion) {
+                if (node.getNodeVersion()) {
                     const modelChangeTgt = new ModelChangeStructureDataType({
                         affected: node.nodeId,
                         affectedType: typeDefinitionNodeId,
@@ -153,9 +153,9 @@ export function _handle_delete_node_model_change_event(node: BaseNode): void {
         return addressSpace.findNode(r.nodeId)! as BaseNode;
     });
 
-    const versionableNodes = parentNodes.filter((n: BaseNode) => !!(n?.getChildByName("NodeVersion", 0)));
+    const versionableNodes = parentNodes.filter((n) => null!=n.getNodeVersion());
 
-    if (versionableNodes.length >= 1 || !!(node.getChildByName("NodeVersion",0))) {
+    if (versionableNodes.length >= 1 || node.getNodeVersion()) {
         addressSpace.modelChangeTransaction(() => {
             // ...
             for (const r of references) {

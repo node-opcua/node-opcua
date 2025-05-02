@@ -63,7 +63,7 @@ export interface AddressSpacePrivate extends IAddressSpace {
 
     normalizeReferenceType(params: AddReferenceOpts | UAReference): UAReference;
 
-    normalizeReferenceTypes(references: AddReferenceOpts[] | UAReference[] | null): UAReference[];
+    normalizeReferenceTypes(references?: AddReferenceOpts[] | UAReference[] | null): UAReference[];
 
     _register(node: BaseNode): void;
 

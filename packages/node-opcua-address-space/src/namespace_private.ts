@@ -61,7 +61,10 @@ function isValidModellingRule(ruleName: string) {
  * @param modellingRule
  * @private
  */
-export function UANamespace_process_modelling_rule(references: AddReferenceOpts[], modellingRule: ModellingRuleType): void {
+export function UANamespace_process_modelling_rule(
+    references: AddReferenceOpts[], 
+    modellingRule?: ModellingRuleType
+): void {
     if (modellingRule) {
         assert(isValidModellingRule(modellingRule), "expecting a valid modelling rule");
         const modellingRuleName = "ModellingRule_" + modellingRule;

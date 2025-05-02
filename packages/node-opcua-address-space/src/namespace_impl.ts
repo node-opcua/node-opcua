@@ -232,7 +232,7 @@ export class NamespaceImpl implements NamespacePrivate {
     private _dataTypeMap: Map<string, UADataType>;
     private _referenceTypeMapInv: Map<string, UAReferenceType>;
     private _nodeIdManager: NodeIdManager;
-    private _nodeid_index: Map<string | number, BaseNode>;
+    private _nodeid_index: Map<string | number| Buffer, BaseNode>;
     private _aliases: Map<string, NodeId>;
     private defaultAccessRestrictions?: AccessRestrictionsFlag;
     private defaultRolePermissions?: RolePermissionType[];
@@ -519,7 +519,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const typeDefinition = options.typeDefinition || "BaseObjectType";
         options.references = options.references || [];
         options.references.push({ referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition });
-        options.eventNotifier = +options.eventNotifier;
+        options.eventNotifier = +(options.eventNotifier || 0);
         const obj = this.createNode(options) as UAObject;
         assert(obj instanceof UAObjectImpl);
         assert(obj.nodeClass === NodeClass.Object);
@@ -537,6 +537,7 @@ export class NamespaceImpl implements NamespacePrivate {
      * @return {BaseNode}
      */
     public addFolder(parentFolder: UAObject, options: AddFolderOptions | string): UAObject {
+        
         if (typeof options === "string") {
             options = { browseName: options };
         }
@@ -551,7 +552,7 @@ export class NamespaceImpl implements NamespacePrivate {
             { referenceType: "HasTypeDefinition", isForward: true, nodeId: typeDefinition },
             { referenceType: "Organizes", isForward: false, nodeId: parentFolder.nodeId }
         ];
-        const node = this.createNode(options) as UAObject;
+        const node = this.createNode(options as CreateNodeOptions) as UAObject;
         return node;
     }
 
@@ -568,7 +569,7 @@ export class NamespaceImpl implements NamespacePrivate {
         const options1 = options as CreateNodeOptions;
         options1.nodeClass = NodeClass.ReferenceType;
         options1.references = options.references || [];
-        options1.nodeId = options.nodeId;
+        options1.nodeId = options.nodeId!;
 
         if (options.subtypeOf) {
             const subtypeOfNodeId = addressSpace._coerceType(options.subtypeOf, "References", NodeClass.ReferenceType);
@@ -1716,7 +1717,7 @@ export class NamespaceImpl implements NamespacePrivate {
         // ? (options.browseName.namespaceIndex === this.index): true,
         // "Expecting browseName to have the same namespaceIndex as the namespace");
 
-        options.description = coerceLocalizedText(options.description);
+        options.description = coerceLocalizedText(options.description)!;
 
         // browseName adjustment
         if (typeof options.browseName === "string") {
@@ -1759,21 +1760,23 @@ export class NamespaceImpl implements NamespacePrivate {
         // ------------- set display name
         if (!options.displayName) {
             assert(typeof options.browseName.name === "string");
-            options.displayName = options.browseName.name;
+            options.displayName = coerceLocalizedText(options.browseName.name)!;
         }
-
+        if (!options.nodeClass || options.nodeClass == undefined) {
+            throw new Error("nodeclass must be specified");
+        }
         // --- nodeId adjustment
-        options.nodeId = this.constructNodeId(options);
+        options.nodeId = this.constructNodeId(options as ConstructNodeIdOptions)
         dumpIf(!options.nodeId, options); // missing node Id
         assert(options.nodeId instanceof NodeId);
 
         // assert(options.browseName.namespaceIndex === this.index,"Expecting browseName to have
         // the same namespaceIndex as the namespace");
 
-        const Constructor = _constructors_map[NodeClass[options.nodeClass]];
+        const Constructor = _constructors_map[NodeClass[options.nodeClass!]];
 
         if (!Constructor) {
-            throw new Error(" missing constructor for NodeClass " + NodeClass[options.nodeClass]);
+            throw new Error(" missing constructor for NodeClass " + NodeClass[options.nodeClass!]);
         }
 
         options.addressSpace = this.addressSpace;
@@ -1863,7 +1866,7 @@ export class NamespaceImpl implements NamespacePrivate {
             browseName: options.browseName,
             displayName: options.displayName,
             description: options.description,
-            eventNotifier: +options.eventNotifier,
+            eventNotifier: +(options.eventNotifier || 0),
             isAbstract: !!options.isAbstract,
             nodeClass,
             nodeId: options.nodeId,
@@ -1874,7 +1877,9 @@ export class NamespaceImpl implements NamespacePrivate {
 
         objectType.install_extra_properties();
 
-        (<BaseNodeImpl>objectType).installPostInstallFunc(options.postInstantiateFunc);
+        if (options.postInstantiateFunc) {
+            (<BaseNodeImpl>objectType).installPostInstallFunc(options.postInstantiateFunc);
+        }
         return objectType;
     }
 
@@ -1981,7 +1986,7 @@ export class NamespaceImpl implements NamespacePrivate {
         assert(typeof options.valueRank === "number" && isFinite(options.valueRank!));
 
         options.arrayDimensions = options.arrayDimensions || null;
-        assert(Array.isArray(options.arrayDimensions) || options.arrayDimensions === null);
+        assert(options.arrayDimensions === null || Array.isArray(options.arrayDimensions));
 
         // -----------------------------------------------------
         const hasGetter = (options: AddVariableOptions2) => {
@@ -2024,7 +2029,7 @@ export class NamespaceImpl implements NamespacePrivate {
 
         options.references = references;
 
-        const variable = this.createNode(options) as UAVariable;
+        const variable = this.createNode(options as CreateNodeOptions) as UAVariable;
         return variable;
     }
 
@@ -2083,7 +2088,7 @@ const _constructors_map: any = {
  */
 function _coerce_parent(
     addressSpace: AddressSpacePrivate,
-    value: null | string | BaseNode,
+    value: null | string | BaseNode| undefined | NodeIdLike,
     coerceFunc: (data: string | NodeId | BaseNode) => BaseNode | null
 ): BaseNode | null {
     assert(typeof coerceFunc === "function");
@@ -2199,7 +2204,7 @@ export function _handle_hierarchy_parent(addressSpace: AddressSpacePrivate, refe
     }
 }
 
-function _copy_reference(reference: UAReference): AddReferenceOpts {
+function _copy_reference(reference: UAReference | AddReferenceOpts): AddReferenceOpts {
     assert(Object.prototype.hasOwnProperty.call(reference, "referenceType"));
     assert(Object.prototype.hasOwnProperty.call(reference, "isForward"));
     assert(Object.prototype.hasOwnProperty.call(reference, "nodeId"));
@@ -2211,12 +2216,12 @@ function _copy_reference(reference: UAReference): AddReferenceOpts {
     };
 }
 
-function _copy_references(references?: UAReference[] | null): AddReferenceOpts[] {
+function _copy_references(references?: UAReference[] | AddReferenceOpts[] | null): AddReferenceOpts[] {
     references = references || [];
     return references.map(_copy_reference);
 }
 
-export function isNonEmptyQualifiedName(browseName?: null | string | QualifiedName): boolean {
+export function isNonEmptyQualifiedName(browseName: QualifiedNameLike): boolean {
     if (!browseName) {
         return false;
     }
@@ -2230,12 +2235,12 @@ export function isNonEmptyQualifiedName(browseName?: null | string | QualifiedNa
     return browseName.name!.length > 0;
 }
 
-function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion: boolean }) {
+function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion?: string }) {
     assert(options);
-    if (options.nodeVersion) {
+    if (typeof options.nodeVersion == "string") {
         assert(node.nodeClass === NodeClass.Variable || node.nodeClass === NodeClass.Object);
         // istanbul ignore next
-        if (node.getChildByName("NodeVersion")) {
+        if (node.getNodeVersion()) {
             return; // already exists
         }
 
@@ -2245,7 +2250,6 @@ function _create_node_version_if_needed(node: BaseNode, options: { nodeVersion: 
             dataType: DataType.String,
             propertyOf: node
         });
-        
         const initialValue = typeof options.nodeVersion === "string" ? options.nodeVersion : "0";
         nodeVersion.setValueFromSource({ dataType: "String", value: initialValue });
     }

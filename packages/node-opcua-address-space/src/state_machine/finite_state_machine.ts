@@ -19,7 +19,7 @@ import { NodeId, sameNodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { UAString } from "node-opcua-basic-types";
-import { BaseNode, UAMethod, UAObject, UAObjectType, UAVariable, UAVariableT } from "node-opcua-address-space-base";
+import { BaseNode, UAMethod, UAObject, UAObjectType, UAProperty, UAVariable, UAVariableT } from "node-opcua-address-space-base";
 import { registerNodePromoter } from "../../source/loader/register_node_promoter";
 
 import {
@@ -651,7 +651,6 @@ export class UAStateMachineTypeImpl extends UAObjectTypeImpl implements UAStateM
     getTransitions(): UATransitionEx[] {
         return getFiniteStateMachineTypeTransitions(this);
     }
-    nodeVersion?: UAVariableT<UAString, DataType.String> | undefined;
     _post_initialize(): void {
         /** */
     }
