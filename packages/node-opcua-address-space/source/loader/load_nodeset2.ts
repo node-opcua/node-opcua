@@ -229,8 +229,8 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         if (!namespace) {
             throw new Error(
                 "cannot find namespace for " +
-                    namespaceUri +
-                    "\nplease make sure to initialize your address space with the corresponding nodeset files"
+                namespaceUri +
+                "\nplease make sure to initialize your address space with the corresponding nodeset files"
             );
         }
         foundNamespaceMap.set(namespaceUri, namespace);
@@ -768,12 +768,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
-            try {
-                _internal_createNode(this.obj);
-            } /* istanbul ignore next */ catch (err) {
-                errorLog(" Cannot create object", JSON.stringify(this.obj, null, " "));
-                throw err;
-            }
+            _internal_createNode(this.obj);
         },
         parser: {
             DisplayName: {
@@ -993,7 +988,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         doDebug &&
             debugLog(
                 chalk.bgGreenBright("Performing post loading tasks -------------------------------------------") +
-                    chalk.green("DONE")
+                chalk.green("DONE")
             );
 
         async function performPostLoadingTasks(tasks: Task[]): Promise<void> {
