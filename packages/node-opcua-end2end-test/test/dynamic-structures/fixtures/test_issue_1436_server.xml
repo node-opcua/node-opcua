@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:s1="http://baseDataTypeFactoryBugExample.org/server/Types.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns:s2="http://baseDataTypeFactoryBugExample.org/dependent/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd">
+    <NamespaceUris>
+        <Uri>http://baseDataTypeFactoryBugExample.org/server/</Uri>
+        <Uri>http://baseDataTypeFactoryBugExample.org/dependent/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://baseDataTypeFactoryBugExample.org/server/" Version="1.0.0" PublicationDate="2025-04-22T06:24:28Z">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.03" PublicationDate="2023-12-15T00:00:00Z"/>
+            <RequiredModel ModelUri="http://baseDataTypeFactoryBugExample.org/base/" Version="1.0.0" PublicationDate="2025-04-22T06:24:09Z"/>
+            <RequiredModel ModelUri="http://baseDataTypeFactoryBugExample.org/dependent/" Version="1.0.0" PublicationDate="2025-04-22T06:24:20Z"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="DependentStruct">ns=2;i=3003</Alias>
+    </Aliases>
+    <UAObject NodeId="ns=1;i=5003" BrowseName="1:ExampleObject">
+        <DisplayName>ExampleObject</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference IsForward="false" ReferenceType="Organizes">i=85</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6001</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="DependentStruct" NodeId="ns=1;i=6001" BrowseName="1:ExampleVariable">
+        <DisplayName>ExampleVariable</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">ns=1;i=5003</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=2;i=5002</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <DependentStruct xmlns="http://baseDataTypeFactoryBugExample.org/dependent/Types.xsd">
+                        <ExampleNumber>123</ExampleNumber>
+                        <DependentStruct>
+                            <ExampleBoolean xmlns="http://baseDataTypeFactoryBugExample.org/base/Types.xsd">true</ExampleBoolean>
+                        </DependentStruct>
+                    </DependentStruct>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAObject SymbolicName="http___baseDataTypeFactoryBugExample_org_server_" NodeId="ns=1;i=5004" BrowseName="1:http://baseDataTypeFactoryBugExample.org/server/">
+        <DisplayName>http://baseDataTypeFactoryBugExample.org/server/</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference IsForward="false" ReferenceType="HasComponent">i=11715</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6005</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
+        </References>
+    </UAObject>
+    <UAVariable ParentNodeId="ns=1;i=5004" DataType="Boolean" NodeId="ns=1;i=6002" BrowseName="IsNamespaceSubset">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>false</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5004" DataType="DateTime" NodeId="ns=1;i=6003" BrowseName="NamespacePublicationDate">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2025-04-22T06:24:28Z</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5004" DataType="String" NodeId="ns=1;i=6004" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:String>http://baseDataTypeFactoryBugExample.org/server/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5004" DataType="String" NodeId="ns=1;i=6005" BrowseName="NamespaceVersion">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+        <Value>
+            <uax:String>1.0.0</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable ArrayDimensions="0" ParentNodeId="ns=1;i=5004" DataType="IdType" NodeId="ns=1;i=6006" BrowseName="StaticNodeIdTypes" ValueRank="1">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable ArrayDimensions="0" ParentNodeId="ns=1;i=5004" DataType="NumericRange" NodeId="ns=1;i=6007" BrowseName="StaticNumericNodeIdRange" ValueRank="1">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable ParentNodeId="ns=1;i=5004" DataType="String" NodeId="ns=1;i=6008" BrowseName="StaticStringNodeIdPattern">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference IsForward="false" ReferenceType="HasProperty">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+</UANodeSet>

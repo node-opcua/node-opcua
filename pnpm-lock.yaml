@@ -444,6 +444,9 @@ importers:
       node-opcua-pseudo-session:
         specifier: 2.152.0
         version: link:../node-opcua-pseudo-session
+      node-opcua-schemas:
+        specifier: 2.151.0
+        version: link:../node-opcua-schemas
       node-opcua-service-browse:
         specifier: 2.151.0
         version: link:../node-opcua-service-browse

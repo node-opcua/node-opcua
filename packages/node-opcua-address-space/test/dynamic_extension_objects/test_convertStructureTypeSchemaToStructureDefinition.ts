@@ -6,9 +6,10 @@ import { DataTypeAndEncodingId, parseBinaryXSD } from "node-opcua-schemas";
 import { MockProvider } from "node-opcua-schemas/test/mock_id_provider";
 import { StructureType } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
-import { convertStructureTypeSchemaToStructureDefinition } from "..";
+import { convertStructureTypeSchemaToStructureDefinition } from "node-opcua-client-dynamic-extension-object";
 
 const idProvider = new MockProvider();
+const doDebug = false;
 
 describe("test convertStructureTypeSchemaToStructureDefinition", function () {
     it("should convert a structure type schema to structure definition", async () => {
@@ -69,7 +70,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         // --------------------------------------------------------------------------
         const a = dataTypeFactory.getStructureInfoByTypeName("CustomUnionType");
         const customUnionType = convertStructureTypeSchemaToStructureDefinition(a.schema);
-        console.log(customUnionType.toString());
+        doDebug && console.log(customUnionType.toString());
 
         customUnionType.structureType.should.eql(StructureType.Union);
         customUnionType.baseDataType.toString().should.eql("ns=0;i=0");
@@ -93,7 +94,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
         // ----------------------------------------------------------------------- CustomStructType
         const b = dataTypeFactory.getStructureInfoByTypeName("CustomStructType");
         const customStructType = convertStructureTypeSchemaToStructureDefinition(b.schema);
-        console.log(customStructType.toString());
+        doDebug && console.log(customStructType.toString());
 
         customStructType.structureType.should.eql(StructureType.Structure);
         customStructType.baseDataType.toString().should.eql("ns=0;i=0");
@@ -162,7 +163,7 @@ describe("test convertStructureTypeSchemaToStructureDefinition", function () {
 
         const s = dataTypeFactory.constructObject(binaryEncodingNodeId) as any;
         s.shape.should.eql(1);
-        console.log(s.toString());
+        doDebug && console.log(s.toString());
         //       console.log(s.toString());
     });
 });
