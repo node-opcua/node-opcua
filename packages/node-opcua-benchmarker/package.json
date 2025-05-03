@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-benchmarker",
-    "version": "2.139.0",
+    "version": "2.153.0",
     "description": "pure nodejs OPCUA SDK - module benchmarker",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,7 +10,7 @@
         "lint": "eslint source/**/*.ts"
     },
     "dependencies": {
-        "node-opcua-utils": "2.139.0"
+        "node-opcua-utils": "2.153.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

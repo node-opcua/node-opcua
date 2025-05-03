@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-test-fixtures",
-    "version": "2.151.0",
+    "version": "2.153.0",
     "description": "pure nodejs OPCUA SDK - module test-fixtures",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -26,9 +26,9 @@
     ],
     "homepage": "http://node-opcua.github.io/",
     "dependencies": {
-        "node-opcua-debug": "2.139.0",
-        "node-opcua-service-secure-channel": "2.151.0",
-        "node-opcua-types": "2.151.0"
+        "node-opcua-debug": "2.153.0",
+        "node-opcua-service-secure-channel": "2.153.0",
+        "node-opcua-types": "2.153.0"
     },
     "files": [
         "dist",

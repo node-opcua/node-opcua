@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-nodeset-auto-id",
-    "version": "2.151.0",
+    "version": "2.153.0",
     "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-auto-id",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -11,15 +11,15 @@
     "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
     "license": "MIT",
     "dependencies": {
-        "node-opcua-address-space-base": "2.151.0",
-        "node-opcua-basic-types": "2.151.0",
-        "node-opcua-data-access": "2.151.0",
-        "node-opcua-data-model": "2.151.0",
-        "node-opcua-extension-object": "2.151.0",
-        "node-opcua-nodeid": "2.139.0",
-        "node-opcua-nodeset-di": "2.151.0",
-        "node-opcua-nodeset-ua": "2.151.0",
-        "node-opcua-variant": "2.151.0"
+        "node-opcua-address-space-base": "2.153.0",
+        "node-opcua-basic-types": "2.153.0",
+        "node-opcua-data-access": "2.153.0",
+        "node-opcua-data-model": "2.153.0",
+        "node-opcua-extension-object": "2.153.0",
+        "node-opcua-nodeid": "2.153.0",
+        "node-opcua-nodeset-di": "2.153.0",
+        "node-opcua-nodeset-ua": "2.153.0",
+        "node-opcua-variant": "2.153.0"
     },
     "files": [
         "dist",
