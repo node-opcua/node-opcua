@@ -22,6 +22,7 @@ import { NodeId, NodeIdLike, sameNodeId } from "node-opcua-nodeid";
 import { CallMethodResultOptions } from "node-opcua-service-call";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
+import { DataValue } from "node-opcua-data-value";
 
 import { OpenFileMode, OpenFileModeMask } from "../open_mode";
 import { AbstractFs } from "../common/abstract_fs";
@@ -40,7 +41,7 @@ export interface FileOptions {
      */
     filename: string;
     /**
-     * the maximum allowed size of the  phisical file.
+     * the maximum allowed size of the  physical file.
      */
     maxSize?: number;
     /**
@@ -62,7 +63,7 @@ export interface FileOptions {
     refreshFileContentFunc?: () => Promise<void>;
 }
 
-export interface UAFileType extends UAObjectType, UAFile_Base {}
+export interface UAFileType extends UAObjectType, UAFile_Base { }
 /**
  *
  */
@@ -101,9 +102,34 @@ export class FileTypeData {
         );
         file.openCount.minimumSamplingInterval = 0; // changes immediately
 
+        const readFileSize =  ():{ size: number, timestamp: Date } => {
+            const stat = (this._fs as AbstractFs).statSync(this.filename);
+
+            const size = stat.size;
+            const timestamp = stat.mtime;
+            return { size, timestamp };
+        }
+
+        const data = this;
         file.size.bindVariable(
             {
-                get: () => new Variant({ dataType: DataType.UInt64, value: this._fileSize })
+                timestamped_get():  DataValue {
+                    try {
+                        const { size, timestamp } = readFileSize();
+                        data.fileSize = size;
+                        return new DataValue({
+                            sourceTimestamp: timestamp,
+                            serverTimestamp: (new Date()),
+                            value: new Variant({ dataType: DataType.UInt64, value: data._fileSize }),
+                            statusCode: StatusCodes.Good
+                        });
+                    } catch (err) {
+                        return new DataValue({
+                            serverTimestamp: (new Date()),
+                            statusCode: StatusCodes.BadDataUnavailable
+                        });
+                    }
+                }
             },
             true
         );
@@ -223,7 +249,7 @@ interface FileTypeM {
     $$files: { [key: number]: FileAccessData };
 }
 
-interface AddressSpacePriv extends IAddressSpace, FileTypeM {}
+interface AddressSpacePriv extends IAddressSpace, FileTypeM { }
 function _prepare(addressSpace: IAddressSpace, context: ISessionContext): FileTypeM {
     const _context = addressSpace as AddressSpacePriv;
     _context.$$currentFileHandle = _context.$$currentFileHandle ? _context.$$currentFileHandle : 41;

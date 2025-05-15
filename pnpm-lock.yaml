@@ -1540,6 +1540,9 @@ importers:
       node-opcua-data-model:
         specifier: 2.153.0
         version: link:../node-opcua-data-model
+      node-opcua-data-value:
+        specifier: 2.153.0
+        version: link:../node-opcua-data-value
       node-opcua-debug:
         specifier: 2.153.0
         version: link:../node-opcua-debug
