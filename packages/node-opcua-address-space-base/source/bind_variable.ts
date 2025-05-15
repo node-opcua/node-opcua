@@ -62,7 +62,7 @@ export interface BindVariableOptionsVariation3 {
     set?: undefined;
     get?: undefined;
     timestamped_get?: undefined;
-    timestamp_set?: undefined;
+    timestamped_set?: undefined;
     refreshFunc?: (callback: CallbackT<DataValue>) => void;
     historyRead?: HistoryReadFunc;
 }
@@ -70,7 +70,7 @@ export interface BindVariableOptionsVariation4 extends VariantLike {
     set?: undefined;
     get?: undefined;
     timestamped_get?: undefined;
-    timestamp_set?: undefined;
+    timestamped_set?: undefined;
     refreshFunc?: (callback: CallbackT<DataValue>) => void;
     historyRead?: HistoryReadFunc;
 }
