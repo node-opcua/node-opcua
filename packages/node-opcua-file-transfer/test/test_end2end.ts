@@ -8,7 +8,7 @@ import { NodeId, OPCUAClient, OPCUAServer, TransportSettings, UAFile } from "nod
 import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
 
 const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("FileType: Testing with very large file end-to-end", function () {
+describe("FileType: Testing with very large file end-to-end", function (this: any) {
     this.timeout(100000);
 
     let server: OPCUAServer;
