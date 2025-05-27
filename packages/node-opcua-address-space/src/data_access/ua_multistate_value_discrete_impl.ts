@@ -344,7 +344,9 @@ const validBasicNumericDataTypes = [
     DataType.Byte,
     DataType.Byte,
     DataType.SByte,
-    26 /*Number*/
+    26, /* Number  (abstract)*/
+    27, /* Integer  (abstract)*/
+    28  /* UInteger (abstract)*/
 ];
 export function validateIsNumericDataType(dataTypeValue: any): void {
     if (typeof dataTypeValue !== "number" || validBasicNumericDataTypes.indexOf(dataTypeValue) < 0) {
