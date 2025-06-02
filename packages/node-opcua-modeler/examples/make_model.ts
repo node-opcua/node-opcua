@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 import fs from "fs";
-import { promisify, types } from "util";
+import { types } from "util";
 
 
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
