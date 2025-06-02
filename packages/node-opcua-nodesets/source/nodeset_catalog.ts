@@ -139,7 +139,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         name: 'machineryResult',
         packageName: 'machinery-result',
         uri: 'http://opcfoundation.org/UA/Machinery/Result/',
-        xmlFile: 'Opc.Ua.Machinery.Result.NodeSet2.xml',
+        xmlFile: 'Opc.Ua.Machinery_Result.NodeSet2.xml',
         dependencies: [],
         licence: "DUAL"
 
