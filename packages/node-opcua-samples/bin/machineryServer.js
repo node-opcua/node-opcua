@@ -7,6 +7,7 @@ const chalk = require("chalk");
         nodeset_filename: [
             nodesets.standard,
             nodesets.di,
+            nodesets.ia,
             nodesets.machinery,
             nodesets.cnc,
             nodesets.machineTool,

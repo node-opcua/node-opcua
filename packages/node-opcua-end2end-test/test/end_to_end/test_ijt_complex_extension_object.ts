@@ -41,6 +41,7 @@ async function buildServer() {
         nodeset_filename: [
             nodesets.standard, 
             nodesets.di, 
+            nodesets.ia, 
             nodesets.amb, 
             nodesets.machinery, 
             nodesets.machineryResult, 

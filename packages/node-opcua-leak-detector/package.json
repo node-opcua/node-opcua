@@ -3,6 +3,7 @@
     "version": "2.153.0",
     "description": "pure nodejs OPCUA SDK - module leak-detector",
     "main": "index.js",
+    "type": "index.d.ts",
     "scripts": {
         "lint": "eslint src/**/*.js",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",

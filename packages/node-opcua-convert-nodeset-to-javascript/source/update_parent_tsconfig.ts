@@ -13,14 +13,21 @@ import { nodesetCatalog } from "node-opcua-nodesets";
 export async function updateParentTSConfig() {
     const packagesFolder = path.join(__dirname, '..', '..');
     const parentTSConfigFile = path.join(packagesFolder, 'tsconfig.json');
-    const parentTSConfig = JSON.parse(
-        // Strip out comments to avoid JSON parsing error
-        // TODO: Preserve comments automatically
-        (await readFile(parentTSConfigFile, 'utf8'))
-            .replace(/\/\*.+?\*\//g, '')
-            .replace(/\/\/.+?$/g, '')
-    );
+    console.log(`Updating parent tsconfig.json file: ${parentTSConfigFile}`);
+    const content = await readFile(parentTSConfigFile, 'utf8');
+    // Strip out comments to avoid JSON parsing error
+    const contentWithoutComments = content.replace(/\/\*.+?\*\//g, '')
+        .replace(/\/\/.+?$/g, '');
+    // TODO: Preserve comments automatically
+    let parentTSConfig: any = "";
+    try {
+        parentTSConfig = JSON.parse(contentWithoutComments);
+    } catch (err) {
+        console.log(`Error parsing JSON from ${parentTSConfigFile}:`, err);
+        console.log('Content without comments:', contentWithoutComments);
 
+        throw err;
+    }
     type TSConfigReference = { path: string };
     const unlistedReferences: TSConfigReference[] = [];
     for (const meta of nodesetCatalog) {
@@ -48,8 +55,8 @@ export async function updateParentTSConfig() {
         // Maintain the compact style `{ "path": "node-opcua-X" }` in references section
         // Also add the comment about Istanbul back
         const newJSON = JSON.stringify(parentTSConfig, null, "    ")
-                .replace('"removeComments": false', '"removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */')
-                .replace(/{\s*"path":\s*"([^"]+)"\s*}/g, '{ "path": "$1" }')
+            .replace('"removeComments": false', '"removeComments": false /* to prevent Istanbul ignore statements in comments from disappearing */')
+            .replace(/{\s*"path":\s*"([^"]+)"\s*}/g, '{ "path": "$1" }')
             + '\n';
         //console.log('Writing updated tsconfig.json file:', newJSON);
         await writeFile(parentTSConfigFile, newJSON, 'utf8');
