@@ -15,7 +15,6 @@ import { DTQuantityDimension } from "./dt_quantity_dimension"
  */
 export interface UAQuantity_Base {
     symbol?: UAProperty<LocalizedText, DataType.LocalizedText>;
-    "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
     annotation?: UAProperty<DTAnnotation[], DataType.ExtensionObject>;
     conversionService?: UAProperty<UAString, DataType.String>;
     dimension: UAProperty<DTQuantityDimension, DataType.ExtensionObject>;

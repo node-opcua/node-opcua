@@ -15,6 +15,7 @@ export interface UAKeyCredentialConfiguration_Base {
     resourceUri: UAProperty<UAString, DataType.String>;
     profileUri: UAProperty<UAString, DataType.String>;
     endpointUrls?: UAProperty<UAString[], DataType.String>;
+    credentialId?: UAProperty<UAString, DataType.String>;
     serviceStatus?: UAProperty<StatusCode, DataType.StatusCode>;
     getEncryptingKey?: UAMethod;
     updateCredential?: UAMethod;

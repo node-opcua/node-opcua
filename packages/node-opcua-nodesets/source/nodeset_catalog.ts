@@ -24,6 +24,7 @@ export type NodesetName =
     | "packML"
     | "padim"
     | "robotics"
+    | "scales"
     | "tightening"
     | "woodWorking";
 
@@ -217,7 +218,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         xmlFile: 'Opc.Ua.PackML.NodeSet2.xml',
         dependencies: [],
         licence: "DUAL"
-        
+
     },
     {
         name: 'iolink',
@@ -249,7 +250,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         uri: 'http://opcfoundation.org/UA/PADIM/',
         xmlFile: 'Opc.Ua.PADIM.NodeSet2.xml',
         dependencies: ['irdi', 'di'],
-        licence: "DUAL"        
+        licence: "DUAL"
     },
     {
         name: 'machineryProcessValues',
@@ -257,7 +258,7 @@ export const nodesetCatalog: NodesetMeta[] = [
         uri: 'http://opcfoundation.org/UA/Machinery/ProcessValues/',
         xmlFile: 'Opc.Ua.Machinery.ProcessValues.NodeSet2.xml',
         dependencies: ['di', 'irdi', 'padim'],
-        licence: "DUAL"        
+        licence: "DUAL"
     },
     {
         name: 'metalForming',
@@ -273,6 +274,24 @@ export const nodesetCatalog: NodesetMeta[] = [
             'machineryProcessValues',
             'machineTool'
         ],
-        licence: "DUAL"        
-    }];
+        licence: "DUAL"
+    },
+    {
+        /**
+         *     
+         *      <Uri>http://opcfoundation.org/UA/Scales/V2/</Uri>
+                <Uri>http://opcfoundation.org/UA/IA/</Uri>
+                <Uri>http://opcfoundation.org/UA/DI/</Uri>
+                <Uri>http://opcfoundation.org/UA/Machinery/</Uri>
+                <Uri>http://opcfoundation.org/UA/PackML/</Uri>
+         */
+        name: "scales",
+        packageName: "scales",
+        uri: "http://opcfoundation.org/UA/Scales/V2/",
+        xmlFile: "Opc.Ua.Scales.NodeSet2.xml",
+        dependencies: ['di', 'ia', 'machinery', 'packML'],
+        licence: "DUAL"
+    }
+
+];
 

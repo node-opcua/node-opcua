@@ -19,8 +19,8 @@ import { UAConditionVariable } from "./ua_condition_variable"
 export interface UACondition_Base extends UABaseEvent_Base {
     conditionClassId: UAProperty<NodeId, DataType.NodeId>;
     conditionClassName: UAProperty<LocalizedText, DataType.LocalizedText>;
-    conditionSubClassId: UAProperty<NodeId[], DataType.NodeId>;
-    conditionSubClassName: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
     conditionName: UAProperty<UAString, DataType.String>;
     branchId: UAProperty<NodeId, DataType.NodeId>;
     retain: UAProperty<boolean, DataType.Boolean>;

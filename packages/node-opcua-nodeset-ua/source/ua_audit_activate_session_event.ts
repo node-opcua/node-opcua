@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
+import { NodeId } from "node-opcua-nodeid"
 import { UAString } from "node-opcua-basic-types"
 import { DTSignedSoftwareCertificate } from "./dt_signed_software_certificate"
 import { DTUserIdentityToken } from "./dt_user_identity_token"
@@ -17,6 +18,7 @@ export interface UAAuditActivateSessionEvent_Base extends UAAuditSessionEvent_Ba
     clientSoftwareCertificates: UAProperty<DTSignedSoftwareCertificate[], DataType.ExtensionObject>;
     userIdentityToken: UAProperty<DTUserIdentityToken, DataType.ExtensionObject>;
     secureChannelId: UAProperty<UAString, DataType.String>;
+    currentRoleIds?: UAProperty<NodeId[], DataType.NodeId>;
 }
 export interface UAAuditActivateSessionEvent extends UAAuditSessionEvent, UAAuditActivateSessionEvent_Base {
 }

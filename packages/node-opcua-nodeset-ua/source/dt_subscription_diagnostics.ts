@@ -42,6 +42,6 @@ export interface DTSubscriptionDiagnostics extends DTStructure {
   disabledMonitoredItemCount: UInt32; // UInt32 ns=0;i=7
   monitoringQueueOverflowCount: UInt32; // UInt32 ns=0;i=7
   nextSequenceNumber: UInt32; // UInt32 ns=0;i=7
-  eventQueueOverFlowCount: UInt32; // UInt32 ns=0;i=7
+  eventQueueOverflowCount: UInt32; // UInt32 ns=0;i=7
 }
 export interface UDTSubscriptionDiagnostics extends ExtensionObject, DTSubscriptionDiagnostics {};

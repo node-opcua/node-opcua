@@ -10,7 +10,7 @@ import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |ObjectType                                                  |
  * |typedDefinition |AuditHistoryAnnotationUpdateEventType i=19095               |
- * |isAbstract      |false                                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryAnnotationUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
     performInsertReplace: UAProperty<EnumPerformUpdate, DataType.Int32>;

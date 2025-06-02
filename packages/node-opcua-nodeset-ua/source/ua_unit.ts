@@ -13,7 +13,6 @@ import { UAString } from "node-opcua-basic-types"
  */
 export interface UAUnit_Base {
     symbol: UAProperty<LocalizedText, DataType.LocalizedText>;
-    "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
     unitSystem: UAProperty<UAString, DataType.String>;
     discipline?: UAProperty<UAString, DataType.String>;
 }

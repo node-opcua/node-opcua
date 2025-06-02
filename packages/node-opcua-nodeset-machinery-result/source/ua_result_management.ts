@@ -16,6 +16,7 @@ import { UAResultTransfer } from "./ua_result_transfer"
  * |isAbstract      |false                                                       |
  */
 export interface UAResultManagement_Base {
+    acknowledgeResults?: UAMethod;
     /**
      * defaultInstanceBrowseName
      * The default BrowseName for instances of the type.

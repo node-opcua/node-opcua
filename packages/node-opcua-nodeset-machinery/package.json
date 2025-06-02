@@ -17,6 +17,7 @@
         "node-opcua-data-model": "2.153.0",
         "node-opcua-nodeid": "2.153.0",
         "node-opcua-nodeset-di": "2.153.0",
+        "node-opcua-nodeset-ia": "2.153.0",
         "node-opcua-nodeset-ua": "2.153.0",
         "node-opcua-variant": "2.153.0"
     },

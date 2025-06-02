@@ -15,6 +15,7 @@
      { "path": "../node-opcua-data-model" },
      { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-nodeset-di" },
+     { "path": "../node-opcua-nodeset-ia" },
      { "path": "../node-opcua-nodeset-ua" },
      { "path": "../node-opcua-variant" }
    ],

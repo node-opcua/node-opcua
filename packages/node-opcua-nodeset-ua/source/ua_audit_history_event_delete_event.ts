@@ -9,7 +9,7 @@ import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |ObjectType                                                  |
  * |typedDefinition |AuditHistoryEventDeleteEventType i=3022                     |
- * |isAbstract      |false                                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryEventDeleteEvent_Base extends UAAuditHistoryDeleteEvent_Base {
     eventIds: UAProperty<Buffer[], DataType.ByteString>;

@@ -60,8 +60,8 @@ export declare interface UAConditionImpl extends UAConditionEx, UABaseEventImpl 
     once(eventName: string, eventHandler: any): this;
     conditionClassId: UAProperty<NodeId, /*c*/ DataType.NodeId>;
     conditionClassName: UAProperty<LocalizedText, /*c*/ DataType.LocalizedText>;
-    conditionSubClassId: UAProperty<NodeId[], DataType.NodeId>;
-    conditionSubClassName: UAProperty<LocalizedText[], DataType.LocalizedText>;
+    conditionSubClassId?: UAProperty<NodeId[], DataType.NodeId>;
+    conditionSubClassName?: UAProperty<LocalizedText[], DataType.LocalizedText>;
 }
 /**
  *

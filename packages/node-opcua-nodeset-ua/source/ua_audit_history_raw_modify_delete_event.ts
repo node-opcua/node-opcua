@@ -9,7 +9,7 @@ import { UAAuditHistoryDeleteEvent, UAAuditHistoryDeleteEvent_Base } from "./ua_
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |ObjectType                                                  |
  * |typedDefinition |AuditHistoryRawModifyDeleteEventType i=3014                 |
- * |isAbstract      |false                                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryRawModifyDeleteEvent_Base extends UAAuditHistoryDeleteEvent_Base {
     isDeleteModified: UAProperty<boolean, DataType.Boolean>;

@@ -11,7 +11,7 @@ import { UAAuditHistoryUpdateEvent, UAAuditHistoryUpdateEvent_Base } from "./ua_
  * |namespace       |http://opcfoundation.org/UA/                                |
  * |nodeClass       |ObjectType                                                  |
  * |typedDefinition |AuditHistoryValueUpdateEventType i=3006                     |
- * |isAbstract      |false                                                       |
+ * |isAbstract      |true                                                        |
  */
 export interface UAAuditHistoryValueUpdateEvent_Base extends UAAuditHistoryUpdateEvent_Base {
     updatedNode: UAProperty<NodeId, DataType.NodeId>;

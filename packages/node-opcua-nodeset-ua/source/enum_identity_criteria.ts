@@ -48,4 +48,10 @@ export enum EnumIdentityCriteria  {
    * user or CA Certificate.
    */
   X509Subject = 8,
+  /**
+   * The rule specifies any trusted application that
+   * has been authenticated with a trusted
+   * ApplicationInstance Certificate.
+   */
+  TrustedApplication = 9,
 }

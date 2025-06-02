@@ -2,8 +2,8 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
-import { EnumApplication } from "./enum_application"
 import { UAServerConfiguration, UAServerConfiguration_Base } from "./ua_server_configuration"
+import { EnumApplication } from "./enum_application"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
