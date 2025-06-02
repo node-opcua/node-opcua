@@ -1,0 +1,44 @@
+{
+    "name": "node-opcua-nodeset-scales-v-2",
+    "version": "2.153.0",
+    "description": "pure nodejs OPCUA SDK - module node-opcua-nodeset-scales-v-2",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "scripts": {
+        "clean": "npx rimraf -g  dist *.tsbuildinfo",
+        "build": "tsc -b"
+    },
+    "author": "Etienne Rossignon <etienne.rossignon@sterfive.com>",
+    "license": "MIT",
+    "dependencies": {
+        "node-opcua-address-space-base": "2.153.0",
+        "node-opcua-basic-types": "2.153.0",
+        "node-opcua-data-access": "2.153.0",
+        "node-opcua-data-model": "2.153.0",
+        "node-opcua-extension-object": "2.153.0",
+        "node-opcua-nodeid": "2.153.0",
+        "node-opcua-nodeset-di": "2.153.0",
+        "node-opcua-nodeset-machinery": "2.153.0",
+        "node-opcua-nodeset-pack-ml": "2.153.0",
+        "node-opcua-nodeset-ua": "2.153.0",
+        "node-opcua-status-code": "2.153.0",
+        "node-opcua-variant": "2.153.0"
+    },
+    "files": [
+        "dist",
+        "source"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/node-opcua/node-opcua.git"
+    },
+    "keywords": [
+        "OPCUA",
+        "opcua",
+        "m2m",
+        "iot",
+        "opc ua",
+        "internet of things"
+    ],
+    "homepage": "http://node-opcua.github.io/"
+}

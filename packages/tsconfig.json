@@ -49,6 +49,9 @@
         { "path": "node-opcua-nodeset-padim" },
         { "path": "node-opcua-nodeset-robotics" },
         { "path": "node-opcua-nodeset-ua" },
+        {
+            "path": "node-opcua-nodeset-scales-v-2",
+        },
         { "path": "node-opcua-nodeset-woodworking" },
 
         { "path": "node-opcua-nodesets" },
