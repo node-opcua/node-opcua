@@ -296,7 +296,7 @@ fetch_from_github(version, "ISA95-JOBCONTROL/opc.ua.isa95-jobcontrol.nodeset2.xm
 fetch_from_github(version, "Machinery/Opc.Ua.Machinery.NodeSet2.xml");
 fetch_from_github(version, "Machinery/ProcessValues/Opc.Ua.Machinery.ProcessValues.NodeSet2.xml");
 fetch_from_github(version, "Machinery/Jobs/Opc.Ua.Machinery.Jobs.Nodeset2.xml");
-fetch_from_github(version, "Machinery/Result/Opc.Ua.Machinery.Result.NodeSet2.xml");
+fetch_from_github(version, "Machinery/Result/Opc.Ua.Machinery_Result.NodeSet2.xml");
 fetch_from_github(version, "MachineTool/Opc.Ua.MachineTool.NodeSet2.xml");
 fetch_from_github(version, "MachineVision/Opc.Ua.MachineVision.NodeSet2.xml");
 fetch_from_github(version, "MetalForming/Opc.Ua.MetalForming.NodeSet2.xml");
@@ -309,7 +309,7 @@ fetch_from_github(version, "PADIM/Opc.Ua.IRDI.NodeSet2.xml");
 fetch_from_github(version, "PADIM/Opc.Ua.PADIM.NodeSet2.xml");
 fetch_from_github(version, "IJT/Base/Opc.Ua.Ijt.Base.NodeSet2.xml");
 fetch_from_github(version, "IJT/Tightening/Opc.Ua.Ijt.Tightening.NodeSet2.xml");
-
+fetch_from_github(version, "Scales/Opc.Ua.Scales.NodeSet2.xml");
 /*
 fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
