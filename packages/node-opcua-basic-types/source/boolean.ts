@@ -23,10 +23,12 @@ export function decodeBoolean(stream: BinaryStream, _value?: boolean): boolean {
 
 const falseDetectionRegex = /^(?:f(?:alse)?|no?|0+)$/i;
 
-export function coerceBoolean(value: string): boolean {
+export function coerceBoolean(value: boolean | string|number | null | undefined): boolean {
+    if (value === null || value === undefined) {
+        return false;
+    }
     // http://stackoverflow.com/a/24744599/406458
-    return !falseDetectionRegex.test(value) && !!value;
-    // return !!(+value||String(value).toLowerCase().replace(!!0,''));
+    return !falseDetectionRegex.test(value.toString()) && !!value;
 }
 
 export type UABoolean = boolean;

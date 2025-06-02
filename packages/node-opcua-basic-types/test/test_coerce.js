@@ -41,9 +41,9 @@ describe("coerceInt32", () => {
     });
 });
 
-describe ("coerceInt64", ()=>{
-    it("should coerce a positive Int32 to Int64", ()=>{
-        coerceInt64(10).should.eql([0x0,0xA]);        
+describe("coerceInt64", () => {
+    it("should coerce a positive Int32 to Int64", () => {
+        coerceInt64(10).should.eql([0x0, 0xA]);
     });
     it("should coerce a negative Int32 to Int64", () => {
         coerceInt64(-1).should.eql([0xFFFFFFFF, 0xFFFFFFFF]);
@@ -96,9 +96,29 @@ describe("check coerce various types", () => {
     //        "NodeId",
     //        "ByteString",
 
+    ["false", "False", "FALSE", "0", 0, 0., false].forEach((input) => {
+        it(`coerceBoolean should return false for ${input}`, () => {
+            coerceBoolean(input).should.equal(false);
+        }
+        )
+    });
+    ["true", "True", "TRUE", "1", 1, 1., true, "SomethingElse"].forEach((input) => {
+        it(`coerceBoolean should return true for ${typeof input} ${input}`, () => {
+            coerceBoolean(input).should.equal(true);
+        }
+        )
+    });
     it("should have a coerce method for boolean", () => {
         coerceBoolean("false").should.equal(false);
         coerceBoolean("true").should.equal(true);
+
+        coerceBoolean("False").should.equal(false);
+        coerceBoolean("True").should.equal(true);
+
+        coerceBoolean("FALSE").should.equal(false);
+        coerceBoolean("TRUE").should.equal(true);
+
+        coerceBoolean("SomethingElse").should.equal(true);
 
         coerceBoolean(0).should.equal(false);
         coerceBoolean(1).should.equal(true);
