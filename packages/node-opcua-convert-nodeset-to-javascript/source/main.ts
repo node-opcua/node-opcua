@@ -16,13 +16,15 @@ async function main() {
         baseFolder: path.join(__dirname, "../../"),
         prefix: "node-opcua-nodeset-",
     };
+    // const nodesetCatalog2 = nodesetCatalog.filter((meta) => meta.name == "scales");
+
     await Promise.all(nodesetCatalog.map((meta) => {
         const index = addressSpace.getNamespaceIndex(meta.uri);
         if (index === -1) {
             console.log("namespace not found", meta.uri);
             return;
         }
-        convertNamespaceTypeToTypescript(session, index, {
+        return convertNamespaceTypeToTypescript(session, index, {
             ...options,
             nsName: meta.name,
         })

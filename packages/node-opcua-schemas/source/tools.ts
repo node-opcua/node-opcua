@@ -16,6 +16,7 @@ import { createDynamicObjectConstructor } from "./dynamic_extension_object";
 import { InternalTypeDictionary, MapDataTypeAndEncodingIdProvider } from "./parse_binary_xsd";
 
 const errorLog = make_errorLog(__filename);
+const doDebug = true; // process.env.DEBUG && process.env.DEBUG.includes("node-opcua-schemas");
 
 function _removeNamespacePart(str?: string): string {
     if (!str) {
@@ -106,12 +107,18 @@ export function getOrCreateStructuredTypeSchema(
         }
         schema.dataTypeNodeId = ids.dataTypeNodeId;
         if (schema.dataTypeNodeId.namespace === 0 && schema.dataTypeNodeId.value === 0) {
-            return schema;
+            // this extension object is from namespace 0  may exist already in the dataTypeFactory
+            const existing = dataTypeFactory.hasStructureByTypeName(schema.name);
+            if (existing) {
+                 return schema;
+            }
         }
         schema.encodingDefaultXml = ExpandedNodeId.fromNodeId(ids.xmlEncodingNodeId);
         schema.encodingDefaultJson = ExpandedNodeId.fromNodeId(ids.jsonEncodingNodeId);
         schema.encodingDefaultBinary = ExpandedNodeId.fromNodeId(ids.binaryEncodingNodeId);
 
+        // note: it is valid to have consructed element that have no encoding
+        //       when those elements are abstract or only used internaly
         const Constructor = createDynamicObjectConstructor(schema, dataTypeFactory) as unknown as ConstructorFuncWithSchema;
         Constructor.encodingDefaultBinary = schema.encodingDefaultBinary;
         Constructor.encodingDefaultXml = schema.encodingDefaultXml;

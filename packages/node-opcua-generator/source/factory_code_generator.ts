@@ -695,8 +695,7 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
     const encodingXmlNodeId = getEncodingXmlId(schema);
     const encodingJsonNodeId = getEncodingJsonId(schema);
 
-    const needRegistration = encodingBinaryNodeId.value !== 0;
-
+  
     // ----------------------------------------------- Options
     if (baseClass === "BaseUAObject" || baseClass === "ExtensionObject" || baseClass === "DataTypeDefinition") {
         write(`export interface ${className}Options {`);
@@ -765,6 +764,8 @@ export function writeStructuredType(write: WriteFunc, schema: IStructuredTypeSch
     if (encodingJsonNodeId) {
         write(`${className}.schema.encodingDefaultJson = ${className}.encodingDefaultJson;`);
     }
+
+    const needRegistration = true;//  encodingBinaryNodeId.value !== 0;
 
     if (needRegistration) {
         write(`registerClassDefinition( ${className}.dataTypeNodeId, "${className}", ${className});`);

@@ -343,7 +343,6 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
 
     /* istanbul ignore next */
     if (invalidOptionsFields.length > 0) {
-        // tslint:disable:no-console
         errorLog("expected schema", schema.name);
         errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         errorLog(chalk.red("current fields= "), currentFields.sort().join(" "));
@@ -352,7 +351,6 @@ export function check_options_correctness_against_schema(obj: any, schema: IStru
     }
     /* istanbul ignore next */
     if (invalidOptionsFields.length !== 0) {
-        // tslint:disable:no-console
         errorLog(chalk.yellow("possible fields= "), possibleFields.sort().join(" "));
         errorLog(chalk.red("current fields= "), currentFields.sort().join(" "));
         throw new Error(" invalid field found in option :" + JSON.stringify(invalidOptionsFields));

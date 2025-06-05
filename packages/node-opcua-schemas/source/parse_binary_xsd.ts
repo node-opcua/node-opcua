@@ -58,7 +58,7 @@ const predefinedType: any = {
     "ua:StringNodeId": 1,
     "ua:TwoByteNodeId": 1,
     "ua:Variant": 1,
-    "ua:XmlElement": 1
+    "ua:XmlElement": 1,
 };
 
 export interface EnumeratedType {
@@ -373,7 +373,7 @@ export async function parseBinaryXSD(
     if (!xmlString || xmlString.length === 0) {
         return;
     }
-    await parser.parseString(xmlString);
+    parser.parseString(xmlString);
     // resolve and prepare enumerations
     for (const enumeratedType of typeDictionary.getEnumerations()) {
         if (Object.keys(enumeratedType.enumeratedValues).length >= 1) {

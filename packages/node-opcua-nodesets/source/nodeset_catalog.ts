@@ -286,7 +286,7 @@ export const nodesetCatalog: NodesetMeta[] = [
                 <Uri>http://opcfoundation.org/UA/PackML/</Uri>
          */
         name: "scales",
-        packageName: "scales",
+        packageName: "scales-v-2",
         uri: "http://opcfoundation.org/UA/Scales/V2/",
         xmlFile: "Opc.Ua.Scales.NodeSet2.xml",
         dependencies: ['di', 'ia', 'machinery', 'packML'],
