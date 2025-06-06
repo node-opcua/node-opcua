@@ -1203,7 +1203,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         if (this.$subscription && this.$subscription.subscriptionDiagnostics) {
             this.$subscription.subscriptionDiagnostics.monitoringQueueOverflowCount++;
         }
-        // to do: eventQueueOverFlowCount
+        // to do: eventQueueOverflowCount
     }
 
     private _enqueue_notification(notification: QueueItem) {

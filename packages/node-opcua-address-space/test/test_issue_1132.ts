@@ -62,7 +62,7 @@ describe("#1132 Variable  ExtensionObject containing NodeId in nodeset2.xml", ()
             disabledMonitoredItemCount: 0,
             monitoringQueueOverflowCount: 0,
             nextSequenceNumber: 1,
-            eventQueueOverFlowCount: 0
+            eventQueueOverflowCount: 0
           });
     });
 });

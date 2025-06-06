@@ -318,7 +318,7 @@ function createSubscriptionDiagnostics(subscription: Subscription): Subscription
    "unacknowledgedMessageCount",
    "discardedMessageCount",
    "monitoringQueueOverflowCount",
-   "eventQueueOverFlowCount"
+   "eventQueueOverflowCount"
    */
     subscription_subscriptionDiagnostics.__defineGetter__(
         "currentKeepAliveCount",
