@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-filter",
-    "version": "2.154.0",
+    "version": "2.155.0",
     "description": "pure nodejs OPCUA SDK - module service-filter",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -10,23 +10,23 @@
         "build": "tsc -b"
     },
     "dependencies": {
-        "node-opcua-address-space-base": "2.154.0",
+        "node-opcua-address-space-base": "2.155.0",
         "node-opcua-assert": "2.139.0",
         "node-opcua-basic-types": "2.154.0",
         "node-opcua-constants": "2.139.0",
-        "node-opcua-data-model": "2.154.0",
-        "node-opcua-data-value": "2.154.0",
+        "node-opcua-data-model": "2.155.0",
+        "node-opcua-data-value": "2.155.0",
         "node-opcua-debug": "2.153.0",
-        "node-opcua-extension-object": "2.154.0",
+        "node-opcua-extension-object": "2.155.0",
         "node-opcua-nodeid": "2.153.0",
-        "node-opcua-service-translate-browse-path": "2.154.0",
+        "node-opcua-service-translate-browse-path": "2.155.0",
         "node-opcua-status-code": "2.153.0",
-        "node-opcua-types": "2.154.0",
-        "node-opcua-variant": "2.154.0"
+        "node-opcua-types": "2.155.0",
+        "node-opcua-variant": "2.155.0"
     },
     "devDependencies": {
-        "node-opcua-numeric-range": "2.154.0",
-        "node-opcua-packet-analyzer": "2.154.0"
+        "node-opcua-numeric-range": "2.155.0",
+        "node-opcua-packet-analyzer": "2.155.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
