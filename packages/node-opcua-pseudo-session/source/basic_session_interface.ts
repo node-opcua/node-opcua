@@ -417,16 +417,25 @@ export async function getArgumentDefinitionHelper(
     return { inputArguments, outputArguments };
 }
 
-interface SessionWithCache {
+interface SessionWithCache extends IBasicSessionAsync2 {
     $$namespaceArray?: string[] | null;
 }
 
 
+type ICascadingSession = { session?: IBasicSessionReadAsyncSimple }
+function followSession(session: IBasicSessionReadAsyncSimple & ICascadingSession): SessionWithCache {
+    if (session.session) {
+        return followSession(session.session);
+    }
+    return session as SessionWithCache;
+}
+
 
 export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple): Promise<string[]> {
 
-    if ((session as SessionWithCache).$$namespaceArray)  {
-        return (session as SessionWithCache).$$namespaceArray!;
+    const sessionHoldingCache = followSession(session) as SessionWithCache;
+    if (sessionHoldingCache.$$namespaceArray)  {
+        return sessionHoldingCache.$$namespaceArray!;
     }
     const nodeId = resolveNodeId(VariableIds.Server_NamespaceArray);
 
@@ -438,10 +447,11 @@ export async function readNamespaceArray(session: IBasicSessionReadAsyncSimple):
         // errorLog("namespaceArray is not populated ! Your server must expose a list of namespaces in node ", nodeId.toString());
         return [];
     }
-    (session as SessionWithCache).$$namespaceArray = dataValue.value.value; // keep a cache
-    return dataValue.value.value as string[];
+    sessionHoldingCache.$$namespaceArray = dataValue.value.value; // keep a cache
+    return sessionHoldingCache.$$namespaceArray!;
 }
 
 export async function clearSessionCache(session: IBasicSessionAsync2) {
-    (session as SessionWithCache).$$namespaceArray = undefined;
+    const sessionHoldingCache = followSession(session) as SessionWithCache;
+    sessionHoldingCache.$$namespaceArray = undefined;
 }
