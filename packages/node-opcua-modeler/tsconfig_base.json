@@ -1,16 +1,15 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
-        {
-            "path": "../node-opcua-client-dynamic-extension-object"
-        },
         {
             "path": "../node-opcua-address-space"
         },
@@ -21,21 +20,19 @@
             "path": "../node-opcua-basic-types"
         },
         {
+            "path": "../node-opcua-client-dynamic-extension-object"
+        },
+        {
             "path": "../node-opcua-constants"
         },
         {
-            "path": "../node-opcua-factory"
-        },
-        
-        {
-            "path": "../node-opcua-schemas"
-        },
-        {
-            "path": "../node-opcua-status-code"
-        },
-        
-        {
             "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-factory"
         },
         {
             "path": "../node-opcua-nodeid"
@@ -47,20 +44,23 @@
             "path": "../node-opcua-numeric-range"
         },
         {
+            "path": "../node-opcua-schemas"
+        },
+        {
             "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
+            "path": "../node-opcua-status-code"
         },
         {
             "path": "../node-opcua-types"
         },
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-leak-detector"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

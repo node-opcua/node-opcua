@@ -1,16 +1,17 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": [
-    "source/**/*.ts"
-, "source/nodeset_catalog.ts"  ],
-  "references": [],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "extends": "../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true
+    },
+    "include": [
+        "source/**/*.ts",
+        "source/nodeset_catalog.ts"
+    ],
+    "references": [],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

@@ -11,56 +11,176 @@
     ],
     "include": [],
     "references": [
-        { "path": "node-opcua" },
-        { "path": "node-opcua-address-space" },
-        { "path": "node-opcua-address-space-base" },
-        { "path": "node-opcua-aggregates" },
-        { "path": "node-opcua-alarm-condition" },
-        { "path": "node-opcua-benchmarker" },
-        { "path": "node-opcua-client" },
-        { "path": "node-opcua-client-crawler" },
-        { "path": "node-opcua-convert-nodeset-to-javascript" },
-        { "path": "node-opcua-file-transfer" },
-        { "path": "node-opcua-local-discovery-server" },
-        { "path": "node-opcua-model" },
-        { "path": "node-opcua-modeler" },
-
-        { "path": "node-opcua-nodeset-adi" },
-        { "path": "node-opcua-nodeset-amb" },
-        { "path": "node-opcua-nodeset-auto-id" },
-        { "path": "node-opcua-nodeset-cnc" },
-        { "path": "node-opcua-nodeset-commercial-kitchen-equipment" },
-        { "path": "node-opcua-nodeset-di" },
-        { "path": "node-opcua-nodeset-gds" },
-        { "path": "node-opcua-nodeset-glass-flat" },
-        { "path": "node-opcua-nodeset-ia" },
-        { "path": "node-opcua-nodeset-ijt-base" },
-        { "path": "node-opcua-nodeset-ijt-tightening" },
-        { "path": "node-opcua-nodeset-io-link" },
-        { "path": "node-opcua-nodeset-isa-95-jobcontrol-v-2"},
-        { "path": "node-opcua-nodeset-machine-tool" },
-        { "path": "node-opcua-nodeset-machine-vision" },
-        { "path": "node-opcua-nodeset-machinery-jobs" },
-        { "path": "node-opcua-nodeset-machinery-process-values" },
-        { "path": "node-opcua-nodeset-machinery-result" },
-        { "path": "node-opcua-nodeset-machinery" },
-        { "path": "node-opcua-nodeset-metal-forming" },
-        { "path": "node-opcua-nodeset-pack-ml" },
-        { "path": "node-opcua-nodeset-padim" },
-        { "path": "node-opcua-nodeset-robotics" },
-        { "path": "node-opcua-nodeset-ua" },
-        { "path": "node-opcua-nodeset-scales-v-2" },
-        { "path": "node-opcua-nodeset-woodworking" },
-
-        { "path": "node-opcua-nodesets" },
-        { "path": "node-opcua-pseudo-session" },
-        { "path": "node-opcua-samples" },
-        { "path": "node-opcua-server" },
-        { "path": "node-opcua-server" },
-        { "path": "node-opcua-service-secure-channel" },
-        { "path": "node-opcua-test-fixtures" },
-        { "path": "node-opcua-types" },
-        { "path": "node-opcua-types" },
-        { "path": "node-opcua-units" }
+        {
+            "path": "node-opcua-end2end-test"
+        },
+        {
+            "path": "node-opcua-leak-detector"
+        },
+        {
+            "path": "node-opcua-local-discovery-server"
+        },
+        {
+            "path": "node-opcua-modeler"
+        },
+        {
+            "path": "node-opcua-vendor-diagnostic"
+        },
+        {
+            "path": "node-opcua"
+        },
+        {
+            "path": "node-opcua-address-space"
+        },
+        {
+            "path": "node-opcua-address-space-base"
+        },
+        {
+            "path": "node-opcua-address-space-for-conformance-testing"
+        },
+        {
+            "path": "node-opcua-client-proxy"
+        },
+        {
+            "path": "node-opcua-leak-detector"
+        },
+        {
+            "path": "node-opcua-aggregates"
+        },
+        {
+            "path": "node-opcua-alarm-condition"
+        },
+        {
+            "path": "node-opcua-benchmarker"
+        },
+        {
+            "path": "node-opcua-client"
+        },
+        {
+            "path": "node-opcua-client-crawler"
+        },
+        {
+            "path": "node-opcua-convert-nodeset-to-javascript"
+        },
+        {
+            "path": "node-opcua-file-transfer"
+        },
+        {
+            "path": "node-opcua-local-discovery-server"
+        },
+        {
+            "path": "node-opcua-model"
+        },
+        {
+            "path": "node-opcua-modeler"
+        },
+        {
+            "path": "node-opcua-nodeset-adi"
+        },
+        {
+            "path": "node-opcua-nodeset-amb"
+        },
+        {
+            "path": "node-opcua-nodeset-auto-id"
+        },
+        {
+            "path": "node-opcua-nodeset-cnc"
+        },
+        {
+            "path": "node-opcua-nodeset-commercial-kitchen-equipment"
+        },
+        {
+            "path": "node-opcua-nodeset-di"
+        },
+        {
+            "path": "node-opcua-nodeset-gds"
+        },
+        {
+            "path": "node-opcua-nodeset-glass-flat"
+        },
+        {
+            "path": "node-opcua-nodeset-ia"
+        },
+        {
+            "path": "node-opcua-nodeset-ijt-base"
+        },
+        {
+            "path": "node-opcua-nodeset-ijt-tightening"
+        },
+        {
+            "path": "node-opcua-nodeset-io-link"
+        },
+        {
+            "path": "node-opcua-nodeset-isa-95-jobcontrol-v-2"
+        },
+        {
+            "path": "node-opcua-nodeset-machine-tool"
+        },
+        {
+            "path": "node-opcua-nodeset-machine-vision"
+        },
+        {
+            "path": "node-opcua-nodeset-machinery-jobs"
+        },
+        {
+            "path": "node-opcua-nodeset-machinery-process-values"
+        },
+        {
+            "path": "node-opcua-nodeset-machinery-result"
+        },
+        {
+            "path": "node-opcua-nodeset-machinery"
+        },
+        {
+            "path": "node-opcua-nodeset-metal-forming"
+        },
+        {
+            "path": "node-opcua-nodeset-pack-ml"
+        },
+        {
+            "path": "node-opcua-nodeset-padim"
+        },
+        {
+            "path": "node-opcua-nodeset-robotics"
+        },
+        {
+            "path": "node-opcua-nodeset-ua"
+        },
+        {
+            "path": "node-opcua-nodeset-scales-v-2"
+        },
+        {
+            "path": "node-opcua-nodeset-woodworking"
+        },
+        {
+            "path": "node-opcua-nodesets"
+        },
+        {
+            "path": "node-opcua-pseudo-session"
+        },
+        {
+            "path": "node-opcua-samples"
+        },
+        {
+            "path": "node-opcua-server"
+        },
+        {
+            "path": "node-opcua-server"
+        },
+        {
+            "path": "node-opcua-service-secure-channel"
+        },
+        {
+            "path": "node-opcua-test-fixtures"
+        },
+        {
+            "path": "node-opcua-types"
+        },
+        {
+            "path": "node-opcua-types"
+        },
+        {
+            "path": "node-opcua-units"
+        }
     ]
 }

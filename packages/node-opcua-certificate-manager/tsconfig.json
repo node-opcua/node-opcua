@@ -1,28 +1,30 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "exclude": ["node_modules", "dist"],
-    "include": ["source/**/*.ts"],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
         {
             "path": "../node-opcua-assert"
         },
         {
-            "path": "../node-opcua-object-registry"
-        },
-        {
             "path": "../node-opcua-debug"
         },
         {
-            "path": "../node-opcua-status-code"
+            "path": "../node-opcua-object-registry"
         },
         {
-            "path": "../node-opcua-leak-detector"
+            "path": "../node-opcua-status-code"
         }
     ]
 }

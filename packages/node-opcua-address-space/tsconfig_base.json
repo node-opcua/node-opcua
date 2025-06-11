@@ -1,5 +1,5 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "",
         "outDir": "dist",
@@ -11,13 +11,13 @@
             "inlineSourceMap": true
         }
     },
-    "include": ["source/**/*.ts", "src/**/*.ts"],
+    "include": [
+        "source/**/*.ts",
+        "src/**/*.ts"
+    ],
     "references": [
         {
             "path": "../node-opcua-address-space-base"
-        },
-        {
-            "path": "../node-opcua-nodeset-ua"
         },
         {
             "path": "../node-opcua-assert"
@@ -26,10 +26,10 @@
             "path": "../node-opcua-basic-types"
         },
         {
-            "path": "../node-opcua-client-dynamic-extension-object"
+            "path": "../node-opcua-binary-stream"
         },
         {
-            "path": "../node-opcua-common"
+            "path": "../node-opcua-client-dynamic-extension-object"
         },
         {
             "path": "../node-opcua-constants"
@@ -53,10 +53,16 @@
             "path": "../node-opcua-enum"
         },
         {
+            "path": "../node-opcua-extension-object"
+        },
+        {
             "path": "../node-opcua-factory"
         },
         {
             "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-nodeset-ua"
         },
         {
             "path": "../node-opcua-numeric-range"
@@ -68,22 +74,13 @@
             "path": "../node-opcua-pseudo-session"
         },
         {
-            "path": "../node-opcua-schemas"
-        },
-        {
             "path": "../node-opcua-service-browse"
         },
         {
             "path": "../node-opcua-service-call"
         },
         {
-            "path": "../node-opcua-service-filter"
-        },
-        {
             "path": "../node-opcua-service-history"
-        },
-        {
-            "path": "../node-opcua-service-session"
         },
         {
             "path": "../node-opcua-service-translate-browse-path"
@@ -105,37 +102,10 @@
         },
         {
             "path": "../node-opcua-xml2json"
-        },
-        {
-            "path": "../node-opcua-benchmarker"
-        },
-        {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
-            "path": "../node-opcua-buffer-utils"
-        },
-        {
-            "path": "../node-opcua-extension-object"
-        },
-        {
-            "path": "../node-opcua-generator"
-        },
-        {
-            "path": "../node-opcua-guid"
-        },
-        {
-            "path": "../node-opcua-leak-detector"
-        },
-        {
-            "path": "../node-opcua-nodesets"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer"
-        },
-        {
-            "path": "../node-opcua-test-fixtures"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

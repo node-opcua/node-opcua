@@ -1,48 +1,33 @@
 {
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true,
-            "incremental": true
-  },
-  "include": [
-    "source/**/*.ts"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true,
+        "incremental": true
     },
-    {
-      "path": "../node-opcua-basic-types"
-    },
-    {
-      "path": "../node-opcua-binary-stream"
-    },
-    {
-      "path": "../node-opcua-factory"
-    },
-    {
-      "path": "../node-opcua-types"
-    },
-    {
-      "path": "../node-opcua-binary-stream"
-    },
-    {
-      "path": "../node-opcua-buffer-utils"
-    },
-    {
-      "path": "../node-opcua-debug"
-    },
-    {
-      "path": "../node-opcua-packet-analyzer"
-    },
-    {
-      "path": "../node-opcua-status-code"
-    }
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+    "include": [
+        "source/**/*.ts"
+    ],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-types"
+        }
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

@@ -1,12 +1,18 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true
     },
-    "include": ["source/**/*.ts"],
-    "exclude": ["node_modules", "_generated_", "dist"],
+    "include": [
+        "source/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "_generated_",
+        "dist"
+    ],
     "references": [
         {
             "path": "../node-opcua-assert"
@@ -19,12 +25,6 @@
         },
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer"
-        },
-        {
-            "path": "../node-opcua-status-code"
         }
     ]
 }

@@ -1,22 +1,25 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
-    "exclude": ["node_modules", "dist", "test"],
+    "include": [
+        "source/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "test"
+    ],
     "references": [
         {
-            "path": "../node-opcua-address-space-base"
-        },
-        {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
             "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-address-space-base"
         },
         {
             "path": "../node-opcua-assert"
@@ -25,13 +28,13 @@
             "path": "../node-opcua-basic-types"
         },
         {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
             "path": "../node-opcua-certificate-manager"
         },
         {
             "path": "../node-opcua-client"
-        },
-        {
-            "path": "../node-opcua-client-dynamic-extension-object"
         },
         {
             "path": "../node-opcua-common"
@@ -124,6 +127,9 @@
             "path": "../node-opcua-status-code"
         },
         {
+            "path": "../node-opcua-transport"
+        },
+        {
             "path": "../node-opcua-types"
         },
         {
@@ -131,15 +137,6 @@
         },
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-data-access"
-        },
-        {
-            "path": "../node-opcua-leak-detector"
-        },
-        {
-            "path": "../node-opcua-test-helpers"
         }
     ]
 }

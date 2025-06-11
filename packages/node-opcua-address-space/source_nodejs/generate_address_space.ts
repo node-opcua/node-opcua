@@ -4,7 +4,7 @@ import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { IAddressSpace } from "node-opcua-address-space-base";
 
 import { generateAddressSpaceRaw } from "..";
-import { NodeSetLoaderOptions } from "../source/interfaces/nodeset_loader_options";
+import { NodeSetLoaderOptions } from "..";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
