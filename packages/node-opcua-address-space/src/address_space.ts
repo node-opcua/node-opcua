@@ -77,6 +77,7 @@ import { ReferenceImpl } from "./reference_impl";
 import { UAVariableImpl } from "./ua_variable_impl";
 import { UAReferenceTypeImpl } from "./ua_reference_type_impl";
 import { BaseNodeImpl } from "./base_node_impl";
+import { resolve } from "path";
 
 const doDebug = false;
 const errorLog = make_errorLog(__filename);
@@ -88,10 +89,17 @@ const Dequeue = require("dequeue");
 
 const regexNumberColumnString = /^([0-9]+):(.*)/;
 const enumerationTypeNodeId = coerceNodeId(DataTypeIds.Enumeration);
-
+/**
+ * Extracts the namespace and browse name as a string from the given input.
+ * 
+ * @param addressSpace The address space instance.
+ * @param browseNameOrNodeId A NodeIdLike, QualifiedName, or string representing the browse name or node id.
+ * @param namespaceIndex Optional namespace index.
+ * @returns A tuple containing the NamespacePrivate and the browse name as a string.
+ */
 function _extract_namespace_and_browse_name_as_string(
     addressSpace: AddressSpace,
-    browseName: NodeIdLike | QualifiedName,
+    browseNameOrNodeId: NodeIdLike | QualifiedName,
     namespaceIndex?: number
 ): [NamespacePrivate, string] {
     assert(!namespaceIndex || namespaceIndex >= 0);
@@ -99,26 +107,37 @@ function _extract_namespace_and_browse_name_as_string(
     let result;
 
     if (namespaceIndex !== undefined && namespaceIndex > 0) {
-        assert(typeof browseName === "string", "expecting a string when namespaceIndex is specified");
-        result = [addressSpace.getNamespace(namespaceIndex), browseName];
-    } else if (typeof browseName === "string") {
-        // split
-        if (browseName.indexOf(":") >= 0) {
-            const a = browseName.split(":");
-            namespaceIndex = a.length === 2 ? parseInt(a[0], 10) : namespaceIndex;
-            browseName = a.length === 2 ? a[1] : browseName;
+        assert(typeof browseNameOrNodeId === "string", "expecting a string when namespaceIndex is specified");
+        result = [addressSpace.getNamespace(namespaceIndex), browseNameOrNodeId];
+    } else if (typeof browseNameOrNodeId === "string") {
+        // we may have a string like "ns=1;i=1234" or "ns=1:MyBrowseName"
+        if (isNodeIdString(browseNameOrNodeId)) {
+            return _extract_namespace_and_browse_name_as_string(addressSpace, addressSpace.resolveNodeId(browseNameOrNodeId), namespaceIndex);
         }
-        result = [addressSpace.getNamespace(namespaceIndex || 0), browseName];
-    } else if (browseName instanceof QualifiedName) {
-        namespaceIndex = browseName.namespaceIndex;
-        result = [addressSpace.getNamespace(namespaceIndex), browseName.name];
-    } else if (typeof browseName === "number") {
-        result = [addressSpace.getDefaultNamespace(), DataType[browseName]];
+        // we must have a BrowseName string
+        if (browseNameOrNodeId.indexOf(":") >= 0) {
+            const a = browseNameOrNodeId.split(":");
+            namespaceIndex = a.length === 2 ? parseInt(a[0], 10) : namespaceIndex;
+            browseNameOrNodeId = a.length === 2 ? a[1] : browseNameOrNodeId;
+        }
+        result = [addressSpace.getNamespace(namespaceIndex || 0), browseNameOrNodeId];
+    } else if (browseNameOrNodeId instanceof QualifiedName) {
+        namespaceIndex = browseNameOrNodeId.namespaceIndex;
+        result = [addressSpace.getNamespace(namespaceIndex), browseNameOrNodeId.name];
+    } else if (typeof browseNameOrNodeId === "number") {
+        result = [addressSpace.getDefaultNamespace(), DataType[browseNameOrNodeId]];
+    } else if (browseNameOrNodeId instanceof NodeId) {
+        // we have a nodeId
+        const nodeId = browseNameOrNodeId as NodeId;
+        namespaceIndex = nodeId.namespace;
+        const node = addressSpace.findNode(nodeId);
+        const browseName = node ? node.browseName.toString() : "UnknownNode";
+        result = [addressSpace.getNamespace(namespaceIndex), browseName];
     }
 
     /* istanbul ignore next */
     if (!result || !result[0]) {
-        throw new Error(` Cannot find namespace associated with ${browseName} ${namespaceIndex}`);
+        throw new Error(` Cannot find namespace associated with ${browseNameOrNodeId} ${namespaceIndex}`);
     }
     return result as [NamespacePrivate, string];
 }
@@ -331,7 +350,7 @@ export class AddressSpace implements AddressSpacePrivate {
                 }
             }
         }
-        const namespaceArray: string[] = this.getNamespaceArray().map((a)=>a.namespaceUri);
+        const namespaceArray: string[] = this.getNamespaceArray().map((a) => a.namespaceUri);
 
         return resolveNodeId(nodeId, { namespaceArray });
     }
@@ -429,7 +448,7 @@ export class AddressSpace implements AddressSpacePrivate {
         }
         if (typeof dataType === "number") {
             if (DataType[dataType] !== undefined) {
-                dataType = DataType[dataType];
+                return this.findDataType(makeNodeId(dataType, 0)) as UADataType;
             } else {
                 return this.findDataType(resolveNodeId(dataType));
             }
@@ -1376,10 +1395,13 @@ export class AddressSpace implements AddressSpacePrivate {
         return returnValue;
     }
 
-    public _coerce_DataType(dataType: NodeId | string | BaseNode): NodeId {
+    public _coerce_DataType(dataType: number | NodeId | string | BaseNode): NodeId {
         if (dataType instanceof NodeId) {
             // xx assert(self.findDataType(dataType));
             return dataType;
+        }
+        if (dataType === 0) {
+            return NodeId.nullNodeId
         }
         return this._coerce_Type(dataType, DataTypeIds, "DataTypeIds", AddressSpace.prototype.findDataType);
     }
@@ -1459,13 +1481,31 @@ export class AddressSpace implements AddressSpacePrivate {
         return dataTypeNode.isSubtypeOf(enumerationNode);
     }
 
-    private _coerce_Type(dataType: BaseNode | string | NodeId, typeMap: any, typeMapName: string, finderMethod: any): NodeId {
+    private _coerce_Type(dataType: BaseNode | string | NodeId | number, typeMap: any, typeMapName: string, finderMethod: any): NodeId {
+        if (typeof dataType === "number") {
+            return this._coerce_Type(coerceNodeId(dataType), typeMap, typeMapName, finderMethod);
+        }
         if (dataType instanceof BaseNodeImpl) {
             dataType = dataType.nodeId;
         }
         assert(typeMap !== null && typeof typeMap === "object");
         let nodeId: NodeId | null;
         if (typeof dataType === "string") {
+            if (isNodeIdString(dataType)) {
+                const nodeId = this.resolveNodeId(dataType);
+                if (nodeId.isEmpty()) {
+                    // this is a valid dataType NodeId, but it has no definition in the address space
+                    return NodeId.nullNodeId;
+                }
+                const node = this.findNode(nodeId);
+                if (node) {
+                    // if dataType is a nodeId string, we can use it directly
+                    return node.nodeId;
+                } else {
+                    warningLog("Expecting valid nodeId of a DataType : ", nodeId.toString());
+                    return nodeId;
+                }
+            }
             const namespace0 = this.getDefaultNamespace();
             // resolve dataType
             nodeId = namespace0.resolveAlias(dataType);
@@ -1539,7 +1579,7 @@ function _increase_version_number(node: BaseNode | null) {
         let rawValue = uaNodeVersion.readValue().value.value || ""
         let previousValue = parseInt(rawValue || "0", 10);
         if (Number.isNaN(previousValue)) {
-            warningLog("NodeVersion was ", rawValue );
+            warningLog("NodeVersion was ", rawValue);
             previousValue = 0;
         }
         uaNodeVersion.setValueFromSource({
