@@ -406,7 +406,7 @@ function json_ify(t: BuiltInTypeDefinition, value: any, fieldType: FieldType) {
     */
     if (t && t.toJSON) {
         return t.toJSON(value);
-    } else if (value.toJSON) {
+    } else if (value?.toJSON) {
         return value.toJSON();
     } else {
         return value;
@@ -568,7 +568,7 @@ export class BaseUAObject {
 
     public toJSON(): any {
         assert(this.schema);
-        if (this.schema.toJSON) {
+        if (this.schema?.toJSON) {
             return this.schema.toJSON.apply(this, arguments as any);
         } else {
             assert(this.schema);
