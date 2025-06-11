@@ -1,6 +1,9 @@
 packages:
   # all packages in direct subdirs of packages/
+  - packages/node-opcua-debug
+  - packages/node-opcua-binary-stream
   - packages/*
   - packages_extra/node-opcua-example
+  - tools/*
   # all packages in subdirs of components/
   # - 'packages_extra/*'

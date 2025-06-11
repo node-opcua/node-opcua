@@ -1,12 +1,14 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
         {
             "path": "../node-opcua-assert"
@@ -15,13 +17,16 @@
             "path": "../node-opcua-basic-types"
         },
         {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
             "path": "../node-opcua-data-model"
         },
         {
-            "path": "../node-opcua-enum"
+            "path": "../node-opcua-debug"
         },
         {
-            "path": "../node-opcua-extension-object"
+            "path": "../node-opcua-enum"
         },
         {
             "path": "../node-opcua-factory"
@@ -31,25 +36,10 @@
         },
         {
             "path": "../node-opcua-utils"
-        },
-        {
-            "path": "../node-opcua-benchmarker"
-        },
-        {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
-            "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-numeric-range"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer"
-        },
-        {
-            "path": "../node-opcua-status-code"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

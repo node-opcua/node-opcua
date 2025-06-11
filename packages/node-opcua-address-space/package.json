@@ -13,7 +13,8 @@
         "lint": "eslint source test src source_nodejs test_helpers",
         "format": "prettier --write source test src source_nodejs test_helpers",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "c": "mocha --version"
+        "c": "mocha --version",
+        "fix:tsconfig": "node ../../code_gen/extract-modules.js tsconfig_base.json"
     },
     "dependencies": {
         "@types/lodash": "4.17.16",

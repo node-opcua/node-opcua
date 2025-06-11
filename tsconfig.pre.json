@@ -1,0 +1,13 @@
+{
+    "extends": "./tsconfig.common.json",
+    "references": [
+        {
+            "path": "packages/node-opcua-generator/tsconfig.json"
+        },
+        {
+            "path": "packages/node-opcua-types/tsconfig.pre.json"
+        }
+    ],
+    "include": [],
+    "exclude": ["*"]
+}

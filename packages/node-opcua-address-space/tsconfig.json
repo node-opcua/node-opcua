@@ -6,7 +6,7 @@
     },
     "references": [
         {
-            "path": "./tsconfig_common.json"
+            "path": "./tsconfig_base.json"
         },
         {
             "path": "./tsconfig_nodejs.json"

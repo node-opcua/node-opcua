@@ -13,7 +13,8 @@
         "lint": "eslint source",
         "format": "prettier --write source",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
-        "mocha:version": "mocha --version"
+        "mocha:version": "mocha --version",
+        "fix:tsconfig": "node ../../code_gen/extract-modules.js tsconfig.json"
     },
     "dependencies": {
         "node-opcua-assert": "2.139.0",

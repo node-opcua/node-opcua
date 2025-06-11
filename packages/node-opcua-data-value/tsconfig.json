@@ -1,12 +1,14 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
         {
             "path": "../node-opcua-assert"
@@ -26,12 +28,8 @@
         {
             "path": "../node-opcua-debug"
         },
-      
         {
             "path": "../node-opcua-enum"
-        },
-        {
-            "path": "../node-opcua-extension-object"
         },
         {
             "path": "../node-opcua-factory"
@@ -41,13 +39,10 @@
         },
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-numeric-range"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

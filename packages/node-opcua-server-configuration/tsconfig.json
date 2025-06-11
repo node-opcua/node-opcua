@@ -1,15 +1,23 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true
     },
-    "exclude": ["node_modules", "dist"],
-    "include": ["source/**/*.ts"],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
         {
             "path": "../node-opcua-address-space"
+        },
+        {
+            "path": "../node-opcua-address-space-base"
         },
         {
             "path": "../node-opcua-assert"
@@ -18,10 +26,19 @@
             "path": "../node-opcua-basic-types"
         },
         {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
             "path": "../node-opcua-certificate-manager"
         },
         {
             "path": "../node-opcua-client"
+        },
+        {
+            "path": "../node-opcua-common"
+        },
+        {
+            "path": "../node-opcua-constants"
         },
         {
             "path": "../node-opcua-data-model"
@@ -30,13 +47,13 @@
             "path": "../node-opcua-debug"
         },
         {
+            "path": "../node-opcua-file-transfer"
+        },
+        {
             "path": "../node-opcua-hostname"
         },
         {
             "path": "../node-opcua-nodeid"
-        },
-        {
-            "path": "../node-opcua-nodesets"
         },
         {
             "path": "../node-opcua-pseudo-session"
@@ -48,6 +65,9 @@
             "path": "../node-opcua-server"
         },
         {
+            "path": "../node-opcua-service-translate-browse-path"
+        },
+        {
             "path": "../node-opcua-status-code"
         },
         {
@@ -55,30 +75,6 @@
         },
         {
             "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-binary-stream"
-        },
-        {
-            "path": "../node-opcua-data-value"
-        },
-        {
-            "path": "../node-opcua-file-transfer"
-        },
-        {
-            "path": "../node-opcua-leak-detector"
-        },
-        {
-            "path": "../node-opcua-address-space-base"
-        },
-        {
-            "path": "../node-opcua-common"
-        },
-        {
-            "path": "../node-opcua-constants"
-        },
-        {
-            "path": "../node-opcua-service-translate-browse-path"
         }
     ]
 }

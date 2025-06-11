@@ -1,12 +1,15 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts", "test_helpers/**/*.ts"],
+    "include": [
+        "source/**/*.ts",
+        "test_helpers/**/*.ts"
+    ],
     "references": [
         {
             "path": "../node-opcua-assert"
@@ -18,20 +21,23 @@
             "path": "../node-opcua-binary-stream"
         },
         {
-            "path": "../node-opcua-factory"
+            "path": "../node-opcua-debug"
         },
         {
-            "path": "../node-opcua-debug"
+            "path": "../node-opcua-factory"
         },
         {
             "path": "../node-opcua-nodeid"
         },
         {
-            "path": "../node-opcua-utils"
+            "path": "../node-opcua-test-helpers"
         },
         {
-            "path": "../node-opcua-test-helpers"
+            "path": "../node-opcua-utils"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

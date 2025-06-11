@@ -1,5 +1,5 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
@@ -11,64 +11,16 @@
     "exclude": ["node_modules", "dist", "source"],
     "references": [
         {
-            "path": "../node-opcua-assert/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-basic-types/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-benchmarker/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-binary-stream/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-buffer-utils/tsconfig.json"
-        },
-        {
             "path": "../node-opcua-data-model/tsconfig.json"
         },
         {
             "path": "../node-opcua-data-value/tsconfig.json"
         },
         {
-            "path": "../node-opcua-date-time/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-debug/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-enum/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-extension-object/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-factory/tsconfig.json"
-        },
-        {
             "path": "../node-opcua-generator/tsconfig.json"
         },
         {
-            "path": "../node-opcua-guid/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-nodeid/tsconfig.json"
-        },
-        {
             "path": "../node-opcua-numeric-range/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-schemas/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-status-code/tsconfig.json"
-        },
-        {
-            "path": "../node-opcua-utils/tsconfig.json"
         },
         {
             "path": "../node-opcua-variant/tsconfig.json"

@@ -90,6 +90,27 @@ const { OPCUAServer, Variant, DataType, DataValue, StatusCodes } = require("node
         }
     });
 
+    let variable2 = 2;
+    namespace.addVariable({
+        componentOf: device,
+
+     
+        browseName: "MyVariable2",
+
+        dataType: "Double",
+
+        minimumSamplingInterval: 1000, // we need to specify a minimumSamplingInterval when using a getter
+
+        value: {
+            get: () => new Variant({ dataType: DataType.Double, value: variable2 }),
+
+            set: (variant) => {
+                variable2 = parseFloat(variant.value);
+
+                return StatusCodes.Good;
+            }
+        }
+    });
     server.start(function() {
         console.log("Server is now listening ... ( press CTRL+C to stop)");
         console.log("port ", server.endpoints[0].port);

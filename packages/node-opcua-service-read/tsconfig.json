@@ -1,39 +1,33 @@
 {
-  "extends": "../tsconfig.json",
-  "include": [
-    "source/**/*.ts"
-  ],
-  "compilerOptions": {
-    "rootDir": "source",
-    "outDir": "dist",
-    "composite": true
-  },
-  "exclude": [
-    "node_modules",
-    "_generated_",
-    "dist"
-  ],
-  "references": [
-    {
-      "path": "../node-opcua-assert"
+    "extends": "../tsconfig.common.json",
+    "include": [
+        "source/**/*.ts"
+    ],
+    "compilerOptions": {
+        "rootDir": "source",
+        "outDir": "dist",
+        "composite": true
     },
-    {
-      "path": "../node-opcua-data-model"
-    },
-    {
-      "path": "../node-opcua-data-value"
-    },
-    {
-      "path": "../node-opcua-nodeid"
-    },
-    {
-      "path": "../node-opcua-service-secure-channel"
-    },
-    {
-      "path": "../node-opcua-types"
-    },
-    {
-      "path": "../node-opcua-packet-analyzer"
-    }
-  ]
+    "exclude": [
+        "node_modules",
+        "_generated_",
+        "dist"
+    ],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-data-value"
+        },
+        {
+            "path": "../node-opcua-service-secure-channel"
+        },
+        {
+            "path": "../node-opcua-types"
+        }
+    ]
 }
