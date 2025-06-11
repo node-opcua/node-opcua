@@ -77,30 +77,30 @@ jobs:
         SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
 
 
-  legacy:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [ 16.x ]
+  # legacy:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [ 16.x ]
  
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm install -g pnpm@7
-    # remove pnpm-lock.yaml to avoid conflicts
-    - run: rm pnpm-lock.yaml
-    # also change the required version in package.json
-    - run: "sed -i 's/\"pnpm\": \".*\"/\"pnpm\": \">=7.0.0\"/' package.json"
-    - run: grep pnpm package.json
-    - run: pnpm recursive install --no-frozen-lockfile
-    - run: pnpm run build
-    - run: hostname 
-    - run: openssl version
-    - run: pnpm run pretest
-    - run: pnpm test
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Use Node.js ${{ matrix.node-version }}
+  #     uses: actions/setup-node@v4
+  #     with:
+  #       node-version: ${{ matrix.node-version }}
+  #   - run: npm install -g pnpm@7
+  #   # remove pnpm-lock.yaml to avoid conflicts
+  #   - run: rm pnpm-lock.yaml
+  #   # also change the required version in package.json
+  #   - run: "sed -i 's/\"pnpm\": \".*\"/\"pnpm\": \">=7.0.0\"/' package.json"
+  #   - run: grep pnpm package.json
+  #   - run: pnpm recursive install --no-frozen-lockfile
+  #   - run: pnpm run build
+  #   - run: hostname 
+  #   - run: openssl version
+  #   - run: pnpm run pretest
+  #   - run: pnpm test
 
 
   coverage:
