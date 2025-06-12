@@ -5,8 +5,8 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "generate": "tsc -b tsconfig.pre.json && ts-node source/generate && tsc -b",
-        "build": "pnpm run generate",
+        "generate": "tsc -b tsconfig.pre.json && ts-node source/generate",
+        "build": "tsc -b",
         "test": "mocha",
         "format": "prettier --write source test",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo source/_generated_*"
