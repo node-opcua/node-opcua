@@ -1,0 +1,12 @@
+{
+    "name": "@sterfive/fix-tsconfigs",
+    "version": "1.0.0",
+    "private": true,
+    "bin": {
+        "fix-tsconfigs": "src/index.js"
+    },
+    "type": "module",
+    "dependencies": {
+        "json5": "^2.2.3"
+    }
+}

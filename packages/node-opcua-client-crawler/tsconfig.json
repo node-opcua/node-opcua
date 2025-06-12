@@ -1,49 +1,21 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
-        {
-            "path": "../node-opcua-assert"
-        },
-        {
-            "path": "../node-opcua-types"
-        },
-        {
-            "path": "../node-opcua-constants"
-        },
-        {
-            "path": "../node-opcua-data-model"
-        },
-        {
-            "path": "../node-opcua-data-value"
-        },
-        {
-            "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-nodeid"
-        },
-        {
-            "path": "../node-opcua-service-browse"
-        },
-        {
-            "path": "../node-opcua-status-code"
-        },
-        {
-            "path": "../node-opcua-utils"
-        },
-        {
-            "path": "../node-opcua-address-space"
-        },
         {
             "path": "../node-opcua-client"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

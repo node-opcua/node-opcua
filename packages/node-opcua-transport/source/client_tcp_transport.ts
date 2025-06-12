@@ -61,17 +61,17 @@ function createClientSocket(endpointUrl: string, timeout: number): ISocketLike {
 export interface ClientTCP_transport {
     on(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
     on(eventName: "close", eventHandler: (err: Error | null) => void): this;
-    on(eventName: "connection_break", eventHandler: () => void): this;
+    on(eventName: "connection_break", eventHandler: (err: Error | null) => void): this;
     on(eventName: "connect", eventHandler: () => void): this;
 
     once(eventName: "chunk", eventHandler: (messageChunk: Buffer) => void): this;
     once(eventName: "close", eventHandler: (err: Error | null) => void): this;
-    once(eventName: "connection_break", eventHandler: () => void): this;
+    once(eventName: "connection_break", eventHandler: (err: Error | null) => void): this;
     once(eventName: "connect", eventHandler: () => void): this;
 
     emit(eventName: "chunk", messageChunk: Buffer): boolean;
     emit(eventName: "close", err?: Error | null): boolean;
-    emit(eventName: "connection_break"): boolean;
+    emit(eventName: "connection_break", err?: Error | null): boolean;
     emit(eventName: "connect"): boolean;
 }
 
@@ -212,8 +212,8 @@ export class ClientTCP_transport extends TCP_transport {
                  * @event connection_break
                  *
                  */
-                warningLog("connection_break", endpointUrl);
-                this.emit("connection_break");
+                doDebug && debugLog("connection_break after reconnection", endpointUrl);
+                this.emit("connection_break", err);
             }
         };
 

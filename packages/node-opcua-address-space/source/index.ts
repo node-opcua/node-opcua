@@ -37,6 +37,8 @@ export * from "./interfaces/alarms_and_conditions/ua_limit_alarm_ex";
 export * from "./interfaces/alarms_and_conditions/ua_non_exclusive_deviation_alarm_ex";
 export * from "./interfaces/alarms_and_conditions/ua_non_exclusive_limit_alarm_ex";
 
+export * from "./interfaces/nodeset_loader_options";
+
 export { promoteToMultiStateDiscrete } from "../src/data_access/ua_multistate_discrete_impl";
 export { promoteToMultiStateValueDiscrete } from "../src/data_access/ua_multistate_value_discrete_impl";
 export { promoteToTwoStateDiscrete } from "../src/data_access/ua_two_state_discrete_impl";

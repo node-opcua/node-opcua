@@ -2323,7 +2323,7 @@ function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeI
     uaVariable.dataType = newDataTypeNode.nodeId;
     (uaVariable as any)._basicDataType = null;
     (uaVariable as any).$dataValue.value.dataType = newDataType;
-    (uaVariable as any).$dataValue.value.value = value;
+    (uaVariable as any).$dataValue.value = value;
     // also change the value to ensure that we have a default value with the correct dataType
     uaVariable._internal_set_value(value);
 }

@@ -1,5 +1,5 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source_nodejs",
         "outDir": "distNodeJS",
@@ -14,13 +14,13 @@
     "include": [
         "source_nodejs/**/*.ts"
     ],
-    "references": [
-        {
-            "path": "./tsconfig_common.json"
-        }
-    ],
     "exclude": [
         "node_modules",
         "dist*"
+    ],
+    "references": [
+        {
+            "path": "./tsconfig_base.json"
+        }
     ]
 }

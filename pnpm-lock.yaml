@@ -20,6 +20,9 @@ importers:
       '@ster5/global-mutex':
         specifier: ^2.0.0
         version: 2.0.0
+      '@sterfive/fix-tsconfigs':
+        specifier: link:tools\fix-tsconfigs
+        version: link:tools/fix-tsconfigs
       '@types/async':
         specifier: ^3.2.24
         version: 3.2.24
@@ -89,6 +92,9 @@ importers:
       eslint:
         specifier: 9.26.0
         version: 9.26.0
+      glob:
+        specifier: ^11.0.2
+        version: 11.0.2
       hexy:
         specifier: 0.3.5
         version: 0.3.5
@@ -198,6 +204,9 @@ importers:
       eslint-plugin-prettier:
         specifier: ^5.2.6
         version: 5.2.6(eslint-config-prettier@10.1.2(eslint@9.26.0))(eslint@9.26.0)(prettier@3.5.3)
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
       mocha:
         specifier: ^11.2.2
         version: 11.2.2
@@ -2033,36 +2042,6 @@ importers:
         specifier: 2.155.0
         version: link:../node-opcua-variant
 
-  packages/node-opcua-nodeset-ijt:
-    dependencies:
-      node-opcua-address-space-base:
-        specifier: 2.155.0
-        version: link:../node-opcua-address-space-base
-      node-opcua-basic-types:
-        specifier: 2.154.0
-        version: link:../node-opcua-basic-types
-      node-opcua-data-access:
-        specifier: 2.155.0
-        version: link:../node-opcua-data-access
-      node-opcua-data-model:
-        specifier: 2.155.0
-        version: link:../node-opcua-data-model
-      node-opcua-extension-object:
-        specifier: 2.155.0
-        version: link:../node-opcua-extension-object
-      node-opcua-nodeid:
-        specifier: 2.153.0
-        version: link:../node-opcua-nodeid
-      node-opcua-nodeset-machinery:
-        specifier: 2.155.0
-        version: link:../node-opcua-nodeset-machinery
-      node-opcua-nodeset-ua:
-        specifier: 2.155.0
-        version: link:../node-opcua-nodeset-ua
-      node-opcua-variant:
-        specifier: 2.155.0
-        version: link:../node-opcua-variant
-
   packages/node-opcua-nodeset-ijt-base:
     dependencies:
       node-opcua-address-space-base:
@@ -3793,6 +3772,12 @@ importers:
         specifier: 2.156.0
         version: link:../../packages/node-opcua
 
+  tools/fix-tsconfigs:
+    dependencies:
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
+
 packages:
 
   '@colors/colors@1.5.0':
@@ -4811,8 +4796,8 @@ packages:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
     hasBin: true
 
-  glob@11.0.1:
-    resolution: {integrity: sha512-zrQDm8XPnYEKawJScsnM0QzobJxlT/kHOOlRTio8IH/GrmxRE5fjllkzdaHclIuNjUQTJYH2xHNIGfdpJkDJUw==}
+  glob@11.0.2:
+    resolution: {integrity: sha512-YT7U7Vye+t5fZ/QMkBFrTJ7ZQxInIUjwyAjVj84CYXqgBdv30MFUPGnBR6sQaVq6Is15wYJUsnzTuWaGRBhBAQ==}
     engines: {node: 20 || >=22}
     hasBin: true
 
@@ -4991,6 +4976,11 @@ packages:
 
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
+
+  json5@2.2.3:
+    resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
+    engines: {node: '>=6'}
+    hasBin: true
 
   jsrsasign@11.1.0:
     resolution: {integrity: sha512-Ov74K9GihaK9/9WncTe1mPmvrO7Py665TUfUKvraXBpu+xcTWitrtuOwcjf4KMU9maPaYn0OuaWy0HOzy/GBXg==}
@@ -6926,7 +6916,7 @@ snapshots:
       package-json-from-dist: 1.0.1
       path-scurry: 1.11.1
 
-  glob@11.0.1:
+  glob@11.0.2:
     dependencies:
       foreground-child: 3.3.1
       jackspeak: 4.1.0
@@ -7082,6 +7072,8 @@ snapshots:
   json-schema-traverse@0.4.1: {}
 
   json-stable-stringify-without-jsonify@1.0.1: {}
+
+  json5@2.2.3: {}
 
   jsrsasign@11.1.0: {}
 
@@ -7442,7 +7434,7 @@ snapshots:
 
   rimraf@6.0.1:
     dependencies:
-      glob: 11.0.1
+      glob: 11.0.2
       package-json-from-dist: 1.0.1
 
   router@2.2.0:
