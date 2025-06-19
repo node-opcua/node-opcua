@@ -632,7 +632,7 @@ export class ClientSessionImpl extends EventEmitter implements ClientSession, Re
         options.numValuesPerNode = options.numValuesPerNode || 0;
         options.returnBounds = options.returnBounds || options.returnBounds === undefined ? true : false;
         options.isReadModified = options.isReadModified || false;
-        options.timestampsToReturn = options.timestampsToReturn || TimestampsToReturn.Both;
+        options.timestampsToReturn = options.timestampsToReturn ?? TimestampsToReturn.Both;
 
         const arg0 = args[0];
         const isArray = Array.isArray(arg0);
