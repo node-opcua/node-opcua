@@ -6,7 +6,7 @@ This directory contains development tools for the node-opcua monorepo.
 
 ### scan-dependencies
 
-A TypeScript tool to scan the monorepo for missing dependencies in package.json files. The tool intelligently ignores local imports (`./` and `../`), built-in Node.js modules, and `node:` protocol modules, and normalizes package names (e.g., `node-opcua-crypto/web` → `node-opcua-crypto`), focusing only on external package dependencies.
+A TypeScript tool to scan the monorepo for missing dependencies in package.json files. The tool intelligently ignores local imports (`./` and `../`), built-in Node.js modules, and `node:` protocol modules, normalizes package names (e.g., `node-opcua-crypto/web` → `node-opcua-crypto`), and automatically includes required type definitions (e.g., `@types/lodash` when `lodash` is used), focusing only on external package dependencies.
 
 **Quick Start:**
 ```bash
@@ -31,6 +31,12 @@ node tools/scan-deps.js
 
 # Scan and fix missing dependencies
 node tools/scan-deps.js --fix
+
+# Scan and remove extraneous dependencies
+node tools/scan-deps.js --remove-extraneous
+
+# Scan and fix both missing and extraneous dependencies
+node tools/scan-deps.js --fix --remove-extraneous
 
 # Verbose output
 node tools/scan-deps.js --verbose

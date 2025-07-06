@@ -30,6 +30,16 @@ npm run scan
 npm run scan:fix
 ```
 
+### Scan and remove extraneous dependencies
+```bash
+npm run scan:clean
+```
+
+### Scan and fix both missing and extraneous dependencies
+```bash
+npm run scan:fix-all
+```
+
 ### Verbose output
 ```bash
 npm run scan:verbose
@@ -43,18 +53,26 @@ npm run dev
 ## Command Line Options
 
 - `--fix`: Automatically add missing dependencies to package.json files
+- `--remove-extraneous`: Automatically remove unused dependencies from package.json files
 - `--verbose`: Show detailed output including file scanning progress
 
 ## How it works
 
 1. **Package Discovery**: Finds all packages in the `packages/` directory that start with `node-opcua-`
 2. **Source Directory Detection**: Looks for TypeScript files in `source/`, `src/`, or `sources/` directories
-3. **Import Extraction**: Parses TypeScript files to extract all external module imports
-4. **Dependency Analysis**: Compares imports against declared dependencies in package.json
-5. **Missing Detection**: Identifies missing dependencies including:
+3. **Test Directory Detection**: Also scans `test/`, `tests/`, and `test_helpers/` directories
+4. **Import Extraction**: Parses TypeScript files to extract all external module imports
+5. **Dependency Analysis**: Compares imports against declared dependencies in package.json
+6. **Missing Detection**: Identifies missing dependencies including:
+   - **Source dependencies**: Dependencies needed for source code (added to `dependencies`)
+   - **Test dependencies**: Dependencies needed for test code (added to `devDependencies`)
    - **Local monorepo packages**: node-opcua packages that are imported but not declared
    - **External npm packages**: External dependencies like `chalk`, `lodash`, `async`, etc.
-6. **Auto-fix**: When `--fix` is used, adds missing dependencies with appropriate versions
+7. **Extraneous Detection**: Identifies unused dependencies that are declared but not imported:
+   - **Dependencies**: Must be imported in source files
+   - **DevDependencies**: Must be imported in test files
+8. **Auto-fix**: When `--fix` is used, adds missing dependencies with appropriate versions
+9. **Auto-clean**: When `--remove-extraneous` is used, removes unused dependencies
 
 ## Supported Import Patterns
 
@@ -86,6 +104,14 @@ The tool checks for external dependencies that should be declared in package.jso
 
 The tool intelligently distinguishes between Node.js built-in modules (which are ignored) and external npm packages (which should be declared as dependencies).
 
+## Special Type Dependencies
+
+The tool automatically includes certain type definitions that are required for TypeScript projects:
+
+- **@types/lodash**: Automatically added when `lodash` is imported (since lodash doesn't have built-in TypeScript definitions)
+
+These type dependencies are added to the same section (dependencies or devDependencies) as their corresponding runtime dependencies.
+
 ## Excluded Modules
 
 The tool automatically excludes:
@@ -102,6 +128,14 @@ The tool detects missing dependencies for:
 - **Local monorepo packages**: `node-opcua-*` packages
 - **External npm packages**: Simple package names like `chalk`, `lodash`, `async`
 - **Scoped packages**: `@scope/package` packages like `@ster5/global-mutex`
+
+### Dependency Categories
+
+- **Source Dependencies**: Dependencies imported in source code (added to `dependencies`)
+- **Test Dependencies**: Dependencies imported in test files (added to `devDependencies`)
+- **Extraneous Dependencies**: Dependencies declared but not imported anywhere (removed)
+  - **Extraneous Dependencies**: Dependencies not imported in source files
+  - **Extraneous DevDependencies**: DevDependencies not imported in test files
 
 Examples of ignored imports:
 ```typescript
@@ -120,6 +154,24 @@ import { utils } from '@foo/bar/stuff';          // → @foo/bar
 import { assert } from 'node-opcua-assert';      // → node-opcua-assert (unchanged)
 ```
 
+Examples of special type dependencies:
+```typescript
+import { _ } from 'lodash';                      // → lodash + @types/lodash (auto-added)
+```
+
+Examples of dependency categorization:
+```typescript
+// Source file: source/index.ts
+import { chalk } from 'chalk';                   // → dependencies
+
+// Test file: test/index.test.ts
+import { mocha } from 'mocha';                   // → devDependencies
+import { assert } from 'node-opcua-assert';      // → devDependencies
+
+// If mocha is in devDependencies but only used in source files → extraneous
+// If chalk is in dependencies but only used in test files → extraneous
+```
+
 ## Example Output
 
 ```
@@ -129,15 +181,32 @@ Scanning node-opcua monorepo for missing dependencies...
   - node-opcua-assert
   - node-opcua-binary-stream
 
-🔧 Fixing package.json...
+❌ node-opcua-basic-types: Missing devDependencies:
+  - mocha
+
+⚠️  node-opcua-basic-types: Extraneous dependencies:
+  Dependencies (not used in source files):
+    - unused-package
+  DevDependencies (not used in test files):
+    - unused-test-package
+
+🔧 Adding missing dependencies...
   + Adding node-opcua-assert@2.139.0 to dependencies
   + Adding node-opcua-binary-stream@2.153.0 to dependencies
-  ✅ Fixed 2 missing dependencies
+  ✅ Added 2 missing dependencies
+
+🔧 Adding missing devDependencies...
+  + Adding mocha@10.0.0 to devDependencies
+  ✅ Added 1 missing devDependencies
 
 📊 Summary:
   Total packages scanned: 85
   Total missing dependencies found: 2
-  Total dependencies fixed: 2
+  Total missing devDependencies found: 1
+  Total extraneous dependencies found: 3
+  Total dependencies added: 2
+  Total devDependencies added: 1
+  Total dependencies removed: 3
 
 💡 Run 'npm install' in the root directory to install the new dependencies.
 ```
