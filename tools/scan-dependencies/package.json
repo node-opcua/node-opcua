@@ -13,6 +13,8 @@
     "scan": "node dist/index.js",
     "scan:fix": "node dist/index.js --fix",
     "scan:verbose": "node dist/index.js --verbose",
+    "scan:clean": "node dist/index.js --remove-extraneous",
+    "scan:fix-all": "node dist/index.js --fix --remove-extraneous",
     "dev": "ts-node src/index.ts",
     "test": "echo \"No tests specified\" && exit 0"
   },
@@ -26,9 +28,9 @@
   "author": "node-opcua team",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.0.0",
-    "ts-node": "^10.9.0"
+    "@types/node": "24.0.10",
+    "typescript": "5.8.3",
+    "ts-node": "^10.9.2"
   },
   "files": [
     "dist",
