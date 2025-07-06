@@ -1,0 +1,37 @@
+{
+  "name": "node-opcua-scan-dependencies",
+  "version": "1.0.0",
+  "description": "Scan node-opcua monorepo for missing dependencies",
+  "private": true,
+  "main": "dist/index.js",
+  "bin": {
+    "scan-dependencies": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "scan": "node dist/index.js",
+    "scan:fix": "node dist/index.js --fix",
+    "scan:verbose": "node dist/index.js --verbose",
+    "dev": "ts-node src/index.ts",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "keywords": [
+    "node-opcua",
+    "dependencies",
+    "monorepo",
+    "scanner",
+    "tools"
+  ],
+  "author": "node-opcua team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "files": [
+    "dist",
+    "src"
+  ]
+} 
