@@ -83,7 +83,7 @@ function findSourceDirectories(packagePath: string): string[] {
     return found;
 }
 
-function findTypeScriptFiles(directory: string): { sourceFiles: string[], testFiles: string[] } {
+function findSourceFiles(directory: string): { sourceFiles: string[], testFiles: string[] } {
     const sourceFiles: string[] = [];
     const testFiles: string[] = [];
     
@@ -101,7 +101,9 @@ function findTypeScriptFiles(directory: string): { sourceFiles: string[], testFi
                 if (!['node_modules', 'dist'].includes(entry.name)) {
                     scanDir(fullPath, isTest || isTestDir);
                 }
-            } else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) {
+            } else if ((entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) || 
+                       entry.name.endsWith('.js') || 
+                       entry.name.endsWith('.mjs')) {
                 if (isTest) {
                     testFiles.push(fullPath);
                 } else {
@@ -534,8 +536,8 @@ function main(): void {
         
         for (const sourceDir of sourceDirs) {
             log(`  Scanning directory: ${sourceDir}`);
-            const { sourceFiles, testFiles } = findTypeScriptFiles(sourceDir);
-            log(`  Found ${sourceFiles.length} source files and ${testFiles.length} test files`);
+            const { sourceFiles, testFiles } = findSourceFiles(sourceDir);
+            log(`  Found ${sourceFiles.length} source files (TS/JS) and ${testFiles.length} test files (TS/JS)`);
             
             // Process source files
             for (const file of sourceFiles) {
@@ -728,7 +730,7 @@ function main(): void {
 export {
     findPackages,
     findSourceDirectories,
-    findTypeScriptFiles,
+    findSourceFiles,
     extractImports,
     findMissingDependenciesDetailed,
     findExtraneousDependencies,
