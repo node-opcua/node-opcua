@@ -28,7 +28,7 @@ export interface ISocketLike extends EventEmitter {
     remoteAddress?: string;
     remotePort?: number;
 
-    write(data: string | Buffer, callback?: (err?: Error) => void | undefined): void;
+    write(data: string | Buffer, callback?: (err?: Error | null) => void | undefined): void;
     end(): void;
     setKeepAlive(enable?: boolean, initialDelay?: number): this;
     setNoDelay(noDelay?: boolean): this;
@@ -281,7 +281,7 @@ export class TCP_transport extends EventEmitter {
 
      * @param messageChunk
      */
-    public write(messageChunk: Buffer, callback?: (err?: Error) => void | undefined): void {
+    public write(messageChunk: Buffer, callback?: (err?: Error | null) => void | undefined): void {
         const header = readRawMessageHeader(messageChunk);
         assert(header.length === messageChunk.length);
         const c = header.messageHeader.isFinal;
@@ -328,7 +328,7 @@ export class TCP_transport extends EventEmitter {
         return this._socket !== null && !this._socket.destroyed;
     }
 
-    protected _write_chunk(messageChunk: Buffer, callback?: (err?: Error) => void | undefined): void {
+    protected _write_chunk(messageChunk: Buffer, callback?: (err?: Error | null) => void | undefined): void {
         if (this._socket !== null) {
             this.bytesWritten += messageChunk.length;
             this.chunkWrittenCount++;
