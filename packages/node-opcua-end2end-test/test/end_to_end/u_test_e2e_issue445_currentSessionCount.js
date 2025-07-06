@@ -11,7 +11,7 @@ const {
 const { make_debugLog, checkDebugFlag } = require("node-opcua-debug");
 const { perform_operation_on_subscription_async } = require("../../test_helpers/perform_operation_on_client_session");
 const { pause } = require("../discovery/_helper");
-const { assert } = require("console");
+const { assert } = require("node-opcua-assert");
 
 function f(func) {
     return function (callback) {
