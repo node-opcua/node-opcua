@@ -4,7 +4,8 @@
 // tslint:disable:max-line-length
 
 import { assert } from "node-opcua-assert";
-import { encodeExpandedNodeId, StatusCode, StatusCodes } from "node-opcua-basic-types";
+import { encodeExpandedNodeId } from "node-opcua-basic-types";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { BaseUAObject } from "node-opcua-factory";
 import { AsymmetricAlgorithmSecurityHeader, MessageSecurityMode, SymmetricAlgorithmSecurityHeader } from "node-opcua-service-secure-channel";

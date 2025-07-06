@@ -1,4 +1,4 @@
-import { StatusCode } from "node-opcua-basic-types";
+import { StatusCode } from "node-opcua-status-code";
 
 /**
  * @module node-opcua-server-configuration

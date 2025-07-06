@@ -1,7 +1,18 @@
 /**
  * @module node-opcua-debug
  */
-import { makeBuffer } from "node-opcua-buffer-utils";
+
+// Local implementation to break cyclic dependency with node-opcua-buffer-utils
+function makeBuffer(listOfBytes: string): Buffer {
+    const l = listOfBytes.split(" ");
+    const b = Buffer.allocUnsafe(l.length);
+    let i = 0;
+    l.forEach((value) => {
+        b.writeUInt8(parseInt(value, 16), i);
+        i += 1;
+    });
+    return b;
+}
 
 export function inlineText(f: { toString(): string}): string {
     let k = f

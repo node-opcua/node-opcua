@@ -73,7 +73,7 @@
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-prettier": "^5.5.1",
         "json5": "^2.2.3",
-        "mocha": "^11.7.1",
+        "mocha": "11.7.1",
         "mocha-lcov-reporter": "^1.3.0",
         "prettier": "^3.6.2",
         "should": "^13.2.3",
@@ -93,13 +93,13 @@
     "dependencies": {
         "@ster5/global-mutex": "^2.0.0",
         "@sterfive/fix-tsconfigs": "1.0.0",
-        "@types/async": "^3.2.24",
+        "@types/async": "3.2.24",
         "@types/bonjour": "^3.5.13",
         "@types/lodash": "4.17.20",
         "@types/long": "4.0.2",
         "@types/mkdirp": "1.0.2",
         "@types/sinon": "17.0.4",
-        "@types/underscore": "^1.13.0",
+        "@types/underscore": "1.13.0",
         "@types/wordwrap": "^1.0.3",
         "@types/yargs": "17.0.33",
         "async": "^3.2.6",
@@ -107,7 +107,7 @@
         "bomstrip": "^0.1.4",
         "byline": "^5.0.0",
         "chalk": "4.1.2",
-        "cli-table3": "^0.6.5",
+        "cli-table3": "0.6.5",
         "cli-truncate": "2.1.0",
         "csv-parse": "5.6.0",
         "deassertify": "^0.2.0",
@@ -120,7 +120,7 @@
         "hexy": "0.3.5",
         "humanize": "0.0.9",
         "lodash": "4.17.21",
-        "long": "4.0.0",
+        "long": "5.3.2",
         "memfs": "^4.17.2",
         "mkdirp": "1.0.4",
         "mocha-clean": "^1.0.0",
@@ -144,18 +144,5 @@
     },
     "funding": {
         "url": "https://github.com/sponsors/erossignon"
-    },
-    "pnpm": {
-        "overrides": {
-            "lodash@<4.17.11": ">=4.17.11",
-            "shelljs@<0.8.5": ">=0.8.5",
-            "lodash@<4.17.21": ">=4.17.21",
-            "lodash@>=3.7.0 <4.17.19": ">=4.17.19",
-            "lodash@<4.17.5": ">=4.17.5",
-            "lodash@<4.17.12": ">=4.17.12",
-            "cross-spawn@>=7.0.0 <7.0.5": ">=7.0.5",
-            "brace-expansion@>=1.0.0 <=1.1.11": ">=1.1.12",
-            "brace-expansion@>=2.0.0 <=2.0.1": ">=2.0.2"
-        }
     }
 }
