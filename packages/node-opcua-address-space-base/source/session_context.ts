@@ -8,7 +8,7 @@ import { StatusCode } from "node-opcua-status-code";
 import { ContinuationPoint } from "./continuation_point";
 import { BaseNode } from "./base_node";
 import { UAObject } from "./ua_object";
-import { UAObjectType } from ".";
+import { UAObjectType } from "./ua_object_type";
 
 export function getContextMaxMessageSize(context: ISessionContext): number {
     if (!context.session?.channel?.getTransportSettings) return 0;
