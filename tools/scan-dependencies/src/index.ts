@@ -70,7 +70,7 @@ function findPackages(): Package[] {
 }
 
 function findSourceDirectories(packagePath: string): string[] {
-    const possibleDirs = ['source', 'src', 'sources'];
+    const possibleDirs = ['source', 'src', 'sources', 'source_nodejs', 'test', 'tests', 'test_helpers', 'test_helper'];
     const found: string[] = [];
     
     for (const dir of possibleDirs) {
@@ -95,7 +95,7 @@ function findSourceFiles(directory: string): { sourceFiles: string[], testFiles:
             
             if (entry.isDirectory()) {
                 // Check if this is a test directory
-                const isTestDir = ['test', 'tests', 'test_helpers'].includes(entry.name);
+                const isTestDir = ['test', 'tests', 'test_helpers', 'test_helper'].includes(entry.name);
                 
                 // Skip node_modules and dist, but scan test directories
                 if (!['node_modules', 'dist'].includes(entry.name)) {
@@ -113,7 +113,11 @@ function findSourceFiles(directory: string): { sourceFiles: string[], testFiles:
         }
     }
     
-    scanDir(directory);
+    // Check if the directory itself is a test directory
+    const dirName = path.basename(directory);
+    const isTestDirectory = ['test', 'tests', 'test_helpers', 'test_helper'].includes(dirName);
+    
+    scanDir(directory, isTestDirectory);
     return { sourceFiles, testFiles };
 }
 
@@ -129,7 +133,13 @@ function extractImports(filePath: string): string[] {
         // CommonJS require
         /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
         // Dynamic imports
-        /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g
+        /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+        // Re-exports (export * from)
+        /export\s+\*\s+from\s+['"]([^'"]+)['"]/g,
+        // Re-exports with specific exports
+        /export\s+\{[^}]*\}\s+from\s+['"]([^'"]+)['"]/g,
+        // Re-exports with default
+        /export\s+\{\s*default\s*\}\s+from\s+['"]([^'"]+)['"]/g
     ];
     
     for (const pattern of importPatterns) {
@@ -296,9 +306,21 @@ function findMissingDependenciesDetailed(
 function getSpecialTypeDependencies(imports: string[], dependencies: Set<string>): string[] {
     const specialTypes: string[] = [];
     
-    // Rule: @types/lodash is required if lodash is required
-    if (imports.includes('lodash') && !dependencies.has('@types/lodash')) {
-        specialTypes.push('@types/lodash');
+    // Define type dependencies mapping
+    const typeDependencies: Record<string, string> = {
+        'lodash': '@types/lodash',
+        'semver': '@types/semver',
+        'mkdirp': '@types/mkdirp',
+        'async': '@types/async',
+        'underscore': '@types/underscore',
+        'node': '@types/node'
+    };
+    
+    // Check each import for its corresponding @types package
+    for (const [packageName, typePackage] of Object.entries(typeDependencies)) {
+        if (imports.includes(packageName) && !dependencies.has(typePackage)) {
+            specialTypes.push(typePackage);
+        }
     }
     
     return specialTypes;
@@ -312,11 +334,23 @@ interface ExtraneousDependency {
 function findExtraneousDependencies(sourceImports: string[], testImports: string[], dependencies: Set<string>, devDependencies: Set<string>): ExtraneousDependency[] {
     const extraneous: ExtraneousDependency[] = [];
     
+    // Define type dependencies mapping for extraneous detection
+    const typeDependencies: Record<string, string> = {
+        'lodash': '@types/lodash',
+        'semver': '@types/semver',
+        'mkdirp': '@types/mkdirp',
+        'async': '@types/async',
+        'underscore': '@types/underscore',
+        'node': '@types/node'
+    };
+    
     // Check dependencies (should be used in source files)
     for (const dep of dependencies) {
         if (!sourceImports.includes(dep)) {
-            // Special case: @types/lodash should not be considered extraneous if lodash is present
-            if (dep === '@types/lodash' && dependencies.has('lodash')) {
+            // Special case: @types packages should not be considered extraneous if their base package is present
+            const isTypePackage = Object.values(typeDependencies).includes(dep);
+            const basePackage = Object.keys(typeDependencies).find(key => typeDependencies[key] === dep);
+            if (isTypePackage && basePackage && dependencies.has(basePackage)) {
                 continue;
             }
             extraneous.push({ name: dep, section: 'dependencies' });
@@ -326,8 +360,10 @@ function findExtraneousDependencies(sourceImports: string[], testImports: string
     // Check devDependencies (should be used in test files)
     for (const dep of devDependencies) {
         if (!testImports.includes(dep)) {
-            // Special case: @types/lodash should not be considered extraneous if lodash is present
-            if (dep === '@types/lodash' && dependencies.has('lodash')) {
+            // Special case: @types packages should not be considered extraneous if their base package is present
+            const isTypePackage = Object.values(typeDependencies).includes(dep);
+            const basePackage = Object.keys(typeDependencies).find(key => typeDependencies[key] === dep);
+            if (isTypePackage && basePackage && (dependencies.has(basePackage) || testImports.includes(basePackage))) {
                 continue;
             }
             extraneous.push({ name: dep, section: 'devDependencies' });
@@ -350,8 +386,23 @@ function isExternalPackage(moduleName: string): boolean {
         'util/types', 'util/promises', 'usage'
     ];
     
+    // Global test modules that don't need to be declared as dependencies
+    const globalTestModules = [
+        'should', 'sinon', 'mocha'
+    ];
+    
     // Ignore built-in Node.js modules and node:* modules
     if (builtInModules.includes(moduleName) || moduleName.startsWith('node:')) {
+        return false;
+    }
+    
+    // Ignore global test modules
+    if (globalTestModules.includes(moduleName)) {
+        return false;
+    }
+    
+    // Ignore relative paths (should already be handled, but double-check)
+    if (moduleName.startsWith('./') || moduleName.startsWith('../') || moduleName === '..') {
         return false;
     }
     
