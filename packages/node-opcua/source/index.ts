@@ -7,8 +7,7 @@
 // tslint:disable:variable-name
 
 import chalk from "chalk";
-
-const semver = require("semver");
+import semver from "semver";
 const minimumNodeJsVersionRequired = ">=16.7.0"; // minimum
 
 // istanbul ignore next

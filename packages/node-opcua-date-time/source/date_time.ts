@@ -1,7 +1,7 @@
 /**
  * @module node-opcua-date-time
  */
-import long, { fromNumber } from "long";
+import long from "long";
 import { assert } from "node-opcua-assert";
 import { hrtime } from "node-opcua-utils";
 
@@ -27,8 +27,8 @@ export const offsetFactor1601 = (function offset_factor_1601() {
 const offset = offsetFactor1601[0];
 const factor = offsetFactor1601[1];
 
-const offsetLong = fromNumber(offset, true);
-const factorLong = fromNumber(factor, true);
+const offsetLong = long.fromNumber(offset, true);
+const factorLong = long.fromNumber(factor, true);
 
 // Extracted from OpcUA Spec v1.02 : part 6:
 //

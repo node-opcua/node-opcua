@@ -18,7 +18,7 @@
     },
     "dependencies": {
         "@types/lodash": "4.17.20",
-        "@types/semver": "^7.7.0",
+        "@types/semver": "7.7.0",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
         "lodash": "4.17.21",
@@ -42,7 +42,6 @@
         "node-opcua-numeric-range": "2.155.0",
         "node-opcua-object-registry": "2.153.0",
         "node-opcua-pseudo-session": "2.156.0",
-        "node-opcua-schemas": "2.155.0",
         "node-opcua-service-browse": "2.155.0",
         "node-opcua-service-call": "2.155.0",
         "node-opcua-service-history": "2.155.0",
@@ -58,13 +57,14 @@
         "xml-writer": "^1.7.0"
     },
     "devDependencies": {
+        "humanize": "0.0.9",
         "node-opcua-benchmarker": "2.153.0",
         "node-opcua-leak-detector": "2.154.0",
         "node-opcua-nodesets": "2.155.0",
         "node-opcua-packet-analyzer": "2.155.0",
+        "node-opcua-schemas": "2.155.0",
         "node-opcua-service-filter": "2.155.0",
-        "node-opcua-test-fixtures": "2.155.0",
-        "source-map-support": "^0.5.21"
+        "node-opcua-test-fixtures": "2.155.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

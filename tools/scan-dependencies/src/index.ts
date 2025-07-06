@@ -306,15 +306,7 @@ function findMissingDependenciesDetailed(
 function getSpecialTypeDependencies(imports: string[], dependencies: Set<string>): string[] {
     const specialTypes: string[] = [];
     
-    // Define type dependencies mapping
-    const typeDependencies: Record<string, string> = {
-        'lodash': '@types/lodash',
-        'semver': '@types/semver',
-        'mkdirp': '@types/mkdirp',
-        'async': '@types/async',
-        'underscore': '@types/underscore',
-        'node': '@types/node'
-    };
+
     
     // Check each import for its corresponding @types package
     for (const [packageName, typePackage] of Object.entries(typeDependencies)) {
@@ -331,19 +323,20 @@ interface ExtraneousDependency {
     section: 'dependencies' | 'devDependencies' | 'peerDependencies';
 }
 
+// Define type dependencies mapping for extraneous detection
+const typeDependencies: Record<string, string> = {
+    'lodash': '@types/lodash',
+    'semver': '@types/semver',
+    'mkdirp': '@types/mkdirp',
+    'async': '@types/async',
+    'underscore': '@types/underscore',
+    'node': '@types/node'
+};
+
 function findExtraneousDependencies(sourceImports: string[], testImports: string[], dependencies: Set<string>, devDependencies: Set<string>): ExtraneousDependency[] {
     const extraneous: ExtraneousDependency[] = [];
     
-    // Define type dependencies mapping for extraneous detection
-    const typeDependencies: Record<string, string> = {
-        'lodash': '@types/lodash',
-        'semver': '@types/semver',
-        'mkdirp': '@types/mkdirp',
-        'async': '@types/async',
-        'underscore': '@types/underscore',
-        'node': '@types/node'
-    };
-    
+
     // Check dependencies (should be used in source files)
     for (const dep of dependencies) {
         if (!sourceImports.includes(dep)) {

@@ -8,9 +8,10 @@
         "test": "mocha"
     },
     "devDependencies": {
-        "@types/underscore": "^1.13.0",
         "async": "^3.2.6",
+        "bcryptjs": "3.0.2",
         "chalk": "4.1.2",
+        "cli-table3": "0.6.5",
         "cli-truncate": "2.1.0",
         "delayed": "^2.0.0",
         "node-opcua": "2.156.0",
@@ -18,9 +19,6 @@
         "node-opcua-address-space-for-conformance-testing": "2.156.0",
         "node-opcua-aggregates": "2.156.0",
         "node-opcua-assert": "2.139.0",
-        "node-opcua-basic-types": "2.154.0",
-        "node-opcua-binary-stream": "2.153.0",
-        "node-opcua-buffer-utils": "2.153.0",
         "node-opcua-client": "2.156.0",
         "node-opcua-client-crawler": "2.156.0",
         "node-opcua-client-proxy": "2.156.0",
@@ -29,22 +27,20 @@
         "node-opcua-debug": "2.153.0",
         "node-opcua-extension-object": "2.155.0",
         "node-opcua-factory": "2.155.0",
+        "node-opcua-generator": "2.155.0",
         "node-opcua-hostname": "2.139.0",
         "node-opcua-leak-detector": "2.154.0",
         "node-opcua-nodeid": "2.153.0",
+        "node-opcua-nodeset-auto-id": "2.155.0",
         "node-opcua-nodeset-ijt-base": "2.155.0",
-        "node-opcua-nodeset-ijt-tightening": "2.155.0",
         "node-opcua-nodeset-machinery-result": "2.155.0",
-        "node-opcua-packet-analyzer": "2.155.0",
         "node-opcua-pki": "5.5.0",
         "node-opcua-server": "2.156.0",
         "node-opcua-server-discovery": "2.156.0",
         "node-opcua-service-browse": "2.155.0",
         "node-opcua-service-filter": "2.155.0",
-        "node-opcua-service-read": "2.155.0",
         "node-opcua-service-secure-channel": "2.155.0",
-        "node-opcua-variant": "2.155.0",
-        "thenify-ex": "4.4.0",
+        "node-opcua-service-session": "2.155.0",
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",
@@ -63,8 +59,5 @@
     ],
     "homepage": "http://node-opcua.github.io/",
     "files": [],
-    "dependencies": {
-        "@types/bcryptjs": "^2.4.6",
-        "bcryptjs": "^3.0.2"
-    }
+    "dependencies": {}
 }
