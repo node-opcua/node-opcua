@@ -7,17 +7,18 @@
   "bin": {
     "scan-dependencies": "dist/index.js"
   },
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "scan": "node dist/index.js",
-    "scan:fix": "node dist/index.js --fix",
-    "scan:verbose": "node dist/index.js --verbose",
-    "scan:clean": "node dist/index.js --remove-extraneous",
-    "scan:fix-all": "node dist/index.js --fix --remove-extraneous",
-    "dev": "ts-node src/index.ts",
-    "test": "echo \"No tests specified\" && exit 0"
-  },
+      "scripts": {
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "scan": "node dist/index.js",
+        "scan:fix": "node dist/index.js --fix",
+        "scan:verbose": "node dist/index.js --verbose",
+        "scan:clean": "node dist/index.js --remove-extraneous",
+        "scan:fix-all": "node dist/index.js --fix --remove-extraneous",
+        "cyclic-deps": "ts-node src/cyclic-deps.ts",
+        "dev": "ts-node src/index.ts",
+        "test": "echo \"No tests specified\" && exit 0"
+    },
   "keywords": [
     "node-opcua",
     "dependencies",
