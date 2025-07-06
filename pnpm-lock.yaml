@@ -21,7 +21,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0
       '@sterfive/fix-tsconfigs':
-        specifier: link:tools\fix-tsconfigs
+        specifier: 1.0.0
         version: link:tools/fix-tsconfigs
       '@types/async':
         specifier: ^3.2.24

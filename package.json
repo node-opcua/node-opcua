@@ -92,7 +92,7 @@
     },
     "dependencies": {
         "@ster5/global-mutex": "^2.0.0",
-        "@sterfive/fix-tsconfigs": "link:tools\\fix-tsconfigs",
+        "@sterfive/fix-tsconfigs": "1.0.0",
         "@types/async": "^3.2.24",
         "@types/bonjour": "^3.5.13",
         "@types/lodash": "4.17.16",
