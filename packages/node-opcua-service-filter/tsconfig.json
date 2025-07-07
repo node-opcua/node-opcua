@@ -1,18 +1,21 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true
     },
-    "include": ["source/**/*.ts"],
-    "exclude": ["node_modules", "_generated_", "dist"],
+    "include": [
+        "source/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "_generated_",
+        "dist"
+    ],
     "references": [
         {
-            "path": "../node-opcua-data-value"
-        },
-        {
-            "path": "../node-opcua-extension-object"
+            "path": "../node-opcua-address-space-base"
         },
         {
             "path": "../node-opcua-assert"
@@ -21,25 +24,22 @@
             "path": "../node-opcua-basic-types"
         },
         {
-            "path": "../node-opcua-address-space-base"
-        },
-        {
             "path": "../node-opcua-constants"
         },
         {
             "path": "../node-opcua-data-model"
         },
         {
+            "path": "../node-opcua-data-value"
+        },
+        {
             "path": "../node-opcua-debug"
         },
         {
+            "path": "../node-opcua-extension-object"
+        },
+        {
             "path": "../node-opcua-nodeid"
-        },
-        {
-            "path": "../node-opcua-numeric-range"
-        },
-        {
-            "path": "../node-opcua-packet-analyzer"
         },
         {
             "path": "../node-opcua-service-translate-browse-path"

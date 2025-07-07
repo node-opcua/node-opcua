@@ -1,6 +1,5 @@
 import should from "should";
 import { OPCUAClientBase, OPCUAServer, OPCUAClient, UserTokenType, nodesets, makeRoles, WellKnownRoles, NodeId, EndpointWithUserIdentity } from "node-opcua";
-import { clear } from "console";
 const { wait, wait_until_condition } = require("../test_helpers/utils");
 
 const port = 2511;

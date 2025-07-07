@@ -1,17 +1,11 @@
 import chalk from "chalk";
 import async from "async";
-
-import {
-    assert,
-    ErrorCallback,
-    lowerFirstLetter,
-    make_warningLog,
-    NodeClass,
-    NodeIdLike,
-    ReferenceDescription,
-    resolveNodeId,
-} from "node-opcua-client";
-
+import { make_warningLog } from "node-opcua-debug";
+import { NodeIdLike, resolveNodeId } from "node-opcua-nodeid";
+import assert from "node-opcua-assert";
+import { ReferenceDescription } from "node-opcua-types";
+import { lowerFirstLetter } from "node-opcua-utils";
+import { NodeClass } from "node-opcua-data-model";
 import { NodeCrawlerBase, NodeCrawlerClientSession, ObjectMap, Pojo, UserData } from "./node_crawler_base";
 import { CacheNode, CacheNodeVariable, CacheNodeVariableType } from "./cache_node";
 import { TaskReconstruction, EmptyCallback, removeCycle } from "./private";
@@ -125,7 +119,7 @@ export class NodeCrawler extends NodeCrawlerBase {
             func: (data, callback: ErrorCallback) => {
                 this._reconstruct_manageable_object(queue, objMap, object, (err: Error | null, obj?: Pojo) => {
                     extraFunc(err, obj);
-                    callback(err || undefined);
+                    callback(err as any);
                 });
             }
         };

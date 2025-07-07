@@ -1,5 +1,5 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
@@ -11,8 +11,13 @@
             "inlineSourceMap": true
         }
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
         {
             "path": "../node-opcua-basic-types"
         },
@@ -27,6 +32,9 @@
         },
         {
             "path": "../node-opcua-date-time"
+        },
+        {
+            "path": "../node-opcua-debug"
         },
         {
             "path": "../node-opcua-extension-object"
@@ -46,10 +54,13 @@
         {
             "path": "../node-opcua-types"
         },
-
         {
             "path": "../node-opcua-variant"
         }
     ],
-    "exclude": ["node_modules", "source/limbo/*.ts", "dist"]
+    "exclude": [
+        "node_modules",
+        "source/limbo/*.ts",
+        "dist"
+    ]
 }

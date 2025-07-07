@@ -28,5 +28,8 @@
     "files": [
         "dist",
         "source"
-    ]
+    ],
+    "dependencies": {
+        "should": "^13.2.3"
+    }
 }

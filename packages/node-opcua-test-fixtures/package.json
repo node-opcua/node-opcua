@@ -25,11 +25,7 @@
         "internet of things"
     ],
     "homepage": "http://node-opcua.github.io/",
-    "dependencies": {
-        "node-opcua-debug": "2.153.0",
-        "node-opcua-service-secure-channel": "2.155.0",
-        "node-opcua-types": "2.155.0"
-    },
+    "dependencies": {},
     "files": [
         "dist",
         "source"

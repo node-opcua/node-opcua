@@ -1,5 +1,5 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
@@ -7,24 +7,6 @@
         "incremental": true
     },
     "references": [
-        {
-            "path": "../node-opcua-constants"
-        },
-        {
-            "path": "../node-opcua-debug"
-        },
-        {
-            "path": "../node-opcua-leak-detector"
-        },
-        {
-            "path": "../node-opcua-nodesets"
-        },
-        {
-            "path": "../node-opcua-pseudo-session"
-        },
-        {
-            "path": "../node-opcua-service-translate-browse-path"
-        },
         {
             "path": "../node-opcua-address-space"
         },
@@ -35,27 +17,40 @@
             "path": "../node-opcua-assert"
         },
         {
+            "path": "../node-opcua-constants"
+        },
+        {
             "path": "../node-opcua-data-model"
+        },
+        {
+            "path": "../node-opcua-debug"
         },
         {
             "path": "../node-opcua-nodeid"
         },
         {
-            "path": "../node-opcua-utils"
+            "path": "../node-opcua-nodesets"
         },
         {
-            "path": "../node-opcua-packet-analyzer"
-        },
-        {
-            "path": "../node-opcua-variant"
-        },
-        {
-            "path": "../node-opcua-status-code"
+            "path": "../node-opcua-pseudo-session"
         },
         {
             "path": "../node-opcua-types"
         },
+        {
+            "path": "../node-opcua-utils"
+        },
+        {
+            "path": "../node-opcua-variant"
+        }
     ],
-    "exclude": ["node_modules", "dist", "test", "tmp/*"],
-    "include": ["source/**/*.ts"]
+    "exclude": [
+        "node_modules",
+        "dist",
+        "test",
+        "tmp/*"
+    ],
+    "include": [
+        "source/**/*.ts"
+    ]
 }

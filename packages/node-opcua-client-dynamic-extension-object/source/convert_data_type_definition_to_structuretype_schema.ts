@@ -2,7 +2,6 @@ import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "no
 import { DataValue } from "node-opcua-data-value";
 import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { INodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
-//import { DataTypeIds } from "node-opcua-constant";
 import {
     BitField,
     DataTypeFactory,

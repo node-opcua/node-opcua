@@ -32,7 +32,7 @@ import {
 } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
-import { assert } from "console";
+import { assert } from "node-opcua-assert";
 
 const doDebug = false;
 

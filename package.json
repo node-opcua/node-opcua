@@ -9,6 +9,8 @@
         "test": "test"
     },
     "scripts": {
+        "fix:tsconfigs": "pnpm --filter \"./packages/node-opcua-*\" exec fix-tsconfigs",
+        "extract:dep": "pnpm exec grep -RhoP 'from\\s+\"\\Knode-opcua[^\"]+' source | sort | uniq",
         "tsup": "npx tsup ./packages/node-opcua/source/index.ts",
         "consistency": "npx -y @ster5/check-version-consistency",
         "preinstall": "node prevent_npm_install.js",
@@ -33,7 +35,8 @@
         "legal2": "npx npm-license-crawler",
         "legal3": " npx license-checker --production --summary",
         "publish:lerna": "pnpm m run clean && npx rimraf -g packages/node_modules packages/*/dist  packages/*/\"tsconfig.tsbuildinfo\" && pnpm m i && npx lerna publish",
-        "makelinks": "npx tsx ../make-links/makelinks.ts"
+        "makelinks": "npx tsx ../make-links/makelinks.ts",
+        "clean": "node tools/clean/clean.js"
     },
     "repository": {
         "type": "git",
@@ -53,12 +56,13 @@
         "url": "https://github.com/node-opcua/node-opcua/issues"
     },
     "workspaces": [
+        "tools/*",
         "packages/*",
         "packages_extra/*"
     ],
     "devDependencies": {
         "@types/mocha": "^10.0.10",
-        "@types/node": "22.15.3",
+        "@types/node": "24.0.10",
         "app-module-path": "^2.2.0",
         "benchmark": "^2.1.4",
         "bignumber.js": "^9.3.0",
@@ -66,11 +70,12 @@
         "enum": "3.0.4",
         "ersatz-node-expat": "^0.1.6",
         "eslint-cli": "^1.1.1",
-        "eslint-config-prettier": "^10.1.2",
-        "eslint-plugin-prettier": "^5.2.6",
-        "mocha": "^11.2.2",
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-plugin-prettier": "^5.5.1",
+        "json5": "^2.2.3",
+        "mocha": "11.7.1",
         "mocha-lcov-reporter": "^1.3.0",
-        "prettier": "^3.5.3",
+        "prettier": "^3.6.2",
         "should": "^13.2.3",
         "ts-node": "^10.9.2",
         "typescript": "5.8.3"
@@ -87,13 +92,14 @@
     },
     "dependencies": {
         "@ster5/global-mutex": "^2.0.0",
-        "@types/async": "^3.2.24",
+        "@sterfive/fix-tsconfigs": "1.0.0",
+        "@types/async": "3.2.24",
         "@types/bonjour": "^3.5.13",
-        "@types/lodash": "4.17.16",
+        "@types/lodash": "4.17.20",
         "@types/long": "4.0.2",
         "@types/mkdirp": "1.0.2",
         "@types/sinon": "17.0.4",
-        "@types/underscore": "^1.13.0",
+        "@types/underscore": "1.13.0",
         "@types/wordwrap": "^1.0.3",
         "@types/yargs": "17.0.33",
         "async": "^3.2.6",
@@ -101,7 +107,7 @@
         "bomstrip": "^0.1.4",
         "byline": "^5.0.0",
         "chalk": "4.1.2",
-        "cli-table3": "^0.6.5",
+        "cli-table3": "0.6.5",
         "cli-truncate": "2.1.0",
         "csv-parse": "5.6.0",
         "deassertify": "^0.2.0",
@@ -109,20 +115,21 @@
         "dequeue": "^1.0.5",
         "easy-table": "^1.2.0",
         "env-paths": "2.2.1",
-        "eslint": "9.26.0",
+        "eslint": "9.30.1",
+        "glob": "^11.0.3",
         "hexy": "0.3.5",
         "humanize": "0.0.9",
         "lodash": "4.17.21",
-        "long": "4.0.0",
-        "memfs": "^4.17.0",
+        "long": "5.3.2",
+        "memfs": "^4.17.2",
         "mkdirp": "1.0.4",
         "mocha-clean": "^1.0.0",
         "node-opcua-crypto": "4.16.0",
-        "node-opcua-pki": "5.3.0",
+        "node-opcua-pki": "5.5.0",
         "progress": "^2.0.3",
         "rimraf": "6.0.1",
-        "semver": "^7.7.1",
-        "sinon": "^20.0.0",
+        "semver": "^7.7.2",
+        "sinon": "^21.0.0",
         "source-map-support": "^0.5.21",
         "sprintf-js": "^1.1.3",
         "sterfive-bonjour-service": "1.1.4",
@@ -137,16 +144,5 @@
     },
     "funding": {
         "url": "https://github.com/sponsors/erossignon"
-    },
-    "pnpm": {
-        "overrides": {
-            "lodash@<4.17.11": ">=4.17.11",
-            "shelljs@<0.8.5": ">=0.8.5",
-            "lodash@<4.17.21": ">=4.17.21",
-            "lodash@>=3.7.0 <4.17.19": ">=4.17.19",
-            "lodash@<4.17.5": ">=4.17.5",
-            "lodash@<4.17.12": ">=4.17.12",
-            "cross-spawn@>=7.0.0 <7.0.5": ">=7.0.5"
-        }
     }
 }

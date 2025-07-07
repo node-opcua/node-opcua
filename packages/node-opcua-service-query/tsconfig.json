@@ -1,16 +1,22 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
-    "exclude": ["node_modules", "_generated_", "dist"],
+    "include": [
+        "source/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "_generated_",
+        "dist"
+    ],
     "references": [
         {
             "path": "../node-opcua-types"
         }
-      ]
+    ]
 }

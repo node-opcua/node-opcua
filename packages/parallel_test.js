@@ -1,8 +1,7 @@
-const { Worker, isMainThread, parentPort, workerData } = require("worker_threads");
-const readline = require("readline");
-const os = require("os");
-const util = require("util");
-const { assert } = require("console");
+const { Worker, isMainThread, parentPort, workerData } = require("node:worker_threads");
+const readline = require("node:readline");
+const os = require("node:os");
+const util = require("node:util");
 
 const CPU = process.env.CPU ? parseInt(process.env.CPU, 10) : 0;
 
@@ -100,7 +99,6 @@ async function runTest({ page, selectedTests, g }) {
             // args && console.log(prefix(), ...args);
             switch (type) {
                 case "LOG":
-                    assert(typeof line === "string");
                     outputFor[file].push(line); //util.format.apply(args));
                     break;
                 case TEST_FILE_STARTED:

@@ -34,5 +34,8 @@
     "files": [
         "dist",
         "source"
-    ]
+    ],
+    "devDependencies": {
+        "node-opcua-leak-detector": "2.154.0"
+    }
 }

@@ -11,15 +11,15 @@
     "scripts": {
         "build": "tsc -b",
         "pretest": "npm run certificate",
-        "certificate": "node bin/create_certificates.js demo --dev -s",
+        "certificate": "node bin/create_certificates.cjs demo --dev -s",
         "test": "echo no test",
         "clean": "npx rimraf -g certificates"
     },
     "dependencies": {
         "@types/bcryptjs": "^2.4.6",
-        "@types/underscore": "^1.13.0",
+        "@types/underscore": "1.13.0",
         "@types/yargs": "17.0.33",
-        "bcryptjs": "^3.0.2",
+        "bcryptjs": "3.0.2",
         "chalk": "4.1.2",
         "easy-table": "^1.2.0",
         "env-paths": "2.2.1",
@@ -30,7 +30,7 @@
         "node-opcua-client-proxy": "2.156.0",
         "node-opcua-crypto": "4.16.0",
         "node-opcua-packet-analyzer": "2.155.0",
-        "node-opcua-pki": "5.3.0",
+        "node-opcua-pki": "5.5.0",
         "node-opcua-server-configuration": "2.156.0",
         "node-opcua-utils": "2.153.0",
         "node-opcua-vendor-diagnostic": "2.156.0",

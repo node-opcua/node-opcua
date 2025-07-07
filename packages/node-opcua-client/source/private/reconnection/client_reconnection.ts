@@ -1,4 +1,3 @@
-import { warn } from "console";
 import { ClientBaseImpl } from "../client_base_impl";
 
 export function waitUntilReconnectionIsCanceled(client: ClientBaseImpl, callback: () => void) {
@@ -9,7 +8,7 @@ export function waitUntilReconnectionIsCanceled(client: ClientBaseImpl, callback
         if (!client.isReconnecting || ++intervalCount > maxIntervalCount) {
             clearInterval(timer);
             if (intervalCount > maxIntervalCount) {
-                warn("waitUntilReconnectionIsCanceled: timeout");
+                console.warn("waitUntilReconnectionIsCanceled: timeout");
             }
             callback();
         }

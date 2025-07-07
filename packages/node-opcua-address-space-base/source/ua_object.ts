@@ -1,6 +1,7 @@
 import { NodeId } from "node-opcua-nodeid";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { Byte, DateTime, Int16, Int32, SByte, StatusCode, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import { Byte, DateTime, Int16, Int32, SByte, UAString, UInt16, UInt32 } from "node-opcua-basic-types";
+import { StatusCode } from "node-opcua-status-code";
 import { LocalizedTextLike, NodeClass, QualifiedNameOptions } from "node-opcua-data-model";
 
 import { ExtensionObject } from "node-opcua-extension-object";

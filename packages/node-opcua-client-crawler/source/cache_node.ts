@@ -1,15 +1,10 @@
-import {
-    ReferenceDescription,
-    QualifiedName,
-    NodeClass,
-    NodeId,
-    LocalizedText,
-    DataTypeDefinition,
-    coerceLocalizedText,
-    DataValue,
-    AccessLevelFlag
-} from "node-opcua-client";
+
+import { ReferenceDescription } from "node-opcua-types";
 import { pendingBrowseName } from "./private";
+import { NodeId } from "node-opcua-nodeid";
+import { AccessLevelFlag, coerceLocalizedText, LocalizedText, NodeClass, QualifiedName } from "node-opcua-data-model";
+import { DataTypeDefinition } from "node-opcua-types";
+import { DataValue } from "node-opcua-data-value";
 
 function w(s: string, l: number): string {
     return s.padEnd(l).substring(0, l);

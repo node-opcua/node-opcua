@@ -1,5 +1,6 @@
 import assert from "node-opcua-assert";
-import { DataType, StatusCode, StatusCodes } from "node-opcua-basic-types";
+import { DataType } from "node-opcua-basic-types";
+import { StatusCode, StatusCodes } from "node-opcua-status-code";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
 import { CallMethodRequest } from "node-opcua-types";

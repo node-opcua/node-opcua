@@ -12,6 +12,7 @@ export * from "../source/helpers/call_helpers";
 export * from "../source/helpers/ensure_secure_access";
 export * from "../source/helpers/resolve_opaque_on_address_space";
 export * from "../source/interfaces/alarms_and_conditions/condition_info_i";
+export * from "../source/interfaces/nodeset_loader_options"
 export * from "../src/nodeset_tools/construct_namespace_dependency";
 
 

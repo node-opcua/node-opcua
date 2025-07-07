@@ -1,16 +1,15 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
-        {
-            "path": "../node-opcua-debug"
-        },
         {
             "path": "../node-opcua-assert"
         },
@@ -22,6 +21,9 @@
         },
         {
             "path": "../node-opcua-data-value"
+        },
+        {
+            "path": "../node-opcua-debug"
         },
         {
             "path": "../node-opcua-nodeid"
@@ -54,5 +56,8 @@
             "path": "../node-opcua-variant"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

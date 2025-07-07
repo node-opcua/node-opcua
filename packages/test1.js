@@ -1,7 +1,6 @@
 
 const opcua = require("./node-opcua");
 
-//const heapdump  = require("heapdump");
 
 const endpointUrl = "opc.tcp://localhost:26544";
 // 192.168.43.229

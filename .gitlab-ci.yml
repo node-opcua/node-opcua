@@ -27,11 +27,11 @@ cache:
         - node ${SECURITY_OPTIONS} packages/parallel_test.js
         # - node packages/run_all_mocha_tests.js DISCO3
 
-build_and_test_node_16:
-  <<: *build_template
-  variables: 
-    SECURITY_OPTIONS: ""
-  image: node:16
+# build_and_test_node_16:
+#   <<: *build_template
+#   variables: 
+#     SECURITY_OPTIONS: ""
+#   image: node:16
 
 ## https://nodejs.org/en/about/previous-releases
 
@@ -47,6 +47,10 @@ build_and_test_node_20:
     SECURITY_OPTIONS: "--security-revert=CVE-2023-46809"
   image: node:20
 
+
+build_and_test_node_22:
+  <<: *build_template
+  image: node:22
 # build_and_test_node_21:
 #   <<: *build_template
 #   variables: 

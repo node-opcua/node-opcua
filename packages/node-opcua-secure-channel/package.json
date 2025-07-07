@@ -11,6 +11,7 @@
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo"
     },
     "dependencies": {
+        "async": "^3.2.6",
         "backoff": "^2.5.0",
         "chalk": "4.1.2",
         "node-opcua-assert": "2.139.0",
@@ -33,9 +34,9 @@
         "node-opcua-utils": "2.153.0"
     },
     "devDependencies": {
+        "diagnostics_channel": "1.1.0",
         "node-opcua-buffer-utils": "2.153.0",
         "node-opcua-leak-detector": "2.154.0",
-        "node-opcua-service-browse": "2.155.0",
         "node-opcua-service-read": "2.155.0",
         "node-opcua-service-session": "2.155.0",
         "node-opcua-test-fixtures": "2.155.0",

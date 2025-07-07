@@ -1,19 +1,24 @@
 {
-    "extends": "../tsconfig.json",
+    "extends": "../tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "source",
         "outDir": "dist",
         "composite": true,
         "incremental": true
     },
-    "include": ["source/**/*.ts"],
+    "include": [
+        "source/**/*.ts"
+    ],
     "references": [
         {
-            "path": "../node-opcua-types"
+            "path": "../node-opcua-data-access"
         },
         {
-            "path": "../node-opcua-data-access"
+            "path": "../node-opcua-types"
         }
     ],
-    "exclude": ["node_modules", "dist"]
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

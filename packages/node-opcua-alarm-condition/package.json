@@ -11,6 +11,7 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "dependencies": {
+        "chalk": "4.1.2",
         "node-opcua-assert": "2.139.0",
         "node-opcua-basic-types": "2.154.0",
         "node-opcua-constants": "2.139.0",
@@ -18,7 +19,6 @@
         "node-opcua-debug": "2.153.0",
         "node-opcua-nodeid": "2.153.0",
         "node-opcua-pseudo-session": "2.156.0",
-        "node-opcua-service-browse": "2.155.0",
         "node-opcua-service-filter": "2.155.0",
         "node-opcua-service-read": "2.155.0",
         "node-opcua-service-subscription": "2.155.0",
@@ -26,8 +26,7 @@
         "node-opcua-status-code": "2.153.0",
         "node-opcua-types": "2.155.0",
         "node-opcua-utils": "2.153.0",
-        "node-opcua-variant": "2.155.0",
-        "thenify-ex": "4.4.0"
+        "node-opcua-variant": "2.155.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",

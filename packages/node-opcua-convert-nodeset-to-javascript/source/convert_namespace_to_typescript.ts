@@ -187,7 +187,7 @@ async function _output_tsconfig_json(info: Info, options: Options): Promise<void
     const content3: string[] = [];
     content3.push(`{`);
 
-    content3.push(`  "extends": "../tsconfig.json",`);
+    content3.push(`  "extends": "../tsconfig.common.json",`);
     content3.push(`  "compilerOptions": {`);
     content3.push(`        "rootDir": "source",`);
     content3.push(`        "outDir": "dist",`);
