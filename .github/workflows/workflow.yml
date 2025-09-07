@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 18.x, 20.x, 22.x ]
+        node-version: [ 18.x, 20.x, 22.x, 24.x ]
         include:
           - node-version: 18.x
             SECURITY_REVERT_CVE_2023_46809: "--security-revert=CVE-2023-46809"
@@ -72,7 +72,7 @@ jobs:
     - run: hostname 
     - run: openssl version
     - run: pnpm run pretest
-    - run: pnpm test
+    - run: pnpm run test
       env:
         SECURITY_REVERT_CVE_2023_46809: ${{matrix.SECURITY_REVERT_CVE_2023_46809}}
 
