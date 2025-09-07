@@ -424,16 +424,21 @@ export class ClientPushCertificateManagement implements PushCertificateManager {
         if (callMethodResult.statusCode.isGood()) {
             if (!callMethodResult.outputArguments || callMethodResult.outputArguments!.length !== 1) {
                 return {
-                    statusCode: StatusCodes.BadInternalError
+                    statusCode: StatusCodes.BadInternalError,
+                    applyChangesRequired: false,
                 };
                 // throw Error("Internal Error, expecting 1 output result");
             }
             return {
-                applyChangesRequired: callMethodResult.outputArguments![0].value,
+                applyChangesRequired: !!callMethodResult.outputArguments![0].value,
                 statusCode: callMethodResult.statusCode
             };
         } else {
-            return { statusCode: callMethodResult.statusCode };
+            return { 
+                statusCode: callMethodResult.statusCode,
+                applyChangesRequired: false
+
+            };
         }
     }
 

@@ -186,7 +186,7 @@ async function _updateCertificate(
         outputArguments: [
             {
                 dataType: DataType.Boolean,
-                value: !!result.applyChangesRequired!
+                value: result.applyChangesRequired!
             }
         ],
         statusCode: result.statusCode

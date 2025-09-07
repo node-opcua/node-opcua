@@ -17,7 +17,7 @@ export interface GetRejectedListResult {
 
 export interface UpdateCertificateResult {
     statusCode: StatusCode;
-    applyChangesRequired?: boolean;
+    applyChangesRequired: boolean;
 }
 
 export interface PushCertificateManager {
