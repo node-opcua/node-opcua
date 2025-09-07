@@ -1,8 +1,6 @@
-import { Project, SourceFile } from "ts-morph";
+import { Project, SourceFile, SyntaxKind } from "ts-morph";
 import fs from "fs";
 import path from "path";
-
-import ts from "typescript";
 
 const dryRun = false;
 function fixFile(file: SourceFile) {
@@ -11,7 +9,7 @@ function fixFile(file: SourceFile) {
         const namedImports = importDecl.getNamedImports();
         const usedNamedImports = namedImports.filter((namedImport) => {
             const name = namedImport.getNameNode().getText();
-            return file.getDescendantsOfKind(ts.SyntaxKind.Identifier)
+            return file.getDescendantsOfKind(SyntaxKind.Identifier)
                 .some(id => id.getText() === name && id !== namedImport.getNameNode());
         });
 

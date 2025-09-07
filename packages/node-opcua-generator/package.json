@@ -30,7 +30,7 @@
         "node-opcua-utils": "2.153.0",
         "node-opcua-variant": "2.155.0",
         "prettier": "^3.6.2",
-        "typescript": "5.8.3"
+        "typescript": "5.9.2"
     },
     "devDependencies": {
         "node-opcua-packet-analyzer": "2.155.0"
