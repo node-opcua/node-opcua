@@ -19,7 +19,7 @@ import {
     coercePrivateKeyPem,
 } from "node-opcua-crypto/web";
 
-import {readPrivateKey, readCertificate } from "node-opcua-crypto";
+import { readPrivateKey, readCertificate } from "node-opcua-crypto";
 
 // fixme: use the one from node-opcua-crypto
 export interface DirectoryName {
@@ -394,7 +394,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         if (!certificateManager) {
             debugLog(" cannot find group ", certificateGroupId);
             return {
-                statusCode: StatusCodes.BadInvalidArgument
+                statusCode: StatusCodes.BadInvalidArgument,
+                applyChangesRequired: false
             };
         }
 
@@ -454,7 +455,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 "now = ",
                 now.toISOString()
             );
-            return { statusCode: StatusCodes.BadSecurityChecksFailed };
+            return {
+                statusCode: StatusCodes.BadSecurityChecksFailed,
+                applyChangesRequired: false
+            };
         }
         if (certInfo.tbsCertificate.validity.notAfter.getTime() < now.getTime()) {
             // certificate is already out of date
@@ -464,7 +468,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 "now = ",
                 now.toISOString()
             );
-            return { statusCode: StatusCodes.BadSecurityChecksFailed };
+            return {
+                statusCode: StatusCodes.BadSecurityChecksFailed,
+                applyChangesRequired: false
+            };
         }
 
         // If the Server returns applyChangesRequired=FALSE then it is indicating that it is able to
@@ -493,7 +500,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 //xx const initialBuffer = Buffer.from("Lorem Ipsum");
                 //xx const encryptedBuffer = publicEncrypt_long(initialBuffer, certificatePEM, 256, 11);
                 //xx const decryptedBuffer = privateDecrypt_long(encryptedBuffer, privateKeyPEM, 256);
-                return { statusCode: StatusCodes.BadSecurityChecksFailed };
+                return { 
+                    statusCode: StatusCodes.BadSecurityChecksFailed,
+                    applyChangesRequired: false,
+                };
             }
             // a new certificate is provided for us,
             // we keep our private key
@@ -501,21 +511,22 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             await preInstallCertificate(this);
 
             return {
-                statusCode: StatusCodes.Good
+                statusCode: StatusCodes.Good,
+                applyChangesRequired: true,
             };
         } else if (privateKey) {
             // a private key has been provided by the caller !
             if (!privateKeyFormat) {
                 warningLog("the privateKeyFormat must be specified " + privateKeyFormat);
-                return { statusCode: StatusCodes.BadNotSupported };
+                return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false};
             }
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
                 warningLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
-                return { statusCode: StatusCodes.BadNotSupported };
+                return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             if (privateKeyFormat !== "PEM") {
                 warningLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
-                return { statusCode: StatusCodes.BadNotSupported };
+                return { statusCode: StatusCodes.BadNotSupported , applyChangesRequired: false };
             }
 
             let privateKey1: PrivateKey | undefined;
@@ -527,30 +538,70 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 privateKey1 = coercePEMorDerToPrivateKey(privateKey);
             }
             if (!privateKey1) {
-                return { statusCode: StatusCodes.BadNotSupported };
+                return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             // privateKey is  provided, so check that the public key matches provided private key
             if (!certificateMatchesPrivateKey(certificate, privateKey1!)) {
                 // certificate doesn't match privateKey
                 warningLog("certificate doesn't match privateKey");
-                return { statusCode: StatusCodes.BadSecurityChecksFailed };
+                return { statusCode: StatusCodes.BadSecurityChecksFailed, applyChangesRequired: false };
             }
 
             await preInstallPrivateKey(this);
 
             await preInstallCertificate(this);
 
+          
+
             return {
-                statusCode: StatusCodes.Good
+                statusCode: StatusCodes.Good,
+                applyChangesRequired: true
             };
         } else {
             // todo !
             return {
-                statusCode: StatusCodes.BadNotSupported
+                statusCode: StatusCodes.BadNotSupported,
+                applyChangesRequired: true
             };
         }
     }
 
+    /**
+     * 
+     * ApplyChanges is used to apply pending Certificate and TrustList updates 
+     * and to complete a transaction as described in 7.10.2.
+     * 
+     * ApplyChanges returns Bad_InvalidState if any TrustList is still open for writing.
+     * No changes are applied and ApplyChanges can be called again after the TrustList is closed.
+     * 
+     * If a Session is closed or abandoned then the transaction is closed and all pending changes are discarded.
+     * 
+     * If ApplyChanges is called and there is no active transaction then the Server returns Bad_NothingToDo. 
+     * If there is an active transaction, however, no changes are pending the result is Good and the transaction is closed.
+     * 
+     * When a Server Certificate or TrustList changes active SecureChannels are not immediately affected.
+     * This ensures the caller of ApplyChanges can get a response to the Method call. 
+     * Once the Method response is returned the Server shall force existing SecureChannels affected by 
+     * the changes to renegotiate and use the new Server Certificate and/or TrustLists.
+     * 
+     * Servers may close SecureChannels without discarding any Sessions or Subscriptions. 
+     * This will seem like a network interruption from the perspective of the Client and the Client reconnect 
+     * logic (see OPC 10000-4) allows them to recover their Session and Subscriptions. 
+     * Note that some Clients may not be able to reconnect because they are no longer trusted.
+     * 
+     * Other Servers may need to do a complete shutdown.
+     * 
+     * In this case, the Server shall advertise its intent to interrupt connections by setting the 
+     * SecondsTillShutdown and ShutdownReason Properties in the ServerStatus Variable.
+     * 
+     * If a TrustList change only affects UserIdentity associated with a Session then Servers 
+     * shall re-evaluate the UserIdentity and if it is no longer valid the Session and associated 
+     * Subscriptions are closed.
+     * 
+     * This Method shall be called from an authenticated SecureChannel and from the Session that 
+     * created the transaction and has access to the SecurityAdmin Role (see 7.2).
+     * 
+     */
     public async applyChanges(): Promise<StatusCode> {
         // ApplyChanges is used to tell the Server to apply any security changes.
         // This Method should only be called if a previous call to a Method that changed the

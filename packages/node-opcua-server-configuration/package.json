@@ -38,11 +38,14 @@
         "rimraf": "6.0.1"
     },
     "devDependencies": {
+        "@types/mocha": "^10.0.10",
         "bcryptjs": "3.0.2",
+        "mocha": "11.7.1",
         "node-opcua-client": "2.156.0",
         "node-opcua-data-value": "2.155.0",
         "node-opcua-leak-detector": "2.154.0",
-        "node-opcua-nodesets": "2.155.0"
+        "node-opcua-nodesets": "2.155.0",
+        "ts-node": "^10.9.2"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
