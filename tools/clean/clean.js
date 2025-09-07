@@ -39,25 +39,16 @@ directories.forEach(dir => {
     console.log(`\nProcessing directory: ${dirPath}`);
 
     // Remove node_modules
-    const nodeModulesPath = path.join(dirPath, 'node_modules');
-    if (fs.existsSync(nodeModulesPath)) {
-        console.log(`Removing node_modules at: ${nodeModulesPath}`);
-        rimraf.sync(nodeModulesPath);
-        console.log('Successfully removed node_modules');
-    } else {
-        console.log('No node_modules directory found');
-    }
+    removeFolder(dirPath, "node_modules");
+
 
     // Remove dist
-    const distPath = path.join(dirPath, 'dist');
-    if (fs.existsSync(distPath)) {
-        console.log(`Removing dist at: ${distPath}`);
-        rimraf.sync(distPath);
-        console.log('Successfully removed dist');
-    } else {
-        console.log('No dist directory found');
-    }
+    removeFolder(dirPath, "dist");
+    removeFolder(dirPath, "distHelpers");
+    removeFolder(dirPath, "distNodeJs");
 
+    // Remove tmp
+    removeFolder(dirPath, "tmp");
     // Remove .tsbuildinfo files
     const tsbuildinfoFiles = getFilesMatchingPattern(dirPath, /\.tsbuildinfo$/);
     tsbuildinfoFiles.forEach(file => {
@@ -69,3 +60,14 @@ directories.forEach(dir => {
 });
 
 console.log("\nCleanup process completed.");
+function removeFolder(dirPath, folderName) {
+    const distPath = path.join(dirPath, folderName);
+    if (fs.existsSync(distPath)) {
+        console.log(`Removing ${folderName} at: ${distPath}`);
+        rimraf.sync(distPath);
+        console.log(`Successfully removed ${folderName}`);
+    } else {
+        console.log(`No ${folderName} directory found`);
+    }
+}
+
