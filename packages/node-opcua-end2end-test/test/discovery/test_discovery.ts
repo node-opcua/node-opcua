@@ -1,8 +1,9 @@
-const path = require("path");
-const { OPCUACertificateManager } = require("node-opcua");
+import path from "node:path";
+import { OPCUACertificateManager } from "node-opcua";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
-describe("testing DiscoveryServer - Umbrella ", function () {
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+describe("testing DiscoveryServer - Umbrella ", function (this: any) {
     before(async () => {
         this.serverCertificateManager = new OPCUACertificateManager({
             rootFolder: path.join(__dirname, "../../tmp/PKI-DiscoveryCommon")

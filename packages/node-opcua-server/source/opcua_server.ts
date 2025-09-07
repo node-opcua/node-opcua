@@ -1315,7 +1315,9 @@ export class OPCUAServer extends OPCUABaseServer {
                 } else {
                     // we start the registration process asynchronously
                     // as we want to make server immediately available
-                    this.registerServerManager!.start(() => {
+                    this.registerServerManager!.start().then(() => {
+                        /* empty */
+                    }).catch((err) => {
                         /* empty */
                     });
 
@@ -1379,20 +1381,28 @@ export class OPCUAServer extends OPCUABaseServer {
         this.engine.setShutdownTime(shutdownTime);
 
         debugLog("OPCUAServer is now un-registering itself from  the discovery server " + this.buildInfo);
-        this.registerServerManager!.stop((err?: Error | null) => {
-            debugLog("OPCUAServer unregistered from discovery server", err);
-            setTimeout(async () => {
-                await this.engine.shutdown();
+        this.registerServerManager!.stop()
+            .then(() => {
+                debugLog("OPCUAServer unregistered from discovery server successfully");
 
-                debugLog("OPCUAServer#shutdown: started");
-                OPCUABaseServer.prototype.shutdown.call(this, (err1?: Error) => {
-                    debugLog("OPCUAServer#shutdown: completed");
+            })
+            .catch((err) => {
+                debugLog("OPCUAServer unregistered from discovery server with err: ", err.message);
+            }).finally(() => {
 
-                    this.dispose();
-                    callback(err1);
-                });
-            }, timeout);
-        });
+                setTimeout(async () => {
+                    await this.engine.shutdown();
+
+                    debugLog("OPCUAServer#shutdown: started");
+                    OPCUABaseServer.prototype.shutdown.call(this, (err1?: Error) => {
+                        debugLog("OPCUAServer#shutdown: completed");
+
+                        this.dispose();
+                        callback(err1);
+                    });
+                }, timeout);
+
+            });
     }
 
     public dispose(): void {
@@ -3621,11 +3631,11 @@ export class OPCUAServer extends OPCUABaseServer {
 
 const userIdentityTokenPasswordRemoved = (userIdentityToken?: UserIdentityToken): UserIdentityToken => {
     if (!userIdentityToken) return new AnonymousIdentityToken();
-    const a: UserIdentityToken  = userIdentityToken.clone();
+    const a: UserIdentityToken = userIdentityToken.clone();
     // For Username/Password tokens the password shall not be included.
     if (a instanceof UserNameIdentityToken) {
         // remove password
-        a.password = Buffer.from("*************","ascii");
+        a.password = Buffer.from("*************", "ascii");
     }
     // if (a instanceof X509IdentityToken) {
     //     a.certificateData = Buffer.alloc(0);
@@ -3745,7 +3755,7 @@ export interface RaiseEventAuditActivateSessionEventData extends RaiseEventAudit
 }
 
 // tslint:disable:no-empty-interface
-export interface RaiseEventTransitionEventData extends RaiseEventData {}
+export interface RaiseEventTransitionEventData extends RaiseEventData { }
 
 export interface RaiseEventAuditUrlMismatchEventTypeData extends RaiseEventData {
     endpointUrl: PseudoVariantString;
@@ -3775,7 +3785,7 @@ export interface RaiseAuditCertificateDataMismatchEventData extends RaiseAuditCe
      */
     invalidUri: PseudoVariantString;
 }
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3787,7 +3797,7 @@ export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCerti
  * There are no additional Properties defined for this EventType.
  *
  */
-export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3797,7 +3807,7 @@ export interface RaiseAuditCertificateExpiredEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3807,7 +3817,7 @@ export interface RaiseAuditCertificateInvalidEventData extends RaiseAuditCertifi
  * If a trust chain is involved then the certificate that failed in the trust chain should be described.
  * There are no additional Properties defined for this EventType.
  */
-export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateUntrustedEventData extends RaiseAuditCertificateEventData { }
 /**
  * This EventType inherits all Properties of the AuditCertificateEventType.
  *
@@ -3830,7 +3840,7 @@ export interface RaiseAuditCertificateRevokedEventData extends RaiseAuditCertifi
  *
  * There are no additional Properties defined for this EventType
  */
-export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData {}
+export interface RaiseAuditCertificateMismatchEventData extends RaiseAuditCertificateEventData { }
 export interface OPCUAServer {
     /**
      * @internal

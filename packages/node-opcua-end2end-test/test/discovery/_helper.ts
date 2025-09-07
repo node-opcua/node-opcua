@@ -6,11 +6,9 @@ import chalk from "chalk";
 import "should";
 import {
     assert,
-    ErrorCallback,
     makeApplicationUrn,
     makeSubject,
     OPCUABaseServer,
-    OPCUACertificateManager,
     OPCUADiscoveryServer,
     OPCUAServer,
     RegisterServerMethod
@@ -20,8 +18,6 @@ import { createServerCertificateManager } from "../../test_helpers/createServerC
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
-
-const configFolder = path.join(__dirname, "../../tmp");
 
 export async function pause(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
@@ -147,27 +143,30 @@ export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer
 
 const doTrace = doDebug || process.env.TRACE;
 
-export type FF = (callback: ErrorCallback) => void;
+export type FF<T> = () => Promise<T>;
 // add the tcp/ip endpoint with no security
-export function f(func: FF): FF {
+export  function f<T>(func: FF<T>): FF<T> {
     const title = func.name
         .replace(/_/g, " ")
         .replace(/^bound /,"")
         .replace("given ", chalk.green("**GIVEN** "))
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));
-    const ff = function (callback: ErrorCallback) {
+    const ff = async function (): Promise<T> {
         if (doTrace) {
             // tslint:disable-next-line: no-console
             console.log("         * " + title);
         }
-        func((err?: Error | null) => {
+        try {
+            return await func();
+        }
+        catch (err) {
             if (doDebug) {
                 // tslint:disable-next-line: no-console
                 console.log("         ! " + title);
             }
-            callback(err!);
-        });
+            throw err;
+        }
     };
     return ff;
 }

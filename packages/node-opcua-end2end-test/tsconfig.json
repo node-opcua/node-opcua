@@ -1,7 +1,7 @@
 {
     "extends": "../tsconfig.common.json",
     "compilerOptions": {
-        "rootDir": "test",
+        "rootDir": ".",
         "outDir": "dist",
         "composite": true,
         "incremental": true
@@ -10,5 +10,9 @@
     "exclude": [
         "node_modules",
         "dist"
+    ],
+    "include": [
+        "test_helpers/**/*.ts",
+        "test/**/*.ts"
     ]
 }
