@@ -1,2 +1,2 @@
-declare export function describeWithLeakDetector(name: string, fn: () => void): void;
+export declare  function describeWithLeakDetector(name: string, fn: () => void): void;
  
