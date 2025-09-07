@@ -288,10 +288,10 @@ export function t(test: any) {
             await server.start();
 
             // server registration takes place in parallel and should be checked independently
-            await new Promise<void>((resolve,reject) => {
-                const timerId = setTimeout(()=>{
+            await new Promise<void>((resolve, reject) => {
+                const timerId = setTimeout(() => {
                     reject(new Error("We haven't received the serverRegistered event from Server !!!"));
-                },5000)
+                }, 5000)
                 server.once("serverRegistered", () => {
                     resolve();
                     clearTimeout(timerId);
@@ -378,19 +378,20 @@ export function t(test: any) {
             statusAfter.should.eql("Good");
         }
 
+        const startAndRegister = async (server: OPCUAServer) => {
+            await server.start();
+            await new Promise<void>((resolve) => {
+                server.once("serverRegistered", () => {
+                    debugLog("server registered");
+                    registeredServerCount += 1;
+                    resolve();
+                });
+            });
+        }
         async function start_all_servers() {
             registeredServerCount = 0;
 
-            const startAndRegister = async (server: OPCUAServer) => {
-                await server.start();
-                await new Promise<void>((resolve) => {
-                    server1.once("serverRegistered", () => {
-                        debugLog("server1 registered");
-                        registeredServerCount += 1;
-                        resolve();
-                    });
-                });
-            }
+
             const tasks = [
                 startAndRegister(server1),
                 startAndRegister(server2),
@@ -413,7 +414,7 @@ export function t(test: any) {
             ];
             await Promise.all(tasks)
         }
-       
+
         it("DISCO3-1 checking certificates", async () => {
             await checkServerCertificateAgainstLDS(server1);
             await checkServerCertificateAgainstLDS(server2);
@@ -421,21 +422,22 @@ export function t(test: any) {
             await checkServerCertificateAgainstLDS(server4);
         });
 
-        function wait_until_all_servers_registered_iter(expectedCount: number, resolve: () => void) {
-            console.log("waiting for all servers to be registered ", registeredServerCount, "expected", expectedCount);
-            if (registeredServerCount === expectedCount) {
-                return resolve();
-            }
-            setTimeout(wait_until_all_servers_registered_iter, 3500, expectedCount, resolve);
-        }
 
         async function wait_until_all_servers_registered(expectedCount: number): Promise<void> {
-            return new Promise<void>((resolve) => {
-                wait_until_all_servers_registered_iter(expectedCount, resolve);
-            });
+            console.log("waiting for all servers to be registered ", registeredServerCount, "expected", expectedCount);
+            const maxTime = 20 * 1000;
+            const timeIncrement = 200;
+            for (let t = 0; t < maxTime; t += timeIncrement) {
+                if (registeredServerCount === expectedCount) {
+                    console.log("waited ", t, "ms");
+                    break;
+                }
+                await pause(timeIncrement);
+            }
         }
 
         it("DISCO3-2 a discovery server shall be able to expose many registered servers", async () => {
+
             await start_all_servers();
 
             await wait_until_all_servers_registered(5);
