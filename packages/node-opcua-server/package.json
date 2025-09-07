@@ -13,7 +13,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "@ster5/global-mutex": "^2.0.0",
-        "@types/async": "3.2.24",
+        "@types/async": "3.2.25",
         "@types/lodash": "4.17.20",
         "async": "^3.2.6",
         "chalk": "4.1.2",

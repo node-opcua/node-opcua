@@ -1,0 +1,87 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\sterfive\\node-opcua\\packages\\playground\\github1422\\opcua-dotnet.csproj": {}
+  },
+  "projects": {
+    "C:\\sterfive\\node-opcua\\packages\\playground\\github1422\\opcua-dotnet.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\sterfive\\node-opcua\\packages\\playground\\github1422\\opcua-dotnet.csproj",
+        "projectName": "opcua-dotnet",
+        "projectPath": "C:\\sterfive\\node-opcua\\packages\\playground\\github1422\\opcua-dotnet.csproj",
+        "packagesPath": "C:\\Users\\etien\\.nuget\\packages\\",
+        "outputPath": "C:\\sterfive\\node-opcua\\packages\\playground\\github1422\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\etien\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.100"
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "ConsoleUtils": {
+              "target": "Package",
+              "version": "[1.5.1, )"
+            },
+            "Mono.Options": {
+              "target": "Package",
+              "version": "[6.12.0.148, )"
+            },
+            "OPCFoundation.NetStandard.Opc.ua": {
+              "target": "Package",
+              "version": "[1.5.375.457, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.103/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

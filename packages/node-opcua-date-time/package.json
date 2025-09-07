@@ -16,7 +16,7 @@
         "node-opcua-utils": "2.153.0"
     },
     "devDependencies": {
-        "bignumber.js": "^9.3.0",
+        "bignumber.js": "^9.3.1",
         "node-opcua-benchmarker": "2.153.0",
         "node-opcua-debug": "2.153.0"
     },
