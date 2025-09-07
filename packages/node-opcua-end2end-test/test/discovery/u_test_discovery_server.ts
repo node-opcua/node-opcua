@@ -216,7 +216,6 @@ export function t(test: any) {
 
         before(() => {
             OPCUAServer.registry.count().should.eql(0);
-            1162;
         });
 
         after(() => {
@@ -232,10 +231,12 @@ export function t(test: any) {
             if (doDebug) {
                 console.log(discoveryServerEndpointUrl);
             }
+            console.log("Discovery server started");
         });
 
         afterEach(async () => {
             await discoveryServer.shutdown();
+            console.log("Discovery server stopped");
         });
 
         async function addServerCertificateToTrustedCertificateInDiscoveryServer(server: OPCUAServer) {
@@ -259,8 +260,8 @@ export function t(test: any) {
             initialServerCount = servers.length;
             servers[0].discoveryUrls!.length.should.eql(1);
 
-            debugLog(" initialServerCount = ", initialServerCount);
-            debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls!.join("\n"));
+            console.log(" initialServerCount = ", initialServerCount);
+            console.log("servers[0].discoveryUrls", servers[0].discoveryUrls!.join("\n"));
 
             const serverCertificateManager = await createServerCertificateManager(port1);
             // ----------------------------------------------------------------------------
@@ -287,9 +288,13 @@ export function t(test: any) {
             await server.start();
 
             // server registration takes place in parallel and should be checked independently
-            await new Promise<void>((resolve) => {
+            await new Promise<void>((resolve,reject) => {
+                const timerId = setTimeout(()=>{
+                    reject(new Error("We haven't received the serverRegistered event from Server !!!"));
+                },5000)
                 server.once("serverRegistered", () => {
                     resolve();
+                    clearTimeout(timerId);
                 });
             });
 
@@ -373,87 +378,47 @@ export function t(test: any) {
             statusAfter.should.eql("Good");
         }
 
-        function start_all_servers(done: () => void) {
+        async function start_all_servers() {
             registeredServerCount = 0;
 
-            async.parallel(
-                [
-                    function (callback: () => void) {
-                        debugLog("Starting  server1");
-                        server1.start(callback);
-                        server1.once("serverRegistered", () => {
-                            debugLog("server1 registered");
-                            registeredServerCount += 1;
-                        });
-                    },
-                    function (callback: () => void) {
-                        debugLog("Starting  server2");
-                        server2.start(callback);
-                        server2.once("serverRegistered", () => {
-                            debugLog("server2 registered");
-                            registeredServerCount += 1;
-                        });
-                    },
-                    function (callback: () => void) {
-                        debugLog("Starting  server3");
-                        server3.start(callback);
-                        server3.once("serverRegistered", () => {
-                            debugLog("server3 registered");
-                            registeredServerCount += 1;
-                        });
-                    },
-                    function (callback: () => void) {
-                        debugLog("Starting  server4");
-                        server4.start(callback);
-                        server4.once("serverRegistered", () => {
-                            debugLog("server4 registered");
-                            registeredServerCount += 1;
-                        });
-                    },
-                    function (callback: () => void) {
-                        debugLog("Starting  server5");
-                        server5.start(callback);
-                        server5.once("serverRegistered", () => {
-                            debugLog("server5 registered");
-                            registeredServerCount += 1;
-                        });
-                    }
-                ],
-                done
-            );
+            const startAndRegister = async (server: OPCUAServer) => {
+                await server.start();
+                await new Promise<void>((resolve) => {
+                    server1.once("serverRegistered", () => {
+                        debugLog("server1 registered");
+                        registeredServerCount += 1;
+                        resolve();
+                    });
+                });
+            }
+            const tasks = [
+                startAndRegister(server1),
+                startAndRegister(server2),
+                startAndRegister(server3),
+                startAndRegister(server4),
+                startAndRegister(server5),
+            ];
+            await Promise.all(tasks);
         }
 
-        function stop_all_servers(done: () => void) {
-            async.parallel(
-                [
-                    function (callback: () => void) {
-                        server1.shutdown(callback);
-                    },
-                    function (callback: () => void) {
-                        server2.shutdown(callback);
-                    },
-                    function (callback: () => void) {
-                        server3.shutdown(callback);
-                    },
-                    function (callback: () => void) {
-                        server4.shutdown(callback);
-                    },
-                    function (callback: () => void) {
-                        server5.shutdown(callback);
-                    }
-                ],
-                done
-            );
-        }
-        const start_all_serversAsync = promisify(start_all_servers);
-        const stop_all_serversAsync = promisify(stop_all_servers);
+        async function stop_all_servers() {
 
+            const tasks = [
+                server1.shutdown(),
+                server2.shutdown(),
+                server3.shutdown(),
+                server4.shutdown(),
+                server5.shutdown(),
+
+            ];
+            await Promise.all(tasks)
+        }
+       
         it("DISCO3-1 checking certificates", async () => {
             await checkServerCertificateAgainstLDS(server1);
             await checkServerCertificateAgainstLDS(server2);
             await checkServerCertificateAgainstLDS(server3);
             await checkServerCertificateAgainstLDS(server4);
-            console.log("done");
         });
 
         function wait_until_all_servers_registered_iter(expectedCount: number, resolve: () => void) {
@@ -471,7 +436,7 @@ export function t(test: any) {
         }
 
         it("DISCO3-2 a discovery server shall be able to expose many registered servers", async () => {
-            await start_all_serversAsync();
+            await start_all_servers();
 
             await wait_until_all_servers_registered(5);
 
@@ -513,13 +478,13 @@ export function t(test: any) {
                 servers!.length.should.eql(
                     6,
                     "found " +
-                        servers!.length +
-                        " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
+                    servers!.length +
+                    " server running instead of 6: may be you have a LDS running on your system. please make sure to shut it down before running the tests"
                 ); // 5 server + 1 discovery server
                 // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
             }
 
-            await stop_all_serversAsync();
+            await stop_all_servers();
         });
     });
 }

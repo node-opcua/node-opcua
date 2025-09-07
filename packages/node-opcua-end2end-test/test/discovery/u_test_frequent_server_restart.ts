@@ -1,5 +1,4 @@
 import "should";
-import async from "async";
 import {
     OPCUAClient,
     ClientSubscription,
@@ -18,7 +17,7 @@ import {
 } from "node-opcua";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { createServerThatRegistersItselfToTheDiscoveryServer, f, startDiscovery } from "./_helper";
+import { createServerThatRegistersItselfToTheDiscoveryServer, f, pause, startDiscovery } from "./_helper";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -43,48 +42,37 @@ export function t(test: any) {
         let discoveryServer: OPCUADiscoveryServer | undefined = undefined;
         let discoveryServerEndpointUrl: string;
 
-        const startDiscoveryServer = f(function start_the_discovery_server(callback: ErrorCallback) {
+        const startDiscoveryServer = f(async function start_the_discovery_server() {
             // note : only one discovery server shall be run per machine
-            startDiscovery(discovery_port)
-                .then((_discoveryServer: OPCUADiscoveryServer) => {
-                    discoveryServer = _discoveryServer;
-                    discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
-                    callback();
-                })
-                .catch((err) => callback(err));
+            discoveryServer = await startDiscovery(discovery_port);
+            discoveryServerEndpointUrl = discoveryServer.getEndpointUrl();
         });
 
-        const stopDiscoveryServer = f(function stop_the_discovery_server(callback: ErrorCallback) {
-            if (!discoveryServer) return callback();
-            discoveryServer.shutdown((err?: Error) => {
-                discoveryServer = undefined;
-                debugLog("discovery server stopped!", err);
-                callback(err);
-            });
+        const stopDiscoveryServer = f(async function stop_the_discovery_server() {
+            if (!discoveryServer) return;
+            await discoveryServer.shutdown();
+            discoveryServer = undefined;
+            debugLog("discovery server stopped!");
         });
 
         let endpointUrl = "";
 
-        const createServer = f(function start_an_opcua_server_that_registers_to_the_lds(callback: ErrorCallback) {
-            createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ")
-                .then(async (server: OPCUAServer) => {
-                    g_server = server;
-                    await server.start();
-                    server.endpoints.length.should.be.greaterThan(0);
-                    endpointUrl = server.getEndpointUrl();
-                    callback();
-                })
-                .catch((err) => callback(err));
+        const createServer = f(async function start_an_opcua_server_that_registers_to_the_lds() {
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ");
+            g_server = server;
+            await server.start();
+            server.endpoints.length.should.be.greaterThan(0);
+            endpointUrl = server.getEndpointUrl();
         });
 
-        const shutdownServer = f(function shutdown_the_opcua_server(callback: ErrorCallback) {
-            g_server.shutdown(() => {
-                if (doDebug) {
-                    debugLog("Server has been shut down");
-                }
-                setTimeout(() => callback(), 1000);
-            });
+        const shutdownServer = f(async function shutdown_the_opcua_server() {
+            await g_server.shutdown();
+            if (doDebug) {
+                debugLog("Server has been shut down");
+            }
+            await wait_a_few_seconds();
         });
+
 
         interface ClientData {
             client: OPCUAClient;
@@ -94,9 +82,9 @@ export function t(test: any) {
         }
         const clients: ClientData[] = [];
 
-        const connectManyClient = f(function connect_many_opcua_clients(callback: ErrorCallback) {
+        const connectManyClient = f(async function connect_many_opcua_clients() {
             let clientCount = 0;
-            function addClient(callback: ErrorCallback) {
+            async function addClient() {
                 if (doDebug) {
                     debugLog(" creating client");
                 }
@@ -118,183 +106,193 @@ export function t(test: any) {
                 client.on("after_reconnection", () => {
                     debugLog("after_reconnection ", client.clientName);
                 });
-                client.connect(endpointUrl, (err?: Error) => {
-                    if (err) return callback(err);
-                    client.createSession(function (err, _session) {
-                        if (err) return callback(err);
-                        const session = _session!;
+                await client.connect(endpointUrl);
 
-                        session.on("session_closed", () => {
-                            debugLog("session closed - client", client.clientName);
-                        });
-                        session.on("session_restored", () => {
-                            debugLog("session restored - client", client.clientName);
-                        });
+                const session = await client.createSession();
 
-                        const subscription = ClientSubscription.create(session, {
-                            requestedPublishingInterval: 100,
-                            requestedLifetimeCount: 1000,
-                            requestedMaxKeepAliveCount: 6,
-                            maxNotificationsPerPublish: 100,
-                            publishingEnabled: true,
-                            priority: 10
-                        });
-                        subscription
-                            .on("started", function () {
-                                if (doDebug) {
-                                    debugLog("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
-                                }
-                            })
-                            .on("keepalive", function () {
-                                debugLog("subscription keepalive", client.clientName);
-                            })
-                            .on("terminated", function () {
-                                /** */
-                            });
-                        const monitoredItem = ClientMonitoredItem.create(
-                            subscription,
-                            {
-                                nodeId: resolveNodeId("ns=0;i=2258"),
-                                attributeId: AttributeIds.Value
-                            },
-                            {
-                                samplingInterval: 100,
-                                discardOldest: true,
-                                queueSize: 10
-                            },
-                            TimestampsToReturn.Both
-                        );
-                        monitoredItem.on("changed", function (dataValue) {
-                            if (doDebug1) {
-                                debugLog(dataValue.toString());
-                            }
-                        });
-                        clients.push({ client, session, subscription, monitoredItem });
-
-                        callback();
-                    });
+                session.on("session_closed", () => {
+                    debugLog("session closed - client", client.clientName);
                 });
+                session.on("session_restored", () => {
+                    debugLog("session restored - client", client.clientName);
+                });
+
+                const subscription = ClientSubscription.create(session, {
+                    requestedPublishingInterval: 100,
+                    requestedLifetimeCount: 1000,
+                    requestedMaxKeepAliveCount: 6,
+                    maxNotificationsPerPublish: 100,
+                    publishingEnabled: true,
+                    priority: 10
+                });
+                subscription
+                    .on("started", function () {
+                        if (doDebug) {
+                            debugLog("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
+                        }
+                    })
+                    .on("keepalive", function () {
+                        debugLog("subscription keepalive", client.clientName);
+                    })
+                    .on("terminated", function () {
+                        /** */
+                    });
+                const monitoredItem = ClientMonitoredItem.create(
+                    subscription,
+                    {
+                        nodeId: resolveNodeId("ns=0;i=2258"),
+                        attributeId: AttributeIds.Value
+                    },
+                    {
+                        samplingInterval: 100,
+                        discardOldest: true,
+                        queueSize: 10
+                    },
+                    TimestampsToReturn.Both
+                );
+                monitoredItem.on("changed", function (dataValue) {
+                    if (doDebug1) {
+                        debugLog(dataValue.toString());
+                    }
+                });
+                clients.push({ client, session, subscription, monitoredItem });
+
             }
 
-            async.parallel([addClient, addClient, addClient, addClient, addClient, addClient], () => callback());
+            const promises = [
+                addClient(), addClient(), addClient(), addClient(), addClient(), addClient()
+            ]
+            await Promise.all(promises);
         });
 
-        const shutdownClients = f(function disconnect_the_opcua_clients(callback: ErrorCallback) {
-            function removeClient(callback: ErrorCallback) {
+        const shutdownClients = f(async function disconnect_the_opcua_clients() {
+            async function removeClient() {
                 if (!clients) {
-                    return callback();
+                    return;
                 }
                 const { client, session, subscription, monitoredItem } = clients.pop()!;
-
-                subscription.terminate((err?: Error) => {
-                    session.close((err?: Error) => {
-                        if (err) return callback(err);
-                        setImmediate(function () {
-                            client.disconnect((err?: Error) => {
-                                if (err) return callback(err);
-                                if (doDebug) {
-                                    debugLog("Client terminated");
-                                }
-                                callback();
-                            });
-                        });
-                    });
-                });
+                await subscription.terminate();
+                await session.close();
+                await client.disconnect();
+                if (doDebug) {
+                    debugLog("Client terminated");
+                }
             }
 
-            async.parallel([removeClient, removeClient, removeClient, removeClient, removeClient, removeClient], () => {
-                callback();
-                debugLog("------------------------------------------ clients terminated");
-            });
+            const removePromises = [
+                removeClient(), removeClient(), removeClient(), removeClient(), removeClient(), removeClient()
+            ];
+            await Promise.all(removePromises);
+            debugLog("------------------------------------------ clients terminated");
         });
 
-        const wait_a_few_seconds = f(function wait_a_few_seconds(callback: ErrorCallback) {
-            setTimeout(callback, 500);
+        const wait_a_few_seconds = f(async function wait_a_few_seconds() {
+            await pause(500);
         });
 
-        const wait_a_minute = f(function wait_a_minute(callback: ErrorCallback) {
-            setTimeout(callback, 2 * 1000);
+        const wait_a_minute = f(async function wait_a_minute() {
+            await pause(2 * 1000);
         });
 
-        before((done) => {
-            startDiscoveryServer(done);
+        before(async () => {
+            await startDiscoveryServer();
         });
 
-        after((done) => {
-            stopDiscoveryServer(done);
+        after(async () => {
+            await stopDiscoveryServer();
         });
 
-        it("DISCO4-A - should perform start/stop cycle efficiently - wait ", function (done) {
-            async.series([createServer, wait_a_few_seconds, shutdownServer], done);
+        it("DISCO4-A - should perform start/stop cycle efficiently - wait ", async () => {
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer();
         });
 
-        it("DISCO4-Z - should perform start/stop cycle efficiently - long wait ", function (done) {
-            async.series([createServer, wait_a_minute, wait_a_minute, wait_a_minute, shutdownServer], done);
+
+        it("DISCO4-Z - should perform start/stop cycle efficiently - long wait ", async function () {
+
+            await createServer();
+            await wait_a_minute();
+            await wait_a_minute();
+            await wait_a_minute();
+            await shutdownServer();
         });
 
-        it("DISCO4-B - should perform start/stop cycle efficiently - no wait ", function (done) {
-            async.series([createServer, shutdownServer], done);
+        it("DISCO4-B - should perform start/stop cycle efficiently - no wait ", async function () {
+            await createServer();
+            await shutdownServer();
         });
 
-        it("DISCO4-C - disposing  cerficiation manager during initialization ", function (done) {
+        it("DISCO4-C - disposing  cerficiation manager during initialization ", async () => {
             const cm = new OPCUACertificateManager({
                 // rootFolder:
             });
 
-            async.series(
-                [
-                    f(function when_creating_a_opcua_certificate_manager(callback: ErrorCallback) {
-                        cm.initialize((err) => {
-                            done();
-                        });
-                        callback();
-                    }),
-                    f(function disposing(callback: ErrorCallback) {
-                        cm.dispose();
-                    })
-                ],
-                () => {
-                    /* empty */
-                }
-            );
+            (await f(async function when_creating_a_opcua_certificate_manager() {
+                cm.initialize().then(() => {
+
+                }).catch((err) => {
+
+                });
+            }))();
+
+            await f(async function disposing() {
+                await cm.dispose();
+            });
         });
 
-        it("DISCO4-D - should cancel a client that is attempting a connection on an existing server", function (done) {
+        const makeResolver = (): [Promise<void>, () => void] => {
+            let resolveLast: (() => void) | undefined;
+            const promise = new Promise<void>((resolve) => {
+                resolveLast = resolve;
+            });
+            return [promise, resolveLast as () => void];
+        }
+
+        it("DISCO4-D - should cancel a client that is attempting a connection on an existing server", async () => {
             const client = OPCUAClient.create({
                 clientName: "DISCO4-D " + __filename
             });
-            const endpoint = discoveryServerEndpointUrl;
-            async.series(
-                [
-                    f(function when_we_create_a_client_but_do_not_wait_for_connection(callback: ErrorCallback) {
-                        client.connect(endpoint, (err) => {
-                            /* nothing here */
-                            // console.log("Connect err = ", err ? err.message: null);
-                            done();
-                        });
-                        setImmediate(callback);
-                    }),
 
-                    f(function when_we_close_client_while_connection_is_in_progress(callback: ErrorCallback) {
-                        client.disconnect(callback);
-                    }),
-                    f(function then_client_should_cancel_initial_connection(callback: ErrorCallback) {
-                        wait_a_few_seconds(callback);
-                    })
-                ],
-                () => {
-                    /* nothing here => connect wil call done */
-                }
-            );
+            const [promise, resolveLast] = makeResolver();
+
+            const endpoint = discoveryServerEndpointUrl;
+
+            await f(async function when_we_create_a_client_but_do_not_wait_for_connection() {
+                client.connect(endpoint).then(() => {
+                    resolveLast();
+                }).catch((err) => {
+                    /* nothing here */
+                    // console.log("Connect err = ", err ? err.message: null);
+                    resolveLast();
+                });
+            })();
+
+            await f(async function when_we_close_client_while_connection_is_in_progress() {
+                await client.disconnect();
+            })();
+
+            await f(async function then_client_should_cancel_initial_connection() {
+                await wait_a_few_seconds();
+            })();
+
+
+            await promise;
+
+
         });
 
+        const tweak_registerServerManager_timeout = (server: OPCUAServer, timeout: number) => {
+            Object.prototype.hasOwnProperty.call(server.registerServerManager, "timeout").should.eql(true);
+            (server.registerServerManager as any).timeout = 100;
+        }
         it("DISCO4-E - should cancel a client that cannot connect - on standard LocalDiscoveryServer", async () => {
             const server = new OPCUAServer({
                 port: port1,
                 registerServerMethod: RegisterServerMethod.LDS,
                 discoveryServerEndpointUrl: "opc.tcp://localhost:4840" //<< standard server
             });
-            (server.registerServerManager as any).timeout = 100;
+            tweak_registerServerManager_timeout(server, 100);
             await server.start();
             await server.shutdown();
         });
@@ -306,11 +304,13 @@ export function t(test: any) {
                 discoveryServerEndpointUrl
             });
             await server.start();
-            (server.registerServerManager as any).timeout = 100;
+            tweak_registerServerManager_timeout(server, 100);
             await server.shutdown();
         });
 
-        it("DISCO4-G - registration manager as a standalone object 2/2", function (done) {
+        it("DISCO4-G - registration manager as a standalone object 2/2 on a none existant discoveryServerEndpointUrl", async function () {
+
+            // it should be possible to start and stop immediately when the registration process 
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl: "opc.tcp://localhost:48481", // << not existing
                 server: {
@@ -332,22 +332,13 @@ export function t(test: any) {
                     serverType: ApplicationType.Server
                 }
             });
-            async.series(
-                [
-                    function (callback: ErrorCallback) {
-                        registrationManager.start(function () {
-                            /**/
-                        });
-                        callback(); // setImmediate(callback);
-                    },
-                    function (callback: ErrorCallback) {
-                        registrationManager.stop(callback);
-                    }
-                ],
-                done
-            );
+
+            await registrationManager.start();
+            console.log(" Stopping");
+            await registrationManager.stop();
+
         });
-        it("DISCO4-H - registration manager as a standalone object 2/2", function (done) {
+        it("DISCO4-H - registration manager as a standalone object 2/2", async () => {
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl,
                 server: {
@@ -369,140 +360,117 @@ export function t(test: any) {
                     serverType: ApplicationType.Server
                 }
             });
-            async.series(
-                [
-                    function (callback: ErrorCallback) {
-                        registrationManager.start(function () {
-                            /** */
-                        });
-                        setImmediate(callback);
-                    },
-                    function (callback: ErrorCallback) {
-                        registrationManager.stop(callback);
-                    }
-                ],
-                done
-            );
+            await registrationManager.start();
+            await registrationManager.stop();
         });
 
-        it("DISCO4-I - should perform start/stop cycle efficiently ", function (done) {
-            async.series(
-                [
-                    createServer,
-                    wait_a_few_seconds,
-                    shutdownServer,
+        it("DISCO4-I - should perform start/stop cycle efficiently ", async () => {
 
-                    createServer,
-                    wait_a_few_seconds,
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer();
 
-                    createServer,
-                    wait_a_few_seconds,
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer();
 
-                    createServer,
-                    wait_a_few_seconds,
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer();
 
-                    createServer,
-                    wait_a_few_seconds,
-                    shutdownServer
-                ],
-                done
-            );
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer();
+
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer()
+
         });
 
-        it("DISCO4-J - should perform start/stop cycle efficiently even with many connected clients and server close before clients", function (done) {
-            async.series(
-                [
-                    createServer,
+        it("DISCO4-J - should perform start/stop cycle efficiently even with many connected clients and server close before clients", async () => {
 
-                    connectManyClient,
-                    wait_a_few_seconds,
-                    wait_a_few_seconds,
+            await createServer();
 
-                    shutdownServer,
+            await connectManyClient();
+            await wait_a_few_seconds();
+            await wait_a_few_seconds();
 
-                    createServer,
-                    wait_a_few_seconds,
+            await shutdownServer();
 
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
 
-                    createServer,
-                    wait_a_few_seconds,
+            await shutdownServer();
 
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
 
-                    createServer,
-                    wait_a_few_seconds,
+            await shutdownServer();
 
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
 
-                    createServer,
-                    wait_a_few_seconds,
+            await shutdownServer();
 
-                    shutdownServer,
+            await createServer();
+            await wait_a_few_seconds();
 
-                    shutdownClients,
-                    wait_a_few_seconds
-                ],
-                done
-            );
+            await shutdownServer();
+
+            await shutdownClients();
+            await wait_a_few_seconds();
+
         });
 
-        it("DISCO4-K - should perform start/stop cycle efficiently even with many connected clients and clients close before server", function (done) {
-            async.series(
-                [
-                    createServer,
+        it("DISCO4-K - should perform start/stop cycle efficiently even with many connected clients and clients close before server", async () => {
 
-                    connectManyClient,
-                    wait_a_few_seconds,
+            await createServer();
 
-                    shutdownServer,
+            await connectManyClient();
+            await wait_a_few_seconds();
 
-                    createServer,
-                    wait_a_few_seconds,
-                    shutdownServer,
+            await shutdownServer();
 
-                    createServer,
-                    wait_a_few_seconds,
+            await createServer();
+            await wait_a_few_seconds();
+            await shutdownServer();
 
-                    shutdownClients,
-                    wait_a_few_seconds,
+            await createServer();
+            await wait_a_few_seconds();
 
-                    shutdownServer,
-                    wait_a_few_seconds,
-                    wait_a_few_seconds,
+            await shutdownClients();
+            await wait_a_few_seconds();
 
-                ],
-                done
-            );
+            await shutdownServer();
+            await wait_a_few_seconds();
+            await wait_a_few_seconds();
+
+
         });
 
-        it("DISCO4-L - should perform start/stop long cycle efficiently even with many connected clients and clients close before server", function (done) {
-            async.series(
-                [
-                    createServer,
-                    wait_a_few_seconds,
+        it("DISCO4-L - should perform start/stop long cycle efficiently even with many connected clients and clients close before server", async () => {
 
-                    connectManyClient,
-                    wait_a_few_seconds,
-                    wait_a_few_seconds,
+            await createServer();
+            await wait_a_few_seconds();
 
-                    shutdownServer,
-                    wait_a_minute,
+            await connectManyClient();
+            await wait_a_few_seconds();
+            await wait_a_few_seconds();
 
-                    createServer,
-                    wait_a_minute,
+            await shutdownServer();
+            await wait_a_minute();
 
-                    shutdownClients,
-                    wait_a_few_seconds,
+            await createServer();
+            await wait_a_minute();
 
-                    shutdownServer,
-                    wait_a_few_seconds
-                ],
-                done
-            );
+            await shutdownClients();
+            await wait_a_few_seconds();
+
+            await shutdownServer();
+            await wait_a_few_seconds();
+
+
         });
 
         it("DISCO4-M - NR2 should not crash when a server that failed to start is shot down", async () => {

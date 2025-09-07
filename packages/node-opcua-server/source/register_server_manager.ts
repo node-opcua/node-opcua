@@ -3,11 +3,10 @@
  */
 // tslint:disable:no-console
 import { EventEmitter } from "events";
-import async from "async";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
-import { ErrorCallback, UAString } from "node-opcua-basic-types";
+import { UAString } from "node-opcua-basic-types";
 import {
     coerceLocalizedText,
     LocalizedTextOptions,
@@ -27,19 +26,12 @@ import {
 import { ApplicationType, EndpointDescription, MdnsDiscoveryConfiguration, RegisteredServerOptions } from "node-opcua-types";
 import { exploreCertificate } from "node-opcua-crypto/web";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
-import { IRegisterServerManager } from "./i_register_server_manager";
+import { IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
 
-export enum RegisterServerManagerStatus {
-    INACTIVE = 1,
-    INITIALIZING = 2,
-    REGISTERING = 3,
-    WAITING = 4,
-    UNREGISTERING = 5
-}
 
 const g_DefaultRegistrationServerTimeout = 8 * 60 * 1000; // 8 minutes
 
@@ -115,7 +107,7 @@ function findSecureEndpoint(endpoints: EndpointDescription[]): EndpointDescripti
 
 function constructRegisteredServer(server: IPartialServer, isOnline: boolean): RegisteredServerOptions {
     const discoveryUrls = server.getDiscoveryUrls();
-    assert(!isOnline || discoveryUrls.length >= 1, "expecting some discoveryUrls if we go online ....");
+    assert(!isOnline || discoveryUrls.length >= 1, "expecting some discoveryUrls if we go online .... ");
 
     const info = exploreCertificate(server.getCertificate());
     const commonName = info.tbsCertificate.subject.commonName!;
@@ -204,17 +196,17 @@ interface ClientBaseEx extends OPCUAClientBase {
     performMessageTransaction(request: RegisterServerRequest, callback: ResponseCallback<RegisterServerResponse>): void;
 }
 
-function sendRegisterServerRequest(server: IPartialServer, client: ClientBaseEx, isOnline: boolean, callback: ErrorCallback) {
+async function sendRegisterServerRequest(server: IPartialServer, client: ClientBaseEx, isOnline: boolean) {
     // try to send a RegisterServer2Request
     const request = constructRegisterServer2Request(server, isOnline);
 
-    client.performMessageTransaction(request, (err: Error | null, response?: RegisterServer2Response) => {
-        if (!err) {
-            // RegisterServerResponse
-            debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline", isOnline, ")");
-            assert(response instanceof RegisterServer2Response);
-            callback(err!);
-        } else {
+    await new Promise<void>((resolve, reject) => {
+        client.performMessageTransaction(request, (err: Error | null, response?: RegisterServer2Response) => {
+            if (!err) {
+                // RegisterServerResponse
+                debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has succeeded (isOnline", isOnline, ")");
+                return resolve();
+            }
             debugLog("RegisterServerManager#_registerServer sendRegisterServer2Request has failed " + "(isOnline", isOnline, ")");
             debugLog("RegisterServerManager#_registerServer" + " falling back to using sendRegisterServerRequest instead");
             // fall back to
@@ -226,17 +218,17 @@ function sendRegisterServerRequest(server: IPartialServer, client: ClientBaseEx,
                         isOnline,
                         ")"
                     );
-                    assert(response1 instanceof RegisterServerResponse);
-                } else {
-                    debugLog(
-                        "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has failed (isOnline",
-                        isOnline,
-                        ")"
-                    );
+                    return resolve();
                 }
-                callback(err1!);
+                debugLog(
+                    "RegisterServerManager#_registerServer sendRegisterServerRequest " + "has failed (isOnline",
+                    isOnline,
+                    ")"
+                );
+                reject(err1!)
             });
-        }
+        });
+
     });
 }
 
@@ -262,13 +254,13 @@ export interface RegisterServerManagerOptions {
 let g_registeringClientCounter = 0;
 /**
  * RegisterServerManager is responsible to Register an opcua server on a LDS or LDS-ME server
- * This class takes in charge :
- *  - the initial registration of a server
- *  - the regular registration renewal (every 8 minutes or so ...)
- *  - dealing with cases where LDS is not up and running when server starts.
- *    ( in this case the connection will be continuously attempted using the infinite
- *    back-off strategy
- *  - the un-registration of the server ( during shutdown for instance)
+ * This class takes in charge : 
+ * - the initial registration of a server
+ * - the regular registration renewal (every 8 minutes or so ...)
+ * - dealing with cases where LDS is not up and running when server starts.
+ * ( in this case the connection will be continuously attempted using the infinite
+ * back-off strategy
+ * - the un-registration of the server ( during shutdown for instance)
  *
  * Events:
  *
@@ -302,11 +294,14 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     private selectedEndpoint?: EndpointDescription;
     private _serverEndpoints: EndpointDescription[] = [];
 
+    getState(): RegisterServerManagerStatus {
+        return this.state;
+    }
     constructor(options: RegisterServerManagerOptions) {
         super();
 
         this.server = options.server;
-        this._setState(RegisterServerManagerStatus.INACTIVE);
+        this.#_setState(RegisterServerManagerStatus.INACTIVE);
         this.timeout = g_DefaultRegistrationServerTimeout;
         this.discoveryServerEndpointUrl = options.discoveryServerEndpointUrl || "opc.tcp://localhost:4840";
 
@@ -317,7 +312,6 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
     public dispose(): void {
         this.server = null;
         debugLog("RegisterServerManager#dispose", this.state.toString());
-        assert(this.state === RegisterServerManagerStatus.INACTIVE);
 
         if (this._registrationTimerId) {
             clearTimeout(this._registrationTimerId);
@@ -328,13 +322,13 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this.removeAllListeners();
     }
 
-    public _emitEvent(eventName: string): void {
+    #_emitEvent(eventName: string): void {
         setImmediate(() => {
             this.emit(eventName);
         });
     }
 
-    public _setState(status: RegisterServerManagerStatus): void {
+    #_setState(status: RegisterServerManagerStatus): void {
         const previousState = this.state || RegisterServerManagerStatus.INACTIVE;
         debugLog(
             "RegisterServerManager#setState : ",
@@ -345,79 +339,98 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this.state = status;
     }
 
-    public start(callback: ErrorCallback): void {
+    public async start(): Promise<void> {
         debugLog("RegisterServerManager#start");
         if (this.state !== RegisterServerManagerStatus.INACTIVE) {
-            return callback(new Error("RegisterServer process already started")); // already started
+            throw new Error("RegisterServer process already started: " + RegisterServerManagerStatus[this.state]);
         }
-
         this.discoveryServerEndpointUrl = resolveFullyQualifiedDomainName(this.discoveryServerEndpointUrl);
 
-        // perform initial registration + automatic renewal
-        this._establish_initial_connection((err?: Error | null) => {
-            if (err) {
-                debugLog("RegisterServerManager#start => _establish_initial_connection has failed");
-                return callback(err);
-            }
-            if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
-                debugLog("RegisterServerManager#start => _establish_initial_connection has failed");
-                return callback();
-            }
+        this.#_setState(RegisterServerManagerStatus.INITIALIZING);
+        
+        // run backgound registration process
+        this.#_runRegistrationProcess().then(()=>{
 
-            this._registerServer(true, (err1?: Error | null) => {
-                if (this.state !== RegisterServerManagerStatus.REGISTERING) {
-                    debugLog("RegisterServerManager#start )=> Registration has been cancelled");
-                    return callback(new Error("Registration has been cancelled"));
-                }
+        }).catch((err)=>{
 
-                if (err1) {
-                    warningLog(
-                        "RegisterServerManager#start - registering server has failed ! \n" +
-                            "please check that your server certificate is accepted by the LDS"
-                    );
-                    this._setState(RegisterServerManagerStatus.INACTIVE);
-                    this._emitEvent("serverRegistrationFailure");
-                } else {
-                    this._emitEvent("serverRegistered");
-                    this._setState(RegisterServerManagerStatus.WAITING);
-                    this._trigger_next();
-                }
-                callback();
-            });
         });
     }
 
-    private _establish_initial_connection(outer_callback: ErrorCallback) {
-        /* istanbul ignore next */
+    /**
+     * Private method to run the entire registration process in the background.
+     * This is called by the non-blocking `start()` method.
+     * @private
+     */
+    async #_runRegistrationProcess(): Promise<void> {
+        try {
+            await this.#_establish_initial_connection();
+
+            // Check if stop() was called during the initial connection
+            if (this.getState() !== RegisterServerManagerStatus.INITIALIZING) {
+                debugLog("RegisterServerManager#start: aborted during initialization");
+                return;
+            }
+
+            this.#_setState(RegisterServerManagerStatus.INITIALIZED);
+            this.#_setState(RegisterServerManagerStatus.REGISTERING);
+
+            await this.#_registerServer(true);
+
+            // Check if stop() was called during registration
+            if (this.getState() !== RegisterServerManagerStatus.REGISTERING) {
+                debugLog("RegisterServerManager#start: aborted during registration");
+                return;
+            }
+
+            this.#_setState(RegisterServerManagerStatus.REGISTERED);
+            this.#_emitEvent("serverRegistered");
+            this.#_setState(RegisterServerManagerStatus.WAITING);
+            this.#_trigger_next();
+
+        } catch (err) {
+            warningLog("RegisterServerManager#start - operation failed!", err);
+            // Ensure state is set to INACTIVE on any failure, unless stop was called
+            if (this.getState() !== RegisterServerManagerStatus.UNREGISTERING) {
+                this.#_setState(RegisterServerManagerStatus.INACTIVE);
+                this.#_emitEvent("serverRegistrationFailure");
+            }
+        }
+    }
+
+
+    /**
+     * Establish the initial connection with the Discovery Server to extract best endpoint to use.
+     * @private
+     */
+    async #_establish_initial_connection(): Promise<void> {
         if (!this.server) {
-            throw new Error("Internal Error");
+            this.#_setState(RegisterServerManagerStatus.INACTIVE);
+            return;
+        }
+        if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
+            debugLog("RegisterServerManager#_establish_initial_connection: aborting due to state change");
+            return;
         }
         debugLog("RegisterServerManager#_establish_initial_connection");
 
         assert(!this._registration_client);
         assert(typeof this.discoveryServerEndpointUrl === "string");
-        assert(this.state === RegisterServerManagerStatus.INACTIVE);
-        this._setState(RegisterServerManagerStatus.INITIALIZING);
+        assert(this.state === RegisterServerManagerStatus.INITIALIZING);
+
+
         this.selectedEndpoint = undefined;
 
         const applicationName = coerceLocalizedText(this.server.serverInfo.applicationName!)?.text || undefined;
-
-        // Retry Strategy must be set
         this.server.serverCertificateManager.referenceCounter++;
-        
+
         const prefix = "Client-" + g_registeringClientCounter++ + " - ";
 
         const registrationClient = OPCUAClientBase.create({
             clientName: prefix + " Registering Client for Server " + this.server.serverInfo.applicationUri!,
-
             applicationName,
-
             applicationUri: this.server.serverInfo.applicationUri!,
- 
             connectionStrategy: infinite_connectivity_strategy,
-
             clientCertificateManager: this.server.serverCertificateManager,
-
             certificateFile: this.server.certificateFile,
             privateKeyFile: this.server.privateKeyFile
         }) as ClientBaseEx;
@@ -425,6 +438,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         this._registration_client = registrationClient;
 
         registrationClient.on("backoff", (nbRetry: number, delay: number) => {
+            if (this.state !== RegisterServerManagerStatus.INITIALIZING) return; // Ignore event if state has changed
             debugLog("RegisterServerManager - received backoff");
             warningLog(
                 registrationClient.clientName,
@@ -436,117 +450,51 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 delay / 1000.0,
                 " seconds"
             );
-            this._emitEvent("serverRegistrationPending");
+            this.#_emitEvent("serverRegistrationPending");
         });
 
-        async.series(
-            [
-                //  do_initial_connection_with_discovery_server
-                (callback: ErrorCallback) => {
-                    registrationClient.connect(this.discoveryServerEndpointUrl, (err?: Error) => {
-                        if (err) {
-                            debugLog(
-                                "RegisterServerManager#_establish_initial_connection " + ": initial connection to server has failed"
-                            );
-                            // xx debugLog(err);
-                        }
-                        return callback(err);
-                    });
-                },
 
-                // getEndpoints_on_discovery_server
-                (callback: ErrorCallback) => {
-                    registrationClient.getEndpoints((err: Error | null, endpoints?: EndpointDescription[]) => {
-                        if (!err) {
-                            const endpoint = findSecureEndpoint(endpoints!);
+        try {
+            await registrationClient.connect(this.discoveryServerEndpointUrl);
 
-                            if (!endpoint) {
-                                throw new Error("Cannot find Secure endpoint");
-                            }
-
-                            if (endpoint.serverCertificate) {
-                                assert(endpoint.serverCertificate);
-                                this.selectedEndpoint = endpoint;
-                            } else {
-                                this.selectedEndpoint = undefined;
-                            }
-                        } else {
-                            debugLog("RegisterServerManager#_establish_initial_connection " + ": getEndpointsRequest has failed");
-                            debugLog(err);
-                        }
-                        callback(err!);
-                    });
-                },
-                // function closing_discovery_server_connection
-                (callback: ErrorCallback) => {
-                    this._serverEndpoints = registrationClient._serverEndpoints;
-
-                    registrationClient.disconnect((err?: Error) => {
-                        this._registration_client = null;
-                        callback(err);
-                    });
-                },
-                // function wait_a_little_bit
-                (callback: ErrorCallback) => {
-                    setTimeout(callback, 10);
-                }
-            ],
-            (err?: Error | null) => {
-                debugLog("-------------------------------", !!err);
-
-                if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
-                    debugLog(
-                        "RegisterServerManager#_establish_initial_connection has been interrupted ",
-                        RegisterServerManagerStatus[this.state]
-                    );
-                    this._setState(RegisterServerManagerStatus.INACTIVE);
-                    if (this._registration_client) {
-                        this._registration_client.disconnect((err2?: Error) => {
-                            this._registration_client = null;
-                            outer_callback(new Error("Initialization has been canceled"));
-                        });
-                    } else {
-                        outer_callback(new Error("Initialization has been canceled"));
-                    }
-                    return;
-                }
-                if (err) {
-                    this._setState(RegisterServerManagerStatus.INACTIVE);
-                    if (this._registration_client) {
-                        this._registration_client.disconnect((err1?: Error) => {
-                            this._registration_client = null;
-                            debugLog("#######", !!err1);
-                            outer_callback(err);
-                        });
-                        return;
-                    }
-                }
-                outer_callback();
+            // Re-check state after the long-running connect operation
+            if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
+                debugLog("RegisterServerManager#_establish_initial_connection: aborted after connection");
+                return;
             }
-        );
+
+            const endpoints: EndpointDescription[] | undefined = await registrationClient.getEndpoints();
+            const endpoint = findSecureEndpoint(endpoints!);
+            if (!endpoint) {
+                throw new Error("Cannot find Secure endpoint");
+            }
+            if (endpoint.serverCertificate) {
+                assert(endpoint.serverCertificate);
+                this.selectedEndpoint = endpoint;
+            } else {
+                this.selectedEndpoint = undefined;
+            }
+
+            this._serverEndpoints = registrationClient._serverEndpoints;
+            await registrationClient.disconnect();
+            this._registration_client = null;
+            await new Promise<void>((resolve) => setTimeout(resolve, 10));
+
+        } catch (err) {
+            this.#_setState(RegisterServerManagerStatus.INACTIVE);
+            throw err;
+        } finally {
+            if (this._registration_client) {
+                await this._registration_client.disconnect();
+                this._registration_client = null;
+            }
+        }
     }
 
-    public _trigger_next(): void {
+    #_trigger_next(): void {
         assert(!this._registrationTimerId);
         assert(this.state === RegisterServerManagerStatus.WAITING);
-        // from spec 1.04 part 4:
-        // The registration process is designed to be platform independent, robust and able to minimize
-        // problems created by configuration errors. For that reason, Servers shall register themselves more
-        // than once.
-        //     Under normal conditions, manually launched Servers shall periodically register with the Discovery
-        // Server as long as they are able to receive connections from Clients. If a Server goes offline then it
-        // shall register itself once more and indicate that it is going offline. The registration frequency
-        // should be configurable; however, the maximum is 10 minutes. If an error occurs during registration
-        // (e.g. the Discovery Server is not running) then the Server shall periodically re-attempt registration.
-        //     The frequency of these attempts should start at 1 second but gradually increase until the
-        // registration frequency is the same as what it would be if no errors occurred. The recommended
-        // approach would be to double the period of each attempt until reaching the maximum.
-        //     When an automatically launched Server (or its install program) registers with the Discovery Server
-        // it shall provide a path to a semaphore file which the Discovery Server can use to determine if the
-        //     Server has been uninstalled from the machine. The Discovery Server shall have read access to
-        // the file system that contains the file
 
-        // install a registration
         debugLog(
             "RegisterServerManager#_trigger_next " + ": installing timeout to perform registerServer renewal (timeout =",
             this.timeout,
@@ -561,209 +509,135 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             this._registrationTimerId = null;
 
             debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
-            this._registerServer(true, (err?: Error | null) => {
+
+            const after_register = (err?: Error) => {
                 if (
                     this.state !== RegisterServerManagerStatus.INACTIVE &&
                     this.state !== RegisterServerManagerStatus.UNREGISTERING
                 ) {
                     debugLog("RegisterServerManager#_trigger_next : renewed !", err);
-                    this._setState(RegisterServerManagerStatus.WAITING);
-                    this._emitEvent("serverRegistrationRenewed");
-                    this._trigger_next();
+                    this.#_setState(RegisterServerManagerStatus.WAITING);
+                    this.#_emitEvent("serverRegistrationRenewed");
+                    this.#_trigger_next();
                 }
-            });
+            };
+
+            this.#_setState(RegisterServerManagerStatus.REGISTERING); // State transition before the call
+            this.#_registerServer(true)
+                .then(() => after_register())
+                .catch((err) => after_register(err));
         }, this.timeout);
     }
 
-    public stop(callback: ErrorCallback): void {
+    public async stop(): Promise<void> {
         debugLog("RegisterServerManager#stop");
 
         if (this._registrationTimerId) {
-            debugLog("RegisterServerManager#stop :clearing timeout");
             clearTimeout(this._registrationTimerId);
             this._registrationTimerId = null;
         }
 
-        this._cancel_pending_client_if_any(() => {
-            debugLog("RegisterServerManager#stop  _cancel_pending_client_if_any done ", this.state);
+        // Immediately set state to signal a stop
+        this.#_setState(RegisterServerManagerStatus.UNREGISTERING);
+        await this.#_cancel_pending_client_if_any();
 
-            if (!this.selectedEndpoint || this.state === RegisterServerManagerStatus.INACTIVE) {
-                this.state = RegisterServerManagerStatus.INACTIVE;
-                assert(this._registrationTimerId === null);
-                return callback();
+        if (this.selectedEndpoint) {
+            try {
+                await this.#_registerServer(false); // isOnline = false
+                this.#_setState(RegisterServerManagerStatus.UNREGISTERED);
+                this.#_emitEvent("serverUnregistered");
+            } catch (err) {
+                warningLog("RegisterServerManager#stop: Unregistration failed.", err);
             }
-            this._registerServer(false, () => {
-                this._setState(RegisterServerManagerStatus.INACTIVE);
-                this._emitEvent("serverUnregistered");
-                callback();
-            });
-        });
+        }
+
+        // Final state transition to INACTIVE
+        this.#_setState(RegisterServerManagerStatus.INACTIVE);
     }
 
     /**
-     * @param isOnline
-     * @param outer_callback
+     * Handles the actual registration/unregistration request.
+     * It is designed to be interruptible by checking the state.
+     * @param isOnline - true for registration, false for unregistration
      * @private
      */
-    public _registerServer(isOnline: boolean, outer_callback: ErrorCallback): void {
-        assert(typeof outer_callback === "function");
+    async #_registerServer(isOnline: boolean): Promise<void> {
+        const expectedState = isOnline ? RegisterServerManagerStatus.REGISTERING : RegisterServerManagerStatus.UNREGISTERING;
+        if (this.state !== expectedState) {
+            debugLog("RegisterServerManager#_registerServer: aborting due to state change");
+            return;
+        }
 
-        debugLog(
-            "RegisterServerManager#_registerServer isOnline:",
-            isOnline,
-            "selectedEndpoint: ",
-            this.selectedEndpoint?.endpointUrl
-        );
+        debugLog("RegisterServerManager#_registerServer isOnline:", isOnline);
 
-        assert(this.selectedEndpoint, "must have a selected endpoint => please call _establish_initial_connection");
-
+        assert(this.selectedEndpoint, "must have a selected endpoint");
         assert(this.server!.serverType !== undefined, " must have a valid server Type");
 
-        // construct connection
         const server = this.server!;
         const selectedEndpoint = this.selectedEndpoint;
-
         if (!selectedEndpoint) {
-            warningLog("Warning : cannot register server - no endpoint available");
-            return outer_callback(new Error("Cannot registerServer"));
+            warningLog("Warning: cannot register server - no endpoint available");
+            throw new Error("Cannot registerServer");
         }
 
         server.serverCertificateManager.referenceCounter++;
-
         const applicationName: string | undefined = coerceLocalizedText(server.serverInfo.applicationName!)?.text || undefined;
-
-        const theStatus = isOnline ? RegisterServerManagerStatus.REGISTERING : RegisterServerManagerStatus.UNREGISTERING;
-
-        if (theStatus === this.state) {
-            warningLog(`Warning the server is already in the ${RegisterServerManagerStatus[theStatus]} state`);
-            return outer_callback();
-        }
-        if (!(this.state === RegisterServerManagerStatus.INITIALIZING || this.state === RegisterServerManagerStatus.WAITING)) {
-            warningLog("Warning : cannot register server - wrong state ", RegisterServerManagerStatus[this.state]);
-            return outer_callback();
-        }
-
-        this._setState(theStatus);
-
-        if (this._registration_client) {
-            warningLog(
-                `Warning there is already a registering/un-registering task taking place:  ${
-                    RegisterServerManagerStatus[this.state]
-                } state`
-            );
-        }
 
         const options: OPCUAClientBaseOptions = {
             securityMode: selectedEndpoint.securityMode,
             securityPolicy: coerceSecurityPolicy(selectedEndpoint.securityPolicyUri),
             serverCertificate: selectedEndpoint.serverCertificate,
-
             clientCertificateManager: server.serverCertificateManager,
-
             certificateFile: server.certificateFile,
             privateKeyFile: server.privateKeyFile,
-
-            // xx clientName: server.serverInfo.applicationUri!,
-
             applicationName,
-
             applicationUri: server.serverInfo.applicationUri!,
-
             connectionStrategy: no_reconnect_connectivity_strategy,
-
-            clientName: "server client to LDS " + RegisterServerManagerStatus[theStatus]
+            clientName: "server client to LDS " + RegisterServerManagerStatus[this.state]
         };
 
         const client = OPCUAClientBase.create(options) as ClientBaseEx;
-
-        const tmp = this._serverEndpoints;
-        client._serverEndpoints = tmp;
         this._registration_client = client;
 
-        debugLog("                      lds endpoint uri : ", selectedEndpoint.endpointUrl);
-        debugLog("                      securityMode     : ", MessageSecurityMode[selectedEndpoint.securityMode]);
-        debugLog("                      securityPolicy   : ", selectedEndpoint.securityPolicyUri);
+        debugLog("lds endpoint uri : ", selectedEndpoint.endpointUrl);
 
-        async.series(
-            [
-                // establish_connection_with_lds
-                (callback: ErrorCallback) => {
-                    client.connect(selectedEndpoint!.endpointUrl!, (err?: Error) => {
-                        debugLog("establish_connection_with_lds => err = ", err);
-                        if (err) {
-                            debugLog("RegisterServerManager#_registerServer connection to client has failed");
-                            debugLog(
-                                "RegisterServerManager#_registerServer  " +
-                                    "=> please check that you server certificate is trusted by the LDS"
-                            );
-                            warningLog(
-                                "RegisterServer to the LDS  has failed during secure connection  " +
-                                    "=> please check that you server certificate is trusted by the LDS.",
-                                "\nerr: " + err.message,
-                                "\nLDS endpoint    :",
-                                selectedEndpoint!.endpointUrl!,
-                                "\nsecurity mode   :",
-                                MessageSecurityMode[selectedEndpoint.securityMode],
-                                "\nsecurity policy :",
-                                coerceSecurityPolicy(selectedEndpoint.securityPolicyUri)
-                            );
-                            // xx debugLog(options);
-                            client.disconnect(() => {
-                                this._registration_client = null;
-                                debugLog("RegisterServerManager#_registerServer client disconnected");
-                                callback(/* intentionally no error propagation*/);
-                            });
-                        } else {
-                            callback();
-                        }
-                    });
-                },
-                (callback: ErrorCallback) => {
-                    if (!this._registration_client) {
-                        callback();
-                        return;
-                    }
-                    sendRegisterServerRequest(this.server!, client as ClientBaseEx, isOnline, (err?: Error | null) => {
-                        callback(/* intentionally no error propagation*/);
-                    });
-                },
-                // close_connection_with_lds
-                (callback: ErrorCallback) => {
-                    if (!this._registration_client) {
-                        callback();
-                        return;
-                    }
-                    client.disconnect(callback);
-                }
-            ],
-            (err?: Error | null) => {
-                if (!this._registration_client) {
-                    debugLog("RegisterServerManager#_registerServer end (isOnline", isOnline, ") has been interrupted");
-                    outer_callback();
-                    return;
-                }
-                this._registration_client.disconnect(() => {
-                    debugLog("RegisterServerManager#_registerServer end (isOnline", isOnline, ")");
-                    this._registration_client = null;
-                    outer_callback(err!);
-                });
+        try {
+            await client.connect(selectedEndpoint!.endpointUrl!);
+
+            // Check state again after connection is established
+            if (this.state !== expectedState) {
+                await client.disconnect(); // Clean up the new connection
+                return; // Exit gracefully
             }
-        );
+
+            await sendRegisterServerRequest(server, client as ClientBaseEx, isOnline);
+
+        } catch (err) {
+            warningLog("RegisterServer to the LDS has failed during secure connection", err);
+            throw err;
+        } finally {
+            if (this._registration_client) {
+                await this._registration_client.disconnect();
+                this._registration_client = null;
+            }
+        }
     }
 
-    private _cancel_pending_client_if_any(callback: () => void) {
+    /**
+     * Cancels any pending client connections.
+     * This is crucial for a clean shutdown.
+     * @private
+     */
+    async #_cancel_pending_client_if_any(): Promise<void> {
         debugLog("RegisterServerManager#_cancel_pending_client_if_any");
-
         if (this._registration_client) {
-            debugLog("RegisterServerManager#_cancel_pending_client_if_any " + "=> wee need to disconnect  _registration_client");
+            debugLog("RegisterServerManager#_cancel_pending_client_if_any " + "=> wee need to disconnect  _registration_client");
 
-            this._registration_client.disconnect(() => {
-                this._registration_client = null;
-                this._cancel_pending_client_if_any(callback);
-            });
+            await this._registration_client.disconnect();
+            this._registration_client = null;
+            await this.#_cancel_pending_client_if_any(); // Recursive call to ensure all are handled
         } else {
             debugLog("RegisterServerManager#_cancel_pending_client_if_any : done (nothing to do)");
-            callback();
         }
     }
 }

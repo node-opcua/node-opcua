@@ -1,0 +1,15 @@
+{
+  "require": [
+    "../../node_modules/source-map-support/register",
+    "../../node_modules/ts-node/register",
+    "../../node_modules/should"
+  ],
+  "recursive": true,
+  "bail": true,
+  "spec": ["test/**/*.ts", "test/**/*.js"],
+  "extension": [
+    "js",
+    "ts"
+  ],
+  "timeout": 50000
+}

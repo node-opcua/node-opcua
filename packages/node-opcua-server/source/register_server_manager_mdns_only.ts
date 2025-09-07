@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
 import { assert } from "node-opcua-assert";
 import { BonjourHolder } from "node-opcua-service-discovery";
 import { OPCUABaseServer } from "./base_server";
-import { IRegisterServerManager } from "./i_register_server_manager";
+import { IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
 /**
  * a RegisterServerManager that declare the server the OPCUA Bonjour service
@@ -18,6 +18,7 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
 
     private server?: OPCUABaseServer;
     private bonjour: BonjourHolder;
+    private _state: RegisterServerManagerStatus = RegisterServerManagerStatus.NOT_APPLICABLE;
 
     constructor(options: { server: OPCUABaseServer }) {
         super();
@@ -25,18 +26,21 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         assert(this.server);
         assert(this.server instanceof OPCUABaseServer);
         this.bonjour = new BonjourHolder();
+        this._state = RegisterServerManagerStatus.INITIALIZING;
     }
 
-    public stop(callback: () => void): void {
+    public async stop(): Promise<void> {
         if (this.bonjour) {
-            this.bonjour.stopAnnouncedOnMulticastSubnetWithCallback(()=>{
+
+            this._state = RegisterServerManagerStatus.UNREGISTERING;
+            this.bonjour.stopAnnouncedOnMulticastSubnetWithCallback(() => {
                 this.emit("serverUnregistered");
-                setImmediate(callback);
+                this._state = RegisterServerManagerStatus.INACTIVE;
             });
         }
     }
 
-    public start(callback: () => void): void {
+    public async start(): Promise<void> {
         // istanbul ignore next
         if (!this.server) {
             throw new Error("internal error");
@@ -44,15 +48,24 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         assert(this.server instanceof OPCUABaseServer);
 
         const host = "TODO-find how to extract hostname";
-        this.bonjour.announcedOnMulticastSubnetWithCallback({
-            capabilities: this.server.capabilitiesForMDNS,
-            name: this.server.serverInfo.applicationUri!,
-            path: "/", // <- to do
-            host,
-            port: this.server.endpoints[0].port
-        }, ()=>{
-            this.emit("serverRegistered");
-            setImmediate(callback);
+        const capabilities = this.server.capabilitiesForMDNS;
+        const name = this.server.serverInfo.applicationUri!;
+        const port = this.server.endpoints[0].port;
+
+
+        await new Promise<void>((resolve) => {
+            this._state =RegisterServerManagerStatus.REGISTERING;
+            this.bonjour.announcedOnMulticastSubnetWithCallback({
+                capabilities: capabilities,
+                name: name,
+                path: "/", // <- to do
+                host,
+                port: port 
+            }, () => {
+                this._state = RegisterServerManagerStatus.WAITING;
+                this.emit("serverRegistered");
+                setImmediate(() => resolve());
+            });
         });
     }
 
@@ -60,5 +73,8 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         assert(!this.bonjour.isStarted());
         assert(this.server);
         this.server = undefined;
+    }
+    public getState(): RegisterServerManagerStatus {
+        return this._state;
     }
 }

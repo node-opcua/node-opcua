@@ -2,7 +2,7 @@
  * @module node-opcua-server
  */
 import { EventEmitter } from "events";
-import { IRegisterServerManager } from "./i_register_server_manager";
+import { IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
 /**
  * a IRegisterServerManager that hides the server from any local discover server
@@ -17,15 +17,16 @@ export class RegisterServerManagerHidden extends EventEmitter implements IRegist
         super();
     }
 
-    public stop(callback: () => void): void {
-        setImmediate(callback);
+    public async stop(): Promise<void> {
     }
 
-    public start(callback: () => void): void {
-        setImmediate(callback);
+    public async start(): Promise<void> {
     }
 
     public dispose(): void {
         //
+    }
+    public getState(): RegisterServerManagerStatus {
+        return RegisterServerManagerStatus.NOT_APPLICABLE;
     }
 }
