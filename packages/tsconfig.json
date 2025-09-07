@@ -12,19 +12,16 @@
     "include": [],
     "references": [
         {
-            "path": "node-opcua-end2end-test"
-        },
-        {
             "path": "node-opcua-leak-detector"
         },
         {
             "path": "node-opcua-local-discovery-server"
         },
         {
-            "path": "node-opcua-modeler"
+            "path": "node-opcua-client"
         },
         {
-            "path": "node-opcua-vendor-diagnostic"
+            "path": "node-opcua-server"
         },
         {
             "path": "node-opcua"
@@ -159,15 +156,6 @@
             "path": "node-opcua-pseudo-session"
         },
         {
-            "path": "node-opcua-samples"
-        },
-        {
-            "path": "node-opcua-server"
-        },
-        {
-            "path": "node-opcua-server"
-        },
-        {
             "path": "node-opcua-service-secure-channel"
         },
         {
@@ -181,6 +169,18 @@
         },
         {
             "path": "node-opcua-units"
+        },
+        {
+            "path": "node-opcua-end2end-test"
+        },
+        {
+            "path": "node-opcua-samples"
+        },
+        {
+            "path": "node-opcua-modeler"
+        },
+        {
+            "path": "node-opcua-vendor-diagnostic"
         }
     ]
 }
