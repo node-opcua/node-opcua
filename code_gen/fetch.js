@@ -310,6 +310,10 @@ fetch_from_github(version, "PADIM/Opc.Ua.PADIM.NodeSet2.xml");
 fetch_from_github(version, "IJT/Base/Opc.Ua.Ijt.Base.NodeSet2.xml");
 fetch_from_github(version, "IJT/Tightening/Opc.Ua.Ijt.Tightening.NodeSet2.xml");
 fetch_from_github(version, "Scales/Opc.Ua.Scales.NodeSet2.xml");
+fetch_from_github(version, "LADS/Opc.Ua.LADS.NodeSet2.xml");
+fetch_from_github(version, "Weihenstephan/Opc.Ua.Weihenstephan.NodeSet2.xml");
+
+
 /*
 fetch_from_github(version, "PlasticsRubber/Extrusion/Pelletizer/1.0/Opc.Ua.PlasticsRubber.Extrusion.Pelletizer.NodeSet2.xml");
 fetch_from_github(version, "ADI/Opc.Ua.Adi.Types.bsd");
