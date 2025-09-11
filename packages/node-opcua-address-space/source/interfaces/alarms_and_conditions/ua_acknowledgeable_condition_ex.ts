@@ -7,6 +7,8 @@ import { UAConditionEx, UAConditionHelper } from "./ua_condition_ex";
 
 export interface UAAcknowledgeableConditionHelper {
     autoConfirmBranch(branch: ConditionSnapshot, comment: LocalizedTextLike): void;
+
+
     acknowledgeAndAutoConfirmBranch(branch: ConditionSnapshot, comment: string | LocalizedTextLike | LocalizedText): void;
 }
 
