@@ -25,7 +25,7 @@ import {
     VariantArrayType
 } from "node-opcua";
 import "should";
-
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -111,7 +111,6 @@ export function t(test: any) {
         }
     }
 
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("Monitoring item tests", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 

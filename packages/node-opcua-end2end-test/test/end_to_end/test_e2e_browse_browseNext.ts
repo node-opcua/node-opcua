@@ -1,5 +1,4 @@
-// tslint:disable:no-var-requires
-// tslint:disable:no-empty
+
 import "should";
 
 import {
@@ -17,11 +16,12 @@ import {
 import { spy } from "sinon";
 import should from "should";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 const doDebug = false;
 
 // #519_NodeCrawler is not browsing some nodes
 // #889
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("testing browse & browseNext", () => {
     let server: OPCUAServer;
     let endpointUrl: any;

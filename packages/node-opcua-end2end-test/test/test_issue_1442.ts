@@ -10,14 +10,14 @@ import {
     ClientSession,
     nodesets,
 } from "node-opcua"
+
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 
 
 
 
 const port = 2025;
-
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("issue_1442", function (this: any) {
     this.timeout(60* 10 * 1000);
 

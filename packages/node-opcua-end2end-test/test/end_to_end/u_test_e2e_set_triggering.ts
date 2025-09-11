@@ -30,6 +30,7 @@ import {
 } from "node-opcua";
 import sinon from "sinon";
 import should from "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
@@ -137,7 +138,6 @@ export function t(test: any) {
     const linkedValue1NodeId = "ns=1;s=LinkedValue1";
     const linkedValue2NodeId = "ns=1;s=LinkedValue2";
 
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("SetTriggering", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 

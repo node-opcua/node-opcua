@@ -46,7 +46,7 @@ async function createServer() {
 }
 
 // tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Test server monitored Item hooks", () => {
     let server: OPCUAServer;
     before(async () => {

@@ -2,9 +2,10 @@ import async from "async";
 import { OPCUAClient, OPCUAServer, ErrorCallback } from "node-opcua";
 
 // declare function build_server_with_temperature_device(...args: any[]): void;
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import  { 
+    build_server_with_temperature_device
+ } from "../../test_helpers/build_server_with_temperature_device";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 const port = 2005;
 

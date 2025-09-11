@@ -17,7 +17,7 @@ import {
 
 const port = 2076;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Testing Historical Data Node historyRead with continuation points", () => {
     const today = new Date("2017-01-01T00:00:00.000Z");
     let server: OPCUAServer;

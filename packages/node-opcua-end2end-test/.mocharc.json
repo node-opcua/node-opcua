@@ -6,7 +6,8 @@
   ],
   "recursive": true,
   "bail": true,
-  "spec": ["test/**/*.ts", "test/**/*.js"],
+  "spec": [
+    ],
   "extension": [
     "js",
     "ts"

@@ -186,7 +186,7 @@ async function buildServer() {
     return server;
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("test complex dataStructure in thightning", () => {
     let server: OPCUAServer;
     before(async () => {

@@ -4,8 +4,8 @@ import {
     readOperationLimits,
     readServerCapabilities
 } from "node-opcua";
-import should from "should";
-
+import "should";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -13,7 +13,6 @@ const doDebug = checkDebugFlag("TEST");
 
 export function t(test: any) {
 
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("Verifying #1375", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 

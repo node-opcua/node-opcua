@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-import path from "path";
 import os from "os";
 import "should";
 import { types } from "util";
@@ -18,7 +16,15 @@ import {
     ServerSession
 } from "node-opcua";
 
-import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import {
+    checkDebugFlag,
+    make_debugLog,
+    make_errorLog,
+    make_warningLog
+} from "node-opcua-debug";
+import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 const debugLog = make_debugLog("TEST");
 const warningLog = make_warningLog("TEST");
 const errorLog = make_errorLog("TEST");
@@ -29,7 +35,6 @@ const port2 = 3018;
 
 Error.stackTraceLimit = Infinity;
 
-import { createServerCertificateManager } from "../test_helpers/createServerCertificateManager";
 
 let server: OPCUAServer;
 
@@ -155,8 +160,6 @@ function dumpEndpoints(endpoints: EndpointDescription[]): void {
     }
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing server with alternate names", () => {
     before(async () => {
         await startServer();

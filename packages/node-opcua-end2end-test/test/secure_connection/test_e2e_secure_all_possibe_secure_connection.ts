@@ -1,5 +1,3 @@
-"use strict";
-
 // http://opcfoundation.org/UA/SecurityPolicy#Basic256
 Error.stackTraceLimit = Infinity;
 import path from "path";
@@ -32,8 +30,17 @@ import {
     ServerSecureChannelLayer,
     OPCUAClientBase
 } from "node-opcua";
-import { CertificateAuthority } from "node-opcua-pki";
-import { readCertificateRevocationList, readCertificate, Certificate, exploreCertificate, split_der } from "node-opcua-crypto";
+import {
+    CertificateAuthority
+} from "node-opcua-pki";
+import {
+    readCertificateRevocationList,
+    readCertificate,
+    Certificate,
+    exploreCertificate, 
+    split_der
+} from "node-opcua-crypto";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
@@ -48,7 +55,6 @@ console.log("NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = ", NODE_NO_SUPPORT_SECURIT
 
 const port = 2236;
 
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 const g_defaultSecureTokenLifetime = 30 * 1000; // ms
 const g_tokenRenewalInterval = 200; // renew token as fast as possible
@@ -570,7 +576,7 @@ function perform_collection_of_test_with_various_client_configuration(prefix?: s
 }
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 describe("ZZB- testing Secure Client-Server communication", function (this: any) {
     this.timeout(Math.max(this.timeout(), 20001));

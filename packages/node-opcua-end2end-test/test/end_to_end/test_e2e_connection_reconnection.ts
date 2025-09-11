@@ -25,9 +25,9 @@ import {
 } from "node-opcua";
 import chalk from "chalk";
 import "mocha";
-
 import { readCertificate } from "node-opcua-crypto";
-
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { make_debugLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
 
 const debugLog = make_debugLog("TEST");
@@ -36,7 +36,6 @@ const doDebug = checkDebugFlag("TEST");
 
 const port = 2014;
 
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
 const fail_fast_connectivity_strategy = {
     maxRetry: 1,
@@ -64,10 +63,9 @@ const infinite_connectivity_strategy = {
     randomisationFactor: 0
 };
 
-const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
+import { fAsync } from "../../test_helpers/display_function_name";
+const f = fAsync.bind(null, doDebug);
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("KJH1 testing basic Client-Server communication", function (this: Mocha.Test) {
     let server: OPCUAServer;
     let client: OPCUAClient;

@@ -17,7 +17,8 @@ import {
 } from "node-opcua";
 
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { createServerThatRegistersItselfToTheDiscoveryServer, f, pause, startDiscovery } from "./_helper";
+import { createServerThatRegistersItselfToTheDiscoveryServer, f, pause, startDiscovery, tweak_registerServerManager_timeout } from "./_helper";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -28,7 +29,6 @@ const port1 = 12401;
 const discovery_port = 12402;
 
 export function t(test: any) {
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DISCO4 - NodeRed -  testing frequent server restart within same process", function () {
         /**
          * This test simulates the way node-red will frequently start and restart
@@ -282,10 +282,7 @@ export function t(test: any) {
 
         });
 
-        const tweak_registerServerManager_timeout = (server: OPCUAServer, timeout: number) => {
-            Object.prototype.hasOwnProperty.call(server.registerServerManager, "timeout").should.eql(true);
-            (server.registerServerManager as any).timeout = 100;
-        }
+
         it("DISCO4-E - should cancel a client that cannot connect - on standard LocalDiscoveryServer", async () => {
             const server = new OPCUAServer({
                 port: port1,

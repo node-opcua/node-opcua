@@ -1,11 +1,13 @@
+import {
+    AttributeIds, 
+    OPCUAClient, 
+    ClientSession, 
+    ClientSubscription
+} from "node-opcua";
 
-"use strict";
-import should from "should";
-
-import { makeNodeId, DataType, AttributeIds, OPCUAClient, ClientSession, ClientSubscription } from "node-opcua";
-
-// tslint:disable-next-line: no-var-requires
-const { perform_operation_on_subscription_async } = require("../../test_helpers/perform_operation_on_client_session");
+import {
+    perform_operation_on_subscription_async
+} from "../../test_helpers/perform_operation_on_client_session";
 
 export function t(test: any) {
     describe("write multi-dimensional-array", () => {
@@ -18,7 +20,7 @@ export function t(test: any) {
         });
         it("MDA-1 DA", async () => {
             await perform_operation_on_subscription_async(
-                client,
+                client!,
                 test.endpointUrl,
                 async (session: ClientSession, subscription: ClientSubscription) => {
                     const namespaceArray = await session.readNamespaceArray();
