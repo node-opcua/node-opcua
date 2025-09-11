@@ -3,12 +3,11 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, implementInterface } from "..";
 import { generateAddressSpace } from "../distNodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing object instantiation with Interfaces - case 1", () => {
 
     let addressSpace: AddressSpace;

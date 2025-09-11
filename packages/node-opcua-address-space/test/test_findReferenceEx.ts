@@ -2,13 +2,10 @@
 import chalk from "chalk";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-
 import { generateAddressSpace } from "../nodeJS";
-
 import { AddressSpace, BaseNode, UAReference } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing findReferencesEx", () => {
     const nodesetFilename = nodesets.standard;
 

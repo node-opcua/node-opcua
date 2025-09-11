@@ -6,9 +6,8 @@ import { getFixture } from "node-opcua-test-fixtures";
 
 import { generateAddressSpace } from "../nodeJS";
 import { AddressSpace } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 132", function (this: any) {
     this.timeout(Math.max(40000,this.timeout()));
 

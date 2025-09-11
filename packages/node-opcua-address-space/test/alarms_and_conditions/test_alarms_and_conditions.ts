@@ -13,9 +13,8 @@ import { utest_issue_316 } from "./utest_issue_316";
 import { utest_limit_alarm } from "./utest_limit_alarm";
 import { utest_non_exclusive_deviation_alarm } from "./utest_non_exclusive_deviation_alarm";
 import { utest_off_normal_alarm } from "./utest_off_normal_alarm";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : Conditions 1", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

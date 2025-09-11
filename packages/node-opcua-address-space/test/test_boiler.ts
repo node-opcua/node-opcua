@@ -5,13 +5,11 @@ import should from "should";
 import { generateAddressSpace } from "../nodeJS";
 import { SessionContext, UAStateMachineEx } from "..";
 import { AddressSpace, BaseNode, Namespace, UAProgramStateMachineEx, promoteToStateMachine } from "..";
-
 import { createBoilerType, makeBoiler } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Boiler System", () => {
     function getBrowseName(x: BaseNode): string {
         return x.browseName.toString();

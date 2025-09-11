@@ -23,13 +23,12 @@ import {
     UAVariable
 } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 // make sure extra error checking is made on object constructions
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("FSM1 - Finite State Machine - general tests", () => {
     let addressSpace: AddressSpace;
 

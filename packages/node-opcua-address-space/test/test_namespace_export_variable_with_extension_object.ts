@@ -8,9 +8,8 @@ import { Variant } from "node-opcua-variant";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 import { UAVariableImpl } from "../dist/src/ua_variable_impl";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Advanced nodeset to XML", () => {
 
     const nodesetFilename = path.join(__dirname, "../test_helpers/test_fixtures/nodeset_with_extensionObjects_datatype.xml");

@@ -7,9 +7,8 @@ import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing loading ExtensionObject value from NodeSet XML file", function (this: any) {
     this.timeout(Math.max(this.timeout(), 30000)); // could be slow on appveyor !
 

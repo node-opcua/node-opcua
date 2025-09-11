@@ -6,12 +6,11 @@ import { StatusCodes } from "node-opcua-status-code";
 import { ReadValueIdOptions } from "node-opcua-types";
 
 import { DataType } from "node-opcua-basic-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { AddressSpace, PseudoSession } from "..";
 
 import { getMiniAddressSpace } from "../testHelpers";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("PseudoSession", () => {
     let addressSpace: AddressSpace;
     let session: PseudoSession;

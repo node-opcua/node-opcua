@@ -7,6 +7,7 @@ import { Variant } from "node-opcua-variant";
 
 import { AddressSpace, UAObject, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 interface MyCustomObject extends UAObject {
     customProperty: UAVariable;
@@ -37,8 +38,6 @@ function findOrCreateCustomObjectType(addressSpace: AddressSpace) {
     return myCustomObjectType;
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Issue 162 : demonstrate how to modify an instantiate object variable", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 

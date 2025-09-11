@@ -3,11 +3,9 @@ import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { generateAddressSpace } from "../nodeJS";
 import { AddressSpace, Namespace, NamespaceOptions } from "..";
-
 import { BoilerType, createBoilerType } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic string nodeid assignment", () => {
     const nodesetFilename = nodesets.standard;
 

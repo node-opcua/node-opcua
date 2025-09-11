@@ -12,6 +12,7 @@ import { WriteValue, WriteValueOptions } from "node-opcua-types";
 import { StatusCodeCallback } from "node-opcua-status-code";
 import { VariableTypeIds } from "node-opcua-constants";
 import { getCurrentClock } from "node-opcua-date-time";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const nodeset_filename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
@@ -30,8 +31,6 @@ import { create_minimalist_address_space_nodeset } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Variables ", () => {
     // eslint-disable-next-line max-statements
     it("ZZ1- a variable should return attributes with  the expected data type ", () => {

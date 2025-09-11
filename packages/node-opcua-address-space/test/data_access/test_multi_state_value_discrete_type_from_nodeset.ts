@@ -6,11 +6,17 @@ import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType } from "node-opcua-variant";
 
-import { AddressSpace, UAVariable, UAMultiStateValueDiscreteEx, UAMultiStateDiscreteEx, validateIsNumericDataType } from "../..";
+import {
+    AddressSpace,
+    UAVariable,
+    UAMultiStateValueDiscreteEx,
+    UAMultiStateDiscreteEx,
+    validateIsNumericDataType
+} from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 describe("MultiStateValueDiscreteType - 2", () => {
     let addressSpace: AddressSpace;
     const data = { addressSpace: null as any };

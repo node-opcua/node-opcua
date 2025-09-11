@@ -6,15 +6,13 @@ import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, getSymbols, SessionContext, setSymbols, UAObject } from "..";
 import { addDefaultInstanceBrowseName, instantiateAddIn } from "..";
 import { generateAddressSpace } from "../distNodeJS";
-import { set } from "lodash";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const context = SessionContext.defaultContext;
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UAObjectType instantiate with addins", () => {
     let addressSpace: AddressSpace;
 

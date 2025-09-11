@@ -7,9 +7,8 @@ import { resolveNodeId } from "node-opcua-nodeid";
 import { BrowseDescriptionOptions } from "node-opcua-types";
 import { AddressSpace, dumpBrowseDescription, dumpReferences } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space", () => {
     let addressSpace: AddressSpace;
     before(async () => {

@@ -11,14 +11,13 @@ import should from "should";
 
 import { AddressSpace, Namespace, SessionContext, UAReference } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 function findReference(references: UAReference[], nodeId: NodeId): UAReference[] {
     assert(nodeId instanceof NodeId);
     return references.filter((r: UAReference) => r.nodeId.toString() === nodeId.toString());
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

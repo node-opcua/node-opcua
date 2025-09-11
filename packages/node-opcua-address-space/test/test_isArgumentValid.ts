@@ -9,6 +9,7 @@ import { Variant, DataType, VariantArrayType } from "node-opcua-variant";
 import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { isArgumentValid } from "../source/helpers/argument_list";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
@@ -19,8 +20,6 @@ interface TestCase {
     invalid: Variant[];
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

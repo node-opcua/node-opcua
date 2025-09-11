@@ -6,11 +6,10 @@ import should from "should";
 import { AddressSpace, SessionContext, UADataType } from "..";
 
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const context = SessionContext.defaultContext;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UADataype -  Attribute", () => {
     let addressSpace: AddressSpace;
     before(async () => {

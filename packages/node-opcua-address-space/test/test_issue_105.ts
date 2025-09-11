@@ -1,11 +1,10 @@
 import should from "should";
 import { AddressSpace, Namespace } from "../";
 import { assertHasMatchingReference, getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-const createTemperatureSensorType = require("./fixture_temperature_sensor_type").createTemperatureSensorType;
+const { createTemperatureSensorType } = require("./fixture_temperature_sensor_type");
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/105", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

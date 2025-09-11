@@ -1,8 +1,7 @@
 import "should";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("registerShutdownTask", () => {
     it("should run shutdown tasks in correct order", async () => {
         const addressSpace = await getMiniAddressSpace();

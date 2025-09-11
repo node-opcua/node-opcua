@@ -15,9 +15,8 @@ import {
     UAVariable
 } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Extension Object Array Node (or Complex Variable)", () => {
     let addressSpace: AddressSpace;
     before(async () => {

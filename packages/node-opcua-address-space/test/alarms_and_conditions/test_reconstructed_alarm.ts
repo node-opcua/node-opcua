@@ -8,6 +8,7 @@ import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace, instantiateCertificateExpirationAlarm } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const fakeCertificate = Buffer.from(
     `
@@ -75,7 +76,6 @@ async function makeDump(): Promise<string> {
     return filename;
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Reconstructed alarm", function () {
     let addressSpace: AddressSpace;
     before(async () => {

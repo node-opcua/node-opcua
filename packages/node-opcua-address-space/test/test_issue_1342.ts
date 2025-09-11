@@ -6,7 +6,9 @@ import { Variant } from "node-opcua-variant";
 import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+
+
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/1342", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 20000));
     let addressSpace: AddressSpace;

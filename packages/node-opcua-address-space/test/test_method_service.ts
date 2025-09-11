@@ -13,11 +13,10 @@ import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, UAMethod, UAObject } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("CallRequest on custom method", () => {
     let addressSpace: AddressSpace;
     before(async () => {

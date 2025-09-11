@@ -9,11 +9,11 @@ import { readCertificate} from "node-opcua-crypto";
 
 import { AddressSpace, instantiateCertificateExpirationAlarm, UACertificateExpirationAlarmEx } from "../..";
 import { generateAddressSpace } from "../../distNodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 export const OneDayDuration = 1000 * 60 * 60 * 24;
 export const TwoWeeksDuration = OneDayDuration * 2 * 7;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test Certificate alarm", function (this: Mocha.Suite) {
     let clock: sinon.SinonFakeTimers | undefined;
     function getExpiryDate(certificateBuffer: Buffer): Date {

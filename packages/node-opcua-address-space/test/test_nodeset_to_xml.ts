@@ -12,6 +12,7 @@ import { DataTypeIds } from "node-opcua-constants";
 import { ThreeDCartesianCoordinates } from "node-opcua-types";
 import { AddressSpace, Namespace, UAVariable, UARootFolder, BaseNode } from "..";
 import { createBoilerType, getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { generateAddressSpace } from "../nodeJS";
 
@@ -38,8 +39,6 @@ function dumpXml(node: BaseNode): string {
 
 const doDebug = checkDebugFlag("TEST");
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing nodeset to xml", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

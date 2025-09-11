@@ -3,9 +3,8 @@ import should from "should";
 import { NodeClass } from "node-opcua-data-model";
 import { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

@@ -11,6 +11,7 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 import { CallMethodResultOptions, PermissionType, ReadRawModifiedDetails, RolePermissionTypeOptions } from "node-opcua-types";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import {
     AddressSpace,
     UAObject,
@@ -30,8 +31,6 @@ const keep_should = should;
 
 import { date_add, getMiniAddressSpace } from "../testHelpers";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Variable#setPermissions & checkPermission", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

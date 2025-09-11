@@ -10,6 +10,7 @@ import { DataType } from "node-opcua-variant";
 import { nodesets, constructNodesetFilename } from "node-opcua-nodesets";
 import { AddressSpace, UARootFolder, UAAnalogItem, UAObject, UAObjectType } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 interface MyCustomType extends UAObjectType {
     temperature: UAAnalogItem<number, DataType.Double>;
@@ -40,9 +41,6 @@ function createCustomType(addressSpace: AddressSpace): MyCustomType {
     assert(customTypeNode.temperature!.browseName.toString() === "1:Temperature");
     return customTypeNode;
 }
-
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new DataType ", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 

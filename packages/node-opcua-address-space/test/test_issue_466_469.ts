@@ -5,9 +5,8 @@ import should from "should";
 import { AddressSpace, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { get_mini_nodeset_filename } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing display name in ObjectType and VariableType & Method #469 #466", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

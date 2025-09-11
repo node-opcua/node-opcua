@@ -10,13 +10,12 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { AddressSpace, SessionContext, UAVariableType } from "..";
 import { create_minimalist_address_space_nodeset } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 const _should = should;
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing UAVariableType", () => {
     let addressSpace: AddressSpace;

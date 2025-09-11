@@ -8,11 +8,10 @@ import { CallMethodResultOptions, NodeClass } from "node-opcua-types";
 import { AddressSpace, Namespace, UARootFolder, UAMethod, ISessionContext, PseudoSession } from "..";
 import { SessionContext } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const context = SessionContext.defaultContext;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Method -  Attribute UserExecutable & Executable on Method ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

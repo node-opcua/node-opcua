@@ -1,13 +1,10 @@
 import should from "should";
-
 import { BrowseDirection } from "node-opcua-data-model";
 import { sameNodeId } from "node-opcua-nodeid";
-
 import { AddressSpace, UAObject, UAObjectType, UAReferenceType, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", () => {
     let addressSpace: AddressSpace;
 

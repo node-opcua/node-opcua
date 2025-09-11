@@ -1,8 +1,7 @@
 import { coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#625 automatic string nodeid assignment", () => {
     let addressSpace: AddressSpace;
     before(async () => {

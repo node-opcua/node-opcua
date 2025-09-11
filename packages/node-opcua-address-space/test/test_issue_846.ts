@@ -11,8 +11,8 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { AddressSpace, UAObject, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { UAVariable } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#899 Variable with NodeId Value in nodeset2.xml", () => {
     let addressSpace: AddressSpace;
     before(async () => {

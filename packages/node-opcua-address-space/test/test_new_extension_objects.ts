@@ -10,8 +10,8 @@ import { DataType, Variant } from "node-opcua-variant";
 import { AddressSpace, adjustNamespaceArray } from "..";
 import { PseudoSession } from "..";
 import { generateAddressSpace } from "../distNodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test Extension Object in pure 1.04 version (only DataTypeDefinition available)", () => {
     let addressSpace: AddressSpace;
     before(async () => {
