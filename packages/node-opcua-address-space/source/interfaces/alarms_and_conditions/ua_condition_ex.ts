@@ -51,6 +51,8 @@ export interface UAConditionHelper extends UABaseEventHelper {
     raiseNewCondition(conditionInfo: ConditionInfoOptions): void;
     raiseNewBranchState(branch: ConditionSnapshot): void;
     currentBranch(): ConditionSnapshot;
+    findBranchForEventId(eventId: Buffer| null): ConditionSnapshot | null;
+
 }
 
 export interface UAConditionEx extends UAObject, UACondition_Base, UAConditionHelper {

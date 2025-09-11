@@ -19,7 +19,6 @@ export interface UAAlarmConditionHelper extends UAAcknowledgeableConditionHelper
     getInputNodeValue(): any | null;
     updateState(): void;
     getCurrentConditionInfo(): ConditionInfo;
-
     installInputNodeMonitoring(inputNode: BaseNode | NodeId): void;
 }
 

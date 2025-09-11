@@ -173,7 +173,7 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         const comment = inputArguments[1].value;
         assert(comment instanceof LocalizedText);
 
-        const branch = conditionNode._findBranchForEventId(eventId);
+        const branch = conditionNode.findBranchForEventId(eventId);
         if (!branch) {
             callback(null, {
                 statusCode: StatusCodes.BadEventIdUnknown
@@ -607,11 +607,12 @@ export class UAConditionImpl extends UABaseEventImpl implements UAConditionEx {
         // xx }
     }
 
-    protected _findBranchForEventId(eventId: Buffer): ConditionSnapshot | null {
+    public findBranchForEventId(eventId: Buffer| null): ConditionSnapshot | null {
         if (sameBuffer(this.eventId!.readValue().value.value, eventId)) {
             return this.currentBranch();
         }
-        const e = [...this._branches.values()].filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
+        const e = [...this._branches.values()]
+                    .filter((branch: ConditionSnapshot) => sameBuffer(branch.getEventId(), eventId));
         if (e.length === 1) {
             return e[0];
         }
