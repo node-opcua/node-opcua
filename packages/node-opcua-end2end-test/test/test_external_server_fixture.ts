@@ -1,6 +1,10 @@
 import path from "path";
 
-const { start_simple_server, stop_simple_server, crash_simple_server } = require("../test_helpers/external_server_fixture");
+import { 
+    start_simple_server, 
+    stop_simple_server,
+    crash_simple_server 
+} from "../test_helpers/external_server_fixture";
 
 const port = 4891;
 describe("testing external fixture server", function () {

@@ -57,7 +57,7 @@ async function startServerWithHA() {
     return server;
 }
 // tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("test readAggregateValue", () => {
     let server: OPCUAServer;
     let endpointUrl: string;

@@ -1,43 +1,9 @@
 // tslint:disable: no-shadowed-variable
 // tslint:disable: no-console
 import {
-    AddressSpace,
-    assert,
-    AttributeIds,
-    ClientMonitoredItem,
-    ClientSession,
-    ClientSessionRawSubscriptionService,
-    ClientSidePublishEngine,
-    ClientSubscription,
     ClientSubscriptionOptions,
-    coerceNodeId,
-    DataChangeFilter,
-    DataChangeNotification,
-    DataChangeTrigger,
-    DataType,
-    DataValue,
-    DeadbandType,
-    ExtensionObject,
-    getCurrentClock,
-    makeBrowsePath,
-    MonitoredItem,
-    MonitoredItemNotification,
-    MonitoringMode,
-    MonitoringParametersOptions,
-    Namespace,
-    NodeIdLike,
-    NotificationMessage,
-    OPCUAClient,
-    Range,
-    ServerSidePublishEngine,
-    SetTriggeringRequestOptions,
-    StatusCode,
-    StatusCodes,
-    TimestampsToReturn,
-    UAVariable
-} from "node-opcua";
-import sinon from "sinon";
-import should from "should";
+    OPCUAClient} from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -47,7 +13,6 @@ async function pause(delay: number): Promise<void> {
 }
 export function t(test: any) {
     const options = {};
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("ClientSubscription#modify", function (this: any) {
         it("should modify subscription parameters", async () => {
             const client = OPCUAClient.create({});

@@ -2,7 +2,7 @@ import os from "os";
 import { ClientSession, DataType, DiagnosticInfo, OPCUAClient, OPCUAServer, StatusCodes } from "node-opcua";
 import should from "should";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("list status codes for input arguments", () => {
     const port = 2002;
     const server = new OPCUAServer({

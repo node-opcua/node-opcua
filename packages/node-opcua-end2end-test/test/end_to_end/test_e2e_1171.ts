@@ -15,7 +15,7 @@ import {
 } from "node-opcua";
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Testing bug #1171- Subscription with Variable with restricted access", function () {
     const port = 1171;
     let server: OPCUAServer;

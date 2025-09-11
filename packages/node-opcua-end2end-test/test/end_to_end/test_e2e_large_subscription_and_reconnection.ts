@@ -5,7 +5,7 @@ const port = 3020;
 async function pause(ms: number) {
     return await new Promise((resolve) => setTimeout(resolve, ms));
 }
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("[CLIENT] recreating large subscription during reconnection", () => {
 
     let server: OPCUAServer;

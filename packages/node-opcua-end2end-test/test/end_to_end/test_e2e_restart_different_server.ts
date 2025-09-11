@@ -106,7 +106,7 @@ async function createServerVersion3() {
 }
 
 // tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Test dataTypeManager lifecycle during client reconnection ", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 

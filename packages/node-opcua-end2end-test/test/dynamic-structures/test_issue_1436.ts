@@ -12,9 +12,9 @@ import {
     UserTokenType,
     AttributeIds
 } from "node-opcua"
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const port = 2024; // use a unit port number to allow test serialization
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("issue_1436", function (this: any) {
 
     this.timeout(10 * 1000);

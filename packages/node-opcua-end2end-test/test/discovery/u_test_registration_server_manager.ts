@@ -1,10 +1,11 @@
 import os from "os";
 import "should";
-import async from "async";
 import { make_debugLog } from "node-opcua-debug";
 import { OPCUAServer, OPCUADiscoveryServer, RegisterServerMethod, makeApplicationUrn } from "node-opcua";
 
 import { createDiscovery, createServerThatRegistersItselfToTheDiscoveryServer, f, fa, pause } from "./_helper";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 const debugLog = make_debugLog("TEST");
 
 const port = 1435;
@@ -13,7 +14,6 @@ const port = 1435;
 const port_discovery = 1436;
 
 export function t() {
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DISCO7 - Discovery server", function (this: any) {
         this.timeout(Math.max(50000, this.timeout()));
 

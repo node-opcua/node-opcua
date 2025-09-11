@@ -11,14 +11,13 @@ import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
 import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
 import { createAndStartServer, ep, startDiscovery, pause } from "./_helper";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 // add the tcp/ip endpoint with no security
 
-// tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
     describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
         this.timeout(Math.max(40000,this.timeout()));

@@ -4,7 +4,7 @@ import sinon from "sinon";
 import { AttributeIds, DataType, DataValue, OPCUAClient, ReadValueIdOptions, WriteValueOptions } from "node-opcua";
 import { ClientSecureChannelLayer } from "../../../node-opcua-secure-channel/dist/source/client/client_secure_channel_layer";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 export function t(test: any) {
     describe("Testing Client Connection ", function (this: any) {
         it("TCC1 - it should raise an error if connect is called with an empty endpoint", async () => {

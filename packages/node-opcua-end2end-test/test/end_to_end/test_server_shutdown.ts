@@ -133,7 +133,7 @@ function f<T, T2>(func: (a?: T2) => Promise<T>): (a?: T2) => Promise<T> {
     };
 }
 // tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Testing server shutdown", () => {
     it("should change state and update secondTillShutdown", async () => {
         const server = await f(given_a_running_server)();

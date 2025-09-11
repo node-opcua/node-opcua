@@ -53,7 +53,7 @@ async function startServer(): Promise<OPCUAServer> {
     return server;
 }
 // tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("building server with an AlternateName", () => {
     let server: OPCUAServer;
     before(async () => {

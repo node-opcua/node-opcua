@@ -5,7 +5,7 @@ import { createServerCertificateManager } from "../test_helpers/createServerCert
 const _should = should;
 const port = 2004;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Verifying Server Endpoint", () => {
     let server: OPCUAServer;
     let endpointUri = `opc.tcp://${os.hostname()}:${port}`;

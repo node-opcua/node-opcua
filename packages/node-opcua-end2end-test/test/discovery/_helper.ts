@@ -15,6 +15,7 @@ import {
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
+import { wait } from "../../test_helpers/utils";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -99,6 +100,21 @@ export function ep(server: OPCUABaseServer) {
     return endpointUri;
 }
 
+export const tweak_registerServerManager_timeout = (server: OPCUAServer, timeout: number) => {
+    Object.prototype.hasOwnProperty.call(server.registerServerManager, "timeout").should.eql(true);
+    (server.registerServerManager as any).timeout = timeout;
+}
+export const startAndWaitForRegisteredToLDS = async (server: OPCUAServer) => {
+    await server.start();
+    await new Promise<void>((resolve, reject) => {
+        const timeout = 5000;
+        const timerId = setTimeout(() => reject(new Error(`startAndWaitForRegisteredToLDS: Server failed to register initially within ${timeout} ms.`)), timeout);
+        server.once("serverRegistered", () => {
+            debugLog("server registered");
+            resolve();
+        });
+    });
+}
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
 
     assert(typeof port === "number", "expecting a port number");
@@ -145,10 +161,10 @@ const doTrace = doDebug || process.env.TRACE;
 
 export type FF<T> = () => Promise<T>;
 // add the tcp/ip endpoint with no security
-export  function f<T>(func: FF<T>): FF<T> {
+export function f<T>(func: FF<T>): FF<T> {
     const title = func.name
         .replace(/_/g, " ")
-        .replace(/^bound /,"")
+        .replace(/^bound /, "")
         .replace("given ", chalk.green("**GIVEN** "))
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));
@@ -172,9 +188,9 @@ export  function f<T>(func: FF<T>): FF<T> {
 }
 
 export async function fa(title: string, func: () => Promise<void>): Promise<void> {
-    title= title
+    title = title
         .replace(/_/g, " ")
-        .replace(/^bound /,"")
+        .replace(/^bound /, "")
         .replace("given ", chalk.green("**GIVEN** "))
         .replace("when ", chalk.green("**WHEN** "))
         .replace("then ", chalk.green("**THEN** "));
@@ -191,4 +207,22 @@ export async function fa(title: string, func: () => Promise<void>): Promise<void
         }
     };
     await ff();
+}
+
+
+export async function waitUntilCondition(
+    condition: () => Promise<boolean>,
+    timeout: number,
+    message: string
+): Promise<void> {
+    const t = Date.now();
+    while (!await condition()) {
+        await wait(100);
+        const t2 = Date.now();
+        if (t2 - t > timeout) {
+            const msg = `wait_until_condition: Timeout  reached timeout=${timeout} ${message || ""}`;
+            console.log("wait_until_condition", msg);
+            throw new Error(msg);
+        }
+    }
 }

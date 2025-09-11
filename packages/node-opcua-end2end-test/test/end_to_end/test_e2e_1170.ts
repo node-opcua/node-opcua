@@ -2,7 +2,7 @@ import "should";
 import { OPCUAClient, OPCUAServer } from "node-opcua";
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Testing bug #1170", function () {
     const port = 1170;
     let server: OPCUAServer;

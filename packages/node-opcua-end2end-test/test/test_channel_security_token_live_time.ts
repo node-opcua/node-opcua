@@ -27,7 +27,7 @@ const port = 2041;
 
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Testing ChannelSecurityToken lifetime", function (this: Mocha.Runnable) {
     this.timeout(Math.max(100000, this.timeout()));
 

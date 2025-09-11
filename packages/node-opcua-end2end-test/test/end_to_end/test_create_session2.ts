@@ -10,7 +10,7 @@ const sleep = async (delay: number) => await new Promise((resolve) => setTimeout
 
 const port = 1304;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("OPCUAClient#createSession2 - repeatly  createSession if Server returns BadTooManySession", () => {
     let server: OPCUAServer;
 

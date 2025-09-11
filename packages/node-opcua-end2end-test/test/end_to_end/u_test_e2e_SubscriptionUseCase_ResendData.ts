@@ -6,7 +6,7 @@ const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 export function t(test: any) {
 

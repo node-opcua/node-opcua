@@ -20,7 +20,7 @@ async function pause(ms: number) {
 }
 const port = 1310;
 const publishingInterval = 50;
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("[CLIENT] monitoredItem group when NotificationChange arrive before CreateMonitoredItemsResponse", () => {
     let server: OPCUAServer;
 

@@ -1,9 +1,6 @@
-// tslint:disable: no-console
+// tslint:disable:no-console
 import fs from "fs";
-import os from "os";
-import { promisify } from "util";
 import should from "should";
-import async from "async";
 
 import { assert } from "node-opcua-assert";
 
@@ -16,16 +13,22 @@ import {
     RegisterServerResponse,
     RegisterServerRequest,
     StatusCodes,
-    RegisterServerMethod,
-    makeApplicationUrn,
     OPCUADiscoveryServer,
     ServiceFault
 } from "node-opcua";
 import { readCertificate, exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
-import { createServerThatRegistersItselfToTheDiscoveryServer, ep, pause, startDiscovery } from "./_helper";
+import {
+    createServerThatRegistersItselfToTheDiscoveryServer,
+    ep,
+    pause,
+    startAndWaitForRegisteredToLDS,
+    startDiscovery,
+    tweak_registerServerManager_timeout,
+    waitUntilCondition
+} from "./_helper";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -43,8 +46,6 @@ process.on("uncaughtException", (err) => {
     console.log(err);
 });
 
-// tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 export function t(test: any) {
     describe("DISCO1 - DiscoveryServer1", function (this: any) {
         this.timeout(30 * 1000);
@@ -208,7 +209,7 @@ export function t(test: any) {
     });
 
     describe("DISCO2 - DiscoveryServer2", function (this: any) {
-        this.timeout(Math.max(40 * 1000, this.timeout()));
+        this.timeout(Math.max(60 * 1000, this.timeout()));
 
         let discoveryServer: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl: string;
@@ -221,17 +222,28 @@ export function t(test: any) {
         after(() => {
             OPCUAServer.registry.count().should.eql(0);
         });
-        beforeEach(async () => {
-            discoveryServer = new OPCUADiscoveryServer({
+
+        const makeDiscoveryServer = () => {
+            const discoveryServer = new OPCUADiscoveryServer({
                 port: port_discovery,
                 serverCertificateManager: this.discoveryServerCertificateManager
             });
-            await discoveryServer.start();
-            discoveryServerEndpointUrl = discoveryServer.getEndpointUrl()!;
+
+            discoveryServer.on("onRegisterServer", (server, firstTime) => {
+                console.log("DISCOVERY SERVER REGISTERED", server.productUri, server.isOnline, "firstTime = ", firstTime);
+            });
+
             if (doDebug) {
                 console.log(discoveryServerEndpointUrl);
             }
-            console.log("Discovery server started");
+            return discoveryServer;
+
+        }
+        beforeEach(async () => {
+            discoveryServer = makeDiscoveryServer();
+            await discoveryServer.start();
+            discoveryServerEndpointUrl = discoveryServer.getEndpointUrl()!;
+            console.log("Discovery server started", discoveryServerEndpointUrl);
         });
 
         afterEach(async () => {
@@ -245,78 +257,129 @@ export function t(test: any) {
             const certificate = readCertificate(filename);
             await discoveryServer.serverCertificateManager.trustCertificate(certificate);
         }
+        async function getRegisteredServer() {
+
+        }
 
         it("DISCO2-1 should register server to the discover server 2", async () => {
-            const applicationUri = makeApplicationUrn(os.hostname(), "NodeOPCUA-Server");
 
+
+            // 1 - checking precondition ----------------------------------------------------------------------------
             // there should be no endpoint exposed by an blank discovery server
             discoveryServer.registeredServerCount.should.equal(0);
-            let initialServerCount = 0;
 
-            // ----------------------------------------------------------------------------
             const data = await findServers(discoveryServerEndpointUrl);
             debugLog("data = ", data);
             const { servers, endpoints } = data;
-            initialServerCount = servers.length;
             servers[0].discoveryUrls!.length.should.eql(1);
-
-            console.log(" initialServerCount = ", initialServerCount);
             console.log("servers[0].discoveryUrls", servers[0].discoveryUrls!.join("\n"));
+            let initialServerCount = servers.length;
+            console.log(" initialServerCount = ", initialServerCount);
+            // reminder: the number of returned servers by find server is always +1 
+            // as the discovery server itslef is in the list but is not considered
+            // as a registered server.
+            discoveryServer.registeredServerCount.should.eql(initialServerCount - 1);
 
-            const serverCertificateManager = await createServerCertificateManager(port1);
-            // ----------------------------------------------------------------------------
-            server = new OPCUAServer({
-                port: port1,
-                registerServerMethod: RegisterServerMethod.LDS,
-                discoveryServerEndpointUrl,
-                serverCertificateManager,
-                serverInfo: {
-                    applicationName: { text: "NodeOPCUA", locale: "en" },
-                    applicationUri,
-                    productUri: "NodeOPCUA-Server",
-                    discoveryProfileUri: null,
-                    discoveryUrls: [],
-                    gatewayServerUri: null
-                }
-            });
 
-            await server.initialize();
-            await server.initializeCM();
+            // 2 - given a server that registers itself to the LDS 
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port2, "for outage");
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server);
 
-            await addServerCertificateToTrustedCertificateInDiscoveryServer(server);
+            // fast reregistering
+            tweak_registerServerManager_timeout(server, 2000);
 
-            await server.start();
+            // 3 - When the server starts and notifes that it has registered
+            await startAndWaitForRegisteredToLDS(server);
+            const applicationUri = server.serverInfo.applicationUri;
 
-            // server registration takes place in parallel and should be checked independently
-            await new Promise<void>((resolve, reject) => {
-                const timerId = setTimeout(() => {
-                    reject(new Error("We haven't received the serverRegistered event from Server !!!"));
-                }, 5000)
-                server.once("serverRegistered", () => {
-                    resolve();
-                    clearTimeout(timerId);
-                });
-            });
-
-            // ----------------------------------------------------------------------------
+            // 4 - Then I should verify that the discovery server has an incremented registeredServerCount
             discoveryServer.registeredServerCount.should.equal(1);
 
+            // 4.1 - And Then I should verify that the server application applicationUri can be found 
+            //       in the list of registered server
             {
                 const data = await findServers(discoveryServerEndpointUrl);
                 const { servers, endpoints } = data;
-                //xx debugLog(servers[0].toString());
                 servers.length.should.eql(initialServerCount + 1);
                 servers[1].applicationUri!.should.eql(applicationUri);
             }
 
-            // ----------------------------------------------------------------------------
+            // 5. When the server shut down
             await server.shutdown();
 
-            // ----------------------------------------------------------------------------
+            // 6. then I should verify that the the server has been 
+            //    unregistered from the 
             {
                 const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
                 servers.length.should.eql(initialServerCount);
             }
+        });
+
+        it("DISCO2-2 should re-register after discovery server outage", async () => {
+
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(
+                discoveryServerEndpointUrl, port2, "for outage");
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server);
+            // fast re-registering
+            tweak_registerServerManager_timeout(server, 100);
+
+            await startAndWaitForRegisteredToLDS(server);
+            try {
+
+                const applicationUri = server.serverInfo.applicationUri;
+
+                // Ensure it's registered
+                let foundServers = await findServers(discoveryServerEndpointUrl);
+                foundServers.servers.filter(s => s.applicationUri === applicationUri).length.should.equal(1, "Server should be registered");
+
+                // 2. Shut down the discovery server
+                console.log("Shutting down discovery server to simulate an outage...");
+                await discoveryServer.shutdown();
+
+                // 3. Wait for the server to detect the outage and go into a pending state (backoff)
+                await new Promise<void>((resolve, reject) => {
+                    const timerId = setTimeout(() => reject(new Error("Server did not enter pending state.")), 15000);
+                    server.once("serverRegistrationPending", () => {
+                        clearTimeout(timerId);
+                        resolve();
+                    });
+                });
+                console.log("Server detected outage and is in a pending state.");
+
+
+
+
+
+                // 4. Restart the discovery server
+                console.log("Restarting discovery server...");
+                discoveryServer = makeDiscoveryServer()
+                await discoveryServer.start();
+                console.log("Discovery server restarted");
+
+
+                // 5. Wait for the server to automatically re-register
+                await new Promise<void>((resolve, reject) => {
+                    const timerId = setTimeout(() => reject(new Error("Server failed to re-register.")), 15000);
+                    server.once("serverRegistrationRenewed", () => {
+                        console.log("Server successfully re-registered!");
+                        clearTimeout(timerId);
+                        resolve();
+                    });
+                });
+
+                // 6. Assert that the server is now discoverable again
+                foundServers = await findServers(discoveryServerEndpointUrl);
+                foundServers.servers.filter(s => s.applicationUri === applicationUri)
+                    .length.should.equal(1, "Server should be re-registered after outage");
+            } finally {
+
+                // Clean up
+                await server.shutdown();
+            }
+            // 
+            await waitUntilCondition(async () => {
+                return discoveryServer.registeredServerCount == 0 ? true : false;
+            }, 10000, "");
         });
     });
 
@@ -378,28 +441,20 @@ export function t(test: any) {
             statusAfter.should.eql("Good");
         }
 
-        const startAndRegister = async (server: OPCUAServer) => {
-            await server.start();
-            await new Promise<void>((resolve) => {
-                server.once("serverRegistered", () => {
-                    debugLog("server registered");
-                    registeredServerCount += 1;
-                    resolve();
-                });
-            });
-        }
+
         async function start_all_servers() {
             registeredServerCount = 0;
 
 
             const tasks = [
-                startAndRegister(server1),
-                startAndRegister(server2),
-                startAndRegister(server3),
-                startAndRegister(server4),
-                startAndRegister(server5),
+                startAndWaitForRegisteredToLDS(server1),
+                startAndWaitForRegisteredToLDS(server2),
+                startAndWaitForRegisteredToLDS(server3),
+                startAndWaitForRegisteredToLDS(server4),
+                startAndWaitForRegisteredToLDS(server5),
             ];
             await Promise.all(tasks);
+            registeredServerCount = 5;
         }
 
         async function stop_all_servers() {

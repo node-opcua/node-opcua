@@ -20,7 +20,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import should from "should";
-
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { itemsToMonitor1 } from "./_helpers_items_to_monitor";
 const debugLog = make_debugLog("TEST");
@@ -96,7 +96,6 @@ export function t(test: any) {
         }
     }
 
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("Monitoring Large number of node", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 

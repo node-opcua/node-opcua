@@ -1,6 +1,6 @@
 import { nodesets, OPCUAServer } from "node-opcua";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 const port = 1980;
 
 describe("Server with companion specs", () => {

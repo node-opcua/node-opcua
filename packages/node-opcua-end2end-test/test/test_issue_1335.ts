@@ -29,7 +29,7 @@ async function startServer() {
     return server;
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("testing Server with maxChunk=1 (github#1335)", function () {
     let server: OPCUAServer;
     before(async () => {

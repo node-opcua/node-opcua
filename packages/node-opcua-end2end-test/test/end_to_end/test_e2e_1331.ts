@@ -3,8 +3,10 @@
 import { OPCUAClient, OPCUAServer, NodeId } from "node-opcua";
 import "mocha";
 import "should";
-
 import { make_debugLog, checkDebugFlag, make_errorLog } from "node-opcua-debug";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { fAsync } from "../../test_helpers/display_function_name";
 
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
@@ -12,12 +14,9 @@ const doDebug = checkDebugFlag("TEST");
 
 const port = 2014;
 
-const { build_server_with_temperature_device } = require("../../test_helpers/build_server_with_temperature_device");
 
-const f = require("../../test_helpers/display_function_name").f.bind(null, doDebug);
+const f=  fAsync.bind(null, doDebug);
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing client.isReconnecting flag behavior", function (this: Mocha.Test) {
     let server: OPCUAServer;
     let client: OPCUAClient;

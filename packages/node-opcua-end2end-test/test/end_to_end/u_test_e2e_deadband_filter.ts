@@ -32,7 +32,7 @@ import {
     UAVariable
 } from "node-opcua";
 import sinon from "sinon";
-
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -182,7 +182,6 @@ export function t(test: any) {
         }
     }
 
-    const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
     describe("DBF0", function (this: any) {
         this.timeout(Math.max(200000, this.timeout()));
 

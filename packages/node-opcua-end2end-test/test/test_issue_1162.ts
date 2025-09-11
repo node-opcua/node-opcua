@@ -1,11 +1,20 @@
 import should from "should";
-import { OPCUAClientBase, OPCUAServer, OPCUAClient, UserTokenType, nodesets, makeRoles, WellKnownRoles, NodeId, EndpointWithUserIdentity } from "node-opcua";
-const { wait, wait_until_condition } = require("../test_helpers/utils");
+import { 
+    OPCUAClientBase, 
+    OPCUAServer, 
+    OPCUAClient, 
+    UserTokenType, 
+    nodesets, 
+    makeRoles, 
+    WellKnownRoles, 
+    NodeId, 
+    EndpointWithUserIdentity 
+} from "node-opcua";
+import { wait, wait_until_condition } from  "../test_helpers/utils";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const port = 2511;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing automatic reconnection to a server when credential have changed and client is not aware #1662", function (this: any) {
 
     this.timeout(5 * 60 * 1000);

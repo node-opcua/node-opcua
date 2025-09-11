@@ -31,7 +31,7 @@ const port = 2228;
 let endpointUrl: string;
 
 // tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", () => {
     let nodeId: NodeId;
     let scanResultNode: UAVariable;

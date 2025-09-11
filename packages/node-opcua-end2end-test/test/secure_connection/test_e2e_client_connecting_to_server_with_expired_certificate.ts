@@ -48,7 +48,7 @@ async function startServerWithExpiredCertificate() {
 }
 
 // eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 describe("Security: verifying some security use cases", function(this: any) {
 
     this.timeout(100000);
