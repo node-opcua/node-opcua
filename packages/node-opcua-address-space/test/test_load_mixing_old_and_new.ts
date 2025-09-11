@@ -3,10 +3,9 @@ import should from "should";
 import { nodesets } from "node-opcua-nodesets";
 import { serverImplementsDataTypeDefinition } from "node-opcua-client-dynamic-extension-object";
 import { AddressSpace, UADataType, PseudoSession,  } from "..";
-
 import { generateAddressSpace } from "../distNodeJS";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing address space with old and new nodeset", () => {
 
 

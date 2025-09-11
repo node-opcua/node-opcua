@@ -19,10 +19,10 @@ import {
 } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { create_minimalist_address_space_nodeset } from "../distHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing loading nodeset with extension objects values in types", () => {
     let addressSpace: AddressSpace;
 

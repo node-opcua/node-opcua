@@ -8,9 +8,8 @@ import { Variant } from "node-opcua-variant";
 import { getMiniAddressSpace } from "../testHelpers";
     
 import { AddressSpace, AddVariableOptions, BindVariableOptionsVariation1, SessionContext, UAVariable } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/449", () => {
     let addressSpace: AddressSpace;
     before(async () => {

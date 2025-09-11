@@ -8,11 +8,11 @@ import { NodeId, NodeIdType } from "node-opcua-nodeid";
 import { AddressSpace, Namespace } from "..";
 import { assertHasMatchingReference } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const nodesetFilename = path.join(__dirname, "../nodesets/mini.Nodeset2.xml");
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("testing github issue https://github.com/node-opcua/node-opcua/issues/104", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

@@ -4,8 +4,8 @@ import "should";
 import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, UAVariable } from "..";
 import { generateAddressSpace} from "../nodeJS"
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Loading custom ExtensionObject from nodeset.xml", () => {
     it("should load a custom ExtensionObject", async () => {
         const addressSpace = AddressSpace.create();

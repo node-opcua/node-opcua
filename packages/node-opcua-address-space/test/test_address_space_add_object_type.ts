@@ -8,7 +8,13 @@ import { AddressSpace, InstantiateObjectOptions, Namespace, UAObject, UAObjectTy
 
 import { getMiniAddressSpace } from "../testHelpers";
 import { createCameraType, FakeCameraType } from "./fixture_camera_type";
-import { createTemperatureSensorType, TemperatureSensor, TemperatureSensorType } from "./fixture_temperature_sensor_type";
+import {
+    createTemperatureSensorType,
+    TemperatureSensor,
+    TemperatureSensorType
+} from "./fixture_temperature_sensor_type";
+
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 interface MockMachine extends UAObject {
     temperatureSensor: UAVariable;
@@ -81,8 +87,6 @@ function createSpecialTempSensorType(addressSpace: AddressSpace): SpecialTempera
     return specialTemperatureSensorTypeNode;
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add new ObjectType ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

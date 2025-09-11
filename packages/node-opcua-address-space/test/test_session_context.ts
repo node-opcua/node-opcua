@@ -7,6 +7,7 @@ import { PermissionType, X509IdentityToken } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { NodeId } from "node-opcua-nodeid";
 import { AttributeIds, makeAccessLevelFlag } from "node-opcua-data-model";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { AddressSpace, BaseNode, Namespace, SessionContext, UAObject, makeRoles } from "..";
 
@@ -18,8 +19,6 @@ import { getMiniAddressSpace, MockContinuationPointManager } from "../testHelper
 const certificateFolder = path.join(__dirname, "../../node-opcua-samples/certificates");
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("SessionContext", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

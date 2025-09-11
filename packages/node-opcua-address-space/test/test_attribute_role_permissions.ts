@@ -8,8 +8,8 @@ import { PermissionType, RolePermissionType } from "node-opcua-types";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { AddressSpace, Namespace, WellKnownRoles } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing RolePermission Attribute ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

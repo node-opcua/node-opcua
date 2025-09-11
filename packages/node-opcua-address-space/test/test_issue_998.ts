@@ -9,7 +9,8 @@ import { Namespace, PseudoSession } from "..";
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+
 describe("testing github issue #998", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

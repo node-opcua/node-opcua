@@ -7,9 +7,8 @@ import { NodeId, resolveNodeId } from "node-opcua-nodeid";
 
 import { AddressSpace, Namespace, UARootFolder, UAObjectType, UAReferenceType } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing UAObject", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

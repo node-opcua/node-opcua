@@ -4,12 +4,10 @@ import { NumericRange } from "node-opcua-numeric-range";
 import { Variant } from "node-opcua-variant";
 import { DataType } from "node-opcua-variant";
 import { VariantArrayType } from "node-opcua-variant";
-
 import { AddressSpace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing bug found in #337", () => {
     let addressSpace: AddressSpace;
     before(async () => {

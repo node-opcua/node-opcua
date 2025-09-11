@@ -13,6 +13,7 @@ import { ExtensionObject } from "node-opcua-extension-object";
 
 import { AddressSpace, BaseNode, INamespace, PseudoSession, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 
 async function simulateExternalWriteEx(node: BaseNode, value: ExtensionObject, sourceTimestamp: DateTime) {
@@ -55,8 +56,6 @@ async function simulateExternalWrite(node: BaseNode, value: number, sourceTimest
     checkValue.value.value.should.eql(value);
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Extending extension object variables", function (this: Mocha.Suite) {
     this.timeout(Math.max(this.timeout(), 500000));
     let addressSpace: AddressSpace;

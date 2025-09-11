@@ -1,12 +1,11 @@
 import fs from "fs";
 import { nodesets } from "node-opcua-nodesets";
 import should from "should";
-
 import { AddressSpace, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-// make sure extra error checking is made on object constructions
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("Testing Historical Data Node Enumeration", () => {
     let addressSpace: AddressSpace;
 

@@ -1,6 +1,7 @@
 
 import should from "should";
 
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import {
     AddressSpace, Namespace, UADataType,
 
@@ -10,7 +11,6 @@ import { getMiniAddressSpace } from "../testHelpers";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { coerceNodeId } from "node-opcua-nodeid";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing UAVariable changeDataType", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

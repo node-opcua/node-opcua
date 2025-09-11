@@ -9,9 +9,8 @@ import { StatusCodes } from "node-opcua-status-code";
 import { Namespace, PseudoSession } from "..";
 import { AddressSpace, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing github issue #1038", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

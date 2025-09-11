@@ -8,8 +8,8 @@ import { DataType } from "node-opcua-variant";
 import { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+
 describe("testing AccessRestrictions ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

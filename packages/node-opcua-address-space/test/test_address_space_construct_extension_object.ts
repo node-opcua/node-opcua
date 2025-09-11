@@ -32,12 +32,11 @@ import { get_clock_tick } from "node-opcua-utils";
 
 import { AddressSpace, BaseNode, Namespace, UAServerStatus, DTServerStatus, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing address space namespace loading", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 

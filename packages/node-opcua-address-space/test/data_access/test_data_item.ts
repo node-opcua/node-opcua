@@ -18,8 +18,8 @@ import { subtest_multi_state_value_discrete_type } from "./subtest_multi_state_v
 import { subtest_two_state_discrete_type } from "./subtest_two_state_discrete_type";
 import { subtest_Y_array_item_type } from "./subtest_Y_array_item_type";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+
 describe("DataAccess", () => {
     let addressSpace: AddressSpace;
     const data = { addressSpace: null as any };

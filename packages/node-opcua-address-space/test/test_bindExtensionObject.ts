@@ -33,6 +33,7 @@ import {
 import { getMiniAddressSpace } from "../testHelpers";
 import { generateAddressSpace } from "../nodeJS";
 import { assert } from "node-opcua-assert";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
@@ -53,8 +54,6 @@ interface ServerStatusVariable extends UAVariable {
     shutdownReason: UAVariableT<LocalizedText, DataType.LocalizedText>;
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Extension Object binding and sub  components\n", () => {
     let addressSpace: AddressSpace;
     before(async () => {

@@ -18,12 +18,11 @@ import { ExtraDataTypeManager, resolveOpaqueStructureInExtensionObject } from "n
 
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing NodeSet XML file loading", function (this: any) {
     this.timeout(200000); // could be slow on appveyor !
 

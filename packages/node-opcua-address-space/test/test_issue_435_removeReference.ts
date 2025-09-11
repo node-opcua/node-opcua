@@ -4,9 +4,8 @@ import should from "should";
 import { AddressSpace, BaseNode } from "..";
 import { generateAddressSpace } from "../nodeJS";
 import { BoilerType, createBoilerType } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("UANode#removeReference", () => {
     const nodesetFilename = nodesets.standard;
     let addressSpace: AddressSpace;

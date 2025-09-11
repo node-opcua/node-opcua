@@ -8,6 +8,7 @@ import { ReferenceDescription, BrowseDescription } from "node-opcua-types";
 import { DataType } from "node-opcua-variant";
 import { Benchmarker } from "node-opcua-benchmarker";
 import { ReferenceTypeIds } from "node-opcua-constants";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import {
     AddressSpace,
@@ -23,8 +24,6 @@ import { getMiniAddressSpace } from "../testHelpers";
 
 const context = SessionContext.defaultContext;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing ReferenceType", () => {
     let addressSpace: AddressSpace;

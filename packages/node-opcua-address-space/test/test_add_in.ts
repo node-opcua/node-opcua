@@ -3,8 +3,8 @@ import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace, UAReferenceType } from "..";
 import { generateAddressSpace } from "../distNodeJS";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddIns", () => {
     let addressSpace: AddressSpace;
     before(async () => {

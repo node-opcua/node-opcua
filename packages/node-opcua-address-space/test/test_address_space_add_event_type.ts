@@ -1,16 +1,13 @@
 // tslint:disable:no-console
 import should from "should";
-
 import { Benchmarker } from "node-opcua-benchmarker";
 import { resolveNodeId } from "node-opcua-nodeid";
 import { constructEventFilter, checkSelectClause } from "node-opcua-service-filter";
 import { StatusCodes } from "node-opcua-status-code";
-
 import { AddressSpace, Namespace } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : add event type ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

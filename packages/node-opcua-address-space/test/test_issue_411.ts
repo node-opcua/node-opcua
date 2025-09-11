@@ -7,9 +7,8 @@ import should from "should";
 import { generateAddressSpace } from "../nodeJS";
 import { AddressSpace } from "..";
 import { Namespace } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("#411 - AddMethod  should not changes namespace of custom datatype", () => {
     const nodesetFilename = nodesets.standard;
 

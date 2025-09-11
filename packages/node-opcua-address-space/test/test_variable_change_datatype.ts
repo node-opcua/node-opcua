@@ -2,6 +2,7 @@
 import "should";
 import { DataType, Variant } from "node-opcua-variant";
 import { resolveNodeId } from "node-opcua-nodeid";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { AddressSpace, SessionContext, UADataType, UAVariable } from "..";
 import { getMiniAddressSpace } from "../testHelpers";
@@ -10,8 +11,6 @@ const doDebug = false;
 
 const context = SessionContext.defaultContext;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing UAVariable -  change datatype", () => {
     let addressSpace: AddressSpace;
     before(async () => {

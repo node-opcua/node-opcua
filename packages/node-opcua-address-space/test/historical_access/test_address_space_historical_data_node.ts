@@ -23,11 +23,10 @@ import { coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { AddressSpace, ContinuationPoint, ContinuationPointManager, SessionContext, UAVariable } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const sleep = promisify(setTimeout);
 
-// make sure extra error checking is made on object constructions
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Historical Data Node", () => {
     let addressSpace: AddressSpace;
 

@@ -9,9 +9,9 @@ import { coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace, ContinuationPoint, ContinuationPointManager, SessionContext } from "../..";
 import { generateAddressSpace } from "../../nodeJS";
 import { date_add } from "../../testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-// make sure extra error checking is made on object constructions
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("Testing Historical Data Node", () => {
     const context = new SessionContext({
         session: {

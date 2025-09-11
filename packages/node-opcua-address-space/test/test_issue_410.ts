@@ -13,9 +13,8 @@ import { DataType } from "node-opcua-variant";
 
 import { AddressSpace, SessionContext, UAAnalogItem } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AnalogDataItem ValuePrecision issue #410", () => {
     const nodesetFilename = nodesets.standard;
 

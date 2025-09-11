@@ -24,14 +24,13 @@ import {
     RolePermissionType,
     UserNameIdentityToken
 } from "node-opcua-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { UAObject, Namespace, PseudoSession, SessionContext, setNamespaceMetaData, UAVariable, AddressSpace } from "..";
 import { generateAddressSpace } from "../distNodeJS";
 import { getMiniAddressSpace, MockContinuationPointManager, mockSession } from "../testHelpers";
 import { WellKnownRoles, makeRoles } from "..";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : Variable.setPermissions", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

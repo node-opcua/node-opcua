@@ -8,9 +8,7 @@ import { generateAddressSpace } from "../../distNodeJS";
 import { BinaryStream, BinaryStreamSizeCalculator } from "node-opcua-binary-stream";
 import { DataValue, decodeDataValue, encodeDataValue } from "node-opcua-data-value";
 import { promoteOpaqueStructure } from "node-opcua-client-dynamic-extension-object";
-
-
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("issue_1436", function (this: any) {
 

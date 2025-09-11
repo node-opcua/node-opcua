@@ -1,17 +1,14 @@
 import fs from "fs";
 import should from "should";
 import sinon from "sinon";
-
 import { nodesets } from "node-opcua-nodesets";
 import { StatusCodes } from "node-opcua-status-code";
-
 import { AddressSpace, BaseNode, Namespace } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 let clock: any = null;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing add TwoStateVariable ", function (this: any) {
     this.timeout(Math.max(this.timeout(), 10000));
 

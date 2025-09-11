@@ -408,7 +408,7 @@ export function utest_alarm_condition(test: any): void {
             branch.getAckedState().should.eql(true);
             branch.getRetain().should.eql(false);
 
-            (condition as any)._findBranchForEventId(null).should.eql(branch);
+            condition.findBranchForEventId(null)!.should.eql(branch);
 
             const acknowledged_spy = sinon.spy();
             condition.on("acknowledged", acknowledged_spy);

@@ -4,6 +4,8 @@ import { nodesets } from "node-opcua-nodesets";
 
 import { AddressSpace } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 
 function git1277(addressSpace: AddressSpace) {
     const namespace = addressSpace.getOwnNamespace();
@@ -61,7 +63,6 @@ function git1277(addressSpace: AddressSpace) {
     return myBoiler;
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("github #1277", () => {
     it("should not crash when constructing a ObjectType containing 2 Folders", async () => {

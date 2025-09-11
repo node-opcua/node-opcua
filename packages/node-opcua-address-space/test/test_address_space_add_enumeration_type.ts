@@ -4,13 +4,10 @@ import { BrowseDescription } from "node-opcua-service-browse";
 import { StatusCodes } from "node-opcua-status-code";
 import { DataType, Variant } from "node-opcua-variant";
 import should from "should";
-
 import { getMiniAddressSpace } from "../testHelpers";
-
 import { AddressSpace, BaseNode, Namespace, SessionContext } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("AddressSpace : testing add enumeration type", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

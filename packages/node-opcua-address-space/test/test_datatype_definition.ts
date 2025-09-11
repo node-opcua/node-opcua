@@ -7,11 +7,11 @@ import { StructureDefinition } from "node-opcua-types";
 
 import { AddressSpace, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const context = SessionContext.defaultContext;
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("testing UADataType -  Attribute", () => {
     let addressSpace: AddressSpace;
     before(async () => {
