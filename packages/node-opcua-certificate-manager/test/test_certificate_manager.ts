@@ -12,6 +12,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import { Certificate, readCertificate, makeSHA1Thumbprint, readCertificateRevocationList } from "node-opcua-crypto";
 import { OPCUACertificateManager, OPCUACertificateManagerOptions } from "../source";
 import { CertificateManager } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 async function t(a: number) {
     return await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -84,8 +85,6 @@ async function createFreshCertificateManager(options: OPCUACertificateManagerOpt
     return certificateMgr;
 }
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing OPCUA Client Certificate Manager", function (this: any) {
     this.timeout(Math.max(40000, this.timeout()));
 
