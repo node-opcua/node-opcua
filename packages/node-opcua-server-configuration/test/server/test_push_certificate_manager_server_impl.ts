@@ -7,6 +7,7 @@ const { readFile } = fs.promises;
 import { convertPEMtoDER, exploreCertificate, makeSHA1Thumbprint, split_der } from "node-opcua-crypto";
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { subjectToString, UpdateCertificateResult } from "../..";
 import { PushCertificateManagerServerImpl } from "../..";
@@ -18,9 +19,6 @@ import {
 } from "../helpers/fake_certificate_authority";
 import { getCertificateDER } from "../helpers/tools";
 
-// make sure extra error checking is made on object constructions
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing Server Side PushCertificateManager", () => {
     let pushManager: PushCertificateManagerServerImpl;
 

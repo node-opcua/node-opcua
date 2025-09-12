@@ -19,6 +19,7 @@ import {
     AttributeIds
 } from "node-opcua-client";
 import bcrypt from "bcryptjs";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { installPushCertificateManagementOnServer } from "../..";
 import {
@@ -103,7 +104,6 @@ async function getFolder(name: string) {
     return fakePKI;
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Test CertificateExpiredAlarm", function (this: any) {
     this.timeout(Math.max(this.timeout(), 5 * 60 * 1000));
 

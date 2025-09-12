@@ -32,6 +32,7 @@ import { MessageSecurityMode, SecurityPolicy } from "node-opcua-secure-channel";
 import { OPCUAServer } from "node-opcua-server";
 import { UserTokenType } from "node-opcua-types";
 import { certificateMatchesPrivateKey } from "node-opcua-crypto";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import {
     initializeHelpers,
     produceCertificate,
@@ -51,9 +52,6 @@ const doDebug = checkDebugFlag("ServerConfiguration");
 const debugLog = make_debugLog("ServerConfiguration");
 const errorLog = make_errorLog("ServerConfiguration");
 
-// make sure extra error checking is made on object constructions
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing server configured with push certificate management", () => {
     let _folder: string;
 
