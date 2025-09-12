@@ -8,6 +8,7 @@ import { hexDump } from "node-opcua-debug";
 import { make_debugLog, make_errorLog } from "node-opcua-debug";
 import { StatusCodes, StatusCode } from "node-opcua-status-code";
 import { compare_buffers } from "node-opcua-utils";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");
 const errorLog = make_errorLog("TEST");
@@ -16,11 +17,16 @@ import { FakeServer } from "../dist/test_helpers";
 
 const port = 5678;
 
-import { AcknowledgeMessage, TCPErrorMessage, ClientTCP_transport, packTcpMessage, TCP_transport } from "..";
-import { MessageBuilderBase, writeTCPMessageHeader } from "..";
+import {
+    AcknowledgeMessage,
+    TCPErrorMessage,
+    ClientTCP_transport,
+    packTcpMessage,
+    TCP_transport,
+    writeTCPMessageHeader
+} from "..";
+import { BinaryStream } from "../../node-opcua/dist";
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("testing ClientTCP_transport", function (this: any) {
     this.timeout(Math.max(15 * 1000, this.timeout()));
@@ -31,7 +37,7 @@ describe("testing ClientTCP_transport", function (this: any) {
     let spyOnConnectionBreak: any;
 
     let fakeServer: FakeServer;
-    let endpointUrl : string;
+    let endpointUrl: string;
 
     beforeEach((done) => {
         clientTransport = new ClientTCP_transport({});
@@ -255,7 +261,8 @@ describe("testing ClientTCP_transport", function (this: any) {
             assert(msgType === "MSG");
             const totalLength = length + headerSize;
             const buffer = Buffer.alloc(totalLength);
-            writeTCPMessageHeader("MSG", chunkType, totalLength, buffer);
+            const stream = new BinaryStream(buffer);
+            writeTCPMessageHeader("MSG", chunkType, totalLength, stream);
             return buffer;
         }
         clientTransport.connect(endpointUrl, (err) => {

@@ -4,6 +4,7 @@ import sinon from "sinon";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { compare_buffers } from "node-opcua-utils";
 import { MessageBuilderBase, writeTCPMessageHeader } from "../source";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" |"F" |"C") {
     const total_length = subarray.length + 12;
@@ -13,7 +14,6 @@ function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" |"F" |"C") {
     subarray.copy(buf, 12);
     return buf;
 }
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("MessageBuilderBase", function () {
     it("should assemble a message body composed of a single chunk ", function (done) {
         const message_body = Buffer.from("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
