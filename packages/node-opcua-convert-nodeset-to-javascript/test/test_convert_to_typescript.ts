@@ -3,6 +3,7 @@ import path from "path";
 import chalk from "chalk";
 import "should";
 
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { AddressSpace, PseudoSession, UAVariable } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { nodesets } from "node-opcua-nodesets";
@@ -16,8 +17,6 @@ import {
     convertNamespaceTypeToTypescript
 } from "..";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Convert to Typescript", function (this: any) {
     let addressSpace: AddressSpace;
     before(async () => {
