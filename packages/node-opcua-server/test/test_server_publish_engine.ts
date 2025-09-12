@@ -40,6 +40,7 @@ import { PublishRequest, PublishResponse } from "node-opcua-service-subscription
 import { StatusCodes } from "node-opcua-status-code";
 import { SessionContext } from "node-opcua-address-space";
 import { ServerSidePublishEngine, Subscription, SubscriptionOptions, SubscriptionState } from "../source";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const property = (key: string) => (obj: Record<string,any>) => obj[key];
 
@@ -54,8 +55,6 @@ function makeSubscription(options: SubscriptionOptions) {
     return subscription1;
 }
 
-// tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing the server publish engine", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

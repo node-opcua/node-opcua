@@ -18,6 +18,7 @@ import { DataType, Variant } from "node-opcua-variant";
 import { DataValue } from "node-opcua-data-value";
 import { MonitoredItemNotification, Range } from "node-opcua-types";
 import { IAddressSpace, ISessionContext, SessionContext } from "node-opcua-address-space";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { MonitoredItem, QueueItem } from "../source";
 
@@ -107,8 +108,6 @@ const createMonitoredItem = (options: {
 };
 type IMonitoredItem = ReturnType<typeof createMonitoredItem>;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Server Side MonitoredItem", () => {
     beforeEach(function (this: any) {
         this.clock = sinon.useFakeTimers();

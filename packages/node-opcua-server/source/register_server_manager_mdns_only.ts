@@ -33,10 +33,9 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         if (this.bonjour) {
 
             this._state = RegisterServerManagerStatus.UNREGISTERING;
-            this.bonjour.stopAnnouncedOnMulticastSubnetWithCallback(() => {
-                this.emit("serverUnregistered");
-                this._state = RegisterServerManagerStatus.INACTIVE;
-            });
+            await this.bonjour.stopAnnouncedOnMulticastSubnet();
+            this.emit("serverUnregistered");
+            this._state = RegisterServerManagerStatus.INACTIVE;
         }
     }
 
@@ -53,20 +52,16 @@ export class RegisterServerManagerMDNSONLY extends EventEmitter implements IRegi
         const port = this.server.endpoints[0].port;
 
 
-        await new Promise<void>((resolve) => {
-            this._state =RegisterServerManagerStatus.REGISTERING;
-            this.bonjour.announcedOnMulticastSubnetWithCallback({
-                capabilities: capabilities,
-                name: name,
-                path: "/", // <- to do
-                host,
-                port: port 
-            }, () => {
-                this._state = RegisterServerManagerStatus.WAITING;
-                this.emit("serverRegistered");
-                setImmediate(() => resolve());
-            });
+        this._state = RegisterServerManagerStatus.REGISTERING;
+        await this.bonjour.announcedOnMulticastSubnet({
+            capabilities: capabilities,
+            name: name,
+            path: "/", // <- to do
+            host,
+            port: port
         });
+        this._state = RegisterServerManagerStatus.WAITING;
+        this.emit("serverRegistered");
     }
 
     public dispose(): void {

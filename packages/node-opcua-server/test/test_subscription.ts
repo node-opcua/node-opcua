@@ -17,6 +17,7 @@ import {
     PublishRequest
 } from "node-opcua-service-subscription";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import {
     Subscription,
@@ -60,8 +61,6 @@ function makeSubscription(options: SubscriptionOptions): SubscriptionInternal {
     return subscription1 as any;
 }
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscriptions", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

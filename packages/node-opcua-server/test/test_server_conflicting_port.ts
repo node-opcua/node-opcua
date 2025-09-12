@@ -2,7 +2,10 @@ import should from "should";
 
 import { get_empty_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 import { OPCUAServer } from "../source";
+
 const empty_nodeset_filename = get_empty_nodeset_filename();
 
 const debugLog = make_debugLog("TEST");
@@ -10,8 +13,6 @@ const doDebug = checkDebugFlag("TEST");
 
 const port = 12345;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing 2 servers on same port ", function () {
     let server1: OPCUAServer;
 

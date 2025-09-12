@@ -18,6 +18,7 @@ import { NodeId, coerceNodeId, NodeIdLike } from "node-opcua-nodeid";
 import { IAddressSpace, INamespace, SessionContext } from "node-opcua-address-space";
 
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { MonitoredItem, Subscription, ServerEngine } from "../source";
 
@@ -60,8 +61,6 @@ function makeSubscription(options: any) {
     return subscription1;
 }
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscriptions and MonitoredItems", function (this: any) {
     this.timeout(Math.max(300000, this._timeout));
 

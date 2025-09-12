@@ -8,6 +8,7 @@ import { StatusCodes, StatusCode } from "node-opcua-status-code";
 import { TimestampsToReturn } from "node-opcua-service-read";
 import { MonitoredItemCreateRequest } from "node-opcua-service-subscription";
 import { ServiceFault, PublishResponse } from "node-opcua-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 
@@ -16,8 +17,6 @@ import { with_fake_timer } from "./helper_with_fake_timer";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions service", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

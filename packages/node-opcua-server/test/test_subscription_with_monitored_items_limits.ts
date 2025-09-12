@@ -9,6 +9,7 @@ import { DataValue, TimestampsToReturn } from "node-opcua-data-value";
 import { coerceNodeId, NodeId } from "node-opcua-nodeid";
 import { DeadbandType } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { Subscription } from "../source/server_subscription";
 import { ServerEngine } from "../source/server_engine";
@@ -18,8 +19,6 @@ const { getFakePublishEngine } = require("./helper_fake_publish_engine");
 
 const fake_publish_engine = getFakePublishEngine();
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("SM3 - Subscriptions and MonitoredItems limits", function (this: any) {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

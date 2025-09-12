@@ -7,6 +7,7 @@ import { MessageSecurityMode } from "node-opcua-secure-channel";
 import { ApplicationDescription, EndpointDescription, UserTokenType } from "node-opcua-service-endpoints";
 import { extractFullyQualifiedDomainName, getFullyQualifiedDomainName } from "node-opcua-hostname";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OPCUAServerEndPoint } from "../source";
 
 const it_with_crypto = it;
@@ -23,8 +24,6 @@ function getOptions() {
     };
     return options;
 }
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServerEndpoint#addEndpointDescription", function () {
     let server_endpoint: OPCUAServerEndPoint;
     let certificateManager: OPCUACertificateManager;
