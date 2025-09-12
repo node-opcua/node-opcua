@@ -20,11 +20,10 @@ import {
     setSymbols,
     StructureDefinitionOptions
 } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const doDebug = false;
 
-// tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("addExtensionObjectDataType", function (this: any) {
     this.timeout(10000);
     const namespaceUri = "http://sterfive.org/UA/Demo/";

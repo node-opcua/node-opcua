@@ -15,6 +15,7 @@ import {
 } from "..";
 
 import { removeDecoration } from "./test_helpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const namespaceUri = "urn:some";
 
@@ -22,8 +23,6 @@ function createModel(addressSpace: AddressSpace) {
     /* empty */
 }
 
-// tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("promoteToMandatory", () => {
     let addressSpace: AddressSpace;
     let nsDI: number;
