@@ -1,9 +1,0 @@
-require:
- - ../../node_modules/source-map-support/register
- - ../../node_modules/ts-node/register
- - ../../node_modules/should
-
-recursive: true
-extension:
- - ts 
- - js
