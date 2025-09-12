@@ -181,7 +181,10 @@ export interface IServerSessionBase {
 export class ServerSecureChannelLayer extends EventEmitter {
     public static throttleTime = 100;
 
-    private static g_MinimumSecureTokenLifetime = 2500;
+    /**
+     * @private
+     */
+    static g_MinimumSecureTokenLifetime = 2500;
     private static g_counter = 0;
     #counter: number = ServerSecureChannelLayer.g_counter++;
     #status: "new" | "connecting" | "open" | "closing" | "closed" = "new";
