@@ -4,10 +4,11 @@ import fs from "fs";
 import "should";
 
 import { NodeId, OPCUAClient, OPCUAServer, TransportSettings, UAFile } from "node-opcua";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ClientFile, installFileType, readOPCUAFile, writeOPCUAFile } from "..";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("FileType: Testing with very large file end-to-end", function (this: any) {
     this.timeout(100000);
 

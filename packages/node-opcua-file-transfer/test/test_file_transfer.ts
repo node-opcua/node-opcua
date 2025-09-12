@@ -11,18 +11,26 @@ import { fs as fsMemory } from "memfs";
 
 import should from "should";
 
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { AddressSpace, PseudoSession, SessionContext, UAFile } from "node-opcua-address-space";
 import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { UInt64, coerceUInt64, coerceNodeId } from "node-opcua-basic-types";
 import { CallMethodRequestOptions, MethodIds } from "node-opcua-client";
-import { NodeId } from "node-opcua-nodeid";
 import { nodesets } from "node-opcua-nodesets";
 import { MockContinuationPointManager } from "node-opcua-address-space/testHelpers";
 
-import { ClientFile, getFileData, OpenFileMode, installFileType, AbstractFs, readFile, IClientFilePriv, writeOPCUAFile, readOPCUAFile } from "..";
+import {
+    ClientFile,
+    getFileData,
+    OpenFileMode,
+    installFileType,
+    AbstractFs,
+    readFile,
+    IClientFilePriv,
+    writeOPCUAFile,
+    readOPCUAFile
+} from "..";
 
-// tslint:disable:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 ["with File object methods", "with FileType methods", "with memory file system"].forEach((message) => {
     const useGlobalMethod = !!message.match(/FileType/);
     const withMemFS = message.match(/memory/);
