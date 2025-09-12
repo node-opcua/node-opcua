@@ -80,3 +80,8 @@ export function redirectToFile(tmpFile: string, actionFct: Function, callback: (
         });
     }
 }
+export function redirectToFileAsync(tmpFile: string, actionFct: () => Promise<void>): Promise<void> {
+    return new Promise((resolve, reject) => {
+        redirectToFile(tmpFile, actionFct, (err) => (err ? reject(err) : resolve()));
+    });
+}
