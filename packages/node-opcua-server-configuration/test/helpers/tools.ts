@@ -3,8 +3,6 @@ import fs from "fs";
 
 import { CertificateManager } from "node-opcua-certificate-manager";
 import { Certificate, convertPEMtoDER } from "node-opcua-crypto";
-
-// node 14 onward:  import {  readFile, writeFile, readdir } from "fs/promises";
 const { readFile } = fs.promises;
 
 

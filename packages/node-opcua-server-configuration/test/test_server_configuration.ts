@@ -24,16 +24,13 @@ import { StatusCodes } from "node-opcua-status-code";
 import { MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
 import { readCertificate } from "node-opcua-crypto";
 import { SecurityPolicy } from "node-opcua-secure-channel";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ClientPushCertificateManagement, installPushCertificateManagement } from "..";
 import { TrustListMasks } from "../source/server/trust_list_server";
-
 import { initializeHelpers } from "./helpers/fake_certificate_authority";
 
 const doDebug = false;
-// make sure extra error checking is made on object constructions
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerConfiguration", () => {
     let addressSpace: AddressSpace;
 
