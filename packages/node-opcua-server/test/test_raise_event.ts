@@ -26,15 +26,14 @@ import { EventFieldList } from "node-opcua-service-subscription";
 import { DataType, Variant } from "node-opcua-variant";
 import { NodeId } from "node-opcua-nodeid";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { checkSelectClauses } from "node-opcua-service-filter";
-import { extractEventFields } from "node-opcua-service-filter/source/on_address_space/extract_event_fields";
+import { extractEventFields } from "node-opcua-service-filter";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-// tslint:disable-next-line: no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing Events  ", () => {
     let addressSpace: AddressSpace;
     let namespace: Namespace;

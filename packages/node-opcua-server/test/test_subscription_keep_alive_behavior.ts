@@ -3,6 +3,7 @@ import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
 import { getMinOPCUADate } from "node-opcua-date-time";
 import { Subscription, SubscriptionOptions, SubscriptionState } from "../source";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 const doDebug = false;
 function getFakePublishEngine() {
@@ -49,8 +50,6 @@ function makeSubscription(options: SubscriptionOptions2) {
     return subscription1;
 }
 
-// eslint-disable-next-line import/order
-// const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscription keepAlive behavior", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

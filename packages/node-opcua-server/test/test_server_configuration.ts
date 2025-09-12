@@ -2,11 +2,10 @@ import { nodesets } from "node-opcua-nodesets";
 import { UAVariable } from "node-opcua-address-space-base";
 import should from "should";
 import { ApplicationType } from "node-opcua-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OPCUAServer, RegisterServerMethod } from "../source";
 
 const port = 2022;
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 describe("OPCUAServer exposing serverConfiguration basic properties", () => {
     let server: OPCUAServer;

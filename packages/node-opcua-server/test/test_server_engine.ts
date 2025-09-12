@@ -22,6 +22,7 @@ import { getCurrentClock } from "node-opcua-date-time";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { BrowseDescriptionLike, BrowsePath, BrowsePathResult, WriteValue } from "node-opcua-client";
 import { NumericRange } from "node-opcua-numeric-range";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ServerEngine } from "../source";
 
@@ -49,8 +50,6 @@ async function pause(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ServerEngine", function () {
     let engine: ServerEngine;
     let namespace: INamespace;

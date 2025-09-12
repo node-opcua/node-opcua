@@ -8,6 +8,7 @@ import { NodeId } from "node-opcua-nodeid";
 
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
 import { coercePrivateKeyPem, readPrivateKey } from "node-opcua-crypto";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { OPCUAServer } from "../source";
 
@@ -20,8 +21,6 @@ const port = 2023;
 interface OPCUAServerPriv extends Omit<OPCUAServer, "createSession"> {
     createSession: (options?: any) => any;
 }
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("OPCUAServer", () => {
     let server: OPCUAServerPriv | null = null;
     beforeEach(async () => {

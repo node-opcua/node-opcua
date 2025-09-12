@@ -2,6 +2,8 @@
 /* global: require,describe,it,before,beforeEach,after,afterEach */
 import sinon from "sinon";
 import { SessionContext } from "node-opcua-address-space";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 import { Subscription } from "../source";
 import { add_mock_monitored_item } from "./helper";
 import { getFakePublishEngine } from "./helper_fake_publish_engine";
@@ -21,8 +23,6 @@ function makeSubscription(options: any) {
     return subscription1;
 }
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscription#resendInitialValues", function (this: any) {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const test = this;

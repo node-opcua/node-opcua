@@ -6,12 +6,11 @@ import { NodeClass } from "node-opcua-data-model";
 import { getMethodDeclaration_ArgumentList, IAddressSpace, INamespace, ISessionContext, SessionContext, UAMethod } from "node-opcua-address-space";
 import { BrowsePath } from "node-opcua-service-translate-browse-path";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ServerEngine } from "../source";
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine - addMethod", function () {
     let addressSpace: IAddressSpace;
     let namespace: INamespace;

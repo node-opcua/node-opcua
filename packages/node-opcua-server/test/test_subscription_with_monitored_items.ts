@@ -37,6 +37,8 @@ import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers"
 import { standardUnits } from "node-opcua-data-access";
 import { ResponseCallback } from "node-opcua-client";
 import { Int64 } from "node-opcua-basic-types";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 import {
     Subscription,
     SubscriptionState,
@@ -93,8 +95,6 @@ function makeSubscription(options: SubscriptionOptions) {
     return subscription1;
 }
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("SM1 - Subscriptions and MonitoredItems", function (this: any) {
     this.timeout(Math.max(300000, this.timeout()));
 

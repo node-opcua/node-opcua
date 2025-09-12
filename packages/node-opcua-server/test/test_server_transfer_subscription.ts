@@ -7,6 +7,7 @@ import sinon from "sinon";
 import { PublishRequest } from "node-opcua-service-subscription";
 import { StatusCodes } from "node-opcua-status-code";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { ServerEngine, ServerSession, Subscription, SubscriptionState, installSessionLoggingOnEngine } from "../source";
 
@@ -17,8 +18,6 @@ const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = !!process.env.TESTDEBUG;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("ServerEngine Subscriptions Transfer", function (this: any) {
     const test = this;
     const server: any = {};

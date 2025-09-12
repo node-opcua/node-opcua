@@ -17,6 +17,7 @@ import { AttributeIds } from "node-opcua-data-model";
 import { NodeId, coerceNodeId } from "node-opcua-nodeid";
 import { AddressSpace, Namespace, UAVariable, SessionContext } from "node-opcua-address-space";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { Subscription, ServerEngine, ServerSidePublishEngine, SubscriptionState, SubscriptionOptions } from "../source";
 
@@ -44,8 +45,6 @@ function freeze_data_source() {
 function unfreeze_data_source() {
     dataSourceFrozen = false;
 }
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Subscriptions and MonitoredItems and triggering", function (this: any) {
     /***
      * 5.12.1.6 Triggering model ToC

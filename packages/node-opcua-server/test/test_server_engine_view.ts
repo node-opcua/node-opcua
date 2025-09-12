@@ -1,14 +1,13 @@
 import { promisify } from "node:util";
 import should from "should";
 import { get_mini_nodeset_filename } from "node-opcua-address-space/testHelpers";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { ServerEngine } from "../source";
 
 const mini_nodeset_filename = get_mini_nodeset_filename();
 
 const doDebug = false;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing the server  engine - View related ", function () {
     let engine: ServerEngine;
     beforeEach(async () => {
