@@ -18,6 +18,9 @@
         "node-opcua-types": "2.155.0",
         "sterfive-bonjour-service": "1.1.4"
     },
+    "devDependencies": {
+        "node-opcua-leak-detector": "2.154.0"
+    },
     "author": "Etienne Rossignon",
     "license": "MIT",
     "repository": {
