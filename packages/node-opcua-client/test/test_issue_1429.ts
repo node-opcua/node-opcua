@@ -5,6 +5,7 @@ import {
     OPCUAClient,
     OPCUAClientOptions,
 } from "..";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import should from "should";
 import EventEmitter from "node:events";
 
@@ -27,7 +28,7 @@ export function patchEmitter(emitter: EventEmitter) {
 }
 
 const endpointUrl = "opc.tcp://10.20.30.40:4840"; // arbitrary IP, no opc ua server shall exist at this address
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+
 describe("issue_1429", function (this: any) {
     this.timeout(40*1000);
     it("should issue a backoff event if the endpoint is not reachable", async () => {

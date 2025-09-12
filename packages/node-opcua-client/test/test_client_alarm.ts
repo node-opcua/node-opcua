@@ -1,5 +1,6 @@
 import "should";
 import { ClientAlarm, ClientAlarmList, DataType, EventStuff, NodeId, resolveNodeId, TVariant, Variant } from "../source/index";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 class VariantId extends Variant {
     public id: TVariant<boolean>;
@@ -9,7 +10,6 @@ class VariantId extends Variant {
     }
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing client alarm", () => {
     it("should update a client alarm list #CAL", () => {
         const clientAlarm = new ClientAlarm({
