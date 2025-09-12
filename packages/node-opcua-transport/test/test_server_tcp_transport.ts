@@ -4,9 +4,9 @@ import sinon from "sinon";
 import { assert } from "node-opcua-assert";
 import { compare_buffers } from "node-opcua-utils";
 import { make_debugLog } from "node-opcua-debug";
-
 import { BinaryStream } from "node-opcua-binary-stream";
 import { readMessageHeader } from "node-opcua-chunkmanager";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import { decodeMessage, packTcpMessage, ServerTCP_transport, HelloMessage, AcknowledgeMessage, TCPErrorMessage } from "..";
 
@@ -21,12 +21,9 @@ const altered_helloMessage = packets.altered_helloMessage1;
 const openChannelRequest = packets.openChannelRequest1;
 const not_an_helloMessage = packets.getEndpointsRequest1;
 
-
 const { altered_openChannelRequest1, altered_openChannelRequest2 } = packets;
 const { altered_helloMessage2, altered_helloMessage3 } = packets;
 
-// eslint-disable-next-line import/order
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const doDebugFlow = false;
 const port = 5878;

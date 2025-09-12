@@ -1,12 +1,13 @@
 import should from "should";
 import sinon from "sinon";
 import { assert } from "node-opcua-assert";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 import { TransportPairDirect, TransportPairSocket } from "../test_helpers";
 import { ITransportPair } from "../test_helpers/ITransportPair";
 import { ISocketLike } from "../source";
 
 const doDebug = false;
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 
 const port = 5879;
 
