@@ -25,11 +25,12 @@ export {
 } from "node-opcua-types";
 
 export { serverCapabilities } from "./server_capabilities";
+export { Announcement } from "./Announcement";
+export { BonjourHolder } from "./bonjourHolder";
 export {
-    Announcement,
-    BonjourHolder,
-    isSameService as sameService,
-    _announceServerOnMulticastSubnet,
-    announcementToServiceConfig,
-    serviceToString,
-}from "./bonjour";
+    isSameService,
+    serviceToString
+} from "./tools";
+
+export { announcementToServiceConfig } from "./announcement_to_service_config";
+
