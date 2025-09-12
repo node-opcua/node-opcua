@@ -3,7 +3,7 @@ const { AttributeIds, OPCUAClient } = require("node-opcua");
 const endpointUrl = "opc.tcp://opcuademo.sterfive.com:26543";
 
 async function mytest() {
-    const client = OPCUAClient.create();
+    const client = OPCUAClient.create({});
     client.on("backoff", () => console.log("backoff"));
 
     try {
@@ -29,7 +29,7 @@ async function mytest() {
 mytest();
 
 async function myTestWithSession() {
-    const client = OPCUAClient.create();
+    const client = OPCUAClient.create({});
     client.on("backoff", () => console.log("backoff"));
 
     await client.withSessionAsync("opc.tcp://localhost:26543", async (session) => {

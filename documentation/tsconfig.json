@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "moduleResolution": "NodeNext",
+        "moduleResolution": "node16",
+        "module": "node16",
         "target":"es2017",
         "lib": ["es2015","es2015.promise"]
     }
