@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 import should from "should";
 import "mocha";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { assert } from "node-opcua-assert";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
@@ -121,7 +122,6 @@ function rebuildSignature(
     return userTokenSignature;
 }
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("X509 - Wireshark Analysis", () => {
     async function performTest(
         _messageCreateSessionResponsePacket: Buffer,

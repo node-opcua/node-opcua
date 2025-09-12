@@ -2,11 +2,12 @@ import should from "should";
 import sinon from "sinon";
 import { TimestampsToReturn } from "node-opcua-data-value";
 import { SinonSandbox } from "sinon";
-import { ClientSubscriptionImpl } from "../source/private/client_subscription_impl";
-import { ClientSessionImpl } from "../source/private/client_session_impl";
-const { ClientMonitoredItemGroup, ClientSubscription } = require("..");
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { ClientMonitoredItemGroup, ClientSubscription } from "..";
+import { ClientSubscriptionImpl } from "../dist/private/client_subscription_impl";
+import { ClientSessionImpl } from "../dist/private/client_session_impl";
+
 describe("Testing the Monitored Items Group", () => {
     let sandbox: SinonSandbox;
     let monitoredItemGroup: any;

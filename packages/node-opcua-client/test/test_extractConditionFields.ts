@@ -6,6 +6,7 @@ import { generateAddressSpace } from "node-opcua-address-space/nodeJS";
 import { PseudoSession } from "node-opcua-address-space";
 import { nodesets } from "node-opcua-nodesets";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import {
     AttributeIds,
@@ -20,7 +21,6 @@ import {
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("extractConditionFields", () => {
     let addressSpace: AddressSpace;
     const test = {} as IAlarmTestData;
