@@ -10,9 +10,8 @@ import { AddressSpace, dumpToBSD, ensureDatatypeExtracted, INamespace, Namespace
 import { generateAddressSpace } from "node-opcua-address-space/distNodeJS";
 import { StructureFieldOptions } from "node-opcua-types";
 import { addExtensionObjectDataType } from "..";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
-// tslint:disable-next-line:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("A- testing UAVariable with number dataType", () => {
 
     let addressSpace: AddressSpace;
