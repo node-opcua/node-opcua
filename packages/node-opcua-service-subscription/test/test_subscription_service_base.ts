@@ -1,9 +1,9 @@
-const subscription_service = require("..");
+import { CreateSubscriptionRequest } from "../dist";
 
 describe("Subscription Service",function() {
 
     it("should create a CreateSubscriptionRequest",function() {
 
-         new subscription_service.CreateSubscriptionRequest();
+         new CreateSubscriptionRequest();
     });
 });
