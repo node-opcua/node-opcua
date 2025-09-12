@@ -27,7 +27,7 @@ import { createHistorian1, createHistorian2, createHistorian3, createHistorian4 
 import { makeDate } from "./helpers/helpers";
 
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 describe("Aggregates ", () => {
     let addressSpace: AddressSpace;
