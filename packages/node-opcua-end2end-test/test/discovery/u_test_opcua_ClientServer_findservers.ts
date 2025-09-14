@@ -1,16 +1,17 @@
-import async from "async";
-import { OPCUAClient, OPCUAServer, ErrorCallback } from "node-opcua";
+import "should"; // assertion side effects
+import { OPCUAClient, OPCUAServer } from "node-opcua";
 
 // declare function build_server_with_temperature_device(...args: any[]): void;
-import  { 
-    build_server_with_temperature_device
- } from "../../test_helpers/build_server_with_temperature_device";
+import { build_server_with_temperature_device } from "../../test_helpers/build_server_with_temperature_device";
 import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+import { TestHarness } from "./helpers/index";
 
 const port = 2005;
 
-export function t(test: any) {
+export function t(test: TestHarness) {
+
     describe("DISCO6 - testing OPCUA-Service Discovery Endpoint", function () {
+        
         let server: OPCUAServer;
         let endpointUrl: string;
 
@@ -22,111 +23,58 @@ export function t(test: any) {
             await server.shutdown();
         });
 
-        function make_on_connected_client(
-            functor: (client: OPCUAClient, next: ErrorCallback) => void,
-            done: (err?: Error | null) => void
-        ) {
-            let connected = false;
-            const client = OPCUAClient.create({
-                clientName: __filename
-            });
-            const tasks = [
-                function (callback: ErrorCallback) {
-                    client.connect(endpointUrl, (err) => {
-                        connected = true;
-                        callback(err);
-                    });
-                },
+        async function withConnectedClient(fn: (client: OPCUAClient) => Promise<void>): Promise<void> {
+            const client = OPCUAClient.create({ clientName: __filename });
+            await client.connect(endpointUrl);
+            try {
+                await fn(client);
+            } finally {
+                await client.disconnect();
+            }
+        }
 
-                function (callback: ErrorCallback) {
-                    try {
-                        functor(client, callback);
-                    } catch (err: unknown) {
-                        callback(err as Error);
-                    }
-                },
-
-                function (callback:ErrorCallback) {
-                    client.disconnect((err) => {
-                        connected = false;
-                        callback(err);
-                    });
-                }
-            ];
-            async.series(tasks, (err1) => {
-                if (connected) {
-                    client.disconnect((err) => {
-                        connected = false;
-                        if (err) {
-                            console.log(err);
-                        }
-                        done(err1);
-                    });
+        async function findServersAsync(client: OPCUAClient, filters?: any) {
+            return await new Promise<any[]>((resolve, reject) => {
+                if (filters) {
+                    client.findServers(filters, (err, servers) => (err ? reject(err) : resolve(servers || [])));
                 } else {
-                    done(err1);
+                    client.findServers((err, servers) => (err ? reject(err) : resolve(servers || [])));
                 }
             });
         }
 
-        it("DISCO6-A - should answer a FindServers Request - without filters", (done) => {
+        it("DISCO6-A - should answer a FindServers Request - without filters", async () => {
             // Every  Server  shall provide a  Discovery Endpoint  that supports this  Service;   however, the  Server
             // shall only return a single record that describes itself.  Gateway Servers  shall return a record for each
             // Server  that they provide access to plus (optionally) a record that allows the  Gateway Server  to be
             // accessed as an ordinary OPC UA  Server.
-            make_on_connected_client((client, callback) => {
-                client.findServers((err, servers) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    servers!.length.should.eql(1);
-                    callback();
-                });
-            }, done);
+            await withConnectedClient(async (client) => {
+                const servers = await findServersAsync(client);
+                servers.length.should.eql(1);
+            });
         });
 
-        it("DISCO6-B - should answer a FindServers Request - with filters", (done) => {
-            make_on_connected_client((client, callback) => {
-                const filters = {};
-                client.findServers(filters, (err, servers) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    servers!.length.should.eql(1);
-                    callback();
-                });
-            }, done);
+        it("DISCO6-B - should answer a FindServers Request - with filters", async () => {
+            await withConnectedClient(async (client) => {
+                const servers = await findServersAsync(client, {});
+                servers.length.should.eql(1);
+            });
         });
 
-        it("DISCO6-C - should answer FindServers Request and apply serverUris filter", (done) => {
-            make_on_connected_client((client, callback) => {
-                const filters = {
-                    serverUris: ["invalid server uri"]
-                };
-
-                client.findServers(filters, (err, servers) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    servers!.length.should.eql(0);
-                    callback();
-                });
-            }, done);
+        it("DISCO6-C - should answer FindServers Request and apply serverUris filter", async () => {
+            await withConnectedClient(async (client) => {
+                const filters = { serverUris: ["invalid server uri"] };
+                const servers = await findServersAsync(client, filters);
+                servers.length.should.eql(0);
+            });
         });
 
-        it("DISCO6-D - should answer FindServers Request and apply endpointUri filter", (done) => {
-            make_on_connected_client((client, callback) => {
-                const filters = {
-                    serverUris: ["invalid server uri"]
-                };
-
-                client.findServers(filters, (err, servers) => {
-                    if (err) {
-                        return callback(err);
-                    }
-                    servers!.length.should.eql(0);
-                    callback();
-                });
-            }, done);
+        it("DISCO6-D - should answer FindServers Request and apply endpointUri filter", async () => {
+            await withConnectedClient(async (client) => {
+                const filters = { serverUris: ["invalid server uri"] };
+                const servers = await findServersAsync(client, filters);
+                servers.length.should.eql(0);
+            });
         });
     });
 }

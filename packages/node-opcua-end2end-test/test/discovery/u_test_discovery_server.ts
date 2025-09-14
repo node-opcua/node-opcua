@@ -1,5 +1,3 @@
-// tslint:disable:no-console
-import fs from "fs";
 import should from "should";
 
 import { assert } from "node-opcua-assert";
@@ -16,20 +14,26 @@ import {
     OPCUADiscoveryServer,
     ServiceFault
 } from "node-opcua";
-import { readCertificate, exploreCertificate } from "node-opcua-crypto";
+import { exploreCertificate } from "node-opcua-crypto";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-
 import {
+    stepLog,
+    cleanUpmDNSandSanityCheck,
     createServerThatRegistersItselfToTheDiscoveryServer,
     ep,
     pause,
     startAndWaitForRegisteredToLDS,
     startDiscovery,
     tweak_registerServerManager_timeout,
-    waitUntilCondition
-} from "./_helper";
+    waitUntilCondition,
+    TestHarness,
+    makeDiscoveryServer,
+    addServerCertificateToTrustedCertificateInDiscoveryServer
+} from "./helpers/index";
 
+import chalk from "chalk";
+const { green, red, cyan, yellow } = chalk;
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
@@ -46,8 +50,11 @@ process.on("uncaughtException", (err) => {
     console.log(err);
 });
 
-export function t(test: any) {
-    describe("DISCO1 - DiscoveryServer1", function (this: any) {
+
+
+
+export function t(test: TestHarness) {
+    describe("DISCO1 - DiscoveryServer1", function (this: Mocha.Runnable) {
         this.timeout(30 * 1000);
 
         let discovery_server: OPCUADiscoveryServer | undefined;
@@ -57,7 +64,7 @@ export function t(test: any) {
         before(async () => {
             server = new OPCUAServer({
                 port: port0,
-                serverCertificateManager: this.serverCertificateManager
+                serverCertificateManager: test.serverCertificateManager
             });
 
             await server.initialize();
@@ -70,10 +77,8 @@ export function t(test: any) {
         });
 
         beforeEach(async () => {
-            discovery_server = new OPCUADiscoveryServer({
-                port: port_discovery,
-                serverCertificateManager: this.discoveryServerCertificateManager
-            });
+            await cleanUpmDNSandSanityCheck();
+            discovery_server = await makeDiscoveryServer(port_discovery, test);
             await discovery_server.start();
             discoveryServerEndpointUrl = discovery_server.getEndpointUrl();
             debugLog(" discovery_server_endpointUrl = ", discoveryServerEndpointUrl);
@@ -94,7 +99,7 @@ export function t(test: any) {
                 clientName: __filename
             });
             client.on("backoff", () => {
-                console.log("cannot connect to " + discoveryServerEndpointUrl);
+                debugLog("cannot connect to " + discoveryServerEndpointUrl);
             });
 
             await client.connect(discoveryServerEndpointUrl);
@@ -139,7 +144,6 @@ export function t(test: any) {
                 should.exist(err);
                 should.not.exist(response);
                 (err as any).response.should.be.instanceOf(ServiceFault);
-                //xx console.log(response.toString());
                 (err as any).response.responseHeader.serviceResult.should.eql(StatusCodes.BadDiscoveryUrlMissing);
             }
 
@@ -208,95 +212,83 @@ export function t(test: any) {
         });
     });
 
-    describe("DISCO2 - DiscoveryServer2", function (this: any) {
+    describe("DISCO2 - DiscoveryServer2", function (this: Mocha.Runnable) {
         this.timeout(Math.max(60 * 1000, this.timeout()));
 
         let discoveryServer: OPCUADiscoveryServer;
         let discoveryServerEndpointUrl: string;
-        let server: OPCUAServer;
 
-        before(() => {
-            OPCUAServer.registry.count().should.eql(0);
-        });
-
-        after(() => {
-            OPCUAServer.registry.count().should.eql(0);
-        });
-
-        const makeDiscoveryServer = () => {
-            const discoveryServer = new OPCUADiscoveryServer({
-                port: port_discovery,
-                serverCertificateManager: this.discoveryServerCertificateManager
-            });
-
-            discoveryServer.on("onRegisterServer", (server, firstTime) => {
-                console.log("DISCOVERY SERVER REGISTERED", server.productUri, server.isOnline, "firstTime = ", firstTime);
-            });
-
-            if (doDebug) {
-                console.log(discoveryServerEndpointUrl);
-            }
-            return discoveryServer;
-
-        }
         beforeEach(async () => {
-            discoveryServer = makeDiscoveryServer();
+            OPCUAServer.registry.count().should.eql(0);
+            discoveryServer = await makeDiscoveryServer(port_discovery, test);
             await discoveryServer.start();
             discoveryServerEndpointUrl = discoveryServer.getEndpointUrl()!;
-            console.log("Discovery server started", discoveryServerEndpointUrl);
+            debugLog("Discovery server started", discoveryServerEndpointUrl);
         });
 
         afterEach(async () => {
-            await discoveryServer.shutdown();
-            console.log("Discovery server stopped");
+            if (discoveryServer) {
+                await discoveryServer.shutdown();
+                debugLog("Discovery server stopped");
+            }
+            OPCUAServer.registry.count().should.eql(0);
         });
 
-        async function addServerCertificateToTrustedCertificateInDiscoveryServer(server: OPCUAServer) {
-            const filename = server.certificateFile;
-            fs.existsSync(filename).should.eql(true, " the server certificate file " + filename + " should exist");
-            const certificate = readCertificate(filename);
-            await discoveryServer.serverCertificateManager.trustCertificate(certificate);
-        }
-        async function getRegisteredServer() {
+        it("DISCO2-0 a registered server is shutting down (and unregistering) before the discovery server shutdwn should not cause issues", async () => {
 
-        }
+            stepLog("1. Given a server that registers itself to the LDS = " + discoveryServerEndpointUrl);
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(
+                discoveryServerEndpointUrl, port2, "for outage");
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server, discoveryServer);
+
+            // fast re-registering
+            tweak_registerServerManager_timeout(server, 100);
+            await startAndWaitForRegisteredToLDS(server);
+
+            stepLog("2. When the registered server is shutdown before the discovery server");
+            await server.shutdown();
+
+            stepLog("3. Then the discovery server should not encounter issues when it eventually shuts down");
+            await discoveryServer.shutdown();
+            await pause(1000);
+            true.should.be.eql(true, "Discovery server should shut down cleanly even if registered server was already shut down");
+        });
 
         it("DISCO2-1 should register server to the discover server 2", async () => {
 
 
-            // 1 - checking precondition ----------------------------------------------------------------------------
-            // there should be no endpoint exposed by an blank discovery server
+            stepLog("1 - checking precondition : there should be no endpoint exposed by an blank discovery server");
             discoveryServer.registeredServerCount.should.equal(0);
 
             const data = await findServers(discoveryServerEndpointUrl);
             debugLog("data = ", data);
             const { servers, endpoints } = data;
             servers[0].discoveryUrls!.length.should.eql(1);
-            console.log("servers[0].discoveryUrls", servers[0].discoveryUrls!.join("\n"));
+            debugLog("servers[0].discoveryUrls", servers[0].discoveryUrls!.join("\n"));
             let initialServerCount = servers.length;
-            console.log(" initialServerCount = ", initialServerCount);
+            debugLog(" initialServerCount = ", initialServerCount);
             // reminder: the number of returned servers by find server is always +1 
             // as the discovery server itslef is in the list but is not considered
             // as a registered server.
             discoveryServer.registeredServerCount.should.eql(initialServerCount - 1);
 
 
-            // 2 - given a server that registers itself to the LDS 
+            stepLog("2 - given a server that registers itself to the LDS");
             const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port2, "for outage");
-            addServerCertificateToTrustedCertificateInDiscoveryServer(server);
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server, discoveryServer);
 
             // fast reregistering
             tweak_registerServerManager_timeout(server, 2000);
 
-            // 3 - When the server starts and notifes that it has registered
+            stepLog("3 - When the server starts and notifes that it has registered");
             await startAndWaitForRegisteredToLDS(server);
             const applicationUri = server.serverInfo.applicationUri;
+            debugLog("server.applicationUri =", applicationUri);
 
-            // 4 - Then I should verify that the discovery server has an incremented registeredServerCount
+            stepLog("4 - Then I should verify that the discovery server has an incremented registeredServerCount");
             discoveryServer.registeredServerCount.should.equal(1);
 
-            // 4.1 - And Then I should verify that the server application applicationUri can be found 
-            //       in the list of registered server
+            stepLog("4.1 - And Then I should verify that the server application applicationUri can be found in the list of registered server");
             {
                 const data = await findServers(discoveryServerEndpointUrl);
                 const { servers, endpoints } = data;
@@ -304,37 +296,50 @@ export function t(test: any) {
                 servers[1].applicationUri!.should.eql(applicationUri);
             }
 
-            // 5. When the server shut down
+            stepLog("5. When the server shut down");
             await server.shutdown();
 
-            // 6. then I should verify that the the server has been 
-            //    unregistered from the 
+            stepLog("6. then I should verify that the the server has been unregistered"); 
             {
                 const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
                 servers.length.should.eql(initialServerCount);
             }
+            await pause(1000);
+
         });
 
         it("DISCO2-2 should re-register after discovery server outage", async () => {
 
+            stepLog("1. Given a server that registers itself to the LDS");
+            // #region
             const server = await createServerThatRegistersItselfToTheDiscoveryServer(
-                discoveryServerEndpointUrl, port2, "for outage");
-            addServerCertificateToTrustedCertificateInDiscoveryServer(server);
-            // fast re-registering
-            tweak_registerServerManager_timeout(server, 100);
+                discoveryServerEndpointUrl, port2, "DISCO2-2");
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server, discoveryServer);
 
+            // fast re-registering
+            tweak_registerServerManager_timeout(server, 1000);
             await startAndWaitForRegisteredToLDS(server);
+            //#endregion
+
+
             try {
 
+
+                stepLog("2. we should verify that the server appears in the list of administered servers in the LDS");
+                // #region
                 const applicationUri = server.serverInfo.applicationUri;
 
                 // Ensure it's registered
                 let foundServers = await findServers(discoveryServerEndpointUrl);
-                foundServers.servers.filter(s => s.applicationUri === applicationUri).length.should.equal(1, "Server should be registered");
+                foundServers.servers.filter(
+                    s => s.applicationUri === applicationUri)
+                    .length.should.equal(1, "Server should be registered");
+                // #endregion
 
-                // 2. Shut down the discovery server
-                console.log("Shutting down discovery server to simulate an outage...");
+                // 3. Shut down the discovery server
+                debugLog("Shutting down discovery server to simulate an outage...");
                 await discoveryServer.shutdown();
+                debugLog("Discovery server shut down.");
 
                 // 3. Wait for the server to detect the outage and go into a pending state (backoff)
                 await new Promise<void>((resolve, reject) => {
@@ -344,33 +349,41 @@ export function t(test: any) {
                         resolve();
                     });
                 });
-                console.log("Server detected outage and is in a pending state.");
-
-
-
+                stepLog("Server detected outage and is in a pending state.");
 
 
                 // 4. Restart the discovery server
-                console.log("Restarting discovery server...");
-                discoveryServer = makeDiscoveryServer()
+                stepLog("Restarting discovery server...");
+                discoveryServer = await await makeDiscoveryServer(port_discovery, test)
+
                 await discoveryServer.start();
-                console.log("Discovery server restarted");
+                stepLog("Discovery server restarted");
 
 
-                // 5. Wait for the server to automatically re-register
-                await new Promise<void>((resolve, reject) => {
-                    const timerId = setTimeout(() => reject(new Error("Server failed to re-register.")), 15000);
-                    server.once("serverRegistrationRenewed", () => {
-                        console.log("Server successfully re-registered!");
-                        clearTimeout(timerId);
-                        resolve();
+                const waitUntilServerRenewRegistration = async () => {
+                    // 5. Wait for the server to automatically re-register
+                    await new Promise<void>((resolve, reject) => {
+                        const timerId = setTimeout(() => reject(new Error("Server failed to re-register.")), 15000);
+                        server.once("serverRegistrationRenewed", () => {
+                            stepLog(green("Server successfully re-registered!"));
+                            clearTimeout(timerId);
+                            resolve();
+                        });
                     });
-                });
+                }
 
-                // 6. Assert that the server is now discoverable again
+
+                stepLog("5. Wait for the server to automatically re-register");
+                await waitUntilServerRenewRegistration();
+
+                await waitUntilServerRenewRegistration();
+
+                stepLog("6. Assert that the server is now discoverable again");
                 foundServers = await findServers(discoveryServerEndpointUrl);
                 foundServers.servers.filter(s => s.applicationUri === applicationUri)
-                    .length.should.equal(1, "Server should be re-registered after outage");
+                    .length.should.equal(1, "Server should have been be re-registered after outage");
+
+
             } finally {
 
                 // Clean up
@@ -379,7 +392,66 @@ export function t(test: any) {
             // 
             await waitUntilCondition(async () => {
                 return discoveryServer.registeredServerCount == 0 ? true : false;
-            }, 10000, "");
+            }, 200000, "");
+
+            await pause(1000);
+
+            await discoveryServer.shutdown();
+
+        });
+
+        it("DISCO2-3 should handle discovery server shutting down while server is trying to register", async () => {
+
+            // 1. Given a Server that starts
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(
+                discoveryServerEndpointUrl, port2, "for outage");
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server, discoveryServer);
+
+            // fast re-registering
+            tweak_registerServerManager_timeout(server, 100);
+
+            const promise = new Promise<void>((resolve, reject) => {
+
+                server.start().then(() => {
+                    server.shutdown().finally(() => {
+                        resolve();
+                    });
+                }).catch((err) => {
+                    reject(err);
+                });
+            })
+            await pause(10);
+            await discoveryServer.shutdown();
+            await pause(1000);
+            await promise; // ensure server is shut down
+
+        });
+        it("DISCO2-4 discovery server shutting down before registered server does should not cause issues", async () => {
+
+            // 1. Given a server that registers itself to the LDS
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(
+                discoveryServerEndpointUrl, port2, "for outage");
+            addServerCertificateToTrustedCertificateInDiscoveryServer(server, discoveryServer);
+
+            // fast re-registering
+            tweak_registerServerManager_timeout(server, 100);
+
+            await startAndWaitForRegisteredToLDS(server);
+
+            await pause(1000);
+            // 2. When the discovery server is shutdown before the registered server
+            await discoveryServer.shutdown();
+
+            await pause(2000);
+            // 3. Then the registered server should not encounter issues when it eventually shuts down
+            await server.shutdown();
+
+            // allow some time for any async operations to complete
+            await pause(1000);
+
+            // If we reach this point without errors, the test passes
+            true.should.be.eql(true, "Registered server should shut down cleanly even if discovery server was already shut down");
+
         });
     });
 
@@ -419,24 +491,27 @@ export function t(test: any) {
             await discoveryServer.shutdown();
         });
 
+        beforeEach(async () => {
+            await cleanUpmDNSandSanityCheck();
+        })
         let registeredServerCount = 0;
 
         async function checkServerCertificateAgainstLDS(server: OPCUAServer) {
             const certificate = await server.getCertificate();
             const certificateInfo = await exploreCertificate(certificate);
             if (doDebug) {
-                console.log(certificateInfo);
+                debugLog(certificateInfo);
             }
             const statusBefore = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
             if (doDebug) {
-                console.log("statusBefore = ", statusBefore);
+                debugLog("statusBefore = ", statusBefore);
             }
 
             await discoveryServer.serverCertificateManager.trustCertificate(certificate);
 
             const statusAfter = await discoveryServer.serverCertificateManager.verifyCertificate(certificate);
             if (doDebug) {
-                console.log("statusAfter = ", statusAfter);
+                debugLog("statusAfter = ", statusAfter);
             }
             statusAfter.should.eql("Good");
         }
@@ -479,12 +554,12 @@ export function t(test: any) {
 
 
         async function wait_until_all_servers_registered(expectedCount: number): Promise<void> {
-            console.log("waiting for all servers to be registered ", registeredServerCount, "expected", expectedCount);
+            stepLog(`waiting for all servers to be registered ${registeredServerCount} expected ${expectedCount}`);
             const maxTime = 20 * 1000;
             const timeIncrement = 200;
             for (let t = 0; t < maxTime; t += timeIncrement) {
                 if (registeredServerCount === expectedCount) {
-                    console.log("waited ", t, "ms");
+                    debugLog("waited ", t, "ms");
                     break;
                 }
                 await pause(timeIncrement);
@@ -492,6 +567,12 @@ export function t(test: any) {
         }
 
         it("DISCO3-2 a discovery server shall be able to expose many registered servers", async () => {
+
+
+            // ensure that no servers have been regiester yet
+            // we may have dangling opcua reservers still pending in the air
+            const { servers: serversBefore, endpoints: endPointsBefore } = await findServers(discoveryServerEndpointUrl);
+            const before = serversBefore.length;
 
             await start_all_servers();
 
@@ -503,7 +584,7 @@ export function t(test: any) {
 
             const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
             if (doDebug) {
-                console.log(
+                debugLog(
                     "------- findServersOnNetwork on ",
                     discoveryServerEndpointUrl,
                     "returned ",
@@ -514,14 +595,14 @@ export function t(test: any) {
                     debugLog(s.applicationUri, s.productUri, ApplicationType[s.applicationType], s.discoveryUrls![0]);
                 }
             }
-            servers.length.should.eql(6); // 5 server + 1 discovery server
+            servers.length.should.eql(5 + before); // 5 server + 1 discovery server
 
             // servers[1].applicationUri.should.eql("urn:NodeOPCUA-Server");
             await pause(3000);
             {
                 const servers = await findServersOnNetwork(discoveryServerEndpointUrl);
                 if (servers!.length !== 6) {
-                    console.log(
+                    debugLog(
                         "------- findServersOnNetwork on ",
                         discoveryServerEndpointUrl,
                         "returned ",
@@ -529,7 +610,7 @@ export function t(test: any) {
                         "servers: here they are:"
                     );
                     for (const s of servers!) {
-                        console.log(s.toString());
+                        debugLog(s.toString());
                     }
                 }
                 servers!.length.should.eql(

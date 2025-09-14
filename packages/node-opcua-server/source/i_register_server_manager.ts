@@ -46,6 +46,8 @@ export enum RegisterServerManagerStatus {
     UNREGISTERING = 7,
     UNREGISTERED = 8,
     NOT_APPLICABLE = -1,
+    
+    DISPOSING = 9
 }
 
 

@@ -369,7 +369,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      * @private
      */
     async #_runRegistrationProcess(): Promise<void> {
-        while (this.getState() !== RegisterServerManagerStatus.WAITING && this.getState() !== RegisterServerManagerStatus.UNREGISTERING) {
+        while (this.getState() !== RegisterServerManagerStatus.WAITING && !this.#_isTerminating()) {
             try {
                 if (this.getState() === RegisterServerManagerStatus.INACTIVE) {
                     this.#_setState(RegisterServerManagerStatus.INITIALIZING);
@@ -399,8 +399,8 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 this.#_trigger_next();
 
             } catch (err) {
-                warningLog("RegisterServerManager#_runRegistrationProcess - operation failed!", ((err as Error).message));
-                if (this.getState() !== RegisterServerManagerStatus.UNREGISTERING) {
+                debugLog("RegisterServerManager#_runRegistrationProcess - operation failed!", ((err as Error).message));
+                if (!this.#_isTerminating()) {
                     this.#_setState(RegisterServerManagerStatus.INACTIVE);
                     this.#_emitEvent("serverRegistrationFailure");
                     await pause(Math.min(5000, this.timeout));
@@ -408,7 +408,9 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             }
         }
     }
-
+    #_isTerminating(): boolean {
+        return this.getState() === RegisterServerManagerStatus.UNREGISTERING || this.getState() === RegisterServerManagerStatus.DISPOSING
+    }
 
     /**
      * Establish the initial connection with the Discovery Server to extract best endpoint to use.
@@ -416,7 +418,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      */
     async #_establish_initial_connection(): Promise<void> {
         if (!this.server) {
-            this.#_setState(RegisterServerManagerStatus.INACTIVE);
+            this.#_setState(RegisterServerManagerStatus.DISPOSING);
             return;
         }
         if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
@@ -452,7 +454,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         registrationClient.on("backoff", (nbRetry: number, delay: number) => {
             if (this.state !== RegisterServerManagerStatus.INITIALIZING) return; // Ignore event if state has changed
             debugLog("RegisterServerManager - received backoff");
-            warningLog(
+            debugLog(
                 registrationClient.clientName,
                 chalk.bgWhite.cyan("contacting discovery server backoff "),
                 this.discoveryServerEndpointUrl,
@@ -462,6 +464,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 delay / 1000.0,
                 " seconds"
             );
+            this.#_emitEvent("serverRegistrationPending");
         });
 
 
@@ -523,10 +526,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
 
             const after_register = (err?: Error) => {
-                if (
-                    this.state !== RegisterServerManagerStatus.INACTIVE &&
-                    this.state !== RegisterServerManagerStatus.UNREGISTERING
-                ) {
+                if (!this.#_isTerminating()) {
                     debugLog("RegisterServerManager#_trigger_next : renewed ! err:", err?.message);
                     this.#_setState(RegisterServerManagerStatus.WAITING);
                     this.#_emitEvent("serverRegistrationRenewed");
@@ -562,12 +562,13 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 this.#_setState(RegisterServerManagerStatus.UNREGISTERED);
                 this.#_emitEvent("serverUnregistered");
             } catch (err) {
+                warningLog(err);
                 warningLog("RegisterServerManager#stop: Unregistration failed.", (err as Error).message);
             }
         }
 
         // Final state transition to INACTIVE
-        this.#_setState(RegisterServerManagerStatus.INACTIVE);
+        this.#_setState(RegisterServerManagerStatus.DISPOSING);
     }
 
     /**
@@ -631,7 +632,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             await sendRegisterServerRequest(server, client as ClientBaseEx, isOnline);
 
         } catch (err) {
-            warningLog(`${isOnline?"Un": ""}RegisterServer to the LDS has failed during secure connection err:`, (err as Error).message);
+            warningLog(`${isOnline ? "UnRegisterServer" : "RegisterServer"} '${this.server!.serverInfo.applicationUri}' to the LDS has failed during secure connection to the LDS server :`, (err as Error).message);
             // Do not rethrow here, let the caller handle it.
             return;
         } finally {
