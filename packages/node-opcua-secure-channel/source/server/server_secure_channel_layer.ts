@@ -5,7 +5,6 @@
 import { createPublicKey, randomBytes } from "crypto";
 import { EventEmitter } from "events";
 import { Socket } from "net";
-import { callbackify } from "util";
 import chalk from "chalk";
 
 import { assert } from "node-opcua-assert";
@@ -230,7 +229,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * true when the secure channel has been opened successfully
-     *
+     * 
      */
     public get isOpened(): boolean {
         return this.#status === "open";
@@ -318,7 +317,9 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.#clientPublicKey = null;
         this.#clientPublicKeyLength = 0;
         this.#clientCertificate = null;
-        this.#transport = new ServerTCP_transport({ adjustLimits: options.adjustTransportLimits });
+        this.#transport = new ServerTCP_transport({
+            adjustLimits: options.adjustTransportLimits
+        });
 
         this.channelId = getNextChannelId();
         this.#tokenStack = new TokenStack(this.channelId);
@@ -417,7 +418,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * the endpoint associated with this secure channel
-     *
+     * 
      */
     public getEndpointDescription(
         securityMode: MessageSecurityMode,
@@ -479,16 +480,34 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     /**
+     *  This intialize the transport layer (TCP) used by this secure channel 
+     * 
+     *  the function will also wait for the Hello Message from the client.
+     *  ( in the transport layer )
+     *  and will initialize the OpenSecureChannelRequest watchdog and return
+     *  to the caller.
+     *  This means that the secure channel is ready to receive an OpenSecureChannelRequest
      * 
      */
     public init(socket: ISocketLike, callback: ErrorCallback): void {
-        this.#transport.timeout = this.timeout;
+
+        const minTimeout = 2000;
+        // set the transport timeout
+        this.#transport.timeout = Math.max(minTimeout, this.timeout);
+
         debugLog("Setting socket timeout to ", this.#transport.timeout);
 
         this.#transport.init(socket, (err?: Error | null) => {
+            // the transport is now initialized or has failed to initialize
             if (err) {
+                // failed to initialize the transport ( most likely a timeout has occurred)
+                // or a errorneous Hello message has been received
+                debugLog("ServerSecureChannelLayer : Transport layer has failed to initialize");
                 callback(err);
             } else {
+                // we know this means that it has received the TCP "Hello" Message
+                // and has sent a "Acknowledge" Message
+
                 this.#_build_message_builder();
 
                 this.#_rememberClientAddressAndPort();
@@ -510,6 +529,10 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
                 ServerSecureChannelLayer.registry.register(this);
 
+                // the wait should terminate before the 
+                // the transport timeouts
+                const waitForOpenSecureChannelTimeout = Math.max(minTimeout / 2.0, this.timeout - 2000);
+
                 this.#_wait_for_open_secure_channel_request(this.timeout);
                 callback();
             }
@@ -518,7 +541,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         // detect transport closure
         this.#transport_socket_close_listener = (err?: Error) => {
             debugLog("transport has send 'close' event " + (err ? err.message : "null"));
-            this.#_abort();
+            this.#_abort(err || new Error("Transport closed abruptly"));
         };
         this.#transport.on("close", this.#transport_socket_close_listener);
     }
@@ -643,7 +666,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     /**
      * Abruptly close a Server SecureChannel ,by terminating the underlying transport.
-     *
+     * 
      */
     public close(callback?: ErrorCallback): void {
         callback = callback || (() => { });
@@ -653,12 +676,12 @@ export class ServerSecureChannelLayer extends EventEmitter {
             }
             return;
         }
-        debugLog("ServerSecureChannelLayer#close");
+        debugLog("ServerSecureChannelLayer.close");
         this.#status = "closing";
         // close socket
         this.#transport.disconnect(() => {
             this.#status = "closed";
-            this.#_abort();
+            this.#_abort(new Error("Transport disconnected as we closed the Server SecureChannel"));
             if (typeof callback === "function") {
                 callback();
             }
@@ -703,7 +726,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
             warningLog("ServerSecureChannel:MessageBuilder: ", err.message, statusCode.toString());
             // istanbul ignore next
             if (doDebug) {
-                debugLog(chalk.red("Error "), err.message, err.stack);
+                debugLog(chalk.red("Error "), err.message,/* err.stack */);
                 debugLog(chalk.red("Server is now closing socket, without further notice"));
             }
 
@@ -716,6 +739,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     #_sendFatalErrorAndAbort(statusCode: StatusCode, description: string, message: Message, callback: ErrorCallback): void {
+
+        debugLog("_sendFatalErrorAndAbort", statusCode.toString(), description);
         this.#transport.sendErrorMessage(statusCode, description);
         if (!this.#transport) {
             return callback(new Error("Transport has been closed"));
@@ -809,6 +834,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
 
     #_stop_open_channel_watch_dog() {
         if (this.#timeoutId) {
+            debugLog("stopping open channel watch dog");
             clearTimeout(this.#timeoutId);
             this.#timeoutId = null;
         }
@@ -828,26 +854,54 @@ export class ServerSecureChannelLayer extends EventEmitter {
         this.#_stop_open_channel_watch_dog();
     }
 
-    #_install_wait_for_open_secure_channel_request_timeout(timeout: number) {
+    #_install_wait_for_open_secure_channel_request_timeout(timeoutFoOpenChannelRequest: number) {
+
+        // istanbul ignore next
+        if (doDebug) {
+            debugLog("_install_wait_for_open_secure_channel_request_timeout:");
+            debugLog("  Installing wait of OpenSecureChannelRequest");
+            debugLog("    timeoutFoOpenChannelRequest =", timeoutFoOpenChannelRequest, "ms");
+            debugLog("    transport.timeout           =", this.#transport.timeout, "ms");
+        }
+        assert(!this.#timeoutId, " timeout already started");
+        assert(!this.#open_secure_channel_onceClose, " close listener already installed");
 
         this.#open_secure_channel_onceClose = (err?: Error) => {
+
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog("_install_wait_for_open_secure_channel_request_timeout:");
+                debugLog("    transport has been closed");
+            }
             this.#open_secure_channel_onceClose = null;
             this.#_stop_open_channel_watch_dog();
+
             this.close(() => {
-                const err = new Error("Timeout waiting for OpenChannelRequest (A) (timeout was " + timeout + " ms)");
+                const err = new Error("Timeout waiting for OpenChannelRequest (A) (timeout was " + timeoutFoOpenChannelRequest + " ms)");
                 this.emit("abort", err);
             });
         };
         this.#transport.prependOnceListener("close", this.#open_secure_channel_onceClose);
+
         this.#timeoutId = setTimeout(() => {
+            // istanbul ignore next
+            if (doDebug) {
+                debugLog("_install_wait_for_open_secure_channel_request_timeout:");
+                debugLog("     Timeout has expired !");
+            }
             this.#timeoutId = null;
             this.#_stop_open_channel_watch_dog();
-            const err = new Error("Timeout waiting for OpenChannelRequest (B) (timeout was " + timeout + " ms)");
+
+            const msg = `Timeout waiting for OpenChannelRequest (B) (timeout was " + ${timeoutFoOpenChannelRequest}  ms)`;
+
+            const err = new Error(msg);
+            this.emit("abort", err);
             debugLog(err.message);
-            this.close(() => {
-              // 
+            this.close((err) => {
+                debugLog("_install_wait_for_open_secure_channel_request_timeout:");
+                debugLog("  closed()")
             });
-        }, timeout);
+        }, timeoutFoOpenChannelRequest);
     }
 
     #_on_initial_open_secure_channel_request(
@@ -855,6 +909,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
         requestId: number,
         channelId: number
     ) {
+
+        debugLog("Just received first OpenSecureChannelRequest");
         this.#status = "connecting";
 
         /* istanbul ignore next */
@@ -984,6 +1040,8 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     #_wait_for_open_secure_channel_request(timeout: number) {
+
+
         this.#_install_wait_for_open_secure_channel_request_timeout(timeout);
 
         const errorHandler = (err: Error) => {
@@ -1012,7 +1070,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
     }
 
     write(messageChunk: Buffer) {
-        this.#transport.write(messageChunk);
+        this.#transport?.write(messageChunk);
     }
     #_send_chunk(messageChunk: Buffer) {
         this.write(messageChunk);
@@ -1337,7 +1395,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
         });
     }
 
-    #_abort() {
+    #_abort(err: Error) {
         this.#status = "closed";
 
         debugLog("ServerSecureChannelLayer#_abort");
@@ -1361,7 +1419,7 @@ export class ServerSecureChannelLayer extends EventEmitter {
          *
          * @event abort
          */
-        this.emit("abort");
+        this.emit("abort", err);
         debugLog("ServerSecureChannelLayer emitted abort event");
     }
 

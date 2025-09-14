@@ -20,6 +20,7 @@ import { EndpointDescription } from "node-opcua-service-endpoints";
 import { TransportPairDirect } from "node-opcua-transport/dist/test_helpers";
 import { FindServersRequest, FindServersResponse } from "node-opcua-types";
 import { hexDump } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 import {
     ClientSecureChannelLayer,
@@ -31,7 +32,7 @@ import {
     SecurityPolicy,
     ServerSecureChannelLayer,
     ServerSecureChannelParent
-} from "..";
+} from "../dist/source";
 
 const doDebug = false;
 
@@ -53,8 +54,6 @@ fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store a
 const NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = parseInt((process.version.match(/^v([0-9]+)/)![1]) || "0", 10) >= 21;
 console.log("NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 = ", NODE_NO_SUPPORT_SECURITY_BASIC128RSA15);
 
-// tslint:disable:no-var-requires
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("Testing secure client and server connection", function (this: any) {
     this.timeout(120 * 1000);
     const certificateManager = new OPCUACertificateManager({
@@ -366,6 +365,7 @@ describe("Testing secure client and server connection", function (this: any) {
         await performTest1(2048, 2048, MessageSecurityMode.Sign, SecurityPolicy.Basic256);
     });
 
+    console.log("set NODE_NO_SUPPORT_SECURITY_BASIC128RSA15 variable to ignore Basic128Rsa15 tests");
     let index = 4;
     for (const sizeC of [1024, 2048, 3072, 4096]) {
         for (const sizeS of [1024, 2048, 3072, 4096]) {
