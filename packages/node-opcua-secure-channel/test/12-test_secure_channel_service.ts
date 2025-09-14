@@ -10,8 +10,7 @@ import { make_debugLog } from "node-opcua-debug";
 const debugLog = make_debugLog("TEST");
 
 import { IDerivedKeyProvider, MessageBuilder, MessageChunker, SecurityPolicy } from "../dist/source";
-import * as fixture from "../test_fixtures/fixture_GetEndPointResponse";
-import { channel } from "diagnostics_channel";
+import * as fixture from "../dist/test_fixtures/fixture_GetEndPointResponse";
 
 
 const derivedKeyProvider: IDerivedKeyProvider = {

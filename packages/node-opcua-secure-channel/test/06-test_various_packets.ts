@@ -4,8 +4,8 @@ import { BinaryStream } from "node-opcua-binary-stream";
 import { analyseExtensionObject } from "node-opcua-packet-analyzer";
 import { decodeExpandedNodeId } from "node-opcua-basic-types";
 
-import { IDerivedKeyProvider,  MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../source";
-import { packet_ReadResponse } from "../test_fixtures/fixture_problematic_ReadResponse";
+import { IDerivedKeyProvider,  MessageBuilder, MessageSecurityMode, SecurityPolicy } from "../dist/source";
+import { packet_ReadResponse } from "../dist/test_fixtures/fixture_problematic_ReadResponse";
 import * as packets from "node-opcua-transport/test-fixtures/fixture_full_tcp_packets";
 
 const full_message_body = packet_ReadResponse;

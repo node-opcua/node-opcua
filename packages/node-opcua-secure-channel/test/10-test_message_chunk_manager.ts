@@ -1,14 +1,14 @@
 import "should";
+import { Mode } from "node-opcua-chunkmanager";
 
-import { makeMessageChunkSignatureForTest, verifyMessageChunkSignatureForTest } from "../test_helpers";
+import { makeMessageChunkSignatureForTest, verifyMessageChunkSignatureForTest } from "../dist/test_helpers";
 import {
     MessageSecurityMode,
     SecureMessageChunkManager,
     SecureMessageChunkManagerOptions,
     SequenceNumberGenerator,
     SymmetricAlgorithmSecurityHeader
-} from "../source";
-import { Mode } from "node-opcua-chunkmanager";
+} from "../dist/source";
 
 function performMessageChunkManagerTest(securityMode: MessageSecurityMode, options: Partial<SecureMessageChunkManagerOptions>) {
     const securityHeader = new SymmetricAlgorithmSecurityHeader();

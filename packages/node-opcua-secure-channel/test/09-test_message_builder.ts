@@ -3,7 +3,8 @@ import * as packets from "node-opcua-transport/dist/test-fixtures";
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { make_debugLog } from "node-opcua-debug";
 import { MessageBuilder, SecurityPolicy, MessageSecurityMode } from "../dist/source";
-import { IDerivedKeyProvider } from "../source/token_stack";
+import { IDerivedKeyProvider } from "../dist/source/token_stack";
+import sinon from "sinon";
 
 const debugLog = make_debugLog(__filename);
 
@@ -109,27 +110,33 @@ describe("MessageBuilder", function () {
         test_behavior_with_bad_packet("corrupted_message_error", bad_packet, false, done);
     });
 
-    it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", function (done) {
+    it("should emit a 'invalid_sequence_number' event if a message does not have a 1-increased sequence number", async  () => {
+
         const messageBuilder = new MessageBuilder(derivedKeyProvider, {
             name: "MessageBuilder"
         });
 
-        messageBuilder
-            .on("message", (message) => {
-                /** */
-            })
-            .on("error", (err) => {
-                console.log(err);
-                done(Error("should not get there"));
-            })
-            .on("invalid_sequence_number", function (expected, found) {
-                //xx console.log("expected ",expected);
-                //xx console.log("found",found);
-                done();
-            });
+        const spyMessage = sinon.spy();
+        const spyError = sinon.spy();
+        const spyInvalidSequenceNumber = sinon.spy();
+        messageBuilder.on("message", spyMessage);
+        messageBuilder.on("error", spyError);
+        messageBuilder.on("invalid_sequence_number", spyInvalidSequenceNumber);
+    
+        // send first messages with sequence number 1
+        messageBuilder.feed(packets.openChannelRequest1);
 
+        spyMessage.callCount.should.eql(1); // only first message is accepted, as sequence number is 1
+        spyError.callCount.should.eql(0);
+        spyInvalidSequenceNumber.callCount.should.eql(0);
+
+        // send a second messages with sequence number 1 ( instead of 2)
         messageBuilder.feed(packets.openChannelRequest1);
-        messageBuilder.feed(packets.openChannelRequest1);
+        spyMessage.callCount.should.eql(1); // only first message is accepted, as sequence number is 1
+        spyError.callCount.should.eql(1);
+        spyInvalidSequenceNumber.callCount.should.eql(1);
+        spyInvalidSequenceNumber.getCall(0).args[0].should.eql(2,"expected sequence number");
+        spyInvalidSequenceNumber.getCall(0).args[1].should.eql(1,"found sequence number");
     });
 
     it("some random packet - encrypted ", (done) => {

@@ -5,12 +5,13 @@ import { packTcpMessage } from "node-opcua-transport";
 import { GetEndpointsRequest } from "node-opcua-service-endpoints";
 import { openSecureChannelResponse1 } from "node-opcua-transport/dist/test-fixtures";
 import * as fixture from "node-opcua-transport/dist/test-fixtures";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
 import { ClientSecureChannelLayer } from "../dist/source";
 import { MockServerTransport, fakeAcknowledgeMessage } from "../dist/test_helpers";
 
 const debugLog = make_debugLog(__filename);
 
-const describe = require("node-opcua-leak-detector").describeWithLeakDetector;
 describe("testing ClientSecureChannelLayer ", function (this: any) {
     this.timeout(Math.max(120 * 1000, this.timeout()));
 

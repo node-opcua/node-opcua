@@ -1,0 +1,71 @@
+{
+    "extends": "../tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "",
+        "outDir": "dist-test",
+        "composite": true
+    },
+    "include": [
+        "test/**/*.ts"
+    ],
+    "references": [
+        {
+            "path": "../node-opcua-assert"
+        },
+        {
+            "path": "../node-opcua-basic-types"
+        },
+        {
+            "path": "../node-opcua-binary-stream"
+        },
+        {
+            "path": "../node-opcua-certificate-manager"
+        },
+        {
+            "path": "../node-opcua-chunkmanager"
+        },
+        {
+            "path": "../node-opcua-common"
+        },
+        {
+            "path": "../node-opcua-debug"
+        },
+        {
+            "path": "../node-opcua-factory"
+        },
+        {
+            "path": "../node-opcua-nodeid"
+        },
+        {
+            "path": "../node-opcua-object-registry"
+        },
+        {
+            "path": "../node-opcua-packet-analyzer"
+        },
+        {
+            "path": "../node-opcua-service-endpoints"
+        },
+        {
+            "path": "../node-opcua-service-secure-channel"
+        },
+        {
+            "path": "../node-opcua-service-session"
+        },
+        {
+            "path": "../node-opcua-status-code"
+        },
+        {
+            "path": "../node-opcua-transport"
+        },
+        {
+            "path": "../node-opcua-types"
+        },
+        {
+            "path": "../node-opcua-utils"
+        }
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}

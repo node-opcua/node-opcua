@@ -1,7 +1,7 @@
 import "should";
 import { CloseSecureChannelRequest, MessageSecurityMode } from "node-opcua-service-secure-channel";
 import { hexDump } from "node-opcua-debug";
-import { MessageBuilder, IDerivedKeyProvider, SecurityPolicy } from "../source";
+import { MessageBuilder, IDerivedKeyProvider, SecurityPolicy } from "../dist/source";
 
 describe("test issue with final CLO message", () => {
     const derivedKeyProvider: IDerivedKeyProvider = {
