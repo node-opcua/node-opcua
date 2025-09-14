@@ -1,6 +1,7 @@
 import "should";
 import {
     OPCUAClient,
+    OPCUAClientBase,
     ClientSubscription,
     OPCUADiscoveryServer,
     RegisterServerManager,
@@ -15,10 +16,16 @@ import {
     ClientSession,
     OPCUACertificateManager
 } from "node-opcua";
-
-import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { createServerThatRegistersItselfToTheDiscoveryServer, f, pause, startDiscovery, tweak_registerServerManager_timeout } from "./_helper";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import {
+    TestHarness,
+    createServerThatRegistersItselfToTheDiscoveryServer,
+    f,
+    pause,
+    startDiscovery,
+    tweak_registerServerManager_timeout
+} from "./helpers/index";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -28,7 +35,7 @@ const port2 = 12400;
 const port1 = 12401;
 const discovery_port = 12402;
 
-export function t(test: any) {
+export function t(test:TestHarness) {
     describe("DISCO4 - NodeRed -  testing frequent server restart within same process", function () {
         /**
          * This test simulates the way node-red will frequently start and restart
@@ -70,7 +77,6 @@ export function t(test: any) {
             if (doDebug) {
                 debugLog("Server has been shut down");
             }
-            await wait_a_few_seconds();
         });
 
 
@@ -117,7 +123,7 @@ export function t(test: any) {
                     debugLog("session restored - client", client.clientName);
                 });
 
-                const subscription = ClientSubscription.create(session, {
+                const subscription = await session.createSubscription2({
                     requestedPublishingInterval: 100,
                     requestedLifetimeCount: 1000,
                     requestedMaxKeepAliveCount: 6,
@@ -125,6 +131,7 @@ export function t(test: any) {
                     publishingEnabled: true,
                     priority: 10
                 });
+
                 subscription
                     .on("started", function () {
                         if (doDebug) {
@@ -137,8 +144,9 @@ export function t(test: any) {
                     .on("terminated", function () {
                         /** */
                     });
-                const monitoredItem = ClientMonitoredItem.create(
-                    subscription,
+
+
+                const monitoredItem = await subscription.monitor(
                     {
                         nodeId: resolveNodeId("ns=0;i=2258"),
                         attributeId: AttributeIds.Value
@@ -201,7 +209,19 @@ export function t(test: any) {
         after(async () => {
             await stopDiscoveryServer();
         });
-
+        beforeEach(async () => {
+            OPCUAClientBase.registry.count().should.eql(0, "at start, no client should be active");
+        });
+        afterEach(async () => {
+            console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
+            await pause(100);
+            OPCUAClientBase.registry.count().should.eql(0,"1. All Clients shoiuld have been properly disposed of");
+            await pause(100);
+            OPCUAClientBase.registry.count().should.eql(0, "2. All Clients shoiuld have been properly disposed of");
+            await pause(100);
+            OPCUAClientBase.registry.count().should.eql(0, "3. All Clients shoiuld have been properly disposed of");
+            console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
+        });
         it("DISCO4-A - should perform start/stop cycle efficiently - wait ", async () => {
             await createServer();
             await wait_a_few_seconds();
@@ -339,7 +359,7 @@ export function t(test: any) {
             const registrationManager = new RegisterServerManager({
                 discoveryServerEndpointUrl,
                 server: {
-                    serverCertificateManager: new OPCUACertificateManager({}),
+                    serverCertificateManager: test.discoveryServerCertificateManager,
                     certificateFile: "",
                     privateKeyFile: "",
                     capabilitiesForMDNS: [],

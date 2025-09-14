@@ -12,14 +12,16 @@ export function isSameService(a?: ServiceConfig, b?: ServiceConfig): boolean {
 }
 export const serviceToString = (service: ServiceConfig) => {
     return (
-        "host" +
+        "\n   host" +
         service.host +
-        " type=" +
+        "\n   type=" +
         service.type +
         service.name +
-        " on port " +
+        "\n    on port " +
         service.port +
-        " txt " +
-        JSON.stringify(service.txt)
+        "\n    txt " +
+        JSON.stringify(service.txt) +
+        "\n   ttl=" + service.ttl +
+        "\n   ip=" + (service.ip!) 
     );
 };

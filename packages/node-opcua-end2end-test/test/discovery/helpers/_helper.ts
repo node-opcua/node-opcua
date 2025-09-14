@@ -14,15 +14,101 @@ import {
     RegisterServerMethod
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-import { createServerCertificateManager } from "../../test_helpers/createServerCertificateManager";
-import { wait } from "../../test_helpers/utils";
+import { readCertificate, exploreCertificate } from "node-opcua-crypto";
+
+
+import { createServerCertificateManager } from "../../../test_helpers/createServerCertificateManager";
+import { wait } from "../../../test_helpers/utils";
+import { TestHarness } from "./harness";
+
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
+const { yellow: yellow, cyan: cyan } = chalk;
 
 export async function pause(ms: number) {
     await new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+
+
+
+export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
+
+    assert(typeof port === "number", "expecting a port number");
+    const serverCertificateManager = await createServerCertificateManager(port)
+
+    const privateKeyFile = serverCertificateManager.privateKey;
+    const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");
+
+    const applicationUri = "urn:localhost:LDS-" + port;
+    if (!fs.existsSync(certificateFile)) {
+        await serverCertificateManager.createSelfSignedCertificate({
+            applicationUri,
+            dns: [os.hostname(), "localhost"],
+            // dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
+            // ip: await getIpAddresses(),
+            outputFile: certificateFile,
+            subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer",
+
+            startDate: new Date(),
+            validity: 365 * 10
+        });
+    }
+
+    const discoveryServer = new OPCUADiscoveryServer({
+        port,
+        serverInfo: {
+            applicationUri,
+            productUri: "LDS-" + port
+        },
+
+        certificateFile,
+        serverCertificateManager
+    });
+    return discoveryServer;
+}
+
+export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer> {
+    const discoveryServer = await createDiscovery(port);
+    await discoveryServer.start();
+    return discoveryServer;
+}
+
+
+
+export const makeDiscoveryServer = async (port_discovery: number, test: TestHarness) => {
+    const discoveryServer = new OPCUADiscoveryServer({
+        port: port_discovery,
+        serverCertificateManager: test.discoveryServerCertificateManager
+    });
+  
+    discoveryServer.on("onRegisterServer", (server, firstTime) => {
+        stepLog(yellow("LDS: Registering server    ", server.productUri, server.isOnline, "firstTime = ", firstTime));
+    });
+    discoveryServer.on("onUnregisterServer", (server, forced) => {
+        stepLog(cyan("LDS: Unregistering server  ", server.productUri, server.isOnline, "force?= ", forced));
+    });
+
+    await discoveryServer.initializeCM();
+
+    stepLog(` Discovery LDS will be on port ${port_discovery}`);
+    return discoveryServer;
+
+}
+
+
+export async function addServerCertificateToTrustedCertificateInDiscoveryServer(
+    server: OPCUAServer,
+    discoveryServer: OPCUADiscoveryServer
+) {
+    const filename = server.certificateFile;
+    fs.existsSync(filename).should.eql(true, " the server certificate file " + filename + " should exist");
+    const certificate = readCertificate(filename);
+    await discoveryServer.serverCertificateManager.trustCertificate(certificate);
+}
+
+
 /**
  *
  * @param discoveryEndpointUrl
@@ -102,59 +188,25 @@ export function ep(server: OPCUABaseServer) {
 
 export const tweak_registerServerManager_timeout = (server: OPCUAServer, timeout: number) => {
     Object.prototype.hasOwnProperty.call(server.registerServerManager, "timeout").should.eql(true);
-    (server.registerServerManager as any).timeout = timeout;
+    (server.registerServerManager as unknown as { timeout: number }).timeout = timeout;
 }
 export const startAndWaitForRegisteredToLDS = async (server: OPCUAServer) => {
+    console.log("starting server ", server.serverInfo.applicationUri);
     await server.start();
     await new Promise<void>((resolve, reject) => {
-        const timeout = 5000;
-        const timerId = setTimeout(() => reject(new Error(`startAndWaitForRegisteredToLDS: Server failed to register initially within ${timeout} ms.`)), timeout);
+        const timeout = 10_000;
+
+        const timerId = setTimeout(
+            () => reject(new Error(`startAndWaitForRegisteredToLDS: Server failed to register initially within ${timeout} ms.`)), timeout
+        );
         server.once("serverRegistered", () => {
-            debugLog("server registered");
+            if (timerId) {
+                clearTimeout(timerId);
+            }
+            console.log("server started and registered to the LDS");
             resolve();
         });
     });
-}
-export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
-
-    assert(typeof port === "number", "expecting a port number");
-    const serverCertificateManager = await createServerCertificateManager(port)
-
-    const privateKeyFile = serverCertificateManager.privateKey;
-    const certificateFile = path.join(serverCertificateManager.rootDir, "certificate_discovery_server.pem");
-
-    const applicationUri = "urn:localhost:LDS-" + port;
-    if (!fs.existsSync(certificateFile)) {
-        await serverCertificateManager.createSelfSignedCertificate({
-            applicationUri,
-            dns: [os.hostname(), "localhost"],
-            // dns: argv.alternateHostname ? [argv.alternateHostname, fqdn] : [fqdn],
-            // ip: await getIpAddresses(),
-            outputFile: certificateFile,
-            subject: "/CN=Sterfive/DC=NodeOPCUA-LocalDiscoveryServer",
-
-            startDate: new Date(),
-            validity: 365 * 10
-        });
-    }
-
-    const discoveryServer = new OPCUADiscoveryServer({
-        port,
-        serverInfo: {
-            applicationUri,
-            productUri: "LDS-" + port
-        },
-
-        certificateFile,
-        serverCertificateManager
-    });
-    return discoveryServer;
-}
-
-export async function startDiscovery(port: number): Promise<OPCUADiscoveryServer> {
-    const discoveryServer = await createDiscovery(port);
-    await discoveryServer.start();
-    return discoveryServer;
 }
 
 const doTrace = doDebug || process.env.TRACE;
@@ -225,4 +277,8 @@ export async function waitUntilCondition(
             throw new Error(msg);
         }
     }
+}
+
+export const stepLog = (message: string) => {
+    console.log("    -> ".padEnd(40, "-") + " " + message);
 }

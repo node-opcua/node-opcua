@@ -6,8 +6,8 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { ObjectRegistry } from "node-opcua-object-registry";
 import { ServerOnNetwork, serviceToString } from "node-opcua-service-discovery";
 
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename) || true;
+const debugLog = make_debugLog("LDSSERVER");
+const doDebug = checkDebugFlag("LDSSERVER") || true;
 
 const registry = new ObjectRegistry();
 
@@ -17,10 +17,10 @@ export class MDNSResponder {
      */
     public registeredServers: ServerOnNetwork[];
 
-    private multicastDNS: Bonjour;
-    private browser: Browser;
+    #bonjour: Bonjour;
+    #mDNSBrowser: Browser;
 
-    private recordId: number;
+    #recordId: number;
     public lastUpdateDate: Date = new Date();
 
     constructor() {
@@ -28,10 +28,10 @@ export class MDNSResponder {
 
         this.registeredServers = [];
 
-        this.multicastDNS = new Bonjour();
-        this.recordId = 0;
+        this.#bonjour = new Bonjour();
+        this.#recordId = 0;
 
-        this.browser = this.multicastDNS.find({
+        this.#mDNSBrowser = this.#bonjour.find({
             protocol: "tcp",
             type: "opcua-tcp"
         });
@@ -72,8 +72,8 @@ export class MDNSResponder {
                 return;
             }
 
-            this.recordId++;
-            const recordId = this.recordId;
+            this.#recordId++;
+            const recordId = this.#recordId;
             const serverName = service.name;
 
             service.txt = service.txt || {};
@@ -112,23 +112,33 @@ export class MDNSResponder {
             this.lastUpdateDate = new Date();
         };
 
-        this.browser.on("up", (service: Service) => {
+        this.#mDNSBrowser.on("up", (service: Service) => {
             // istanbul ignore next
             doDebug && debugLog("MDNSResponder : service is up with  ", serviceToString(service));
             addService(service);
+            // console.log("records " , JSON.stringify(service.records()));
         });
 
-        this.browser.on("down", (service: Service) => {
+        this.#mDNSBrowser.on("down", (service: Service) => {
             // istanbul ignore next
             doDebug && debugLog("MDNSResponder : service is down with  ", serviceToString(service));
-
             removeService(service);
         });
     }
-
-    public dispose() {
-        // yy delete (this as any).multicastDNS;
-        this.multicastDNS.destroy();
+    public async dispose(): Promise<void> {
+        
+        if (this.#mDNSBrowser) {
+            this.#mDNSBrowser.stop();
+            this.#mDNSBrowser = undefined!;
+        }
+        await new Promise<void>((resolve) => {
+            this.#bonjour.unpublishAll(() => {
+                this.#bonjour.destroy(() => {
+                    resolve();
+                });
+            })
+        });
         registry.unregister(this);
+        await new Promise<void>((resolve) => setTimeout(resolve, 100));
     }
 }

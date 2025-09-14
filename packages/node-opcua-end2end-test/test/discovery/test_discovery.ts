@@ -1,9 +1,9 @@
 import path from "node:path";
-import { OPCUACertificateManager } from "node-opcua";
-
+import { OPCUACertificateManager, OPCUAServer, OPCUAClientBase } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { TestHarness } from "./helpers/harness";
 
-describe("testing DiscoveryServer - Umbrella ", function (this: any) {
+describe("testing DiscoveryServer - Umbrella ", function (this: Mocha.Runnable & TestHarness) {
     before(async () => {
         this.serverCertificateManager = new OPCUACertificateManager({
             rootFolder: path.join(__dirname, "../../tmp/PKI-DiscoveryCommon")
@@ -24,6 +24,16 @@ describe("testing DiscoveryServer - Umbrella ", function (this: any) {
         this.discoveryServerCertificateManager.referenceCounter--;
         await this.discoveryServerCertificateManager.dispose();
     });
+       before(() => {
+            OPCUAServer.registry.count().should.eql(0);     
+            OPCUAClientBase.registry.count().should.eql(0);
+        });
+
+        after(async () => {
+            OPCUAServer.registry.count().should.eql(0);
+            OPCUAClientBase.registry.count().should.eql(0);
+        });
+
     // typescripts tests starts here...
     require("./u_test_discovery_server").t(this);
     require("./u_test_frequent_server_restart").t(this);
