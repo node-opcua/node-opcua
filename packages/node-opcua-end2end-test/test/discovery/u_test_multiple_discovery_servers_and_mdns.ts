@@ -8,17 +8,22 @@ import {
     makeApplicationUrn
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
-
 import { OPCUADiscoveryServer } from "node-opcua-server-discovery";
-import { createAndStartServer, ep, startDiscovery, pause } from "./_helper";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+
+import { 
+    TestHarness, 
+    createAndStartServer, 
+    ep, startDiscovery, 
+    pause 
+} from "./helpers/index";
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
 // add the tcp/ip endpoint with no security
 
-export function t(test: any) {
+export function t(test: TestHarness) {
     describe("DISCO5 - Many discovery servers sharing ServerOnNetworks list", function (this: any) {
         this.timeout(Math.max(40000,this.timeout()));
 
