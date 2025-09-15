@@ -61,7 +61,9 @@ import {
     CallMethodResult,
     HistoryReadRequest,
     HistoryReadResponse,
-    HistoryReadValueIdOptions
+    HistoryReadValueIdOptions,
+    ReadValueId,
+    ReadValueIdOptions
 } from "node-opcua-types";
 
 import { ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
@@ -197,19 +199,19 @@ export interface ClientSessionReadService extends IBasicSessionRead {
     /**
      * @deprecated use read() instead
      */
-    readVariableValue(nodeId: NodeIdLike, callback: ResponseCallback<DataValue>): void;
+    readVariableValue(nodeId: NodeIdLike | ReadValueIdOptions, callback: ResponseCallback<DataValue>): void;
     /**
      * @deprecated use read() instead
      */
-    readVariableValue(nodeId: NodeIdLike): Promise<DataValue>;
+    readVariableValue(nodeId: NodeIdLike | ReadValueIdOptions): Promise<DataValue>;
     /**
      * @deprecated use read() instead
      */
-    readVariableValue(nodeIds: NodeIdLike[], callback: ResponseCallback<DataValue[]>): void;
+    readVariableValue(nodeIds: (NodeIdLike | ReadValueIdOptions)[], callback: ResponseCallback<DataValue[]>): void;
     /**
      * @deprecated use read() instead
      */
-    readVariableValue(nodeIds: NodeIdLike[]): Promise<DataValue[]>;
+    readVariableValue(nodeIds: (NodeIdLike | ReadValueIdOptions)[]): Promise<DataValue[]>;
 }
 
 // write services
