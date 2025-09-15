@@ -63,6 +63,9 @@
             "path": "node-opcua-file-transfer"
         },
         {
+            "path": "node-opcua-server-discovery"
+        },
+        {
             "path": "node-opcua-local-discovery-server"
         },
         {
