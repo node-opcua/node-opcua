@@ -14,7 +14,7 @@ import { BrowsePath, BrowsePathResult } from "node-opcua-service-translate-brows
 import { DataType, VariantArrayType } from "node-opcua-variant";
 import { CallbackT, StatusCode, StatusCodes } from "node-opcua-status-code";
 import { VariableIds } from "node-opcua-constants";
-import { UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
+import { BrowsePathOptions, UserTokenType, X509IdentityTokenOptions } from "node-opcua-types";
 
 export type BrowseDescriptionLike = string | BrowseDescriptionOptions;
 export type CallMethodRequestLike = CallMethodRequestOptions;
@@ -232,29 +232,31 @@ export interface IBasicSessionCall extends IBasicSessionCallCallback, IBasicSess
 // #endregion
 
 // #region TranslateBrowsePath
+
+export type BrowsePathLike = BrowsePathOptions;
 export interface IBasicSessionTranslateBrowsePathAsyncSimple {
-    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
+    translateBrowsePath(browsePath: BrowsePathLike): Promise<BrowsePathResult>;
 }
 export interface IBasicSessionTranslateBrowsePathAsyncMultiple {
-    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+    translateBrowsePath(browsePaths: BrowsePathLike[]): Promise<BrowsePathResult[]>;
 }
 export interface IBasicSessionTranslateBrowsePathAsync
     extends IBasicSessionTranslateBrowsePathAsyncSimple,
         IBasicSessionTranslateBrowsePathAsyncMultiple {
-    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
-    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
+    translateBrowsePath(browsePath: BrowsePathLike): Promise<BrowsePathResult>;
+    translateBrowsePath(browsePaths: BrowsePathLike[]): Promise<BrowsePathResult[]>;
 }
 export interface IBasicSessionTranslateBrowsePathCallback {
-    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
-    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
+    translateBrowsePath(browsesPath: BrowsePathLike[], callback: ResponseCallback<BrowsePathResult[]>): void;
+    translateBrowsePath(browsePath: BrowsePathLike, callback: ResponseCallback<BrowsePathResult>): void;
 }
 export interface IBasicSessionTranslateBrowsePath
     extends IBasicSessionTranslateBrowsePathCallback,
         IBasicSessionTranslateBrowsePathAsync {
-    translateBrowsePath(browsePath: BrowsePath): Promise<BrowsePathResult>;
-    translateBrowsePath(browsePaths: BrowsePath[]): Promise<BrowsePathResult[]>;
-    translateBrowsePath(browsesPath: BrowsePath[], callback: ResponseCallback<BrowsePathResult[]>): void;
-    translateBrowsePath(browsePath: BrowsePath, callback: ResponseCallback<BrowsePathResult>): void;
+    translateBrowsePath(browsePath: BrowsePathLike): Promise<BrowsePathResult>;
+    translateBrowsePath(browsePaths: BrowsePathLike[]): Promise<BrowsePathResult[]>;
+    translateBrowsePath(browsesPath: BrowsePathLike[], callback: ResponseCallback<BrowsePathResult[]>): void;
+    translateBrowsePath(browsePath: BrowsePathLike, callback: ResponseCallback<BrowsePathResult>): void;
 }
 
 // #endregion
