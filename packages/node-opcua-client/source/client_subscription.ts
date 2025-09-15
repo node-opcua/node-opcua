@@ -231,6 +231,9 @@ export interface ClientSubscription extends EventEmitter  {
         linksToRemove: ClientMonitoredItemBase[] | null
     ): Promise<SetTriggeringResponse>;
 
+    setPublishingMode(publishing: boolean): Promise<StatusCode>;
+    setPublishingMode(publishing: boolean, callback: Callback<StatusCode>): void;
+
     terminate(): Promise<void>;
     terminate(callback: ErrorCallback): void;
 }
