@@ -1,6 +1,6 @@
 import os from "os";
 import should from "should";
-
+import { EventEmitter  } from "events";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { OpenSecureChannelRequest, SecurityTokenRequestType, ReadRequest } from "node-opcua-types";
 import { hexDump } from "node-opcua-crypto";
@@ -53,7 +53,7 @@ const waitUntilCondition = (predicate: () => boolean, timeout: number, message: 
         }, 100);
     });
 };
-function waitForEvent<T>(emitter: any, eventName: string, timeout: number): Promise<T> {
+function waitForEvent<T>(emitter: EventEmitter, eventName: string, timeout: number): Promise<T> {
     return new Promise<T>((resolve, reject) => {
         const timer = setTimeout(() => {
             reject(new Error("Timeout waiting for event " + eventName));
