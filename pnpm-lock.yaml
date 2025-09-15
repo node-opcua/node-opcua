@@ -1317,9 +1317,6 @@ importers:
 
   packages/node-opcua-end2end-test:
     devDependencies:
-      async:
-        specifier: ^3.2.6
-        version: 3.2.6
       bcryptjs:
         specifier: 3.0.2
         version: 3.0.2
@@ -1416,6 +1413,9 @@ importers:
       node-opcua-service-session:
         specifier: 2.155.0
         version: link:../node-opcua-service-session
+      sterfive-bonjour-service:
+        specifier: 1.1.4
+        version: 1.1.4
       yargs:
         specifier: 15.4.1
         version: 15.4.1
@@ -3236,6 +3236,10 @@ importers:
       sterfive-bonjour-service:
         specifier: 1.1.4
         version: 1.1.4
+    devDependencies:
+      node-opcua-leak-detector:
+        specifier: 2.154.0
+        version: link:../node-opcua-leak-detector
 
   packages/node-opcua-service-endpoints:
     dependencies:
