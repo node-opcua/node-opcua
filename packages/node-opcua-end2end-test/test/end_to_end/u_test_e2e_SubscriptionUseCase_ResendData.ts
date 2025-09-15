@@ -2,13 +2,15 @@
 import "should";
 import { DataType, AttributeIds, OPCUAClient, StatusCodes, OPCUAServer, UAVariable, MonitoringMode, TimestampsToReturn, NotificationMessage, DataChangeNotification, MethodIds, ObjectIds, DataValue, VariableIds } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
+import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { TestHarness } from "./u_test_e2e_modifyMonitoredItem_onEvent";
+
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 
-// eslint-disable-next-line import/order
-import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
+const sleep = async (n: number) => new Promise((resolve) => setTimeout(resolve, n));
 
-export function t(test: any) {
+export function t(test: TestHarness) {
 
     describe("Server#ResendData(subscription)", function () {
 
@@ -70,7 +72,6 @@ export function t(test: any) {
             /** */
         });
 
-        const sleep = async (n: number) => new Promise((resolve) => setTimeout(resolve, n));
 
         const publishingInterval = 3000;
         const samplingInterval = 500;
@@ -91,7 +92,6 @@ export function t(test: any) {
                     debugLog(notificationMessage.toString());
                     messages.push(notificationMessage);
                 });
-
 
                 const m1 = await subscription.monitor({
                     nodeId: uaVar1.nodeId,

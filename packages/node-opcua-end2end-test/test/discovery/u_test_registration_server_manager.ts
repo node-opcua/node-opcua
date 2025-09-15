@@ -9,7 +9,12 @@ import {
      f, 
      fa, 
      pause, 
-     stepLog } from "./helpers/_helper";
+} from "./helpers/_helper";
+import {
+    stepLog,
+    waitUntilCondition,
+} from "../../test_helpers/utils";
+
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { TestHarness } from "./helpers/harness";
 const debugLog = make_debugLog("TEST");

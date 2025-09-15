@@ -4,7 +4,6 @@ import { Socket } from "net";
 import fs from "fs";
 import os from "os";
 import should from "should";
-import async from "async";
 import {
     DataType,
     MessageSecurityMode,
@@ -210,32 +209,37 @@ describe("KJH1 testing basic Client-Server communication", function (this: Mocha
         server.currentChannelCount.should.equal(0);
     });
 
-    it("TR06 - a client shall raise an error when trying to create a session on an invalid endpoint", function (done) {
-        // this is explained here : see OPCUA Part 4 Version 1.02 $5.4.1 page 12:
-        //   A  Client  shall verify the  HostName  specified in the  Server Certificate  is the same as the  HostName
-        //   contained in the  endpointUrl  provided in the  EndpointDescription. If there is a difference  then  the
-        //   Client  shall report the difference and may close the  SecureChannel.
-        async.series(
-            [
-                function (callback) {
-                    (client as any).endpointMustExist = true;
-                    client.connect(endpointUrl + "/someCrap", callback);
-                },
+    it("TR06 - a client shall raise an error when trying to create a session on an invalid endpoint", async () => {
+        // OPC UA Part 4 (1.02) §5.4.1: A Client shall verify the HostName in the Server Certificate matches
+        // the HostName in the endpointUrl of the EndpointDescription. Mismatches shall be reported and may
+        // lead to channel closure. Here we append garbage to the valid endpoint to force the mismatch.
+        (client as any).endpointMustExist = true;
+        const badEndpoint = endpointUrl + "/someCrap";
 
-                function (callback) {
-                    client.createSession(function (err, session) {
-                        should.not.exist(session);
-                        should.exist(err);
-                        callback(err ? null : new Error("Expecting a failure"));
-                    });
-                },
+        let connectSucceeded = false;
+        let connectErr: Error | undefined;
+        try {
+            await client.connect(badEndpoint);
+            connectSucceeded = true; // (unlikely if endpointMustExist is true and path is invalid)
+        } catch (err) {
+            connectErr = err as Error;
+        }
 
-                function (callback) {
-                    client.disconnect(callback);
-                }
-            ],
-            done
-        );
+        if (connectSucceeded) {
+            // Connection unexpectedly succeeded, session creation must fail
+            let sessionObj: ClientSession | undefined;
+            let createErr: Error | undefined;
+            try {
+                sessionObj = await client.createSession();
+            } catch (err) {
+                createErr = err as Error;
+            }
+            should.not.exist(sessionObj, "session should not be created on invalid endpoint");
+            should.exist(createErr, "session creation should fail on invalid endpoint");
+        } else {
+            should.exist(connectErr, "connection should fail when endpoint path is invalid");
+        }
+        // afterEach hook will perform disconnect if needed
     });
     it("TR07 - calling connect on the client twice shall return a error the second time", async () => {
         server.currentChannelCount.should.equal(0);

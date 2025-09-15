@@ -9,7 +9,7 @@ import {
 } from "node-opcua";
 import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 import { perform_operation_on_subscription_async } from "../../test_helpers/perform_operation_on_client_session";
-import { pause } from "../discovery/_helper";
+import { pause } from "../discovery/helpers/_helper";
 import { assert } from "node-opcua-assert";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 

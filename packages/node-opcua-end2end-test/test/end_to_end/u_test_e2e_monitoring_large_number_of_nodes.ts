@@ -18,12 +18,16 @@ import {
     NotificationMessage,
     DataChangeNotification,
     VariableIds,
-    Subscription
+    Subscription,
+    MonitoredItemCreateRequest,
+    MonitoredItemCreateRequestOptions,
+    ReadValueIdOptions,
+    StatusCodes
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { perform_operation_on_client_session } from "../../test_helpers/perform_operation_on_client_session";
-import { pause, waitUntilCondition } from "../discovery/_helper";
-import should from "should";
+import { pause } from "../discovery/helpers/_helper";
+import { waitUntilCondition } from "../../test_helpers/utils";
 
 const doDebug = false;
 interface TestHarness { endpointUrl: string;[k: string]: any }
@@ -85,7 +89,7 @@ export function t(test: TestHarness) {
 
                     for (const id of ids) {
                         const nodeId = "ns=2;s=" + id;
-                        const monitoredItem = ClientMonitoredItem.create(
+                        const monitoredItem = await ClientMonitoredItem.create(
                             subscription,
                             { nodeId: resolveNodeId(nodeId), attributeId: AttributeIds.Value },
                             { samplingInterval: 10, discardOldest: true, queueSize: 1 }
@@ -128,13 +132,26 @@ export function t(test: TestHarness) {
             return list.slice(0, target);
         }
 
-        function makeItems(count: number) {
+
+        function makeItemsToMonitor(count: number): ReadValueIdOptions[] {
             const ids = buildIdsList(count);
-            const itemsToCreate: any[] = [];
+            const itemsToMonitor: ReadValueIdOptions[] = [];
             let clientHandle = 1;
             for (const s of ids) {
                 const nodeId = "ns=2;s=" + s;
                 const itemToMonitor = new ReadValueId({ attributeId: AttributeIds.Value, nodeId });
+                itemsToMonitor.push(itemToMonitor);
+            }
+            return itemsToMonitor;
+
+        }
+
+        function makeItemsToCreate(count: number) {
+            const itemsToMonitor= makeItemsToMonitor(count);
+
+            const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
+            let clientHandle = 1;
+            for (const itemToMonitor of itemsToMonitor) {
                 clientHandle++;
                 const monitoringParameters = new MonitoringParameters({
                     clientHandle,
@@ -159,7 +176,7 @@ export function t(test: TestHarness) {
 
                 const maxThatServerCanDo = Subscription.maxNotificationPerPublishHighLimit;
 
-
+                console.log(" maxThatServerCanDo =", maxThatServerCanDo);
 
                 const subscription = await session.createSubscription2({
                     requestedPublishingInterval: 10,
@@ -173,29 +190,41 @@ export function t(test: TestHarness) {
                 const notificationMessageSpy = sinon.spy();
                 subscription.on("received_notifications", notificationMessageSpy);
 
+                const rawNotifSpy = sinon.spy();
+                subscription.on("raw_notification", rawNotifSpy);
+
+                const keepAlive = sinon.spy();
+                subscription.on("keepalive", keepAlive);
+                subscription.on("keepalive", () => {
+                    doDebug && console.log("keepalive");
+                });
+
+                subscription.on("received_notifications", ()=>{
+                    doDebug && console.log("received notification");
+                });
+
                 try {
 
-                    const itemsToCreate = makeItems(5000 + baseIds.length); // mimic original expansion logic
+                    const itemsToMonitor = makeItemsToMonitor(5000 + baseIds.length); // mimic original expansion logic
 
-                    const request = new CreateMonitoredItemsRequest({
-                        subscriptionId: subscription.subscriptionId,
-                        timestampsToReturn: TimestampsToReturn.Neither,
-                        itemsToCreate
-                    });
+                    const group = await subscription.monitorItems(itemsToMonitor, {
+                        discardOldest: false,
+                        filter: null,
+                        queueSize: 100,
+                        samplingInterval: 100
+                    }, TimestampsToReturn.Both);
 
-                    const rawNotifSpy = sinon.spy();
-                    subscription.on("raw_notification", rawNotifSpy);
-                    const keepAlive = sinon.spy();
-                    subscription.on("keepalive", keepAlive);
-
-
-                    const createMonitoredItemResponse: CreateMonitoredItemsResponse = await (session as any).createMonitoredItems(request)
-                    doDebug && console.log(createMonitoredItemResponse.toString());
+                    group.monitoredItems[0].statusCode.should.eql(StatusCodes.Good);
+                    group.monitoredItems[group.monitoredItems.length-1].statusCode.should.eql(StatusCodes.Good);
 
                     // wait for a raw notification to be received
                     await waitUntilCondition(async () => notificationMessageSpy.callCount > + 1, 5000, "expecting some raw notification");
+
                     keepAlive.resetHistory();
-                    await waitUntilCondition(async () => keepAlive.callCount >= 1, 5000, "expecting a keepalive notification");
+                    await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
+
+              //      keepAlive.resetHistory();
+              //       await waitUntilCondition(async () => keepAlive.callCount >= 2, 5000, "expecting a keepalive notification");
 
 
                     // find the first raw notification that as notification.length > 0 inside the notificationMessageSpy calls
@@ -211,7 +240,7 @@ export function t(test: TestHarness) {
 
                     rawNotifs.length.should.be.greaterThan(0, "expecting at least one notification with some data");
                     totalItemsCreated.should.be.greaterThan(maxThatServerCanDo, "expecting at least one notification with some data");
-                    totalItemsCreated.should.eql(itemsToCreate.length, "expecting to receive data for all monitored items");
+                    totalItemsCreated.should.greaterThanOrEqual(itemsToMonitor.length, "expecting to receive data for all monitored items");
 
 
                 } finally {

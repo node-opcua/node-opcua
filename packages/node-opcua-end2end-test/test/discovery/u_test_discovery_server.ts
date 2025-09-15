@@ -19,6 +19,9 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import {
     stepLog,
+    waitUntilCondition,
+} from "../../test_helpers/utils";
+import {
     cleanUpmDNSandSanityCheck,
     createServerThatRegistersItselfToTheDiscoveryServer,
     ep,
@@ -26,7 +29,6 @@ import {
     startAndWaitForRegisteredToLDS,
     startDiscovery,
     tweak_registerServerManager_timeout,
-    waitUntilCondition,
     TestHarness,
     makeDiscoveryServer,
     addServerCertificateToTrustedCertificateInDiscoveryServer
@@ -299,7 +301,7 @@ export function t(test: TestHarness) {
             stepLog("5. When the server shut down");
             await server.shutdown();
 
-            stepLog("6. then I should verify that the the server has been unregistered"); 
+            stepLog("6. then I should verify that the the server has been unregistered");
             {
                 const { servers, endpoints } = await findServers(discoveryServerEndpointUrl);
                 servers.length.should.eql(initialServerCount);

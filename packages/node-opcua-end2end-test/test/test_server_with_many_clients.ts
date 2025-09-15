@@ -2,17 +2,13 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import chalk from "chalk";
-import should from "should";
-import async from "async";
 import {
     OPCUACertificateManager,
     ClientSession,
-    ClientSubscription,
     OPCUAClient,
     AttributeIds,
     makeNodeId,
     VariableIds,
-    ClientMonitoredItem,
     OPCUAServer,
     NodeIdLike,
     NodeId,

@@ -8,7 +8,6 @@
         "test": "mocha"
     },
     "devDependencies": {
-        "async": "^3.2.6",
         "bcryptjs": "3.0.2",
         "chalk": "4.1.2",
         "cli-table3": "0.6.5",
@@ -41,6 +40,7 @@
         "node-opcua-service-filter": "2.155.0",
         "node-opcua-service-secure-channel": "2.155.0",
         "node-opcua-service-session": "2.155.0",
+        "sterfive-bonjour-service": "1.1.4",    
         "yargs": "15.4.1"
     },
     "author": "Etienne Rossignon",

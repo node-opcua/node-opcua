@@ -410,33 +410,34 @@ export function t(test:TestHarness) {
             await createServer();
 
             await connectManyClient();
-            await wait_a_few_seconds();
-            await wait_a_few_seconds();
+            
+            await pause(5000);
+            // servers shutdown before clients
+            await shutdownServer();
+            // and restart immediately
+            await createServer();
+            // and stop immediately( clients will probably have not enough time to reconnect )
+            await shutdownServer();
+            await createServer();
+            await shutdownServer();
+
+            await pause(1000);
+            await createServer();
+            await pause(1000);
 
             await shutdownServer();
+            await pause(1000);
 
             await createServer();
-            await wait_a_few_seconds();
+            await pause(1000);
 
             await shutdownServer();
+            await pause(1000);
 
-            await createServer();
-            await wait_a_few_seconds();
-
-            await shutdownServer();
-
-            await createServer();
-            await wait_a_few_seconds();
-
-            await shutdownServer();
-
-            await createServer();
-            await wait_a_few_seconds();
-
-            await shutdownServer();
-
+            await pause(5000);
             await shutdownClients();
-            await wait_a_few_seconds();
+
+            await pause(1000);
 
         });
 

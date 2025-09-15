@@ -2,6 +2,7 @@ import "should";
 import { OPCUAClient } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 import { EventEmitter } from "events";
+import { waitForEvent } from "../../test_helpers/utils";
 
 interface TestHarness { endpointUrl: string; [k: string]: any }
 
@@ -9,12 +10,6 @@ export function t(test: TestHarness) {
     describe("Testing bug #957 - ServerCertificate is an empty buffer", () => {
         const RENEWAL_TIMEOUT_MS = 10_000; // safety timeout for event wait
 
-        async function waitForEvent(emitter: EventEmitter, event: string, timeoutMs: number) {
-            return await new Promise<void>((resolve, reject) => {
-                const timer = setTimeout(() => reject(new Error(`${event} not received within ${timeoutMs} ms`)), timeoutMs);
-                emitter.once(event, () => { clearTimeout(timer); resolve(); });
-            });
-        }
 
         it("should create a client session when server certificate is an empty buffer (not null)", async () => {
             const client = OPCUAClient.create({ defaultSecureTokenLifetime: 1000 });

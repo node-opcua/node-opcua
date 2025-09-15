@@ -3,7 +3,7 @@ import sinon from "sinon";
 import { ClientSession, OPCUAClient } from "node-opcua";
 import { make_warningLog } from "node-opcua-debug";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { wait_until_condition } from "../../test_helpers/utils";
+import { waitUntilCondition } from "../../test_helpers/utils";
 import { ClientSessionKeepAliveManager } from "node-opcua-client/dist/client_session_keepalive_manager";
 
 const warningLog = make_warningLog("TEST");
@@ -46,7 +46,7 @@ export function t(test: any) {
                 await client.disconnect().catch(()=>undefined);
             }
             if (test.server) {
-                await wait_until_condition(()=>test.server.engine.currentSessionCount === 0, 10 * 1000);
+                await waitUntilCondition(()=>test.server.engine.currentSessionCount === 0, 10 * 1000);
             }
         });
 

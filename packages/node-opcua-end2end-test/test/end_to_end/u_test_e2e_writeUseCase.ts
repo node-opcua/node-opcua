@@ -15,13 +15,13 @@ import { assertThrow } from "../../test_helpers/assert_throw";
 
 export function t(test: any) {
 
-   
+
     describe("end-to-end testing of a write operation between a client and a server (session#write)", function () {
         let client: OPCUAClient;
         beforeEach(() => {
             client = OPCUAClient.create({});
         });
-        afterEach(function (done) {
+        afterEach( ()=> {
         });
 
         it("should return BadNodeIdUnknown if nodeId is unknown ", async () => {
@@ -48,25 +48,25 @@ export function t(test: any) {
 
         it("should return Good if nodeId is known but not writeable ", async () => {
 
-            await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
-
-                const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
-
-                const nodesToWrite = [
-                    {
-                        nodeId: pumpSpeedId,
-                        attributeId: AttributeIds.Value,
-                        value: /*new DataValue(*/{
-                            value: {/* Variant */dataType: DataType.Double, value: 10.0 }
-                        }
+            const pumpSpeedId = "ns=1;b=0102030405060708090a0b0c0d0e0f10";
+            const nodesToWrite = [
+                {
+                    nodeId: pumpSpeedId,
+                    attributeId: AttributeIds.Value,
+                    value: /*new DataValue(*/{
+                        value: {/* Variant */dataType: DataType.Double, value: 10.0 }
                     }
-                ];
+                }
+            ];
+            const statusCodes = await perform_operation_on_client_session(
+                client, test.endpointUrl, async (session) => {
+                    const statusCodes = await session.write(nodesToWrite);
+                    return statusCodes;
 
-                const statusCodes = await session.write(nodesToWrite);
-                statusCodes.length.should.equal(nodesToWrite.length);
-                statusCodes[0].should.eql(StatusCodes.BadNotWritable);
+                });
 
-            });
+            statusCodes.length.should.equal(nodesToWrite.length);
+            statusCodes[0].should.eql(StatusCodes.BadNotWritable);
         });
 
         it("should return Good if nodeId is known and writable ", async () => {
@@ -180,11 +180,10 @@ export function t(test: any) {
         it("should return BadNothingToDo if writeRequest is null", async () => {
             await perform_operation_on_client_session(client, test.endpointUrl, async (session) => {
 
-                const request = new WriteRequest({ nodesToWrite: [] });
+                const request = new WriteRequest({ nodesToWrite:null });
                 request.nodesToWrite = null;
                 await assertThrow(async () => {
-                    (session as any).performMessageTransaction(request);
-
+                    await (session as any).performMessageTransaction(request);
                 }, /BadNothingToDo/);
             });
         });
@@ -222,7 +221,7 @@ export function t(test: any) {
                 const request = new WriteRequest({ nodesToWrite: nodesToWrite });
 
                 await assertThrow(async () => {
-                    (session as any).performMessageTransaction(request);
+                    await (session as any).performMessageTransaction(request);
                 }, /BadTooManyOperations/);
 
                 // restore limit to zero
@@ -275,7 +274,7 @@ export function t(test: any) {
 
         it("VQT should write Value Quality Timestamp - on async variable that support full blown dataValue write", async () => {
 
-            
+
             const asyncNodeId = "ns=1;s=AsynchronousFullVariable";
 
             // Value, Quality, sourceTimestamp
