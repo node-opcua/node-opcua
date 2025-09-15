@@ -2,7 +2,6 @@
  * @module node-opcua-client-private
  */
 import { EventEmitter } from "events";
-import { callbackify } from "util";
 import chalk from "chalk";
 import { assert } from "node-opcua-assert";
 import { AggregateFunction } from "node-opcua-constants";

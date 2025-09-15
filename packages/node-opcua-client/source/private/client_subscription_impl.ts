@@ -244,7 +244,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         if (this.subscriptionId === TERMINATED_SUBSCRIPTION_ID || this.subscriptionId === TERMINATING_SUBSCRIPTION_ID) {
             // already terminated... just ignore
-            return callback(new Error("Already Terminated"));
+            return callback();
         }
 
         if (isFinite(this.subscriptionId)) {
