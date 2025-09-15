@@ -10,7 +10,7 @@ import {
     TimestampsToReturn
 } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-import { wait_until_condition, wait } from "../../test_helpers/utils";
+import { waitUntilCondition, wait } from "../../test_helpers/utils";
 
 interface TestHarness { endpointUrl: string; server: any; [k: string]: any }
 
@@ -52,7 +52,7 @@ export function t(test: TestHarness) {
                 let change_count = 0;
                 monitoredItem.on("changed", (dataValue: any) => { dataValue.should.be.ok(); change_count += 1; });
 
-                await wait_until_condition(() => change_count === 1, 2000);
+                await waitUntilCondition(() => change_count === 1, 2000);
                 await wait(500);
                 change_count.should.eql(1);
 
@@ -61,7 +61,7 @@ export function t(test: TestHarness) {
                 // mutate productName
                 test.server.engine.serverStatus.buildInfo.productName += "Modified";
 
-                await wait_until_condition(() => change_count === 2, 5000);
+                await waitUntilCondition(() => change_count === 2, 5000);
                 await wait(requestedPublishingInterval * 2);
                 change_count.should.eql(2);
                 await subscription.terminate();
@@ -98,9 +98,9 @@ export function t(test: TestHarness) {
                 let change_count = 0;
                 monitoredItem.on("changed", (dataValue: any) => { dataValue.should.be.ok(); change_count += 1; });
 
-                await wait_until_condition(() => change_count >= 1 && change_count <= 2, 1500);
-                await wait_until_condition(() => change_count >= 2 && change_count <= 4, 1500);
-                await wait_until_condition(() => change_count >= 4 && change_count <= 6, 2000);
+                await waitUntilCondition(() => change_count >= 1 && change_count <= 2, 1500);
+                await waitUntilCondition(() => change_count >= 2 && change_count <= 4, 1500);
+                await waitUntilCondition(() => change_count >= 4 && change_count <= 6, 2000);
 
                 count.should.be.greaterThan(50);
                 clearInterval(timerId);

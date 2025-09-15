@@ -29,8 +29,8 @@ import { make_debugLog, checkDebugFlag } from "node-opcua-debug";
 
 import { construct_demo_alarm_in_address_space } from "node-opcua-address-space/testHelpers";
 import { perform_operation_on_subscription } from "../../../test_helpers/perform_operation_on_client_session";
-import { f, waitUntilCondition } from "../../discovery/_helper";
-import { wait } from "../../../test_helpers/utils";
+import { f } from "../../discovery/helpers/_helper";
+import { wait, waitUntilCondition } from "../../../test_helpers/utils";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const debugLog = make_debugLog("TEST");

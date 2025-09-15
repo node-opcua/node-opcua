@@ -10,7 +10,7 @@ import {
     NodeId, 
     EndpointWithUserIdentity 
 } from "node-opcua";
-import { wait, wait_until_condition } from  "../test_helpers/utils";
+import { wait, waitUntilCondition } from  "../test_helpers/utils";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
 const port = 2511;
@@ -183,7 +183,7 @@ describe("Testing automatic reconnection to a server when credential have change
             await shutDownServerChangePasswordAndRestart(1, "password1-New");
 
             // wait until client is connected
-            await wait_until_condition(() => {
+            await waitUntilCondition(() => {
                 return client.isReconnecting;
             }, 10000);
 
@@ -231,7 +231,7 @@ describe("Testing automatic reconnection to a server when credential have change
 
             try {
                 // wait until client is connected
-                await wait_until_condition(() => {
+                await waitUntilCondition(() => {
                     return client.isReconnecting;
                 }, 10000);
 

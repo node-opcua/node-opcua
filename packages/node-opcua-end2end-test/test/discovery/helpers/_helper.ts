@@ -18,7 +18,7 @@ import { readCertificate, exploreCertificate } from "node-opcua-crypto";
 
 
 import { createServerCertificateManager } from "../../../test_helpers/createServerCertificateManager";
-import { wait } from "../../../test_helpers/utils";
+import { wait, stepLog } from "../../../test_helpers/utils";
 import { TestHarness } from "./harness";
 
 
@@ -26,12 +26,7 @@ const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
 const { yellow: yellow, cyan: cyan } = chalk;
 
-export async function pause(ms: number) {
-    await new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-
-
+export const pause = wait;
 
 export async function createDiscovery(port: number): Promise<OPCUADiscoveryServer> {
 
@@ -262,23 +257,3 @@ export async function fa(title: string, func: () => Promise<void>): Promise<void
 }
 
 
-export async function waitUntilCondition(
-    condition: () => Promise<boolean>,
-    timeout: number,
-    message: string
-): Promise<void> {
-    const t = Date.now();
-    while (!await condition()) {
-        await wait(100);
-        const t2 = Date.now();
-        if (t2 - t > timeout) {
-            const msg = `wait_until_condition: Timeout  reached timeout=${timeout} ${message || ""}`;
-            console.log("wait_until_condition", msg);
-            throw new Error(msg);
-        }
-    }
-}
-
-export const stepLog = (message: string) => {
-    console.log("    -> ".padEnd(40, "-") + " " + message);
-}

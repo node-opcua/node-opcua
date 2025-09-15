@@ -5,7 +5,7 @@ import { perform_operation_on_subscription } from "../../test_helpers/perform_op
 import { redirectToFile } from "node-opcua-debug/nodeJS";
 import { redirectToFileAsync } from "node-opcua-debug/source_nodejs/redirect_to_file";
 import Sinon from "sinon";
-import { waitUntilCondition } from "../discovery/_helper";
+import { waitUntilCondition } from "../../test_helpers/utils";
 
 interface TestHarness { endpointUrl: string; server?: any;[k: string]: any }
 

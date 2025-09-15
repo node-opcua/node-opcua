@@ -1,75 +1,75 @@
-import chalk from 'chalk';
 import should from 'should';
 import sinon from 'sinon';
 import { assert } from 'node-opcua-assert';
 import {
-    OPCUAClient,
-    ClientSession,
-    ClientSubscription,
     AttributeIds,
-    resolveNodeId,
-    makeNodeId,
-    StatusCodes,
-    DataType,
-    TimestampsToReturn,
-    MonitoringMode,
-    VariantArrayType,
-    MonitoredItem,
-    ReadValueId,
-    ClientMonitoredItem,
-    CreateSubscriptionRequest,
-    CreateMonitoredItemsResponse,
-    CreateMonitoredItemsRequest,
-    SetMonitoringModeRequest,
-    ModifyMonitoredItemsRequest,
-    MonitoredItemModifyRequest,
-    DeleteMonitoredItemsRequest,
-    ClientMonitoredItemGroup,
-    PublishResponse,
-    PublishRequest,
-    RepublishRequest,
-    RepublishResponse,
-    VariableIds,
-    Variant,
-    Subscription,
-    SubscriptionState,
-    installSessionLogging,
-    ServiceFault,
-    OPCUAServer,
-    StatusCode,
     CallbackT,
-    PublishRequestOptions,
+    ClientMonitoredItem,
+    ClientMonitoredItemGroup,
+    ClientSession,
+    ClientSidePublishEngine,
+    ClientSubscription,
+    CreateMonitoredItemsRequest,
+    CreateMonitoredItemsRequestLike,
+    CreateMonitoredItemsResponse,
+    CreateSubscriptionRequest,
+    CreateSubscriptionRequestLike,
+    CreateSubscriptionResponse,
+    DataChangeNotification,
+    DataType,
+    DataValue,
+    DataValueLike,
+    DeleteMonitoredItemsRequest,
+    DeleteMonitoredItemsRequestLike,
     DeleteSubscriptionsRequestLike,
     DeleteSubscriptionsResponse,
-    NumericRange,
-    DataValueLike,
-    WriteValueOptions,
-    Response,
-    ModifyMonitoredItemsResponse,
-    s,
-    DataValue,
-    CreateSubscriptionResponse,
-    CreateMonitoredItemsRequestLike,
+    installSessionLogging,
+    makeNodeId,
+    ModifyMonitoredItemsRequest,
     ModifyMonitoredItemsRequestLike,
-    DeleteMonitoredItemsRequestLike,
-    CreateSubscriptionRequestLike,
-    NodeId,
-    ServerSession,
-    ClientSidePublishEngine,
-    SubscriptionId,
-    MonitoringParametersOptions,
-    ReadValueIdOptions,
-    NodeIdLike,
-    UAVariable,
-    DataChangeNotification,
-    StatusChangeNotification,
+    ModifyMonitoredItemsResponse,
     ModifySubscriptionRequestLike,
     ModifySubscriptionResponse,
+    MonitoredItem,
+    MonitoredItemCreateResult,
+    MonitoredItemModifyRequest,
+    MonitoredItemModifyResult,
+    MonitoringMode,
+    MonitoringParametersOptions,
+    NodeId,
+    NodeIdLike,
+    NumericRange,
+    OPCUAClient,
+    OPCUAClientBase,
+    OPCUAServer,
+    PublishRequest,
+    PublishRequestOptions,
+    PublishResponse,
+    ReadValueId,
+    ReadValueIdOptions,
+    RepublishRequest,
+    RepublishRequestOptions,
+    RepublishResponse,
+    resolveNodeId,
+    Response,
+    s,
+    ServerSession,
+    ServiceFault,
+    SetMonitoringModeRequest,
     SetMonitoringModeRequestLike,
     SetPublishingModeResponse,
-    RepublishRequestOptions,
-    MonitoredItemCreateResult,
-    MonitoredItemModifyResult
+    StatusChangeNotification,
+    StatusCode,
+    StatusCodes,
+    Subscription,
+    SubscriptionId,
+    SubscriptionState,
+    TimestampsToReturn,
+    UAVariable,
+    VariableIds,
+    Variant,
+    VariantArrayType,
+    WriteValueOptions,
 } from 'node-opcua';
 
 import { make_debugLog, checkDebugFlag } from 'node-opcua-debug';
@@ -85,7 +85,11 @@ import {
 import { describeWithLeakDetector as describe } from 'node-opcua-leak-detector';
 import { fAsync } from "../../test_helpers/display_function_name";
 import { assertThrow } from '../../test_helpers/assert_throw';
-import { waitUntilCondition } from '../discovery/_helper';
+import {
+    stepLog,
+    wait,
+    tracelog
+} from '../../test_helpers/utils';
 
 const debugLog = make_debugLog("TEST");
 const doDebug = checkDebugFlag("TEST");
@@ -102,7 +106,9 @@ interface ClientSessionEx extends ClientSession {
 
     setMonitoringMode(request: SetMonitoringModeRequestLike): Promise<SetPublishingModeResponse>;
 
-    setPublishingMode(publishingEnabled: boolean, subscriptionId: SubscriptionId | SubscriptionId[]): Promise<StatusCode>;
+    setPublishingMode(publishingEnabled: boolean, subscriptionId: SubscriptionId): Promise<StatusCode>;
+    setPublishingMode(publishingEnabled: boolean, subscriptionIds: SubscriptionId[]): Promise<StatusCode[]>;
+
     getPublishEngine(): ClientSidePublishEngine;
 
     republish(request: RepublishRequestOptions): Promise<RepublishResponse>;
@@ -116,25 +122,7 @@ function f<T>(func: () => Promise<T>): () => Promise<T> {
     return fAsync(doDebug, func);
 }
 
-function trace_console_log(...args: [string, ...string[]]) {
-    const log1 = global.console.log;
-    global.console.log = function () {
-        const t = new Error("").stack!.split("\n")[2];
-        if (t.match(/opcua/)) {
-            log1.call(console, chalk.cyan(t));
-        }
-        log1.apply(console, args);
-    };
-}
-const tracelog = (...args: [string | number, ...(string | number)[]]) => {
-    const d = new Date();
-    const t = d.toTimeString().split(" ")[0] + "." + d.getMilliseconds().toString().padStart(3, "0");
-    console.log.apply(console, [t, ...args]);
-};
 
-async function wait(duration: number) {
-    return await new Promise<void>((resolve) => setTimeout(resolve, duration)); // make sure we get inital data
-}
 
 export function t(test: { endpointUrl: string, server: OPCUAServer }) {
     describe("AZA1- testing Client-Server subscription use case, on a fake server exposing the temperature device", function () {
@@ -148,9 +136,12 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             endpointUrl = test.endpointUrl;
         });
 
-        afterEach(() => {
+        beforeEach(() => {
+            OPCUAClientBase.registry.count().should.eql(0, "all clients must be disconnected");
         });
-
+        afterEach(() => {
+            OPCUAClientBase.registry.count().should.eql(0, "all clients must be disconnected");
+        });
         it("AZA1-A should create a ClientSubscription to manage a subscription", async () => {
             await perform_operation_on_client_session(
                 client,
@@ -388,7 +379,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             });
 
             // monitor some
-            const monitoredItem = subscription.monitor(
+            const monitoredItem = await subscription.monitor(
                 {
                     nodeId: resolveNodeId("ns=0;i=2258"),
                     attributeId: 13
@@ -403,6 +394,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
             // wait a little bit and disconnect client
             await wait(500);
+            await client.disconnect();
+
             // connect the same client again !!!!
 
             await client.connect(endpointUrl);
@@ -630,7 +623,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             " and should still be able to reply to other requests",
             async () => {
 
-               await perform_operation_on_client_session(
+                await perform_operation_on_client_session(
                     client,
                     endpointUrl,
                     async (session) => {
@@ -639,7 +632,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                             {
                                 requestedPublishingInterval: 1000, // Duration
                                 requestedLifetimeCount: 1000, // Counter
-                                requestedMaxKeepAliveCount: 100, // Counter
+                                requestedMaxKeepAliveCount: 50, // Counter
                                 maxNotificationsPerPublish: 10, // Counter
                                 publishingEnabled: true, // Boolean
                                 priority: 14 // Byte
@@ -843,32 +836,22 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
                     const nodeId = "ns=2;s=Static_Array_Boolean";
 
-                    const monitoredItem = ClientMonitoredItem.create(
-                        subscription,
+                    const monitoredItem = await subscription.monitor(
                         {
                             nodeId: nodeId,
                             attributeId: AttributeIds.Value,
-                            indexRange: new NumericRange("0:1,0:1") // << INTENTIONAL : 2D RANGE
+                            indexRange: NumericRange.coerce("0:1,0:1") // << INTENTIONAL : 2D RANGE
                         },
                         {
                             samplingInterval: 10,
                             discardOldest: true,
                             queueSize: 1
-                        }
+                        },
+                        TimestampsToReturn.Both
                     );
-                    monitoredItem.on("initialized", function () {
-                        tracelog("Monitored Item Initialized");
-                    });
-
-                    const statusMessage = await new Promise<string>((resolve, reject) => {
-                        // should received err
-                        monitoredItem.on("err", (statusMessage) => resolve(statusMessage));
-                        // should not received initialize
-                        monitoredItem.on("initialized", () => {
-                            reject(new Error("Should not have been initialized"));
-                        });
-                    });
-                    statusMessage.should.eql(StatusCodes.BadIndexRangeInvalid.toString());
+                    console.log("monitoredItem=", monitoredItem.toString());
+                    console.log("statusCode =", monitoredItem.statusCode.toString());
+                    monitoredItem.statusCode.should.equal(StatusCodes.Good);
 
                     const monitoredItemOnChangedSpy = sinon.spy();
                     monitoredItem.on("changed", monitoredItemOnChangedSpy);
@@ -1001,7 +984,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             //  - Write to each data-type outside of the index range (e.g. elements 0, 1 and 5) and then
             //  - call Publish()
             //  - VERIFY that no notification is sent.
-          await perform_operation_on_subscription(
+            await perform_operation_on_subscription(
                 client,
                 endpointUrl,
                 async (session, subscription) => {
@@ -1367,8 +1350,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     });
 
                     const err = await assertThrow(async () => {
-                        (session as ClientSessionEx).deleteMonitoredItems(deleteMonitoredItemsRequest);
-
+                        await (session as ClientSessionEx).deleteMonitoredItems(deleteMonitoredItemsRequest);
                     }, /BadNothingToDo/);
 
                     (err as ErrorEx).response.responseHeader.serviceResult.should.eql(StatusCodes.BadNothingToDo);
@@ -1496,40 +1478,32 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 });
         });
 
-        it("AZA2-SB - GROUP - A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", async () => {
+        it("AZA2-SB - GROUP - A subscription.monitorItems should reject  if timestamp is invalid", async () => {
             await perform_operation_on_subscription(
                 client,
                 endpointUrl,
                 async (session, subscription) => {
-                    const group = ClientMonitoredItemGroup.create(
-                        subscription,
-                        [
+
+                    await assertThrow(async () => {
+                        const group = await subscription.monitorItems(
+                            [
+                                {
+                                    nodeId: resolveNodeId("ns=0;i=2258"),
+                                    attributeId: 13
+                                }
+                            ],
                             {
-                                nodeId: resolveNodeId("ns=0;i=2258"),
-                                attributeId: 13
-                            }
-                        ],
-                        {
-                            samplingInterval: 100,
-                            discardOldest: true,
-                            queueSize: 1
-                        },
-                        TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
-                    );
-
-                    await new Promise<any>((resolve, reject) => {
-                        group.on("initialized", () => {
-                            reject(new Error("Should not get there"));
-                        });
-                        group.on("err", (err) => {
-                            resolve(err);
-                        });
-
-                    });
+                                samplingInterval: 100,
+                                discardOldest: true,
+                                queueSize: 1
+                            },
+                            TimestampsToReturn.Invalid // <= A invalid  TimestampsToReturn
+                        );
+                    }, /BadTimestampsToReturnInvalid/);
                 });
         });
 
-        it("AZA2-SB A Server should reject a CreateMonitoredItemsRequest if timestamp is invalid ( catching error on callback)", async () => {
+        it("AZA2-SC A subscription.monitor should reject a  if timestamp is invalid", async () => {
             await perform_operation_on_subscription(
                 client,
                 endpointUrl,
@@ -1548,7 +1522,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                                 queueSize: 1
                             },
                             TimestampsToReturn.Invalid);
-                    }, /BadInvalidArgument/);
+                    }, /BadTimestampsToReturnInvalid/);
                 });
         });
 
@@ -1574,24 +1548,29 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 client,
                 endpointUrl,
                 async (session) => {
-                    const response = await (session as ClientSessionEx).createSubscription(
-                        {
-                            requestedPublishingInterval: 200, // Duration
-                            requestedLifetimeCount: 30, // Counter
-                            requestedMaxKeepAliveCount: 10, // Counter
-                            maxNotificationsPerPublish: 10, // Counter
-                            publishingEnabled: true, // Boolean
-                            priority: 14 // Byte
-                        });
+
+
+                    // #region create a subscription and close it
+                    const response = await (session as ClientSessionEx).createSubscription({
+                        requestedPublishingInterval: 200, // Duration
+                        requestedLifetimeCount: 30, // Counter
+                        requestedMaxKeepAliveCount: 10, // Counter
+                        maxNotificationsPerPublish: 10, // Counter
+                        publishingEnabled: true, // Boolean
+                        priority: 14 // Byte
+                    });
+
+                    response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
 
                     const subscriptionId = response.subscriptionId;
 
 
                     // create a monitored item so we have pending notificiation
                     const namespaceIndex = 2;
-                    const nodeId = "s=" + "Static_Scalar_Int16";
-
+                    const nodeId = "ns=2;s=" + "Static_Scalar_Int16";
                     const node = server.engine.addressSpace!.findNode(nodeId);
+                    should.exist(node, " node for " + nodeId + " must exist");
+
                     const parameters = {
                         samplingInterval: 0,
                         discardOldest: false,
@@ -1619,7 +1598,13 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     await (session as ClientSessionEx).deleteSubscriptions({
                         subscriptionIds: [subscriptionId]
                     });
-                    await (session as ClientSessionEx).publish({});
+                    // #endregion
+
+                    // #region now calling publish should return BadSubscriptionIdInvalid
+                    await assertThrow(async () => {
+                        await (session as ClientSessionEx).publish({});
+                    }, /BadNoSubscription/);
+                    // #endregion
                 });
         });
     });
@@ -1708,6 +1693,10 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         afterEach(async () => {
         });
 
+
+        interface ClientSubscriptionEx extends ClientSubscription {
+            nb_keep_alive_received: number;
+        }
         /**
          * async method to create a client subscription
          * @param session
@@ -1717,19 +1706,19 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         async function my_CreateSubscription(
             session: ClientSession,
             subscriptionParameters: CreateSubscriptionRequestLike
-        ): Promise<ClientSubscription> {
+        ): Promise<ClientSubscriptionEx> {
             const subscription = await session.createSubscription2(subscriptionParameters);
 
             // install a little keepalive counter
-            (subscription as any).nb_keep_alive_received = 0;
+            (subscription as ClientSubscriptionEx).nb_keep_alive_received = 0;
             subscription.on("keepalive", function () {
-                (subscription as any).nb_keep_alive_received += 1;
+                (subscription as ClientSubscriptionEx).nb_keep_alive_received += 1;
             });
 
             subscription.on("timeout", function () {
                 tracelog("Subscription has timed out");
             });
-            return subscription;
+            return subscription as ClientSubscriptionEx;
         }
 
         it("AZA3-A A server should send a StatusChangeNotification (BadTimeout) if the client doesn't send PublishRequest within the expected interval", async () => {
@@ -1754,7 +1743,6 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 async (session) => {
 
                     function setUnpublishing(session: ClientSession) {
-
                         const sessionEx = session as ClientSessionEx;
                         // replace internalSendPublishRequest so that it doesn't do anything for a little while
                         // The publish engine is shared amongst all subscriptions and belongs to the  session object
@@ -1771,9 +1759,11 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                         const spy = sessionEx.getPublishEngine().internalSendPublishRequest as any;
                         spy.callCount.should.be.greaterThan(1);
                         spy.restore();
-                        spy.internalSendPublishRequest();
+                        sessionEx.getPublishEngine().internalSendPublishRequest();
                     }
 
+                    // --------------------------------------------
+                    stepLog("setUnpublishing: disable PublishRequest on session");
                     setUnpublishing(session);
 
                     // in this test we need two subscriptions
@@ -1782,93 +1772,88 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     //
                     // at the beginning, both subscriptions will not send PublishRequest
 
-
-                    const longLifeSubscription = await f(async function create_long_life_subscription() {
-                        const subscriptionParameters = {
-                            requestedPublishingInterval: 100, // short publishing interval required here
-                            requestedLifetimeCount: 1000, // long lifetimeCount needed here !
-                            requestedMaxKeepAliveCount: 50,
-                            maxNotificationsPerPublish: 30,
-                            publishingEnabled: true,
-                            priority: 6
-                        };
-                        return await my_CreateSubscription(session, subscriptionParameters);
-                    })();
+                    // --------------------------------------------
+                    stepLog("create long life subscription")
+                    const longLifeSubscription = await my_CreateSubscription(session, {
+                        requestedPublishingInterval: 100, // short publishing interval required here
+                        requestedLifetimeCount: 1000, // long lifetimeCount needed here !
+                        requestedMaxKeepAliveCount: 50,
+                        maxNotificationsPerPublish: 30,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
 
 
-                    const shortLifeSubscription = await f(async function create_short_life_subscription() {
-                        const subscriptionParameters = {
-                            requestedPublishingInterval: 100, // short publishing interval required here
-                            requestedLifetimeCount: 30, // short lifetimeCount needed here !
-                            requestedMaxKeepAliveCount: 4,
-                            maxNotificationsPerPublish: 30,
-                            publishingEnabled: true,
-                            priority: 6
-                        };
+                    // --------------------------------------------
+                    stepLog("create short life subscription")
+                    const shortLifeSubscription = await my_CreateSubscription(session, {
+                        requestedPublishingInterval: 100, // short publishing interval required here
+                        requestedLifetimeCount: 30, // short lifetimeCount needed here !
+                        requestedMaxKeepAliveCount: 4,
+                        maxNotificationsPerPublish: 30,
+                        publishingEnabled: true,
+                        priority: 6
+                    });
 
-                        const subscription = await my_CreateSubscription(session, subscriptionParameters);
-                        return subscription;
-                    })();
+                    // --------------------------------------------
+                    stepLog("wait for short life subscription to timeout (no PublishRequest)");
+                    // let's make sure that the subscription will expired
+                    const timeToWaitBeforeResendingPublishInterval: number =
+                        shortLifeSubscription.publishingInterval *
+                        (shortLifeSubscription.lifetimeCount + shortLifeSubscription.maxKeepAliveCount * 4 + 20);
+                    tracelog("timeToWaitBeforeResendingPublishInterval = ", timeToWaitBeforeResendingPublishInterval);
+                    if (doDebug) {
+                        tracelog(shortLifeSubscription.toString());
+                        tracelog("timetoWaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval);
+                        tracelog("Count To WaitBeforeResendingPublishInterval  :",
+                            timeToWaitBeforeResendingPublishInterval / shortLifeSubscription.publishingInterval
+                        );
+                    }
+                    await wait(timeToWaitBeforeResendingPublishInterval);
+                    if (true || doDebug) {
+                        tracelog(" Restoring default Publishing behavior");
+                    }
+                    repairUnpublishing(session);
 
-                    await f(async function wait_for_short_life_subscription_to_expire() {
-
-                        // let's make sure that the subscription will expired
-                        const timeToWaitBeforeResendingPublishInterval: number =
-                            shortLifeSubscription.publishingInterval *
-                            (shortLifeSubscription.lifetimeCount + shortLifeSubscription.maxKeepAliveCount * 4 + 20);
-
-                        tracelog("timeToWaitBeforeResendingPublishInterval = ", timeToWaitBeforeResendingPublishInterval);
-                        if (doDebug) {
-                            tracelog(shortLifeSubscription.toString());
-                            tracelog("timetoWaitBeforeResendingPublishInterval  :", timeToWaitBeforeResendingPublishInterval);
-                            tracelog("Count To WaitBeforeResendingPublishInterval  :",
-                                timeToWaitBeforeResendingPublishInterval / shortLifeSubscription.publishingInterval
-                            );
-                        }
-
-                        await wait(timeToWaitBeforeResendingPublishInterval);
-                        if (true || doDebug) {
-                            tracelog(" Restoring default Publishing behavior");
-                        }
-                        repairUnpublishing(session);
-
-                        const statusCode = await new Promise<StatusCode>((resolve, reject) => {
-                            shortLifeSubscription.once("status_changed", (statusCode) => {
-                                resolve(statusCode);
-                            });
+                    const statusCode = await new Promise<StatusCode>((resolve, reject) => {
+                        shortLifeSubscription.once("status_changed", (statusCode) => {
+                            resolve(statusCode);
                         });
-                        statusCode.should.eql(StatusCodes.BadTimeout);
-                    })();
+                    });
 
-                    await f(async function terminate_short_life_subscription() {
-                        const timeout =
-                            shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
-                        if (true || doDebug) {
-                            tracelog("timeout = ", timeout);
-                        }
-                        const verif = (shortLifeSubscription as any).nb_keep_alive_received;
-                        // let explicitly close the subscription by calling terminate
-                        // but delay a little bit so we can verify that internalSendPublishRequest
-                        // is not called
-                        await wait(timeout);
+                    statusCode.should.eql(StatusCodes.BadTimeout);
 
-                        tracelog("before shortLifeSubscription terminate");
+                    // --------------------------------------------
+                    stepLog("terminate short life subscription");
+                    const timeout =
+                        shortLifeSubscription.publishingInterval * shortLifeSubscription.maxKeepAliveCount * 2;
+                    if (true || doDebug) {
+                        tracelog("timeout = ", timeout);
+                    }
+                    const verif = (shortLifeSubscription as any).nb_keep_alive_received;
+                    // let explicitly close the subscription by calling terminate
+                    // but delay a little bit so we can verify that internalSendPublishRequest
+                    // is not called
+                    await wait(timeout);
+                    tracelog("before shortLifeSubscription terminate");
 
-                        await shortLifeSubscription.terminate();
-                        tracelog(" shortLifeSubscription terminated");
-                        (shortLifeSubscription as any).nb_keep_alive_received.should.be.equal(verif);
-                    })();
+                    await shortLifeSubscription.terminate();
 
-                    await f(async function terminate_long_life_subscription() {
-                        tracelog("before longLifeSubscription terminate");
-                        await longLifeSubscription.terminate();
-                        tracelog(" longLifeSubscription terminated");
-                    })();
+                    // --------------------------------------------
+                    tracelog(" shortLifeSubscription terminated");
+                    (shortLifeSubscription as any).nb_keep_alive_received.should.be.equal(verif);
+
+
+
+                    stepLog("terminate_ long_ life_subscription");
+                    tracelog("before longLifeSubscription terminate");
+                    await longLifeSubscription.terminate();
+                    tracelog(" longLifeSubscription terminated");
                 });
         });
 
         it("AZA3-B A subscription without a monitored item should not dropped too early ( see #59)", async () => {
-           await perform_operation_on_client_session(
+            await perform_operation_on_client_session(
                 client,
                 endpointUrl,
                 async (session) => {
@@ -1906,7 +1891,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
         });
 
         it("AZA3-D #CreateMonitoredItemsRequest : A server should return statusCode:BadSubscriptionIdInvalid when appropriate  ", async () => {
-           await perform_operation_on_client_session(
+            await perform_operation_on_client_session(
                 client,
                 endpointUrl,
                 async (session) => {
@@ -1927,9 +1912,9 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     const publishingEnabled = true;
                     const subscriptionIds = [999]; //<< invalid subscription ID
 
-                    await assertThrow(async () => {
-                        await (session as ClientSessionEx).setPublishingMode(publishingEnabled, subscriptionIds);
-                    }, /BadSubscriptionIdInvalid/);
+                    const statusCodes = await (session as ClientSessionEx).setPublishingMode(publishingEnabled, subscriptionIds);
+                    statusCodes.length.should.eql(1);
+                    statusCodes[0].should.eql(StatusCodes.BadSubscriptionIdInvalid);
                 });
         });
 
@@ -1938,6 +1923,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 client,
                 endpointUrl,
                 async (session) => {
+
+                    stepLog("create subscription");
                     const parameters = {
                         requestedPublishingInterval: 100,
                         requestedLifetimeCount: 6000,
@@ -1946,13 +1933,12 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                         publishingEnabled: true,
                         priority: 6
                     };
-
-                    const subscription = ClientSubscription.create(session, parameters);
-
+                    const subscription =await session.createSubscription2(parameters);
                     subscription.on("terminated", function () {
                         debugLog("subscription terminated");
                     });
 
+                    stepLog("monitor a item");
                     const itemToMonitor = {
                         nodeId: resolveNodeId("ns=0;i=2258"), // Date Time
                         attributeId: AttributeIds.Value
@@ -1962,7 +1948,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                         discardOldest: true,
                         queueSize: 1
                     };
-                    const monitoredItem = ClientMonitoredItem.create(subscription, itemToMonitor, monitoringParameters);
+                    const monitoredItem = await subscription.monitor(itemToMonitor, monitoringParameters, TimestampsToReturn.Both);
+
 
                     let change_count = 0;
                     monitoredItem.on("changed", (dataValue) => {
@@ -1971,27 +1958,32 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                         //xx tracelog("xxxxxxxxxxxx=> dataValue",dataValue.toString());
                     });
 
-                    // wait 3600 milliseconds and verify that the subscription is sending some notification
+                    stepLog("wait 3600 milliseconds and verify that the subscription is sending some notification");
                     await wait(3600);
                     change_count.should.be.greaterThan(2);
 
-                    // suspend subscription
+                    stepLog("suspend subscription");
                     await subscription.setPublishingMode(false);
                     change_count = 0;
 
 
-                    // wait  400 milliseconds and verify that the subscription is  NOT sending any notification
-                    await wait(400);
+                    stepLog("wait 1400 milliseconds and verify that the subscription is  NOT sending any notification");
+                    await wait(1400);
+
+                    stepLog("verify that no notification has been received");
                     change_count.should.equal(0);
 
-                    // resume subscription
+                    stepLog("resume subscription");
                     await subscription.setPublishingMode(true);
                     change_count = 0;
 
-                    // wait 3600 milliseconds and verify that the subscription is sending some notification again
+                    stepLog("wait 3600 milliseconds and verify that the subscription is sending some notification again");
                     await wait(3600);
+
+                    stepLog("verify that some notification has been received");
                     change_count.should.be.greaterThan(2);
 
+                    stepLog("terminate subscription");
                     await subscription.terminate();
                 });
         });
@@ -2219,7 +2211,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
             monitoredItemResult.revisedSamplingInterval!.should.be.greaterThan(19);
         });
 
-        async function test_modify_monitored_item_on_noValue_attribute(parameters: any): Promise<void>{
+        async function test_modify_monitored_item_on_noValue_attribute(parameters: any): Promise<void> {
 
             const nodeId = "ns=0;i=2258";
 
@@ -2234,7 +2226,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 itemToMonitor,
                 async (session, subscription, monitoredItem) => {
                     let change_count = 0;
-                    monitoredItem.on("changed",  (dataValue) =>{
+                    monitoredItem.on("changed", (dataValue) => {
                         //xx tracelog("xx changed",dataValue.value.toString());
                         dataValue.value.toString().should.eql("Variant(Scalar<QualifiedName>, value: CurrentTime)");
                         change_count += 1;
@@ -2617,8 +2609,9 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 client,
                 endpointUrl,
                 async (session) => {
-                    const id = await createSubscription(session);
-                    id.should.be.greaterThan(0);
+
+                    const subscriptionResponse = await createSubscription(session);
+                    subscriptionResponse.subscriptionId.should.be.greaterThan(0);
 
                     await createMonitoredItems(session, nodeId, parameters, itemToMonitor);
 
@@ -3001,25 +2994,25 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
 
                         const subscription = await session.createSubscription2({
                             requestedPublishingInterval: 10,
-                            requestedLifetimeCount: 60000,
+                            requestedLifetimeCount: 18000,
                             requestedMaxKeepAliveCount: 10,
                             maxNotificationsPerPublish: 10,
                             publishingEnabled: true,
                             priority: 6
                         });
 
-                        subscription.on("terminated", () => {
-                            //xx tracelog(chalk.yellow(" subscription terminated "));
-                        });
-
-                        await new Promise<void>((resolve) => subscription.on("started", resolve));
-
+                 
+                   
                         const modifySubscriptionRequest = {
                             subscriptionId: subscription.subscriptionId,
                             requestedPublishingInterval: 200
                         };
                         const response = await (session as ClientSessionEx).modifySubscription(modifySubscriptionRequest);
                         response.revisedPublishingInterval.should.eql(200);
+
+                        response.responseHeader.serviceResult.should.eql(StatusCodes.Good);
+                        response.revisedMaxKeepAliveCount.should.eql(10);
+                        response.revisedLifetimeCount.should.eql(18000);
 
                         await subscription.terminate();
                     });
@@ -3101,7 +3094,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     client,
                     endpointUrl,
                     itemToMonitor,
-                    async (session, subscription, monitoredItem)=> {
+                    async (session, subscription, monitoredItem) => {
                         const setMonitoringModeRequest = {
                             subscriptionId: subscription.subscriptionId,
                             monitoringMode: MonitoringMode.Sampling,
@@ -3297,7 +3290,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     });
             }
 
-            it("server should handle Republish request (BadMessageNotAvailable) ", async () => {
+            it("RP-1 server should handle Republish request (BadMessageNotAvailable) ", async () => {
                 await inner_test(async (session) => {
                     const request = new RepublishRequest({
                         subscriptionId: VALID_SUBSCRIPTION,
@@ -3312,8 +3305,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 });
             });
 
-            it("server should handle Republish request (BadSubscriptionIdInvalid) ", async () => {
-                inner_test(async (session) => {
+            it("RP-2 server should handle Republish request (BadSubscriptionIdInvalid) ", async () => {
+                await inner_test(async (session) => {
                     VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
 
                     const request = new RepublishRequest({
@@ -3328,8 +3321,8 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                 });
             });
 
-            it("server should handle Republish request (Good) ", async () => {
-                inner_test(async (session) => {
+            it("RP-3 server should handle Republish request (Good) ", async () => {
+                await inner_test(async (session) => {
                     VALID_RETRANSMIT_SEQNUM.should.not.eql(0);
 
                     const request = new RepublishRequest({

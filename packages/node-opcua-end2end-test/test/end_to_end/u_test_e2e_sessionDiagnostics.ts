@@ -1,5 +1,4 @@
 import "should";
-import async from "async";
 import {
     BrowseDirection,
     OPCUAClient,
@@ -15,7 +14,7 @@ import {
     readNamespaceArray
 } from "node-opcua";
 import sinon from "sinon";
-import { wait, wait_until_condition } from "../../test_helpers/utils";
+import { wait, waitUntilCondition } from "../../test_helpers/utils";
 const doDebug = false;
 
 export function t(test: any) {
@@ -201,7 +200,7 @@ export function t(test: any) {
 
                 //  await writeSomeValue(43);
 
-                await wait_until_condition(
+                await waitUntilCondition(
                     () => 
                         dataValuesMap[writeCountNodeId.toString()] && dataValuesMap[writeCountNodeId.toString()].length >= 2,
                     10 * 1000
