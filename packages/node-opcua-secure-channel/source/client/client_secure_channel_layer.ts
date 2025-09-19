@@ -783,10 +783,11 @@ export class ClientSecureChannelLayer extends EventEmitter {
             this.#_performMessageTransaction("CLO", request, (err) => {
                 // istanbul ignore next
                 if (err) {
-                    warningLog("CLO transaction terminated with error: ", err.message);
+                    warningLog("CLO transaction terminated with error: ", err.message, " has transport ?: ", !!this.#_transport);
                 }
                 if (this.#_transport) {
-                    this.#_transport!.disconnect(() => {
+                    this.#_transport.disconnect(() => {
+                        this.dispose();
                         callback();
                     });
                 } else {
