@@ -25,6 +25,9 @@ describe("testing extension object with client residing on a different process t
         server_sourcefile: path.join(__dirname, "../../test_helpers/bin/simple_server_with_custom_extension_objects.js"),
         port
     };
+    if (!fs.existsSync(options.server_sourcefile)) {
+        options.server_sourcefile = path.join(__dirname, "../../../test_helpers/bin/simple_server_with_custom_extension_objects.js");
+    }
     fs.existsSync(options.server_sourcefile).should.eql(true, "cannot find simple_server_with_custom_extension_objects script");
 
     before(async () => {
