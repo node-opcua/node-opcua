@@ -52,7 +52,10 @@ const users = [
     { username: "user2", password: (() => "2")(), role: makeRoles([WellKnownRoles.AuthenticatedUser, WellKnownRoles.Operator]) }
 ];
 
-const certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
+let certificateFolder = path.join(__dirname, "../../../node-opcua-samples/certificates");
+if(!fs.existsSync(certificateFolder)) {
+     certificateFolder = path.join(__dirname, "../../../../node-opcua-samples/certificates");
+}
 fs.existsSync(certificateFolder).should.eql(true, "expecting certificate store at " + certificateFolder);
 
 // simplistic user manager for test purpose only ( do not use in production !)
