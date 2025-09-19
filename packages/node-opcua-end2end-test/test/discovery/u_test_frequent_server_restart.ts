@@ -11,7 +11,6 @@ import {
     resolveNodeId,
     AttributeIds,
     TimestampsToReturn,
-    ErrorCallback,
     ApplicationType,
     ClientSession,
     OPCUACertificateManager
@@ -35,7 +34,7 @@ const port2 = 12400;
 const port1 = 12401;
 const discovery_port = 12402;
 
-export function t(test:TestHarness) {
+export function t(test: TestHarness) {
     describe("DISCO4 - NodeRed -  testing frequent server restart within same process", function () {
         /**
          * This test simulates the way node-red will frequently start and restart
@@ -64,8 +63,10 @@ export function t(test:TestHarness) {
 
         let endpointUrl = "";
 
+        let test_counter = 0;
         const createServer = f(async function start_an_opcua_server_that_registers_to_the_lds() {
-            const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ");
+            const server = await createServerThatRegistersItselfToTheDiscoveryServer(discoveryServerEndpointUrl, port1, "AZ" + test_counter);
+            test_counter += 1;
             g_server = server;
             await server.start();
             server.endpoints.length.should.be.greaterThan(0);
@@ -112,59 +113,74 @@ export function t(test:TestHarness) {
                 client.on("after_reconnection", () => {
                     debugLog("after_reconnection ", client.clientName);
                 });
-                await client.connect(endpointUrl);
+                try {
+                    await client.connect(endpointUrl);
 
-                const session = await client.createSession();
+                    try {
+                        const session = await client.createSession();
 
-                session.on("session_closed", () => {
-                    debugLog("session closed - client", client.clientName);
-                });
-                session.on("session_restored", () => {
-                    debugLog("session restored - client", client.clientName);
-                });
+                        session.on("session_closed", () => {
+                            debugLog("session closed - client", client.clientName);
+                        });
+                        session.on("session_restored", () => {
+                            debugLog("session restored - client", client.clientName);
+                        });
 
-                const subscription = await session.createSubscription2({
-                    requestedPublishingInterval: 100,
-                    requestedLifetimeCount: 1000,
-                    requestedMaxKeepAliveCount: 6,
-                    maxNotificationsPerPublish: 100,
-                    publishingEnabled: true,
-                    priority: 10
-                });
+                        try {
+                            const subscription = await session.createSubscription2({
+                                requestedPublishingInterval: 100,
+                                requestedLifetimeCount: 1000,
+                                requestedMaxKeepAliveCount: 6,
+                                maxNotificationsPerPublish: 100,
+                                publishingEnabled: true,
+                                priority: 10
+                            });
 
-                subscription
-                    .on("started", function () {
-                        if (doDebug) {
-                            debugLog("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
+                            subscription
+                                .on("started", function () {
+                                    if (doDebug) {
+                                        debugLog("subscription started for 2 seconds - subscriptionId=", subscription.subscriptionId);
+                                    }
+                                })
+                                .on("keepalive", function () {
+                                    debugLog("subscription keepalive", client.clientName);
+                                })
+                                .on("terminated", function () {
+                                    /** */
+                                });
+
+
+                            const monitoredItem = await subscription.monitor(
+                                {
+                                    nodeId: resolveNodeId("ns=0;i=2258"),
+                                    attributeId: AttributeIds.Value
+                                },
+                                {
+                                    samplingInterval: 100,
+                                    discardOldest: true,
+                                    queueSize: 10
+                                },
+                                TimestampsToReturn.Both
+                            );
+                            monitoredItem.on("changed", function (dataValue) {
+                                if (doDebug1) {
+                                    debugLog(dataValue.toString());
+                                }
+                            });
+                            clients.push({ client, session, subscription, monitoredItem });
+                        } catch (err) {
+                            console.log(" error client ", client.clientName, " has failed to create subscription to ", endpointUrl, " err = ", (err as Error).message);
+                        } finally {
+                            await session.close();
                         }
-                    })
-                    .on("keepalive", function () {
-                        debugLog("subscription keepalive", client.clientName);
-                    })
-                    .on("terminated", function () {
-                        /** */
-                    });
-
-
-                const monitoredItem = await subscription.monitor(
-                    {
-                        nodeId: resolveNodeId("ns=0;i=2258"),
-                        attributeId: AttributeIds.Value
-                    },
-                    {
-                        samplingInterval: 100,
-                        discardOldest: true,
-                        queueSize: 10
-                    },
-                    TimestampsToReturn.Both
-                );
-                monitoredItem.on("changed", function (dataValue) {
-                    if (doDebug1) {
-                        debugLog(dataValue.toString());
+                    } catch (err) {
+                        console.log(" error client ", client.clientName, " has failed to create session to ", endpointUrl, " err = ", (err as Error).message);
+                    } finally {
+                        await client.disconnect();
                     }
-                });
-                clients.push({ client, session, subscription, monitoredItem });
-
+                } catch (err) {
+                    console.log(" error client ", client.clientName, " has failed to connect to ", endpointUrl, " err = ", (err as Error).message);
+                }
             }
 
             const promises = [
@@ -172,7 +188,6 @@ export function t(test:TestHarness) {
             ]
             await Promise.all(promises);
         });
-
         const shutdownClients = f(async function disconnect_the_opcua_clients() {
             async function removeClient() {
                 if (!clients) {
@@ -213,13 +228,18 @@ export function t(test:TestHarness) {
             OPCUAClientBase.registry.count().should.eql(0, "at start, no client should be active");
         });
         afterEach(async () => {
+            if (OPCUAClientBase.registry.count() != 0) {
+                // display the name of all active clients
+                console.log(OPCUAClientBase.registry.toString());
+            }
+
             console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
             await pause(100);
-            OPCUAClientBase.registry.count().should.eql(0,"1. All Clients shoiuld have been properly disposed of");
+            OPCUAClientBase.registry.count().should.eql(0, "1. All Clients should have been properly disposed of");
             await pause(100);
-            OPCUAClientBase.registry.count().should.eql(0, "2. All Clients shoiuld have been properly disposed of");
+            OPCUAClientBase.registry.count().should.eql(0, "2. All Clients should have been properly disposed of");
             await pause(100);
-            OPCUAClientBase.registry.count().should.eql(0, "3. All Clients shoiuld have been properly disposed of");
+            OPCUAClientBase.registry.count().should.eql(0, "3. All Clients should have been properly disposed of");
             console.log("   afterEach : active client count = ", OPCUAClientBase.registry.count());
         });
         it("DISCO4-A - should perform start/stop cycle efficiently - wait ", async () => {
@@ -381,6 +401,8 @@ export function t(test:TestHarness) {
             await registrationManager.stop();
         });
 
+        const max_duration = 40_000;
+
         it("DISCO4-I - should perform start/stop cycle efficiently ", async () => {
 
             await createServer();
@@ -391,17 +413,23 @@ export function t(test:TestHarness) {
             await wait_a_few_seconds();
             await shutdownServer();
 
-            await createServer();
-            await wait_a_few_seconds();
-            await shutdownServer();
-
-            await createServer();
-            await wait_a_few_seconds();
-            await shutdownServer();
-
-            await createServer();
-            await wait_a_few_seconds();
-            await shutdownServer()
+            // do it randomly, so we can augment the chance that the server may be in the process of registering
+            // itself to the LDS while shut down is requested
+            const startTime = Date.now();
+            for (let i = 0; i < 100; i++) {
+                const elapsed = Date.now() - startTime;
+                if (elapsed > max_duration) {
+                    console.log(" **** breaking after ", elapsed, " seconds");
+                    break;
+                }
+                if (doDebug) {
+                    console.log(" iteration ", i);
+                }
+                await createServer();
+                await pause(250 * Math.random());
+                await shutdownServer();
+                await pause(50 * Math.random());
+            }
 
         });
 
@@ -410,7 +438,7 @@ export function t(test:TestHarness) {
             await createServer();
 
             await connectManyClient();
-            
+            // let clients reconnect while server is up
             await pause(5000);
             // servers shutdown before clients
             await shutdownServer();
@@ -418,26 +446,25 @@ export function t(test:TestHarness) {
             await createServer();
             // and stop immediately( clients will probably have not enough time to reconnect )
             await shutdownServer();
-            await createServer();
-            await shutdownServer();
+   
+            // do it randomly, so we can augment the chance that clients are at various stages
+            // in the process of reconnecting
+            const startTime = Date.now();
+            for (let i = 0; i < 100; i++) {
+                const elapsed = Date.now() - startTime;
+                if (elapsed > max_duration) {
+                    console.log(" **** breaking after ", elapsed, " seconds");
+                    break;
+                }
+                if (doDebug) {
+                    console.log(" iteration ", i);
+                }
+                await createServer();
+                await pause(250 * Math.random());
+                await shutdownServer();
+                await pause(100 * Math.random());
+            }
 
-            await pause(1000);
-            await createServer();
-            await pause(1000);
-
-            await shutdownServer();
-            await pause(1000);
-
-            await createServer();
-            await pause(1000);
-
-            await shutdownServer();
-            await pause(1000);
-
-            await pause(5000);
-            await shutdownClients();
-
-            await pause(1000);
 
         });
 

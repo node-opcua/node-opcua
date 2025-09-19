@@ -609,6 +609,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
                         err!.message.match("BadCertificateInvalid") ||
                         err!.message.match(/socket has been disconnected by third party/)
                     ) {
+                        // it is possible also that hte server has shutdown innapropriately the connection      
                         warningLog(
                             "the server certificate has changed,  we need to retrieve server certificate again: ",
                             err.message
@@ -1236,7 +1237,10 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         }
         if (this._internalState === "disconnected" || this._internalState === "disconnecting") {
             if (this._internalState === "disconnecting") {
-                warningLog("[NODE-OPCUA-W26] OPCUAClient#disconnect called while already disconnecting");
+                warningLog("[NODE-OPCUA-W26] OPCUAClient#disconnect called while already disconnecting. clientName=", this.clientName);
+            }
+            if (!this._reconnectionIsCanceled && this.isReconnecting) {
+                errorLog("Internal Error : _reconnectionIsCanceled should be true if isReconnecting is true");
             }
             return callback();
         }
@@ -1666,7 +1670,7 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
 
         debugLog("Entering _repairConnection ", this._internalState);
         if (this.#insideRepairConnection) {
-            errorLog("_repairConnection already in progress internal state = ", this._internalState);
+            errorLog("_repairConnection already in progress internal state = ", this._internalState, "clientName =", this.clientName);
             this.#shouldRepairAgain = true;
             return;
         }
@@ -1675,7 +1679,6 @@ export class ClientBaseImpl extends OPCUASecureObject implements OPCUAClientBase
         debugLog("recreating new secure channel ", this._internalState);
         this._recreate_secure_channel((err1?: Error) => {
             debugLog("secureChannel#on(close) => _recreate_secure_channel returns ", err1 ? err1.message : "OK");
-
             if (err1) {
                 debugLog("_recreate_secure_channel has failed: err = ", err1.message);
                 this.emit("close", err1);
