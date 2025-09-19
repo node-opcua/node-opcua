@@ -28,9 +28,9 @@ import { exploreCertificate } from "node-opcua-crypto/web";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { IRegisterServerManager, RegisterServerManagerStatus } from "./i_register_server_manager";
 
-const doDebug = checkDebugFlag(__filename);
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
+const doDebug = checkDebugFlag("REGISTER_LDS");
+const debugLog = make_debugLog("REGISTER_LDS");
+const warningLog = make_warningLog("REGISTER_LDS");
 
 
 const g_DefaultRegistrationServerTimeout = 8 * 60 * 1000; // 8 minutes
@@ -176,7 +176,7 @@ function constructRegisterServer2Request(serverB: IPartialServer, isOnline: bool
     });
 }
 
-const no_reconnect_connectivity_strategy = {
+const no_retry_connectivity_strategy = {
     initialDelay: 1000,
     maxDelay: 2000,
     maxRetry: 1, // NO RETRY !!!
@@ -370,11 +370,11 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
      */
     async #_runRegistrationProcess(): Promise<void> {
         while (this.getState() !== RegisterServerManagerStatus.WAITING && !this.#_isTerminating()) {
+            debugLog("RegisterServerManager#_runRegistrationProcess - state =", RegisterServerManagerStatus[this.state], "isTerminating =", this.#_isTerminating());
             try {
                 if (this.getState() === RegisterServerManagerStatus.INACTIVE) {
                     this.#_setState(RegisterServerManagerStatus.INITIALIZING);
                 }
-
                 await this.#_establish_initial_connection();
 
                 if (this.getState() !== RegisterServerManagerStatus.INITIALIZING) {
@@ -397,7 +397,7 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
                 this.#_emitEvent("serverRegistered");
                 this.#_setState(RegisterServerManagerStatus.WAITING);
                 this.#_trigger_next();
-
+                return;
             } catch (err) {
                 debugLog("RegisterServerManager#_runRegistrationProcess - operation failed!", ((err as Error).message));
                 if (!this.#_isTerminating()) {
@@ -437,19 +437,23 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         const applicationName = coerceLocalizedText(this.server.serverInfo.applicationName!)?.text || undefined;
         this.server.serverCertificateManager.referenceCounter++;
 
-        const prefix = "Client-" + g_registeringClientCounter++ + " - ";
+        const server = this.server;
+        const prefix = `Client-${g_registeringClientCounter++}`;
+        const action = "initializing";
+        const ldsInfo = this.discoveryServerEndpointUrl;
+        const serverInfo = this.server?.serverInfo.applicationUri!;
+        const clientName = `${prefix} for server ${serverInfo} to LDS ${ldsInfo} for ${action}`;
 
         const registrationClient = OPCUAClientBase.create({
-            clientName: prefix + " Registering Client for Server " + this.server.serverInfo.applicationUri!,
+            clientName,
             applicationName,
-            applicationUri: this.server.serverInfo.applicationUri!,
+            applicationUri: server.serverInfo.applicationUri!,
             connectionStrategy: infinite_connectivity_strategy,
-            clientCertificateManager: this.server.serverCertificateManager,
-            certificateFile: this.server.certificateFile,
-            privateKeyFile: this.server.privateKeyFile
+            clientCertificateManager: server.serverCertificateManager,
+            certificateFile: server.certificateFile,
+            privateKeyFile: server.privateKeyFile
         }) as ClientBaseEx;
 
-        this._registration_client = registrationClient;
 
         registrationClient.on("backoff", (nbRetry: number, delay: number) => {
             if (this.state !== RegisterServerManagerStatus.INITIALIZING) return; // Ignore event if state has changed
@@ -467,22 +471,27 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             this.#_emitEvent("serverRegistrationPending");
         });
 
+        // Keep track of the client to allow cancellation during connect()
+        this._registration_client = registrationClient;
 
         try {
             await registrationClient.connect(this.discoveryServerEndpointUrl);
 
+            if (!this._registration_client) return;
+
             // Re-check state after the long-running connect operation
             if (this.state !== RegisterServerManagerStatus.INITIALIZING) {
-                await registrationClient.disconnect();
                 debugLog("RegisterServerManager#_establish_initial_connection: aborted after connection");
                 return;
             }
+
 
             const endpoints: EndpointDescription[] | undefined = await registrationClient.getEndpoints();
             const endpoint = findSecureEndpoint(endpoints!);
             if (!endpoint) {
                 throw new Error("Cannot find Secure endpoint");
             }
+
             if (endpoint.serverCertificate) {
                 assert(endpoint.serverCertificate);
                 this.selectedEndpoint = endpoint;
@@ -491,17 +500,18 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             }
 
             this._serverEndpoints = registrationClient._serverEndpoints;
-            await registrationClient.disconnect();
-            this._registration_client = null;
-            await new Promise<void>((resolve) => setTimeout(resolve, 10));
-
         } catch (err) {
             // Do not set state to INACTIVE or rethrow here, let the caller handle it.
             throw err;
         } finally {
             if (this._registration_client) {
-                await this._registration_client.disconnect();
+                const tmp = this._registration_client;
                 this._registration_client = null;
+                try {
+                    await tmp.disconnect();
+                } catch (err) {
+                    warningLog("RegisterServerManager#_establish_initial_connection: error disconnecting client", err);
+                }
             }
         }
     }
@@ -523,6 +533,10 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             }
             this._registrationTimerId = null;
 
+            if (this.#_isTerminating()) {
+                debugLog("RegisterServerManager#_trigger_next : cancelling re registration");
+                return;
+            }
             debugLog("RegisterServerManager#_trigger_next : renewing RegisterServer");
 
             const after_register = (err?: Error) => {
@@ -546,14 +560,23 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
 
     public async stop(): Promise<void> {
         debugLog("RegisterServerManager#stop");
+        if (this.#_isTerminating()) {
+            debugLog("Already stopping  or stopped...");
+            return;
+        }
 
+        // make sure we don't have any timer running
+        // so a registration renewal won't happen while we are stopping
         if (this._registrationTimerId) {
             clearTimeout(this._registrationTimerId);
             this._registrationTimerId = null;
         }
 
+
         // Immediately set state to signal a stop
         this.#_setState(RegisterServerManagerStatus.UNREGISTERING);
+
+        // Cancel any pending client connections
         await this.#_cancel_pending_client_if_any();
 
         if (this.selectedEndpoint) {
@@ -600,45 +623,63 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
         server.serverCertificateManager.referenceCounter++;
         const applicationName: string | undefined = coerceLocalizedText(server.serverInfo.applicationName!)?.text || undefined;
 
-        const options: OPCUAClientBaseOptions = {
+        const prefix = `Client-${g_registeringClientCounter++}`;
+        const action = isOnline ? "registering" : "unregistering";
+        const ldsInfo = this.discoveryServerEndpointUrl;
+        const serverInfo = server.serverInfo.applicationUri!;
+        const clientName = `${prefix} for server ${serverInfo} to LDS ${ldsInfo} for ${action}`;
+
+        const client = OPCUAClientBase.create({
+            clientName,
+            applicationName,
+            applicationUri: server.serverInfo.applicationUri!,
+            connectionStrategy: no_retry_connectivity_strategy,
+            clientCertificateManager: server.serverCertificateManager,
+
             securityMode: selectedEndpoint.securityMode,
             securityPolicy: coerceSecurityPolicy(selectedEndpoint.securityPolicyUri),
             serverCertificate: selectedEndpoint.serverCertificate,
-            clientCertificateManager: server.serverCertificateManager,
             certificateFile: server.certificateFile,
             privateKeyFile: server.privateKeyFile,
-            applicationName,
-            applicationUri: server.serverInfo.applicationUri!,
-            connectionStrategy: no_reconnect_connectivity_strategy,
-            clientName: "server client to LDS " + RegisterServerManagerStatus[this.state]
-        };
 
-        const client = OPCUAClientBase.create(options) as ClientBaseEx;
+        }) as ClientBaseEx;
         client.on("backoff", (nbRetry, delay) => {
-            debugLog("trying to connect to LDS has failed", nbRetry, delay);
+            debugLog(client.clientCertificateManager, "backoff trying to connect to the LDS has failed", nbRetry, delay);
         });
 
         this._registration_client = client;
 
         debugLog("lds endpoint uri : ", selectedEndpoint.endpointUrl);
 
+        const state = isOnline ? "UnRegisterServer" : "RegisterServer";
         try {
             await client.connect(selectedEndpoint!.endpointUrl!);
 
             // Check state again after connection is established
-            if (this.getState() !== expectedState) {
-                return; // Exit gracefully
+            if (this.getState() === expectedState) {
+                try {
+                    await sendRegisterServerRequest(server, client as ClientBaseEx, isOnline)
+                } catch (err) {
+                    if (this.getState() !== expectedState) {
+                        warningLog(`${state} '${this.server!.serverInfo.applicationUri}' to the LDS has failed during secure connection to the LDS server`);
+                        warningLog(chalk.red("  Error message:"), (err as Error).message);                // Do not rethrow here, let the caller 
+                    }
+                }
+            } else {
+                debugLog("RegisterServerManager#_registerServer: aborted ");
             }
-            await sendRegisterServerRequest(server, client as ClientBaseEx, isOnline);
 
         } catch (err) {
-            warningLog(`${isOnline ? "UnRegisterServer" : "RegisterServer"} '${this.server!.serverInfo.applicationUri}' to the LDS has failed during secure connection to the LDS server :`, (err as Error).message);
-            // Do not rethrow here, let the caller handle it.
-            return;
+            if (this.getState() !== expectedState) {
+
+                warningLog(`${state} '${this.server!.serverInfo.applicationUri}' cannot connect to LDS at endpoint ${client.clientName}, ${selectedEndpoint.endpointUrl} :`);
+                warningLog(chalk.red("  Error message:"), (err as Error).message);
+            }
         } finally {
             if (this._registration_client) {
-                await this._registration_client.disconnect();
+                const tmp = this._registration_client;
                 this._registration_client = null;
+                await tmp.disconnect();
             }
         }
     }
@@ -655,7 +696,11 @@ export class RegisterServerManager extends EventEmitter implements IRegisterServ
             this._registration_client = null;
             debugLog("RegisterServerManager#_cancel_pending_client_if_any "
                 + "=> wee need to disconnect_registration_client");
-            await client.disconnect();
+            try {
+                await client.disconnect();
+            } catch (err) {
+                warningLog("Error disconnecting registration client:", (err as Error).message);
+            }
             await this.#_cancel_pending_client_if_any(); // Recursive call to ensure all are handled
         } else {
             debugLog("RegisterServerManager#_cancel_pending_client_if_any : done (nothing to do)");
