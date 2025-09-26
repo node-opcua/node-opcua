@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-utils",
-    "version": "2.153.0",
+    "version": "2.157.0",
     "description": "pure nodejs OPCUA SDK - module utils",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -13,7 +13,7 @@
     },
     "dependencies": {
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.139.0"
+        "node-opcua-assert": "2.157.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
@@ -36,6 +36,6 @@
         "source"
     ],
     "devDependencies": {
-        "node-opcua-leak-detector": "2.154.0"
+        "node-opcua-leak-detector": "2.157.0"
     }
 }

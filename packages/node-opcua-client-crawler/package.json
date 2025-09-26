@@ -1,7 +1,7 @@
 {
     "name": "node-opcua-client-crawler",
     "private": true,
-    "version": "2.156.0",
+    "version": "2.157.0",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "deprecated": true,
@@ -16,20 +16,19 @@
     "dependencies": {
         "async": "^3.2.6",
         "chalk": "4.1.2",
-        "node-opcua-assert": "2.139.0",
-        "node-opcua-client": "2.156.0",
-        "node-opcua-data-model": "2.155.0",
-        "node-opcua-data-value": "2.155.0",
-        "node-opcua-debug": "2.153.0",
-        "node-opcua-nodeid": "2.153.0",
-        "node-opcua-types": "2.155.0",
-        "node-opcua-utils": "2.153.0",
+        "node-opcua-assert": "2.157.0",
+        "node-opcua-client": "2.157.0",
+        "node-opcua-data-model": "2.157.0",
+        "node-opcua-data-value": "2.157.0",
+        "node-opcua-debug": "2.157.0",
+        "node-opcua-nodeid": "2.157.0",
+        "node-opcua-types": "2.157.0",
+        "node-opcua-utils": "2.157.0",
         "thenify-ex": "4.4.0"
     },
-    "peerDependencies": {},
     "devDependencies": {
-        "node-opcua-address-space": "2.156.0",
-        "node-opcua-constants": "2.139.0"
+        "node-opcua-address-space": "2.157.0",
+        "node-opcua-constants": "2.157.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
