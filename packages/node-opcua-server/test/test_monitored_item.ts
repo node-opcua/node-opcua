@@ -959,6 +959,68 @@ describe("Server Side MonitoredItem", () => {
         monitoredItem.dispose();
         done();
     });
+
+    it("setMonitoredItem should not asserts if MonitoringMode is Invalid", () => {
+        const monitoredItem = createMonitoredItem({
+            clientHandle: 1,
+            samplingInterval: 100,
+            discardOldest: true,
+            queueSize: 100,
+            // added by the server:
+            monitoredItemId: 50
+        });
+        monitoredItem.$subscription = fakeSubscription;
+
+        monitoredItem.setNode(fakeNode);
+
+        // set up spying samplingFunc
+        const samplingFunc = install_spying_samplingFunc();
+        monitoredItem.samplingFunc = samplingFunc;
+
+        // set mode to disabled
+        const statusCode1 = monitoredItem.setMonitoringMode(MonitoringMode.Disabled);
+        statusCode1.should.eql(StatusCodes.Good);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Disabled);
+
+        // set mode to disabled again
+        const statusCode1b = monitoredItem.setMonitoringMode(MonitoringMode.Disabled);
+        statusCode1b.should.eql(StatusCodes.BadNothingToDo);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Disabled);
+
+        // set mode to reporting
+        const statusCode2 = monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
+        statusCode2.should.eql(StatusCodes.Good);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Reporting);
+
+        // set mode to sampling
+        const statusCode3 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
+        statusCode3.should.eql(StatusCodes.Good);
+
+        // set mode to sampling againg
+        const statusCode4 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
+        statusCode4.should.eql(StatusCodes.BadNothingToDo);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
+
+        // set mode to sampling againg
+        const statusCode5 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
+        statusCode5.should.eql(StatusCodes.BadNothingToDo);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
+
+        const statusCode6 = monitoredItem.setMonitoringMode(MonitoringMode.Invalid);
+        statusCode6.should.eql(StatusCodes.BadInvalidArgument);
+
+        const statusCode8 = monitoredItem.setMonitoringMode(<MonitoringMode>  -2323);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
+        statusCode8.should.eql(StatusCodes.BadInternalError);
+        monitoredItem.monitoringMode.should.not.eql(MonitoringMode.Invalid);
+
+        const statusCode9 = monitoredItem.setMonitoringMode(MonitoringMode.Sampling);
+        monitoredItem.monitoringMode.should.eql(MonitoringMode.Sampling);
+        statusCode9.should.eql(StatusCodes.BadNothingToDo);
+
+        monitoredItem.terminate();
+        monitoredItem.dispose();
+    });
 });
 describe("MonitoredItem with DataChangeFilter", function () {
     let monitoredItem: IMonitoredItem | undefined;

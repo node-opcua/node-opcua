@@ -376,7 +376,7 @@ const badDataUnavailable = new DataValue({ statusCode: StatusCodes.BadDataUnavai
  *
  */
 export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
-    public get node(): UAVariable | UAObject | UAMethod |null {
+    public get node(): UAVariable | UAObject | UAMethod | null {
         return this._node;
     }
 
@@ -393,7 +393,12 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
     public monitoredItemId: number;
     public overflow: boolean;
     public oldDataValue: DataValue;
-    public monitoringMode: MonitoringMode;
+
+
+    #monitoringMode: MonitoringMode = MonitoringMode.Invalid;
+
+    public get monitoringMode() { return this.#monitoringMode; }
+
     public timestampsToReturn: TimestampsToReturn;
     public itemToMonitor: any;
     public filter: MonitoringFilter | null;
@@ -437,7 +442,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         this.oldDataValue = badDataUnavailable;
 
         // user has to call setMonitoringMode
-        this.monitoringMode = MonitoringMode.Invalid;
+        this.#monitoringMode = MonitoringMode.Invalid;
 
         this.timestampsToReturn = coerceTimestampsToReturn(options.timestampsToReturn);
 
@@ -464,26 +469,26 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         (this._node as BaseNode).on("dispose", this._on_node_disposed_listener);
     }
 
-    public setMonitoringMode(monitoringMode: MonitoringMode): void {
-        assert(monitoringMode !== MonitoringMode.Invalid);
+    public setMonitoringMode(monitoringMode: MonitoringMode): StatusCode {
 
         if (monitoringMode === this.monitoringMode) {
             // nothing to do
-            return;
+            return StatusCodes.BadNothingToDo;
         }
-
+        if (monitoringMode === MonitoringMode.Invalid) {
+            return StatusCodes.BadInvalidArgument;
+        }
         const old_monitoringMode = this.monitoringMode;
 
-        this.monitoringMode = monitoringMode;
 
-        if (this.monitoringMode === MonitoringMode.Disabled) {
+        if (monitoringMode === MonitoringMode.Disabled) {
+            this.#monitoringMode = monitoringMode;
             this._stop_sampling();
-
             // OPCUA 1.03 part 4 : $5.12.4
             // setting the mode to DISABLED causes all queued Notifications to be deleted
             this._empty_queue();
-        } else {
-            assert(this.monitoringMode === MonitoringMode.Sampling || this.monitoringMode === MonitoringMode.Reporting);
+        } else if (monitoringMode === MonitoringMode.Sampling || monitoringMode === MonitoringMode.Reporting) {
+            this.#monitoringMode = monitoringMode;
 
             // OPCUA 1.03 part 4 : $5.12.1.3
             // When a MonitoredItem is enabled (i.e. when the MonitoringMode is changed from DISABLED to
@@ -494,10 +499,14 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 old_monitoringMode === MonitoringMode.Invalid || old_monitoringMode === MonitoringMode.Disabled;
             const installEventHandler = old_monitoringMode === MonitoringMode.Invalid;
             this._start_sampling(recordInitialValue);
+        } else {
+            return StatusCodes.BadInternalError;
         }
+
+        return StatusCodes.Good;
     }
 
-    /**
+    /*
      * Terminate the  MonitoredItem.
      * This will stop the internal sampling timer.
      */
@@ -1132,7 +1141,7 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
                 if (this.node.nodeClass == NodeClass.Variable) {
                     this.node.on("value_changed", this._value_changed_callback);
                     this.node.on("semantic_changed", this._semantic_changed_callback);
-                } 
+                }
             }
 
             // initiate first read
@@ -1292,11 +1301,11 @@ export class MonitoredItem extends EventEmitter implements MonitoredItemBase {
         ) {
             throw new Error(
                 "dataValue.value.value cannot be the same object twice! " +
-                    this.node!.browseName.toString() +
-                    " " +
-                    dataValue.toString() +
-                    "  " +
-                    chalk.cyan(this.oldDataValue.toString())
+                this.node!.browseName.toString() +
+                " " +
+                dataValue.toString() +
+                "  " +
+                chalk.cyan(this.oldDataValue.toString())
             );
         }
 

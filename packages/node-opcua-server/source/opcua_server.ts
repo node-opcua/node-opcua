@@ -3333,8 +3333,8 @@ export class OPCUAServer extends OPCUABaseServer {
                     if (!monitoredItem) {
                         return StatusCodes.BadMonitoredItemIdInvalid;
                     }
-                    monitoredItem.setMonitoringMode(monitoringMode);
-                    return StatusCodes.Good;
+                    const statusCode = monitoredItem.setMonitoringMode(monitoringMode);
+                    return statusCode;
                 });
 
                 const response = new SetMonitoringModeResponse({
