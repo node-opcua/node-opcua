@@ -1,6 +1,6 @@
 import { AttributeIds, BrowseDirection, makeResultMask, NodeClassMask } from "node-opcua-data-model";
 import { DataValue } from "node-opcua-data-value";
-import { make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
 import { INodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import {
     BitField,
@@ -36,12 +36,13 @@ import { ExtensionObject } from "node-opcua-extension-object";
 import { DataTypeAndEncodingId } from "node-opcua-schemas";
 //
 import { DataType } from "node-opcua-variant";
+import { DataTypeIds } from "node-opcua-constants";
 import { _findEncodings } from "./private/find_encodings";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 const errorLog = make_errorLog(__filename);
 const warningLog = make_warningLog(__filename);
-const doDebug = false;
 
 export interface CacheForFieldResolution {
     fieldTypeName: string;
@@ -50,8 +51,8 @@ export interface CacheForFieldResolution {
     allowSubType?: boolean;
     dataType?: NodeId;
 }
-export type ResolveReject = [
-    resolve: (value: any) => void,
+export type ResolveReject<T> = [
+    resolve: (value: T) => void,
     reject: (err: Error) => void
 ];
 
@@ -62,7 +63,7 @@ export interface ICache {
     browseNameCache?: Map<string, string>;
     hitCount?: number;
 
-    $$resolveStuff?: Map<string, ResolveReject[]>;
+    $$resolveStuff?: Map<string, ResolveReject<any>[]>;
 }
 
 async function memoize<T>(cache: ICache, cacheName: keyof Omit<ICache, "hitCount">, nodeId: NodeId, func: () => Promise<T>): Promise<T> {
@@ -75,12 +76,11 @@ async function memoize<T>(cache: ICache, cacheName: keyof Omit<ICache, "hitCount
     if (!cache[cacheName]) {
         cache[cacheName] = new Map();
     }
-    (cache[cacheName] as Map<string,T>).set(key, value);
+    (cache[cacheName] as Map<string, T>).set(key, value);
     return value as T;
 
 }
-function fromCache<T>(cache: ICache, cacheName: keyof Omit<ICache, "hitCount">, nodeId: NodeId): T | null
-{
+function fromCache<T>(cache: ICache, cacheName: keyof Omit<ICache, "hitCount">, nodeId: NodeId): T | null {
     const key = nodeId.toString();
     if (cache[cacheName]?.has(key)) {
         cache.hitCount = cache.hitCount === undefined ? 0 : cache.hitCount + 1;
@@ -91,7 +91,7 @@ function fromCache<T>(cache: ICache, cacheName: keyof Omit<ICache, "hitCount">, 
 
 async function findSuperType(session: IBasicSessionAsync2, dataTypeNodeId: NodeId, cache: ICache): Promise<NodeId> {
 
-    if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === 24) {
+    if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === DataTypeIds.BaseDataType) {
         // BaseDataType !
         return coerceNodeId(0);
     }
@@ -142,10 +142,10 @@ async function findDataTypeCategory(
     if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value <= 29) {
         // well known node ID !
         switch (n.value) {
-            case 22 /* Structure */:
+            case DataTypeIds.Structure:
                 category = FieldCategory.complex;
                 break;
-            case 29 /* Enumeration */:
+            case DataTypeIds.Enumeration:
                 category = FieldCategory.enumeration;
                 break;
             default:
@@ -165,18 +165,18 @@ async function findDataTypeBasicType(
 ): Promise<TypeDefinition> {
     const subTypeNodeId = await findSuperType(session, dataTypeNodeId, cache);
 
-    debugLog("subTypeNodeId  of ", dataTypeNodeId.toString(), " is ", subTypeNodeId.toString());
+    doDebug && debugLog("subTypeNodeId  of ", dataTypeNodeId.toString(), " is ", subTypeNodeId.toString());
 
-    const fieldResolution = fromCache<CacheForFieldResolution>(cache,"fieldResolution", subTypeNodeId);
-    if (fieldResolution) { 
+    const fieldResolution = fromCache<CacheForFieldResolution>(cache, "fieldResolution", subTypeNodeId);
+    if (fieldResolution) {
         return fieldResolution.schema;
     }
 
     const n = subTypeNodeId as INodeId;
     if (n.identifierType === NodeIdType.NUMERIC && n.namespace === 0 && n.value < 29) {
         switch (n.value) {
-            case 22: /* Structure */
-            case 29 /* Enumeration */:
+            case DataTypeIds.Structure:
+            case DataTypeIds.Enumeration:
                 throw new Error("Not expecting Structure or Enumeration");
             default:
                 break;
@@ -215,8 +215,8 @@ async function resolve2(
     cache: ICache
 ): Promise<{ schema: TypeDefinition | undefined; category: FieldCategory }> {
 
-    const category = await findDataTypeCategory(session, dataTypeFactory,cache, dataTypeNodeId);
-    debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it => (category = ", category, " )");
+    const category = await findDataTypeCategory(session, dataTypeFactory, cache, dataTypeNodeId);
+    doDebug && debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it => (category = ", category, " )");
 
     let schema: TypeDefinition | undefined = undefined;
     switch (category) {
@@ -241,22 +241,30 @@ async function resolve2(
                 }
                 const definition = dataTypeDefinitionDataValue.value.value;
 
-                const convertIn64ToInteger = (a: number[]) => a[1];
+                // OPC UA Spec 1.04 part 6 - 5.2.2.16
+                // Enumeration values are represented as a Int32 in the EnumValueType structure.
+                // but on 64 bit platform this value could be returned as a [ high, low] tuple.
+                // note that this is not correct as per the spec.
+                const convertIn64ToInteger = (a: number[] | number) => Array.isArray(a) ? a[1] : a;
 
                 const convert = (fields: EnumField[] | null) => {
                     const retVal: Record<string, number> = {};
-                    fields && fields.forEach((field: EnumField) => (retVal[field.name || ""] = convertIn64ToInteger(field.value)));
+                    fields && fields.forEach((field: EnumField) => (retVal[field.name || ""] = convertIn64ToInteger(field.value as number[])));
                     return retVal;
                 };
                 if (category === FieldCategory.enumeration) {
-                    if (definition instanceof EnumDefinition) {
-                        const e = new EnumerationDefinitionSchema(dataTypeNodeId, {
-                            enumValues: convert(definition.fields),
-                            name: fieldTypeName
-                        });
-                        dataTypeFactory.registerEnumeration(e);
-
-                        schema = e;
+                    if (dataTypeFactory.hasEnumeration(fieldTypeName)) {
+                        // skipping already known enumeration
+                        schema = dataTypeFactory.getEnumeration(fieldTypeName)!;
+                    } else {
+                        if (definition instanceof EnumDefinition) {
+                            const e = new EnumerationDefinitionSchema(dataTypeNodeId, {
+                                enumValues: convert(definition.fields),
+                                name: fieldTypeName
+                            });
+                            dataTypeFactory.registerEnumeration(e);
+                            schema = e;
+                        }
                     }
                 } else {
                     const isAbstract = false;
@@ -307,7 +315,7 @@ async function resolveFieldType(
 
     return await memoize(cache, "fieldResolution", dataTypeNodeId, async () => {
 
-        if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === 22) {
+        if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === DataTypeIds.Structure) {
             // ERN   return null;
             const category: FieldCategory = FieldCategory.complex;
             const fieldTypeName = "Structure";
@@ -341,7 +349,7 @@ async function resolveFieldType(
 
         if (isAbstract) {
             const _isExtensionObject = await isExtensionObject(session, dataTypeNodeId, cache);
-            debugLog(
+            doDebug && debugLog(
                 " dataType " + dataTypeNodeId.toString() + " " + fieldTypeName + " is abstract => extObj ?= " + _isExtensionObject
             );
             if (_isExtensionObject) {
@@ -380,7 +388,7 @@ async function resolveFieldType(
             category = FieldCategory.enumeration;
             schema = dataTypeFactory.getEnumeration(fieldTypeName!)!;
         } else {
-            debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it");
+            doDebug && debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it");
             const res = await resolve2(session, dataTypeNodeId, dataTypeFactory, fieldTypeName, cache);
             schema = res.schema;
             category = res.category;
@@ -439,7 +447,7 @@ async function findBasicDataTypeEx(session: IBasicSessionBrowseAsyncSimple, data
         const key = dataTypeNodeId.toString();
         if (sessionEx._$$cache2.has(key)) {
             sessionEx._$$cacheHits = sessionEx._$$cacheHits == undefined ? 0 : sessionEx._$$cacheHits + 1;
-            // console.log("cache hit 2", key);
+            // debugLog("cache hit 2", key);
             return sessionEx._$$cache2.get(key)!;
         }
         const d = await findBasicDataType(session, dataTypeNodeId);
@@ -449,12 +457,12 @@ async function findBasicDataTypeEx(session: IBasicSessionBrowseAsyncSimple, data
 }
 
 
-async function nonReentrant<T>(cache:ICache, prefix: string, dataTypeNodeId:NodeId, func: ()=>Promise<T>):Promise<T> {
-   
-    const key = prefix +  dataTypeNodeId.toString();
-    
+async function nonReentrant<T>(cache: ICache, prefix: string, dataTypeNodeId: NodeId, func: () => Promise<T>): Promise<T> {
+
+    const key = prefix + dataTypeNodeId.toString();
+
     if (cache.$$resolveStuff?.has(key)) {
-        doDebug  && console.log(" re-entering !" + key);
+        doDebug && debugLog(" re-entering !" + key);
         return await new Promise<T>((resolve, reject) => {
             cache.$$resolveStuff?.get(key)!.push([resolve, reject]);
         });
@@ -497,7 +505,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     isAbstract: boolean,
     cache: ICache
 ): Promise<IStructuredTypeSchema> {
-    
+ 
     return await nonReentrant(cache, "convertDataTypeDefinitionToStructureTypeSchema", dataTypeNodeId, async () => {
 
         // warningLog(">> convertDataTypeDefinitionToStructureTypeSchema = ", dataTypeNodeId.toString());
@@ -590,8 +598,8 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             }
             /// some server may provide definition.baseDataType to be i=22 (ExtensionObject)
             /// instead of 12756 Union;
-            if (isUnion && sameNodeId(definition.baseDataType, coerceNodeId("i=22"))) {
-                definition.baseDataType = resolveNodeId("i=1276"); // aka DataTypeIds.Union
+            if (isUnion && sameNodeId(definition.baseDataType, coerceNodeId(DataTypeIds.Structure))) {
+                definition.baseDataType = resolveNodeId(DataTypeIds.Union); // aka DataTypeIds.Union
             }
 
             const a = await resolveFieldType(session, definition.baseDataType, dataTypeFactory, cache);
@@ -608,7 +616,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
             postActions.forEach((action) => action(structuredTypeSchema));
 
-            doDebug && console.log("DONE ! convertDataTypeDefinitionToStructureTypeSchema = ", dataTypeNodeId.toString());
+            doDebug && debugLog("DONE ! convertDataTypeDefinitionToStructureTypeSchema = ", dataTypeNodeId.toString());
             return structuredTypeSchema;
         }
         throw new Error("Not Implemented");

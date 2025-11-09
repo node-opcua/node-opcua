@@ -108,7 +108,7 @@ export async function readDataTypeDefinitionAndBuildType(
             const Constructor = createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
         }
     } catch (err) {
-        errorLog("Error", err);
+        errorLog("Error", (err as Error).message," while processing dataTypeNodeId =", dataTypeNodeId.toString());
     }
     return dependentNamespaces;
 }
