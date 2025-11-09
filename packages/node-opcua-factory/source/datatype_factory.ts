@@ -72,7 +72,9 @@ export class DataTypeFactory {
     // -----------------------------
     // EnumerationDefinitionSchema
     public registerEnumeration(enumeration: EnumerationDefinitionSchema): void {
-        assert(!this._enumerations.has(enumeration.name), "enumeration already registered");
+        if(this._enumerations.has(enumeration.name)) {
+            throw new Error(`enumeration ${enumeration.name}  has already been registered`);
+        }
         this._enumerations.set(enumeration.name, enumeration);
     }
 
