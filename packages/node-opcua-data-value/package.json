@@ -2,7 +2,7 @@
     "name": "node-opcua-data-value",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "version": "2.157.0",
+    "version": "2.158.0",
     "description": "pure nodejs OPCUA SDK - module data-value",
     "scripts": {
         "build": "tsc -b",
@@ -15,18 +15,18 @@
         "node-opcua-assert": "2.157.0",
         "node-opcua-basic-types": "2.157.0",
         "node-opcua-binary-stream": "2.157.0",
-        "node-opcua-data-model": "2.157.0",
+        "node-opcua-data-model": "2.158.0",
         "node-opcua-date-time": "2.157.0",
         "node-opcua-debug": "2.157.0",
         "node-opcua-enum": "2.157.0",
-        "node-opcua-factory": "2.157.0",
+        "node-opcua-factory": "2.158.0",
         "node-opcua-status-code": "2.157.0",
-        "node-opcua-variant": "2.157.0"
+        "node-opcua-variant": "2.158.0"
     },
     "devDependencies": {
-        "node-opcua-extension-object": "2.157.0",
-        "node-opcua-numeric-range": "2.157.0",
-        "node-opcua-packet-analyzer": "2.157.0"
+        "node-opcua-extension-object": "2.158.0",
+        "node-opcua-numeric-range": "2.158.0",
+        "node-opcua-packet-analyzer": "2.158.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
