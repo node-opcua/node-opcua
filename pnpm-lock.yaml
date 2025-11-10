@@ -3562,9 +3562,6 @@ importers:
       node-opcua-factory:
         specifier: 2.157.0
         version: link:../node-opcua-factory
-      node-opcua-generator:
-        specifier: 2.157.0
-        version: link:../node-opcua-generator
       node-opcua-nodeid:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
@@ -3577,6 +3574,10 @@ importers:
       node-opcua-variant:
         specifier: 2.157.0
         version: link:../node-opcua-variant
+    devDependencies:
+      node-opcua-generator:
+        specifier: 2.157.0
+        version: link:../node-opcua-generator
 
   packages/node-opcua-units:
     dependencies:
