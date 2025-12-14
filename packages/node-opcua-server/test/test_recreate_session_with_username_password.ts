@@ -14,7 +14,7 @@ import {
 } from "node-opcua-client";
 const seconds = 1000;
 const port = 48444;
-
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 
 async function startClient() {
 

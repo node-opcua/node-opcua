@@ -1,5 +1,6 @@
 import { OPCUAServer, nodesets } from "node-opcua";
 import { AttributeIds, DataType, ExtensionObject, NodeId, OPCUAClient, readNamespaceArray } from "node-opcua-client";
+import { describeWithLeakDetector as describe} from "node-opcua-leak-detector";
 import "should";
 
 const port = 2244;
