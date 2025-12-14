@@ -21,5 +21,5 @@
     "include": [
         "test_helpers/**/*.ts",
         "test/**/*.ts"
-, "test/end_to_end/u_test_e2e_test_accessing_service_before_session_is_activated.ts", "test/end_to_end/test_umbrella_e2e_seriesB.ts"    ]
+    ]
 }

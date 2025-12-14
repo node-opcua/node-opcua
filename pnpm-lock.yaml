@@ -879,6 +879,9 @@ importers:
       node-opcua-nodeid:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
+      node-opcua-numeric-range:
+        specifier: 2.158.0
+        version: link:../node-opcua-numeric-range
       node-opcua-object-registry:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry

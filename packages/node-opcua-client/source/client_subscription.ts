@@ -52,32 +52,32 @@ export interface ModifySubscriptionResult {
     revisedMaxKeepAliveCount: UInt32;
 }
 
-export interface ClientSubscription extends EventEmitter  {
-    subscriptionId: SubscriptionId;
-    publishingInterval: number;
-    lifetimeCount: number;
-    maxKeepAliveCount: number;
-    maxNotificationsPerPublish: number;
-    publishingEnabled: boolean;
-    priority: number;
-    monitoredItems: ClientMonitoredItemBaseMap;
-    timeoutHint: number;
+export interface ClientSubscription extends EventEmitter {
+    readonly subscriptionId: SubscriptionId;
+    readonly publishingInterval: number;
+    readonly lifetimeCount: number;
+    readonly maxKeepAliveCount: number;
+    readonly maxNotificationsPerPublish: number;
+    readonly publishingEnabled: boolean;
+    readonly priority: number;
+    readonly monitoredItems: ClientMonitoredItemBaseMap;
+    readonly timeoutHint: number;
 
     /**
      * return the session associated with the subscription.
      * (may throw if the session is not valid)
      */
-    session: ClientSession;
+    readonly session: ClientSession;
 
     /**
      * return true if the subscription is attached to a valid session
      */
-    hasSession: boolean;
+    readonly hasSession: boolean;
 
     /**
      * true is the subscription is fully active
      */
-    isActive: boolean;
+    readonly isActive: boolean;
 
     /**
      * add a monitor item to the subscription

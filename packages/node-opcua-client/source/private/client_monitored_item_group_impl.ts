@@ -18,6 +18,7 @@ import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
 import { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItemImpl } from "./client_monitored_item_impl";
 import { ClientSubscriptionImpl } from "./client_subscription_impl";
+import { ClientMonitoredItemBaseEx } from "../client_monitored_item_toolbox";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -33,7 +34,7 @@ const warningLog = make_warningLog(__filename);
  *  note: this.monitoringMode = subscription_service.MonitoringMode.Reporting;
  */
 export class ClientMonitoredItemGroupImpl extends EventEmitter implements ClientMonitoredItemGroup {
-    public readonly monitoredItems: ClientMonitoredItemBase[];
+    public readonly monitoredItems: ClientMonitoredItemBaseEx[];
     private readonly subscription: ClientSubscription;
     private timestampsToReturn: TimestampsToReturn;
     private readonly monitoringMode: MonitoringMode;
@@ -162,7 +163,7 @@ export class ClientMonitoredItemGroupImpl extends EventEmitter implements Client
      */
     public _monitor(done: ErrorCallback): void {
         assert(done === undefined || typeof done === "function");
-
+        assert(this.subscription, "expecting a valid subscription");
         this.monitoredItems.forEach((monitoredItem: ClientMonitoredItemBase, index: number) => {
             monitoredItem.on("changed", (dataValue: DataValue) => {
                 /**

@@ -144,14 +144,20 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public maxNotificationsPerPublish: number;
     public publishingEnabled: boolean;
     public priority: number;
-    public monitoredItems: ClientMonitoredItemBaseMap;
-    public monitoredItemGroups: ClientMonitoredItemGroup[] = [];
+    #monitoredItems: ClientMonitoredItemBaseMap;
+    public get monitoredItems(): ClientMonitoredItemBaseMap {
+        return this.#monitoredItems;
+    }
+    public set monitoredItems(value: ClientMonitoredItemBaseMap) {
+        this.#monitoredItems = value;
+    }
+    #monitoredItemGroups: ClientMonitoredItemGroup[] = [];
 
     public timeoutHint = 0;
     public publishEngine: ClientSidePublishEngine;
 
     public lastSequenceNumber: number;
-    private _nextClientHandle = 0;
+    #nextClientHandle = 0;
     public hasTimedOut: boolean;
 
     constructor(session: ClientSession, options: ClientSubscriptionOptions) {
@@ -203,8 +209,8 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         this.subscriptionId = PENDING_SUBSCRIPTION_ID;
 
-        this._nextClientHandle = 0;
-        this.monitoredItems = {};
+        this.#nextClientHandle = 0;
+        this.#monitoredItems = {};
 
         /**
          * set to True when the server has notified us that this subscription has timed out
@@ -288,9 +294,9 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     /**
 
      */
-    public nextClientHandle(): number {
-        this._nextClientHandle += 1;
-        return this._nextClientHandle;
+    public _nextClientHandle(): number {
+        this.#nextClientHandle += 1;
+        return this.#nextClientHandle;
     }
 
     public async monitor(
@@ -555,7 +561,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     public _add_monitored_item(clientHandle: ClientHandle, monitoredItem: ClientMonitoredItemBase): void {
         assert(this.isActive, "subscription must be active and not terminated");
         assert(monitoredItem.monitoringParameters.clientHandle === clientHandle);
-        this.monitoredItems[clientHandle] = monitoredItem;
+        this.#monitoredItems[clientHandle] = monitoredItem;
 
         /**
          * notify the observers that a new monitored item has been added to the subscription.
@@ -566,7 +572,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     public _add_monitored_items_group(monitoredItemGroup: ClientMonitoredItemGroupImpl): void {
-        this.monitoredItemGroups.push(monitoredItemGroup);
+        this.#monitoredItemGroups.push(monitoredItemGroup);
     }
 
     public _wait_for_subscription_to_be_ready(done: ErrorCallback): void {
@@ -600,7 +606,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
         let repeated = 0;
         for (const monitoredItem of monitoredItems) {
-            const monitorItemObj = this.monitoredItems[monitoredItem.clientHandle];
+            const monitorItemObj = this.#monitoredItems[monitoredItem.clientHandle];
             if (monitorItemObj) {
                 if (monitorItemObj.itemToMonitor.attributeId === AttributeIds.EventNotifier) {
                     warningLog(
@@ -679,7 +685,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
         assert(notification.schema.name === "EventNotificationList");
         const events = notification.events || [];
         for (const event of events) {
-            const monitorItemObj = this.monitoredItems[event.clientHandle];
+            const monitorItemObj = this.#monitoredItems[event.clientHandle];
             assert(monitorItemObj, "Expecting a monitored item");
 
             const monitoredItemImpl = monitorItemObj as ClientMonitoredItemImpl;
@@ -751,8 +757,7 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
                         if (s(this).$_slowNotifCount > 0 && s(this).$_slowNotifCount % 1000 !== 0) return;
                         s(this).$_slowNotifCount++;
                         warningLog(
-                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${
-                                s(this).$_slowNotifCount
+                            `[NODE-OPCUA-W32]}: monitored.item event handler takes too much time : operation duration ${duration} ms [repeated ${s(this).$_slowNotifCount
                             } times]\n         please ensure that your monitoredItem event handler is not blocking the event loop.`
                         );
                     }
@@ -762,17 +767,17 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
     }
 
     private _terminate_step2(callback: (err?: Error) => void) {
-        const monitoredItems = Object.values(this.monitoredItems);
+        const monitoredItems = Object.values(this.#monitoredItems);
         for (const monitoredItem of monitoredItems) {
             this._remove(monitoredItem);
         }
 
-        const monitoredItemGroups = this.monitoredItemGroups;
+        const monitoredItemGroups = this.#monitoredItemGroups;
         for (const monitoredItemGroup of monitoredItemGroups) {
             this._removeGroup(monitoredItemGroup);
         }
 
-        assert(Object.values(this.monitoredItems).length === 0);
+        assert(Object.values(this.#monitoredItems).length === 0);
 
         setImmediate(() => {
             /**
@@ -787,19 +792,20 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
 
     private _remove(monitoredItem: ClientMonitoredItemBase) {
         const clientHandle = monitoredItem.monitoringParameters.clientHandle;
-        assert(clientHandle > 0);
-        if (!Object.prototype.hasOwnProperty.call(this.monitoredItems, clientHandle)) {
-            return; // may be monitoredItem failed to be created  ....
-        }
-        assert(Object.prototype.hasOwnProperty.call(this.monitoredItems, clientHandle));
-
+        this._removeMonitoredItem(clientHandle);
         const priv = monitoredItem as ClientMonitoredItemImpl;
         priv._terminate_and_emit();
     }
 
+    public _removeMonitoredItem(clientHandle: ClientHandle) {
+        if (this.#monitoredItems[clientHandle]) {
+            delete this.#monitoredItems[clientHandle];
+        }
+    }
+
     public _removeGroup(monitoredItemGroup: ClientMonitoredItemGroup): void {
         (monitoredItemGroup as any)._terminate_and_emit();
-        this.monitoredItemGroups = this.monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
+        this.#monitoredItemGroups = this.#monitoredItemGroups.filter((obj) => obj !== monitoredItemGroup);
     }
     /**
      * @private
@@ -833,8 +839,14 @@ export function ClientMonitoredItem_create(
     monitoringMode: MonitoringMode = MonitoringMode.Reporting,
     callback?: (err3?: Error | null, monitoredItem?: ClientMonitoredItem) => void
 ): ClientMonitoredItem {
+
+    const subscriptionImpl = subscription as ClientSubscriptionImpl;
+    if (!subscriptionImpl) {
+        throw new Error("Invalid subscription");
+    }
+
     const monitoredItem = new ClientMonitoredItemImpl(
-        subscription,
+        subscriptionImpl,
         itemToMonitor,
         monitoringParameters,
         timestampsToReturn,
@@ -842,13 +854,14 @@ export function ClientMonitoredItem_create(
     );
 
     setImmediate(() => {
-        (subscription as ClientSubscriptionImpl)._wait_for_subscription_to_be_ready((err?: Error) => {
+        subscriptionImpl._wait_for_subscription_to_be_ready((err?: Error) => {
             if (err) {
                 if (callback) {
                     callback(err);
                 }
                 return;
             }
+
             ClientMonitoredItemToolbox._toolbox_monitor(subscription, timestampsToReturn, [monitoredItem], (err1?: Error) => {
                 if (err1) {
                     monitoredItem._terminate_and_emit(err1);
