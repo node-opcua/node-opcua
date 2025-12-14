@@ -70,7 +70,7 @@ export function t(test: any) {
             await client.withSubscriptionAsync(test.endpointUrl, subscriptionParameters, async (session, subscription) => {
 
                 await readNamespaceArray(session);
-                
+
                 console.log("subscription.maxKeepAliveCount ", subscription.maxKeepAliveCount);
                 console.log("subscription.publishingInterval", subscription.publishingInterval);
                 console.log("subscription.lifetimeCount ", subscription.lifetimeCount);
@@ -188,7 +188,7 @@ export function t(test: any) {
                     "changed",
                     (monitoredItem /* : ClientMonitoredItemBase */, dataValue /*: DataValue */, index /*: number */) => {
                         doDebug && console.log(` Variable ${index} ${itemsToMonitor[index].name} changed to `, dataValue.value.toString());
-                        const nodeId = monitoredItem.itemToMonitor.nodeId.toString();
+                        const nodeId = monitoredItem.itemToMonitor.nodeId!.toString();
                         dataValuesMap[nodeId] = dataValuesMap[nodeId] || [];
                         dataValuesMap[nodeId].push(dataValue.value.value);
                         //  console.log(monitoredItem.itemToMonitor.nodeId.toString(), dataValue.value.value.toString());
@@ -201,7 +201,7 @@ export function t(test: any) {
                 //  await writeSomeValue(43);
 
                 await waitUntilCondition(
-                    () => 
+                    () =>
                         dataValuesMap[writeCountNodeId.toString()] && dataValuesMap[writeCountNodeId.toString()].length >= 2,
                     10 * 1000
                 );

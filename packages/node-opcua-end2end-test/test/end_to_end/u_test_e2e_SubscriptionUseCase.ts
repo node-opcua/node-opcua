@@ -1255,7 +1255,7 @@ export function t(test: { endpointUrl: string, server: OPCUAServer }) {
                     },
                     TimestampsToReturn.Both
                 );
-                monitoredItem.monitoringMode = MonitoringMode.Reporting;
+                await monitoredItem.setMonitoringMode(MonitoringMode.Reporting);
                 monitoredItem.on("changed", monitoredItemOnChangedSpy);
 
                 await monitoredItem.setMonitoringMode(MonitoringMode.Disabled);

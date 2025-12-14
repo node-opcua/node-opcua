@@ -5,7 +5,7 @@ import { EventEmitter } from "events";
 
 import { DataValue } from "node-opcua-data-value";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { ReadValueId, TimestampsToReturn } from "node-opcua-service-read";
+import { TimestampsToReturn } from "node-opcua-service-read";
 import {
     MonitoredItemCreateResult,
     MonitoringMode,
@@ -15,6 +15,10 @@ import {
 import { StatusCode } from "node-opcua-status-code";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 import { Variant } from "node-opcua-variant";
+import { NumericRange } from "node-opcua-numeric-range";
+import { QualifiedNameLike } from "node-opcua-data-model";
+import { NodeId } from "node-opcua-nodeid";
+import { AttributeIds, UInt32 } from "node-opcua-basic-types";
 
 import { ClientSubscription } from "./client_subscription";
 
@@ -48,12 +52,17 @@ export interface ClientMonitoredItemBase extends EventEmitter, ClientMonitoredIt
 }
 
 export interface ClientMonitoredItemBase {
-    itemToMonitor: ReadValueId;
-    monitoringParameters: MonitoringParameters;
-    subscription: ClientSubscription;
-    monitoringMode: MonitoringMode;
-    statusCode: StatusCode;
-    monitoredItemId?: any;
-    result?: MonitoredItemCreateResult;
-    filterResult?: ExtensionObject;
+    readonly itemToMonitor: {
+        nodeId: NodeId;
+        attributeId: AttributeIds;
+        indexRange?: NumericRange | undefined;
+        dataEncoding?: QualifiedNameLike | null;
+    };
+    readonly monitoringParameters: MonitoringParameters;
+    readonly subscription: ClientSubscription;
+    readonly monitoringMode: MonitoringMode;
+    readonly statusCode: StatusCode;
+    readonly monitoredItemId?: any;
+    readonly result?: MonitoredItemCreateResult;
+    readonly filterResult?: ExtensionObject;
 }

@@ -29,6 +29,9 @@ import { ClientSessionImpl } from "./private/client_session_impl";
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
 
+export interface ClientMonitoredItemBaseEx extends ClientMonitoredItemBase {
+    internalSetMonitoringMode(monitoringMode: MonitoringMode): void;
+}
 /**
  * @internal
  */
@@ -40,6 +43,25 @@ export class ClientMonitoredItemToolbox {
         done: ErrorCallback
     ): void {
         assert(typeof done === "function");
+
+        // we expect subscription to be valid and have a valid session
+        if (!subscription || !subscription.session) {
+            const err0 = new Error("Invalid subscription");
+            if (done) {
+                return done(err0);
+            }
+            return;
+        }
+
+        // may be the subscription has been terminated or is not fully initialize, in the meantime
+        if (!subscription.isActive) {
+            const err1 = new Error("Subscription has been terminated or is not fully initialized");
+            if (done) {
+                return done(err1);
+            }
+            return;
+        }
+
         const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
         for (const monitoredItem of monitoredItems) {
             const monitoredItemI = monitoredItem as ClientMonitoredItemImpl;
@@ -60,8 +82,10 @@ export class ClientMonitoredItemToolbox {
             const monitoredItem = monitoredItems[i] as ClientMonitoredItemImpl;
             monitoredItem._before_create();
         }
+
         const session = subscription.session as ClientSessionImpl;
         assert(session, "expecting a valid session attached to the subscription ");
+
         session.createMonitoredItems(createMonitorItemsRequest, (err?: Error | null, response?: CreateMonitoredItemsResponse) => {
             /* istanbul ignore next */
             if (err) {
@@ -138,7 +162,7 @@ export class ClientMonitoredItemToolbox {
 
     public static _toolbox_setMonitoringMode(
         subscription: ClientSubscription,
-        monitoredItems: ClientMonitoredItemBase[],
+        monitoredItems: ClientMonitoredItemBaseEx[],
         monitoringMode: MonitoringMode,
         callback: Callback<StatusCode[]>
     ): void {
@@ -158,7 +182,7 @@ export class ClientMonitoredItemToolbox {
                 return callback(err);
             }
             monitoredItems.forEach((monitoredItem) => {
-                monitoredItem.monitoringMode = monitoringMode;
+                monitoredItem.internalSetMonitoringMode(monitoringMode);
             });
             response = response!;
             response.results = response.results || [];

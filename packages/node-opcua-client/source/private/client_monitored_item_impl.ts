@@ -24,7 +24,7 @@ import { Variant } from "node-opcua-variant";
 import { Callback, ErrorCallback } from "node-opcua-status-code";
 
 import { ClientMonitoredItem } from "../client_monitored_item";
-import { ClientMonitoredItemToolbox } from "../client_monitored_item_toolbox";
+import { ClientMonitoredItemToolbox, ClientMonitoredItemBaseEx } from "../client_monitored_item_toolbox";
 import { ClientSubscription } from "../client_subscription";
 import { ClientMonitoredItem_create, ClientSubscriptionImpl } from "./client_subscription_impl";
 
@@ -35,11 +35,11 @@ const doDebug = checkDebugFlag(__filename);
 export type PrepareForMonitoringResult =
     | { error: string }
     | {
-          error?: null;
-          itemToMonitor: ReadValueIdOptions;
-          monitoringMode: MonitoringMode;
-          requestedParameters: MonitoringParameters;
-      };
+        error?: null;
+        itemToMonitor: ReadValueIdOptions;
+        monitoringMode: MonitoringMode;
+        requestedParameters: MonitoringParameters;
+    };
 
 /**
  * ClientMonitoredItem
@@ -53,7 +53,7 @@ export type PrepareForMonitoringResult =
  *
  *  note: this.monitoringMode = subscription_service.MonitoringMode.Reporting;
  */
-export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonitoredItem {
+export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonitoredItem, ClientMonitoredItemBaseEx {
     public itemToMonitor: ReadValueId;
     public monitoringParameters: MonitoringParameters;
     public subscription: ClientSubscriptionImpl;
@@ -64,8 +64,12 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
     public filterResult?: ExtensionObject;
     public timestampsToReturn: TimestampsToReturn;
 
-    private _pendingDataValue?: DataValue[];
-    private _pendingEvents?: Variant[][];
+    #pendingDataValue?: DataValue[];
+    #pendingEvents?: Variant[][];
+
+    public internalSetMonitoringMode(monitoringMode: MonitoringMode): void {
+        this.monitoringMode = monitoringMode;
+    }
 
     constructor(
         subscription: ClientSubscription,
@@ -163,7 +167,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
             [this],
             monitoringMode,
             (err?: Error | null, statusCodes?: StatusCode[]) => {
-                callback(err ? err : null, statusCodes ? statusCodes[0]: undefined);
+                callback(err ? err : null, statusCodes ? statusCodes[0] : undefined);
             }
         );
     }
@@ -178,8 +182,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
         // in this case we need to put the dataValue aside so we can send the notification changed after
         // the node-opcua client had time to fully install the on("changed") event handler
         if (this.statusCode?.value === StatusCodes.BadDataUnavailable.value) {
-            this._pendingDataValue = this._pendingDataValue || [];
-            this._pendingDataValue.push(value);
+            this.#pendingDataValue = this.#pendingDataValue || [];
+            this.#pendingDataValue.push(value);
             return;
         }
         /**
@@ -205,8 +209,8 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
      */
     public _notify_event(eventFields: Variant[]): void {
         if (this.statusCode?.value === StatusCodes.BadDataUnavailable.value) {
-            this._pendingEvents = this._pendingEvents || [];
-            this._pendingEvents.push(eventFields);
+            this.#pendingEvents = this.#pendingEvents || [];
+            this.#pendingEvents.push(eventFields);
             return;
         }
         /**
@@ -234,7 +238,7 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
         const subscription = this.subscription as ClientSubscriptionImpl;
 
-        this.monitoringParameters.clientHandle = subscription.nextClientHandle();
+        this.monitoringParameters.clientHandle = subscription._nextClientHandle();
 
         assert(this.monitoringParameters.clientHandle > 0 && this.monitoringParameters.clientHandle !== 4294967295);
 
@@ -317,17 +321,17 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
 
         // some PublishRequest with DataNotificationChange might have been sent by the server, before the monitored
         // item has been fully initialized it is time to process now any pending notification that were put on hold.
-        if (this._pendingDataValue) {
-            const dataValues = this._pendingDataValue;
-            this._pendingDataValue = undefined;
+        if (this.#pendingDataValue) {
+            const dataValues = this.#pendingDataValue;
+            this.#pendingDataValue = undefined;
             setImmediate(() => {
                 dataValues.map((dataValue) => this._notify_value_change(dataValue));
             });
         }
 
-        if (this._pendingEvents) {
-            const events = this._pendingEvents;
-            this._pendingEvents = undefined;
+        if (this.#pendingEvents) {
+            const events = this.#pendingEvents;
+            this.#pendingEvents = undefined;
             setImmediate(() => {
                 events.map((event) => this._notify_event(event));
             });
@@ -377,10 +381,10 @@ export class ClientMonitoredItemImpl extends EventEmitter implements ClientMonit
          */
         this.emit("terminated", err);
         this.removeAllListeners();
-    
+
         // also remove from subscription
         const clientHandle = this.monitoringParameters.clientHandle;
-        delete this.subscription.monitoredItems[clientHandle];
+        this.subscription._removeMonitoredItem(clientHandle);
     }
 }
 
