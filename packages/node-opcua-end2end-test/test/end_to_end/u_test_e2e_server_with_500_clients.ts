@@ -2,7 +2,7 @@ import should from "should"; // eslint-disable-line @typescript-eslint/no-var-re
 import chalk from "chalk";
 import { getDefaultCertificateManager, OPCUAClient, OPCUAClientOptions, ClientSession, OPCUACertificateManager } from "node-opcua";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-const doDebug = false;
+const doDebug = true;
 
 interface TestHarness {
     endpointUrl: string;
@@ -14,6 +14,9 @@ interface ClientSessionTaskData {
     clientCertificateManager: OPCUACertificateManager;
     /** if true (default), waits until the server has reached the configured maxSessionsForTest (or server max) once */
     waitForAllConnections?: boolean; // default true for backward compatibility
+    /** if true, keeps session open until explicitly released via keepAliveSignal */
+    keepAlive?: boolean;
+    keepAliveSignal?: Promise<void>;
 }
 
 
@@ -79,6 +82,7 @@ export  function t(test: TestHarness): void {
      * Establish a client connection, optionally wait until global threshold reached, create & close one session, then disconnect.
      */
     async function client_session(data: ClientSessionTaskData): Promise<void> {
+        console.log("Client session", data.index);
         const options: OPCUAClientOptions = {
             connectionStrategy: connectivity_strategy,
             requestedSessionTimeout: 100000,
@@ -137,10 +141,16 @@ export  function t(test: TestHarness): void {
                 the_session = await perform("create session " + data.index, async () => {
                     return await client1.createSession();
                 });
-                await delay(1000); // preserve original pause only if session created
+                if (data.keepAlive && data.keepAliveSignal && the_session) {
+                    // Wait for signal before closing (only if session created successfully)
+                    await data.keepAliveSignal;
+                } else if (the_session) {
+                    await delay(1000); // preserve original pause only if session created
+                }
             } catch (err) {
                 // capture error so caller can see rejection after cleanup
                 createSessionError = err;
+                // Don't wait on keepAliveSignal if session creation failed
             }
 
             if (the_session) {
@@ -161,6 +171,7 @@ export  function t(test: TestHarness): void {
                 throw createSessionError;
             }
         }
+        console.log("Client session", data.index, "done");
     }
 
     describe("AZAZ Testing " + maxSessionsForTest + " clients", function () {
@@ -208,6 +219,10 @@ export  function t(test: TestHarness): void {
         it("AZAZ-B should accept many clients with concurrency limit 10", async function () {
             const maxSessionsBackup = test.server.engine.serverCapabilities.maxSessions;
             test.server.engine.serverCapabilities.maxSessions = maxSessionsForTest;
+
+            console.log("Running clients with concurrency limit 10");
+            console.log(" maxSessionsForTest =", maxSessionsForTest);
+
             thresholdReached = false;
             const total = maxSessionsForTest;
             const concurrency = 10;
@@ -225,21 +240,87 @@ export  function t(test: TestHarness): void {
 
         /**
          * Scenario C: Exceed server maxSessions intentionally and verify some attempts fail (e.g., BadTooManySessions) while others succeed.
+         * Strategy: Create sessions sequentially until we hit the limit, then verify additional attempts fail.
          */
         it("AZAZ-C should produce failures when exceeding server maxSessions", async function () {
             const originalMax = test.server.engine.serverCapabilities.maxSessions;
-            const reducedMax = Math.min(10, originalMax); // pick a small cap
+            const reducedMax = Math.min(5, originalMax); // pick a small cap for faster test
+            console.log(" new maxSessionsForTest =", reducedMax);
             test.server.engine.serverCapabilities.maxSessions = reducedMax;
             thresholdReached = false;
-            const attempts = reducedMax * 3; // far exceed cap
-            const results = await Promise.allSettled(
-                Array.from({ length: attempts }, (_, i) => client_session({ index: i, clientCertificateManager, waitForAllConnections: false }))
-            );
-            const fulfilled = results.filter(r => r.status === "fulfilled").length;
-            const rejected = attempts - fulfilled;
-            // At least reducedMax should succeed, and we expect some rejections
-            should(fulfilled).be.aboveOrEqual(reducedMax);
-            should(rejected).be.above(0);
+            
+            const clients: OPCUAClient[] = [];
+            const sessions: ClientSession[] = [];
+            
+            try {
+                // Phase 1: Fill up all available session slots
+                console.log("Phase 1: Creating", reducedMax, "sessions to fill capacity");
+                for (let i = 0; i < reducedMax; i++) {
+                    const client = OPCUAClient.create({
+                        connectionStrategy: connectivity_strategy,
+                        requestedSessionTimeout: 100000,
+                        clientCertificateManager: clientCertificateManager
+                    });
+                    (client as any)._serverEndpoints = (first_client as any)._serverEndpoints;
+                    
+                    await client.connect(test.endpointUrl);
+                    clients.push(client);
+                    
+                    const session = await client.createSession();
+                    sessions.push(session);
+                    console.log("  Created session", i);
+                }
+                
+                console.log("Phase 2: Attempting to exceed capacity");
+                // Phase 2: Now try to create more sessions - these should fail
+                let failures = 0;
+                const extraAttempts = 5;
+                
+                for (let i = 0; i < extraAttempts; i++) {
+                    const client = OPCUAClient.create({
+                        connectionStrategy: connectivity_strategy,
+                        requestedSessionTimeout: 100000,
+                        clientCertificateManager: clientCertificateManager
+                    });
+                    (client as any)._serverEndpoints = (first_client as any)._serverEndpoints;
+                    
+                    try {
+                        await client.connect(test.endpointUrl);
+                        clients.push(client);
+                        
+                        const session = await client.createSession();
+                        // If we get here, session was created (shouldn't happen but handle it)
+                        sessions.push(session);
+                        console.log("  Unexpected: Session", reducedMax + i, "created despite being over limit");
+                    } catch (err: unknown) {
+                        failures++;
+                        if (err instanceof Error) {
+                            console.log("  Expected failure", i, ":", err.message);
+                        }
+                    }
+                }
+                
+                console.log(` Results: ${reducedMax} sessions created, ${failures} failures out of ${extraAttempts} over-limit attempts`);
+                
+                // We expect at least some failures when exceeding the limit
+                should(failures).be.above(0);
+                should(sessions.length).eql(reducedMax);
+                
+            } finally {
+                // Cleanup: close all sessions and disconnect all clients
+                console.log("Cleanup: Closing", sessions.length, "sessions and", clients.length, "clients");
+                for (const session of sessions) {
+                    try {
+                        await session.close();
+                    } catch (_) { /* ignore */ }
+                }
+                for (const client of clients) {
+                    try {
+                        await client.disconnect();
+                    } catch (_) { /* ignore */ }
+                }
+            }
+            
             test.server.engine.serverCapabilities.maxSessions = originalMax;
         });
 

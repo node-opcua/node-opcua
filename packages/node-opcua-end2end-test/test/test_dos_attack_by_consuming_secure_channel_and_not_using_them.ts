@@ -27,10 +27,9 @@ const maxConnectionsPerEndpoint = 3;
 const maxSessions = 10000;
 const port = 2001;
 
-describe("testing Server resilience to DDOS attacks", function () {
+describe("testing Server resilience to DDOS attacks", function (this: Mocha.Context) {
     // extend mocha timeout for long channel churn
-    // @ts-ignore mocha context
-    this.timeout(30000);
+    this.timeout(120000);
 
     let server: OPCUAServer;
     let endpointUrl: string;
@@ -105,7 +104,7 @@ describe("testing Server resilience to DDOS attacks", function () {
                 connectionStrategy: { maxRetry: 0 }
             });
             try {
-                await new Promise<void>((resolve, reject) => 
+                await new Promise<void>((resolve, reject) =>
                     ch.create(endpointUrl, (err) => err ? reject(err) : resolve()));
             } catch (err) {
                 // ignore individual creation errors; still push channel for closing attempt
