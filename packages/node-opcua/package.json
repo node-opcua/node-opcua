@@ -10,7 +10,7 @@
         "build": "tsc -b"
     },
     "engines": {
-        "node": ">=8.10"
+        "node": ">=18"
     },
     "dependencies": {
         "@types/semver": "7.7.1",
@@ -62,7 +62,7 @@
         "node-opcua-utils": "2.157.0",
         "node-opcua-variant": "2.158.0",
         "node-opcua-vendor-diagnostic": "2.158.0",
-        "semver": "^7.7.2"
+        "semver": "^7.7.3"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
