@@ -27,8 +27,8 @@
         "node-opcua-types": "2.158.0",
         "node-opcua-utils": "2.157.0",
         "node-opcua-variant": "2.158.0",
-        "ts-morph": "26.0.0",
-        "typescript": "5.9.2",
+        "ts-morph": "27.0.2",
+        "typescript": "5.9.3",
         "wordwrap": "^1.0.0"
     },
     "devDependencies": {

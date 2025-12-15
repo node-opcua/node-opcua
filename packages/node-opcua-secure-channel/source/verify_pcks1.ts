@@ -47,7 +47,7 @@ export async function testRSAPKCS1V15_EncryptDecrypt() {
     const publicKey = Buffer.from(exportedPublicKey).toString("base64");
     publicKey;
 
-    const privateKeyPem = await privateKeyToPEM(keyPair.privateKey);
+    const privateKeyPem = await privateKeyToPEM(keyPair.privateKey as (Omit<CryptoKey,"usages"> & { usages: any }));
     // const privateKeyFilename = ""; // fs.mkdtemp((), ".t.pem");
     // await fs.promises.writeFile(privateKeyFilename, privateKeyPem.privPem, "utf-8");
     const privateKey = myCreatePrivateKey(privateKeyPem.privPem);

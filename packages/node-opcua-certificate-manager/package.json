@@ -24,7 +24,7 @@
     },
     "devDependencies": {
         "node-opcua-leak-detector": "2.157.0",
-        "rimraf": "6.0.1"
+        "rimraf": "6.1.2"
     },
     "eslintConfig": {
         "env": {

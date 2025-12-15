@@ -5,7 +5,7 @@
     "main": "./dist/src/index_current.js",
     "types": "./dist/source/index.d.ts",
     "engines": {
-        "node": ">=6.10"
+        "node": ">=18"
     },
     "scripts": {
         "build": "tsc -b",
@@ -17,7 +17,7 @@
         "fix:tsconfig": "node ../../code_gen/extract-modules.js tsconfig_base.json"
     },
     "dependencies": {
-        "@types/lodash": "4.17.20",
+        "@types/lodash": "4.17.21",
         "@types/semver": "7.7.1",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
@@ -52,7 +52,7 @@
         "node-opcua-utils": "2.157.0",
         "node-opcua-variant": "2.158.0",
         "node-opcua-xml2json": "2.157.0",
-        "semver": "^7.7.2",
+        "semver": "^7.7.3",
         "thenify-ex": "4.4.0",
         "xml-writer": "^1.7.0"
     },

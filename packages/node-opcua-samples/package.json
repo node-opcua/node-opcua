@@ -18,8 +18,8 @@
     "dependencies": {
         "@types/bcryptjs": "^3.0.0",
         "@types/underscore": "1.13.0",
-        "@types/yargs": "17.0.33",
-        "bcryptjs": "3.0.2",
+        "@types/yargs": "17.0.35",
+        "bcryptjs": "3.0.3",
         "chalk": "4.1.2",
         "easy-table": "^1.2.0",
         "env-paths": "2.2.1",

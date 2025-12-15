@@ -11,8 +11,8 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "devEngines": {
-        "node": ">=16.x",
-        "npm": ">=8.x"
+        "node": ">=18.x",
+        "npm": ">=10.x"
     },
     "dependencies": {
         "node-opcua-address-space": "2.158.0",
@@ -33,7 +33,7 @@
         "node-opcua-variant": "2.158.0"
     },
     "devDependencies": {
-        "memfs": "^4.38.2",
+        "memfs": "^4.51.1",
         "node-opcua": "2.158.0",
         "node-opcua-client": "2.158.0",
         "node-opcua-leak-detector": "2.157.0",
