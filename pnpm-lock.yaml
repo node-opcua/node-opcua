@@ -108,11 +108,11 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -166,7 +166,7 @@ importers:
         specifier: ^10.0.10
         version: 10.0.10
       '@types/node':
-        specifier: '24'
+        specifier: 24.10.4
         version: 24.10.4
       app-module-path:
         specifier: ^2.2.0
@@ -259,8 +259,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-data-access:
         specifier: 2.158.0
         version: link:../node-opcua-data-access
@@ -406,8 +406,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-data-access:
         specifier: 2.158.0
         version: link:../node-opcua-data-access
@@ -524,8 +524,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-data-model:
         specifier: 2.158.0
         version: link:../node-opcua-data-model
@@ -770,8 +770,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -779,8 +779,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       node-opcua-status-code:
         specifier: 2.157.0
         version: link:../node-opcua-status-code
@@ -856,8 +856,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-data-model:
         specifier: 2.158.0
         version: link:../node-opcua-data-model
@@ -886,8 +886,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       node-opcua-pseudo-session:
         specifier: 2.158.0
         version: link:../node-opcua-pseudo-session
@@ -1125,8 +1125,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-assert
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-types:
         specifier: 2.158.0
         version: link:../node-opcua-types
@@ -1363,8 +1363,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -1396,8 +1396,8 @@ importers:
         specifier: 2.158.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       node-opcua-server:
         specifier: 2.158.0
         version: link:../node-opcua-server
@@ -2696,14 +2696,14 @@ importers:
         specifier: 2.158.0
         version: link:../node-opcua-client-proxy
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-packet-analyzer:
         specifier: 2.158.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       node-opcua-server-configuration:
         specifier: 2.158.0
         version: link:../node-opcua-server-configuration
@@ -2793,8 +2793,8 @@ importers:
         specifier: 2.158.0
         version: link:../node-opcua-common
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -2902,8 +2902,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-data-model:
         specifier: 2.158.0
         version: link:../node-opcua-data-model
@@ -2938,8 +2938,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       node-opcua-secure-channel:
         specifier: 2.158.0
         version: link:../node-opcua-secure-channel
@@ -3050,8 +3050,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-constants
       node-opcua-crypto:
-        specifier: 4.16.0
-        version: 4.16.0
+        specifier: 4.16.1
+        version: 4.16.1
       node-opcua-data-model:
         specifier: 2.158.0
         version: link:../node-opcua-data-model
@@ -3068,8 +3068,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
       node-opcua-pseudo-session:
         specifier: 2.158.0
         version: link:../node-opcua-pseudo-session
@@ -3169,8 +3169,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 5.5.0
-        version: 5.5.0
+        specifier: 5.6.0
+        version: 5.6.0
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -3753,7 +3753,7 @@ importers:
   tools/scan-dependencies:
     devDependencies:
       '@types/node':
-        specifier: '24'
+        specifier: 24.10.4
         version: 24.10.4
       ts-node:
         specifier: ^10.9.2
@@ -4032,35 +4032,38 @@ packages:
   '@leichtgewicht/ip-codec@2.0.5':
     resolution: {integrity: sha512-Vo+PSpZG2/fmgmiNzYK9qWRh8h/CHrwD0mo1h1DzL4yzHNSfWYujGTYsWGreD000gcgmZ7K4Ys6Tx9TxtsKdDw==}
 
-  '@peculiar/asn1-cms@2.3.15':
-    resolution: {integrity: sha512-B+DoudF+TCrxoJSTjjcY8Mmu+lbv8e7pXGWrhNp2/EGJp9EEcpzjBCar7puU57sGifyzaRVM03oD5L7t7PghQg==}
+  '@peculiar/asn1-cms@2.6.0':
+    resolution: {integrity: sha512-2uZqP+ggSncESeUF/9Su8rWqGclEfEiz1SyU02WX5fUONFfkjzS2Z/F1Li0ofSmf4JqYXIOdCAZqIXAIBAT1OA==}
 
-  '@peculiar/asn1-csr@2.3.15':
-    resolution: {integrity: sha512-caxAOrvw2hUZpxzhz8Kp8iBYKsHbGXZPl2KYRMIPvAfFateRebS3136+orUpcVwHRmpXWX2kzpb6COlIrqCumA==}
+  '@peculiar/asn1-csr@2.6.0':
+    resolution: {integrity: sha512-BeWIu5VpTIhfRysfEp73SGbwjjoLL/JWXhJ/9mo4vXnz3tRGm+NGm3KNcRzQ9VMVqwYS2RHlolz21svzRXIHPQ==}
 
-  '@peculiar/asn1-ecc@2.3.15':
-    resolution: {integrity: sha512-/HtR91dvgog7z/WhCVdxZJ/jitJuIu8iTqiyWVgRE9Ac5imt2sT/E4obqIVGKQw7PIy+X6i8lVBoT6wC73XUgA==}
+  '@peculiar/asn1-ecc@2.6.0':
+    resolution: {integrity: sha512-FF3LMGq6SfAOwUG2sKpPXblibn6XnEIKa+SryvUl5Pik+WR9rmRA3OCiwz8R3lVXnYnyRkSZsSLdml8H3UiOcw==}
 
-  '@peculiar/asn1-pfx@2.3.15':
-    resolution: {integrity: sha512-E3kzQe3J2xV9DP6SJS4X6/N1e4cYa2xOAK46VtvpaRk8jlheNri8v0rBezKFVPB1rz/jW8npO+u1xOvpATFMWg==}
+  '@peculiar/asn1-pfx@2.6.0':
+    resolution: {integrity: sha512-rtUvtf+tyKGgokHHmZzeUojRZJYPxoD/jaN1+VAB4kKR7tXrnDCA/RAWXAIhMJJC+7W27IIRGe9djvxKgsldCQ==}
 
-  '@peculiar/asn1-pkcs8@2.3.15':
-    resolution: {integrity: sha512-/PuQj2BIAw1/v76DV1LUOA6YOqh/UvptKLJHtec/DQwruXOCFlUo7k6llegn8N5BTeZTWMwz5EXruBw0Q10TMg==}
+  '@peculiar/asn1-pkcs8@2.6.0':
+    resolution: {integrity: sha512-KyQ4D8G/NrS7Fw3XCJrngxmjwO/3htnA0lL9gDICvEQ+GJ+EPFqldcJQTwPIdvx98Tua+WjkdKHSC0/Km7T+lA==}
 
-  '@peculiar/asn1-pkcs9@2.3.15':
-    resolution: {integrity: sha512-yiZo/1EGvU1KiQUrbcnaPGWc0C7ElMMskWn7+kHsCFm+/9fU0+V1D/3a5oG0Jpy96iaXggQpA9tzdhnYDgjyFg==}
+  '@peculiar/asn1-pkcs9@2.6.0':
+    resolution: {integrity: sha512-b78OQ6OciW0aqZxdzliXGYHASeCvvw5caqidbpQRYW2mBtXIX2WhofNXTEe7NyxTb0P6J62kAAWLwn0HuMF1Fw==}
 
-  '@peculiar/asn1-rsa@2.3.15':
-    resolution: {integrity: sha512-p6hsanvPhexRtYSOHihLvUUgrJ8y0FtOM97N5UEpC+VifFYyZa0iZ5cXjTkZoDwxJ/TTJ1IJo3HVTB2JJTpXvg==}
+  '@peculiar/asn1-rsa@2.6.0':
+    resolution: {integrity: sha512-Nu4C19tsrTsCp9fDrH+sdcOKoVfdfoQQ7S3VqjJU6vedR7tY3RLkQ5oguOIB3zFW33USDUuYZnPEQYySlgha4w==}
 
   '@peculiar/asn1-schema@2.3.15':
     resolution: {integrity: sha512-QPeD8UA8axQREpgR5UTAfu2mqQmm97oUqahDtNdBcfj3qAnoXzFdQW+aNf/tD2WVXF8Fhmftxoj0eMIT++gX2w==}
 
-  '@peculiar/asn1-x509-attr@2.3.15':
-    resolution: {integrity: sha512-TWJVJhqc+IS4MTEML3l6W1b0sMowVqdsnI4dnojg96LvTuP8dga9f76fjP07MUuss60uSyT2ckoti/2qHXA10A==}
+  '@peculiar/asn1-schema@2.6.0':
+    resolution: {integrity: sha512-xNLYLBFTBKkCzEZIw842BxytQQATQv+lDTCEMZ8C196iJcJJMBUZxrhSTxLaohMyKK8QlzRNTRkUmanucnDSqg==}
 
-  '@peculiar/asn1-x509@2.3.15':
-    resolution: {integrity: sha512-0dK5xqTqSLaxv1FHXIcd4Q/BZNuopg+u1l23hT9rOmQ1g4dNtw0g/RnEi+TboB0gOwGtrWn269v27cMgchFIIg==}
+  '@peculiar/asn1-x509-attr@2.6.0':
+    resolution: {integrity: sha512-MuIAXFX3/dc8gmoZBkwJWxUWOSvG4MMDntXhrOZpJVMkYX+MYc/rUAU2uJOved9iJEoiUx7//3D8oG83a78UJA==}
+
+  '@peculiar/asn1-x509@2.6.0':
+    resolution: {integrity: sha512-uzYbPEpoQiBoTq0/+jZtpM6Gq6zADBx+JNFP3yqRgziWBxQ/Dt/HcuvRfm9zJTPdRcBqPNdaRHTVwpyiq6iNMA==}
 
   '@peculiar/json-schema@1.1.12':
     resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
@@ -4070,8 +4073,9 @@ packages:
     resolution: {integrity: sha512-BRs5XUAwiyCDQMsVA9IDvDa7UBR9gAvPHgugOeGng3YN6vJ9JYonyDc0lNczErgtCWtucjR5N7VtaonboD/ezg==}
     engines: {node: '>=10.12.0'}
 
-  '@peculiar/x509@1.12.3':
-    resolution: {integrity: sha512-+Mzq+W7cNEKfkNZzyLl6A6ffqc3r21HGZUezgfKxpZrkORfOqgRXnS80Zu0IV6a9Ue9QBJeKD7kN0iWfc3bhRQ==}
+  '@peculiar/x509@1.14.2':
+    resolution: {integrity: sha512-r2w1Hg6pODDs0zfAKHkSS5HLkOLSeburtcgwvlLLWWCixw+MmW3U6kD5ddyvc2Y2YdbGuVwCF2S2ASoU1cFAag==}
+    engines: {node: '>=22.0.0'}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -4248,6 +4252,10 @@ packages:
     resolution: {integrity: sha512-FVnvrKJwpt9LP2lAMl8qZswRNm3T4q9CON+bxldk2iwk3FFpuwhx2FfinyitizWHsVYyaY+y5JzDR0rCMV5yTQ==}
     engines: {node: '>=12.0.0'}
 
+  asn1js@3.0.7:
+    resolution: {integrity: sha512-uLvq6KJu04qoQM6gvBfKFjlh6Gl0vOKQuR5cJMDHQkmwfMOQeN3F3SHCv9SNYSL+CRoHvOGFfllDlVz03GQjvQ==}
+    engines: {node: '>=12.0.0'}
+
   assert-plus@1.0.0:
     resolution: {integrity: sha512-NfJ4UzBCcQGLDlQq7nHxH+tv3kyZ0hHQqF5BO6J7tNJeP5do1llPr8dZ8zHonfhAu0PHAdMkSo+8o0wxg9lZWw==}
     engines: {node: '>=0.8'}
@@ -4349,6 +4357,10 @@ packages:
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
+
+  chokidar@5.0.0:
+    resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
+    engines: {node: '>= 20.19.0'}
 
   cli-table3@0.6.5:
     resolution: {integrity: sha512-+W/5efTR7y5HRD7gACw9yQjqMVvEMLBHmboM/kPWam+H+Hmyrgjh6YncVKK122YZkXrLudzTuAukUw9FnMf7IQ==}
@@ -5011,11 +5023,11 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  node-opcua-crypto@4.16.0:
-    resolution: {integrity: sha512-r3dRfHc7invXqYt+pjHPEj+YnQDJqfeIikNjWhQSTT9gVWuBOkHDAwPd6QxxJoTHlSp+/mczOWNKmufZ8E0u6Q==}
+  node-opcua-crypto@4.16.1:
+    resolution: {integrity: sha512-+q7Wy8m1pnUIBj3xeYsUvGGn3N0hqd7wy8EuU6RdVhyU6+6rh8vJiq09Emd7mk1rwejlqgPIiZa+rzzFaiDGhQ==}
 
-  node-opcua-pki@5.5.0:
-    resolution: {integrity: sha512-cXpRD2PVN7IGFcBfdHGpW7p3GfbeyEZntb0rT1BAPDHY19t6XtlAwGvYkEGf4+J9gewnOrv/Ie34qJFT5n7wcg==}
+  node-opcua-pki@5.6.0:
+    resolution: {integrity: sha512-+Ed4UHhySSINPHWh/Lbi3bxRdJWgvCJYUxLj6K35GydpBRX+EZy08GiQCIqtgwiwpbpD6K3bR5ICQTy55jZ/Hg==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -5152,6 +5164,10 @@ packages:
   readdirp@4.1.2:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
+
+  readdirp@5.0.0:
+    resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
+    engines: {node: '>= 20.19.0'}
 
   readline@1.3.0:
     resolution: {integrity: sha512-k2d6ACCkiNYz222Fs/iNze30rRJ1iIicW7JuX/7/cozvih6YCkFZH+J6mAFDVgv0dRBaAyr4jDqC95R2y4IADg==}
@@ -5391,8 +5407,8 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  tsyringe@4.8.0:
-    resolution: {integrity: sha512-YB1FG+axdxADa3ncEtRnQCFq/M0lALGLxSZeVNbTU8NqhOVc51nnv2CISTcvc1kyv6EGPtXVr0v6lWeDxiijOA==}
+  tsyringe@4.10.0:
+    resolution: {integrity: sha512-axr3IdNuVIxnaK5XGEUFTu3YmAQ6lllgrvqfEoR16g/HGnYY/6We4oWENtAnzK6/LpJ2ur9PAb80RBt7/U4ugw==}
     engines: {node: '>= 6.0.0'}
 
   tunnel@0.0.6:
@@ -5793,60 +5809,60 @@ snapshots:
 
   '@leichtgewicht/ip-codec@2.0.5': {}
 
-  '@peculiar/asn1-cms@2.3.15':
+  '@peculiar/asn1-cms@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      '@peculiar/asn1-x509-attr': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      '@peculiar/asn1-x509-attr': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
-  '@peculiar/asn1-csr@2.3.15':
+  '@peculiar/asn1-csr@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
-  '@peculiar/asn1-ecc@2.3.15':
+  '@peculiar/asn1-ecc@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
-  '@peculiar/asn1-pfx@2.3.15':
+  '@peculiar/asn1-pfx@2.6.0':
     dependencies:
-      '@peculiar/asn1-cms': 2.3.15
-      '@peculiar/asn1-pkcs8': 2.3.15
-      '@peculiar/asn1-rsa': 2.3.15
-      '@peculiar/asn1-schema': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-cms': 2.6.0
+      '@peculiar/asn1-pkcs8': 2.6.0
+      '@peculiar/asn1-rsa': 2.6.0
+      '@peculiar/asn1-schema': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
-  '@peculiar/asn1-pkcs8@2.3.15':
+  '@peculiar/asn1-pkcs8@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
-  '@peculiar/asn1-pkcs9@2.3.15':
+  '@peculiar/asn1-pkcs9@2.6.0':
     dependencies:
-      '@peculiar/asn1-cms': 2.3.15
-      '@peculiar/asn1-pfx': 2.3.15
-      '@peculiar/asn1-pkcs8': 2.3.15
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      '@peculiar/asn1-x509-attr': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-cms': 2.6.0
+      '@peculiar/asn1-pfx': 2.6.0
+      '@peculiar/asn1-pkcs8': 2.6.0
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      '@peculiar/asn1-x509-attr': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
-  '@peculiar/asn1-rsa@2.3.15':
+  '@peculiar/asn1-rsa@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      asn1js: 3.0.7
       tslib: 2.8.1
 
   '@peculiar/asn1-schema@2.3.15':
@@ -5855,17 +5871,23 @@ snapshots:
       pvtsutils: 1.3.6
       tslib: 2.8.1
 
-  '@peculiar/asn1-x509-attr@2.3.15':
+  '@peculiar/asn1-schema@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
-      asn1js: 3.0.5
+      asn1js: 3.0.7
+      pvtsutils: 1.3.6
       tslib: 2.8.1
 
-  '@peculiar/asn1-x509@2.3.15':
+  '@peculiar/asn1-x509-attr@2.6.0':
     dependencies:
-      '@peculiar/asn1-schema': 2.3.15
-      asn1js: 3.0.5
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
+      asn1js: 3.0.7
+      tslib: 2.8.1
+
+  '@peculiar/asn1-x509@2.6.0':
+    dependencies:
+      '@peculiar/asn1-schema': 2.6.0
+      asn1js: 3.0.7
       pvtsutils: 1.3.6
       tslib: 2.8.1
 
@@ -5881,19 +5903,19 @@ snapshots:
       tslib: 2.8.1
       webcrypto-core: 1.8.1
 
-  '@peculiar/x509@1.12.3':
+  '@peculiar/x509@1.14.2':
     dependencies:
-      '@peculiar/asn1-cms': 2.3.15
-      '@peculiar/asn1-csr': 2.3.15
-      '@peculiar/asn1-ecc': 2.3.15
-      '@peculiar/asn1-pkcs9': 2.3.15
-      '@peculiar/asn1-rsa': 2.3.15
-      '@peculiar/asn1-schema': 2.3.15
-      '@peculiar/asn1-x509': 2.3.15
+      '@peculiar/asn1-cms': 2.6.0
+      '@peculiar/asn1-csr': 2.6.0
+      '@peculiar/asn1-ecc': 2.6.0
+      '@peculiar/asn1-pkcs9': 2.6.0
+      '@peculiar/asn1-rsa': 2.6.0
+      '@peculiar/asn1-schema': 2.6.0
+      '@peculiar/asn1-x509': 2.6.0
       pvtsutils: 1.3.6
       reflect-metadata: 0.2.2
       tslib: 2.8.1
-      tsyringe: 4.8.0
+      tsyringe: 4.10.0
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -6063,6 +6085,12 @@ snapshots:
       pvutils: 1.1.3
       tslib: 2.8.1
 
+  asn1js@3.0.7:
+    dependencies:
+      pvtsutils: 1.3.6
+      pvutils: 1.1.3
+      tslib: 2.8.1
+
   assert-plus@1.0.0: {}
 
   assert@2.1.0:
@@ -6160,6 +6188,10 @@ snapshots:
   chokidar@4.0.3:
     dependencies:
       readdirp: 4.1.2
+
+  chokidar@5.0.0:
+    dependencies:
+      readdirp: 5.0.0
 
   cli-table3@0.6.5:
     dependencies:
@@ -6804,10 +6836,10 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  node-opcua-crypto@4.16.0:
+  node-opcua-crypto@4.16.1:
     dependencies:
       '@peculiar/webcrypto': 1.5.0
-      '@peculiar/x509': 1.12.3
+      '@peculiar/x509': 1.14.2
       '@types/jsrsasign': 10.5.15
       '@types/sshpk': 1.17.4
       assert: 2.1.0
@@ -6816,13 +6848,13 @@ snapshots:
       jsrsasign: 11.1.0
       sshpk: 1.18.0
 
-  node-opcua-pki@5.5.0:
+  node-opcua-pki@5.6.0:
     dependencies:
       '@ster5/global-mutex': 2.0.0
       byline: 5.0.0
       chalk: 4.1.2
-      chokidar: 4.0.3
-      node-opcua-crypto: 4.16.0
+      chokidar: 5.0.0
+      node-opcua-crypto: 4.16.1
       progress: 2.0.3
       rimraf: 4.4.1
       wget-improved-2: 3.3.0
@@ -6949,6 +6981,8 @@ snapshots:
       util-deprecate: 1.0.2
 
   readdirp@4.1.2: {}
+
+  readdirp@5.0.0: {}
 
   readline@1.3.0: {}
 
@@ -7197,7 +7231,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsyringe@4.8.0:
+  tsyringe@4.10.0:
     dependencies:
       tslib: 1.14.1
 
