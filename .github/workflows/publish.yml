@@ -1,0 +1,48 @@
+name: Lerna Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+        dist-tag:
+          description: 'dist-tag'
+          required: true
+          default: 'latest'
+          type: choice
+          options:
+          - latest
+          - next
+          - rc
+          - beta
+          - alpha
+          - 0.0.0-hack
+
+permissions:
+  id-token: write  # Required for OIDC token generation
+  contents: read   # Required for actions/checkout
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          registry-url: 'https://registry.npmjs.org'
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store
+
+      - run: npm install -g pnpm@9
+      - run: pnpm recursive install --no-frozen-lockfile
+      - run: pnpm run build
+
+      - name: Publish
+        run: npx lerna publish from-package --yes --no-verify-access --dist-tag ${{ github.event.inputs.dist-tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Fallback if OIDC isn't set up, but OIDC handles this automatically if configured.
