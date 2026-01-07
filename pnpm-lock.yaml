@@ -111,8 +111,8 @@ importers:
         specifier: 4.16.1
         version: 4.16.1
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       progress:
         specifier: ^2.0.3
         version: 2.0.3
@@ -123,8 +123,8 @@ importers:
         specifier: ^7.7.3
         version: 7.7.3
       sinon:
-        specifier: ^21.0.0
-        version: 21.0.0
+        specifier: ^21.0.1
+        version: 21.0.1
       source-map-support:
         specifier: ^0.5.21
         version: 0.5.21
@@ -779,8 +779,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       node-opcua-status-code:
         specifier: 2.157.0
         version: link:../node-opcua-status-code
@@ -886,8 +886,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       node-opcua-pseudo-session:
         specifier: 2.159.0
         version: link:../node-opcua-pseudo-session
@@ -1396,8 +1396,8 @@ importers:
         specifier: 2.159.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       node-opcua-server:
         specifier: 2.159.0
         version: link:../node-opcua-server
@@ -2702,8 +2702,8 @@ importers:
         specifier: 2.158.0
         version: link:../node-opcua-packet-analyzer
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       node-opcua-server-configuration:
         specifier: 2.159.0
         version: link:../node-opcua-server-configuration
@@ -2938,8 +2938,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-object-registry
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       node-opcua-secure-channel:
         specifier: 2.159.0
         version: link:../node-opcua-secure-channel
@@ -3068,8 +3068,8 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
       node-opcua-pseudo-session:
         specifier: 2.159.0
         version: link:../node-opcua-pseudo-session
@@ -3118,7 +3118,7 @@ importers:
         version: link:../node-opcua-nodesets
       ts-node:
         specifier: ^10.9.2
-        version: 10.9.2(@types/node@24.10.4)(typescript@5.9.3)
+        version: 10.9.2(@types/node@25.0.2)(typescript@5.9.3)
 
   packages/node-opcua-server-discovery:
     dependencies:
@@ -3169,8 +3169,8 @@ importers:
         version: 4.4.0
     devDependencies:
       node-opcua-pki:
-        specifier: 5.6.0
-        version: 5.6.0
+        specifier: 5.7.0
+        version: 5.7.0
 
   packages/node-opcua-service-browse:
     dependencies:
@@ -4088,11 +4088,11 @@ packages:
   '@sinonjs/commons@3.0.1':
     resolution: {integrity: sha512-K3mCHKQ9sVh8o1C9cxkwxaOmXoAMlDxC1mYyHrjqOWEcBjYr76t96zL2zlj5dUGZ3HSw240X1qgH3Mjf1yJWpQ==}
 
-  '@sinonjs/fake-timers@13.0.5':
-    resolution: {integrity: sha512-36/hTbH2uaWuGVERyC6da9YwGWnzUZXuPro/F2LfsdOsLnCojz/iSH8MxUt/FD2S5XBSVPhmArFUXcpCQ2Hkiw==}
+  '@sinonjs/fake-timers@15.1.0':
+    resolution: {integrity: sha512-cqfapCxwTGsrR80FEgOoPsTonoefMBY7dnUEbQ+GRcved0jvkJLzvX6F4WtN+HBqbPX/SiFsIRUp+IrCW/2I2w==}
 
-  '@sinonjs/samsam@8.0.2':
-    resolution: {integrity: sha512-v46t/fwnhejRSFTGqbpn9u+LQ9xJDse10gNnPgAcxgdoCDMXj/G2asWAC/8Qs+BAZDicX+MNZouXT1A7c83kVw==}
+  '@sinonjs/samsam@8.0.3':
+    resolution: {integrity: sha512-hw6HbX+GyVZzmaYNh82Ecj1vdGZrqVIn/keDTg63IgAwiQPO+xCz99uG6Woqgb4tM0mUiFENKZ4cqd7IX94AXQ==}
 
   '@ster5/global-mutex@2.0.0':
     resolution: {integrity: sha512-nlp5BM4E7ybkGt6ouZsohSnliWtXgRoUWHMl8uzi64gKwZSONsssEstfBGnQ0OpdQlE0HBP0qq9RDxP0JTW57w==}
@@ -4358,10 +4358,6 @@ packages:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
 
-  chokidar@5.0.0:
-    resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
-    engines: {node: '>= 20.19.0'}
-
   cli-table3@0.6.5:
     resolution: {integrity: sha512-+W/5efTR7y5HRD7gACw9yQjqMVvEMLBHmboM/kPWam+H+Hmyrgjh6YncVKK122YZkXrLudzTuAukUw9FnMf7IQ==}
     engines: {node: 10.* || >= 12.*}
@@ -4495,6 +4491,10 @@ packages:
 
   diff@7.0.0:
     resolution: {integrity: sha512-PJWHUb1RFevKCwaFA9RlG5tCd+FO5iRh9A8HEtkmBH2Li03iJriB6m6JIN4rGz3K3JLawI7/veA1xzRKP6ISBw==}
+    engines: {node: '>=0.3.1'}
+
+  diff@8.0.2:
+    resolution: {integrity: sha512-sSuxWU5j5SR9QQji/o2qMvqRNYRDOcBTgsJ/DeCf4iSN4gW+gNMXM7wFIP+fdXZxoNiAnHUTGjCr+TSWXdRDKg==}
     engines: {node: '>=0.3.1'}
 
   dns-equal@1.0.0:
@@ -4918,10 +4918,6 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
-  lodash.get@4.4.2:
-    resolution: {integrity: sha512-z+Uw/vLuy6gQe8cfaFWD7p0wVv8fJl3mbzXh33RS+0oW2wvUqiRXiQ69gLWSLpgB5/6sU+r6BlQR0MBILadqTQ==}
-    deprecated: This package is deprecated. Use the optional chaining (?.) operator instead.
-
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
 
@@ -5026,8 +5022,8 @@ packages:
   node-opcua-crypto@4.16.1:
     resolution: {integrity: sha512-+q7Wy8m1pnUIBj3xeYsUvGGn3N0hqd7wy8EuU6RdVhyU6+6rh8vJiq09Emd7mk1rwejlqgPIiZa+rzzFaiDGhQ==}
 
-  node-opcua-pki@5.6.0:
-    resolution: {integrity: sha512-+Ed4UHhySSINPHWh/Lbi3bxRdJWgvCJYUxLj6K35GydpBRX+EZy08GiQCIqtgwiwpbpD6K3bR5ICQTy55jZ/Hg==}
+  node-opcua-pki@5.7.0:
+    resolution: {integrity: sha512-KRn7F7YKLzBiIZIR2VRgCz5WYfPxM/8FFr0d8VGhQ09nF5cpQ15pN7uQaNdKL+KmCfkoaKGx8LcL19J+UByGNw==}
     hasBin: true
 
   node-xml@1.0.2:
@@ -5165,10 +5161,6 @@ packages:
     resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
     engines: {node: '>= 14.18.0'}
 
-  readdirp@5.0.0:
-    resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
-    engines: {node: '>= 20.19.0'}
-
   readline@1.3.0:
     resolution: {integrity: sha512-k2d6ACCkiNYz222Fs/iNze30rRJ1iIicW7JuX/7/cozvih6YCkFZH+J6mAFDVgv0dRBaAyr4jDqC95R2y4IADg==}
 
@@ -5270,8 +5262,8 @@ packages:
   simple-swizzle@0.2.2:
     resolution: {integrity: sha512-JA//kQgZtbuY83m+xT+tXJkmJncGMTFT+C+g2h2R9uxkYIrE2yy9sgmcLhCnw57/WSD+Eh3J97FPEDFnbXnDUg==}
 
-  sinon@21.0.0:
-    resolution: {integrity: sha512-TOgRcwFPbfGtpqvZw+hyqJDvqfapr1qUlOizROIk4bBLjlsjlB00Pg6wMFXNtJRpu+eCZuVOaLatG7M8105kAw==}
+  sinon@21.0.1:
+    resolution: {integrity: sha512-Z0NVCW45W8Mg5oC/27/+fCqIHFnW8kpkFOq0j9XJIev4Ld0mKmERaZv5DMLAb9fGCevjKwaEeIQz5+MBXfZcDw==}
 
   slice-ansi@3.0.0:
     resolution: {integrity: sha512-pSyv7bSTC7ig9Dcgbw9AuRNUb5k5V6oDudjZoMBSr13qpLBG7tB+zgCkARjq7xIUgdz5P1Qe8u+rSGdouOOIyQ==}
@@ -5926,14 +5918,13 @@ snapshots:
     dependencies:
       type-detect: 4.0.8
 
-  '@sinonjs/fake-timers@13.0.5':
+  '@sinonjs/fake-timers@15.1.0':
     dependencies:
       '@sinonjs/commons': 3.0.1
 
-  '@sinonjs/samsam@8.0.2':
+  '@sinonjs/samsam@8.0.3':
     dependencies:
       '@sinonjs/commons': 3.0.1
-      lodash.get: 4.4.2
       type-detect: 4.1.0
 
   '@ster5/global-mutex@2.0.0':
@@ -6001,7 +5992,6 @@ snapshots:
   '@types/node@25.0.2':
     dependencies:
       undici-types: 7.16.0
-    optional: true
 
   '@types/proper-lockfile@4.1.4':
     dependencies:
@@ -6189,10 +6179,6 @@ snapshots:
     dependencies:
       readdirp: 4.1.2
 
-  chokidar@5.0.0:
-    dependencies:
-      readdirp: 5.0.0
-
   cli-table3@0.6.5:
     dependencies:
       string-width: 4.2.3
@@ -6325,6 +6311,8 @@ snapshots:
   diff@4.0.2: {}
 
   diff@7.0.0: {}
+
+  diff@8.0.2: {}
 
   dns-equal@1.0.0: {}
 
@@ -6726,8 +6714,6 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash.get@4.4.2: {}
-
   lodash.merge@4.6.2: {}
 
   lodash@4.17.21: {}
@@ -6848,12 +6834,12 @@ snapshots:
       jsrsasign: 11.1.0
       sshpk: 1.18.0
 
-  node-opcua-pki@5.6.0:
+  node-opcua-pki@5.7.0:
     dependencies:
       '@ster5/global-mutex': 2.0.0
       byline: 5.0.0
       chalk: 4.1.2
-      chokidar: 5.0.0
+      chokidar: 4.0.3
       node-opcua-crypto: 4.16.1
       progress: 2.0.3
       rimraf: 4.4.1
@@ -6982,8 +6968,6 @@ snapshots:
 
   readdirp@4.1.2: {}
 
-  readdirp@5.0.0: {}
-
   readline@1.3.0: {}
 
   reflect-metadata@0.2.2: {}
@@ -7080,12 +7064,12 @@ snapshots:
     dependencies:
       is-arrayish: 0.3.2
 
-  sinon@21.0.0:
+  sinon@21.0.1:
     dependencies:
       '@sinonjs/commons': 3.0.1
-      '@sinonjs/fake-timers': 13.0.5
-      '@sinonjs/samsam': 8.0.2
-      diff: 7.0.0
+      '@sinonjs/fake-timers': 15.1.0
+      '@sinonjs/samsam': 8.0.3
+      diff: 8.0.2
       supports-color: 7.2.0
 
   slice-ansi@3.0.0:
@@ -7217,6 +7201,24 @@ snapshots:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 24.10.4
+      acorn: 8.15.0
+      acorn-walk: 8.3.4
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.9.3
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+
+  ts-node@10.9.2(@types/node@25.0.2)(typescript@5.9.3):
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.11
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 25.0.2
       acorn: 8.15.0
       acorn-walk: 8.3.4
       arg: 4.1.3
