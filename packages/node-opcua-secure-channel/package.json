@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-secure-channel",
-    "version": "2.159.0",
+    "version": "2.160.0",
     "description": "pure nodejs OPCUA SDK - module secure-channel",
     "main": "./dist/source/index.js",
     "types": "./dist/source/index.d.ts",
@@ -17,7 +17,7 @@
         "node-opcua-assert": "2.157.0",
         "node-opcua-basic-types": "2.157.0",
         "node-opcua-binary-stream": "2.157.0",
-        "node-opcua-certificate-manager": "2.159.0",
+        "node-opcua-certificate-manager": "2.160.0",
         "node-opcua-chunkmanager": "2.158.0",
         "node-opcua-common": "2.159.0",
         "node-opcua-crypto": "4.16.1",

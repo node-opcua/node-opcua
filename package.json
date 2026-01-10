@@ -36,9 +36,10 @@
         "legal": "npx legally",
         "legal2": "npx npm-license-crawler",
         "legal3": " npx license-checker --production --summary",
-        "publish:lerna": "pnpm m run clean && npx rimraf -g packages/node_modules packages/*/dist  packages/*/\"tsconfig.tsbuildinfo\" && pnpm m i && npx lerna publish",
+        "version:lerna": "pnpm m run clean && npx rimraf -g packages/node_modules packages/*/dist  packages/*/\"tsconfig.tsbuildinfo\" && pnpm m i && npx lerna version",
         "makelinks": "npx tsx ../make-links/makelinks.ts",
-        "clean": "node tools/clean/clean.js"
+        "clean": "node tools/clean/clean.js",
+        "postversion": "pnpm m install"
     },
     "repository": {
         "type": "git",
@@ -97,7 +98,7 @@
         "@sterfive/fix-tsconfigs": "1.0.0",
         "@types/async": "3.2.25",
         "@types/bonjour": "^3.5.13",
-        "@types/lodash": "4.17.21",
+        "@types/lodash": "4.17.22",
         "@types/long": "4.0.2",
         "@types/mkdirp": "1.0.2",
         "@types/sinon": "21.0.0",

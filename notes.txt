@@ -9,8 +9,6 @@ finding a way to produce nice documentation:
      ./node_modules/autodoc/bin/autodoc -o _tmp_generated_doc lib/binaryStream.js
 
 
-
-
 * https://github.com/jbt/docker
 
 * http://yui.github.com/yuidoc
