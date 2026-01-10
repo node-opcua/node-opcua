@@ -1387,13 +1387,13 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-nodeid
       node-opcua-nodeset-auto-id:
-        specifier: 2.160.0
+        specifier: 2.159.0
         version: link:../node-opcua-nodeset-auto-id
       node-opcua-nodeset-ijt-base:
-        specifier: 2.160.0
+        specifier: 2.159.0
         version: link:../node-opcua-nodeset-ijt-base
       node-opcua-nodeset-machinery-result:
-        specifier: 2.160.0
+        specifier: 2.159.0
         version: link:../node-opcua-nodeset-machinery-result
       node-opcua-pki:
         specifier: 5.7.0
@@ -2659,9 +2659,6 @@ importers:
 
   packages/node-opcua-samples:
     dependencies:
-      '@types/bcryptjs':
-        specifier: ^3.0.0
-        version: 3.0.0
       '@types/underscore':
         specifier: 1.13.0
         version: 1.13.0
@@ -3710,9 +3707,6 @@ importers:
 
   packages/playground:
     dependencies:
-      '@types/bcryptjs':
-        specifier: ^3.0.0
-        version: 3.0.0
       bcryptjs:
         specifier: 3.0.3
         version: 3.0.3
@@ -4117,10 +4111,6 @@ packages:
 
   '@types/async@3.2.25':
     resolution: {integrity: sha512-O6Th/DI18XjrL9TX8LO9F/g26qAz5vynmQqlXt/qLGrskvzCKXKc5/tATz3G2N6lM8eOf3M8/StB14FncAmocg==}
-
-  '@types/bcryptjs@3.0.0':
-    resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
-    deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
 
   '@types/bonjour@3.5.13':
     resolution: {integrity: sha512-z9fJ5Im06zvUL548KvYNecEVlA7cVDkGUi6kZusb04mpyEFKCIZJvloCcmpmLaIahDpOQGHaHmG6imtPMmPXGQ==}
@@ -5951,10 +5941,6 @@ snapshots:
       '@types/node': 24.10.4
 
   '@types/async@3.2.25': {}
-
-  '@types/bcryptjs@3.0.0':
-    dependencies:
-      bcryptjs: 3.0.3
 
   '@types/bonjour@3.5.13':
     dependencies:

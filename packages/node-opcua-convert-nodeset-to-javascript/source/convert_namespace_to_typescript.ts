@@ -156,6 +156,7 @@ async function _output_package_json(info: Info, options: Options): Promise<void>
         info.dependencies
             .sort()
             .map((d) => `        "${d}": "${versions[d]}"`)
+            // .map((d) => `        "${d}": "file:../${d}"`)
             .join(",\n")
     );
     content2.push(`    },`);
