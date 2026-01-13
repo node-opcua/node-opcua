@@ -40,6 +40,25 @@ export class ClientMonitoredItemToolbox {
         done: ErrorCallback
     ): void {
         assert(typeof done === "function");
+
+        // we expect subscription to be valid and have a valid session
+        if (!subscription || !subscription.session) {
+            const err0 = new Error("Invalid subscription");
+            if (done) {
+                return done(err0);
+            }
+            return;
+        }
+
+        // may be the subscription has been terminated or is not fully initialize, in the meantime
+        if (!subscription.isActive) {
+            const err1 = new Error("Subscription has been terminated or is not fully initialized");
+            if (done) {
+                return done(err1);
+            }
+            return;
+        }
+
         const itemsToCreate: MonitoredItemCreateRequestOptions[] = [];
         for (const monitoredItem of monitoredItems) {
             const monitoredItemI = monitoredItem as ClientMonitoredItemImpl;
