@@ -123,17 +123,18 @@ export class ClientSubscriptionImpl extends EventEmitter implements ClientSubscr
      * @type {ClientSession}
      */
     public get session(): ClientSessionImpl {
-        assert(this.publishEngine.session, "expecting a valid session here");
+        assert(this.hasSession, "expecting a valid session");
         return this.publishEngine.session! as ClientSessionImpl;
     }
     public get hasSession(): boolean {
-        return !!this.publishEngine.session;
+        return !!this.publishEngine?.session;
     }
     public get isActive(): boolean {
-        return !(
+        return this.hasSession && !(
             this.subscriptionId === PENDING_SUBSCRIPTION_ID ||
             this.subscriptionId === TERMINATED_SUBSCRIPTION_ID ||
             this.subscriptionId === TERMINATING_SUBSCRIPTION_ID
+
         );
     }
 
