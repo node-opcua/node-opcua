@@ -65,7 +65,7 @@ export interface ClientSubscription extends EventEmitter {
 
     /**
      * return the session associated with the subscription.
-     * (may throw if the session is not valid)
+     * (may throw if the session is not valid, use hasSession to check validity)
      */
     readonly session: ClientSession;
 
