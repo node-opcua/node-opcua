@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-service-call",
-    "version": "2.159.0",
+    "version": "2.161.0",
     "description": "pure nodejs OPCUA SDK - module service-call",
     "scripts": {
         "test": "mocha",
@@ -14,8 +14,8 @@
     "dependencies": {
         "node-opcua-assert": "2.157.0",
         "node-opcua-nodeid": "2.157.0",
-        "node-opcua-types": "2.159.0",
-        "node-opcua-variant": "2.159.0"
+        "node-opcua-types": "2.161.0",
+        "node-opcua-variant": "2.161.0"
     },
     "devDependencies": {
         "node-opcua-packet-analyzer": "2.158.0",
