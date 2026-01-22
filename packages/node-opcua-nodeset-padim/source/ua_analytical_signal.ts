@@ -1,6 +1,7 @@
 // ----- this file has been automatically generated - do not edit
+import { DataType } from "node-opcua-variant"
 import { UAAnalogSignal, UAAnalogSignal_Base } from "./ua_analog_signal"
-import { UAPatMeasurementVariable } from "./ua_pat_measurement_variable"
+import { UAAnalogSignalVariable } from "./ua_analog_signal_variable"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -10,7 +11,7 @@ import { UAPatMeasurementVariable } from "./ua_pat_measurement_variable"
  * |isAbstract      |false                                                       |
  */
 export interface UAAnalyticalSignal_Base extends UAAnalogSignal_Base {
-    analogSignal: UAPatMeasurementVariable<number>;
+    analogSignal: UAAnalogSignalVariable<number, DataType.Float>;
 }
 export interface UAAnalyticalSignal extends Omit<UAAnalogSignal, "analogSignal">, UAAnalyticalSignal_Base {
 }

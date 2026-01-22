@@ -3,7 +3,7 @@ import { LocalizedText } from "node-opcua-data-model"
 import { UAFiniteStateMachine, UAFiniteStateMachine_Base } from "node-opcua-nodeset-ua/dist/ua_finite_state_machine"
 import { UAState } from "node-opcua-nodeset-ua/dist/ua_state"
 import { UATransition } from "node-opcua-nodeset-ua/dist/ua_transition"
-import { UAFiniteStateVariable } from "node-opcua-nodeset-ua/dist/ua_finite_state_variable"
+import { UAStateVariable } from "node-opcua-nodeset-ua/dist/ua_state_variable"
 import { UAInitialState } from "node-opcua-nodeset-ua/dist/ua_initial_state"
 import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machine"
 /**
@@ -17,7 +17,7 @@ import { UAInitializingSubStateMachine } from "./ua_initializing_sub_state_machi
 export interface UAProductionStateMachine_Base extends UAFiniteStateMachine_Base {
     aborted: UAState;
     abortedToInitializing: UATransition;
-    currentState: UAFiniteStateVariable<LocalizedText>;
+    currentState: UAStateVariable<LocalizedText>;
     ended: UAState;
     endedToInitializing: UATransition;
     initializing: UAInitialState;

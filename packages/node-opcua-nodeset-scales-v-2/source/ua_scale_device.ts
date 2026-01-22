@@ -7,10 +7,10 @@ import { UAString } from "node-opcua-basic-types"
 import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UAConfigurableObject } from "node-opcua-nodeset-di/dist/ua_configurable_object"
 import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
 import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAMachineIdentification } from "node-opcua-nodeset-machinery/dist/ua_machine_identification"
 import { UAPackMLBaseStateMachine } from "node-opcua-nodeset-pack-ml/dist/ua_pack_ml_base_state_machine"
 import { DTWeight } from "./dt_weight"
 import { UAWeightItem } from "./ua_weight_item"
@@ -46,7 +46,7 @@ export interface UAScaleDevice_Base extends UAComponent_Base {
      * Used to organize parameters for identification of
      * this TopologyElement
      */
-    identification: UAMachineIdentification;
+    identification: UAFunctionalGroup;
     machineryBuildingBlocks?: UAScaleDevice_machineryBuildingBlocks;
     machineryItemState?: UAMachineryItemState_StateMachine;
     machineryOperationMode?: UAMachineryOperationModeStateMachine;

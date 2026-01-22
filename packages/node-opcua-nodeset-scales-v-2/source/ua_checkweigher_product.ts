@@ -2,7 +2,7 @@
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product"
 import { UATargetItem } from "./ua_target_item"
-import { UACheckweigherStatistic } from "./ua_checkweigher_statistic"
+import { UAStatistic } from "./ua_statistic"
 /**
  * Represents a product of a Checkweigher.
  *
@@ -27,7 +27,7 @@ export interface UACheckweigherProduct_Base extends UACatchweigherProduct_Base {
      * Contains the different statistic values of the
      * product.
      */
-    statistic?: UACheckweigherStatistic;
+    statistic?: UAStatistic;
 }
 export interface UACheckweigherProduct extends Omit<UACatchweigherProduct, "statistic">, UACheckweigherProduct_Base {
 }

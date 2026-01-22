@@ -6,9 +6,9 @@ import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
 import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification"
 export interface UAPrinterModule_machineryBuildingBlocks extends UAFolder { // Object
       machineryItemState?: UAMachineryItemState_StateMachine;
       machineryOperationMode?: UAMachineryOperationModeStateMachine;
@@ -32,7 +32,7 @@ export interface UAPrinterModule_Base extends UAComponent_Base {
      * Used to organize parameters for identification of
      * this TopologyElement
      */
-    identification: UAMachineryItemIdentification;
+    identification: UAFunctionalGroup;
     /**
      * labelLength
      * Defines the length of the labels in stock.

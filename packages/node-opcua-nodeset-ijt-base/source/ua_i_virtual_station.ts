@@ -1,6 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification"
-import { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
+import { UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_identification } from "./ua_i_joining_system_asset"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -20,7 +19,7 @@ export interface UAIVirtualStation_Base extends UAIJoiningSystemAsset_Base {
      * it with MachineIdentificationType or
      * MachineryComponentIdentificationType.
      */
-    identification: UAMachineryItemIdentification;
+    identification: UAIJoiningSystemAsset_identification;
 }
 export interface UAIVirtualStation extends Omit<UAIJoiningSystemAsset, "identification">, UAIVirtualStation_Base {
 }

@@ -1,7 +1,8 @@
 // ----- this file has been automatically generated - do not edit
 import { DTResult } from "node-opcua-nodeset-machinery-result/dist/dt_result"
 import { UAResultReadyEvent, UAResultReadyEvent_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_ready_event"
-import { UAJoiningSystemResult } from "./ua_joining_system_result"
+import { UAResult } from "node-opcua-nodeset-machinery-result/dist/ua_result"
+
 /**
  * This EventType provides information of a complete
  * or partial result from a joining system.
@@ -14,7 +15,7 @@ import { UAJoiningSystemResult } from "./ua_joining_system_result"
  * |isAbstract      |true                                                        |
  */
 export interface UAJoiningSystemResultReadyEvent_Base extends UAResultReadyEvent_Base {
-    result: UAJoiningSystemResult<DTResult>;
+    result: UAResult<DTResult>;
 }
 export interface UAJoiningSystemResultReadyEvent extends Omit<UAResultReadyEvent, "result">, UAJoiningSystemResultReadyEvent_Base {
 }
