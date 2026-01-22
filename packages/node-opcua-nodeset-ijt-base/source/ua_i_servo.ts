@@ -2,8 +2,7 @@
 import { DataType } from "node-opcua-variant"
 import { Int16 } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
-import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification"
-import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
+import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_identification } from "./ua_i_joining_system_asset"
 export interface UAIServo_parameters extends UAIJoiningSystemAsset_parameters { // Object
       /**
        * nodeNumber
@@ -32,7 +31,7 @@ export interface UAIServo_Base extends UAIJoiningSystemAsset_Base {
      * it with MachineIdentificationType or
      * MachineryComponentIdentificationType.
      */
-    identification: UAMachineryItemIdentification;
+    identification: UAIJoiningSystemAsset_identification;
     /**
      * parameters
      * The Parameters Object is an instance of

@@ -4,9 +4,9 @@ import { DataType } from "node-opcua-variant"
 import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAAnalogUnit } from "node-opcua-nodeset-ua/dist/ua_analog_unit"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
+import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UAMachineryItemState_StateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_state_state_machine"
 import { UAMachineryOperationModeStateMachine } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_mode_state_machine"
-import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification"
 import { UAMeasuredItem } from "./ua_measured_item"
 import { UATargetItem } from "./ua_target_item"
 export interface UAFeederModule_machineryBuildingBlocks extends UAFolder { // Object
@@ -49,7 +49,7 @@ export interface UAFeederModule_Base extends UAComponent_Base {
      * Used to organize parameters for identification of
      * this TopologyElement
      */
-    identification: UAMachineryItemIdentification;
+    identification: UAFunctionalGroup;
     machineryBuildingBlocks?: UAFeederModule_machineryBuildingBlocks;
     machineryItemState?: UAMachineryItemState_StateMachine;
     machineryOperationMode?: UAMachineryOperationModeStateMachine;

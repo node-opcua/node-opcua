@@ -3,8 +3,8 @@ import { DT3DFrame } from "./dt_3_d_frame"
 import { DT3DCartesianCoordinates } from "./dt_3_d_cartesian_coordinates"
 import { DT3DOrientation } from "./dt_3_d_orientation"
 import { UAFrame, UAFrame_Base } from "./ua_frame"
-import { UA3DCartesianCoordinates } from "./ua_3_d_cartesian_coordinates"
-import { UA3DOrientation } from "./ua_3_d_orientation"
+import { UACartesianCoordinates } from "./ua_cartesian_coordinates"
+import { UAOrientation } from "./ua_orientation"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -17,8 +17,8 @@ import { UA3DOrientation } from "./ua_3_d_orientation"
  * |isAbstract      |false                                                       |
  */
 export interface UA3DFrame_Base<T extends DT3DFrame>  extends UAFrame_Base<T> {
-    cartesianCoordinates: UA3DCartesianCoordinates<DT3DCartesianCoordinates>;
-    orientation: UA3DOrientation<DT3DOrientation>;
+    cartesianCoordinates: UACartesianCoordinates<DT3DCartesianCoordinates>;
+    orientation: UAOrientation<DT3DOrientation>;
 }
 export interface UA3DFrame<T extends DT3DFrame> extends Omit<UAFrame<T>, "cartesianCoordinates"|"orientation">, UA3DFrame_Base<T> {
 }
