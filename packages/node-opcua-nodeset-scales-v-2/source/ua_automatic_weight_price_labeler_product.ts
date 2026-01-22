@@ -4,7 +4,7 @@ import { DataType } from "node-opcua-variant"
 import { DTCurrencyUnit } from "node-opcua-nodeset-ua/dist/dt_currency_unit"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UACatchweigherProduct, UACatchweigherProduct_Base } from "./ua_catchweigher_product"
-import { UAPriceItem } from "./ua_price_item"
+import { UAWeighingItem } from "./ua_weighing_item"
 export interface UAAutomaticWeightPriceLabelerProduct_unitPrice<T, DT extends DataType> extends UABaseDataVariable<T, DT> { // Variable
       currencyUnit: UAProperty<DTCurrencyUnit, DataType.ExtensionObject>;
 }
@@ -20,7 +20,7 @@ export interface UAAutomaticWeightPriceLabelerProduct_unitPrice<T, DT extends Da
  * |isAbstract      |false                                                       |
  */
 export interface UAAutomaticWeightPriceLabelerProduct_Base extends UACatchweigherProduct_Base {
-    lastItem?: UAPriceItem;
+    lastItem?: UAWeighingItem;
     /**
      * unitPrice
      * Defines the price per weight unit.

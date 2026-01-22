@@ -602,9 +602,9 @@ export async function extractClassMemberDef(
             assert(innerClass);
             assert(childBase);
         } else {
-            // may not expose definition  but we may want to used the augment typescript class defined in the definition
-            // we don't need to create an inner class ...
-            // xxxx NOT HERE childType = sameMemberInBaseClass ? sameMemberInBaseClass?.childType : childType;
+            if (sameMemberInBaseClass && sameMemberInBaseClass.childType.name !== childType.name) {
+                childType = sameMemberInBaseClass.childType;
+            }
             assert(!innerClass);
             assert(!childBase);
         }
@@ -647,6 +647,29 @@ export async function extractClassMemberDef(
             ...classMember,
             ...extra
         };
+        
+        const baseParentDef2 = parentDef.superType && parentDef.baseClassDef;
+        if (baseParentDef2) {
+            const sameMemberInBase = baseParentDef2.members.find(
+                (m) => m.browseName.toString() === browseName.toString()
+            );
+            if (sameMemberInBase && sameMemberInBase.childType.name === classMember.childType.name 
+                && sameMemberInBase.childType.name !== typeDefinition.browseName.name?.toString()) {
+                // childType was inherited from base (e.g., UADiscreteItem instead of UATwoStateDiscrete)
+                // Recalculate suffix based on base class's classDef
+                if (sameMemberInBase.classDef && classMember.dataType !== undefined) {
+                    const baseTypeHasUnspecifiedDataType = 
+                        sameMemberInBase.classDef.dataType === DataType.Null || 
+                        sameMemberInBase.classDef.dataType === DataType.Variant;
+                    
+                    if (baseTypeHasUnspecifiedDataType && classMember.dataType !== DataType.Null && classMember.dataType !== DataType.Variant) {
+                        // Base type is generic (2 params), current has specific dataType
+                        // Generate: <specificType, DataType.SpecificType>
+                        classMember.suffixInstantiate = `<${classMember.jtype}, DataType.${DataType[classMember.dataType]}>`;
+                    }
+                }
+            }
+        }
     }
 
     return classMember;
