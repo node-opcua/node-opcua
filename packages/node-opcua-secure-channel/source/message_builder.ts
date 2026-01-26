@@ -14,8 +14,6 @@ import {
     decryptBufferWithDerivedKeys,
     makeSHA1Thumbprint,
     PrivateKey,
-    reduceLength,
-    removePadding,
     verifyChunkSignatureWithDerivedKeys
 } from "node-opcua-crypto/web";
 import { checkDebugFlag, hexDump, make_debugLog, make_warningLog } from "node-opcua-debug";
@@ -38,6 +36,7 @@ import { SymmetricAlgorithmSecurityHeader } from "./secure_channel_service";
 import { chooseSecurityHeader, SecurityHeader } from "./secure_message_chunk_manager";
 import { asymmetricVerifyChunk, coerceSecurityPolicy, getCryptoFactory, SecurityPolicy } from "./security_policy";
 import { IDerivedKeyProvider } from "./token_stack";
+import { reduceLength, removePadding } from "./utils";
 
 const debugLog = make_debugLog("SecureChannel");
 const doDebug = checkDebugFlag("SecureChannel");
@@ -391,8 +390,8 @@ export class MessageBuilder extends MessageBuilderBase {
                     const requestHandle = o.responseHeader
                         ? o.responseHeader.requestHandle
                         : o.requestHeader
-                          ? o.requestHeader.requestHandle
-                          : "";
+                            ? o.requestHeader.requestHandle
+                            : "";
 
                     debugLog(
                         this.id,
@@ -543,7 +542,7 @@ export class MessageBuilder extends MessageBuilderBase {
         if (asymmetricAlgorithmSecurityHeader.receiverCertificateThumbprint) {
             if (this.securityMode === MessageSecurityMode.None) {
                 warningLog("receiverCertificateThumbprint is not null but securityMode is None");
-            } 
+            }
             // this mean that the message has been encrypted ....
 
             assert(this.#privateKey !== invalidPrivateKey, "expecting a valid private key");
@@ -569,7 +568,7 @@ export class MessageBuilder extends MessageBuilderBase {
                 debugLog("Certificate thumbprint:", thumbprint.toString("hex"));
             }
         } else {
-            if (this.securityMode !== MessageSecurityMode.None){
+            if (this.securityMode !== MessageSecurityMode.None) {
                 return this._report_error(
                     StatusCodes2.BadTcpInternalError,
                     "Expecting a encrypted OpenSecureChannel message as securityMode is not None"
