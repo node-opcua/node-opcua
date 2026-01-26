@@ -6,7 +6,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc -b",
-        "test": "exit 0 ",
+        "test": "mocha test",
         "clean": "npx rimraf -g node_modules dist *.tsbuildinfo",
         "lint": "eslint source/**/*.ts"
     },
@@ -19,7 +19,8 @@
         "node-opcua-packet-assembler": "2.157.0"
     },
     "devDependencies": {
-        "node-opcua-debug": "2.157.0"
+        "node-opcua-debug": "2.157.0",
+        "node-opcua-benchmarker": "2.157.0"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
