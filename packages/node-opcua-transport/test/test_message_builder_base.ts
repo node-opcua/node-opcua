@@ -1,12 +1,13 @@
 /* eslint-disable import/order */
 "use strict";
+import "should";
 import sinon from "sinon";
 import { BinaryStream } from "node-opcua-binary-stream";
 import { compare_buffers } from "node-opcua-utils";
 import { MessageBuilderBase, writeTCPMessageHeader } from "../source";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
 
-function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" |"F" |"C") {
+function wrap_message_in_chunk(subarray: Buffer, chunkType: "A" | "F" | "C") {
     const total_length = subarray.length + 12;
     const buf = Buffer.allocUnsafe(total_length);
     const stream = new BinaryStream(buf);
@@ -103,7 +104,7 @@ describe("MessageBuilderBase", function () {
     it("should not allow message bigger than maxMessageSize ", function (done) {
 
         const builder = new MessageBuilderBase({
-            maxChunkCount:  1000,
+            maxChunkCount: 1000,
             maxMessageSize: 4 * 1024,
         });
 
@@ -138,7 +139,7 @@ describe("MessageBuilderBase", function () {
         onFullMessageBodySpy.callCount.should.eql(0);
 
         onErrorSpy.getCall(0).args[0].should.match(/maxMessageSize/);
-        
+
         done();
 
     });
