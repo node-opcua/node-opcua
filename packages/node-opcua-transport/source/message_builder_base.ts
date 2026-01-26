@@ -189,7 +189,7 @@ export class MessageBuilderBase extends EventEmitter {
         return true;
     }
 
-    protected  _read_headers(binaryStream: BinaryStream): boolean {
+    protected _read_headers(binaryStream: BinaryStream): boolean {
         try {
             this.messageHeader = readMessageHeader(binaryStream);
             // assert(binaryStream.length === 8, "expecting message header to be 8 bytes");
