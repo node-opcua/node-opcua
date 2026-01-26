@@ -17,7 +17,7 @@
         "fix:tsconfig": "node ../../code_gen/extract-modules.js tsconfig_base.json"
     },
     "dependencies": {
-        "@types/lodash": "4.17.22",
+        "@types/lodash": "4.17.23",
         "@types/semver": "7.7.1",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",

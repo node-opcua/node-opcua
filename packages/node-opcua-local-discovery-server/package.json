@@ -28,7 +28,7 @@
         "internet of things"
     ],
     "dependencies": {
-        "@inquirer/prompts": "8.1.0",
+        "@inquirer/prompts": "8.2.0",
         "env-paths": "2.2.1",
         "node-opcua": "2.161.0",
         "node-opcua-debug": "2.157.0",

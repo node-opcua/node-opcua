@@ -12,7 +12,7 @@
     "types": "./dist/index.d.ts",
     "dependencies": {
         "chalk": "4.1.2",
-        "memfs": "^4.51.1",
+        "memfs": "^4.56.2",
         "node-opcua-address-space": "2.161.0",
         "node-opcua-address-space-base": "2.161.0",
         "node-opcua-assert": "2.157.0",
