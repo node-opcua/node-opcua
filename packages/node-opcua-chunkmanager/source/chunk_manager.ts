@@ -147,7 +147,7 @@ export class ChunkManager extends EventEmitter {
             // this is the formula proposed  by OPCUA
             this.maxBodySize =
                 this.plainBlockSize *
-                    Math.floor((this.chunkSize - this.headerSize - this.signatureLength - 1) / this.cipherBlockSize) -
+                Math.floor((this.chunkSize - this.headerSize - this.signatureLength - 1) / this.cipherBlockSize) -
                 this.sequenceHeaderSize;
 
             // this is the formula proposed  by ERN
@@ -308,10 +308,10 @@ export class ChunkManager extends EventEmitter {
         this.#chunk!.writeUInt8(nbPaddingByte, this.#cursor + this.#dataOffset);
         this.#cursor += 1;
 
-        for (let i = 0; i < nbPaddingByteTotal; i++) {
-            this.#chunk!.writeUInt8(nbPaddingByte, this.#cursor + this.#dataOffset + i);
+        if (nbPaddingByteTotal > 0) {
+            this.#chunk!.fill(nbPaddingByte, this.#cursor + this.#dataOffset, this.#cursor + this.#dataOffset + nbPaddingByteTotal);
+            this.#cursor += nbPaddingByteTotal;
         }
-        this.#cursor += nbPaddingByteTotal;
 
         if (this.plainBlockSize > 256) {
             this.#chunk!.writeUInt8(extraNbPaddingByte, this.#cursor + this.#dataOffset);
