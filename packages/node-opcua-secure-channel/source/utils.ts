@@ -401,3 +401,12 @@ export function traceClientResponseMessage(response: Response, channelId: number
         additionalInfo(response)
     );
 }
+
+export function reduceLength(buffer: Buffer, byteToRemove: number): Buffer {
+    return buffer.subarray(0, buffer.length - byteToRemove);
+}
+
+export function removePadding(buffer: Buffer): Buffer {
+    const nbPaddingBytes = buffer.readUInt8(buffer.length - 1) + 1;
+    return reduceLength(buffer, nbPaddingBytes);
+}
