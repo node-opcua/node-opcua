@@ -15,6 +15,7 @@
         "node-opcua-assert": "2.157.0",
         "node-opcua-debug": "2.157.0"
     },
+    "devDependencies": {},
     "repository": {
         "type": "git",
         "url": "git://github.com/node-opcua/node-opcua.git"
