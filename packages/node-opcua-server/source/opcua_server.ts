@@ -1878,7 +1878,7 @@ export class OPCUAServer extends OPCUABaseServer {
         }
         if (nonceAlreadyBeenUsed(request.clientNonce)) {
             errorLog(
-                chalk.red("SERVER with secure connection: None has already been used"),
+                chalk.red("SERVER with secure connection: Nonce has already been used"),
                 request.clientNonce && request.clientNonce.toString("hex")
             );
 
