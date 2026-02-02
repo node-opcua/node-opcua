@@ -13,7 +13,7 @@ import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { IBasicSessionAsync, IBasicSessionAsync2 } from "node-opcua-pseudo-session";
+import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
 import { ExtraDataTypeManager, resolveOpaqueStructureInExtensionObject } from "node-opcua-client-dynamic-extension-object";
 
 import { AddressSpace, ensureDatatypeExtracted, PseudoSession, UADataType, UAVariable } from "..";
@@ -520,13 +520,13 @@ describe("testing NodeSet XML file loading", function (this: any) {
             const communicationLink = addressSpace.constructExtensionObject(pubSubcommunicationLinksDatType, {
                 field1: 1,
                 field2: 2,
-                field3: { dataType: DataType.Int32, value: 3 }
+                field3: new Variant({ dataType: DataType.Int32, value: 3 })
             });
             (communicationLink as any).field1.should.eql(1);
             (communicationLink as any).field2.should.eql(2);
             (communicationLink as any).field3.dataType.should.eql(DataType.Int32);
             (communicationLink as any).field3.value.should.eql(3);
-            (communicationLink as any).field3.should.be.instanceOf(Variant);
+            (communicationLink as any).field3.constructor.name.should.eql("Variant");
 
             await testEncodeDecode(communicationLink, pubSubcommunicationLinksDatType, session);
         });
