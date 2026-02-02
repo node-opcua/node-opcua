@@ -40,6 +40,7 @@ import { make_warningLog } from "node-opcua-debug";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { _enumerationDataType, DataType } from "./DataType_enum";
 import { _enumerationVariantArrayType, VariantArrayType } from "./VariantArrayType_enum";
+export { VariantArrayType };
 // tslint:disable:no-bitwise
 
 const warningLog = make_warningLog(__filename);
@@ -419,7 +420,7 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             // we do nothing here ....
             throw new Error(
                 "Variant#constructor : when using UInt64 ou Int64" +
-                    " arrayType must be specified , as automatic detection cannot be made"
+                " arrayType must be specified , as automatic detection cannot be made"
             );
         } else {
             options.arrayType = VariantArrayType.Array;
@@ -448,11 +449,11 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
             if (options.value.length != 0 && options.value.length !== calculate_product(options.dimensions)) {
                 throw new Error(
                     "Matrix Variant : invalid value size = options.value.length " +
-                        options.value.length +
-                        "!=" +
-                        calculate_product(options.dimensions) +
-                        " => " +
-                        JSON.stringify(options.dimensions)
+                    options.value.length +
+                    "!=" +
+                    calculate_product(options.dimensions) +
+                    " => " +
+                    JSON.stringify(options.dimensions)
                 );
             }
         }
@@ -467,14 +468,14 @@ function constructHook(options: VariantOptions | Variant): VariantOptions2 {
         if (!isValidVariant(options.arrayType, options.dataType, options.value, null)) {
             throw new Error(
                 "Invalid variant arrayType: " +
-                    VariantArrayType[options.arrayType] +
-                    "  dataType: " +
-                    DataType[options.dataType] +
-                    " value:" +
-                    options.value +
-                    " (javascript type = " +
-                    typeof options.value +
-                    " )"
+                VariantArrayType[options.arrayType] +
+                "  dataType: " +
+                DataType[options.dataType] +
+                " value:" +
+                options.value +
+                " (javascript type = " +
+                typeof options.value +
+                " )"
             );
         }
     }
@@ -533,7 +534,7 @@ export type BufferedArray2 =
 
 interface BufferedArrayConstructor {
     BYTES_PER_ELEMENT: number;
-    new (buffer: any): any;
+    new(buffer: any, byteOffset?: number, length?: number): any;
 }
 
 function convertTo(dataType: DataType, arrayTypeConstructor: BufferedArrayConstructor | null, value: any) {
@@ -638,10 +639,12 @@ function decodeTypedArray(arrayTypeConstructor: BufferedArrayConstructor, stream
         );
     }
     const byteLength = length * arrayTypeConstructor.BYTES_PER_ELEMENT;
-    const arr = stream.readArrayBuffer(byteLength);
-    const value = new arrayTypeConstructor(arr.buffer);
-    assert(value.length === length);
-    return value;
+    const buffer = stream.readBuffer(byteLength);
+    if (buffer.byteOffset % arrayTypeConstructor.BYTES_PER_ELEMENT === 0) {
+        return new arrayTypeConstructor(buffer.buffer, buffer.byteOffset, length);
+    }
+    const copy = new Uint8Array(buffer);
+    return new arrayTypeConstructor(copy.buffer, copy.byteOffset, length);
 }
 
 function decodeGeneralArray(dataType: DataType, stream: BinaryStream) {
@@ -821,10 +824,10 @@ export function coerceVariantType(dataType: DataType, value: undefined | any): a
 function isValidScalarVariant(dataType: DataType, value: any): boolean {
     assert(
         value === null ||
-            DataType.Int64 === dataType ||
-            DataType.ByteString === dataType ||
-            DataType.UInt64 === dataType ||
-            !(value instanceof Array)
+        DataType.Int64 === dataType ||
+        DataType.ByteString === dataType ||
+        DataType.UInt64 === dataType ||
+        !(value instanceof Array)
     );
     assert(value === null || !(value instanceof Int32Array));
     assert(value === null || !(value instanceof Uint32Array));
@@ -993,7 +996,7 @@ function __check_same_object(o1: any, o2: any): boolean {
             return true;
         }
         case "[object BigInt64Array]":
-        case "[object BigUint64Array]": 
+        case "[object BigUint64Array]":
         case "[object Uint8ClampedArray]":
 
         case "[object Float32Array]":
@@ -1008,9 +1011,9 @@ function __check_same_object(o1: any, o2: any): boolean {
             const b2 = Buffer.from(o2.buffer, o2.byteOffset, o2.byteLength);
             return b1.equals(b2);
         }
-        case "[object BigInt]": 
-           return o1 === o2;
-        case "[object Date]": 
+        case "[object BigInt]":
+            return o1 === o2;
+        case "[object Date]":
             return o1.getTime() == o2.getTime();
         default:
             return o1 === o2;
