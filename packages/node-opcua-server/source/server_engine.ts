@@ -412,13 +412,16 @@ export class ServerEngine extends EventEmitter implements IAddressSpaceAccessor 
         options.serverCapabilities.serverProfileArray = options.serverCapabilities.serverProfileArray || [
             "http://opcfoundation.org/UA-Profile/Server/Standard", // Standard UA Server Profile",
             "http://opcfoundation.org/UA-Profile/Server/DataAccess",
-            "http://opcfoundation.org/UA-Profile/Server/Events",
+            "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017",
+             "http://opcfoundation.org/UA-Profile/Server/Events",
             "http://opcfoundation.org/UA-Profile/Client/HistoricalAccess",
             "http://opcfoundation.org/UA-Profile/Server/Methods",
             "http://opcfoundation.org/UA-Profile/Server/StandardEventSubscription",
             "http://opcfoundation.org/UA-Profile/Transport/uatcp-uasc-uabinary",
             "http://opcfoundation.org/UA-Profile/Server/FileAccess",
-            "http://opcfoundation.org/UA-Profile/Server/StateMachine"
+            "http://opcfoundation.org/UA-Profile/Server/StateMachine",
+            
+       
             // "http://opcfoundation.org/UA-Profile/Transport/wss-uajson",
             // "http://opcfoundation.org/UA-Profile/Transport/wss-uasc-uabinary"
             // "http://opcfoundation.org/UA-Profile/Server/DurableSubscription"

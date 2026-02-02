@@ -4,7 +4,7 @@ import {
     IBasicSessionAsync2,
     browseAll
 } from "node-opcua-pseudo-session";
-import { DataTypeIds, ObjectIds, VariableTypeIds } from "node-opcua-constants";
+import { DataTypeIds, ObjectIds, VariableIds, VariableTypeIds } from "node-opcua-constants";
 import { DataType } from "node-opcua-variant";
 import { ReferenceDescription } from "node-opcua-types";
 import { makeBrowsePath } from "node-opcua-service-translate-browse-path";
@@ -13,12 +13,29 @@ import { ExtraDataTypeManager } from "./extra_data_type_manager";
 import { populateDataTypeManager103 } from "./private/populate_data_type_manager_103";
 import { populateDataTypeManager104 } from "./private/populate_data_type_manager_104";
 
+
+const ComplexTypes2017 = "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017";
 /**
  * @private
  */
 export async function serverImplementsDataTypeDefinition(
     session: IBasicSessionAsync2
 ): Promise<boolean> {
+
+
+    const dataValueServerCapabilities = await session.read({
+        nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_ServerProfileArray),
+        attributeId: AttributeIds.Value
+    });
+    const serverCapabilities = dataValueServerCapabilities.value.value as string[] ?? [];
+
+    //read the capabilities
+    // https://profiles.opcfoundation.org/profile/1725
+    // and find http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017
+   if (serverCapabilities.indexOf(ComplexTypes2017) >= 0) {
+        return true;
+    }
+
     // One way to figure out is to check if the server provides DataTypeDefinition node
     // ( see OPCUA 1.04 part 6 -)
     // This is the preferred route, as we go along, more and more servers will implement this.
@@ -29,9 +46,8 @@ export async function serverImplementsDataTypeDefinition(
         nodeId: resolveNodeId(ObjectIds.OPCBinarySchema_TypeSystem),
         resultMask: ResultMask.TypeDefinition
     });
-
+ 
     let count103DataType = 0;
-
     const innerF = async (ref: ReferenceDescription) => {
         const td = ref.typeDefinition;
         if (!(td.namespace === 0 && td.value === VariableTypeIds.DataTypeDictionaryType)) {
