@@ -2,7 +2,7 @@
 import { UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { UAString } from "node-opcua-basic-types"
-import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device"
+import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 /**
  * Components mounted in a controller cabinet or a
  * motion device e.g. an IO-board or a power supply.
@@ -14,7 +14,8 @@ import { UADevice, UADevice_Base } from "node-opcua-nodeset-di/dist/ua_device"
  * |typedDefinition |AuxiliaryComponentType i=17725                              |
  * |isAbstract      |false                                                       |
  */
-export interface UAAuxiliaryComponent_Base extends UADevice_Base {
+export interface UAAuxiliaryComponent_Base extends UAComponent_Base {
+    assetId?: UAProperty<UAString, DataType.String>;
     /**
      * productCode
      * The ProductCode property provides a unique
@@ -25,5 +26,5 @@ export interface UAAuxiliaryComponent_Base extends UADevice_Base {
      */
     productCode: UAProperty<UAString, DataType.String>;
 }
-export interface UAAuxiliaryComponent extends Omit<UADevice, "productCode">, UAAuxiliaryComponent_Base {
+export interface UAAuxiliaryComponent extends Omit<UAComponent, "assetId"|"productCode">, UAAuxiliaryComponent_Base {
 }

@@ -5,7 +5,7 @@ import { UAString } from "node-opcua-basic-types"
 import { UAIStatistics, UAIStatistics_Base } from "./ua_i_statistics"
 /**
  * Base interface for managing statistical data that
- * is not rolled over all data from the start of
+ * is not rolled over. All data from the start of
  * tracking the statistical data are considered,
  * until the tracking gets reset.
  *

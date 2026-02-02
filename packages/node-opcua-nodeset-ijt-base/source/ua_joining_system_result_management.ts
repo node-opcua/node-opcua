@@ -1,4 +1,5 @@
 // ----- this file has been automatically generated - do not edit
+import { UAMethod } from "node-opcua-address-space-base"
 import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-machinery-result/dist/ua_result_management"
 /**
@@ -15,6 +16,8 @@ import { UAResultManagement, UAResultManagement_Base } from "node-opcua-nodeset-
  * |isAbstract      |false                                                       |
  */
 export interface UAJoiningSystemResultManagement_Base extends UAResultManagement_Base {
+    requestResults?: UAMethod;
+    requestUnacknowledgedResults?: UAMethod;
     results?: UAFolder;
 }
 export interface UAJoiningSystemResultManagement extends Omit<UAResultManagement, "results">, UAJoiningSystemResultManagement_Base {

@@ -35,7 +35,7 @@
     <Uri>http://opcfoundation.org/UA/IA/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.04.0" PublicationDate="2025-07-01T00:00:00Z" ModelVersion="1.4.0">
+    <Model ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.04.1" PublicationDate="2026-01-01T00:00:00Z" ModelVersion="1.4.1">
       <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.02" PublicationDate="2022-10-01T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.04.0" PublicationDate="2022-11-03T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.2" PublicationDate="2024-02-28T00:00:00Z" />
@@ -72,7 +72,7 @@
   </Aliases>
   <Extensions>
     <Extension>
-      <ua:ModelInfo Version="1.7.1" Hash="7+JOdkqACBqDe3KmOgNbPw==" Tool="UaModeler" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
+      <ua:ModelInfo Tool="UaModeler" Version="1.8.1" Hash="wMYTpAsaXyFJzX3vC1ZKJg==" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
     </Extension>
   </Extensions>
   <UAObjectType NodeId="ns=1;i=1011" BrowseName="1:IMachineTagNameplateType" IsAbstract="true">
@@ -81,8 +81,8 @@
     <Category>Machinery Machine Identification</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/8.5</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15048</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
       <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1012</Reference>
     </References>
   </UAObjectType>
@@ -90,8 +90,8 @@
     <DisplayName>Location</DisplayName>
     <Description>To be used by end users to store the location of the machine in a scheme specific to the end user Servers shall support at least 60 Unicode characters for the clients writing this value, this means clients can expect to be able to write strings with a length of 60 Unicode characters into that field.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1011</Reference>
     </References>
   </UAVariable>
@@ -101,10 +101,10 @@
     <Category>Machinery MachineryEquipment</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/17.3</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1011</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6107</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6109</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6108</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1011</Reference>
       <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAObjectType>
@@ -112,8 +112,8 @@
     <DisplayName>Description</DisplayName>
     <Description>Additional information and description about the MachineryEquipment. Should be used if Description Attribute cannot be written via OPC UA and should be ideally identical to Description Attribute.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1007</Reference>
     </References>
   </UAVariable>
@@ -121,8 +121,8 @@
     <DisplayName>EquipmentLife</DisplayName>
     <Description>Lifetime indication of the MachineryEquipment.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">ns=2;i=468</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">ns=2;i=468</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6112</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6110</Reference>
@@ -132,8 +132,8 @@
   <UAVariable NodeId="ns=1;i=6112" BrowseName="EngineeringUnits" ParentNodeId="ns=1;i=6109" DataType="EUInformation">
     <DisplayName>EngineeringUnits</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6109</Reference>
     </References>
   </UAVariable>
@@ -141,8 +141,8 @@
     <DisplayName>LimitValue</DisplayName>
     <Description>LimitValue indicates when the end of lifetime has been reached.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6109</Reference>
     </References>
   </UAVariable>
@@ -150,8 +150,8 @@
     <DisplayName>StartValue</DisplayName>
     <Description>StartValue indicates the initial value, when there is still the full lifetime left.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6109</Reference>
     </References>
   </UAVariable>
@@ -159,8 +159,8 @@
     <DisplayName>MachineryEquipmentTypeId</DisplayName>
     <Description>Identification of a generic MachineryEquipment. Defined by each company (e.g., company has an MachineryEquipmentTypeId for all 8 mm drills).</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1007</Reference>
     </References>
   </UAVariable>
@@ -171,12 +171,12 @@
     <Category>Machinery Component Identification</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/8.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15035</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6022</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6025</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=15035</Reference>
       <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAObjectType>
@@ -184,8 +184,8 @@
     <DisplayName>InitialOperationDate</DisplayName>
     <Description>The date, when the MachineryItem was switched on the first time after it has left the manufacturer plant.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAVariable>
@@ -193,8 +193,8 @@
     <DisplayName>Manufacturer</DisplayName>
     <Description>A human-readable, localized name of the manufacturer of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAVariable>
@@ -202,8 +202,8 @@
     <DisplayName>MonthOfConstruction</DisplayName>
     <Description>The month in which the manufacturing process of the MachineryItem has been completed. It shall be a number between 1 and 12, representing the month from January to December.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAVariable>
@@ -211,8 +211,8 @@
     <DisplayName>SerialNumber</DisplayName>
     <Description>A string containing a unique production number of the manufacturer of the MachineryItem. The global uniqueness of the serial number is only given in the context of the manufacturer, and potentially the model. The value shall not change during the life-cycle of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAVariable>
@@ -220,8 +220,8 @@
     <DisplayName>YearOfConstruction</DisplayName>
     <Description>The year (Gregorian calendar) in which the manufacturing process of the MachineryItem has been completed. It shall be a four-digit number and never change during the life-cycle of a MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1003</Reference>
     </References>
   </UAVariable>
@@ -231,8 +231,8 @@
     <Category>Machinery Machine Identification</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/8.4</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
       <Reference ReferenceType="HasInterface" IsForward="false">ns=1;i=1012</Reference>
     </References>
   </UAObjectType>
@@ -240,8 +240,8 @@
     <DisplayName>ProductInstanceUri</DisplayName>
     <Description>A globally unique resource identifier provided by the manufacturer of the machine</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1010</Reference>
     </References>
   </UAVariable>
@@ -252,12 +252,15 @@
     <Category>Machinery Component Identification</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/8.3</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6088</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6012</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6010</Reference>
+      <Reference ReferenceType="HasInterface">ns=1;i=1003</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
+      <Reference ReferenceType="HasInterface">ns=2;i=15048</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
@@ -267,17 +270,14 @@
       <Reference ReferenceType="HasProperty">ns=1;i=6003</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1005</Reference>
-      <Reference ReferenceType="HasInterface">ns=1;i=1003</Reference>
-      <Reference ReferenceType="HasInterface">ns=2;i=15048</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6013" BrowseName="2:AssetId" ParentNodeId="ns=1;i=1004" DataType="String" AccessLevel="3">
     <DisplayName>AssetId</DisplayName>
     <Description>To be used by end users to store a unique identification in the context of their overall application. Servers shall support at least 40 Unicode characters for the clients writing this value, this means clients can expect to be able to write strings with a length of 40 Unicode characters into that field.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
     <Value>
@@ -288,8 +288,8 @@
     <DisplayName>ComponentName</DisplayName>
     <Description>To be used by end users to store a human-readable localized text for the MachineryItem. The minimum number of locales supported for this property shall be two. Servers shall support at least 40 Unicode characters for the clients writing the text part of each locale, this means clients can expect to be able to write texts with a length of 40 Unicode characters into that field.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
     <Value>
@@ -314,8 +314,8 @@
     <DisplayName>DeviceClass</DisplayName>
     <Description>Indicates in which domain or for what purpose the MachineryItem is used.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -323,8 +323,8 @@
     <DisplayName>HardwareRevision</DisplayName>
     <Description>A string representation of the revision level of the hardware of a MachineryItem. Hardware is physical equipment, as opposed to programs, procedures, rules and associated documentation. Many machines will not provide such information due to the modular and configurable nature of the machine.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -332,8 +332,8 @@
     <DisplayName>InitialOperationDate</DisplayName>
     <Description>The date, when the MachineryItem was switched on the first time after it has left the manufacturer plant.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -341,8 +341,8 @@
     <DisplayName>Manufacturer</DisplayName>
     <Description>A human-readable, localized name of the manufacturer of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -350,8 +350,8 @@
     <DisplayName>ManufacturerUri</DisplayName>
     <Description>A globally unique identifier of the manufacturer of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -359,8 +359,8 @@
     <DisplayName>Model</DisplayName>
     <Description>A human-readable, localized name of the model of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -368,8 +368,8 @@
     <DisplayName>MonthOfConstruction</DisplayName>
     <Description>The month in which the manufacturing process of the MachineryItem has been completed. It shall be a number between 1 and 12, representing the month from January to December.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -377,8 +377,8 @@
     <DisplayName>ProductCode</DisplayName>
     <Description>A machine-readable string of the model of the MachineryItem, that might include options like the hardware configuration of the model. This information might be provided by the ERP system of the vendor. For example, it can be used as order information.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -386,8 +386,8 @@
     <DisplayName>ProductInstanceUri</DisplayName>
     <Description>A globally unique resource identifier provided by the manufacturer of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -395,8 +395,8 @@
     <DisplayName>SerialNumber</DisplayName>
     <Description>A string containing a unique production number of the manufacturer of the MachineryItem. The global uniqueness of the serial number is only given in the context of the manufacturer, and potentially the model. The value shall not change during the life-cycle of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -404,8 +404,8 @@
     <DisplayName>SoftwareRevision</DisplayName>
     <Description>A string representation of the revision level of a MachineryItem. In most cases, MachineryItems consist of several software components. In that case, information about the software components might be provided as additional information in the address space, including individual revision information. In that case, this property is either not provided or provides an overall software revision level. The value might change during the life-cycle of a MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -413,8 +413,8 @@
     <DisplayName>YearOfConstruction</DisplayName>
     <Description>The year (Gregorian calendar) in which the manufacturing process of the MachineryItem has been completed. It shall be a four-digit number and never change during the life-cycle of a MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAVariable>
@@ -424,12 +424,12 @@
     <Category>Machinery Machine Identification</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/8.6</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6030</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6029</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6015</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1004</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6030</Reference>
       <Reference ReferenceType="HasInterface">ns=1;i=1011</Reference>
       <Reference ReferenceType="HasInterface">ns=1;i=1010</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6029</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6015</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6030" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1012" DataType="QualifiedName">
@@ -450,8 +450,8 @@
     <DisplayName>Location</DisplayName>
     <Description>To be used by end users to store the location of the machine in a scheme specific to the end user. Servers shall support at least 60 Unicode characters for the clients writing this value, this means clients can expect to be able to write strings with a length of 60 Unicode characters into that field.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1012</Reference>
     </References>
   </UAVariable>
@@ -459,8 +459,8 @@
     <DisplayName Locale="en">ProductInstanceUri</DisplayName>
     <Description>A globally unique resource identifier provided by the manufacturer of the machine</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1012</Reference>
     </References>
   </UAVariable>
@@ -470,9 +470,9 @@
     <Category>Machinery Component Identification</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/10.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6016</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6017</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1004</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6016" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1005" DataType="QualifiedName" AccessLevel="3">
@@ -493,8 +493,8 @@
     <DisplayName>DeviceRevision</DisplayName>
     <Description>A string representation of the overall revision level of the component. Often, it is increased when either the SoftwareRevision and / or the HardwareRevision of the component is increased. As an example, it can be used in ERP systems together with the ProductCode.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1005</Reference>
     </References>
   </UAVariable>
@@ -503,12 +503,12 @@
     <Category>Machinery Operation Counter</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/14.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1005</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6082</Reference>
+      <Reference ReferenceType="HasInterface">ns=2;i=480</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6081</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6080</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6079</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=1005</Reference>
-      <Reference ReferenceType="HasInterface">ns=2;i=480</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6082" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1009" DataType="QualifiedName" AccessLevel="3">
@@ -529,8 +529,8 @@
     <DisplayName>OperationCycleCounter</DisplayName>
     <Description>OperationCycleCounter is counting the times the component switches from not performing an activity to performing an activity. For example, each time a valve starts moving, is counted. This value shall only increase during the lifetime of the component and shall not be reset when the component is restarted.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1009</Reference>
     </References>
   </UAVariable>
@@ -538,8 +538,8 @@
     <DisplayName>OperationDuration</DisplayName>
     <Description>OperationDuration is the duration the MachineryItem has been powered and performing an activity. This counter is intended for machines and components where a distinction is made between switched on and in operation. For example, a drive might be powered on but not operating. It is not intended for machines or components always performing an activity like sensors always measuring data. This value shall only increase during the lifetime of the MachineryItem and shall not be reset when it is restarted. The OperationDuration is provided as Duration, i.e., in milliseconds or even fractions of a millisecond. However, the Server is not expected to update the value in such a high frequency, but maybe once a minute or once an hour, depending on the application.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1009</Reference>
     </References>
   </UAVariable>
@@ -547,8 +547,8 @@
     <DisplayName>PowerOnDuration</DisplayName>
     <Description>PowerOnDuration is the duration the MachineryItem has been powered. The main purpose is to determine the time in which degradation of the MachineryItem occurred. The details, when the time is counted, is implementation-specific. Companion specifications might define specific rules. Typically, when the MachineryItem has supply voltage and the main CPU is running, the time is counted. This may include any kind of sleep mode, but may not include pure Wake on LAN. This value shall only increase during the lifetime of the MachineryItem and shall not be reset when it is restarted. The PowerOnDuration is provided as Duration, i.e., in milliseconds or even fractions of a millisecond. However, the Server is not expected to update the value in such a high frequency, but maybe once a minute or once an hour, depending on the application.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=1009</Reference>
     </References>
   </UAVariable>
@@ -558,37 +558,37 @@
     <Category>Machinery MachineryEquipment</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/17.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5052</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6105</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
     </References>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5052" BrowseName="1:&lt;MachineryEquipment&gt;" SymbolicName="MachineryEquipment" ParentNodeId="ns=1;i=1013">
     <DisplayName>&lt;MachineryEquipment&gt;</DisplayName>
     <Description>Placeholder for MachineryEquipment that implements the IMachineryEquipmentType.</Description>
     <References>
+      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1013</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6096</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6097</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6098</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6099</Reference>
+      <Reference ReferenceType="HasInterface">ns=1;i=1007</Reference>
+      <Reference ReferenceType="HasInterface">ns=2;i=15035</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6100</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6101</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6102</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6103</Reference>
-      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
-      <Reference ReferenceType="HasInterface">ns=1;i=1007</Reference>
-      <Reference ReferenceType="HasInterface">ns=2;i=15035</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6104</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1013</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6096" BrowseName="2:AssetId" ParentNodeId="ns=1;i=5052" DataType="String" AccessLevel="3">
     <DisplayName>AssetId</DisplayName>
     <Description>Companywide unique ID for a specific asset (Each 8 mm drill of a company has the same MachineryEquipmentTypeId and a unique AssetId).</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -596,8 +596,8 @@
     <DisplayName>ComponentName</DisplayName>
     <Description>Used name for the MachineryEquipment.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -605,8 +605,8 @@
     <DisplayName>Description</DisplayName>
     <Description>Additional information and description about the MachineryEquipment. Should be used if Description Attribute cannot be written via OPC UA and should be ideally identical to Description Attribute.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -614,8 +614,8 @@
     <DisplayName>DeviceClass</DisplayName>
     <Description>Class of the MachineryEquipment (e.g.: Each drill of a company has the DeviceClass "drill").</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -623,8 +623,8 @@
     <DisplayName>Location</DisplayName>
     <Description>Location of the MachineryEquipment (e.g.: Storage Location; Position in the Tool Changer; Position on the machine).</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -632,8 +632,8 @@
     <DisplayName>MachineryEquipmentTypeId</DisplayName>
     <Description>Identification of a generic MachineryEquipment. Defined by each company (e.g., company has an MachineryEquipmentTypeId for all 8 mm drills).</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -641,8 +641,8 @@
     <DisplayName>ManufacturerUri</DisplayName>
     <Description>Manufacturer of the MachineryEquipment.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -650,8 +650,8 @@
     <DisplayName>Model</DisplayName>
     <Description>Model of the MachineryEquipment.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -659,8 +659,8 @@
     <DisplayName>SerialNumber</DisplayName>
     <Description>Serial Number of the MachineryEquipment.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5052</Reference>
     </References>
   </UAVariable>
@@ -683,27 +683,27 @@
     <Category>Machinery Lifetime Counter</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/15.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6083</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6087</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6083" BrowseName="1:&lt;LifetimeVariable&gt;" SymbolicName="LifetimeVariable" ParentNodeId="ns=1;i=1015" DataType="Number" AccessLevel="3">
     <DisplayName>&lt;LifetimeVariable&gt;</DisplayName>
     <References>
+      <Reference ReferenceType="HasModellingRule">i=11510</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=468</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1015</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6086</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6084</Reference>
-      <Reference ReferenceType="HasModellingRule">i=11510</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6085</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1015</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6086" BrowseName="EngineeringUnits" ParentNodeId="ns=1;i=6083" DataType="EUInformation">
     <DisplayName>EngineeringUnits</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6083</Reference>
     </References>
   </UAVariable>
@@ -711,8 +711,8 @@
     <DisplayName>LimitValue</DisplayName>
     <Description>LimitValue indicates when the end of lifetime has been reached.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6083</Reference>
     </References>
   </UAVariable>
@@ -720,8 +720,8 @@
     <DisplayName>StartValue</DisplayName>
     <Description>StartValue indicates the initial value, when there is still the full lifetime left.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6083</Reference>
     </References>
   </UAVariable>
@@ -745,20 +745,20 @@
     <Category>Machinery Monitoring</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/16.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5047</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6089</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5045</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5046</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5044</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
     </References>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5047" BrowseName="1:Consumption" ParentNodeId="ns=1;i=1014">
     <DisplayName>Consumption</DisplayName>
     <Description>Entry point for consumption information of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1014</Reference>
     </References>
   </UAObject>
@@ -780,27 +780,27 @@
     <DisplayName>Health</DisplayName>
     <Description>Entry point of health information of the MachineryItem.</Description>
     <References>
+      <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1014</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6095</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5051</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasInterface">ns=2;i=15051</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1014</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6095" BrowseName="2:DeviceHealth" ParentNodeId="ns=1;i=5045" DataType="DeviceHealthEnumeration" AccessLevel="3">
     <DisplayName>DeviceHealth</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5045</Reference>
     </References>
   </UAVariable>
   <UAObject NodeId="ns=1;i=5051" BrowseName="2:DeviceHealthAlarms" ParentNodeId="ns=1;i=5045">
     <DisplayName>DeviceHealthAlarms</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5045</Reference>
     </References>
   </UAObject>
@@ -808,8 +808,8 @@
     <DisplayName>Process</DisplayName>
     <Description>Entry point for process information of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1014</Reference>
     </References>
   </UAObject>
@@ -817,81 +817,81 @@
     <DisplayName>Status</DisplayName>
     <Description>Entry point for status information of the MachineryItem. If this Object is provided, and the MachineryItemState is provided, it shall be referenced. If this Object is provided and the MachineryOperationMode is provided, it shall be referenced.</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1014</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5048</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5049</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5050</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1014</Reference>
     </References>
   </UAObject>
   <UAObject NodeId="ns=1;i=5048" BrowseName="1:MachineryItemState" ParentNodeId="ns=1;i=5044">
     <DisplayName>MachineryItemState</DisplayName>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1002</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6090</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5044</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6090</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6090" BrowseName="CurrentState" ParentNodeId="ns=1;i=5048" DataType="LocalizedText">
     <DisplayName>CurrentState</DisplayName>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6091</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5048</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6091</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6091" BrowseName="Id" ParentNodeId="ns=1;i=6090" DataType="NodeId">
     <DisplayName>Id</DisplayName>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6090</Reference>
     </References>
   </UAVariable>
-  <UAObject NodeId="ns=1;i=5049" BrowseName="1:OperationMode" ParentNodeId="ns=1;i=5044">
-    <DisplayName>OperationMode</DisplayName>
+  <UAObject NodeId="ns=1;i=5049" BrowseName="1:MachineryOperationMode" ParentNodeId="ns=1;i=5044">
+    <DisplayName>MachineryOperationMode</DisplayName>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1008</Reference>
-      <Reference ReferenceType="HasComponent">ns=1;i=6092</Reference>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5044</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6092</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6092" BrowseName="CurrentState" ParentNodeId="ns=1;i=5049" DataType="LocalizedText">
     <DisplayName>CurrentState</DisplayName>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2760</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6093</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5049</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6093</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6093" BrowseName="Id" ParentNodeId="ns=1;i=6092" DataType="NodeId">
     <DisplayName>Id</DisplayName>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6092</Reference>
     </References>
   </UAVariable>
   <UAObject NodeId="ns=1;i=5050" BrowseName="1:Stacklight" ParentNodeId="ns=1;i=5044">
     <DisplayName>Stacklight</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">ns=3;i=1002</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6094</Reference>
+      <Reference ReferenceType="HasTypeDefinition">ns=3;i=1002</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5044</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6094</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6094" BrowseName="3:StacklightMode" ParentNodeId="ns=1;i=5050" DataType="StacklightOperationMode" AccessLevel="3">
     <DisplayName>StacklightMode</DisplayName>
     <Description>Shows in what way (stack of individual lights, level meter, running light) the stacklight unit is used.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5050</Reference>
     </References>
   </UAVariable>
@@ -901,8 +901,8 @@
     <Category>Machinery Notifications</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/18.2</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6106</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=61</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6106</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6106" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1017" DataType="QualifiedName" AccessLevel="3">
@@ -925,38 +925,38 @@
     <Category>Machinery Find Components of Machines</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/11.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5002</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6018</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5002" BrowseName="1:&lt;Component&gt;" SymbolicName="Component" ParentNodeId="ns=1;i=1006">
     <DisplayName>&lt;Component&gt;</DisplayName>
     <Description>Represents the identifiable components of a machine.</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
-      <Reference ReferenceType="HasAddIn">ns=1;i=5003</Reference>
+      <Reference ReferenceType="HasModellingRule">i=11508</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1006</Reference>
+      <Reference ReferenceType="HasAddIn">ns=1;i=5003</Reference>
     </References>
   </UAObject>
   <UAObject NodeId="ns=1;i=5003" BrowseName="2:Identification" ParentNodeId="ns=1;i=5002">
     <DisplayName>Identification</DisplayName>
     <Description>Contains information about the identification and nameplate of a MachineryItem</Description>
     <References>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1004</Reference>
+      <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasAddIn" IsForward="false">ns=1;i=5002</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6019</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6020</Reference>
-      <Reference ReferenceType="HasAddIn" IsForward="false">ns=1;i=5002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6019" BrowseName="2:Manufacturer" ParentNodeId="ns=1;i=5003" DataType="LocalizedText">
     <DisplayName>Manufacturer</DisplayName>
     <Description>A human-readable, localized name of the manufacturer of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
     </References>
   </UAVariable>
@@ -964,8 +964,8 @@
     <DisplayName>SerialNumber</DisplayName>
     <Description>A string containing a unique production number of the manufacturer of the MachineryItem. The global uniqueness of the serial number is only given in the context of the manufacturer, and potentially the model. The value shall not change during the life-cycle of the MachineryItem.</Description>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
     </References>
   </UAVariable>
@@ -989,6 +989,7 @@
     <Category>Machinery MachineryItem State</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/12.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=2771</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6021</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5006</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5023</Reference>
@@ -1010,7 +1011,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=5005</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5004</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=2771</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6021" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1002" DataType="QualifiedName" AccessLevel="3">
@@ -1032,23 +1032,23 @@
     <Description>The machine is available &amp; functional and is actively performing an activity (pursues a purpose)</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6040</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6040</Reference>
+      <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5010</Reference>
+      <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5014</Reference>
+      <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5018</Reference>
+      <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5020</Reference>
+      <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5021</Reference>
+      <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5022</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5023</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5023</Reference>
-      <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5020</Reference>
-      <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5022</Reference>
-      <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5021</Reference>
-      <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5010</Reference>
-      <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5018</Reference>
-      <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5014</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6040" BrowseName="StateNumber" ParentNodeId="ns=1;i=5006" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5006</Reference>
     </References>
     <Value>
@@ -1060,17 +1060,17 @@
     <Description>Transition from state Executing to state Executing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5006</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5006</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6057</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6057" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5023" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5023</Reference>
     </References>
     <Value>
@@ -1082,17 +1082,17 @@
     <Description>Transition from state Executing to state NotAvailable</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5006</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5005</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6054</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6054" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5020" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5020</Reference>
     </References>
     <Value>
@@ -1104,17 +1104,17 @@
     <Description>Transition from state Executing to state NotExecuting</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5006</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6056</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6056" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5022" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5022</Reference>
     </References>
     <Value>
@@ -1126,17 +1126,17 @@
     <Description>Transition from state Executing to state OutOfService</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5006</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6055</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6055" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5021" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5021</Reference>
     </References>
     <Value>
@@ -1148,17 +1148,17 @@
     <Description>Transition from state NotAvailable to state Executing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5006</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5005</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6044</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6044" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5010" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5010</Reference>
     </References>
     <Value>
@@ -1170,17 +1170,17 @@
     <Description>Transition from state NotAvailable to state NotAvailable</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5005</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5005</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6045</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6045" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5011" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5011</Reference>
     </References>
     <Value>
@@ -1192,17 +1192,17 @@
     <Description>Transition from state NotAvailable to state NotExecuting</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5005</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6043</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6043" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5009" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5009</Reference>
     </References>
     <Value>
@@ -1214,17 +1214,17 @@
     <Description>Transition from state NotAvailable to state OutOfService</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5005</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6042</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6042" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5008" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5008</Reference>
     </References>
     <Value>
@@ -1236,17 +1236,17 @@
     <Description>Transition from state NotExecuting to state Executing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5006</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6052</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6052" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5018" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5018</Reference>
     </References>
     <Value>
@@ -1258,17 +1258,17 @@
     <Description>Transition from state NotExecuting to state NotAvailable</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5005</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6050</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6050" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5016" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5016</Reference>
     </References>
     <Value>
@@ -1280,17 +1280,17 @@
     <Description>Transition from state NotExecuting to state NotExecuting</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5007</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6053</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6053" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5019" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
     </References>
     <Value>
@@ -1302,17 +1302,17 @@
     <Description>Transition from state NotExecuting to state OutOfService</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5007</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6051</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6051" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5017" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5017</Reference>
     </References>
     <Value>
@@ -1324,17 +1324,17 @@
     <Description>Transition from state OutOfService to state Executing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5006</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6048</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6048" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5014" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5014</Reference>
     </References>
     <Value>
@@ -1346,17 +1346,17 @@
     <Description>Transition from state OutOfService to state NotAvailable</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5005</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6046</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6046" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5012" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
     </References>
     <Value>
@@ -1368,17 +1368,17 @@
     <Description>Transition from state OutOfService to state NotExecuting</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5007</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6047</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6047" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5013" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5013</Reference>
     </References>
     <Value>
@@ -1390,17 +1390,17 @@
     <Description>Transition from state OutOfService to state OutOfService</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5004</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6049</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6049" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5015" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5015</Reference>
     </References>
     <Value>
@@ -1412,8 +1412,8 @@
     <Description>The machine is not available and does not perform any activity (e.g., switched off, in energy saving mode)</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6039</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6039</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5008</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5009</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5010</Reference>
@@ -1427,8 +1427,8 @@
   <UAVariable NodeId="ns=1;i=6039" BrowseName="StateNumber" ParentNodeId="ns=1;i=5005" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5005</Reference>
     </References>
     <Value>
@@ -1440,8 +1440,8 @@
     <Description>The machine is available &amp; functional and does not perform any activity. It waits for an action from outside to start or restart an activity</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6041</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6041</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5009</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5013</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5016</Reference>
@@ -1455,8 +1455,8 @@
   <UAVariable NodeId="ns=1;i=6041" BrowseName="StateNumber" ParentNodeId="ns=1;i=5007" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5007</Reference>
     </References>
     <Value>
@@ -1468,8 +1468,8 @@
     <Description>The machine is not functional and does not perform any activity (e.g., error, blocked)</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6038</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6038</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5008</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5012</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5013</Reference>
@@ -1483,8 +1483,8 @@
   <UAVariable NodeId="ns=1;i=6038" BrowseName="StateNumber" ParentNodeId="ns=1;i=5004" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
     </References>
     <Value>
@@ -1497,6 +1497,7 @@
     <Category>Machinery Operation Mode</Category>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/13.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=2771</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6058</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5035</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5032</Reference>
@@ -1518,7 +1519,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=5024</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5026</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5027</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=2771</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6058" BrowseName="DefaultInstanceBrowseName" ParentNodeId="ns=1;i=1008" DataType="QualifiedName" AccessLevel="3">
@@ -1540,17 +1540,17 @@
     <Description>Transition from state Maintenance to state Maintenance</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5025</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5025</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6070</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6070" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5035" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5035</Reference>
     </References>
     <Value>
@@ -1562,17 +1562,17 @@
     <Description>Transition from state Maintenance to state None</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5025</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5024</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6067</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6067" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5032" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5032</Reference>
     </References>
     <Value>
@@ -1584,17 +1584,17 @@
     <Description>Transition from state Maintenance to state Processing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5025</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6069</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6069" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5034" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5034</Reference>
     </References>
     <Value>
@@ -1606,17 +1606,17 @@
     <Description>Transition from state Maintenance to state Setup</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5025</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6068</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6068" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5033" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5033</Reference>
     </References>
     <Value>
@@ -1628,17 +1628,17 @@
     <Description>Transition from state None to state Maintenance</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5025</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5024</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6063</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6063" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5028" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5028</Reference>
     </References>
     <Value>
@@ -1650,17 +1650,17 @@
     <Description>Transition from state None to state None</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5024</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5024</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6066</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6066" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5031" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5031</Reference>
     </References>
     <Value>
@@ -1672,17 +1672,17 @@
     <Description>Transition from state None to state Processing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5024</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6065</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6065" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5030" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5030</Reference>
     </References>
     <Value>
@@ -1694,17 +1694,17 @@
     <Description>Transition from state None to state Setup</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5024</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6064</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6064" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5029" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5029</Reference>
     </References>
     <Value>
@@ -1716,17 +1716,17 @@
     <Description>Transition from state Processing to state Maintenance</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5025</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6076</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6076" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5041" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5041</Reference>
     </References>
     <Value>
@@ -1738,17 +1738,17 @@
     <Description>Transition from state Processing to state None</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5024</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6075</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6075" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5040" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5040</Reference>
     </References>
     <Value>
@@ -1760,17 +1760,17 @@
     <Description>Transition from state Processing to state Processing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5026</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5026</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6078</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6078" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5043" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5043</Reference>
     </References>
     <Value>
@@ -1782,17 +1782,17 @@
     <Description>Transition from state Processing to state Setup</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5026</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6077</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6077" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5042" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5042</Reference>
     </References>
     <Value>
@@ -1804,17 +1804,17 @@
     <Description>Transition from state Setup to state Maintenance</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5025</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6072</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6072" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5037" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5037</Reference>
     </References>
     <Value>
@@ -1826,17 +1826,17 @@
     <Description>Transition from state Setup to state None</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5024</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6071</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6071" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5036" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5036</Reference>
     </References>
     <Value>
@@ -1848,17 +1848,17 @@
     <Description>Transition from state Setup to state Processing</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5026</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6073</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6073" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5038" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5038</Reference>
     </References>
     <Value>
@@ -1870,17 +1870,17 @@
     <Description>Transition from state Setup to state Setup</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2310</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
       <Reference ReferenceType="FromState">ns=1;i=5027</Reference>
       <Reference ReferenceType="ToState">ns=1;i=5027</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6074</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6074" BrowseName="TransitionNumber" ParentNodeId="ns=1;i=5039" DataType="UInt32">
     <DisplayName>TransitionNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5039</Reference>
     </References>
     <Value>
@@ -1892,8 +1892,8 @@
     <Description>MachineryItem is set into maintenance mode with the intention to carry out maintenance or servicing activities</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6060</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6060</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5028</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5032</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5033</Reference>
@@ -1907,8 +1907,8 @@
   <UAVariable NodeId="ns=1;i=6060" BrowseName="StateNumber" ParentNodeId="ns=1;i=5025" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5025</Reference>
     </References>
     <Value>
@@ -1920,8 +1920,8 @@
     <Description>There is currently no operation mode available</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6059</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6059</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5028</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5029</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5030</Reference>
@@ -1935,8 +1935,8 @@
   <UAVariable NodeId="ns=1;i=6059" BrowseName="StateNumber" ParentNodeId="ns=1;i=5024" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5024</Reference>
     </References>
     <Value>
@@ -1948,8 +1948,8 @@
     <Description>MachineryItem is set into processing mode with the intention to carry out the value adding activities</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6061</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6061</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5030</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5034</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5038</Reference>
@@ -1963,8 +1963,8 @@
   <UAVariable NodeId="ns=1;i=6061" BrowseName="StateNumber" ParentNodeId="ns=1;i=5026" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5026</Reference>
     </References>
     <Value>
@@ -1976,8 +1976,8 @@
     <Description>MachineryItem is set into setup mode with the intention to carry out setup, preparation or postprocessing activities of a production process</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2307</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6062</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6062</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5029</Reference>
       <Reference ReferenceType="ToState" IsForward="false">ns=1;i=5033</Reference>
       <Reference ReferenceType="FromState" IsForward="false">ns=1;i=5036</Reference>
@@ -1991,8 +1991,8 @@
   <UAVariable NodeId="ns=1;i=6062" BrowseName="StateNumber" ParentNodeId="ns=1;i=5027" DataType="UInt32">
     <DisplayName>StateNumber</DisplayName>
     <References>
-      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5027</Reference>
     </References>
     <Value>
@@ -2013,8 +2013,8 @@
     <DisplayName>http://opcfoundation.org/UA/Machinery/</DisplayName>
     <Documentation>https://reference.opcfoundation.org/Machinery/v104/docs/20.1</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6031</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6031</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6032</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6033</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6034</Reference>
@@ -2041,7 +2041,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5001</Reference>
     </References>
     <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2025-07-01T00:00:00Z</uax:DateTime>
+      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2026-01-01T00:00:00Z</uax:DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6033" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5001" DataType="String">
@@ -2061,7 +2061,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5001</Reference>
     </References>
     <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.04.0</uax:String>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.04.1</uax:String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6035" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=5001" DataType="IdType" ValueRank="1" ArrayDimensions="0">
@@ -2082,6 +2082,9 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5001</Reference>
     </References>
+    <Value>
+      <uax:ListOfString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" />
+    </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6037" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=5001" DataType="String">
     <DisplayName>StaticStringNodeIdPattern</DisplayName>
@@ -2089,5 +2092,8 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5001</Reference>
     </References>
+    <Value>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"></uax:String>
+    </Value>
   </UAVariable>
 </UANodeSet>

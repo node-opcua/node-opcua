@@ -22,6 +22,7 @@ export interface UAServerCapabilities_Base {
     maxBrowseContinuationPoints: UAProperty<UInt16, DataType.UInt16>;
     maxQueryContinuationPoints: UAProperty<UInt16, DataType.UInt16>;
     maxHistoryContinuationPoints: UAProperty<UInt16, DataType.UInt16>;
+    maxLogObjectContinuationPoints?: UAProperty<UInt16, DataType.UInt16>;
     softwareCertificates: UAProperty<DTSignedSoftwareCertificate[], DataType.ExtensionObject>;
     maxArrayLength?: UAProperty<UInt32, DataType.UInt32>;
     maxStringLength?: UAProperty<UInt32, DataType.UInt32>;

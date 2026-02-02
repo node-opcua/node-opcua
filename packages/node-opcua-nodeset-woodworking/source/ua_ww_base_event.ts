@@ -8,7 +8,7 @@ import { DTWwMessageArgument } from "./dt_ww_message_argument"
 import { EnumWwEventCategory } from "./enum_ww_event_category"
 /**
  * The WwBaseEventType represents a message event
- * from a module
+ * from a module.
  *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|

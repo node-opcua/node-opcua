@@ -4,8 +4,6 @@ import { DataType } from "node-opcua-variant"
 import { QualifiedName } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 /**
- * An interface for Locking.
- *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
  * |namespace       |http://opcfoundation.org/UA/DI/                             |

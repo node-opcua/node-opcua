@@ -1,20 +1,21 @@
 // ----- this file has been automatically generated - do not edit
-import { UAString } from "node-opcua-basic-types"
+import { UInt16, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
-import { DTStructure } from "./dt_structure"
-import { EnumMessageSecurityMode } from "./enum_message_security_mode"
+import { DTBaseConfigurationRecord } from "./dt_base_configuration_record"
+import { DTKeyValuePair } from "./dt_key_value_pair"
 /**
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/                                |
  * | nodeClass |DataType                                                    |
- * | name      |EndpointType                                                |
+ * | name      |EndpointDataType                                            |
  * | isAbstract|false                                                       |
  */
-export interface DTEndpoint extends DTStructure {
-  endpointUrl: UAString; // String ns=0;i=12
-  securityMode: EnumMessageSecurityMode; // Int32 ns=0;i=302
-  securityPolicyUri: UAString; // String ns=0;i=12
-  transportProfileUri: UAString; // String ns=0;i=12
+export interface DTEndpoint extends DTBaseConfigurationRecord {
+  name: UAString; // String ns=0;i=12
+  recordProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
+  discoveryUrls: UAString[]; // String ns=0;i=23751
+  networkName: UAString; // String ns=0;i=12
+  port: UInt16; // UInt16 ns=0;i=5
 }
 export interface UDTEndpoint extends ExtensionObject, DTEndpoint {};

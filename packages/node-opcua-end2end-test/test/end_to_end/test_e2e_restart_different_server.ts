@@ -87,7 +87,13 @@ async function createServerVersion1() {
 async function createServerVersion2() {
     const server = new OPCUAServer({
         port,
-        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.robotics, nodesets.autoId]
+        nodeset_filename: [
+            nodesets.standard, 
+            nodesets.di, 
+            nodesets.ia,
+            nodesets.robotics, 
+            nodesets.autoId
+        ]
     });
     await server.initialize();
     addVariable(server);
@@ -97,7 +103,14 @@ async function createServerVersion2() {
 async function createServerVersion3() {
     const server = new OPCUAServer({
         port,
-        nodeset_filename: [nodesets.standard, nodesets.di, nodesets.robotics, nodesets.commercialKitchenEquipment, nodesets.autoId]
+        nodeset_filename: [
+            nodesets.standard, 
+            nodesets.di,
+            nodesets.ia,
+            nodesets.robotics, 
+            nodesets.commercialKitchenEquipment, 
+            nodesets.autoId
+        ]
     });
     await server.initialize();
     addVariable(server);

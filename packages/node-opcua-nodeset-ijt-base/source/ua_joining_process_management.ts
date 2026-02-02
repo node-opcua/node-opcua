@@ -27,6 +27,7 @@ export interface UAJoiningProcessManagement_Base {
     getJoiningProcess?: UAMethod;
     getJoiningProcessList?: UAMethod;
     getJoiningProcessRevisionList?: UAMethod;
+    getSelectedJoiningProgram?: UAMethod;
     incrementJoiningProcessCounter?: UAMethod;
     resetJoiningProcess?: UAMethod;
     selectJoiningProcess?: UAMethod;

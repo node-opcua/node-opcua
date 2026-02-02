@@ -4,14 +4,17 @@ import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 import { EnumExecutionMode } from "./enum_execution_mode"
+import { UATaskControlOperation } from "./ua_task_control_operation"
 export interface UATaskControl_parameterSet extends UAObject { // Object
       /**
-       * taskProgramName
-       * A customer given identifier for the task program.
+       * executionMode
+       * Execution mode of the task control (continuous or
+       * step-wise).
        */
-      taskProgramName: UABaseDataVariable<UAString, DataType.String>;
+      executionMode?: UABaseDataVariable<EnumExecutionMode, DataType.Int32>;
       /**
        * taskProgramLoaded
        * The TaskProgramLoaded variable is TRUE if a task
@@ -20,11 +23,10 @@ export interface UATaskControl_parameterSet extends UAObject { // Object
        */
       taskProgramLoaded: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
-       * executionMode
-       * Execution mode of the task control (continuous or
-       * step-wise).
+       * taskProgramName
+       * A customer given identifier for the task program.
        */
-      executionMode?: UABaseDataVariable<EnumExecutionMode, DataType.Int32>;
+      taskProgramName: UABaseDataVariable<UAString, DataType.String>;
 }
 /**
  * Represents a specific task control active on the
@@ -39,16 +41,18 @@ export interface UATaskControl_parameterSet extends UAObject { // Object
  */
 export interface UATaskControl_Base extends UAComponent_Base {
     /**
-     * parameterSet
-     * Flat list of Parameters
-     */
-    parameterSet: UATaskControl_parameterSet;
-    /**
      * componentName
      * A user writable name provided by the vendor,
      * integrator or user of the device.
      */
     componentName: UAProperty<LocalizedText, DataType.LocalizedText>;
+    /**
+     * parameterSet
+     * Flat list of Parameters
+     */
+    parameterSet: UATaskControl_parameterSet;
+    taskControlOperation?: UATaskControlOperation;
+    taskModules?: UAFolder;
 }
-export interface UATaskControl extends Omit<UAComponent, "parameterSet"|"componentName">, UATaskControl_Base {
+export interface UATaskControl extends Omit<UAComponent, "componentName"|"parameterSet">, UATaskControl_Base {
 }

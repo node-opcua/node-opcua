@@ -2,9 +2,6 @@
 import { UATopologyElement, UATopologyElement_Base } from "./ua_topology_element"
 import { UAFunctionalGroup } from "./ua_functional_group"
 /**
- * Represents the interface (interface card) of a
- * Device to a Network.
- *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
  * |namespace       |http://opcfoundation.org/UA/DI/                             |
@@ -13,10 +10,6 @@ import { UAFunctionalGroup } from "./ua_functional_group"
  * |isAbstract      |true                                                        |
  */
 export interface UAConnectionPoint_Base extends UATopologyElement_Base {
-    /**
-     * networkAddress
-     * The address of the device on this network.
-     */
     networkAddress: UAFunctionalGroup;
    // PlaceHolder for $ProfileIdentifier$
 }

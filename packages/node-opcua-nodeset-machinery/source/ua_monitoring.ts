@@ -14,7 +14,7 @@ export interface UAMonitoring_health extends UAFolder { // Object
 }
 export interface UAMonitoring_status extends UAFolder { // Object
       machineryItemState?: UAMachineryItemState_StateMachine;
-      operationMode?: UAMachineryOperationModeStateMachine;
+      machineryOperationMode?: UAMachineryOperationModeStateMachine;
       stacklight?: UABasicStacklight;
 }
 /**

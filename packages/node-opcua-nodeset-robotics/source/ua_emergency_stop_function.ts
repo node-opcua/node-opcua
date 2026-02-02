@@ -17,19 +17,19 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_vari
  */
 export interface UAEmergencyStopFunction_Base {
     /**
-     * name
-     * The Name of the EmergencyStopFunctionType
-     * provides a manufacturer-specific emergency stop
-     * function identifier within the safety system.
-     */
-    name: UAProperty<UAString, DataType.String>;
-    /**
      * active
      * The Active variable is TRUE if this particular
      * emergency stop function is active, e.g. that the
      * emergency stop button is pressed, FALSE otherwise.
      */
     active: UABaseDataVariable<boolean, DataType.Boolean>;
+    /**
+     * name
+     * The Name of the EmergencyStopFunctionType
+     * provides a manufacturer-specific emergency stop
+     * function identifier within the safety system.
+     */
+    name: UAProperty<UAString, DataType.String>;
 }
 export interface UAEmergencyStopFunction extends UAObject, UAEmergencyStopFunction_Base {
 }

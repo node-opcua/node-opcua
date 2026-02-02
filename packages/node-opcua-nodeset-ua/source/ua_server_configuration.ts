@@ -3,9 +3,10 @@ import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UInt32, UAString } from "node-opcua-basic-types"
-import { UACertificateGroupFolder } from "./ua_certificate_group_folder"
 import { EnumApplication } from "./enum_application"
+import { UACertificateGroupFolder } from "./ua_certificate_group_folder"
 import { UATransactionDiagnostics } from "./ua_transaction_diagnostics"
+import { UAApplicationConfigurationFile } from "./ua_application_configuration_file"
 /**
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
@@ -15,7 +16,6 @@ import { UATransactionDiagnostics } from "./ua_transaction_diagnostics"
  * |isAbstract      |false                                                       |
  */
 export interface UAServerConfiguration_Base {
-    certificateGroups: UACertificateGroupFolder;
     applicationUri?: UAProperty<UAString, DataType.String>;
     productUri?: UAProperty<UAString, DataType.String>;
     applicationType?: UAProperty<EnumApplication, DataType.Int32>;
@@ -28,13 +28,17 @@ export interface UAServerConfiguration_Base {
     supportsTransactions?: UAProperty<boolean, DataType.Boolean>;
     inApplicationSetup?: UAProperty<boolean, DataType.Boolean>;
     updateCertificate: UAMethod;
+    createSelfSignedCertificate?: UAMethod;
+    deleteCertificate?: UAMethod;
     getCertificates?: UAMethod;
     applyChanges: UAMethod;
     cancelChanges?: UAMethod;
     createSigningRequest: UAMethod;
     getRejectedList: UAMethod;
     resetToServerDefaults?: UAMethod;
+    certificateGroups: UACertificateGroupFolder;
     transactionDiagnostics?: UATransactionDiagnostics;
+    configurationFile?: UAApplicationConfigurationFile;
 }
 export interface UAServerConfiguration extends UAObject, UAServerConfiguration_Base {
 }

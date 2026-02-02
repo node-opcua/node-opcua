@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { Variant } from "node-opcua-variant"
+import { VariantOptions } from "node-opcua-variant"
 import { Int32 } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
@@ -52,6 +52,6 @@ export interface DTResult extends DTStructure {
   /** Collection of different processing times that were needed to create the result.*/
   processingTimes?: DTProcessingTimes; // ExtensionObject ns=4;i=3005
   /** Abstract data type to be subtyped from to hold result data created by the selected recipe.*/
-  resultContent?: Variant[]; // Variant ns=0;i=24
+  resultContent?: VariantOptions[]; // Variant ns=0;i=0
 }
 export interface UDTResult extends ExtensionObject, DTResult {};

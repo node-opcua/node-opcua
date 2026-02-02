@@ -1,5 +1,5 @@
 // ----- this file has been automatically generated - do not edit
-import { UAObject, UAProperty } from "node-opcua-address-space-base"
+import { UAObject, UAMethod, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText } from "node-opcua-data-model"
 import { UAString } from "node-opcua-basic-types"
@@ -19,6 +19,7 @@ export interface UASoftwareVersion_Base {
     releaseDate?: UAProperty<Date, DataType.DateTime>;
     changeLogReference?: UAProperty<UAString, DataType.String>;
     hash?: UAProperty<Buffer, DataType.ByteString>;
+    clear?: UAMethod;
 }
 export interface UASoftwareVersion extends UAObject, UASoftwareVersion_Base {
 }

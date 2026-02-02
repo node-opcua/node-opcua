@@ -143,7 +143,7 @@ describe("loading very large DataType Definitions ", function (this: any) {
         // since 1.04 (september 2021) 1.04 datatype is in force
         browseSpy.callCount.should.be.greaterThanOrEqual(1);
         browseSpy.callCount.should.be.lessThanOrEqual(2425);
-        browseNextSpy.callCount.should.eql(72);
+        browseNextSpy.callCount.should.eql(74);
 
         interface DataTypeFactoryPriv {
             _structureInfoByName: Map<any, any>;

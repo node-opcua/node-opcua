@@ -6,6 +6,7 @@ export * from "./ua_authorization_services_folder";
 export * from "./ua_certificate_delivered_audit_event";
 export * from "./ua_certificate_directory";
 export * from "./ua_certificate_requested_audit_event";
+export * from "./ua_certificate_revoked_audit_event";
 export * from "./ua_directory";
 export * from "./ua_key_credential_delivered_audit_event";
 export * from "./ua_key_credential_management_folder";

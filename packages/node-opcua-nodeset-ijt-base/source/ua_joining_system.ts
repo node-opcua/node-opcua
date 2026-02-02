@@ -3,8 +3,8 @@ import { UAObject } from "node-opcua-address-space-base"
 import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UAJoiningSystemAssetMethodSet } from "./ua_joining_system_asset_method_set"
-import { UAJoiningSystemIdentification } from "./ua_joining_system_identification"
 import { UAJoiningSystemResultManagement } from "./ua_joining_system_result_management"
+import { UAJoiningSystemIdentification } from "./ua_joining_system_identification"
 import { UAJoiningProcessManagement } from "./ua_joining_process_management"
 import { UAJointManagement } from "./ua_joint_management"
 export interface UAJoiningSystem_assetManagement extends UAFunctionalGroup { // Object
@@ -25,12 +25,6 @@ export interface UAJoiningSystem_assetManagement extends UAFunctionalGroup { // 
 }
 export interface UAJoiningSystem_machineryBuildingBlocks extends UAFolder { // Object
       /**
-       * identification
-       * The Identification Object provides identification
-       * parameters of the joining system.
-       */
-      identification: UAJoiningSystemIdentification;
-      /**
        * resultManagement
        * The ResultManagement Object is an instance of
        * JoiningSystemResultManagementType which provides
@@ -38,6 +32,12 @@ export interface UAJoiningSystem_machineryBuildingBlocks extends UAFolder { // O
        * joining system.
        */
       resultManagement?: UAJoiningSystemResultManagement;
+      /**
+       * identification
+       * The Identification Object provides identification
+       * parameters of the joining system.
+       */
+      identification: UAJoiningSystemIdentification;
 }
 /**
  * The JoiningSystemType provides the overview of
@@ -55,8 +55,8 @@ export interface UAJoiningSystem_Base {
     /**
      * assetManagement
      * The AssetManagement Object is an instance of
-     * FolderType to group assets and related objects in
-     * the joining system.
+     * FunctionalGroupType to group assets and related
+     * objects in the joining system.
      */
     assetManagement?: UAJoiningSystem_assetManagement;
     /**
@@ -80,6 +80,11 @@ export interface UAJoiningSystem_Base {
      * manage joint and associated information.
      */
     jointManagement?: UAJointManagement;
+    /**
+     * machineryBuildingBlocks
+     * The MachineryBuildingBlocks contains building
+     * blocks from OPC UA for Machinery.
+     */
     machineryBuildingBlocks?: UAJoiningSystem_machineryBuildingBlocks;
     /**
      * resultManagement

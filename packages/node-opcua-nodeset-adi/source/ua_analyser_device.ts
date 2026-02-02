@@ -34,21 +34,8 @@ export interface UAAnalyserDevice_methodSet extends UAObject { // Object
       gotoMaintenance: UAMethod;
 }
 export interface UAAnalyserDevice_identification extends UAFunctionalGroup { // Object
-      /**
-       * manufacturer
-       * Name of the company that manufactured the device
-       */
       manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
-      /**
-       * model
-       * Model name of the device
-       */
       model: UAProperty<LocalizedText, DataType.LocalizedText>;
-      /**
-       * serialNumber
-       * Identifier that uniquely identifies, within a
-       * manufacturer, a device instance
-       */
       serialNumber: UAProperty<UAString, DataType.String>;
 }
 export interface UAAnalyserDevice_configuration extends UAFunctionalGroup { // Object

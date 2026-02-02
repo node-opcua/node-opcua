@@ -16,13 +16,6 @@ export interface UAMotor_parameterSet extends UAObject { // Object
        */
       brakeReleased?: UABaseDataVariable<boolean, DataType.Boolean>;
       /**
-       * motorTemperature
-       * The motor temperature provides the temperature of
-       * the motor. If there is no temperature sensor the
-       * value is set to \"null\".
-       */
-      motorTemperature: UAAnalogUnit<number, DataType.Double>;
-      /**
        * effectiveLoadRate
        * EffectiveLoadRate is expressed as a percentage of
        * maximum continuous load. The Joule integral is
@@ -31,6 +24,13 @@ export interface UAMotor_parameterSet extends UAObject { // Object
        * vendor.
        */
       effectiveLoadRate?: UABaseDataVariable<UInt16, DataType.UInt16>;
+      /**
+       * motorTemperature
+       * The motor temperature provides the temperature of
+       * the motor. If there is no temperature sensor the
+       * value is set to \"null\".
+       */
+      motorTemperature: UAAnalogUnit<number, DataType.Double>;
 }
 /**
  * The MotorType is for representing instances of
@@ -44,15 +44,16 @@ export interface UAMotor_parameterSet extends UAObject { // Object
  * |isAbstract      |false                                                       |
  */
 export interface UAMotor_Base extends UAComponent_Base {
+    assetId?: UAProperty<UAString, DataType.String>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * parameterSet
      * Flat list of Parameters
      */
     parameterSet: UAMotor_parameterSet;
-    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
-    model: UAProperty<LocalizedText, DataType.LocalizedText>;
     productCode: UAProperty<UAString, DataType.String>;
     serialNumber: UAProperty<UAString, DataType.String>;
 }
-export interface UAMotor extends Omit<UAComponent, "parameterSet"|"manufacturer"|"model"|"productCode"|"serialNumber">, UAMotor_Base {
+export interface UAMotor extends Omit<UAComponent, "assetId"|"manufacturer"|"model"|"parameterSet"|"productCode"|"serialNumber">, UAMotor_Base {
 }

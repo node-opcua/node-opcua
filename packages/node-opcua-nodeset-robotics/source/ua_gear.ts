@@ -19,10 +19,7 @@ import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_com
  * |isAbstract      |false                                                       |
  */
 export interface UAGear_Base extends UAComponent_Base {
-    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
-    model: UAProperty<LocalizedText, DataType.LocalizedText>;
-    productCode: UAProperty<UAString, DataType.String>;
-    serialNumber: UAProperty<UAString, DataType.String>;
+    assetId?: UAProperty<UAString, DataType.String>;
     /**
      * gearRatio
      * The transmission ratio of the gear expressed as a
@@ -30,6 +27,8 @@ export interface UAGear_Base extends UAComponent_Base {
      * velocity (load side).
      */
     gearRatio: UARationalNumber<DTRationalNumber>;
+    manufacturer: UAProperty<LocalizedText, DataType.LocalizedText>;
+    model: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * pitch
      * Pitch describes the distance covered in
@@ -40,6 +39,8 @@ export interface UAGear_Base extends UAComponent_Base {
      * to output of the gear.
      */
     pitch?: UABaseDataVariable<number, DataType.Double>;
+    productCode: UAProperty<UAString, DataType.String>;
+    serialNumber: UAProperty<UAString, DataType.String>;
 }
-export interface UAGear extends Omit<UAComponent, "manufacturer"|"model"|"productCode"|"serialNumber">, UAGear_Base {
+export interface UAGear extends Omit<UAComponent, "assetId"|"manufacturer"|"model"|"productCode"|"serialNumber">, UAGear_Base {
 }

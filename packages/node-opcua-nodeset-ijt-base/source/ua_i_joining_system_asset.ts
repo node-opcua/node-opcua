@@ -9,8 +9,10 @@ import { UABaseInterface, UABaseInterface_Base } from "node-opcua-nodeset-ua/dis
 import { EnumDeviceHealth } from "node-opcua-nodeset-di/dist/enum_device_health"
 import { UAFunctionalGroup } from "node-opcua-nodeset-di/dist/ua_functional_group"
 import { UAMachineryItemIdentification } from "node-opcua-nodeset-machinery/dist/ua_machinery_item_identification"
-import { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter"
 import { UAMachineryOperationCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_operation_counter"
+import { UAMachineryLifetimeCounter } from "node-opcua-nodeset-machinery/dist/ua_machinery_lifetime_counter"
+import { UAMonitoring } from "node-opcua-nodeset-machinery/dist/ua_monitoring"
+import { UANotifications } from "node-opcua-nodeset-machinery/dist/ua_notifications"
 import { DTSignal } from "./dt_signal"
 import { UAJoiningDataVariable } from "./ua_joining_data_variable"
 export interface UAIJoiningSystemAsset_health extends UAFunctionalGroup { // Object
@@ -86,6 +88,13 @@ export interface UAIJoiningSystemAsset_identification extends Omit<UAMachineryIt
 }
 export interface UAIJoiningSystemAsset_machineryBuildingBlocks extends UAFolder { // Object
       /**
+       * operationCounters
+       * It provides information about the duration
+       * something is turned on and how long it performs
+       * an activity.
+       */
+      operationCounters?: UAMachineryOperationCounter;
+      /**
        * identification
        * The Identification Object, using the standardized
        * name defined in OPC 10000-100, provides
@@ -102,13 +111,6 @@ export interface UAIJoiningSystemAsset_machineryBuildingBlocks extends UAFolder 
        * variables.
        */
       lifetimeCounters?: UAMachineryLifetimeCounter;
-      /**
-       * operationCounters
-       * It provides information about the duration
-       * something is turned on and how long it performs
-       * an activity.
-       */
-      operationCounters?: UAMachineryOperationCounter;
 }
 export interface UAIJoiningSystemAsset_maintenance extends UAFunctionalGroup { // Object
       /**
@@ -171,7 +173,7 @@ export interface UAIJoiningSystemAsset_Base extends UABaseInterface_Base {
     /**
      * health
      * The Health Object is an instance of
-     * 2:FunctionalGroupType to group health related
+     * FunctionalGroupType to group health related
      * parameters for all the assets in a Joining System.
      */
     health?: UAIJoiningSystemAsset_health;
@@ -192,15 +194,31 @@ export interface UAIJoiningSystemAsset_Base extends UABaseInterface_Base {
      * variables.
      */
     lifetimeCounters?: UAMachineryLifetimeCounter;
+    /**
+     * machineryBuildingBlocks
+     * The MachineryBuildingBlocks contains building
+     * blocks from OPC UA for Machinery.
+     */
     machineryBuildingBlocks?: UAIJoiningSystemAsset_machineryBuildingBlocks;
     /**
      * maintenance
      * The Maintenance Object is an instance of
-     * 2:FunctionalGroupType to group maintenance
-     * related parameters for the given asset in a
-     * Joining System.
+     * FunctionalGroupType to group maintenance related
+     * parameters for the given asset in a Joining
+     * System.
      */
     maintenance?: UAIJoiningSystemAsset_maintenance;
+    /**
+     * monitoring
+     * Entry point for monitoring information of a
+     * MachineryItem.
+     */
+    monitoring?: UAMonitoring;
+    /**
+     * notifications
+     * Provides notifications as events or objects.
+     */
+    notifications?: UANotifications;
     /**
      * operationCounters
      * It provides information about the duration

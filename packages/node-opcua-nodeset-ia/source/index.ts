@@ -1,3 +1,4 @@
+export * from "./dt_rgbw";
 export * from "./enum_level_display_mode";
 export * from "./enum_signal_color";
 export * from "./enum_signal_mode_light";
