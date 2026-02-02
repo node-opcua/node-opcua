@@ -816,6 +816,9 @@ importers:
         specifier: 2.157.0
         version: link:../node-opcua-packet-assembler
     devDependencies:
+      node-opcua-benchmarker:
+        specifier: 2.157.0
+        version: link:../node-opcua-benchmarker
       node-opcua-debug:
         specifier: 2.157.0
         version: link:../node-opcua-debug
@@ -1998,6 +2001,9 @@ importers:
       node-opcua-data-model:
         specifier: 2.158.0
         version: link:../node-opcua-data-model
+      node-opcua-extension-object:
+        specifier: 2.158.0
+        version: link:../node-opcua-extension-object
       node-opcua-nodeset-di:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-di
@@ -2031,6 +2037,9 @@ importers:
       node-opcua-nodeset-di:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-ia:
+        specifier: 2.161.0
+        version: link:../node-opcua-nodeset-ia
       node-opcua-nodeset-machinery:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-machinery
@@ -2421,6 +2430,9 @@ importers:
       node-opcua-nodeset-ua:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.157.0
+        version: link:../node-opcua-status-code
       node-opcua-variant:
         specifier: 2.161.0
         version: link:../node-opcua-variant
@@ -2517,12 +2529,21 @@ importers:
       node-opcua-nodeset-di:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-di
+      node-opcua-nodeset-isa-95-jobcontrol-v-2:
+        specifier: 2.161.0
+        version: link:../node-opcua-nodeset-isa-95-jobcontrol-v-2
       node-opcua-nodeset-machinery:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-machinery
+      node-opcua-nodeset-machinery-jobs:
+        specifier: 2.161.0
+        version: link:../node-opcua-nodeset-machinery-jobs
       node-opcua-nodeset-ua:
         specifier: 2.161.0
         version: link:../node-opcua-nodeset-ua
+      node-opcua-status-code:
+        specifier: 2.157.0
+        version: link:../node-opcua-status-code
       node-opcua-variant:
         specifier: 2.161.0
         version: link:../node-opcua-variant

@@ -39,7 +39,7 @@ export interface UALifetimeVariable_Base<T, DT extends DataType>  extends UAAnal
     /**
      * warningValues
      * WarningValues indicates one or more levels when
-     * the end of lifetime is reached soon and may be
+     * the end of lifetime is reached soon and can be
      * used to inform the user when reached.
      */
     warningValues?: UAProperty<any, any>;

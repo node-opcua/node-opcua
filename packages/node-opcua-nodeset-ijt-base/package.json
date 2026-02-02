@@ -18,6 +18,7 @@
         "node-opcua-extension-object": "2.158.0",
         "node-opcua-nodeid": "2.157.0",
         "node-opcua-nodeset-di": "2.161.0",
+        "node-opcua-nodeset-ia": "2.161.0",
         "node-opcua-nodeset-machinery": "2.161.0",
         "node-opcua-nodeset-machinery-result": "2.161.0",
         "node-opcua-nodeset-ua": "2.161.0",

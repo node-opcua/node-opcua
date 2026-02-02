@@ -16,6 +16,7 @@
      { "path": "../node-opcua-extension-object" },
      { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-nodeset-di" },
+     { "path": "../node-opcua-nodeset-ia" },
      { "path": "../node-opcua-nodeset-machinery" },
      { "path": "../node-opcua-nodeset-machinery-result" },
      { "path": "../node-opcua-nodeset-ua" },

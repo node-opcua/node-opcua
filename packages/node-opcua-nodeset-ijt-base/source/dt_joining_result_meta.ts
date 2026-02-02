@@ -90,7 +90,7 @@ It is recommended to always provide the creationTime.*/
   /** It is the user-friendly name of the result.
 Examples: Job Result, Batch Result, etc.*/
   name?: UAString; // String ns=0;i=12
-  /** It is the additional information associated with the result. It can contain information on the ResultConent.*/
+  /** It is the additional information associated with the result. It can contain information on the ResultContent.*/
   description?: LocalizedText; // LocalizedText ns=0;i=21
   /** It provides information on the classification of the result in the joining system.*/
   classification?: Byte; // Byte ns=0;i=3

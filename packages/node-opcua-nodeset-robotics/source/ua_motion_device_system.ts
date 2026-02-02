@@ -1,4 +1,7 @@
 // ----- this file has been automatically generated - do not edit
+import { UAProperty } from "node-opcua-address-space-base"
+import { DataType } from "node-opcua-variant"
+import { LocalizedText } from "node-opcua-data-model"
 import { UAFolder } from "node-opcua-nodeset-ua/dist/ua_folder"
 import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_component"
 
@@ -14,12 +17,7 @@ import { UAComponent, UAComponent_Base } from "node-opcua-nodeset-di/dist/ua_com
  * |isAbstract      |false                                                       |
  */
 export interface UAMotionDeviceSystem_Base extends UAComponent_Base {
-    /**
-     * motionDevices
-     * Contains any kinematic or motion device which is
-     * part of the motion device system.
-     */
-    motionDevices: UAFolder;
+    componentName?: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**
      * controllers
      * Contains the set of controllers in the motion
@@ -27,11 +25,17 @@ export interface UAMotionDeviceSystem_Base extends UAComponent_Base {
      */
     controllers: UAFolder;
     /**
+     * motionDevices
+     * Contains any kinematic or motion device which is
+     * part of the motion device system.
+     */
+    motionDevices: UAFolder;
+    /**
      * safetyStates
      * Contains safety-related data from motion device
      * system.
      */
     safetyStates: UAFolder;
 }
-export interface UAMotionDeviceSystem extends UAComponent, UAMotionDeviceSystem_Base {
+export interface UAMotionDeviceSystem extends Omit<UAComponent, "componentName">, UAMotionDeviceSystem_Base {
 }

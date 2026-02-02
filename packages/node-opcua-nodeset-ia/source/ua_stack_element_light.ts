@@ -4,6 +4,7 @@ import { UAAnalogItem } from "node-opcua-nodeset-ua/dist/ua_analog_item"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { EnumSignalColor } from "./enum_signal_color"
 import { EnumSignalModeLight } from "./enum_signal_mode_light"
+import { DTRGBW } from "./dt_rgbw"
 import { UAStackElement, UAStackElement_Base } from "./ua_stack_element"
 /**
  * Represents a lamp element in a stacklight.
@@ -40,6 +41,7 @@ export interface UAStackElementLight_Base extends UAStackElement_Base {
      * light, flashing, blinking) when switched on.
      */
     signalMode?: UABaseDataVariable<EnumSignalModeLight, DataType.Int32>;
+    signalRGBWValue?: UABaseDataVariable<DTRGBW, DataType.ExtensionObject>;
 }
 export interface UAStackElementLight extends UAStackElement, UAStackElementLight_Base {
 }

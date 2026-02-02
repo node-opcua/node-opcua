@@ -18,6 +18,7 @@
         "node-opcua-nodeid": "2.157.0",
         "node-opcua-nodeset-di": "2.161.0",
         "node-opcua-nodeset-ua": "2.161.0",
+        "node-opcua-status-code": "2.157.0",
         "node-opcua-variant": "2.161.0"
     },
     "files": [

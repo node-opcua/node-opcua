@@ -20,7 +20,7 @@ export interface DTResultCounter extends DTStructure {
   name?: UAString; // String ns=0;i=12
   /** It is the value of the counter.*/
   counterValue: UInt32; // UInt32 ns=0;i=7
-  /** It is the type of the Counter.*/
+  /** It is the type of the counter.*/
   counterType: Int16; // Int16 ns=0;i=4
 }
 export interface UDTResultCounter extends ExtensionObject, DTResultCounter {};

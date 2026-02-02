@@ -3,7 +3,7 @@ import { DataType } from "node-opcua-variant"
 import { Int64, Byte } from "node-opcua-basic-types"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
 import { UAMultiStateDiscrete } from "node-opcua-nodeset-ua/dist/ua_multi_state_discrete"
-import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base, UAIJoiningSystemAsset_identification } from "./ua_i_joining_system_asset"
+import { UAIJoiningSystemAsset_parameters, UAIJoiningSystemAsset, UAIJoiningSystemAsset_Base } from "./ua_i_joining_system_asset"
 export interface UAISensor_parameters extends UAIJoiningSystemAsset_parameters { // Object
       /**
        * measuredValue
@@ -14,7 +14,7 @@ export interface UAISensor_parameters extends UAIJoiningSystemAsset_parameters {
       /**
        * overloadCount
        * OverloadCount is the number of overloads of the
-       * sensor, where the permissible load of the senor
+       * sensor, where the permissible load of the sensor
        * was exceeded.
        */
       overloadCount?: UABaseDataVariable<Int64, DataType.Int64>;
@@ -34,17 +34,6 @@ export interface UAISensor_parameters extends UAIJoiningSystemAsset_parameters {
  */
 export interface UAISensor_Base extends UAIJoiningSystemAsset_Base {
     /**
-     * identification
-     * The Identification Object, using the standardized
-     * name defined in OPC 10000-100, provides
-     * identification information about the asset. This
-     * is a mandatory place holder and any asset
-     * inheriting IJoiningSystemAssetType will replace
-     * it with MachineIdentificationType or
-     * MachineryComponentIdentificationType.
-     */
-    identification: UAIJoiningSystemAsset_identification;
-    /**
      * parameters
      * The Parameters Object is an instance of
      * 0:FolderType to group set of common parameters of
@@ -52,5 +41,5 @@ export interface UAISensor_Base extends UAIJoiningSystemAsset_Base {
      */
     parameters: UAISensor_parameters;
 }
-export interface UAISensor extends Omit<UAIJoiningSystemAsset, "identification"|"parameters">, UAISensor_Base {
+export interface UAISensor extends Omit<UAIJoiningSystemAsset, "parameters">, UAISensor_Base {
 }

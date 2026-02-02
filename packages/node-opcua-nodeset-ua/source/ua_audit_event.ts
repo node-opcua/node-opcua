@@ -17,6 +17,7 @@ export interface UAAuditEvent_Base extends UABaseEvent_Base {
     serverId: UAProperty<UAString, DataType.String>;
     clientAuditEntryId: UAProperty<UAString, DataType.String>;
     clientUserId: UAProperty<UAString, DataType.String>;
+    clientApplicationUri?: UAProperty<UAString, DataType.String>;
 }
 export interface UAAuditEvent extends UABaseEvent, UAAuditEvent_Base {
 }

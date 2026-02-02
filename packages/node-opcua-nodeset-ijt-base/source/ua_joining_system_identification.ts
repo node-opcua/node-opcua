@@ -23,10 +23,10 @@ export interface UAJoiningSystemIdentification_Base extends UAFunctionalGroup_Ba
     defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
     /**
      * $description
-     * Description is the description of the system
-     * which could be written by the customer to
-     * identify the system. It could be the purpose of
-     * the system in the assembly line.
+     * It is the description of the system which could
+     * be written by the customer to identify the
+     * system. It could be the purpose of the system in
+     * the assembly line.
      */
     "$description"?: UAProperty<LocalizedText, DataType.LocalizedText>;
     /**

@@ -18,12 +18,13 @@ import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_vari
  */
 export interface UAProtectiveStopFunction_Base {
     /**
-     * name
-     * The Name of the ProtectiveStopFunctionType
-     * provides a manufacturer-specific protective stop
-     * function identifier within the safety system.
+     * active
+     * –    The Active variable is TRUE if this
+     * particular protective stop function is active,
+     * i.e. that a stop is initiated, FALSE otherwise.
+     * If Enabled is FALSE then Active shall be FALSE.
      */
-    name: UAProperty<UAString, DataType.String>;
+    active: UABaseDataVariable<boolean, DataType.Boolean>;
     /**
      * enabled
      * –    The Enabled variable is TRUE if this
@@ -40,13 +41,12 @@ export interface UAProtectiveStopFunction_Base {
      */
     enabled: UABaseDataVariable<boolean, DataType.Boolean>;
     /**
-     * active
-     * –    The Active variable is TRUE if this
-     * particular protective stop function is active,
-     * i.e. that a stop is initiated, FALSE otherwise.
-     * If Enabled is FALSE then Active shall be FALSE.
+     * name
+     * The Name of the ProtectiveStopFunctionType
+     * provides a manufacturer-specific protective stop
+     * function identifier within the safety system.
      */
-    active: UABaseDataVariable<boolean, DataType.Boolean>;
+    name: UAProperty<UAString, DataType.String>;
 }
 export interface UAProtectiveStopFunction extends UAObject, UAProtectiveStopFunction_Base {
 }

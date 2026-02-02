@@ -1,8 +1,6 @@
 // ----- this file has been automatically generated - do not edit
 import { UAObject } from "node-opcua-address-space-base"
 /**
- * General structure of a Protocol ObjectType
- *
  * |                |                                                            |
  * |----------------|------------------------------------------------------------|
  * |namespace       |http://opcfoundation.org/UA/DI/                             |

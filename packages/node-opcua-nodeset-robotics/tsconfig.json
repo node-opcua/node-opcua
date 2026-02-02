@@ -16,6 +16,7 @@
      { "path": "../node-opcua-nodeid" },
      { "path": "../node-opcua-nodeset-di" },
      { "path": "../node-opcua-nodeset-ua" },
+     { "path": "../node-opcua-status-code" },
      { "path": "../node-opcua-variant" }
    ],
    "exclude": [

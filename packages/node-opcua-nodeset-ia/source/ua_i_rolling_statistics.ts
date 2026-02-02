@@ -21,7 +21,7 @@ export interface UAIRollingStatistics_Base extends UAIStatistics_Base {
      * The duration after the statistical data are
      * rolled over. Only the data that were gathered
      * during that duration are considered for the
-     * statistical data, even if the time intervals
+     * statistical data, even if the time interval
      * between the StartTime and the current time is
      * longer.
      */

@@ -17,7 +17,7 @@ export interface UAIWwUnitFlags_Base extends UABaseInterface_Base {
     /**
      * airPresent
      * The AirPresent Variable is true if the air
-     * pressure present in the machine.
+     * pressure is present in the machine.
      */
     airPresent?: UABaseDataVariable<boolean, DataType.Boolean>;
     /**

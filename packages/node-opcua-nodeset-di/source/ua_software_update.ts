@@ -2,9 +2,10 @@
 import { UAObject, UAProperty } from "node-opcua-address-space-base"
 import { DataType } from "node-opcua-variant"
 import { LocalizedText, QualifiedName } from "node-opcua-data-model"
-import { Int32 } from "node-opcua-basic-types"
+import { Int32, UAString } from "node-opcua-basic-types"
 import { UATemporaryFileTransfer } from "node-opcua-nodeset-ua/dist/ua_temporary_file_transfer"
 import { UABaseDataVariable } from "node-opcua-nodeset-ua/dist/ua_base_data_variable"
+import { EnumSoftwareClass } from "./enum_software_class"
 import { UASoftwareLoading } from "./ua_software_loading"
 import { UAPrepareForUpdateStateMachine } from "./ua_prepare_for_update_state_machine"
 import { UAInstallationStateMachine } from "./ua_installation_state_machine"
@@ -26,6 +27,10 @@ export interface UASoftwareUpdate_Base {
     confirmation?: UAConfirmationStateMachine;
     parameters?: UATemporaryFileTransfer;
     updateStatus?: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
+    softwareClass?: UAProperty<EnumSoftwareClass, DataType.Int32>;
+    softwareSubclass?: UAProperty<UAString, DataType.String>;
+    softwareName?: UAProperty<UAString, DataType.String>;
+    unsignedPackageAllowed?: UAProperty<boolean, DataType.Boolean>;
     vendorErrorCode?: UABaseDataVariable<Int32, DataType.Int32>;
     defaultInstanceBrowseName: UAProperty<QualifiedName, DataType.QualifiedName>;
 }

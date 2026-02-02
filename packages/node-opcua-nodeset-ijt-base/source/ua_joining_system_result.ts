@@ -33,7 +33,7 @@ export interface UAJoiningSystemResult_resultMetaData<T, DT extends DataType> ex
        * $description
        * It is the additional information associated with
        * the result. It can contain information on the
-       * ResultConent.
+       * ResultContent.
        */
       "$description"?: UABaseDataVariable<LocalizedText, DataType.LocalizedText>;
       /**
@@ -120,8 +120,7 @@ export interface UAJoiningSystemResult_resultMetaData<T, DT extends DataType> ex
  * |isAbstract      |false                                                       |
  */
 export interface UAJoiningSystemResult_Base<T extends DTResult>  extends UAResult_Base<T> {
-    resultContent?: UABaseDataVariable<any, any>;
     resultMetaData: UAJoiningSystemResult_resultMetaData<DTJoiningResultMeta, DataType.ExtensionObject>;
 }
-export interface UAJoiningSystemResult<T extends DTResult> extends Omit<UAResult<T>, "resultContent"|"resultMetaData">, UAJoiningSystemResult_Base<T> {
+export interface UAJoiningSystemResult<T extends DTResult> extends Omit<UAResult<T>, "resultMetaData">, UAJoiningSystemResult_Base<T> {
 }

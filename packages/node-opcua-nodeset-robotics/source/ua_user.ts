@@ -17,8 +17,9 @@ import { UAString } from "node-opcua-basic-types"
 export interface UAUser_Base {
     /**
      * level
-     * The weight of the load mounted on one mounting
-     * point.
+     * Provides information about the access rights and
+     * determines what can be viewed, updated, or
+     * deleted by a user
      */
     level: UAProperty<UAString, DataType.String>;
     /**

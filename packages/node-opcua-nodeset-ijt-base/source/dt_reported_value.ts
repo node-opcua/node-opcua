@@ -26,9 +26,9 @@ Note: It may not be applicable for few reported values such as Software Version,
   currentValue: VariantOptions; // Variant ns=0;i=0
   /** It is the previous value (if available). The data type can be any simple data type such as Integer, String, Double, DateTime, etc. If the value is corresponding to the physical quantity, then the data type should be Double.*/
   previousValue?: VariantOptions; // Variant ns=0;i=0
-  /** It is the low limit of the given value. It is not applicable for values which does not have PhysicalQuantity.*/
+  /** It is the low limit of the given value. It is not applicable for values which do not have PhysicalQuantity.*/
   lowLimit?: number; // Double ns=0;i=11
-  /** It is the high limit of the given value. It is not applicable for values which does not have PhysicalQuantity.*/
+  /** It is the high limit of the given value. It is not applicable for values which do not have PhysicalQuantity.*/
   highLimit?: number; // Double ns=0;i=11
   /** It is the engineering unit of the CurrentValue, PreviousValue, LowLimit, HighLimit.
 It is not applicable for values which does not have PhysicalQuantity.*/

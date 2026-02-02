@@ -20,6 +20,7 @@ export interface UAInstallationStateMachine_Base extends UAFiniteStateMachine_Ba
     installationDelay?: UABaseDataVariable<number, DataType.Double>;
     installSoftwarePackage?: UAMethod;
     installFiles?: UAMethod;
+    uninstall?: UAMethod;
     resume: UAMethod;
     idle: UAInitialState;
     installing: UAState;

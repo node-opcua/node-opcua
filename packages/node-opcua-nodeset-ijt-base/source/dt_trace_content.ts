@@ -4,9 +4,8 @@ import { Byte, UAString } from "node-opcua-basic-types"
 import { ExtensionObject } from "node-opcua-extension-object"
 import { DTStructure } from "node-opcua-nodeset-ua/dist/dt_structure"
 /**
- * It is to describe of the trace samples for a
- * given program step. It is used in
- * StepTraceDataType.
+ * It is to describe the trace samples for a given
+ * program step. It is used in StepTraceDataType.
  *
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|

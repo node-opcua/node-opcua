@@ -34,8 +34,8 @@
     <Uri>http://opcfoundation.org/UA/DI/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.2" PublicationDate="2024-02-28T00:00:00Z" ModelVersion="1.1.2">
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-01-24T00:00:00Z" />
+    <Model ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.4" PublicationDate="2025-05-23T00:00:00Z" ModelVersion="1.1.4">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.01" PublicationDate="2022-02-24T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.03.1" PublicationDate="2021-09-07T00:00:00Z" />
     </Model>
   </Models>
@@ -53,6 +53,8 @@
     <Alias Alias="Number">i=26</Alias>
     <Alias Alias="UInteger">i=28</Alias>
     <Alias Alias="HasModellingRule">i=37</Alias>
+    <Alias Alias="HasEncoding">i=38</Alias>
+    <Alias Alias="HasDescription">i=39</Alias>
     <Alias Alias="HasTypeDefinition">i=40</Alias>
     <Alias Alias="HasSubtype">i=45</Alias>
     <Alias Alias="HasProperty">i=46</Alias>
@@ -72,10 +74,11 @@
     <Alias Alias="LevelDisplayMode">ns=1;i=3003</Alias>
     <Alias Alias="SignalColor">ns=1;i=3004</Alias>
     <Alias Alias="SignalModeLight">ns=1;i=3005</Alias>
+    <Alias Alias="RGBWDataType">ns=1;i=3007</Alias>
   </Aliases>
   <Extensions>
     <Extension>
-      <ua:ModelInfo Tool="UaModeler" Hash="EbxPvdtIUR7EwJg1K9xqEA==" Version="1.6.6" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
+      <ua:ModelInfo Hash="S2ngWaOHkK/Uf1udbtN9EQ==" Tool="UaModeler" Version="1.7.1" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
     </Extension>
   </Extensions>
   <UADataType NodeId="ns=1;i=3003" BrowseName="1:LevelDisplayMode">
@@ -83,8 +86,8 @@
     <Description Locale="en">Contains the values used to indicate how a percentual value is displayed if the stacklight unit works in Levelmeter mode.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.2</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6001</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6001</Reference>
     </References>
     <Definition Name="1:LevelDisplayMode">
       <Field Name="Dimmed" Value="0">
@@ -102,7 +105,6 @@
     <DisplayName>EnumValues</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3003</Reference>
     </References>
     <Value>
@@ -166,8 +168,8 @@
     <Description Locale="en">Holds the possible colour values for stacklight lamps.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.3</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
     </References>
     <Definition Name="1:SignalColor">
       <Field Name="Off" Value="0">
@@ -200,7 +202,6 @@
     <DisplayName>EnumValues</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3004</Reference>
     </References>
     <Value>
@@ -349,8 +350,8 @@
     <Description Locale="en">Contains the values used to indicate in what way a lamp behaves when switched on.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.4</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
     </References>
     <Definition Name="1:SignalModeLight">
       <Field Name="Continuous" Value="0">
@@ -371,7 +372,6 @@
     <DisplayName>EnumValues</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3005</Reference>
     </References>
     <Value>
@@ -452,8 +452,8 @@
     <Description Locale="en">Contains the values used to indicate how a stacklight (as a whole unit) is used.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.1</Documentation>
     <References>
-      <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=29</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
     </References>
     <Definition Name="1:StacklightOperationMode">
       <Field Name="Segmented" Value="0">
@@ -474,7 +474,6 @@
     <DisplayName>EnumValues</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-      <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3002</Reference>
     </References>
     <Value>
@@ -550,58 +549,124 @@
             </uax:ListOfExtensionObject>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6002" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString">
+  <UADataType NodeId="ns=1;i=3007" BrowseName="1:RGBWDataType">
+    <DisplayName>RGBWDataType</DisplayName>
+    <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.3.5</Documentation>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5009</Reference>
+      <Reference ReferenceType="HasEncoding">ns=1;i=5014</Reference>
+    </References>
+    <Definition Name="1:RGBWDataType">
+      <Field Name="Red" DataType="Byte">
+        <Description>Defines the intensity of the colour red</Description>
+      </Field>
+      <Field Name="Green" DataType="Byte">
+        <Description>Defines the intensity of the colour green</Description>
+      </Field>
+      <Field Name="Blue" DataType="Byte">
+        <Description>Defines the intensity of the colour blue</Description>
+      </Field>
+      <Field Name="White" DataType="Byte" IsOptional="true">
+        <Description>Defines the intensity of an additional white component. Shall be not provided when using RGB.</Description>
+      </Field>
+    </Definition>
+  </UADataType>
+  <UAVariable NodeId="ns=1;i=6050" BrowseName="1:RGBWDataType" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6002" DataType="String">
+    <DisplayName>RGBWDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+      <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5009</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6002</Reference>
+    </References>
+    <Value>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">RGBWDataType</uax:String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6051" BrowseName="1:RGBWDataType" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6004" DataType="String">
+    <DisplayName>RGBWDataType</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+      <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5014</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6004</Reference>
+    </References>
+    <Value>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">//xs:element[@name='RGBWDataType']</uax:String>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6002" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_BinarySchema" ReleaseStatus="Deprecated" DataType="ByteString">
     <DisplayName>TypeDictionary</DisplayName>
     <Description>Collects the data type descriptions of http://opcfoundation.org/UA/IA</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6053</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6003</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6050</Reference>
     </References>
     <Value>
-      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZ
-        W1hLWluc3RhbmNlIiB4bWxuczp0bnM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS9JQ
-        S8iIERlZmF1bHRCeXRlT3JkZXI9IkxpdHRsZUVuZGlhbiIgeG1sbnM6b3BjPSJodHRwOi8vb
-        3BjZm91bmRhdGlvbi5vcmcvQmluYXJ5U2NoZW1hLyIgeG1sbnM6dWE9Imh0dHA6Ly9vcGNmb
-        3VuZGF0aW9uLm9yZy9VQS8iIFRhcmdldE5hbWVzcGFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb
+      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczpvcGM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9CaW5hc
+        nlTY2hlbWEvIiBEZWZhdWx0Qnl0ZU9yZGVyPSJMaXR0bGVFbmRpYW4iIFRhcmdldE5hbWVzc
+        GFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL0lBLyIgeG1sbnM6eHNpPSJodHRwO
+        i8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYS1pbnN0YW5jZSIgeG1sbnM6dWE9Imh0dHA6L
+        y9vcGNmb3VuZGF0aW9uLm9yZy9VQS8iIHhtbG5zOnRucz0iaHR0cDovL29wY2ZvdW5kYXRpb
         24ub3JnL1VBL0lBLyI+CiA8b3BjOkltcG9ydCBOYW1lc3BhY2U9Imh0dHA6Ly9vcGNmb3VuZ
-        GF0aW9uLm9yZy9VQS8iLz4KIDxvcGM6RW51bWVyYXRlZFR5cGUgTGVuZ3RoSW5CaXRzPSIzM
+        GF0aW9uLm9yZy9VQS8iLz4KIDxvcGM6U3RydWN0dXJlZFR5cGUgQmFzZVR5cGU9InVhOkV4d
+        GVuc2lvbk9iamVjdCIgTmFtZT0iUkdCV0RhdGFUeXBlIj4KICA8b3BjOkZpZWxkIE5hbWU9I
+        ldoaXRlU3BlY2lmaWVkIiBUeXBlTmFtZT0ib3BjOkJpdCIvPgogIDxvcGM6RmllbGQgTGVuZ
+        3RoPSIzMSIgTmFtZT0iUmVzZXJ2ZWQxIiBUeXBlTmFtZT0ib3BjOkJpdCIvPgogIDxvcGM6R
+        mllbGQgTmFtZT0iUmVkIiBUeXBlTmFtZT0ib3BjOkJ5dGUiLz4KICA8b3BjOkZpZWxkIE5hb
+        WU9IkdyZWVuIiBUeXBlTmFtZT0ib3BjOkJ5dGUiLz4KICA8b3BjOkZpZWxkIE5hbWU9IkJsd
+        WUiIFR5cGVOYW1lPSJvcGM6Qnl0ZSIvPgogIDxvcGM6RmllbGQgU3dpdGNoRmllbGQ9Ildoa
+        XRlU3BlY2lmaWVkIiBOYW1lPSJXaGl0ZSIgVHlwZU5hbWU9Im9wYzpCeXRlIi8+CiA8L29wY
+        zpTdHJ1Y3R1cmVkVHlwZT4KIDxvcGM6RW51bWVyYXRlZFR5cGUgTGVuZ3RoSW5CaXRzPSIzM
         iIgTmFtZT0iTGV2ZWxEaXNwbGF5TW9kZSI+CiAgPG9wYzpEb2N1bWVudGF0aW9uPkNvbnRha
         W5zIHRoZSB2YWx1ZXMgdXNlZCB0byBpbmRpY2F0ZSBob3cgYSBwZXJjZW50dWFsIHZhbHVlI
         GlzIGRpc3BsYXllZCBpZiB0aGUgc3RhY2tsaWdodCB1bml0IHdvcmtzIGluIExldmVsbWV0Z
-        XIgbW9kZS48L29wYzpEb2N1bWVudGF0aW9uPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hb
-        WU9IkRpbW1lZCIgVmFsdWU9IjAiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJCb
-        Glua2luZyIgVmFsdWU9IjEiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJPdGhlc
-        iIgVmFsdWU9IjIiLz4KIDwvb3BjOkVudW1lcmF0ZWRUeXBlPgogPG9wYzpFbnVtZXJhdGVkV
+        XIgbW9kZS48L29wYzpEb2N1bWVudGF0aW9uPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIFZhb
+        HVlPSIwIiBOYW1lPSJEaW1tZWQiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBWYWx1ZT0iM
+        SIgTmFtZT0iQmxpbmtpbmciLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBWYWx1ZT0iMiIgT
+        mFtZT0iT3RoZXIiLz4KIDwvb3BjOkVudW1lcmF0ZWRUeXBlPgogPG9wYzpFbnVtZXJhdGVkV
         HlwZSBMZW5ndGhJbkJpdHM9IjMyIiBOYW1lPSJTaWduYWxDb2xvciI+CiAgPG9wYzpEb2N1b
         WVudGF0aW9uPkhvbGRzIHRoZSBwb3NzaWJsZSBjb2xvdXIgdmFsdWVzIGZvciBzdGFja2xpZ
-        2h0IGxhbXBzLjwvb3BjOkRvY3VtZW50YXRpb24+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgT
-        mFtZT0iT2ZmIiBWYWx1ZT0iMCIvPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IlJlZ
-        CIgVmFsdWU9IjEiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJHcmVlbiIgVmFsd
-        WU9IjIiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJCbHVlIiBWYWx1ZT0iMyIvP
-        gogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IlllbGxvdyIgVmFsdWU9IjQiLz4KICA8b
-        3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJQdXJwbGUiIFZhbHVlPSI1Ii8+CiAgPG9wYzpFb
-        nVtZXJhdGVkVmFsdWUgTmFtZT0iQ3lhbiIgVmFsdWU9IjYiLz4KICA8b3BjOkVudW1lcmF0Z
-        WRWYWx1ZSBOYW1lPSJXaGl0ZSIgVmFsdWU9IjciLz4KIDwvb3BjOkVudW1lcmF0ZWRUeXBlP
+        2h0IGxhbXBzLjwvb3BjOkRvY3VtZW50YXRpb24+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgV
+        mFsdWU9IjAiIE5hbWU9Ik9mZiIvPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIFZhbHVlPSIxI
+        iBOYW1lPSJSZWQiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBWYWx1ZT0iMiIgTmFtZT0iR
+        3JlZW4iLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBWYWx1ZT0iMyIgTmFtZT0iQmx1ZSIvP
+        gogIDxvcGM6RW51bWVyYXRlZFZhbHVlIFZhbHVlPSI0IiBOYW1lPSJZZWxsb3ciLz4KICA8b
+        3BjOkVudW1lcmF0ZWRWYWx1ZSBWYWx1ZT0iNSIgTmFtZT0iUHVycGxlIi8+CiAgPG9wYzpFb
+        nVtZXJhdGVkVmFsdWUgVmFsdWU9IjYiIE5hbWU9IkN5YW4iLz4KICA8b3BjOkVudW1lcmF0Z
+        WRWYWx1ZSBWYWx1ZT0iNyIgTmFtZT0iV2hpdGUiLz4KIDwvb3BjOkVudW1lcmF0ZWRUeXBlP
         gogPG9wYzpFbnVtZXJhdGVkVHlwZSBMZW5ndGhJbkJpdHM9IjMyIiBOYW1lPSJTaWduYWxNb
         2RlTGlnaHQiPgogIDxvcGM6RG9jdW1lbnRhdGlvbj5Db250YWlucyB0aGUgdmFsdWVzIHVzZ
         WQgdG8gaW5kaWNhdGUgaW4gd2hhdCB3YXkgYSBsYW1wIGJlaGF2ZXMgd2hlbiBzd2l0Y2hlZ
-        CBvbi48L29wYzpEb2N1bWVudGF0aW9uPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9I
-        kNvbnRpbnVvdXMiIFZhbHVlPSIwIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iQ
-        mxpbmtpbmciIFZhbHVlPSIxIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iRmxhc
-        2hpbmciIFZhbHVlPSIyIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iT3RoZXIiI
-        FZhbHVlPSIzIi8+CiA8L29wYzpFbnVtZXJhdGVkVHlwZT4KIDxvcGM6RW51bWVyYXRlZFR5c
+        CBvbi48L29wYzpEb2N1bWVudGF0aW9uPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIFZhbHVlP
+        SIwIiBOYW1lPSJDb250aW51b3VzIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgVmFsdWU9I
+        jEiIE5hbWU9IkJsaW5raW5nIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgVmFsdWU9IjIiI
+        E5hbWU9IkZsYXNoaW5nIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgVmFsdWU9IjMiIE5hb
+        WU9Ik90aGVyIi8+CiA8L29wYzpFbnVtZXJhdGVkVHlwZT4KIDxvcGM6RW51bWVyYXRlZFR5c
         GUgTGVuZ3RoSW5CaXRzPSIzMiIgTmFtZT0iU3RhY2tsaWdodE9wZXJhdGlvbk1vZGUiPgogI
         DxvcGM6RG9jdW1lbnRhdGlvbj5Db250YWlucyB0aGUgdmFsdWVzIHVzZWQgdG8gaW5kaWNhd
         GUgaG93IGEgc3RhY2tsaWdodCAoYXMgYSB3aG9sZSB1bml0KSBpcyB1c2VkLjwvb3BjOkRvY
-        3VtZW50YXRpb24+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iU2VnbWVudGVkIiBWY
-        Wx1ZT0iMCIvPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIE5hbWU9IkxldmVsbWV0ZXIiIFZhb
-        HVlPSIxIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgTmFtZT0iUnVubmluZ19MaWdodCIgV
-        mFsdWU9IjIiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBOYW1lPSJPdGhlciIgVmFsdWU9I
-        jMiLz4KIDwvb3BjOkVudW1lcmF0ZWRUeXBlPgo8L29wYzpUeXBlRGljdGlvbmFyeT4K</uax:ByteString>
+        3VtZW50YXRpb24+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgVmFsdWU9IjAiIE5hbWU9IlNlZ
+        21lbnRlZCIvPgogIDxvcGM6RW51bWVyYXRlZFZhbHVlIFZhbHVlPSIxIiBOYW1lPSJMZXZlb
+        G1ldGVyIi8+CiAgPG9wYzpFbnVtZXJhdGVkVmFsdWUgVmFsdWU9IjIiIE5hbWU9IlJ1bm5pb
+        mdfTGlnaHQiLz4KICA8b3BjOkVudW1lcmF0ZWRWYWx1ZSBWYWx1ZT0iMyIgTmFtZT0iT3RoZ
+        XIiLz4KIDwvb3BjOkVudW1lcmF0ZWRUeXBlPgo8L29wYzpUeXBlRGljdGlvbmFyeT4K</uax:ByteString>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6003" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6002" DataType="String">
+  <UAVariable NodeId="ns=1;i=6053" BrowseName="Deprecated" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6002" DataType="Boolean">
+    <DisplayName>Deprecated</DisplayName>
+    <Description>Indicates that all of the DataType definitions represented by the DataTypeDictionaryType are available through a DataTypeDefinition Attribute.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6002</Reference>
+    </References>
+    <Value>
+      <uax:Boolean xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">true</uax:Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6003" BrowseName="NamespaceUri" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6002" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -611,20 +676,22 @@
       <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/IA/</uax:String>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6004" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_XmlSchema" DataType="ByteString">
+  <UAVariable NodeId="ns=1;i=6004" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_XmlSchema" ReleaseStatus="Deprecated" DataType="ByteString">
     <DisplayName>TypeDictionary</DisplayName>
     <Description>Collects the data type descriptions of http://opcfoundation.org/UA/IA</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6054</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6005</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6051</Reference>
     </References>
     <Value>
-      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PHhzOnNjaGVtYSBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCIgdGFyZ2V0TmFtZXNwYWNlPSJod
-        HRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSUEvVHlwZXMueHNkIiB4bWxuczp0bnM9Imh0d
-        HA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS9JQS9UeXBlcy54c2QiIHhtbG5zOnVhPSJodHRwO
-        i8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wMi9UeXBlcy54c2QiIHhtbG5zOnhzPSJod
-        HRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtYSI+CiA8eHM6aW1wb3J0IG5hbWVzcGFjZ
+      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PHhzOnNjaGVtYSBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCIgeG1sbnM6dWE9Imh0dHA6Ly9vc
+        GNmb3VuZGF0aW9uLm9yZy9VQS8yMDA4LzAyL1R5cGVzLnhzZCIgeG1sbnM6dG5zPSJodHRwO
+        i8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSUEvVHlwZXMueHNkIiB4bWxuczp4cz0iaHR0cDovL
+        3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEiIHRhcmdldE5hbWVzcGFjZT0iaHR0cDovL29wY
+        2ZvdW5kYXRpb24ub3JnL1VBL0lBL1R5cGVzLnhzZCI+CiA8eHM6aW1wb3J0IG5hbWVzcGFjZ
         T0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBLzIwMDgvMDIvVHlwZXMueHNkIi8+CiA8e
         HM6c2ltcGxlVHlwZSBuYW1lPSJMZXZlbERpc3BsYXlNb2RlIj4KICA8eHM6YW5ub3RhdGlvb
         j4KICAgPHhzOmRvY3VtZW50YXRpb24+Q29udGFpbnMgdGhlIHZhbHVlcyB1c2VkIHRvIGluZ
@@ -636,11 +703,11 @@
         3RoZXJfMiIvPgogIDwveHM6cmVzdHJpY3Rpb24+CiA8L3hzOnNpbXBsZVR5cGU+CiA8eHM6Z
         WxlbWVudCB0eXBlPSJ0bnM6TGV2ZWxEaXNwbGF5TW9kZSIgbmFtZT0iTGV2ZWxEaXNwbGF5T
         W9kZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZkxldmVsRGlzcGxheU1vZGUiP
-        gogIDx4czpzZXF1ZW5jZT4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1c
-        nM9InVuYm91bmRlZCIgdHlwZT0idG5zOkxldmVsRGlzcGxheU1vZGUiIG5hbWU9IkxldmVsR
-        GlzcGxheU1vZGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y
+        gogIDx4czpzZXF1ZW5jZT4KICAgPHhzOmVsZW1lbnQgdHlwZT0idG5zOkxldmVsRGlzcGxhe
+        U1vZGUiIG5pbGxhYmxlPSJ0cnVlIiBuYW1lPSJMZXZlbERpc3BsYXlNb2RlIiBtaW5PY2N1c
+        nM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y
         29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzdE9mTGV2ZWxEaXNwbGF5T
-        W9kZSIgbmFtZT0iTGlzdE9mTGV2ZWxEaXNwbGF5TW9kZSIgbmlsbGFibGU9InRydWUiLz4KI
+        W9kZSIgbmlsbGFibGU9InRydWUiIG5hbWU9Ikxpc3RPZkxldmVsRGlzcGxheU1vZGUiLz4KI
         Dx4czpzaW1wbGVUeXBlIG5hbWU9IlNpZ25hbENvbG9yIj4KICA8eHM6YW5ub3RhdGlvbj4KI
         CAgPHhzOmRvY3VtZW50YXRpb24+SG9sZHMgdGhlIHBvc3NpYmxlIGNvbG91ciB2YWx1ZXMgZ
         m9yIHN0YWNrbGlnaHQgbGFtcHMuPC94czpkb2N1bWVudGF0aW9uPgogIDwveHM6YW5ub3Rhd
@@ -653,11 +720,11 @@
         Gl0ZV83Ii8+CiAgPC94czpyZXN0cmljdGlvbj4KIDwveHM6c2ltcGxlVHlwZT4KIDx4czplb
         GVtZW50IHR5cGU9InRuczpTaWduYWxDb2xvciIgbmFtZT0iU2lnbmFsQ29sb3IiLz4KIDx4c
         zpjb21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZTaWduYWxDb2xvciI+CiAgPHhzOnNlcXVlbmNlP
-        gogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIiB0e
-        XBlPSJ0bnM6U2lnbmFsQ29sb3IiIG5hbWU9IlNpZ25hbENvbG9yIiBuaWxsYWJsZT0idHJ1Z
-        SIvPgogIDwveHM6c2VxdWVuY2U+CiA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZW1lbnQgd
-        HlwZT0idG5zOkxpc3RPZlNpZ25hbENvbG9yIiBuYW1lPSJMaXN0T2ZTaWduYWxDb2xvciIgb
-        mlsbGFibGU9InRydWUiLz4KIDx4czpzaW1wbGVUeXBlIG5hbWU9IlNpZ25hbE1vZGVMaWdod
+        gogICA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6U2lnbmFsQ29sb3IiIG5pbGxhYmxlPSJ0cnVlI
+        iBuYW1lPSJTaWduYWxDb2xvciIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91bmRlZ
+        CIvPgogIDwveHM6c2VxdWVuY2U+CiA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZW1lbnQgd
+        HlwZT0idG5zOkxpc3RPZlNpZ25hbENvbG9yIiBuaWxsYWJsZT0idHJ1ZSIgbmFtZT0iTGlzd
+        E9mU2lnbmFsQ29sb3IiLz4KIDx4czpzaW1wbGVUeXBlIG5hbWU9IlNpZ25hbE1vZGVMaWdod
         CI+CiAgPHhzOmFubm90YXRpb24+CiAgIDx4czpkb2N1bWVudGF0aW9uPkNvbnRhaW5zIHRoZ
         SB2YWx1ZXMgdXNlZCB0byBpbmRpY2F0ZSBpbiB3aGF0IHdheSBhIGxhbXAgYmVoYXZlcyB3a
         GVuIHN3aXRjaGVkIG9uLjwveHM6ZG9jdW1lbnRhdGlvbj4KICA8L3hzOmFubm90YXRpb24+C
@@ -667,12 +734,12 @@
         HhzOmVudW1lcmF0aW9uIHZhbHVlPSJPdGhlcl8zIi8+CiAgPC94czpyZXN0cmljdGlvbj4KI
         DwveHM6c2ltcGxlVHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuczpTaWduYWxNb2RlTGlna
         HQiIG5hbWU9IlNpZ25hbE1vZGVMaWdodCIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc
-        3RPZlNpZ25hbE1vZGVMaWdodCI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCBta
-        W5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIiB0eXBlPSJ0bnM6U2lnbmFsTW9kZ
-        UxpZ2h0IiBuYW1lPSJTaWduYWxNb2RlTGlnaHQiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94c
+        3RPZlNpZ25hbE1vZGVMaWdodCI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCB0e
+        XBlPSJ0bnM6U2lnbmFsTW9kZUxpZ2h0IiBuaWxsYWJsZT0idHJ1ZSIgbmFtZT0iU2lnbmFsT
+        W9kZUxpZ2h0IiBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIi8+CiAgPC94c
         zpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6T
-        GlzdE9mU2lnbmFsTW9kZUxpZ2h0IiBuYW1lPSJMaXN0T2ZTaWduYWxNb2RlTGlnaHQiIG5pb
-        GxhYmxlPSJ0cnVlIi8+CiA8eHM6c2ltcGxlVHlwZSBuYW1lPSJTdGFja2xpZ2h0T3BlcmF0a
+        GlzdE9mU2lnbmFsTW9kZUxpZ2h0IiBuaWxsYWJsZT0idHJ1ZSIgbmFtZT0iTGlzdE9mU2lnb
+        mFsTW9kZUxpZ2h0Ii8+CiA8eHM6c2ltcGxlVHlwZSBuYW1lPSJTdGFja2xpZ2h0T3BlcmF0a
         W9uTW9kZSI+CiAgPHhzOmFubm90YXRpb24+CiAgIDx4czpkb2N1bWVudGF0aW9uPkNvbnRha
         W5zIHRoZSB2YWx1ZXMgdXNlZCB0byBpbmRpY2F0ZSBob3cgYSBzdGFja2xpZ2h0IChhcyBhI
         Hdob2xlIHVuaXQpIGlzIHVzZWQuPC94czpkb2N1bWVudGF0aW9uPgogIDwveHM6YW5ub3Rhd
@@ -683,15 +750,42 @@
         3RyaWN0aW9uPgogPC94czpzaW1wbGVUeXBlPgogPHhzOmVsZW1lbnQgdHlwZT0idG5zOlN0Y
         WNrbGlnaHRPcGVyYXRpb25Nb2RlIiBuYW1lPSJTdGFja2xpZ2h0T3BlcmF0aW9uTW9kZSIvP
         gogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZlN0YWNrbGlnaHRPcGVyYXRpb25Nb2RlI
-        j4KICA8eHM6c2VxdWVuY2U+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2Njd
-        XJzPSJ1bmJvdW5kZWQiIHR5cGU9InRuczpTdGFja2xpZ2h0T3BlcmF0aW9uTW9kZSIgbmFtZ
-        T0iU3RhY2tsaWdodE9wZXJhdGlvbk1vZGUiIG5pbGxhYmxlPSJ0cnVlIi8+CiAgPC94czpzZ
+        j4KICA8eHM6c2VxdWVuY2U+CiAgIDx4czplbGVtZW50IHR5cGU9InRuczpTdGFja2xpZ2h0T
+        3BlcmF0aW9uTW9kZSIgbmlsbGFibGU9InRydWUiIG5hbWU9IlN0YWNrbGlnaHRPcGVyYXRpb
+        25Nb2RlIiBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIi8+CiAgPC94czpzZ
         XF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzd
-        E9mU3RhY2tsaWdodE9wZXJhdGlvbk1vZGUiIG5hbWU9Ikxpc3RPZlN0YWNrbGlnaHRPcGVyY
-        XRpb25Nb2RlIiBuaWxsYWJsZT0idHJ1ZSIvPgo8L3hzOnNjaGVtYT4K</uax:ByteString>
+        E9mU3RhY2tsaWdodE9wZXJhdGlvbk1vZGUiIG5pbGxhYmxlPSJ0cnVlIiBuYW1lPSJMaXN0T
+        2ZTdGFja2xpZ2h0T3BlcmF0aW9uTW9kZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9IlJHQ
+        ldEYXRhVHlwZSI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCB0eXBlPSJ4czp1b
+        nNpZ25lZEludCIgbmFtZT0iRW5jb2RpbmdNYXNrIiBtaW5PY2N1cnM9IjAiLz4KICAgPHhzO
+        mVsZW1lbnQgdHlwZT0ieHM6dW5zaWduZWRCeXRlIiBuYW1lPSJSZWQiIG1pbk9jY3Vycz0iM
+        CIgbWF4T2NjdXJzPSIxIi8+CiAgIDx4czplbGVtZW50IHR5cGU9InhzOnVuc2lnbmVkQnl0Z
+        SIgbmFtZT0iR3JlZW4iIG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSIxIi8+CiAgIDx4czplb
+        GVtZW50IHR5cGU9InhzOnVuc2lnbmVkQnl0ZSIgbmFtZT0iQmx1ZSIgbWluT2NjdXJzPSIwI
+        iBtYXhPY2N1cnM9IjEiLz4KICAgPHhzOmVsZW1lbnQgdHlwZT0ieHM6dW5zaWduZWRCeXRlI
+        iBuYW1lPSJXaGl0ZSIgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiLz4KICA8L3hzOnNlc
+        XVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuczpSR0JXR
+        GF0YVR5cGUiIG5hbWU9IlJHQldEYXRhVHlwZSIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9I
+        kxpc3RPZlJHQldEYXRhVHlwZSI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6ZWxlbWVudCB0e
+        XBlPSJ0bnM6UkdCV0RhdGFUeXBlIiBuaWxsYWJsZT0idHJ1ZSIgbmFtZT0iUkdCV0RhdGFUe
+        XBlIiBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIi8+CiAgPC94czpzZXF1Z
+        W5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzdE9mU
+        kdCV0RhdGFUeXBlIiBuaWxsYWJsZT0idHJ1ZSIgbmFtZT0iTGlzdE9mUkdCV0RhdGFUeXBlI
+        i8+CjwveHM6c2NoZW1hPgo=</uax:ByteString>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6005" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6004" DataType="String">
+  <UAVariable NodeId="ns=1;i=6054" BrowseName="Deprecated" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6004" DataType="Boolean">
+    <DisplayName>Deprecated</DisplayName>
+    <Description>Indicates that all of the DataType definitions represented by the DataTypeDictionaryType are available through a DataTypeDefinition Attribute.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6004</Reference>
+    </References>
+    <Value>
+      <uax:Boolean xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">true</uax:Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6005" BrowseName="NamespaceUri" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6004" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -861,7 +955,7 @@
   </UAVariable>
   <UAObjectType NodeId="ns=1;i=1012" BrowseName="1:IAggregateStatisticsType" IsAbstract="true">
     <DisplayName>IAggregateStatisticsType</DisplayName>
-    <Description Locale="en">Base interface for managing statistical data that is not rolled over all data from the start of  tracking the statistical data are considered, until the tracking gets reset.</Description>
+    <Description Locale="en">Base interface for managing statistical data that is not rolled over. All data from the start of tracking the statistical data are considered, until the tracking gets reset.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/6.2.2</Documentation>
     <References>
       <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1011</Reference>
@@ -889,7 +983,7 @@
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6048" BrowseName="1:WindowDuration" ParentNodeId="ns=1;i=1013" DataType="Duration" AccessLevel="3">
     <DisplayName>WindowDuration</DisplayName>
-    <Description Locale="en">The duration after the statistical data are rolled over. Only the data that were gathered during that duration are considered for the statistical data, even if the time intervals between the StartTime and the current time is longer.</Description>
+    <Description Locale="en">The duration after the statistical data are rolled over. Only the data that were gathered during that duration are considered for the statistical data, even if the time interval between the StartTime and the current time is longer.</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
@@ -910,9 +1004,9 @@
     <Description Locale="en">Provides information about a calibration target.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/7.4.1</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5011</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5013</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6063</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5010</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6060</Reference>
@@ -936,9 +1030,9 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6064</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6066</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6064" BrowseName="1:&lt;CalibrationValue&gt;" SymbolicName="CalibrationValue" ParentNodeId="ns=1;i=5013" DataType="Number" AccessLevel="3">
@@ -1001,13 +1095,13 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=1005</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6080</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6081</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6076</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6082</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6075</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6073</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1019</Reference>
       <Reference ReferenceType="HasInterface">ns=2;i=15048</Reference>
       <Reference ReferenceType="HasInterface">ns=2;i=15035</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6069</Reference>
@@ -1173,8 +1267,8 @@
     <Description Locale="en">Used for control channels of single colour elements within a stack element (e.g. RGB elements would use three ControlChannels, one for each controllable colour).</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.8</Documentation>
     <References>
-      <Reference ReferenceType="HasComponent">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6026</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6025</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
@@ -1195,8 +1289,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1008</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6027" BrowseName="EURange" ParentNodeId="ns=1;i=6026" DataType="Range">
@@ -1230,8 +1324,8 @@
     <Description Locale="en">Entry point to a stacklight containing elements of the stacklight as well as additional information valid for the whole unit.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.1</Documentation>
     <References>
-      <Reference ReferenceType="HasOrderedComponent">ns=1;i=5006</Reference>
       <Reference ReferenceType="HasSubtype" IsForward="false">i=23518</Reference>
+      <Reference ReferenceType="HasOrderedComponent">ns=1;i=5006</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5001</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6009</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5005</Reference>
@@ -1262,9 +1356,9 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6034</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6035</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6034" BrowseName="1:DisplayMode" ParentNodeId="ns=1;i=5001" DataType="LevelDisplayMode" AccessLevel="3">
@@ -1282,8 +1376,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6036</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5001</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6036</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6036" BrowseName="EURange" ParentNodeId="ns=1;i=6035" DataType="Range">
@@ -1317,10 +1411,10 @@
     <Description Locale="en">Entry point to a stacklight with the possibility to show the stacklight’s health status.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.2</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1002</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6038</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5007</Reference>
       <Reference ReferenceType="HasInterface">ns=2;i=15051</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1002</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6038" BrowseName="2:DeviceHealth" ParentNodeId="ns=1;i=1010" DataType="DeviceHealthEnumeration" AccessLevel="3">
@@ -1346,11 +1440,11 @@
     <Description Locale="en">Base class for elements in a stacklight.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.5</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasInterface">i=23513</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6014</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6015</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6014" BrowseName="1:IsPartOfBase" ParentNodeId="ns=1;i=1005" DataType="Boolean" AccessLevel="3">
@@ -1385,10 +1479,10 @@
     <Description Locale="en">Represents an acoustic element in a stacklight.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.7</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5003</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6021</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6020</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1005</Reference>
     </References>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5003" BrowseName="1:AcousticSignals" ParentNodeId="ns=1;i=1007">
@@ -1397,8 +1491,8 @@
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=23518</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
-      <Reference ReferenceType="HasOrderedComponent">ns=1;i=5004</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1007</Reference>
+      <Reference ReferenceType="HasOrderedComponent">ns=1;i=5004</Reference>
     </References>
   </UAObject>
   <UAObject NodeId="ns=1;i=5004" BrowseName="&lt;OrderedObject&gt;" SymbolicName="OrderedObject" ParentNodeId="ns=1;i=5003">
@@ -1426,8 +1520,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6022</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1007</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6022</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6022" BrowseName="EURange" ParentNodeId="ns=1;i=6021" DataType="Range">
@@ -1452,11 +1546,12 @@
     <Description Locale="en">Represents a lamp element in a stacklight.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.6</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1005</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=5002</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6018</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6016</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6017</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1005</Reference>
+      <Reference ReferenceType="HasComponent">ns=1;i=6052</Reference>
     </References>
   </UAObjectType>
   <UAObject NodeId="ns=1;i=5002" BrowseName="1:&lt;ControlChannel&gt;" SymbolicName="ControlChannel" ParentNodeId="ns=1;i=1006">
@@ -1504,8 +1599,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6019</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1006</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6019</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6019" BrowseName="EURange" ParentNodeId="ns=1;i=6018" DataType="Range">
@@ -1534,14 +1629,22 @@
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1006</Reference>
     </References>
   </UAVariable>
+  <UAVariable NodeId="ns=1;i=6052" BrowseName="1:SignalRGBWValue" ParentNodeId="ns=1;i=1006" DataType="RGBWDataType" AccessLevel="3">
+    <DisplayName>SignalRGBWValue</DisplayName>
+    <References>
+      <Reference ReferenceType="HasModellingRule">i=80</Reference>
+      <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1006</Reference>
+    </References>
+  </UAVariable>
   <UAObjectType NodeId="ns=1;i=1003" BrowseName="1:StackLevelType">
     <DisplayName>StackLevelType</DisplayName>
     <Description Locale="en">Contains information relevant to a stacklight operating as a level meter. The whole stack is controlled by a percentual value.</Description>
     <Documentation>https://reference.opcfoundation.org/IA/v101/docs/5.2.3</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6012</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6010</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
     </References>
   </UAObjectType>
   <UAVariable NodeId="ns=1;i=6012" BrowseName="1:DisplayMode" ParentNodeId="ns=1;i=1003" DataType="LevelDisplayMode" AccessLevel="3">
@@ -1559,8 +1662,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2368</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
     </References>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6011" BrowseName="EURange" ParentNodeId="ns=1;i=6010" DataType="Range">
@@ -1585,13 +1688,13 @@
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6039</Reference>
-      <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6040</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6041</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6042</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6043</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6044</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6045</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
     </References>
   </UAObject>
   <UAVariable NodeId="ns=1;i=6039" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=5008" DataType="Boolean">
@@ -1611,7 +1714,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5008</Reference>
     </References>
     <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2024-02-28T00:00:00Z</uax:DateTime>
+      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2025-05-23T00:00:00Z</uax:DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6041" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5008" DataType="String">
@@ -1631,7 +1734,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5008</Reference>
     </References>
     <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01.2</uax:String>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">1.01.4</uax:String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6043" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=5008" DataType="IdType" ValueRank="1" ArrayDimensions="0">
@@ -1660,4 +1763,20 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5008</Reference>
     </References>
   </UAVariable>
+  <UAObject NodeId="ns=1;i=5009" BrowseName="Default Binary" SymbolicName="DefaultBinary">
+    <DisplayName>Default Binary</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3007</Reference>
+      <Reference ReferenceType="HasDescription">ns=1;i=6050</Reference>
+    </References>
+  </UAObject>
+  <UAObject NodeId="ns=1;i=5014" BrowseName="Default XML" SymbolicName="DefaultXml">
+    <DisplayName>Default XML</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+      <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3007</Reference>
+      <Reference ReferenceType="HasDescription">ns=1;i=6051</Reference>
+    </References>
+  </UAObject>
 </UANodeSet>

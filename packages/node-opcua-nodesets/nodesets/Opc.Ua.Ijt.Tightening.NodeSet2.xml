@@ -34,13 +34,14 @@
     <Uri>http://opcfoundation.org/UA/IJT/Base/</Uri>
   </NamespaceUris>
   <Models>
-    <Model ModelUri="http://opcfoundation.org/UA/IJT/Tightening/" Version="2.00.0" PublicationDate="2024-03-07T00:00:00Z" ModelVersion="2.0.0">
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.02" PublicationDate="2022-11-01T00:00:00Z" />
+    <Model ModelUri="http://opcfoundation.org/UA/IJT/Tightening/" Version="2.00.1" PublicationDate="2025-10-06T00:00:00Z" ModelVersion="2.0.1">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.05" PublicationDate="2025-06-30T00:00:00Z" />
       <RequiredModel ModelUri="http://opcfoundation.org/UA/DI/" Version="1.04.0" PublicationDate="2022-11-03T00:00:00Z" />
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/AMB/" Version="1.01.0" PublicationDate="2022-11-01T00:00:00Z" />
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.03.0" PublicationDate="2023-08-01T00:00:00Z" />
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/Machinery/Result/" Version="1.00.0" PublicationDate="2023-01-01T00:00:00Z" />
-      <RequiredModel ModelUri="http://opcfoundation.org/UA/IJT/Base/" Version="1.00.0" PublicationDate="2024-03-07T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/AMB/" Version="1.01.1" PublicationDate="2024-02-27T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/IA/" Version="1.01.4" PublicationDate="2025-05-23T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/Machinery/" Version="1.04.0" PublicationDate="2025-07-01T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/Machinery/Result/" Version="1.01.0" PublicationDate="2025-07-01T00:00:00Z" />
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/IJT/Base/" Version="1.01.0" PublicationDate="2025-10-06T00:00:00Z" />
     </Model>
   </Models>
   <Aliases>
@@ -62,29 +63,41 @@
   </Aliases>
   <Extensions>
     <Extension>
-      <ua:ModelInfo Tool="UaModeler" Hash="Ptp6zVkHgXqCzr3Fp8xERQ==" Version="1.6.11" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
+      <ua:ModelInfo Hash="+bIs2OsWduH8vDCoDejmyw==" Version="1.8.1" Tool="UaModeler" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" />
     </Extension>
   </Extensions>
-  <UAVariable NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString">
+  <UAVariable NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_BinarySchema" ReleaseStatus="Deprecated" DataType="ByteString">
     <DisplayName>TypeDictionary</DisplayName>
     <Description>Collects the data type descriptions of http://opcfoundation.org/UA/IJT/Tightening/</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6030</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
     </References>
     <Value>
-      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZ
-        W1hLWluc3RhbmNlIiB4bWxuczp0bnM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS9JS
-        lQvVGlnaHRlbmluZy8iIERlZmF1bHRCeXRlT3JkZXI9IkxpdHRsZUVuZGlhbiIgeG1sbnM6b
-        3BjPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvQmluYXJ5U2NoZW1hLyIgeG1sbnM6dWE9I
-        mh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS8iIFRhcmdldE5hbWVzcGFjZT0iaHR0cDovL
+      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczpvcGM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9CaW5hc
+        nlTY2hlbWEvIiB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hL
+        Wluc3RhbmNlIiB4bWxuczp1YT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBLyIgRGVmY
+        XVsdEJ5dGVPcmRlcj0iTGl0dGxlRW5kaWFuIiB4bWxuczp0bnM9Imh0dHA6Ly9vcGNmb3VuZ
+        GF0aW9uLm9yZy9VQS9JSlQvVGlnaHRlbmluZy8iIFRhcmdldE5hbWVzcGFjZT0iaHR0cDovL
         29wY2ZvdW5kYXRpb24ub3JnL1VBL0lKVC9UaWdodGVuaW5nLyI+CiA8b3BjOkltcG9ydCBOY
         W1lc3BhY2U9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS8iLz4KPC9vcGM6VHlwZURpY
         3Rpb25hcnk+Cg==</uax:ByteString>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6002" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6001" DataType="String">
+  <UAVariable NodeId="ns=1;i=6030" BrowseName="Deprecated" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6001" DataType="Boolean">
+    <DisplayName>Deprecated</DisplayName>
+    <Description>Indicates that all of the DataType definitions represented by the DataTypeDictionaryType are available through a DataTypeDefinition Attribute.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6001</Reference>
+    </References>
+    <Value>
+      <uax:Boolean xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">true</uax:Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6002" BrowseName="NamespaceUri" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6001" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -94,25 +107,37 @@
       <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">http://opcfoundation.org/UA/IJT/Tightening/</uax:String>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6003" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_XmlSchema" DataType="ByteString">
+  <UAVariable NodeId="ns=1;i=6003" BrowseName="1:TypeDictionary" SymbolicName="TypeDictionary_XmlSchema" ReleaseStatus="Deprecated" DataType="ByteString">
     <DisplayName>TypeDictionary</DisplayName>
     <Description>Collects the data type descriptions of http://opcfoundation.org/UA/IJT/Tightening/</Description>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6031</Reference>
       <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
     </References>
     <Value>
-      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PHhzOnNjaGVtYSBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCIgdGFyZ2V0TmFtZXNwYWNlPSJod
-        HRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvSUpUL1RpZ2h0ZW5pbmcvVHlwZXMueHNkIiB4b
-        Wxuczp0bnM9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS9JSlQvVGlnaHRlbmluZy9Ue
-        XBlcy54c2QiIHhtbG5zOnVhPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wM
-        i9UeXBlcy54c2QiIHhtbG5zOnhzPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNjaGVtY
-        SI+CiA8eHM6aW1wb3J0IG5hbWVzcGFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL
+      <uax:ByteString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">PHhzOnNjaGVtYSB4bWxuczp4cz0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEiIHhtbG5zO
+        nVhPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wMi9UeXBlcy54c2QiIHRhc
+        mdldE5hbWVzcGFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL0lKVC9UaWdodGVua
+        W5nL1R5cGVzLnhzZCIgeG1sbnM6dG5zPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvS
+        UpUL1RpZ2h0ZW5pbmcvVHlwZXMueHNkIiBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZ
+        CI+CiA8eHM6aW1wb3J0IG5hbWVzcGFjZT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL
         zIwMDgvMDIvVHlwZXMueHNkIi8+CjwveHM6c2NoZW1hPgo=</uax:ByteString>
     </Value>
   </UAVariable>
-  <UAVariable NodeId="ns=1;i=6004" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=6003" DataType="String">
+  <UAVariable NodeId="ns=1;i=6031" BrowseName="Deprecated" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6003" DataType="Boolean">
+    <DisplayName>Deprecated</DisplayName>
+    <Description>Indicates that all of the DataType definitions represented by the DataTypeDictionaryType are available through a DataTypeDefinition Attribute.</Description>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6003</Reference>
+    </References>
+    <Value>
+      <uax:Boolean xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">true</uax:Boolean>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=6004" BrowseName="NamespaceUri" ReleaseStatus="Deprecated" ParentNodeId="ns=1;i=6003" DataType="String">
     <DisplayName>NamespaceUri</DisplayName>
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
@@ -126,8 +151,9 @@
     <DisplayName>ITighteningToolParametersType</DisplayName>
     <Description Locale="en">This interface is inherited from 0:BaseInterfaceType to add additional parameters of a tool in a tightening system. It shall be added to 2:Parameters object of the tool instance.</Description>
     <Category>IJT_TIGHTENING Asset Management Tightening Tool Parameters</Category>
-    <Documentation>https://reference.opcfoundation.org/IJT/Tightening/v200/docs/5.1</Documentation>
+    <Documentation>https://reference.opcfoundation.org/IJT/Tightening/v200/docs/5.1.1</Documentation>
     <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=17602</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6014</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6016</Reference>
@@ -135,7 +161,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=6020</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6021</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6023</Reference>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=17602</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6018</Reference>
     </References>
   </UAObjectType>
@@ -277,8 +302,8 @@
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=2011</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6036</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6036</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6026</Reference>
     </References>
     <Value>
@@ -315,8 +340,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6022</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6027</Reference>
     </References>
     <Value>
       <uax:Byte xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:Byte>
@@ -427,8 +452,8 @@
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=2011</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6028</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6029</Reference>
     </References>
     <Value>
@@ -465,8 +490,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6032</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6020</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6032</Reference>
     </References>
     <Value>
       <uax:Byte xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:Byte>
@@ -577,8 +602,8 @@
     <References>
       <Reference ReferenceType="HasTypeDefinition">ns=2;i=2011</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6024</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=6025</Reference>
     </References>
     <Value>
@@ -615,8 +640,8 @@
     <References>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6033</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6021</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6033</Reference>
     </References>
     <Value>
       <uax:Byte xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:Byte>
@@ -739,8 +764,8 @@
     <References>
       <Reference ReferenceType="HasTypeDefinition">i=2376</Reference>
       <Reference ReferenceType="HasModellingRule">i=80</Reference>
-      <Reference ReferenceType="HasProperty">ns=1;i=6019</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1003</Reference>
+      <Reference ReferenceType="HasProperty">ns=1;i=6019</Reference>
     </References>
     <Value>
       <uax:Byte xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">0</uax:Byte>
@@ -802,7 +827,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
     </References>
     <Value>
-      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2024-03-07T00:00:00Z</uax:DateTime>
+      <uax:DateTime xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2025-10-06T00:00:00Z</uax:DateTime>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6009" BrowseName="NamespaceUri" ParentNodeId="ns=1;i=5004" DataType="String">
@@ -822,7 +847,7 @@
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
     </References>
     <Value>
-      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2.00.0</uax:String>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">2.00.1</uax:String>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6011" BrowseName="StaticNodeIdTypes" ParentNodeId="ns=1;i=5004" DataType="IdType" ValueRank="1" ArrayDimensions="0">
@@ -831,6 +856,9 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
     </References>
+    <Value>
+      <uax:ListOfInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" />
+    </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6012" BrowseName="StaticNumericNodeIdRange" ParentNodeId="ns=1;i=5004" DataType="NumericRange" ValueRank="1" ArrayDimensions="0">
     <DisplayName>StaticNumericNodeIdRange</DisplayName>
@@ -838,6 +866,9 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
     </References>
+    <Value>
+      <uax:ListOfString xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" />
+    </Value>
   </UAVariable>
   <UAVariable NodeId="ns=1;i=6013" BrowseName="StaticStringNodeIdPattern" ParentNodeId="ns=1;i=5004" DataType="String">
     <DisplayName>StaticStringNodeIdPattern</DisplayName>
@@ -845,5 +876,8 @@
       <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
       <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
     </References>
+    <Value>
+      <uax:String xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd"></uax:String>
+    </Value>
   </UAVariable>
 </UANodeSet>

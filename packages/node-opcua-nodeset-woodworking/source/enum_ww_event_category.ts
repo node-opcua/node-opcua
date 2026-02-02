@@ -1,6 +1,9 @@
 // ----- this file has been automatically generated - do not edit
 
 /**
+ * This enumeration represents the category of an
+ * event.
+ *
  * |           |                                                            |
  * |-----------|------------------------------------------------------------|
  * | namespace |http://opcfoundation.org/UA/Woodworking/                    |
