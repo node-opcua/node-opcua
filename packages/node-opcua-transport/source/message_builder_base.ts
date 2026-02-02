@@ -6,7 +6,7 @@ import { assert } from "node-opcua-assert";
 
 import { decodeStatusCode, decodeString, decodeUInt32 } from "node-opcua-basic-types";
 import { BinaryStream } from "node-opcua-binary-stream";
-import { createFastUninitializedBuffer } from "node-opcua-buffer-utils";
+
 import { readMessageHeader, SequenceHeader } from "node-opcua-chunkmanager";
 import { make_errorLog, make_debugLog, make_warningLog, hexDump } from "node-opcua-debug";
 import { MessageHeader, PacketAssembler, PacketInfo } from "node-opcua-packet-assembler";
@@ -282,13 +282,10 @@ export class MessageBuilderBase extends EventEmitter {
         this.#offsetBodyStart = offsetBodyStart;
 
         // add message body to a queue
-        // note : Buffer.slice create a shared memory !
-        //        use Buffer.clone
+        // We use subarray here to avoid copy. 
+        // This assumes PacketAssembler manages the buffer lifecycle appropriately.
         const sharedBuffer = chunk.subarray(this.#offsetBodyStart, offsetBodyEnd);
-        const clonedBuffer = createFastUninitializedBuffer(sharedBuffer.length);
-
-        sharedBuffer.copy(clonedBuffer, 0, 0);
-        this.#blocks.push(clonedBuffer);
+        this.#blocks.push(sharedBuffer);
 
         return true;
     }
