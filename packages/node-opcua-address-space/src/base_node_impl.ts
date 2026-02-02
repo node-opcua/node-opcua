@@ -1469,7 +1469,7 @@ let displayWarning = true;
 
 function toString_ReferenceDescription(ref: UAReference, options: { addressSpace: IAddressSpace }): string {
     const addressSpace = options.addressSpace as AddressSpacePrivate;
-    // xx assert(ref instanceof ReferenceDescription);
+
     const refNode = addressSpace.findNode(ref.referenceType);
     if (!refNode) {
         return "Unknown Ref : " + ref;
@@ -1477,7 +1477,7 @@ function toString_ReferenceDescription(ref: UAReference, options: { addressSpace
     const r = new ReferenceImpl({
         isForward: ref.isForward,
         nodeId: ref.nodeId,
-        referenceType: refNode.browseName.toString()
+        referenceType: refNode.nodeId
     });
     const str = r.toString(options);
     r.dispose();
@@ -1501,16 +1501,12 @@ function _setup_parent_item(this: BaseNode, referencesMap: Map<string, UAReferen
             if (references.length > 1) {
                 if (displayWarning) {
                     const options = { addressSpace };
-                    // tslint:disable-next-line:no-console
-                    console.warn("  More than one Aggregates reference have been found for parent of object");
-                    // tslint:disable-next-line:no-console
-                    console.warn("    object node id:", this.nodeId.toString(), chalk.cyan(this.browseName.toString()));
-                    // tslint:disable-next-line:no-console
-                    console.warn("    browseResults:");
-                    // tslint:disable-next-line:no-console
-                    console.warn(references.map((f: UAReference) => toString_ReferenceDescription(f, options)).join("\n"));
-                    // tslint:disable-next-line:no-console
-                    console.warn("    first one will be used as parent");
+
+                    warningLog("  More than one Aggregates reference have been found for parent of object");
+                    warningLog("    object node id:", this.nodeId.toString(), chalk.cyan(this.browseName.toString()));
+                    warningLog("    browseResults:");
+                    warningLog(references.map((f: UAReference) => toString_ReferenceDescription(f, options)).join("\n"));
+                    warningLog("    first one will be used as parent");
                     // xx assert(browseResults.length === 1);
                     displayWarning = false;
                 }
@@ -1544,7 +1540,7 @@ function _select_by_browse_name(
     map: HierarchicalIndexMap,
     browseName: QualifiedNameLike, namespaceIndex?: number
 ): UAReference[] {
- 
+
     if ((namespaceIndex === null || namespaceIndex === undefined) && typeof browseName === "string") {
 
         // no namespace specified and needed
@@ -1552,7 +1548,7 @@ function _select_by_browse_name(
         if (result) {
             if (Array.isArray(result)) {
                 return result;
-            } 
+            }
             return [result];
         }
 
@@ -1567,7 +1563,7 @@ function _select_by_browse_name(
                 return result.filter((t) => t.node.browseName.namespaceIndex == _browseName.namespaceIndex);
             } else {
                 if (result.node.browseName.namespaceIndex == _browseName.namespaceIndex) {
-                   return [result];
+                    return [result];
                 }
                 return [];
             }
