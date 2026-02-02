@@ -204,8 +204,8 @@ function getOrCreateProperty(
 
     // istanbul ignore next
     if (field.dataType.value === DataType.Variant) {
-       // this means that any type of extensions being used here
-       debugLog("Warning : variant is not supported in ExtensionObject");
+        // this means that any type of extensions being used here
+        debugLog("Warning : variant is not supported in ExtensionObject");
     }
 
     if (selectedComponents.length === 1) {
@@ -319,10 +319,12 @@ function _installFields2(
 
     for (const field of definition.fields || []) {
         if (NodeId.sameNodeId(NodeId.nullNodeId, field.dataType)) {
-            warningLog("field.dataType is null ! ", field.name, NodeId.nullNodeId.toString());
-            warningLog(field.toString());
-            warningLog(" dataType replaced with BaseDataType ");
-            warningLog(definition.toString());
+            if (doDebug) {
+                debugLog("field.dataType is null ! ", field.name, NodeId.nullNodeId.toString());
+                debugLog(field.toString());
+                debugLog(" dataType replaced with BaseDataType ");
+                debugLog(definition.toString());
+            }
             field.dataType = uaVariable.resolveNodeId("BaseDataType");
         }
 
@@ -341,8 +343,8 @@ function _installFields2(
             propertyNode.valueRank === -1
                 ? VariantArrayType.Scalar
                 : propertyNode.valueRank === 1
-                ? VariantArrayType.Array
-                : VariantArrayType.Matrix;
+                    ? VariantArrayType.Array
+                    : VariantArrayType.Matrix;
         propertyNode.$dataValue.value.dimensions = propertyNode.valueRank > 1 ? propertyNode.arrayDimensions : null;
 
         const fieldName = field.name!;
@@ -463,7 +465,7 @@ export function _bindExtensionObject(
     if (optionalExtensionObject && uaVariable.valueRank === 0) {
         warningLog(
             uaVariable.browseName.toString() +
-                ": valueRank was zero but needed to be adjusted to -1 (Scalar) in bindExtensionObject"
+            ": valueRank was zero but needed to be adjusted to -1 (Scalar) in bindExtensionObject"
         );
         uaVariable.valueRank = -1;
     }
@@ -514,9 +516,9 @@ export function _bindExtensionObject(
             warningLog(uaVariable.$extensionObject?.toString());
             throw new Error(
                 "bindExtensionObject: $extensionObject is incorrect: we are expecting a " +
-                    uaVariable.dataType.toString({ addressSpace: uaVariable.addressSpace }) +
-                    " but we got a " +
-                    uaVariable.$extensionObject?.schema.name
+                uaVariable.dataType.toString({ addressSpace: uaVariable.addressSpace }) +
+                " but we got a " +
+                uaVariable.$extensionObject?.schema.name
             );
         }
         return uaVariable.$extensionObject;
@@ -645,7 +647,7 @@ export function _bindExtensionObjectArrayOrMatrix(
             );
         }
     }
-    if (!optionalExtensionObjectArray || optionalExtensionObjectArray.length==0) {
+    if (!optionalExtensionObjectArray || optionalExtensionObjectArray.length == 0) {
         optionalExtensionObjectArray = [];
         for (let i = 0; i < totalLength; i++) {
             optionalExtensionObjectArray[i] = addressSpace.constructExtensionObject(uaVariable.dataType, {});

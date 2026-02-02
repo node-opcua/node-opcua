@@ -196,6 +196,10 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
             throw new Error(msg);
         }
         const c = dataTypeFactory.getBuiltInTypeByDataType(coerceNodeId(`i=${value.dataType}`, 0));
+        if ( field.fieldType=== "Variant" || field.fieldType == "BaseDataType") {
+            // this is valid, expecting a Variant with any dataType in it
+            return;
+        }
         const d = dataTypeFactory.getBuiltInType(field.fieldType);
         if (c && c.isSubTypeOf(d)) {
             return;
