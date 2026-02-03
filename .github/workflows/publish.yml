@@ -55,7 +55,6 @@ jobs:
           npx lerna publish from-package \
             --yes \
             --dist-tag ${{ github.event.inputs.dist-tag }} \
-            --access public \
             --concurrency 1
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
