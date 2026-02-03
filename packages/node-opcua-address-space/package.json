@@ -21,7 +21,7 @@
         "@types/semver": "7.7.1",
         "chalk": "4.1.2",
         "dequeue": "^1.0.5",
-        "lodash": "4.17.21",
+        "lodash": "4.17.23",
         "node-opcua-address-space-base": "2.161.0",
         "node-opcua-assert": "2.157.0",
         "node-opcua-basic-types": "2.157.0",
