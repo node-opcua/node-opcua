@@ -3,12 +3,12 @@ name: Lerna Publish
 on:
   workflow_dispatch:
     inputs:
-        dist-tag:
-          description: 'dist-tag'
-          required: true
-          default: 'latest'
-          type: choice
-          options:
+      dist-tag:
+        description: 'dist-tag'
+        required: true
+        default: 'latest'
+        type: choice
+        options:
           - latest
           - next
           - rc
@@ -38,11 +38,25 @@ jobs:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-pnpm-store
 
-      - run: npm install -g pnpm
-      - run: pnpm recursive install --no-frozen-lockfile
-      - run: pnpm run build
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm recursive install --no-frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
 
       - name: Publish
-        run: npx lerna publish from-package --yes --no-verify-access --dist-tag ${{ github.event.inputs.dist-tag }}
+        # 1. Added --concurrency 1 to prevent OIDC token request collisions
+        # 2. Added --access public to ensure scoped packages don't 404
+        # 3. Removed --no-verify-access (deprecated)
+        run: |
+          npx lerna publish from-package \
+            --yes \
+            --dist-tag ${{ github.event.inputs.dist-tag }} \
+            --access public \
+            --concurrency 1
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Fallback if OIDC isn't set up, but OIDC handles this automatically if configured.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
