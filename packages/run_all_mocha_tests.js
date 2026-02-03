@@ -15,23 +15,31 @@ Error.stackTraceLimit = 20;
 
 require("mocha-clean");
 
+const doDebug = !!process.env.DEBUG;
+
 async function collect_files(testFiles, testFolder) {
-    for (const file of fs.readdirSync(testFolder)) {
+
+    const files = await fs.promises.readdir(testFolder);
+    for (const file of files) {
         let f = path.join(testFolder, file);
-        if (fs.lstatSync(f).isDirectory()) {
+
+        const stat = await fs.promises.lstat(f);
+        if (stat.isDirectory()) {
             await collect_files(testFiles, f);
         } else {
             if (file.match(/^test_.*\.ts/) && !file.match(/^test_.*\.d\.ts/)) {
+                doDebug && console.log("     - adding file ", f);
                 testFiles.push(f);
             } else if (file.match(/^test_.*\.js/)) {
                 // make sure that there is not a TS file along side
-                if (fs.existsSync(file.replace(".js", ".ts"))) {
+                if (fs.existsSync(f.replace(".js", ".ts"))) {
                     console.log("warning => transpiled js file ignored : ", file);
                 } else {
+                    doDebug && console.log("     - adding file ", f);
                     testFiles.push(f);
                 }
             } else {
-                //xx console.log("skipping file ",f);
+                doDebug && console.log("     - (skipping file ",f, ")");
             }
         }
     }
@@ -41,9 +49,15 @@ async function extractAllTestFiles() {
     let testFiles = [];
 
     const promises = [];
-    for (const file of fs.readdirSync(__dirname)) {
+    const files = await fs.promises.readdir(__dirname);
+    for (const file of files) {
+        // if (file!== "node-opcua-address-space") {
+        //     continue;
+        // }
+
         const testFolder = path.join(__dirname, file, "test");
-        if (fs.existsSync(testFolder)) {
+        if (fs.existsSync(testFolder) && fs.lstatSync(testFolder).isDirectory()) {
+            doDebug && console.log("collecting test files from ", testFolder);
             promises.push(collect_files(testFiles, testFolder));
         }
     }
