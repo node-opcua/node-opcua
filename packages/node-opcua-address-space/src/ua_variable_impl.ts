@@ -1331,6 +1331,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             return true;
         }
         const addressSpace = this.addressSpace;
+        if (!addressSpace) {
+            
+            return true;
+        }
         const dataType = addressSpace.findDataType(this.dataType);
         if (!dataType) {
             // may be we are in the process of loading a xml file and the corresponding dataType

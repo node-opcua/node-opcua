@@ -1,11 +1,11 @@
 /**
  * @module node-opcua-factory
  */
-import { ExpandedNodeId, NodeId } from "node-opcua-nodeid";
+
 
 import { DataTypeFactory } from "./datatype_factory";
 
-import { ConstructorFunc, ConstructorFuncWithSchema } from "./types";
+import { ConstructorFuncWithSchema } from "./types";
 
 let globalFactory: DataTypeFactory;
 

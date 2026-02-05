@@ -5,7 +5,7 @@ import { assert } from "node-opcua-assert";
 import { BinaryStream, OutputBinaryStream } from "node-opcua-binary-stream";
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { sameNodeId } from "node-opcua-nodeid";
-import { decodeExtensionObject, encodeExtensionObject, ExtensionObject } from "node-opcua-extension-object";
+import { decodeExtensionObject, encodeExtensionObject, ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { DataType } from "node-opcua-variant";
 
 import {
@@ -89,7 +89,7 @@ function encodeElement(
         if (!element.encode) {
             throw new Error("encodeArrayOrElement: object field " + field.name + " has no encode method and encodeFunc is missing");
         }
-        if (field.allowSubType) {
+        if (field.allowSubTypes) {
             encodeExtensionObject(element, stream);
             // new Variant({ dataType: DataType.ExtensionObject, value: element }).encode(stream);
         } else {
@@ -119,17 +119,41 @@ function encodeArrayOrElement(
     }
 }
 
+function decodeExtensionObject2(
+    stream: BinaryStream,
+    dataTypeFactory: DataTypeFactory
+) {
+    const obj = decodeExtensionObject(stream);
+    if (obj === null) {
+        return null;
+    }
+    // resolve opaque structure
+    if (obj instanceof OpaqueStructure && dataTypeFactory) {
+        const binaryEncodingNodeId = obj.nodeId;
+        const constructor = dataTypeFactory.getConstructor(binaryEncodingNodeId);
+        const binaryStream = new BinaryStream(obj.buffer);
+        if (constructor) {
+            const newObj = new constructor();
+            newObj.decode(binaryStream);
+            return newObj;
+        } else {
+            return obj;
+        }
+    } else {
+        return obj;
+    }
+}
 function decodeElement(
     dataTypeFactory: DataTypeFactory,
     field: FieldType,
     stream: BinaryStream,
-    decodeFunc?: (stream: BinaryStream) => any
+    decodeFunc?: (stream: BinaryStream) => any,
 ): any {
     if (decodeFunc) {
         return decodeFunc(stream);
     } else {
-        if (field.allowSubType) {
-            const element = decodeExtensionObject(stream);
+        if (field.allowSubTypes) {
+            const element = decodeExtensionObject2(stream, dataTypeFactory);
             return element;
         } else {
             // construct an instance
@@ -181,12 +205,9 @@ function isSubtype(dataTypeFactory: DataTypeFactory, dataTypeNodeId: NodeId, sch
 }
 
 function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTypeField, value: any): void {
-    assert(field.allowSubType);
+    assert(field.allowSubTypes);
     if (!value) {
         value = { dataType: DataType.Null, value: null };
-        // const msg = "initializeField: field { dataType,value} is required here";
-        // errorLog(msg);
-        // throw new Error(msg);
         return;
     }
     if (field.category === "basic") {
@@ -196,7 +217,7 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
             throw new Error(msg);
         }
         const c = dataTypeFactory.getBuiltInTypeByDataType(coerceNodeId(`i=${value.dataType}`, 0));
-        if ( field.fieldType=== "Variant" || field.fieldType == "BaseDataType") {
+        if (field.fieldType === "Variant" || field.fieldType == "BaseDataType") {
             // this is valid, expecting a Variant with any dataType in it
             return;
         }
@@ -216,8 +237,11 @@ function _validateSubType(dataTypeFactory: DataTypeFactory, field: StructuredTyp
         throw new Error(msg);
     } else {
         if (value !== null && !(value instanceof ExtensionObject)) {
-            errorLog("initializeField: array element is not an ExtensionObject");
-            throw new Error(`${field.name}: array element must be an ExtensionObject`);
+            // this may happen in deprecated situations
+            // we have a Pojo 
+            // errorLog(`initializeField: ${field.name} element is not an ExtensionObject`);
+            return;
+            // throw new Error(`${field.name}: element must be an ExtensionObject`);
         }
         const e = value as ExtensionObject;
         if (!isSubtype(dataTypeFactory, field.dataType!, e.schema)) {
@@ -247,6 +271,60 @@ function validateSubTypeA(dataTypeFactory: DataTypeFactory, field: FieldType, va
     }
 }
 
+function coerceExtensionObject(
+    dataTypeFactory: DataTypeFactory,
+    field: FieldType,
+    value: any,
+    options: { allowSubTypes: boolean } = { allowSubTypes: false }
+): any {
+
+    const { allowSubTypes } = options;
+
+    const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
+
+    const adjustValue = (value: any) => {
+        if (value instanceof ExtensionObject) {
+
+            if (allowSubTypes) {
+                return value.clone();
+            } else {
+                // it must be of the exact type
+                if (value.constructor !== constructor) {
+                    errorLog('coerceExtensionObject: value is not of the expected type');
+                } else {
+                    return value.clone();
+                }
+            }
+        }
+        // we have a POJO and we need to construct an ExtensionObject
+        return constructor ? new constructor(value) : null;
+    }
+
+    if (field.isArray) {
+        const arr = (value as unknown[]) || [];
+        if (!Array.isArray(arr)) {
+            throw new Error("Expecting an array here for field " + field.name + "but got " + arr);
+        }
+        return arr.map((x: any) => adjustValue(x));
+    } else {
+        return adjustValue(value);
+    }
+}
+
+function coerceEnumeration(dataTypeFactory: DataTypeFactory, field: FieldType, value: any): any {
+    const enumeration = dataTypeFactory.getEnumeration(field.fieldType);
+    if (!enumeration) {
+        throw new Error(`Cannot find ${field.fieldType} as a structure or enumeration`);
+    } else {
+        if (field.isArray) {
+            const arr = (value as unknown[]) || [];
+            return arr.map((x: any) => enumeration.typedEnum.get(x));
+        } else {
+            return enumeration.typedEnum.get(value as number | string);
+        }
+    }
+}
+
 function initializeField(
     field: FieldType,
     thisAny: Record<string, unknown>,
@@ -259,56 +337,24 @@ function initializeField(
 
     switch (field.category) {
         case FieldCategory.complex: {
-            if (field.allowSubType) {
+            if (field.allowSubTypes) {
                 validateSubTypeA(dataTypeFactory, field, value);
-                if (field.isArray) {
-                    const arr = (value as unknown[]) || [];
-                    thisAny[name] = arr.map((x: any) => x.clone());
-                } else {
-                    const e = value as ExtensionObject;
-                    if (e !== null && !(e instanceof ExtensionObject)) {
-                        errorLog("initializeField: array element is not an ExtensionObject");
-                    }
-                    // now check that element is of the correct type
-                    thisAny[name] = e.clone();
-                }
+
+                thisAny[name] = coerceExtensionObject(dataTypeFactory, field, value, { allowSubTypes: true });
             } else {
                 const hasStructure = dataTypeFactory.hasStructureByTypeName(field.fieldType);
                 // We could have a structure or a enumeration
                 if (!hasStructure) {
-                    const enumeration = dataTypeFactory.getEnumeration(field.fieldType);
-                    if (!enumeration) {
-                        throw new Error("Cannot find" + field.fieldType  + " as a structure or enumeration");
-                    } else {
-                        if (field.isArray) {
-                            const arr = (value as unknown[]) || [];
-                            thisAny[name] = arr.map((x: any) => enumeration.typedEnum.get(x));
-                        } else {
-                            thisAny[name] = enumeration.typedEnum.get(value as number | string);
-                        }
-                    }
+                    thisAny[name] = coerceEnumeration(dataTypeFactory, field, value);
                 } else {
-                    const constructor = dataTypeFactory.getStructureInfoByTypeName(field.fieldType).constructor;
-                    if (field.isArray) {
-                        const arr = (value as unknown[]) || [];
-                        if (!Array.isArray(arr)) {
-                            throw new Error("Expecting an array here for field " + field.name + "but got " + arr);
-                        }
-
-                        thisAny[name] = arr.map((x: any) => (constructor ? new constructor(x) : null));
-                    } else {
-                        thisAny[name] = constructor ? new constructor(value as Record<string, unknown>) : null;
-                    }
-
+                    thisAny[name] = coerceExtensionObject(dataTypeFactory, field, value);
                 }
             }
-            // getOrCreateConstructor(field.fieldType, factory) || BaseUAObject;
-            // xx processStructuredType(fieldSchema);
             break;
         }
         case FieldCategory.enumeration:
         case FieldCategory.basic:
-            if (field.allowSubType) {
+            if (field.allowSubTypes) {
                 validateSubTypeA(dataTypeFactory, field, value);
             }
             if (field.isArray) {
@@ -415,7 +461,9 @@ function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldO
     return { bitField, offset: nbOptionalFields + offset, allOptional };
 }
 function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
+
     const hasOptionalFields = hasOptionalFieldsF(schema);
+
     // ============ Deal with switchBits
     if (hasOptionalFields) {
         const { bitField, allOptional } = makeBitField(thisAny, schema, { bitField: 0, offset: 0, allOptional: true });
@@ -433,14 +481,20 @@ function internal_decodeFields(
     hasOptionalFields: boolean,
     schema: IStructuredTypeSchema,
     stream: BinaryStream,
-    dataTypeFactory: DataTypeFactory
+    dataTypeFactory: DataTypeFactory,
+    cache = new Set<string>()
 ) {
     const baseSchema = schema.getBaseSchema();
     // encodeFields base class first
     if (baseSchema && baseSchema.fields.length) {
-        internal_decodeFields(thisAny, bitField, hasOptionalFields, baseSchema, stream, dataTypeFactory);
+        internal_decodeFields(thisAny, bitField, hasOptionalFields, baseSchema, stream, dataTypeFactory, cache);
     }
     for (const field of schema.fields) {
+        if (cache.has(field.name)) {
+            continue;
+        }
+        cache.add(field.name);
+
         // ignore fields that have a switch bit when bit is not set
         if (hasOptionalFields && field.switchBit !== undefined) {
             // tslint:disable-next-line:no-bitwise
@@ -478,7 +532,9 @@ function decodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: Binar
         bitField = stream.readUInt32();
     }
 
-    internal_decodeFields(thisAny, bitField, hasOptionalFields, schema, stream, dataTypeFactory);
+    const cache = new Set<string>();
+
+    internal_decodeFields(thisAny, bitField, hasOptionalFields, schema, stream, dataTypeFactory, cache);
 }
 
 function ___fieldToJson(field: FieldType, value: any): any {
@@ -566,7 +622,7 @@ export class DynamicExtensionObject extends ExtensionObject {
 interface AnyConstructable {
     schema: IStructuredTypeSchema;
     possibleFields: string[];
-    new (options?: any, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): any;
+    new(options?: any, schema?: IStructuredTypeSchema, factory?: DataTypeFactory): any;
 }
 
 export type AnyConstructorFunc = AnyConstructable;
@@ -607,11 +663,11 @@ class UnionBaseClass extends BaseUAObject {
                 debugLog(this.schema);
                 throw new Error(
                     "union must have only one choice in " +
-                        JSON.stringify(options) +
-                        "\n found while investigating " +
-                        field.name +
-                        "\n switchFieldName = " +
-                        switchFieldName
+                    JSON.stringify(options) +
+                    "\n found while investigating " +
+                    field.name +
+                    "\n switchFieldName = " +
+                    switchFieldName
                 );
             }
 

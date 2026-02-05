@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+
+    <NamespaceUris>
+        <Uri>http://acme</Uri>
+    </NamespaceUris>
+
+    <Aliases>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="Guid">i=14</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+    </Aliases>
+
+    <UADataType NodeId="ns=1;i=1001" BrowseName="1:AnimalType" IsAbstract="true">
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=2001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=1001</Reference>
+        </References>
+    </UAObject>
+
+    <UADataType NodeId="ns=1;i=1002" BrowseName="1:DogType">
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
+        </References>
+        <Definition>
+            <Field DataType="String" Name="Breed"/>
+            <Field DataType="Boolean" Name="IsTrained"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=2002" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=1002</Reference>
+        </References>
+    </UAObject>
+
+    <UADataType NodeId="ns=1;i=1003" BrowseName="1:CatType">
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=1001</Reference>
+        </References>
+        <Definition>
+            <Field DataType="String" Name="Color"/>
+            <Field DataType="Boolean" Name="IsIndoor"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=2003" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=1003</Reference>
+        </References>
+    </UAObject>
+
+    <UADataType NodeId="ns=1;i=1010" BrowseName="1:PetHouseType">
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:PetHouseType">
+            <Field DataType="Guid" Name="Id"
+            />
+            <Field AllowSubTypes="true" DataType="ns=1;i=1001"
+                ValueRank="1" ArrayDimensions="1" Name="Pet"/>
+        </Definition>
+    </UADataType>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=2010" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=1010</Reference>
+        </References>
+    </UAObject>
+
+</UANodeSet>

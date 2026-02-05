@@ -9,22 +9,24 @@ import { nodesets } from "node-opcua-nodesets";
 import { AddressSpace, PseudoSession, SessionContext } from "..";
 import { generateAddressSpace } from "../nodeJS";
 
-import { convertDataTypeDefinitionToStructureTypeSchema } from "node-opcua-client-dynamic-extension-object";
-import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
+import { convertDataTypeDefinitionToStructureTypeSchema, ExtraDataTypeManager } from "node-opcua-client-dynamic-extension-object";
 import { DataTypeIds } from "../../node-opcua-constants/dist";
 import { coerceNodeId } from "node-opcua-nodeid";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
+import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 
 
 describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
     let addressSpace: AddressSpace;
-    let dataTypeFactory: DataTypeFactory;
+    let dataTypeManager: ExtraDataTypeManager;
     before(async () => {
         addressSpace = AddressSpace.create();
-        const nodesetFilename = [nodesets.standard];
-        await generateAddressSpace(addressSpace, nodesetFilename);
+        
         addressSpace.registerNamespace("PRIVATE");
-        dataTypeFactory = getStandardDataTypeFactory();
+        await generateAddressSpace(addressSpace, [nodesets.standard]);
+        dataTypeManager = new ExtraDataTypeManager();
+        const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
+        dataTypeManager.registerDataTypeFactory(1, dataTypeFactory1);
     });
     after(async () => {
         addressSpace.dispose();
@@ -67,7 +69,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
             "MyStructure",
             definition,
             null,
-            dataTypeFactory,
+            dataTypeManager,
             false,
             {}
         );
@@ -119,7 +121,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
             "MyStructureWithEnum",
             definition,
             null,
-            dataTypeFactory,
+            dataTypeManager,
             false,
             {}
         );
@@ -194,7 +196,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
             "MyStructureWith2Enum1",
             definition,
             null,
-            dataTypeFactory,
+            dataTypeManager,
             false,
             {}
         );
@@ -214,7 +216,7 @@ describe("convertDataTypeDefinitionToStructureTypeSchema", () => {
             "MyStructureWith2Enum2",
             definition,
             null,
-            dataTypeFactory,
+            dataTypeManager ,
             false,
             {}
         );

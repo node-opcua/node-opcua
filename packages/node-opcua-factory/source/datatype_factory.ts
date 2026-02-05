@@ -325,7 +325,7 @@ export class DataTypeFactory {
 function dumpSchema(schema: IStructuredTypeSchema, write: any) {
     write("name           ", schema.name);
     write("dataType       ", schema.dataTypeNodeId.toString());
-    write("binaryEncoding ", schema.encodingDefaultBinary!.toString());
+    write("binaryEncoding ", schema.encodingDefaultBinary?.toString());
     for (const f of schema.fields) {
         write("          ", f.name.padEnd(30, " "), f.isArray ? true : false, f.fieldType);
     }

@@ -34,7 +34,9 @@ export class ExtraDataTypeManager {
     }
 
     public getDataTypeFactoryForNamespace(namespaceIndex: number): DataTypeFactory {
-        assert(namespaceIndex !== 0, "getTypeDictionaryForNamespace cannot be used for namespace 0");
+        if (namespaceIndex === 0) {
+            return getStandardDataTypeFactory();
+        }
         return this.dataTypeFactoryMapByNamespace[namespaceIndex];
     }
 
@@ -43,6 +45,22 @@ export class ExtraDataTypeManager {
             return getStandardDataTypeFactory();
         }
         return this.dataTypeFactoryMapByNamespace[namespaceIndex];
+    }
+
+    public getBuiltInType(fieldTypeName: string) {
+        // fallback to standard factory
+        const standardDataTypeFactory = getStandardDataTypeFactory();
+        if (standardDataTypeFactory.hasBuiltInType(fieldTypeName)) {
+            return standardDataTypeFactory.getBuiltInType(fieldTypeName);
+        }
+        throw new Error("Cannot find built-in type " + fieldTypeName);
+    }
+    public getStructureInfoForDataType(dataTypeNodeId: NodeId) {
+        const dataTypeFactory = this.getDataTypeFactory(dataTypeNodeId.namespace);
+        if (!dataTypeFactory) {
+            throw new Error("cannot find dataFactory for namespace=" + dataTypeNodeId.namespace + " when requested for " + dataTypeNodeId.toString());
+        }
+        return dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId);
     }
 
     public getExtensionObjectConstructorFromDataType(dataTypeNodeId: NodeId): AnyConstructorFunc {

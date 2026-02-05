@@ -2,10 +2,15 @@
 /**
  * @module node-opcua-address-space
  */
-import { promisify, types } from "util";
+import { types } from "util";
 import chalk from "chalk";
+import semver from "semver";
 
-import { coerceByte, coerceBoolean, coerceInt32 } from "node-opcua-basic-types";
+import { 
+    coerceByte, 
+    coerceBoolean, 
+    coerceInt32 
+} from "node-opcua-basic-types";
 import {
     AddReferenceTypeOptions,
     BaseNode,
@@ -31,18 +36,15 @@ import {
 import { checkDebugFlag, make_debugLog, make_errorLog } from "node-opcua-debug";
 import { getBuiltInType } from "node-opcua-factory";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { ErrorCallback } from "node-opcua-status-code";
-import { EnumFieldOptions, StructureFieldOptions } from "node-opcua-types";
-import { DataType, Variant, VariantArrayType, VariantOptions, VariantOptionsT } from "node-opcua-variant";
+import { EnumFieldOptions } from "node-opcua-types";
+import { DataType, Variant, VariantArrayType, VariantOptions } from "node-opcua-variant";
 import {
     _definitionParser,
     ReaderState,
     ReaderStateParserLike,
     Xml2Json,
     XmlAttributes,
-    SimpleCallback
 } from "node-opcua-xml2json";
-import semver from "semver";
 
 import { AddressSpacePrivate } from "../../src/address_space_private";
 import { NamespacePrivate } from "../../src/namespace_private";
@@ -52,6 +54,7 @@ import { ensureDatatypeExtracted } from "./ensure_datatype_extracted";
 import { makeSemverCompatible } from "./make_semver_compatible";
 import { makeVariantReader } from "./parsers/variant_parser";
 import { ExtensionObject } from "node-opcua-extension-object";
+import { StructureFieldOptionsEx } from "../../src/ua_data_type_impl";
 
 const doDebug = checkDebugFlag(__filename);
 const debugLog = make_debugLog(__filename);
@@ -403,7 +406,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
+            if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);
@@ -494,21 +497,36 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             References: references_parser
         }
     };
+
+    interface StateUADataType extends ReaderState {
+        obj: Partial<CreateNodeOptions> & { 
+            browseName: QualifiedName;
+            nodeClass: NodeClass.DataType;
+            symbolicName : string | null,
+            partialDefinition: StructureFieldOptionsEx[] | EnumFieldOptions[];
+        };
+        isDraft: boolean;
+        isDeprecated: boolean;
+        nodeId: NodeId;
+        definitionFields: StructureFieldOptionsEx[] | EnumFieldOptions[];
+    };
+
     // #endregion
     // #region UADataType
     const pendingSimpleTypeToRegister: any[] = [];
     const state_UADataType = {
-        init(this: any, name: string, attrs: XmlAttributes) {
+        init(this: StateUADataType, name: string, attrs: XmlAttributes) {
             _perform();
 
             this.obj = {
                 nodeClass: NodeClass.DataType,
                 isAbstract: coerceBoolean(attrs.IsAbstract) || false,
-                nodeId: convertToNodeId(attrs.NodeId) || null,
+                nodeId: convertToNodeId(attrs.NodeId) || undefined,
                 browseName: convertQualifiedName(attrs.BrowseName),
                 displayName: "",
                 description: "",
-                symbolicName: attrs.SymbolicName
+                symbolicName: attrs.SymbolicName,
+                partialDefinition: []
             };
 
             this.isDraft = attrs.ReleaseStatus === "Draft";
@@ -516,15 +534,16 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
 
             this.definitionFields = [];
         },
-        finish(this: any) {
-            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
+        finish(this: StateUADataType) {
+
+            if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
 
-            const definitionFields = this.definitionFields as StructureFieldOptions[] | EnumFieldOptions[];
-
+            const definitionFields = this.definitionFields as StructureFieldOptionsEx[] | EnumFieldOptions[];            
+            
             // replace DataType with nodeId, and description to LocalizedText
-            definitionFields.map((x: any) => {
+            definitionFields.forEach((x: any) => {
                 if (x.description) {
                     x.description = { text: x.description };
                 }
@@ -534,8 +553,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
                 if (x.dataType) {
                     x.dataType = convertToNodeId(x.dataType);
                 }
+                if (x.allowSubTypes) {
+                    x.allowSubTypes = coerceBoolean(x.allowSubTypes);
+                }
                 return x;
             });
+
+
             this.obj.partialDefinition = definitionFields;
 
             let capturedDataTypeNode = _internal_createNode(this.obj) as UADataType;
@@ -553,13 +577,13 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         },
         parser: {
             DisplayName: {
-                finish(this: any) {
+                finish(this: { parent: StateUADataType; text: string }) {
                     this.parent.obj.displayName = this.text;
                 }
             },
 
             Description: {
-                finish(this: any) {
+                finish(this: { parent: StateUADataType; text: string }) {
                     this.parent.obj.description = this.text;
                 }
             },
@@ -569,7 +593,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
         }
     };
     // #endregion
-    const canIngore = (
+    const canIgnore = (
         { isDraft, isDeprecated }: { isDraft: boolean; isDeprecated: boolean },
         node: { browseName: QualifiedName; nodeClass: NodeClass }
     ) => {
@@ -653,7 +677,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated" || false;
         },
         finish(this: ReaderUAVariableL1) {
-            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
+            if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
 
@@ -765,7 +789,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: ReaderUAVariableTypeL1) {
-            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
+            if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);
@@ -818,7 +842,7 @@ function makeNodeSetParserEngine(addressSpace: IAddressSpace, options: NodeSetLo
             this.isDeprecated = attrs.ReleaseStatus === "Deprecated";
         },
         finish(this: any) {
-            if (canIngore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
+            if (canIgnore({ isDraft: this.isDraft, isDeprecated: this.isDeprecated }, this.obj)) {
                 return;
             }
             _internal_createNode(this.obj);

@@ -10,9 +10,10 @@ import { readDataTypeDefinitionAndBuildType } from "./private/populate_data_type
  *
  */
 export async function getExtensionObjectConstructor(session: IBasicSessionAsync2, dataTypeNodeId: NodeId): Promise<AnyConstructorFunc> {
-    const extraDataTypeManager = await getExtraDataTypeManager(session);
+   
+    const dataTypeManager = await getExtraDataTypeManager(session);
 
-    const dataTypeFactory = extraDataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
+    const dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
     const structureInfo = dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId);
     if (structureInfo) {
         return structureInfo.constructor as unknown as AnyConstructorFunc;
@@ -22,7 +23,7 @@ export async function getExtensionObjectConstructor(session: IBasicSessionAsync2
         attributeId: AttributeIds.BrowseName
     });
     const browseName = dataValue.value.value as QualifiedName;
-    await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, browseName.name!, dataTypeFactory, {});
+    await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, browseName.name!, dataTypeManager, {});
 
-    return await extraDataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
+    return await dataTypeManager.getExtensionObjectConstructorFromDataType(dataTypeNodeId);
 }

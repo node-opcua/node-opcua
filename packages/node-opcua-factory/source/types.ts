@@ -48,7 +48,7 @@ export interface FieldInterfaceOptions {
     schema?: CommonInterface;
     switchBit?: number; // the bit number
     switchValue?: number;
-    allowSubType?: boolean;
+    allowSubTypes?: boolean;
     dataType?: NodeId;
     basicDataType?: number;
     valueRank?: number;
@@ -97,7 +97,7 @@ export interface StructuredTypeField {
     schema: CommonInterface;
     switchBit?: number; // the bit number
     switchValue?: number;
-    allowSubType?: boolean;
+    allowSubTypes?: boolean;
     dataType?: NodeId;
     basicDataType?: number; // DataType
 

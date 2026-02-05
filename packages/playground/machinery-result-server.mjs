@@ -23,7 +23,12 @@ async function startServer() {
         nodeset_filename: [
             nodesets.standard,
             nodesets.di,
-            nodesets.machineryResult
+            nodesets.machineryResult,
+            nodesets.amb,
+            nodesets.ia,
+            nodesets.machinery,
+            nodesets.ijtBase
+
         ]
     });
 

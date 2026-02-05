@@ -34,7 +34,7 @@ export function check_schema_correctness(schema: IStructuredTypeSchema): void {
 export function initialize_field(field: StructuredTypeField, value: unknown, factory?: DataTypeFactory): any {
     const _t = field.schema;
 
-    if (field.allowSubType && field.category === "complex") {
+    if (field.allowSubTypes && field.category === "complex") {
         if (value instanceof BaseUAObject) {
             value = { dataType: DataTypeIds.Structure, value };
         }
