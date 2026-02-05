@@ -233,12 +233,6 @@ function getOrCreateProperty(
     return property;
 }
 
-function prepareVariantValue(dataType: DataType, value: VariantLike): VariantLike {
-    if ((dataType === DataType.Int32 || dataType === DataType.UInt32) && value && (value as { key?: unknown }).key) {
-        value = value.value;
-    }
-    return value;
-}
 
 function installExt(uaVariable: UAVariableImpl, ext: ExtensionObject) {
     ext = unProxy(ext);

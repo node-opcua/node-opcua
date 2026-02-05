@@ -278,9 +278,9 @@ const readIsAbstract = async (session: IBasicSessionAsync, nodeId: NodeId): Prom
 async function _extractDataTypeDictionaryFromDefinition(
     session: IBasicSessionAsync2,
     dataTypeDictionaryNodeId: NodeId,
-    dataTypeFactory: DataTypeFactory
+    dataTypeManager: ExtraDataTypeManager
 ) {
-    assert(dataTypeFactory, "expecting a dataTypeFactory");
+    assert(dataTypeManager, "expecting a dataTypeManager");
 
     const dataTypeDescriptions = await _getDataTypeDescriptions(session, dataTypeDictionaryNodeId);
     const dataTypeNodeIds = await _enrichWithDescriptionOf(session, dataTypeDescriptions);
@@ -343,6 +343,8 @@ async function _extractDataTypeDictionaryFromDefinition(
     for (const { className, dataTypeNodeId, dataTypeDefinition, isAbstract } of dataTypeDefinitionsSorted) {
         promises2.push(
             (async () => {
+
+                const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
                 // istanbul ignore next
                 if (doDebug) {
                     debugLog(chalk.yellow("--------------------------------------- "), className, dataTypeNodeId.toString());
@@ -362,7 +364,7 @@ async function _extractDataTypeDictionaryFromDefinition(
                         className,
                         dataTypeDefinition,
                         dataTypeDescription!, // for encodings
-                        dataTypeFactory,
+                        dataTypeManager,
                         isAbstract,
                         cache
                     );
@@ -463,7 +465,7 @@ async function _extractDataTypeDictionary(
         if (!dataTypeFactory2) {
             throw new Error("cannot find dataTypeFactory for namespace " + dataTypeDictionaryNodeId.namespace);
         }
-        await _extractDataTypeDictionaryFromDefinition(session, dataTypeDictionaryNodeId, dataTypeFactory2);
+        await _extractDataTypeDictionaryFromDefinition(session, dataTypeDictionaryNodeId, dataTypeManager);
     } else {
         const rawSchema = d.rawSchema; // DataValue = await session.read({ nodeId: dataTypeDictionaryNodeId, attributeId: AttributeIds.Value });
         doDebug &&

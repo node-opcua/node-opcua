@@ -10,9 +10,10 @@ import {
     IStructuredTypeSchema,
     is_internal_id,
     registerBuiltInType,
-    StructuredTypeSchema
+    StructuredTypeSchema,
+    DataTypeFactory
 } from "node-opcua-factory";
-import { ExpandedNodeId, makeNodeId, NodeId } from "node-opcua-nodeid";
+import { makeNodeId, NodeId } from "node-opcua-nodeid";
 
 const debugLog = make_debugLog(__filename);
 const warningLog = make_warningLog(__filename);
@@ -139,8 +140,13 @@ export class OpaqueStructure extends ExtensionObject {
         return str;
     }
 }
-
-export function decodeExtensionObject(stream: BinaryStream, _value?: ExtensionObject | null): ExtensionObject | null {
+export interface IDataTypeFactory {
+    constructObject(dataTypeNodeId: NodeId): BaseUAObject | null;
+}
+export function decodeExtensionObject(
+    stream: BinaryStream, 
+    _value?: ExtensionObject | null,
+): ExtensionObject | null {
     const nodeId = decodeNodeId(stream);
     const encodingType = stream.readUInt8();
 

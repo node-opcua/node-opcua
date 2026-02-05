@@ -1,5 +1,5 @@
 //<Definition Name="SomeName">
-//    <Field Name="Running" Value="0" dataType: [ValueRank="1"]>
+//    <Field Name="Running" Value="0" dataType: [ValueRank="1"] [AllowSubtype="true"]>
 //      [<Description>text</Description>]
 //   <Field>
 // </Definition>
@@ -24,6 +24,11 @@ type UInt32 = number;
 type UABoolean = boolean;
 type LocalizedTextLike = string | null;
 
+export interface EnumFieldOptions {
+    name?: UAString;
+    value?: Int32;
+    description?: LocalizedTextLike | null;
+}
 export interface StructureFieldOptions {
     name?: UAString;
     description?: LocalizedTextLike | null;
@@ -32,7 +37,13 @@ export interface StructureFieldOptions {
     arrayDimensions?: UInt32[] | null;
     maxStringLength?: UInt32;
     isOptional?: UABoolean;
+
+    // additional attributes
+    symbolicName?: UAString;
+    allowSubTypes?: UABoolean;
 }
+type FieldOptions = EnumFieldOptions & StructureFieldOptions;
+
 interface AA extends ReaderStateParserLike {
     parent: {
         definitionFields: StructureFieldOptions[];
@@ -68,13 +79,13 @@ export const _definitionParser: ReaderStateParserLike = {
                 }
             },
             finish(this: FieldParser) {
-                const obj: any = {
+                const obj: FieldOptions = {
                     name: this.attrs.Name
                 };
-                if (this.attrs.AllowSubtype !== undefined) {
-                    obj.allowSubtype = this.attrs.AllowSubtype === "true";
+                if (this.attrs.AllowSubTypes !== undefined) {
+                    obj.allowSubTypes = this.attrs.AllowSubTypes === "true";
                 } else {
-                    obj.allowSubtype = false;
+                    obj.allowSubTypes = false;
                 }
                 if (this.attrs.DataType !== undefined) {
                     obj.dataType = this.attrs.DataType;
@@ -107,11 +118,6 @@ export const _definitionParser: ReaderStateParserLike = {
     }
 };
 
-interface IDefinitionParserReader { 
-    _pojo: any, 
-    definitionName: string, 
-    definitionFields: StructureFieldOptions[] 
-}
 export const definitionReaderStateParser: ReaderStateParserLike = {
     parser: {
         Definition: _definitionParser

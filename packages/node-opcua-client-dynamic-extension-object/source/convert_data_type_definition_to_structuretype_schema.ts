@@ -38,6 +38,7 @@ import { DataTypeAndEncodingId } from "node-opcua-schemas";
 import { DataType } from "node-opcua-variant";
 import { DataTypeIds } from "node-opcua-constants";
 import { _findEncodings } from "./private/find_encodings";
+import { ExtraDataTypeManager } from "./extra_data_type_manager";
 
 const debugLog = make_debugLog(__filename);
 const doDebug = checkDebugFlag(__filename);
@@ -48,7 +49,7 @@ export interface CacheForFieldResolution {
     fieldTypeName: string;
     schema: TypeDefinition;
     category: FieldCategory;
-    allowSubType?: boolean;
+    allowSubTypes?: boolean;
     dataType?: NodeId;
 }
 export type ResolveReject<T> = [
@@ -125,7 +126,6 @@ async function findSuperType(session: IBasicSessionAsync2, dataTypeNodeId: NodeI
 }
 async function findDataTypeCategory(
     session: IBasicSessionAsync2,
-    dataTypeFactory: DataTypeFactory,
     cache: ICache,
     dataTypeNodeId: NodeId,
 ): Promise<FieldCategory> {
@@ -155,7 +155,7 @@ async function findDataTypeCategory(
         return category;
     }
     // must drill down ...
-    return await findDataTypeCategory(session, dataTypeFactory, cache, subTypeNodeId);
+    return await findDataTypeCategory(session, cache, subTypeNodeId);
 }
 
 async function findDataTypeBasicType(
@@ -210,12 +210,13 @@ async function readBrowseNameWithCache(session: IBasicSessionAsync, nodeId: Node
 async function resolve2(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
-    dataTypeFactory: DataTypeFactory,
+    dataTypeManager: ExtraDataTypeManager,
     fieldTypeName: string,
     cache: ICache
 ): Promise<{ schema: TypeDefinition | undefined; category: FieldCategory }> {
 
-    const category = await findDataTypeCategory(session, dataTypeFactory, cache, dataTypeNodeId);
+    const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+    const category = await findDataTypeCategory(session, cache, dataTypeNodeId);
     doDebug && debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it => (category = ", category, " )");
 
     let schema: TypeDefinition | undefined = undefined;
@@ -274,7 +275,7 @@ async function resolve2(
                         fieldTypeName,
                         definition,
                         null,
-                        dataTypeFactory,
+                        dataTypeManager,
                         isAbstract,
                         cache
                     );
@@ -304,19 +305,19 @@ const isExtensionObject = async (session: IBasicSessionAsync2, dataTypeNodeId: N
     return await isExtensionObject(session, baseDataType, cache);
 };
 
-// eslint-disable-next-line max-statements
 async function resolveFieldType(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
-    dataTypeFactory: DataTypeFactory,
+    dataTypeManager: ExtraDataTypeManager,
     cache: ICache
 ): Promise<CacheForFieldResolution | null> {
 
 
     return await memoize(cache, "fieldResolution", dataTypeNodeId, async () => {
 
+        const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+
         if (dataTypeNodeId.namespace === 0 && dataTypeNodeId.value === DataTypeIds.Structure) {
-            // ERN   return null;
             const category: FieldCategory = FieldCategory.complex;
             const fieldTypeName = "Structure";
             const schema = ExtensionObject.schema;
@@ -324,7 +325,7 @@ async function resolveFieldType(
                 category,
                 fieldTypeName,
                 schema,
-                allowSubType: true,
+                allowSubTypes: true,
                 dataType: coerceNodeId(DataType.ExtensionObject)
             };
         }
@@ -333,7 +334,7 @@ async function resolveFieldType(
             const v3: CacheForFieldResolution = {
                 category: FieldCategory.basic,
                 fieldTypeName: "Variant",
-                schema: dataTypeFactory.getBuiltInType("Variant")
+                schema: dataTypeManager.getBuiltInType("Variant")
             };
             return v3;
         }
@@ -358,7 +359,7 @@ async function resolveFieldType(
                     category: FieldCategory.complex,
                     fieldTypeName: fieldTypeName,
                     schema: ExtensionObject.schema,
-                    allowSubType: true,
+                    allowSubTypes: true,
                     dataType: dataTypeNodeId
                 };
                 return v3;
@@ -367,8 +368,8 @@ async function resolveFieldType(
                 const v3: CacheForFieldResolution = {
                     category: FieldCategory.basic,
                     fieldTypeName: fieldTypeName,
-                    schema: dataTypeFactory.getBuiltInType("Variant"),
-                    allowSubType: true,
+                    schema: dataTypeManager.getBuiltInType("Variant"),
+                    allowSubTypes: true,
                     dataType: dataTypeNodeId
                 };
                 return v3;
@@ -389,7 +390,7 @@ async function resolveFieldType(
             schema = dataTypeFactory.getEnumeration(fieldTypeName!)!;
         } else {
             doDebug && debugLog(" type " + fieldTypeName + " has not been seen yet, let resolve it");
-            const res = await resolve2(session, dataTypeNodeId, dataTypeFactory, fieldTypeName, cache);
+            const res = await resolve2(session, dataTypeNodeId, dataTypeManager, fieldTypeName, cache);
             schema = res.schema;
             category = res.category;
         }
@@ -501,32 +502,37 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     name: string,
     definition: DataTypeDefinition,
     dataTypeDescription: IDataTypeDescriptionMini | null,
-    dataTypeFactory: DataTypeFactory,
+    dataTypeManager: ExtraDataTypeManager,
     isAbstract: boolean,
     cache: ICache
 ): Promise<IStructuredTypeSchema> {
- 
+
     return await nonReentrant(cache, "convertDataTypeDefinitionToStructureTypeSchema", dataTypeNodeId, async () => {
 
-        // warningLog(">> convertDataTypeDefinitionToStructureTypeSchema = ", dataTypeNodeId.toString());
+
         if (definition instanceof StructureDefinition) {
+
+            const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
+
             let fieldCountToIgnore = 0;
-            const structureInfo = dataTypeFactory.getStructureInfoForDataType(definition.baseDataType);
+
+            const structureInfo = dataTypeManager.getStructureInfoForDataType(definition.baseDataType);
             const baseSchema: IStructuredTypeSchema | undefined | null = structureInfo?.schema;
 
             if (baseSchema) {
                 const possibleFields = extractAllPossibleFields(baseSchema);
                 fieldCountToIgnore += possibleFields.length;
             }
-            // while (base && !(base.dataTypeNodeId.value === DataType.ExtensionObject && base.dataTypeNodeId.namespace === 0)) {
-            //     fieldCountToIgnore += base..length;
-            //     base = base.getBaseSchema();
-            // }
 
             const fields: FieldInterfaceOptions[] = [];
 
             const isUnion = definition.structureType === StructureType.Union;
 
+            // const hasSubTypedValueFields =
+            //     definition.structureType == StructureType.StructureWithSubtypedValues
+            //     || definition.structureType == StructureType.UnionWithSubtypedValues;
+
+ 
             switch (definition.structureType) {
                 case StructureType.Union:
                     fields.push({
@@ -536,11 +542,15 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                     break;
                 case StructureType.Structure:
                 case StructureType.StructureWithOptionalFields:
+                // new in 1.05
+                case StructureType.StructureWithSubtypedValues:
+                case StructureType.UnionWithSubtypedValues:
                     break;
             }
 
             let switchValue = 1;
             let switchBit = 0;
+            let allowSubTypes: boolean | undefined = undefined;
 
             const bitFields: BitField[] | undefined = isUnion ? undefined : [];
 
@@ -550,13 +560,17 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
 
                 for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
+
                     const fieldD = definition.fields[i];
+
+
                     // we need to skip fields that have already been handled in base class
                     // promises.push((
                     await (async () => {
 
                         let field: FieldInterfaceOptions | undefined;
-                        ({ field, switchBit, switchValue } = createField(fieldD, switchBit, bitFields, isUnion, switchValue));
+                    
+                        ({ field, switchBit, switchValue, allowSubTypes } = createField(definition, fieldD, switchBit, bitFields, isUnion, switchValue));
 
                         if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
                             // this is a structure with a field of the same type
@@ -570,7 +584,9 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                             });
                             return;;
                         }
-                        const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeFactory, cache))!;
+                        const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeManager, cache))!;
+
+                        
                         if (!rt) {
                             errorLog(
                                 "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
@@ -581,13 +597,13 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                             );
                             return;
                         }
-                        const { schema, category, fieldTypeName, dataType, allowSubType } = rt;
+                        const { schema, category, fieldTypeName, dataType } = rt;
 
                         field.fieldType = fieldTypeName!;
                         field.category = category;
                         field.schema = schema;
                         field.dataType = dataType || fieldD.dataType;
-                        field.allowSubType = allowSubType || false;
+                        field.allowSubTypes = allowSubTypes;
                         field.basicDataType = await findBasicDataTypeEx(session, field.dataType, cache);
                         fields.push(field);
                     })();
@@ -602,7 +618,8 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                 definition.baseDataType = resolveNodeId(DataTypeIds.Union); // aka DataTypeIds.Union
             }
 
-            const a = await resolveFieldType(session, definition.baseDataType, dataTypeFactory, cache);
+            const a = await resolveFieldType(session, definition.baseDataType, dataTypeManager, cache);
+     
             const baseType = a ? a.fieldTypeName : isUnion ? "Union" : "ExtensionObject";
 
             const os = new StructuredTypeSchema({
@@ -621,27 +638,41 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
         }
         throw new Error("Not Implemented");
     });
+
     function createField(
+        definition: StructureDefinition,
         fieldD: StructureField,
+
         switchBit: number,
         bitFields: BitField[] | undefined,
         isUnion: boolean,
         switchValue: number
-    ): { field: FieldInterfaceOptions; switchBit: number; switchValue: number } {
+    ): { field: FieldInterfaceOptions; switchBit: number; switchValue: number, allowSubTypes?: boolean } {
+
         const field: FieldInterfaceOptions = {
             fieldType: "",
             name: fieldD.name!,
             schema: undefined
         };
 
+        const definitionAllowSubTypes = 
+               definition.structureType === StructureType.StructureWithSubtypedValues
+            || definition.structureType === StructureType.UnionWithSubtypedValues;
+
         if (fieldD.isOptional) {
-            field.switchBit = switchBit++;
-            bitFields?.push({ name: fieldD.name! + "Specified", length: 1 });
+            // Optional has a special handling
+            if (!definitionAllowSubTypes) {
+               // we are in a true optional field structure
+               field.switchBit = switchBit++;
+               bitFields?.push({ name: fieldD.name! + "Specified", length: 1 });
+            }
         }
         if (isUnion) {
             field.switchValue = switchValue;
             switchValue += 1;
         }
+
+        const allowSubTypes = definitionAllowSubTypes && fieldD.isOptional;
 
         // (fieldD.valueRank === -1 || fieldD.valueRank === 1 || fieldD.valueRank === 0);
 
@@ -651,6 +682,6 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
         } else {
             field.isArray = false;
         }
-        return { field, switchBit, switchValue };
+        return { field, switchBit, switchValue, allowSubTypes };
     }
 }

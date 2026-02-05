@@ -14,7 +14,7 @@ import {
     ServiceCounterDataType,
     SessionDiagnosticsDataType
 } from "node-opcua-types";
-import { DataType, VariantArrayType } from "node-opcua-variant";
+import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
 import { nodesets } from "node-opcua-nodesets";
 
 import {
@@ -616,6 +616,83 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             throw new Error("Cannot find ResultType");
         }
     });
+
+    it("MV0a MachineVision-ResultClone ", () => {
+
+        const configurationIdDataType = addressSpace.findDataType("ConfigurationIdDataType", nsMV)!;
+
+        const configurationExtObj = addressSpace.constructExtensionObject(configurationIdDataType, {
+            description: "some description",
+            hash: Buffer.from("DEADBEEF", "hex"),
+            id: "IIII",
+            version: "1.2"
+        });
+     
+        const variant = new Variant({
+            dataType: DataType.ExtensionObject,
+            value: configurationExtObj
+        });
+        const clone = variant.clone();
+        should.exist(clone.value);
+        clone.value.toString().should.eql(configurationExtObj.toString());
+        clone.value.hash.toString("hex").should.eql("deadbeef");
+        clone.value.id.should.eql("IIII");
+        clone.value.version.should.eql("1.2");
+
+    });
+
+    it("MV0b MachineVision-ResultClone " , () => {
+
+        const configurationIdDataType = addressSpace.findDataType("ConfigurationIdDataType", nsMV)!;
+
+        const rr = addressSpace.constructExtensionObject(configurationIdDataType, {
+            description: "some description",
+            hash: Buffer.from("DEADBEEF", "hex"),
+            id: "IIII",
+            version: "1.2"
+        });
+        should.exist((<any>rr).hash);
+        (<any>rr).hash.toString("hex").should.eql("deadbeef");
+
+        const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
+
+        const resultContent1 = addressSpace.constructExtensionObject(recipeIdExternalD, {
+            description: "some description",
+        });
+        const partId = "PartId-1";
+        const extObj = addressSpace.constructExtensionObject(resultDataType, {
+            hasTransferableDataOnFile: true,
+            internalConfigurationId: {
+                description: "some description",
+                hash: Buffer.from("DEADBEEF", "hex"),
+                id: "IIII",
+                version: "1.2"
+            },
+            partId,
+            resultState: 32,
+
+            resultContent: [
+                resultContent1
+            ]
+        });
+
+        (extObj as any).internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+        (extObj as any).internalConfigurationId.id.should.eql("IIII");
+        (extObj as any).internalConfigurationId.version.should.eql("1.2");
+
+        const variant = new Variant({
+            dataType: DataType.ExtensionObject,
+            value: extObj
+        });
+        const clone = variant.clone();
+        should.exist(clone.value);
+        clone.value.internalConfigurationId.hash.toString("hex").should.eql("deadbeef");
+        clone.value.internalConfigurationId.id.should.eql("IIII");
+        clone.value.internalConfigurationId.version.should.eql("1.2");
+        clone.value.toString().should.eql(extObj.toString());
+
+    });
+
     it("MV1 MachineVision-BindExtensionObject should instantiate a ResultType", () => {
         const result = resultType.instantiate({
             browseName: `Result`,
@@ -645,7 +722,10 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
 
         const recipeIdExternalD = addressSpace.findDataType("RecipeIdExternalDataType", nsMV)!;
 
-        const a = addressSpace.constructExtensionObject(recipeIdExternalD, {});
+        const resultContent1 = addressSpace.constructExtensionObject(recipeIdExternalD, {
+                description: "some description",
+               
+        });
         const extObj = addressSpace.constructExtensionObject(resultDataType, {
             hasTransferableDataOnFile: true,
             internalConfigurationId: {
@@ -657,7 +737,9 @@ describe("Extension Object binding and sub  components On MachineVision", () => 
             partId,
             resultState: 32,
 
-            resultContent: [{ dataType: DataType.ExtensionObject, value: a }]
+            resultContent: [
+              resultContent1
+            ]
         });
         if (doDebug) {
             console.log("extObj", extObj.toString());

@@ -145,8 +145,17 @@ function buildField(
         );
     }
 
-    const { defaultValue, isArray, documentation, fieldType, switchBit, switchValue, allowSubType, dataType, basicDataType } =
-        fieldLight;
+    const { 
+        defaultValue, 
+        isArray, 
+        documentation, 
+        fieldType, 
+        switchBit, 
+        switchValue, 
+        allowSubTypes, 
+        dataType, 
+        basicDataType 
+    } =  fieldLight;
     return {
         name: lowerFirstLetter(fieldLight.name),
         originalName: fieldLight.name,
@@ -157,7 +166,7 @@ function buildField(
         fieldType,
         switchBit,
         switchValue,
-        allowSubType,
+        allowSubTypes,
         dataType,
         basicDataType,
         schema
@@ -244,7 +253,7 @@ export class StructuredTypeSchema extends TypeSchemaBase implements IStructuredT
         }
         return str.join("\n");
     }
-}
+} 
 
 function _get_base_schema(schema: IStructuredTypeSchema): IStructuredTypeSchema | null | undefined {
     const dataTypeFactory = schema.getDataTypeFactory();

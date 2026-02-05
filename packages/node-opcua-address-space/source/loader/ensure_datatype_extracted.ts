@@ -5,7 +5,7 @@ import {
     ExtraDataTypeManager,
     populateDataTypeManager
 } from "node-opcua-client-dynamic-extension-object";
-import { make_debugLog } from "node-opcua-debug";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { CallbackT } from "node-opcua-status-code";
 import { StructureField } from "node-opcua-types";
@@ -14,12 +14,17 @@ import { PseudoSession } from "../pseudo_session";
 import { constructNamespaceDependency, constructNamespacePriorityTable } from "../../src/nodeset_tools/construct_namespace_dependency";
 
 const debugLog = make_debugLog(__filename);
+const doDebug = checkDebugFlag(__filename);
 
 interface UADataTypePriv extends UADataType {
     $partialDefinition?: StructureField[];
 }
 
-function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[], dataTypeManager: ExtraDataTypeManager) {
+function fixDefinition103(
+    addressSpace: IAddressSpace, 
+    namespaceArray: string[], 
+    dataTypeManager: ExtraDataTypeManager
+): void {
     // fix datatype _getDefinition();
     for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
         const df = dataTypeManager.getDataTypeFactory(namespaceIndex);
@@ -43,14 +48,21 @@ function fixDefinition103(addressSpace: IAddressSpace, namespaceArray: string[],
     }
 }
 
-export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Promise<ExtraDataTypeManager> {
+export async function ensureDatatypeExtracted(
+    addressSpace: IAddressSpace
+): Promise<ExtraDataTypeManager> {
+
     const addressSpacePriv: any = addressSpace as AddressSpacePrivate;
+
     if (!addressSpacePriv.$$extraDataTypeManager) {
         const dataTypeManager = new ExtraDataTypeManager();
 
         const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
-        debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
+        
+        doDebug && debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
+
         dataTypeManager.setNamespaceArray(namespaceArray);
+        
         addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
 
         const factories: DataTypeFactory[] = [getStandardDataTypeFactory()];
@@ -88,8 +100,7 @@ export async function ensureDatatypeExtracted(addressSpace: IAddressSpace): Prom
             dataTypeFactory1.targetNamespace = namespace.namespaceUri;
 
             factories.push(dataTypeFactory1);
-            // xx console.log("factories = ", factories.map((f) => f.targetNamespace).join(" "));
-
+          
             dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
         }
         // inject simple types

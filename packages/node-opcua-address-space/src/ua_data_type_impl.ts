@@ -18,22 +18,50 @@ import {
     StructureFieldOptions,
     StructureType
 } from "node-opcua-types";
-import { DataType } from "node-opcua-variant";
-import { UAObject, ISessionContext, UADataType, UAVariable, BaseNode } from "node-opcua-address-space-base";
-import { DataTypeIds } from "node-opcua-constants";
-import { Int64, coerceInt32, coerceInt64, coerceInt64toInt32 } from "node-opcua-basic-types";
-
+import {
+    DataType
+} from "node-opcua-variant";
+import {
+    UAObject,
+    ISessionContext,
+    UADataType,
+    UAVariable,
+    BaseNode
+} from "node-opcua-address-space-base";
+import {
+    DataTypeIds
+} from "node-opcua-constants";
+import {
+    Int64,
+    coerceInt64,
+    coerceInt64toInt32
+} from "node-opcua-basic-types";
 import { SessionContext } from "../source/session_context";
 import { ExtensionObjectConstructorFuncWithSchema } from "../source/interfaces/extension_object_constructor";
 import { BaseNodeImpl, InternalBaseNodeOptions } from "./base_node_impl";
-import { BaseNode_References_toString, BaseNode_toString, ToStringBuilder, ToStringOption } from "./base_node_private";
+import {
+    BaseNode_References_toString,
+    BaseNode_toString,
+    ToStringBuilder,
+    ToStringOption
+} from "./base_node_private";
 import { construct_isSubtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOf } from "./tool_isSubtypeOf";
 import { get_subtypeOfObj } from "./tool_isSubtypeOf";
 import { BaseNode_getCache } from "./base_node_private";
+import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
+
+
+const debugLog = make_debugLog("DATA_TYPE");
+const doDebug = checkDebugFlag("DATA_TYPE");
 
 export interface UADataTypeImpl {
     _extensionObjectConstructor: ExtensionObjectConstructorFuncWithSchema;
+}
+
+
+export interface StructureFieldOptionsEx extends StructureFieldOptions {
+    allowSubTypes: boolean;
 }
 
 export interface IEnumItem {
@@ -84,7 +112,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
     private $isUnion?: boolean;
     private enumStrings?: any;
     private enumValues?: any;
-    private $partialDefinition?: StructureFieldOptions[] | EnumFieldOptions[];
+    private $partialDefinition?: StructureFieldOptionsEx[] | EnumFieldOptions[];
     private $fullDefinition?: StructureDefinition | EnumDefinition;
 
     constructor(options: UADataTypeOptions) {
@@ -163,7 +191,7 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
                 .filter((obj: any) => obj !== null)
                 .filter((obj: any) => obj.browseName.toString() === encoding_name);
             const node = encoding.length === 0 ? null : (encoding[0] as UAObject);
-            _cache._encoding.set(key,node);
+            _cache._encoding.set(key, node);
             return node
         }
         return _cache._encoding.get(key) || null;
@@ -286,27 +314,32 @@ export class UADataTypeImpl extends BaseNodeImpl implements UADataType {
         const isUnion = !!(structure && union && this.isSubtypeOf(union));
 
         const isRootDataType = (n: UADataType) => n.nodeId.namespace === 0 && n.nodeId.value === DataTypeIds.BaseDataType;
-        // https://reference.opcfoundation.org/v104/Core/docs/Part3/8.49/#Table34
+
+        // https://reference.opcfoundation.org/v105/Core/docs/Part3/8.49/#Table34
         if (isStructure) {
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
+
             let dataTypeNode: UADataTypeImpl | null = this;
-            const allPartialDefinitions: StructureFieldOptions[][] = [];
+            const allPartialDefinitions: (StructureFieldOptionsEx[])[] = [];
             while (dataTypeNode && !isRootDataType(dataTypeNode)) {
                 if (dataTypeNode.$partialDefinition) {
-                    allPartialDefinitions.push(dataTypeNode.$partialDefinition as StructureFieldOptions[]);
+                    allPartialDefinitions.push(dataTypeNode.$partialDefinition as StructureFieldOptionsEx[]);
                 }
                 dataTypeNode = dataTypeNode.subtypeOfObj as UADataTypeImpl | null;
             }
+
             // merge them:
-            const definitionFields: StructureFieldOptions[] = [];
+            const definitionFields: StructureFieldOptionsEx[] = [];
             for (const dd of allPartialDefinitions.reverse()) {
                 definitionFields.push(...dd);
             }
+
             const basicDataType = this.subtypeOfObj?.nodeId || new NodeId();
+
             const defaultEncodingId = this.binaryEncodingNodeId || this.xmlEncodingNodeId || new NodeId();
-            const definitionName = this.browseName.name!;
+
+
+
             this.$fullDefinition = makeStructureDefinition(
-                definitionName,
                 basicDataType,
                 defaultEncodingId,
                 definitionFields,
@@ -371,24 +404,24 @@ export function DataType_toString(this: UADataTypeImpl, options: ToStringOption)
 
     options.add(
         options.padding +
-            chalk.yellow("          binaryEncodingNodeId: ") +
-            (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          binaryEncodingNodeId: ") +
+        (this.binaryEncodingNodeId ? this.binaryEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          xmlEncodingNodeId   : ") +
-            (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          xmlEncodingNodeId   : ") +
+        (this.xmlEncodingNodeId ? this.xmlEncodingNodeId.toString() : "<none>")
     );
     options.add(
         options.padding +
-            chalk.yellow("          jsonEncodingNodeId  : ") +
-            (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
+        chalk.yellow("          jsonEncodingNodeId  : ") +
+        (this.jsonEncodingNodeId ? this.jsonEncodingNodeId.toString() : "<none>")
     );
     if (this.subtypeOfObj) {
         options.add(
             options.padding +
-                chalk.yellow("          subtypeOfObj        : ") +
-                (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
+            chalk.yellow("          subtypeOfObj        : ") +
+            (this.subtypeOfObj ? this.subtypeOfObj.browseName.toString() : "")
         );
     }
     // references
@@ -410,22 +443,63 @@ function makeEnumDefinition(definitionFields: EnumFieldOptions[]) {
 }
 
 function makeStructureDefinition(
-    name: string,
     baseDataType: NodeId,
     defaultEncodingId: NodeId,
-    fields: StructureFieldOptions[],
+    fields: StructureFieldOptionsEx[],
     isUnion: boolean
 ): StructureDefinition {
-    // Structure = 0,
-    // StructureWithOptionalFields = 1,
-    // Union = 2,
+
+    const hasSubtypedFields = fields.filter((field) => field.allowSubTypes).length > 0;
+
+    if (hasSubtypedFields && doDebug) {
+        debugLog("Fields with subtypes:");
+        for (const field of fields) {
+            if (field.allowSubTypes) {
+                debugLog("  ", field.name, field.dataType?.toString());
+            }
+        }
+    }
     const hasOptionalFields = fields.filter((field) => field.isOptional).length > 0;
 
+
+
     const structureType = isUnion
-        ? StructureType.Union
+        ?
+        (
+            hasSubtypedFields ? StructureType.UnionWithSubtypedValues : StructureType.Union
+        )
         : hasOptionalFields
-        ? StructureType.StructureWithOptionalFields
-        : StructureType.Structure;
+            ? StructureType.StructureWithOptionalFields
+            : (
+                hasSubtypedFields ? StructureType.StructureWithSubtypedValues : StructureType.Structure
+            );
+
+    // note:  https://reference.opcfoundation.org/Core/Part3/v105/docs/8.51
+    // field.isOptional has a special behavior depending on the structure type
+    //
+    // If the structureType is StructureWithOptionalFields this field indicates if a data type field
+    // Structure is optional. In this case a value of FALSE means the StructureField is always present in all
+    // occurrences of the Structure DataType and a value of TRUE means the StructureField may be present in an
+    // occurrence of the Structure DataType.
+    //
+    // If the structureType is Structure or Union this field shall be FALSE and shall be ignored
+    //
+    // If the structureType is StructureWithSubtypedValues, or UnionWithSubtypedValues this field is used to
+    // indicate if the data type field allows subtyping.Subtyping is allowed when set to TRUE.
+
+    const isUnionOrStructureWithSubtypedValues =
+        structureType === StructureType.UnionWithSubtypedValues ||
+        structureType === StructureType.StructureWithSubtypedValues;
+
+    if (isUnionOrStructureWithSubtypedValues) {
+        for (const field of fields) {
+            if (field.allowSubTypes) {
+                // this is a special use of the isOtional flag to indicate that subtyping is allowed for this field
+                // see https://reference.opcfoundation.org/Core/Part3/v105/docs/8.51
+                field.isOptional = field.allowSubTypes;
+            }
+        }
+    }
 
     const sd = new StructureDefinition({
         baseDataType,

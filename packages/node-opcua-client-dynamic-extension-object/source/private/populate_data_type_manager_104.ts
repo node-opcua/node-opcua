@@ -28,12 +28,13 @@ export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
     name: string,
-    dataTypeFactory: DataTypeFactory,
+    dataTypeManager: ExtraDataTypeManager,
     cache: ICache
 ): Promise<DependentNamespaces> {
     const dependentNamespaces: DependentNamespaces = new Set();
     try {
-        if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
+        
+        if (dataTypeManager.getStructureInfoForDataType(dataTypeNodeId)) {
             return dependentNamespaces;
         }
         const [isAbstractDataValue, dataTypeDefinitionDataValue, browseNameDataValue] = await session.read([
@@ -97,10 +98,12 @@ export async function readDataTypeDefinitionAndBuildType(
             name,
             dataTypeDefinition,
             null,
-            dataTypeFactory,
+            dataTypeManager,
             isAbstract,
             cache
         );
+
+        const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
         if (isAbstract) {
             // cannot construct an abstract structure
             dataTypeFactory.registerAbstractStructure(dataTypeNodeId, name, schema);
@@ -142,7 +145,13 @@ export async function populateDataTypeManager104(
             }
             // extract it formally
             doDebug && debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
-            const dependentNamespaces = await readDataTypeDefinitionAndBuildType(session, dataTypeNodeId, r.browseName.name!, dataTypeFactory, cache);
+            const dependentNamespaces = await readDataTypeDefinitionAndBuildType(
+                session, 
+                dataTypeNodeId, 
+                r.browseName.name!, 
+                dataTypeManager, 
+                cache
+            );
             
             // add dependent namespaces to dataFactoriesDependencies
             let dataFactoryDependencies = dataFactoriesDependencies.get(dataTypeNodeId.namespace);

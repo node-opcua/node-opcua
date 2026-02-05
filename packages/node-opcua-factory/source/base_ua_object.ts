@@ -25,7 +25,8 @@ import {
     Func1,
     IStructuredTypeSchema,
     IBaseUAObject,
-    DecodeDebugOptions} from "./types";
+    DecodeDebugOptions
+} from "./types";
 
 const errorLog = make_errorLog(__filename);
 
@@ -36,7 +37,7 @@ function r(str: string, length = 30) {
 function _findFieldSchema(typeDictionary: DataTypeFactory, field: StructuredTypeField, value: any): IStructuredTypeSchema {
     const fieldType = field.fieldType;
 
-    if (field.allowSubType && field.category === "complex") {
+    if (field.allowSubTypes && field.category === "complex") {
         const fieldTypeConstructor = value ? value.constructor : field.fieldTypeConstructor;
 
         const _newFieldSchema = fieldTypeConstructor.schema;
@@ -46,8 +47,14 @@ function _findFieldSchema(typeDictionary: DataTypeFactory, field: StructuredType
 
     const fieldTypeConstructor = field.fieldTypeConstructor;
     if (fieldTypeConstructor) {
+        if (value && value.constructor && value.constructor !== fieldTypeConstructor) {
+            // this should not happen, as we are not expecting value to be 
+            // a subtype of the declared field type
+            errorLog("Error: unexpected subtype ", value.constructor.name, " instead of ", fieldTypeConstructor?.name);
+        }
         return fieldTypeConstructor.prototype.schema;
     }
+
     const strucutreInfo = typeDictionary.getStructureInfoByTypeName(fieldType);
     return strucutreInfo.schema;
 }
@@ -179,7 +186,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
     if (field.switchValue !== undefined) {
         opt = " !" + field.switchValue + " ";
     }
-    const allowSubTypeSymbol = field.allowSubType ? "~" : " ";
+    const allowSubTypeSymbol = field.allowSubTypes ? "~" : " ";
     const arraySymbol = field.isArray ? "[]" : "  ";
     const fieldNameF = chalk.yellow(r(padding + fieldName, 30));
     const fieldTypeF = chalk.cyan(`/* ${allowSubTypeSymbol}${r(fieldType + opt, 38)}${arraySymbol}  */`);
@@ -216,7 +223,7 @@ function _exploreObject(self: BaseUAObject, field: StructuredTypeField, data: Ex
         data.lines.push(str);
         return;
     }
-    if(fieldType === "DiagnosticInfo" && !field.isArray && value) {
+    if (fieldType === "DiagnosticInfo" && !field.isArray && value) {
         value = value.toString(data);
         str = fieldNameF + " " + fieldTypeF + ": " + chalk.green(value.toString(data));
         data.lines.push(str);
@@ -579,28 +586,35 @@ export class BaseUAObject {
         }
     }
 
-    public clone(/*options,optionalFilter,extraInfo*/): any {
-        const self: any = this as any;
+    public clone(): any {
+        const self = this as BaseUAObject & Record<string, any> & { constructor: new (options: any) => BaseUAObject };
 
-        const params = {};
+        const params: Record<string,unknown>= {};
 
-        function construct_param(schema: any, options: any) {
-            for (const field of schema.fields) {
-                const f = self[field.name];
-                if (f === null || f === undefined) {
-                    continue;
+        const schema = self.schema;
+        const constructor = self.constructor;
+        
+        // get all fields from baseType and current type
+        _applyOnAllSchemaFields(
+            self,
+            schema,
+            params,
+            (_: BaseUAObject, field: StructuredTypeField, data: Record<string, unknown>) => {
+                const value = self[field.name];
+                if (value === null || value === undefined) {
+                    return;
                 }
                 if (field.isArray) {
-                    options[field.name] = [...self[field.name]];
+                    data[field.name] = [...(value as any[])];
                 } else {
-                    options[field.name] = self[field.name];
+                    data[field.name] = value;
                 }
             }
-        }
-
-        construct_param.call(this, self.schema, params);
-
-        return new self.constructor(params);
+        )
+        
+        const cloned = new constructor(params);
+        assert(cloned instanceof BaseUAObject);
+        return cloned;
     }
 }
 
