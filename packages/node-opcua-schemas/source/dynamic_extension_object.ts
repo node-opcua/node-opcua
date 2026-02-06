@@ -468,7 +468,7 @@ function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: Outpu
     if (hasOptionalFields) {
         const { bitField, allOptional } = makeBitField(thisAny, schema, { bitField: 0, offset: 0, allOptional: true });
         if (!(bitField === 0 && allOptional)) {
-            stream.writeUInt32(bitField);
+            stream.writeUInt32(bitField >>> 0);
         }
     }
 

@@ -4,7 +4,6 @@ import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "n
 import { INodeId, NodeIdType, sameNodeId } from "node-opcua-nodeid";
 import {
     BitField,
-    DataTypeFactory,
     EnumerationDefinitionSchema,
     extractAllPossibleFields,
     FieldCategory,
@@ -33,7 +32,7 @@ import {
     EnumField
 } from "node-opcua-types";
 import { ExtensionObject } from "node-opcua-extension-object";
-import { DataTypeAndEncodingId } from "node-opcua-schemas";
+import { DataTypeAndEncodingId, createDynamicObjectConstructor } from "node-opcua-schemas";
 //
 import { DataType } from "node-opcua-variant";
 import { DataTypeIds } from "node-opcua-constants";
@@ -279,6 +278,10 @@ async function resolve2(
                         isAbstract,
                         cache
                     );
+                    const structuredTypeSchema = schema as IStructuredTypeSchema;
+                    if (structuredTypeSchema.encodingDefaultBinary && !dataTypeFactory.hasConstructor(structuredTypeSchema.encodingDefaultBinary)) {
+                        createDynamicObjectConstructor(structuredTypeSchema, dataTypeFactory);
+                    }
                 }
                 // xx const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
             }
@@ -532,7 +535,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             //     definition.structureType == StructureType.StructureWithSubtypedValues
             //     || definition.structureType == StructureType.UnionWithSubtypedValues;
 
- 
+
             switch (definition.structureType) {
                 case StructureType.Union:
                     fields.push({
@@ -569,7 +572,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                     await (async () => {
 
                         let field: FieldInterfaceOptions | undefined;
-                    
+
                         ({ field, switchBit, switchValue, allowSubTypes } = createField(definition, fieldD, switchBit, bitFields, isUnion, switchValue));
 
                         if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
@@ -586,7 +589,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                         }
                         const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeManager, cache))!;
 
-                        
+
                         if (!rt) {
                             errorLog(
                                 "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
@@ -619,7 +622,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             }
 
             const a = await resolveFieldType(session, definition.baseDataType, dataTypeManager, cache);
-     
+
             const baseType = a ? a.fieldTypeName : isUnion ? "Union" : "ExtensionObject";
 
             const os = new StructuredTypeSchema({
@@ -655,16 +658,16 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             schema: undefined
         };
 
-        const definitionAllowSubTypes = 
-               definition.structureType === StructureType.StructureWithSubtypedValues
+        const definitionAllowSubTypes =
+            definition.structureType === StructureType.StructureWithSubtypedValues
             || definition.structureType === StructureType.UnionWithSubtypedValues;
 
         if (fieldD.isOptional) {
             // Optional has a special handling
             if (!definitionAllowSubTypes) {
-               // we are in a true optional field structure
-               field.switchBit = switchBit++;
-               bitFields?.push({ name: fieldD.name! + "Specified", length: 1 });
+                // we are in a true optional field structure
+                field.switchBit = switchBit++;
+                bitFields?.push({ name: fieldD.name! + "Specified", length: 1 });
             }
         }
         if (isUnion) {

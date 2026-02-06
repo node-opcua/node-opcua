@@ -15,126 +15,81 @@ import { populateDataTypeManager104 } from "./private/populate_data_type_manager
 
 
 const ComplexTypes2017 = "http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017";
-/**
- * @private
- */
+
 export async function serverImplementsDataTypeDefinition(
     session: IBasicSessionAsync2
 ): Promise<boolean> {
-
 
     const dataValueServerCapabilities = await session.read({
         nodeId: resolveNodeId(VariableIds.Server_ServerCapabilities_ServerProfileArray),
         attributeId: AttributeIds.Value
     });
-    const serverCapabilities = dataValueServerCapabilities.value.value as string[] ?? [];
+    const serverCapabilities = dataValueServerCapabilities.value?.value as string[] ?? [];
 
-    //read the capabilities
-    // https://profiles.opcfoundation.org/profile/1725
-    // and find http://opcfoundation.org/UA-Profile/Server/ComplexTypes2017
-   if (serverCapabilities.indexOf(ComplexTypes2017) >= 0) {
+    if (serverCapabilities.indexOf(ComplexTypes2017) >= 0) {
         return true;
     }
 
-    // One way to figure out is to check if the server provides DataTypeDefinition node
-    // ( see OPCUA 1.04 part 6 -)
-    // This is the preferred route, as we go along, more and more servers will implement this.
-    const browseResult1 = await browseAll(session, {
+    // Check if any non-deprecated 1.03 dictionary exists
+    const browseResult1 = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
         nodeClassMask: NodeClassMask.Variable,
         nodeId: resolveNodeId(ObjectIds.OPCBinarySchema_TypeSystem),
         resultMask: ResultMask.TypeDefinition
     });
- 
-    let count103DataType = 0;
-    const innerF = async (ref: ReferenceDescription) => {
+
+    const references103 = browseResult1.references || [];
+    for (const ref of references103) {
         const td = ref.typeDefinition;
-        if (!(td.namespace === 0 && td.value === VariableTypeIds.DataTypeDictionaryType)) {
-            return;
-        }
-        // we have a type definition,
-        // let check if there is a deprecated property
-        const p = await session.translateBrowsePath(makeBrowsePath(ref.nodeId, "/Deprecated"));
-        if (!p.statusCode.isGood() || !p.targets || p.targets.length === 0) {
-            // the dataTypeDictionaryType is not exposing a Deprecated property
-            count103DataType++;
-            return;
-        }
-        const deprecatedNodeId = p.targets[0].targetId;
-        // we have a deprecated property => this is a 1.03 server or 1.04
-        // => we need to check if the server provides DataTypeDefinition
-        const dataValue = await session.read({ nodeId: deprecatedNodeId, attributeId: AttributeIds.Value });
-        if (dataValue.statusCode.isGood() && dataValue.value.value === false) {
-            // this is a 1.03 server
-            count103DataType++;
-            return;
+        if (td.namespace === 0 && td.value === VariableTypeIds.DataTypeDictionaryType) {
+            const p = await session.translateBrowsePath(makeBrowsePath(ref.nodeId, "/Deprecated"));
+            if (!p.statusCode.isGood() || !p.targets || p.targets.length === 0) {
+                return false;
+            }
+            const deprecatedNodeId = p.targets[0].targetId;
+            const dataValue = await session.read({ nodeId: deprecatedNodeId, attributeId: AttributeIds.Value });
+            if (dataValue.statusCode.isGood() && dataValue.value.value === false) {
+                return false;
+            }
         }
     }
 
-    if (false) {
-        for (let r of (browseResult1.references || [])) {
-            await innerF(r);
-        }
-    } else {
-        const promises: Promise<void>[] = (browseResult1.references || []).map((a) => innerF(a));
-        await Promise.all(promises);
-    }
-    
-    if (count103DataType >= 1) {
-        // some namespace are old , we cannot assume that all namespace are 1.04
-        return false;
-    }
-
-    // check if server provides DataTypeDefinition => in this case this is the preferred route,
-    // as we go along, more and more servers will implement this.
-    const browseResult = await browseAll(session, {
+    // Try to find AT LEAST ONE custom DataType and check its DataTypeDefinition
+    // We browse the Structure type (22) without recursion first
+    const browseResult2 = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
         nodeClassMask: NodeClassMask.DataType,
-        nodeId: resolveNodeId(DataType.ExtensionObject),
-        referenceTypeId: "HasSubtype",
+        nodeId: resolveNodeId(DataTypeIds.Structure),
+        referenceTypeId: resolveNodeId("HasSubtype"),
         resultMask: 63
     });
-    const browseResult2 = await browseAll(session, {
+
+    const references = browseResult2.references || [];
+    const customDataType = references.find(r => r.nodeId.namespace !== 0);
+    if (customDataType) {
+        const dv = await session.read({ nodeId: customDataType.nodeId, attributeId: AttributeIds.DataTypeDefinition });
+        if (dv.statusCode.isGood()) {
+            return true;
+        }
+    }
+
+    // If no custom type at first level, check Union too
+    const browseResult3 = await session.browse({
         browseDirection: BrowseDirection.Forward,
         includeSubtypes: true,
         nodeClassMask: NodeClassMask.DataType,
         nodeId: resolveNodeId(DataTypeIds.Union),
-        referenceTypeId: "HasSubtype",
+        referenceTypeId: resolveNodeId("HasSubtype"),
         resultMask: 63
     });
-
-    let references: ReferenceDescription[] = [];
-    if (browseResult && browseResult.references) references = references.concat(browseResult.references);
-    if (browseResult2 && browseResult2.references) references = references.concat(browseResult2.references);
-
-    if (references.length === 0) return false;
-
-    // DataType Structure from namespace 0 are not interesting and will not provide DataTypeDefinition attribute anyway
-    // on some servers.
-    references = references.filter((a, index) => a.nodeId.namespace !== 0);
-    if (references.length === 0) return false;
-
-    let nodesToRead = references.map((r) => ({
-        nodeId: r.nodeId,
-        attributeId: AttributeIds.DataTypeDefinition
-    }));
-
-    const nodesToRead2 = nodesToRead.map((r) => ({ nodeId: r.nodeId, attributeId: AttributeIds.IsAbstract }));
-    const abstractFlags: boolean[] = (await session.read(nodesToRead2)).map((d) => d.value.value);
-
-    // also remove the abstract dataStructure => they don't provide valid DataTypeDefinition
-    nodesToRead = nodesToRead.filter((_nodesToRead, index) => !abstractFlags[index]);
-    if (nodesToRead.length === 0) return false;
-
-    const dataValues = await session.read(nodesToRead);
-
-    const countOK = dataValues.reduce((prev, a) => prev + (a.statusCode.isGood() ? 1 : 0), 0);
-    if (countOK === dataValues.length) {
-        return true;
-        // await populateDataTypeManager104(session, dataTypeManager);
-        // return;
+    const customDataType2 = (browseResult3.references || []).find(r => r.nodeId.namespace !== 0);
+    if (customDataType2) {
+        const dv = await session.read({ nodeId: customDataType2.nodeId, attributeId: AttributeIds.DataTypeDefinition });
+        if (dv.statusCode.isGood()) {
+            return true;
+        }
     }
 
     return false;
@@ -144,7 +99,8 @@ export enum DataTypeExtractStrategy {
     Auto = 0,
     Force103 = 1,
     Force104 = 2,
-    Both = 3
+    Both = 3,
+    Lazy = 4
 };
 
 export async function populateDataTypeManager(
@@ -152,10 +108,14 @@ export async function populateDataTypeManager(
     dataTypeManager: ExtraDataTypeManager,
     strategy: DataTypeExtractStrategy
 ): Promise<void> {
+    dataTypeManager.setSession(session);
+    if (strategy === DataTypeExtractStrategy.Lazy) {
+        return;
+    }
     if (strategy === DataTypeExtractStrategy.Auto) {
         const force104 = await serverImplementsDataTypeDefinition(session);
         if (force104) {
-            await populateDataTypeManager104(session, dataTypeManager);
+            // we are in lazy mode for 1.04+
             return;
         }
         // old way for 1.03 and early 1.04 prototype
