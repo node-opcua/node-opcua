@@ -38,7 +38,7 @@ export async function invalidateExtraDataTypeManager(session: IBasicSessionAsync
     }
 }
 
-export async function extractDataTypeManagerPrivate(session: IBasicSessionAsync2, strategy: DataTypeExtractStrategy): Promise<ExtraDataTypeManager> {
+async function extractDataTypeManagerPrivate(session: IBasicSessionAsync2, strategy: DataTypeExtractStrategy): Promise<ExtraDataTypeManager> {
     const namespaceArray = await readNamespaceArray(session);
     // istanbul ignore next
     if (namespaceArray.length === 0) {
@@ -55,6 +55,7 @@ export async function extractDataTypeManagerPrivate(session: IBasicSessionAsync2
         const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
         dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
     }
+
     await populateDataTypeManager(session, dataTypeManager, strategy);
     // istanbul ignore next
     if (dataTypeManager.namespaceArray.length === 0) {
@@ -68,11 +69,11 @@ function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStr
     if (strategy !== undefined) {
         return strategy;
     }
-    const client = (session as any).client;
+    const client = (session as IBasicSessionAsync2 & { _client: { dataTypeExtractStrategy: DataTypeExtractStrategy } })._client;
     if (client && client.dataTypeExtractStrategy !== undefined) {
         return client.dataTypeExtractStrategy;
     }
-    return DataTypeExtractStrategy.Lazy;
+    return DataTypeExtractStrategy.Auto;
 }
 
 function getSessionForDataTypeManagerExtraction(session: IBasicSessionAsync2): IBasicSessionAsync2 {
@@ -112,6 +113,7 @@ export async function getExtraDataTypeManager(session: IBasicSessionAsync2, stra
         (async () => {
             try {
                 strategy = getStrategy(session, strategy);
+
                 const sessionToUse = getSessionForDataTypeManagerExtraction(session);
 
                 const dataTypeManager = await extractDataTypeManagerPrivate(sessionToUse, strategy);

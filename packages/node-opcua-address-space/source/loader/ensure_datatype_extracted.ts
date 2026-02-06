@@ -21,8 +21,8 @@ interface UADataTypePriv extends UADataType {
 }
 
 function fixDefinition103(
-    addressSpace: IAddressSpace, 
-    namespaceArray: string[], 
+    addressSpace: IAddressSpace,
+    namespaceArray: string[],
     dataTypeManager: ExtraDataTypeManager
 ): void {
     // fix datatype _getDefinition();
@@ -58,11 +58,11 @@ export async function ensureDatatypeExtracted(
         const dataTypeManager = new ExtraDataTypeManager();
 
         const namespaceArray = addressSpace.getNamespaceArray().map((n: INamespace) => n.namespaceUri);
-        
+
         doDebug && debugLog("INamespace Array = ", namespaceArray.join("\n                   "));
 
         dataTypeManager.setNamespaceArray(namespaceArray);
-        
+
         addressSpacePriv.$$extraDataTypeManager = dataTypeManager;
 
         const factories: DataTypeFactory[] = [getStandardDataTypeFactory()];
@@ -72,12 +72,12 @@ export async function ensureDatatypeExtracted(
         for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
 
             const namespace = addressSpace.getNamespace(namespaceIndex);
-         
+
             if (false) {
                 console.log("namespaceIndex = ", namespaceIndex);
                 console.log("namespace = ", namespace.namespaceUri);
                 console.log("factories = ", factories.map((f) => f.targetNamespace).join(" "));
-                 // find dependent namespaces
+                // find dependent namespaces
                 let dependency = constructNamespaceDependency(namespace);
                 // remove last element that is my namespace
                 dependency = dependency.filter((ns) => ns.index !== namespaceIndex);
@@ -100,13 +100,14 @@ export async function ensureDatatypeExtracted(
             dataTypeFactory1.targetNamespace = namespace.namespaceUri;
 
             factories.push(dataTypeFactory1);
-          
+
             dataTypeManager.registerDataTypeFactory(namespaceIndex, dataTypeFactory1);
         }
         // inject simple types
 
         // now extract structure and enumeration from old form
         const session = new PseudoSession(addressSpace);
+
         await populateDataTypeManager(session, dataTypeManager, DataTypeExtractStrategy.Auto);
 
         // turn old <=103 structure to have valid DataTypeDefinition

@@ -109,6 +109,7 @@ export async function populateDataTypeManager(
     strategy: DataTypeExtractStrategy
 ): Promise<void> {
     dataTypeManager.setSession(session);
+
     if (strategy === DataTypeExtractStrategy.Lazy) {
         const force104 = await serverImplementsDataTypeDefinition(session);
         if (force104) {
@@ -122,6 +123,7 @@ export async function populateDataTypeManager(
     }
     if (strategy === DataTypeExtractStrategy.Auto) {
         const force104 = await serverImplementsDataTypeDefinition(session);
+
         if (force104) {
             await populateDataTypeManager104(session, dataTypeManager);
             return;
