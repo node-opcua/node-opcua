@@ -243,6 +243,22 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
         dataTypeManager.registerDataTypeFactory(testNamespaceIndex, testFactory);
 
         const mockSession = createMockSession(addressSpace);
+
+        let readCallCount = 0;
+        const originalRead = mockSession.read;
+        mockSession.read = (async (nodeToRead: any): Promise<any> => {
+            if (Array.isArray(nodeToRead)) {
+                if (nodeToRead.some((r: any) => r.nodeId.toString() === dataTypeNodeId.toString())) {
+                    readCallCount++;
+                }
+            } else {
+                if (nodeToRead.nodeId.toString() === dataTypeNodeId.toString()) {
+                    readCallCount++;
+                }
+            }
+            return await originalRead.call(mockSession, nodeToRead);
+        }) as any;
+
         dataTypeManager.setSession(mockSession as any);
 
         const promises = [
@@ -251,6 +267,9 @@ describe("ExtraDataTypeManager Lazy Loading Robust", () => {
         ];
         const results = await Promise.all(promises);
         results[0].should.equal(results[1]);
+
+        // We expect only 1 multi-node read for this DataType (attributes)
+        readCallCount.should.eql(1);
     });
 
     it("should optimize serverImplementsDataTypeDefinition", async () => {

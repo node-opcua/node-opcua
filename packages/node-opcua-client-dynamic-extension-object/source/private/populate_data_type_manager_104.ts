@@ -28,7 +28,7 @@ type DependentNamespaces = Set<number>
 export async function readDataTypeDefinitionAndBuildType(
     session: IBasicSessionAsync2,
     dataTypeNodeId: NodeId,
-    name: string,
+    name: string | undefined,
     dataTypeManager: ExtraDataTypeManager,
     cache: ICache
 ): Promise<DependentNamespaces> {
@@ -57,6 +57,9 @@ export async function readDataTypeDefinitionAndBuildType(
             debugLog("Cannot find dataTypeNodeId = ", dataTypeNodeId.toString());
             return dependentNamespaces;
         }
+
+        const resolvedName = name || (browseNameDataValue.value?.value?.name as string) || "Unknown";
+
         /* istanbul ignore next */
         if (isAbstractDataValue.statusCode.isNotGood()) {
             errorLog("browseName", browseNameDataValue.value.toString());
@@ -96,7 +99,7 @@ export async function readDataTypeDefinitionAndBuildType(
         const schema = await convertDataTypeDefinitionToStructureTypeSchema(
             session,
             dataTypeNodeId,
-            name,
+            resolvedName,
             dataTypeDefinition,
             null,
             dataTypeManager,
@@ -107,7 +110,7 @@ export async function readDataTypeDefinitionAndBuildType(
         const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
         if (isAbstract) {
             // cannot construct an abstract structure
-            dataTypeFactory.registerAbstractStructure(dataTypeNodeId, name, schema);
+            dataTypeFactory.registerAbstractStructure(dataTypeNodeId, resolvedName, schema);
         } else {
             const Constructor = createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
         }

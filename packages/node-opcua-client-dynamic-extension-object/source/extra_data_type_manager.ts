@@ -87,20 +87,12 @@ export class ExtraDataTypeManager {
         }
 
         const promise = (async () => {
-            // Need to browse the name if not provided
-            const browseResult = await this._session!.read({
-                nodeId: dataTypeNodeId,
-                attributeId: AttributeIds.BrowseName
-            });
-            const browseName = browseResult.value?.value?.name || "Unknown";
-
-            // Use the already existing readDataTypeDefinitionAndBuildType from populate_data_type_manager_104
             // We'll need to make sure it's accessible and correctly used.
             // For now, let's assume we can import it or move it.
             // Actually, populate_data_type_manager_104.ts exports readDataTypeDefinitionAndBuildType
             const { readDataTypeDefinitionAndBuildType } = require("./private/populate_data_type_manager_104");
             const cache = {}; // local cache for this extraction
-            await readDataTypeDefinitionAndBuildType(this._session!, dataTypeNodeId, browseName, this, cache);
+            await readDataTypeDefinitionAndBuildType(this._session!, dataTypeNodeId, undefined, this, cache);
 
             const info = this.getStructureInfoForDataType(dataTypeNodeId);
             if (!info) {

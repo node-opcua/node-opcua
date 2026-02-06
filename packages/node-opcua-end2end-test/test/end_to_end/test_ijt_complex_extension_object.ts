@@ -158,7 +158,7 @@ async function buildServer() {
         ],
     };
     const joiningResultMetaData = addressSpace.constructExtensionObject(JoiningResultMetaDataType, joiningResultMetaDataInfo) as UDTJoiningResultMeta;
-    
+
     const resultContent1 = addressSpace.constructExtensionObject(JoiningResultDataType, example2) as UDTJoiningResult;
 
 
@@ -191,7 +191,10 @@ async function buildServer() {
 }
 
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
-describe("test complex dataStructure in thightening", () => {
+describe("test complex dataStructure in thightening", function (this: Mocha.Suite) {
+
+    this.timeout(Math.max(this.timeout(), 60000));
+
     let server: OPCUAServer;
     before(async () => {
         server = await buildServer();

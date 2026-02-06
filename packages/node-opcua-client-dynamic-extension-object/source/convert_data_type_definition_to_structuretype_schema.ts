@@ -283,7 +283,6 @@ async function resolve2(
                         createDynamicObjectConstructor(structuredTypeSchema, dataTypeFactory);
                     }
                 }
-                // xx const schema1 = dataTypeFactory.getStructuredTypeSchema(fieldTypeName);
             }
             break;
     }
@@ -346,9 +345,10 @@ async function resolveFieldType(
             return (await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.IsAbstract })).value.value
         };
 
-        const [isAbstract, fieldTypeName] = await Promise.all([
+        const [isAbstract, fieldTypeName, _unusedSuperType] = await Promise.all([
             readIsAbstract(dataTypeNodeId),
-            readBrowseNameWithCache(session, dataTypeNodeId, cache)
+            readBrowseNameWithCache(session, dataTypeNodeId, cache),
+            findSuperType(session, dataTypeNodeId, cache)
         ]);
 
         if (isAbstract) {
@@ -418,13 +418,12 @@ async function _setupEncodings(
     session: IBasicSessionAsync & IBasicSessionBrowseNextAsync,
     dataTypeNodeId: NodeId,
     dataTypeDescription: IDataTypeDescriptionMini | null,
-    schema: IStructuredTypeSchema
+    schema: IStructuredTypeSchema,
+    isAbstract: boolean
 ): Promise<IStructuredTypeSchema> {
-    // read abstract flag
-    const isAbstractDV = await session.read({ nodeId: dataTypeNodeId, attributeId: AttributeIds.IsAbstract });
     schema.dataTypeNodeId = dataTypeNodeId;
 
-    if (isAbstractDV.statusCode.isGood() && isAbstractDV.value.value === false) {
+    if (!isAbstract) {
         const encodings = (dataTypeDescription && dataTypeDescription.encodings) || (await _findEncodings(session, dataTypeNodeId));
         schema.encodingDefaultBinary = makeExpandedNodeId(encodings.binaryEncodingNodeId);
         schema.encodingDefaultXml = makeExpandedNodeId(encodings.xmlEncodingNodeId);
@@ -564,6 +563,10 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                 // pre-fetch all dataTypes in parallel
                 const dataTypesToResolve: NodeId[] = [];
                 const seen = new Set<string>();
+                if (!sameNodeId(definition.baseDataType, dataTypeNodeId)) {
+                    dataTypesToResolve.push(definition.baseDataType);
+                    seen.add(definition.baseDataType.toString());
+                }
                 for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
                     const fieldD = definition.fields[i];
                     const key = fieldD.dataType.toString();
@@ -572,60 +575,52 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                     if (sameNodeId(fieldD.dataType, dataTypeNodeId)) continue;
                     dataTypesToResolve.push(fieldD.dataType);
                 }
-                await Promise.all(
-                    dataTypesToResolve.map((dataType) => resolveFieldType(session, dataType, dataTypeManager, cache))
-                );
+                await Promise.all([
+                    ...dataTypesToResolve.map((dataType) => resolveFieldType(session, dataType, dataTypeManager, cache)),
+                    ...dataTypesToResolve.map((dataType) => findBasicDataTypeEx(session, dataType, cache)),
+                    !isAbstract ? _findEncodings(session, dataTypeNodeId) : Promise.resolve(null)
+                ]);
 
-                for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
+                const results = await Promise.all(definition.fields.slice(fieldCountToIgnore).map(async (fieldD) => {
+                    const isSelf = sameNodeId(fieldD.dataType, dataTypeNodeId);
+                    // Pre-fetch async data for each field in parallel
+                    const rt = isSelf ? null : await resolveFieldType(session, fieldD.dataType, dataTypeManager, cache);
+                    const basicDataType = rt ? await findBasicDataTypeEx(session, rt.dataType || fieldD.dataType, cache) : (isSelf ? DataType.ExtensionObject : undefined);
+                    const fieldTypeNameForSelfRef = (isSelf)
+                        ? await readBrowseNameWithCache(session, dataTypeNodeId, cache)
+                        : undefined;
+                    return { fieldD, rt, basicDataType, fieldTypeNameForSelfRef };
+                }));
 
-                    const fieldD = definition.fields[i];
+                for (const { fieldD, rt, basicDataType, fieldTypeNameForSelfRef } of results) {
 
+                    let field: FieldInterfaceOptions | undefined;
+                    let currentAllowSubTypes: boolean | undefined;
 
-                    // we need to skip fields that have already been handled in base class
-                    // promises.push((
-                    await (async () => {
+                    ({ field, switchBit, switchValue, allowSubTypes: currentAllowSubTypes } = createField(definition, fieldD, switchBit, bitFields, isUnion, switchValue));
 
-                        let field: FieldInterfaceOptions | undefined;
-
-                        ({ field, switchBit, switchValue, allowSubTypes } = createField(definition, fieldD, switchBit, bitFields, isUnion, switchValue));
-
-                        if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
-                            // this is a structure with a field of the same type
-                            // push an empty placeholder that we will fill later
-                            const fieldTypeName = await readBrowseNameWithCache(session, dataTypeNodeId, cache);
-                            (field.fieldType = fieldTypeName!), (field.category = FieldCategory.complex);
-                            fields.push(field);
-                            const capturedField = field;
-                            postActions.push((schema: IStructuredTypeSchema) => {
-                                capturedField.schema = schema;
-                            });
-                            return;;
-                        }
-                        const rt = (await resolveFieldType(session, fieldD.dataType, dataTypeManager, cache))!;
-
-
-                        if (!rt) {
-                            errorLog(
-                                "convertDataTypeDefinitionToStructureTypeSchema cannot handle field",
-                                fieldD.name,
-                                "in",
-                                name,
-                                "because " + fieldD.dataType.toString() + " cannot be resolved"
-                            );
-                            return;
-                        }
-                        const { schema, category, fieldTypeName, dataType } = rt;
-
-                        field.fieldType = fieldTypeName!;
-                        field.category = category;
-                        field.schema = schema;
-                        field.dataType = dataType || fieldD.dataType;
-                        field.allowSubTypes = allowSubTypes;
-                        field.basicDataType = await findBasicDataTypeEx(session, field.dataType, cache);
+                    if (fieldD.dataType.value === dataTypeNodeId.value && fieldD.dataType.namespace === dataTypeNodeId.namespace) {
+                        // this is a structure with a field of the same type
+                        // push an empty placeholder that we will fill later
+                        (field.fieldType = fieldTypeNameForSelfRef!), (field.category = FieldCategory.complex);
                         fields.push(field);
-                    })();
-                    // ));
+                        const capturedField = field;
+                        postActions.push((schema: IStructuredTypeSchema) => {
+                            capturedField.schema = schema;
+                        });
+                        continue;
+                    }
+                    const resolvedField = rt!;
 
+                    const { schema, category, fieldTypeName, dataType } = resolvedField;
+
+                    field.fieldType = fieldTypeName!;
+                    field.category = category;
+                    field.schema = schema;
+                    field.dataType = dataType || fieldD.dataType;
+                    field.allowSubTypes = currentAllowSubTypes;
+                    field.basicDataType = basicDataType;
+                    fields.push(field);
                 }
 
             }
@@ -646,7 +641,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                 name,
                 dataTypeFactory
             });
-            const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, dataTypeDescription, os);
+            const structuredTypeSchema = await _setupEncodings(session, dataTypeNodeId, dataTypeDescription, os, isAbstract);
 
             postActions.forEach((action) => action(structuredTypeSchema));
 
