@@ -23,7 +23,7 @@ export interface IBasicSessionAsync2Private extends IBasicSessionAsync2 {
 
     $$getSessionForDataTypeExtraction?: () => IBasicSessionAsync2;
 
-    on?: (this: IBasicSessionAsync2Private,  event: "session_restored", func: () => void)=> void;
+    on?: (this: IBasicSessionAsync2Private, event: "session_restored", func: () => void) => void;
 
     sessionId?: NodeId;
 
@@ -49,6 +49,7 @@ export async function extractDataTypeManagerPrivate(session: IBasicSessionAsync2
         debugLog("Namespace Array = ", namespaceArray.join("\n                   "));
     }
     const dataTypeManager = new ExtraDataTypeManager();
+    dataTypeManager.setSession(session);
     dataTypeManager.setNamespaceArray(namespaceArray);
     for (let namespaceIndex = 1; namespaceIndex < namespaceArray.length; namespaceIndex++) {
         const dataTypeFactory1 = new DataTypeFactory([getStandardDataTypeFactory()]);
@@ -67,8 +68,8 @@ function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStr
     if (strategy !== undefined) {
         return strategy;
     }
-    const client =  (session as any).client;
-    if (client && client.dataTypeExtractStrategy!== undefined) {
+    const client = (session as any).client;
+    if (client && client.dataTypeExtractStrategy !== undefined) {
         return client.dataTypeExtractStrategy;
     }
     return DataTypeExtractStrategy.Auto;
@@ -90,8 +91,8 @@ function followSession(session: IBasicSessionAsync2Private & ICascadingSession):
     return session;
 }
 
-export async function getExtraDataTypeManager(session: IBasicSessionAsync2, strategy?: DataTypeExtractStrategy ): Promise<ExtraDataTypeManager> {
-    
+export async function getExtraDataTypeManager(session: IBasicSessionAsync2, strategy?: DataTypeExtractStrategy): Promise<ExtraDataTypeManager> {
+
     const sessionPriv: IBasicSessionAsync2Private = followSession(session) as IBasicSessionAsync2Private;
 
     if (sessionPriv.$$extraDataTypeManager) {

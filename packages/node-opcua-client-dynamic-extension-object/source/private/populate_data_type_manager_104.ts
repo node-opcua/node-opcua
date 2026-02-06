@@ -8,7 +8,8 @@ import {
     ReferenceDescription,
     BrowseDescriptionOptions,
     StructureDefinition,
-    DataTypeDefinition} from "node-opcua-types";
+    DataTypeDefinition
+} from "node-opcua-types";
 //
 import { ExtraDataTypeManager } from "../extra_data_type_manager";
 import {
@@ -33,7 +34,7 @@ export async function readDataTypeDefinitionAndBuildType(
 ): Promise<DependentNamespaces> {
     const dependentNamespaces: DependentNamespaces = new Set();
     try {
-        
+
         if (dataTypeManager.getStructureInfoForDataType(dataTypeNodeId)) {
             return dependentNamespaces;
         }
@@ -83,7 +84,7 @@ export async function readDataTypeDefinitionAndBuildType(
 
         // get dependencies of struct
         if (dataTypeDefinition instanceof StructureDefinition && dataTypeDefinition.fields) {
-            for (const field of dataTypeDefinition.fields){
+            for (const field of dataTypeDefinition.fields) {
                 const dataTypeNamespace = field.dataType.namespace
                 if (dataTypeNamespace === dataTypeDefinition.defaultEncodingId.namespace) {
                     continue; // not dependent on own namespace
@@ -111,7 +112,7 @@ export async function readDataTypeDefinitionAndBuildType(
             const Constructor = createDynamicObjectConstructorAndRegister(schema, dataTypeFactory);
         }
     } catch (err) {
-        errorLog("Error", (err as Error).message," while processing dataTypeNodeId =", dataTypeNodeId.toString());
+        errorLog("Error", (err as Error).message, " while processing dataTypeNodeId =", dataTypeNodeId.toString());
     }
     return dependentNamespaces;
 }
@@ -146,16 +147,16 @@ export async function populateDataTypeManager104(
             // extract it formally
             doDebug && debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
             const dependentNamespaces = await readDataTypeDefinitionAndBuildType(
-                session, 
-                dataTypeNodeId, 
-                r.browseName.name!, 
-                dataTypeManager, 
+                session,
+                dataTypeNodeId,
+                r.browseName.name!,
+                dataTypeManager,
                 cache
             );
-            
+
             // add dependent namespaces to dataFactoriesDependencies
             let dataFactoryDependencies = dataFactoriesDependencies.get(dataTypeNodeId.namespace);
-            if (!dataFactoryDependencies){
+            if (!dataFactoryDependencies) {
                 // add new dependencies set if not already existing
                 dataFactoryDependencies = new Set([0]); // always dependent on UA node set
                 dataFactoriesDependencies.set(dataTypeNodeId.namespace, dataFactoryDependencies);
@@ -178,11 +179,11 @@ export async function populateDataTypeManager104(
     await applyOnReferenceRecursively(session, resolveNodeId("Structure"), nodeToBrowse, withDataType);
 
     // set factory dependencies
-    for (const [namespace, dependentNamespaces] of dataFactoriesDependencies){
+    for (const [namespace, dependentNamespaces] of dataFactoriesDependencies) {
 
         const namespaceDataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(namespace);
-        const dependentTypeFactories = new Set<DataTypeFactory>([getStandardDataTypeFactory()]); 
-        
+        const dependentTypeFactories = new Set<DataTypeFactory>([getStandardDataTypeFactory()]);
+
         for (const dependentNamespace of dependentNamespaces) {
             if (dependentNamespace === 0) continue; // already added above
             const dependentTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dependentNamespace);
