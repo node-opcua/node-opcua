@@ -72,7 +72,7 @@ function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStr
     if (client && client.dataTypeExtractStrategy !== undefined) {
         return client.dataTypeExtractStrategy;
     }
-    return DataTypeExtractStrategy.Auto;
+    return DataTypeExtractStrategy.Lazy;
 }
 
 function getSessionForDataTypeManagerExtraction(session: IBasicSessionAsync2): IBasicSessionAsync2 {
