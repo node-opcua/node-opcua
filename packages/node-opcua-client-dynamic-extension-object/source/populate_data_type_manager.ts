@@ -110,12 +110,20 @@ export async function populateDataTypeManager(
 ): Promise<void> {
     dataTypeManager.setSession(session);
     if (strategy === DataTypeExtractStrategy.Lazy) {
+        const force104 = await serverImplementsDataTypeDefinition(session);
+        if (force104) {
+            // we are in lazy mode for 1.04+
+            return;
+        }
+        // for old 1.03 servers we must be eager as we don't have a way to lazy load 1.03 dictionaries yet
+        await populateDataTypeManager103(session, dataTypeManager);
+        await populateDataTypeManager104(session, dataTypeManager);
         return;
     }
     if (strategy === DataTypeExtractStrategy.Auto) {
         const force104 = await serverImplementsDataTypeDefinition(session);
         if (force104) {
-            // we are in lazy mode for 1.04+
+            await populateDataTypeManager104(session, dataTypeManager);
             return;
         }
         // old way for 1.03 and early 1.04 prototype

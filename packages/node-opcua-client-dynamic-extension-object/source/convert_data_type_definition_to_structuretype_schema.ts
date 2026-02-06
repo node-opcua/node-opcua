@@ -561,6 +561,20 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
             if (definition.fields) {
 
+                // pre-fetch all dataTypes in parallel
+                const dataTypesToResolve: NodeId[] = [];
+                const seen = new Set<string>();
+                for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
+                    const fieldD = definition.fields[i];
+                    const key = fieldD.dataType.toString();
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    if (sameNodeId(fieldD.dataType, dataTypeNodeId)) continue;
+                    dataTypesToResolve.push(fieldD.dataType);
+                }
+                await Promise.all(
+                    dataTypesToResolve.map((dataType) => resolveFieldType(session, dataType, dataTypeManager, cache))
+                );
 
                 for (let i = fieldCountToIgnore; i < definition.fields.length; i++) {
 
