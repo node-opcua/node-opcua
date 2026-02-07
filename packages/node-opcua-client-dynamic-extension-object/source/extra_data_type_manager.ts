@@ -4,7 +4,7 @@
 import { format } from "util";
 
 import { assert } from "node-opcua-assert";
-import { AttributeIds, BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
+import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
 import { ConstructorFunc, DataTypeFactory, getStandardDataTypeFactory, StructureInfo } from "node-opcua-factory";
 import { NodeId } from "node-opcua-nodeid";
 import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";

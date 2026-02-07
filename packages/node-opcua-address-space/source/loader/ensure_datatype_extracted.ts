@@ -73,10 +73,10 @@ export async function ensureDatatypeExtracted(
 
             const namespace = addressSpace.getNamespace(namespaceIndex);
 
-            if (false) {
-                console.log("namespaceIndex = ", namespaceIndex);
-                console.log("namespace = ", namespace.namespaceUri);
-                console.log("factories = ", factories.map((f) => f.targetNamespace).join(" "));
+            if (doDebug) {
+                debugLog("namespaceIndex = ", namespaceIndex);
+                debugLog("namespace = ", namespace.namespaceUri);
+                debugLog("factories = ", factories.map((f) => f.targetNamespace).join(" "));
                 // find dependent namespaces
                 let dependency = constructNamespaceDependency(namespace);
                 // remove last element that is my namespace
@@ -84,10 +84,10 @@ export async function ensureDatatypeExtracted(
                 const dependFactories = dependency.map((ns) => {
                     const df = factories[ns.index];
                     if (!df) {
-                        console.log("namespaceIndex = ", namespaceIndex);
-                        console.log("namespace = ", namespace.namespaceUri);
-                        console.log("priorityTable", priorityTable);
-                        console.log(dependency.map((ns) => `${ns.index} ${ns.namespaceUri}`).join("\n"));
+                        debugLog("namespaceIndex = ", namespaceIndex);
+                        debugLog("namespace = ", namespace.namespaceUri);
+                        debugLog("priorityTable", priorityTable);
+                        debugLog(dependency.map((ns) => `${ns.index} ${ns.namespaceUri}`).join("\n"));
                         throw new Error("Cannot find factory for namespace " + ns.namespaceUri);
                     }
                     return df;
