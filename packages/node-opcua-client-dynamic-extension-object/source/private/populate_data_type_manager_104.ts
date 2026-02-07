@@ -16,12 +16,13 @@ import {
     ICache,
     convertDataTypeDefinitionToStructureTypeSchema
 } from "../convert_data_type_definition_to_structuretype_schema";
+import { hasBoostedSession } from "../get_extra_data_type_manager";
 import { StatusCodes } from "node-opcua-status-code";
 
-const errorLog = make_errorLog(__filename);
-const debugLog = make_debugLog(__filename);
-const warningLog = make_warningLog(__filename);
-const doDebug = checkDebugFlag(__filename);
+const errorLog = make_errorLog("populateDataTypeManager");
+const debugLog = make_debugLog("populateDataTypeManager");
+const warningLog = make_warningLog("populateDataTypeManager");
+const doDebug = checkDebugFlag("populateDataTypeManager");
 
 type DependentNamespaces = Set<number>
 
@@ -134,21 +135,27 @@ export async function populateDataTypeManager104(
         try {
             if (dataTypeNodeId.namespace === 0) {
                 // already known I guess
+                doDebug && debugLog("populateDataTypeManager104: skiping dataType = namespace 0", dataTypeNodeId.toString());
                 return;
             }
+
+            // register factory if not already registered
             let dataTypeFactory = dataTypeManager.getDataTypeFactory(dataTypeNodeId.namespace);
             if (!dataTypeFactory) {
                 dataTypeFactory = new DataTypeFactory([]);
                 dataTypeManager.registerDataTypeFactory(dataTypeNodeId.namespace, dataTypeFactory);
                 //   throw new Error("cannot find dataType Manager for namespace of " + dataTypeNodeId.toString());
             }
+
             // if not found already
             if (dataTypeFactory.getStructureInfoForDataType(dataTypeNodeId)) {
                 // already known !
+                doDebug && debugLog("populateDataTypeManager104: skiping dataType = already known", dataTypeNodeId.toString());
                 return;
             }
+
             // extract it formally
-            doDebug && debugLog(" DataType => ", r.browseName.toString(), dataTypeNodeId.toString());
+            doDebug && debugLog("populateDataTypeManager104: processing dataType = ", r.browseName.toString(), dataTypeNodeId.toString());
             const dependentNamespaces = await readDataTypeDefinitionAndBuildType(
                 session,
                 dataTypeNodeId,
@@ -205,23 +212,42 @@ async function applyOnReferenceRecursively(
 ): Promise<void> {
 
 
-    const oneLevel = async (nodeId: NodeIdLike) => {
+    const hasBoosted = hasBoostedSession(session as any);
+    const useHeavyParallelization = hasBoosted;
 
+    debugLog("applyOnReferenceRecursively = useHeavyParallelization", useHeavyParallelization);
+
+    const oneLevel = async (nodeId: NodeIdLike, level: number) => {
+
+        doDebug && debugLog("applyOnReferenceRecursively = level", level, "nodeId", nodeId.toString());
         const nodeToBrowse: BrowseDescriptionOptions = {
             ...browseDescriptionTemplate,
             nodeId
         };
 
         const browseResult = await browseAll(session, nodeToBrowse);
+        if (useHeavyParallelization) {
+            // @sterfive/optimized-client (PRO module) we can 
+            // parallelize and minimize the number of calls to the server to 
+            // drastically improve performance
+            const promises: Promise<void>[] = [];
+            for (const ref of browseResult.references || []) {
+                promises.push((async () => {
+                    await action(ref);
+                    await oneLevel(ref.nodeId, level + 1);
+                })());
+            }
+            await Promise.all(promises);
 
-        const promises: Promise<void>[] = [];
-        for (const ref of browseResult.references || []) {
-            promises.push((async () => {
+        } else {
+            // important: we dont parallelize the action on browse reference
+            // to avoid overloading browseContinuationToken on client side      
+            for (const ref of browseResult.references || []) {
                 await action(ref);
-                await oneLevel(ref.nodeId);
-            })());
+                await oneLevel(ref.nodeId, level + 1);
+            }
+
         }
-        await Promise.all(promises);
     };
-    await oneLevel(nodeId);
+    await oneLevel(nodeId, 0);
 }

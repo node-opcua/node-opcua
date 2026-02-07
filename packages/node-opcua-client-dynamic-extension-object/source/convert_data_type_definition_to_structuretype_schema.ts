@@ -530,11 +530,6 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
             const isUnion = definition.structureType === StructureType.Union;
 
-            // const hasSubTypedValueFields =
-            //     definition.structureType == StructureType.StructureWithSubtypedValues
-            //     || definition.structureType == StructureType.UnionWithSubtypedValues;
-
-
             switch (definition.structureType) {
                 case StructureType.Union:
                     fields.push({
@@ -552,7 +547,6 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
 
             let switchValue = 1;
             let switchBit = 0;
-            let allowSubTypes: boolean | undefined = undefined;
 
             const bitFields: BitField[] | undefined = isUnion ? undefined : [];
 

@@ -1,7 +1,7 @@
 import "should";
 import { ExtraDataTypeManager } from "../source/extra_data_type_manager";
 import { NodeId, resolveNodeId } from "node-opcua-nodeid";
-import { StatusCodes, StatusCode } from "node-opcua-status-code";
+import { StatusCodes } from "node-opcua-status-code";
 import { AttributeIds, BrowseDirection } from "node-opcua-data-model";
 import { DataTypeFactory, getStandardDataTypeFactory } from "node-opcua-factory";
 import { DataTypeIds, ObjectIds, VariableIds } from "node-opcua-constants";

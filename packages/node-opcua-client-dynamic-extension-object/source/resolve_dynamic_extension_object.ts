@@ -1,17 +1,13 @@
 import { BinaryStream } from "node-opcua-binary-stream";
 import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { DataType, Variant, VariantArrayType } from "node-opcua-variant";
-import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
+import { make_warningLog } from "node-opcua-debug";
 import { IBasicSessionAsync2 } from "node-opcua-pseudo-session";
-import { NodeId } from "node-opcua-nodeid";
-import { ConstructorFunc, StructuredTypeField } from "node-opcua-factory";
-import { BrowseDirection, NodeClassMask, ResultMask } from "node-opcua-data-model";
+import { StructuredTypeField } from "node-opcua-factory";
 //
 import { ExtraDataTypeManager } from "./extra_data_type_manager";
 
 const warningLog = make_warningLog(__filename);
-const debugLog = make_debugLog(__filename);
-const doDebug = checkDebugFlag(__filename);
 
 export async function resolveOpaqueStructureInExtensionObject(
     session: IBasicSessionAsync2,

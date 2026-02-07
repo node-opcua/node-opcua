@@ -76,7 +76,12 @@ function getStrategy(session: IBasicSessionAsync2, strategy?: DataTypeExtractStr
     return DataTypeExtractStrategy.Auto;
 }
 
-function getSessionForDataTypeManagerExtraction(session: IBasicSessionAsync2): IBasicSessionAsync2 {
+
+export function hasBoostedSession(session: IBasicSessionAsync2): boolean {
+    const _session: IBasicSessionAsync2Private = session as IBasicSessionAsync2Private;
+    return !!_session.$$getSessionForDataTypeExtraction || !!(_session as any).session;
+}
+export function getSessionForDataTypeManagerExtraction(session: IBasicSessionAsync2): IBasicSessionAsync2 {
     const _session: IBasicSessionAsync2Private = session as IBasicSessionAsync2Private;
     if (_session.$$getSessionForDataTypeExtraction) {
         return _session.$$getSessionForDataTypeExtraction();
