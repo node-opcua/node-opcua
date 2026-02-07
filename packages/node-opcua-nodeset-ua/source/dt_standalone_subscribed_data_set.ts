@@ -15,6 +15,6 @@ export interface DTStandaloneSubscribedDataSet extends DTSubscribedDataSet {
   name: UAString; // String ns=0;i=12
   dataSetFolder: UAString[]; // String ns=0;i=12
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523
-  subscribedDataSet: DTSubscribedDataSet; // ExtensionObject ns=0;i=15630
+  subscribedDataSet?: DTSubscribedDataSet; // ExtensionObject ns=0;i=15630
 }
 export interface UDTStandaloneSubscribedDataSet extends ExtensionObject, DTStandaloneSubscribedDataSet {};

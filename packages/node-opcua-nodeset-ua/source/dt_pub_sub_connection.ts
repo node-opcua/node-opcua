@@ -21,9 +21,9 @@ export interface DTPubSubConnection extends DTStructure {
   enabled: boolean; // Boolean ns=0;i=1
   publisherId: VariantOptions; // Variant ns=0;i=0
   transportProfileUri: UAString; // String ns=0;i=12
-  address: DTNetworkAddress; // ExtensionObject ns=0;i=15502
+  address?: DTNetworkAddress; // ExtensionObject ns=0;i=15502
   connectionProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  transportSettings: DTConnectionTransport; // ExtensionObject ns=0;i=15618
+  transportSettings?: DTConnectionTransport; // ExtensionObject ns=0;i=15618
   writerGroups: DTWriterGroup[]; // ExtensionObject ns=0;i=15480
   readerGroups: DTReaderGroup[]; // ExtensionObject ns=0;i=15520
 }

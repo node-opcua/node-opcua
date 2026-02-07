@@ -33,8 +33,8 @@ export interface DTDataSetReader extends DTStructure {
   securityGroupId: UAString; // String ns=0;i=12
   securityKeyServices: DTEndpointDescription[]; // ExtensionObject ns=0;i=312
   dataSetReaderProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  transportSettings: DTDataSetReaderTransport; // ExtensionObject ns=0;i=15628
-  messageSettings: DTDataSetReaderMessage; // ExtensionObject ns=0;i=15629
-  subscribedDataSet: DTSubscribedDataSet; // ExtensionObject ns=0;i=15630
+  transportSettings?: DTDataSetReaderTransport; // ExtensionObject ns=0;i=15628
+  messageSettings?: DTDataSetReaderMessage; // ExtensionObject ns=0;i=15629
+  subscribedDataSet?: DTSubscribedDataSet; // ExtensionObject ns=0;i=15630
 }
 export interface UDTDataSetReader extends ExtensionObject, DTDataSetReader {};

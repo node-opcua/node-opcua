@@ -18,7 +18,7 @@ export interface DTSignal extends DTStructure {
   /** It is the identifier of the signal.*/
   signalId: UAString; // String ns=0;i=31918
   /** It is the value of the signal.*/
-  signalValue: number; // Variant ns=0;i=26
+  signalValue?: number; // Variant ns=0;i=26
   /** It is the description of the signal.*/
   signalDescription: UAString; // String ns=0;i=12
   /** It is the type of the signal.*/

@@ -15,9 +15,9 @@ import { DTTransmitQos } from "./dt_transmit_qos"
 export interface DTDatagramWriterGroupTransport2 extends DTDatagramWriterGroupTransport {
   messageRepeatCount: Byte; // Byte ns=0;i=3
   messageRepeatDelay: number; // Double ns=0;i=290
-  address: DTNetworkAddress; // ExtensionObject ns=0;i=15502
+  address?: DTNetworkAddress; // ExtensionObject ns=0;i=15502
   qosCategory: UAString; // String ns=0;i=12
-  datagramQos: DTTransmitQos[]; // ExtensionObject ns=0;i=23604
+  datagramQos?: DTTransmitQos[]; // ExtensionObject ns=0;i=23604
   discoveryAnnounceRate: UInt32; // UInt32 ns=0;i=7
   topic: UAString; // String ns=0;i=12
 }

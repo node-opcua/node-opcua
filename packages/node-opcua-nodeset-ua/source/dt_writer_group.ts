@@ -30,8 +30,8 @@ export interface DTWriterGroup extends DTPubSubGroup {
   priority: Byte; // Byte ns=0;i=3
   localeIds: UAString[]; // String ns=0;i=295
   headerLayoutUri: UAString; // String ns=0;i=12
-  transportSettings: DTWriterGroupTransport; // ExtensionObject ns=0;i=15611
-  messageSettings: DTWriterGroupMessage; // ExtensionObject ns=0;i=15616
+  transportSettings?: DTWriterGroupTransport; // ExtensionObject ns=0;i=15611
+  messageSettings?: DTWriterGroupMessage; // ExtensionObject ns=0;i=15616
   dataSetWriters: DTDataSetWriter[]; // ExtensionObject ns=0;i=15597
 }
 export interface UDTWriterGroup extends ExtensionObject, DTWriterGroup {};

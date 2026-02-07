@@ -11,6 +11,6 @@ import { DTNetworkAddress } from "./dt_network_address"
  * | isAbstract|false                                                       |
  */
 export interface DTDatagramConnectionTransport extends DTConnectionTransport {
-  discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502
+  discoveryAddress?: DTNetworkAddress; // ExtensionObject ns=0;i=15502
 }
 export interface UDTDatagramConnectionTransport extends ExtensionObject, DTDatagramConnectionTransport {};

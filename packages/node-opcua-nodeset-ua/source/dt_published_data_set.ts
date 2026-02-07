@@ -18,6 +18,6 @@ export interface DTPublishedDataSet extends DTStructure {
   dataSetFolder: UAString[]; // String ns=0;i=12
   dataSetMetaData: DTDataSetMeta; // ExtensionObject ns=0;i=14523
   extensionFields: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  dataSetSource: DTPublishedDataSetSource; // ExtensionObject ns=0;i=15580
+  dataSetSource?: DTPublishedDataSetSource; // ExtensionObject ns=0;i=15580
 }
 export interface UDTPublishedDataSet extends ExtensionObject, DTPublishedDataSet {};

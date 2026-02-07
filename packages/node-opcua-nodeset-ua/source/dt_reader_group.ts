@@ -24,8 +24,8 @@ export interface DTReaderGroup extends DTPubSubGroup {
   securityKeyServices: DTEndpointDescription[]; // ExtensionObject ns=0;i=312
   maxNetworkMessageSize: UInt32; // UInt32 ns=0;i=7
   groupProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  transportSettings: DTReaderGroupTransport; // ExtensionObject ns=0;i=15621
-  messageSettings: DTReaderGroupMessage; // ExtensionObject ns=0;i=15622
+  transportSettings?: DTReaderGroupTransport; // ExtensionObject ns=0;i=15621
+  messageSettings?: DTReaderGroupMessage; // ExtensionObject ns=0;i=15622
   dataSetReaders: DTDataSetReader[]; // ExtensionObject ns=0;i=15623
 }
 export interface UDTReaderGroup extends ExtensionObject, DTReaderGroup {};

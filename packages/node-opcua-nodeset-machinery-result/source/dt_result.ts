@@ -16,7 +16,7 @@ import { DTResultMeta } from "./dt_result_meta"
  */
 export interface DTResult extends DTStructure {
   /** Contains meta data describing the resultContent.*/
-  resultMetaData: DTResultMeta; // ExtensionObject ns=11;i=3007
+  resultMetaData?: DTResultMeta; // ExtensionObject ns=11;i=3007
   /** Abstract data type to be subtyped from to hold result data created by the selected recipe.*/
   resultContent: VariantOptions[]; // Variant ns=0;i=0
 }

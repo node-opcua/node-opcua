@@ -21,7 +21,7 @@ export interface DTDataSetWriter extends DTStructure {
   keyFrameCount: UInt32; // UInt32 ns=0;i=7
   dataSetName: UAString; // String ns=0;i=12
   dataSetWriterProperties: DTKeyValuePair[]; // ExtensionObject ns=0;i=14533
-  transportSettings: DTDataSetWriterTransport; // ExtensionObject ns=0;i=15598
-  messageSettings: DTDataSetWriterMessage; // ExtensionObject ns=0;i=15605
+  transportSettings?: DTDataSetWriterTransport; // ExtensionObject ns=0;i=15598
+  messageSettings?: DTDataSetWriterMessage; // ExtensionObject ns=0;i=15605
 }
 export interface UDTDataSetWriter extends ExtensionObject, DTDataSetWriter {};

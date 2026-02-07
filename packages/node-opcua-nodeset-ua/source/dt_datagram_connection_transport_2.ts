@@ -13,7 +13,7 @@ import { DTQos } from "./dt_qos"
  * | isAbstract|false                                                       |
  */
 export interface DTDatagramConnectionTransport2 extends DTDatagramConnectionTransport {
-  discoveryAddress: DTNetworkAddress; // ExtensionObject ns=0;i=15502
+  discoveryAddress?: DTNetworkAddress; // ExtensionObject ns=0;i=15502
   discoveryAnnounceRate: UInt32; // UInt32 ns=0;i=7
   discoveryMaxMessageSize: UInt32; // UInt32 ns=0;i=7
   qosCategory: UAString; // String ns=0;i=12

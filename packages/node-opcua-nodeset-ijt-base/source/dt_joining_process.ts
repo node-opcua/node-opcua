@@ -19,7 +19,7 @@ import { DTJoiningProcessMeta } from "./dt_joining_process_meta"
  */
 export interface DTJoiningProcess extends DTStructure {
   /** It is the meta data of the joining process.*/
-  joiningProcessMetaData: DTJoiningProcessMeta; // ExtensionObject ns=18;i=3024
+  joiningProcessMetaData?: DTJoiningProcessMeta; // ExtensionObject ns=18;i=3024
   /** It is the actual content of the joining process which is defined by JoiningProcessMetaData.Classification property.
 Examples: Joining Program, Joining Job, etc.
 Note: The content is application-specific and is not defined in this version of the specification.*/
