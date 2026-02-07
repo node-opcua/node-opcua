@@ -209,3 +209,12 @@ export async function createSomeOutdatedCertificate(
 
     return await createCertificateWithEndDate(subfolder, certificateManager, certName, endDate, validity);
 }
+
+/**
+ * Produce a certificate that is not yet valid (startDate in the future)
+ */
+export async function produceNotYetValidCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
+    const startDate = new Date(Date.now() + 3600 * 24 * 1000); // 1 day in the future
+    const validity = 365;
+    return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
+}
