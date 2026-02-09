@@ -10989,9 +10989,9 @@
       <Reference ReferenceType="HasDictionaryEntry">ns=2;s=0112/2///61987#ABQ007#001</Reference>
     </References>
     <Value>
-      <uax:ListOfInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <uax:Int32>0</uax:Int32>
-      </uax:ListOfInt32>
+      <uax:ListOfUInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <uax:UInt32>0</uax:UInt32>
+      </uax:ListOfUInt32>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=3;i=6017" BrowseName="3:TotalAreaMeasuredPeaks" ParentNodeId="ns=3;i=1095" DataType="Float">
@@ -11114,9 +11114,9 @@
       <Reference ReferenceType="HasDictionaryEntry">ns=2;s=0112/2///61987#ABQ007#001</Reference>
     </References>
     <Value>
-      <uax:ListOfInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
-        <uax:Int32>0</uax:Int32>
-      </uax:ListOfInt32>
+      <uax:ListOfUInt32 xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+        <uax:UInt32>0</uax:UInt32>
+      </uax:ListOfUInt32>
     </Value>
   </UAVariable>
   <UAVariable NodeId="ns=3;i=6032" BrowseName="3:TotalAreaMeasuredPeaks" ParentNodeId="ns=3;i=5000" DataType="Float">
