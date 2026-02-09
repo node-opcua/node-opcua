@@ -1,6 +1,6 @@
 {
     "name": "node-opcua-types",
-    "version": "2.163.0",
+    "version": "2.163.1",
     "description": "pure nodejs OPCUA SDK - module types",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -26,7 +26,7 @@
         "node-opcua-variant": "2.163.0"
     },
     "devDependencies": {
-        "node-opcua-generator": "2.163.0"
+        "node-opcua-generator": "2.163.1"
     },
     "author": "Etienne Rossignon",
     "license": "MIT",
