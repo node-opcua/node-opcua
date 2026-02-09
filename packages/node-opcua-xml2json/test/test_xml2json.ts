@@ -1,7 +1,8 @@
 // tslint:disable:no-console
 import should from "should";
+import path from "path";
+import fs from "fs";
 import { checkDebugFlag, make_debugLog } from "node-opcua-debug";
-import { nodesets } from "node-opcua-nodesets";
 import { ParserLike, ReaderStateParserLike, Xml2Json, XmlAttributes } from "..";
 import { Xml2JsonFs } from "../source/nodejs/xml2json_fs";
 
@@ -58,15 +59,36 @@ describe("XMLToJSON", () => {
         (parser as any).obj.should.eql({ name: "John", address: "Paris" });
     });
 
-    it("should parse a UTF8 encoded xml file with a BOM", function () {
-        // accommodate for slow RPI
-        if (process.arch === "arm") {
-            this.timeout(40000);
-            this.slow(20000);
-        }
-        const xml_file = nodesets.standard;
-        const parser = new Xml2JsonFs({});
+    async function createXMLFileWithBOM(filename: string) {
+
+        const xmlContent = `<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <element>Hello, World!</element>
+</root>`;
+
+        // Prepend the BOM character
+        const xmlWithBom = '\uFEFF' + xmlContent;
+
+        // Write to a file
+        await fs.promises.writeFile(filename, xmlWithBom, 'utf8');
+    }
+    it("should parse a UTF8 encoded xml file with a BOM", async () => {
+
+        const xml_file = path.join(__dirname, "fixtures", "nodeset-with-bom.xml");
+        await createXMLFileWithBOM(xml_file);
+
+        const parser = new Xml2JsonFs({
+            parser: {
+                root: {
+                    finish(this: any) {
+                        this.obj.should.eql({ element: "Hello, World!" });
+                    }
+                }
+            }
+        });
         parser.parse(xml_file);
+
+
     });
 
     it("should parse a escaped string", () => {
@@ -151,7 +173,7 @@ describe("XMLToJSON", () => {
                 <uax:Float>33</uax:Float>
             </uax:ListOfFloat>
         </Value>`);
-        
+
     });
     it("should parse a array 2", () => {
     });
