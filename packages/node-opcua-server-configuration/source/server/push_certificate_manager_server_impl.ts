@@ -13,6 +13,7 @@ import {
     exploreCertificate,
     makeSHA1Thumbprint,
     toPem,
+    verifyCertificateChain,
     PrivateKey,
     certificateMatchesPrivateKey,
     coercePEMorDerToPrivateKey,
@@ -308,7 +309,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     private readonly _pendingTasks: Functor[] = [];
     private _tmpCertificateManager?: CertificateManager;
     private $$actionQueue: ActionQueue = [];
-    private _fileCounter = 0;
+    private fileCounter = 0;
+    private _updateCertificateInProgress = false;
 
     private applicationUri: string;
 
@@ -686,6 +688,15 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         privateKeyFormat?: string,
         privateKey?: Buffer | string
     ): Promise<UpdateCertificateResult> {
+        if (this._updateCertificateInProgress) {
+            return {
+                statusCode: StatusCodes.BadTooManyOperations,
+                applyChangesRequired: false
+            };
+        }
+
+        this._updateCertificateInProgress = true;
+        try {
         // Result Code                Description
         // BadInvalidArgument        The certificateTypeId or certificateGroupId is not valid.
         // BadCertificateInvalid     The Certificate is invalid or the format is not supported.
@@ -702,14 +713,6 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             };
         }
 
-        // Reserve file counter values atomically to prevent race conditions with concurrent calls
-        // Calculate total needed: 2 per issuer cert (DER+PEM) + 2 for certificate (DER+PEM) + 1 for private key (if provided)
-        const issuerCertCount = issuerCertificates?.length || 0;
-        const baseCounterValue = this._fileCounter;
-        const privateKeyCounter = privateKey && privateKeyFormat ? 1 : 0;
-        const totalCountersNeeded = (issuerCertCount * 2) + 2 + privateKeyCounter;
-        this._fileCounter += totalCountersNeeded;
-
         // Validate certificate type if specified
         if (!validateCertificateType(certificate, certificateTypeId)) {
             warningLog("Certificate type does not match expected certificateTypeId", certificateTypeId);
@@ -720,81 +723,46 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         // Process issuer certificates - stage them to temporary files and add move tasks to _pendingTasks
-        async function preInstallIssuerCertificates(self: PushCertificateManagerServerImpl, startCounter: number) {
+        async function preInstallIssuerCertificates(self: PushCertificateManagerServerImpl) {
             if (issuerCertificates && issuerCertificates.length > 0) {
                 const issuerFolder = path.join(certificateManager.rootDir, "issuers/certs");
                 const pendingFilesCreated: string[] = [];
-                let counterOffset = 0;
+
+                // Ensure the directory exists before writing files
+                await fs.promises.mkdir(issuerFolder, { recursive: true });
                 
-                try {
-                    // Ensure the directory exists before writing files
-                    await fs.promises.mkdir(issuerFolder, { recursive: true });
+                for (let i = 0; i < issuerCertificates.length; i++) {
+                    const issuerCert = issuerCertificates[i];
                     
-                    for (let i = 0; i < issuerCertificates.length; i++) {
-                        const issuerCert = issuerCertificates[i];
-                        
-                        // OPC UA Part 12 - UpdateCertificate:
-                        // "The Server shall do all normal integrity checks on the Certificate and all of the issuer Certificates"
-                        // For issuer certificates (CA certificates in the chain), we only validate that they are parseable.
-                        // Validity date checks are intentionally NOT performed here because:
-                        // - CA certificates may be expired but still valid for verification if they were valid at signing time
-                        // - Root/Intermediate CAs often have long validity periods (10-30 years)
-                        // - Trust validation (including proper validity checks) happens during TLS handshake by CertificateManager
-                        try {
-                            exploreCertificate(issuerCert);
-                        } catch (err) {
-                            errorLog("Invalid issuer certificate - cannot parse:", (err as Error).message);
-                            throw new Error("BadCertificateInvalid: Issuer certificate is corrupted or has invalid format");
-                        }
-                        
-                        const thumbprint = makeSHA1Thumbprint(issuerCert).toString("hex");
-                        
-                        // Write to temporary/pending files instead of final destination
-                        const pendingIssuerFileDER = path.join(issuerFolder, `_pending_issuer_${thumbprint}_${startCounter + counterOffset++}.der`);
-                        const pendingIssuerFilePEM = path.join(issuerFolder, `_pending_issuer_${thumbprint}_${startCounter + counterOffset++}.pem`);
-                        
-                        const finalIssuerFileDER = path.join(issuerFolder, `issuer_${thumbprint}.der`);
-                        const finalIssuerFilePEM = path.join(issuerFolder, `issuer_${thumbprint}.pem`);
-                        
-                        // Write issuer certificate in both DER and PEM format to temporary files
-                        await writeFile(pendingIssuerFileDER, issuerCert, "binary");
-                        pendingFilesCreated.push(pendingIssuerFileDER);
-                        
-                        await writeFile(pendingIssuerFilePEM, toPem(issuerCert, "CERTIFICATE"), "utf-8");
-                        pendingFilesCreated.push(pendingIssuerFilePEM);
-                        
-                        // Stage the move operations to be applied on applyChanges()
-                        self.addPendingTask(() => moveFileWithBackup(pendingIssuerFileDER, finalIssuerFileDER));
-                        self.addPendingTask(() => moveFileWithBackup(pendingIssuerFilePEM, finalIssuerFilePEM));
-                        
-                        debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
-                    }
-                } catch (err) {
-                    // On error, clean up any pending files that were created
-                    errorLog("Error during preInstallIssuerCertificates, cleaning up pending files:", (err as Error).message);
-                    for (const file of pendingFilesCreated) {
-                        try {
-                            await fs.promises.unlink(file);
-                        } catch (cleanupErr) {
-                            // Ignore ENOENT - file already gone is fine during cleanup
-                            if ((cleanupErr as NodeJS.ErrnoException).code !== 'ENOENT') {
-                                warningLog(`Failed to cleanup pending file ${file}:`, cleanupErr);
-                            }
-                        }
-                    }
-                    throw err;
+                    const thumbprint = makeSHA1Thumbprint(issuerCert).toString("hex");
+                    
+                    // Write to temporary/pending files instead of final destination
+                    const pendingIssuerFileDER = path.join(issuerFolder, `_pending_issuer_${thumbprint}${self.fileCounter++}.der`);
+                    const pendingIssuerFilePEM = path.join(issuerFolder, `_pending_issuer_${thumbprint}${self.fileCounter++}.pem`);
+                    
+                    const finalIssuerFileDER = path.join(issuerFolder, `issuer_${thumbprint}.der`);
+                    const finalIssuerFilePEM = path.join(issuerFolder, `issuer_${thumbprint}.pem`);
+                    
+                    // Write issuer certificate in both DER and PEM format to temporary files
+                    await writeFile(pendingIssuerFileDER, issuerCert, "binary");
+                    pendingFilesCreated.push(pendingIssuerFileDER);
+                    
+                    await writeFile(pendingIssuerFilePEM, toPem(issuerCert, "CERTIFICATE"), "utf-8");
+                    pendingFilesCreated.push(pendingIssuerFilePEM);
+                    
+                    // Stage the move operations to be applied on applyChanges()
+                    self.addPendingTask(() => moveFileWithBackup(pendingIssuerFileDER, finalIssuerFileDER));
+                    self.addPendingTask(() => moveFileWithBackup(pendingIssuerFilePEM, finalIssuerFilePEM));
+                    
+                    debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
                 }
             }
         }
 
-        async function preInstallCertificate(self: PushCertificateManagerServerImpl, counterDER: number, counterPEM: number) {
+        async function preInstallCertificate(self: PushCertificateManagerServerImpl) {
             const certFolder = path.join(certificateManager.rootDir, "own/certs");
-            
-            // Ensure the directory exists before writing files
-            await fs.promises.mkdir(certFolder, { recursive: true });
-            
-            const certificateFileDER = path.join(certFolder, `_pending_certificate${counterDER}.der`);
-            const certificateFilePEM = path.join(certFolder, `_pending_certificate${counterPEM}.pem`);
+            const certificateFileDER = path.join(certFolder, `_pending_certificate${self.fileCounter++}.der`);
+            const certificateFilePEM = path.join(certFolder, `_pending_certificate${self.fileCounter++}.pem`);
 
             await writeFile(certificateFileDER, certificate, "binary");
             await writeFile(certificateFilePEM, toPem(certificate, "CERTIFICATE"));
@@ -807,15 +775,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             self.addPendingTask(() => moveFileWithBackup(certificateFilePEM, destPEM));
         }
 
-        async function preInstallPrivateKey(self: PushCertificateManagerServerImpl, counterValue: number) {
+        async function preInstallPrivateKey(self: PushCertificateManagerServerImpl) {
             assert(privateKeyFormat!.toUpperCase() === "PEM");
 
             const ownPrivateFolder = path.join(certificateManager.rootDir, "own/private");
-            
-            // Ensure the directory exists before writing files
-            await fs.promises.mkdir(ownPrivateFolder, { recursive: true });
-            
-            const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${counterValue}.pem`);
+            const privateKeyFilePEM = path.join(ownPrivateFolder, `_pending_private_key${self.fileCounter++}.pem`);
 
             if (privateKey) {
                 const privateKey1 = coercePEMorDerToPrivateKey(privateKey);
@@ -872,6 +836,83 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 statusCode: StatusCodes.BadCertificateInvalid,
                 applyChangesRequired: false
             };
+        }
+
+        const issuerCertBuffers = (issuerCertificates || []).filter((cert): cert is Buffer => {
+            return Buffer.isBuffer(cert) && cert.length > 0;
+        });
+        if ((issuerCertificates || []).length !== issuerCertBuffers.length) {
+            warningLog("issuerCertificates contains invalid entries");
+            return {
+                statusCode: StatusCodes.BadCertificateInvalid,
+                applyChangesRequired: false
+            };
+        }
+
+        for (const issuerCert of issuerCertBuffers) {
+            try {
+                const issuerInfo = exploreCertificate(issuerCert);
+                const nowIssuer = new Date();
+                if (issuerInfo.tbsCertificate.validity.notBefore.getTime() > nowIssuer.getTime()) {
+                    warningLog("Issuer certificate is not yet valid");
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+                if (issuerInfo.tbsCertificate.validity.notAfter.getTime() < nowIssuer.getTime()) {
+                    warningLog("Issuer certificate is out of date");
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+            } catch (err) {
+                errorLog("Cannot parse issuer certificate:", (err as Error).message);
+                return {
+                    statusCode: StatusCodes.BadCertificateInvalid,
+                    applyChangesRequired: false
+                };
+            }
+        }
+
+        if (issuerCertBuffers.length > 0) {
+            const chainCheck = await verifyCertificateChain([certificate, ...issuerCertBuffers]);
+            if (chainCheck.status !== "Good") {
+                warningLog("Issuer chain validation failed:", chainCheck.status, chainCheck.reason);
+                return {
+                    statusCode: StatusCodes.BadSecurityChecksFailed,
+                    applyChangesRequired: false
+                };
+            }
+        }
+
+        const certificateChain = Buffer.concat([certificate, ...issuerCertBuffers]);
+        const verifyCertificate = (certificateManager as any).verifyCertificate as
+            | ((chain: Buffer) => Promise<string> | string)
+            | undefined;
+        const checkCertificate = (certificateManager as any).checkCertificate as
+            | ((chain: Buffer) => Promise<StatusCode>)
+            | undefined;
+
+        if (verifyCertificate) {
+            const status = await Promise.resolve(verifyCertificate.call(certificateManager, certificateChain));
+            if (status !== "Good") {
+                warningLog("Certificate trust validation failed:", status);
+                return {
+                    statusCode: StatusCodes.BadSecurityChecksFailed,
+                    applyChangesRequired: false
+                };
+            }
+        } else if (checkCertificate) {
+            const statusCode = await checkCertificate.call(certificateManager, certificateChain);
+            if (statusCode && statusCode.isNotGood()) {
+                warningLog("Certificate trust validation failed:", statusCode.toString());
+                return {
+                    statusCode: StatusCodes.BadSecurityChecksFailed,
+                    applyChangesRequired: false
+                };
+            }
         }
 
         const now = new Date();
@@ -956,29 +997,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                     applyChangesRequired: false,
                 };
             }
-            // a new certificate is provided for us,
-            // we keep our private key
-            // we do this in two stages
-            try {
-                await preInstallIssuerCertificates(this, baseCounterValue);
-                await preInstallCertificate(this, baseCounterValue + (issuerCertCount * 2), baseCounterValue + (issuerCertCount * 2) + 1);
-            } catch (err) {
-                // Check if this is an issuer certificate validation error
-                if (err instanceof Error && err.message.startsWith("BadCertificateInvalid:")) {
-                    return {
-                        statusCode: StatusCodes.BadCertificateInvalid,
-                        applyChangesRequired: false
-                    };
-                }
-                // For other errors, ensure cleanup and re-throw
-                try {
-                    await this.cleanupPendingFiles();
-                } catch {
-                    // Ignore cleanup errors to avoid masking the original failure
-                }
-                throw err;
-            }
-
+            await preInstallIssuerCertificates(this);
+            await preInstallCertificate(this);
             return {
                 statusCode: StatusCodes.Good,
                 applyChangesRequired: true,
@@ -1014,35 +1034,17 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 return { statusCode: StatusCodes.BadSecurityChecksFailed, applyChangesRequired: false };
             }
 
-            try {
-                await preInstallPrivateKey(this, baseCounterValue + (issuerCertCount * 2) + 2);
-                await preInstallIssuerCertificates(this, baseCounterValue);
-                await preInstallCertificate(
-                    this,
-                    baseCounterValue + (issuerCertCount * 2),
-                    baseCounterValue + (issuerCertCount * 2) + 1
-                );
-            } catch (err) {
-                // Check if this is an issuer certificate validation error
-                if (err instanceof Error && err.message.startsWith("BadCertificateInvalid:")) {
-                    return {
-                        statusCode: StatusCodes.BadCertificateInvalid,
-                        applyChangesRequired: false
-                    };
-                }
-                // For other errors, ensure cleanup and re-throw
-                try {
-                    await this.cleanupPendingFiles();
-                } catch {
-                    // Ignore cleanup errors to avoid masking the original failure
-                }
-                throw err;
-            }
+            await preInstallPrivateKey(this);
+            await preInstallIssuerCertificates(this);
+            await preInstallCertificate(this);
 
             return {
                 statusCode: StatusCodes.Good,
                 applyChangesRequired: true
             };
+        }
+        } finally {
+            this._updateCertificateInProgress = false;
         }
     }
 
