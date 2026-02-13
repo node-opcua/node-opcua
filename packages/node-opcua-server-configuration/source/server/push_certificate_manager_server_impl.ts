@@ -1196,6 +1196,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                         if (fs.existsSync(backupPath)) {
                             debugLog("Restoring backup:", backupPath, "to", dest);
                             await copyFile(backupPath, dest);
+                            // Delete backup immediately after restoration
+                            await deleteFile(backupPath);
                         }
                     } catch (err) {
                         errorLog("Error restoring backup file", backupPath, "to", dest, ":", (err as Error).message);
@@ -1204,7 +1206,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             );
         }
         
-        await Promise.all(rollbackPromises);
+        await Promise.all(rollbackPromises);        
         debugLog("Transaction rollback completed");
     }
 
