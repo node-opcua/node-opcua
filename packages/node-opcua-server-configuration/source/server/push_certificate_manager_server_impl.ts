@@ -888,30 +888,37 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         const certificateChain = Buffer.concat([certificate, ...issuerCertBuffers]);
-        const verifyCertificate = (certificateManager as any).verifyCertificate as
-            | ((chain: Buffer) => Promise<string> | string)
-            | undefined;
-        const checkCertificate = (certificateManager as any).checkCertificate as
-            | ((chain: Buffer) => Promise<StatusCode>)
-            | undefined;
+        
+        // Skip trust validation for the application group (server's own certificate)
+        // Trust validation is only relevant for client certificates, not the server's own certificate
+        const isApplicationGroup = certificateManager === this.applicationGroup;
+        
+        if (!isApplicationGroup) {
+            const verifyCertificate = (certificateManager as any).verifyCertificate as
+                | ((chain: Buffer) => Promise<string> | string)
+                | undefined;
+            const checkCertificate = (certificateManager as any).checkCertificate as
+                | ((chain: Buffer) => Promise<StatusCode>)
+                | undefined;
 
-        if (verifyCertificate) {
-            const status = await Promise.resolve(verifyCertificate.call(certificateManager, certificateChain));
-            if (status !== "Good") {
-                warningLog("Certificate trust validation failed:", status);
-                return {
-                    statusCode: StatusCodes.BadSecurityChecksFailed,
-                    applyChangesRequired: false
-                };
-            }
-        } else if (checkCertificate) {
-            const statusCode = await checkCertificate.call(certificateManager, certificateChain);
-            if (statusCode && statusCode.isNotGood()) {
-                warningLog("Certificate trust validation failed:", statusCode.toString());
-                return {
-                    statusCode: StatusCodes.BadSecurityChecksFailed,
-                    applyChangesRequired: false
-                };
+            if (verifyCertificate) {
+                const status = await Promise.resolve(verifyCertificate.call(certificateManager, certificateChain));
+                if (status !== "Good") {
+                    warningLog("Certificate trust validation failed:", status);
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
+            } else if (checkCertificate) {
+                const statusCode = await checkCertificate.call(certificateManager, certificateChain);
+                if (statusCode && statusCode.isNotGood()) {
+                    warningLog("Certificate trust validation failed:", statusCode.toString());
+                    return {
+                        statusCode: StatusCodes.BadSecurityChecksFailed,
+                        applyChangesRequired: false
+                    };
+                }
             }
         }
 

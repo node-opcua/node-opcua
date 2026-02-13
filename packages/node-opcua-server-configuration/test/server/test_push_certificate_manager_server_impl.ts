@@ -17,7 +17,8 @@ import {
     initializeHelpers,
     produceCertificate,
     produceOutdatedCertificate,
-    produceNotYetValidCertificate
+    produceNotYetValidCertificate,
+    _getFakeAuthorityCertificate
 } from "../helpers/fake_certificate_authority";
 import { getCertificateDER } from "../helpers/tools";
 
@@ -47,13 +48,23 @@ describe("Testing Server Side PushCertificateManager", () => {
         const userTokenGroup = new CertificateManager({
             location: path.join(_folder, "user")
         });
+        
         pushManager = new PushCertificateManagerServerImpl({
             applicationGroup,
             userTokenGroup,
             applicationUri: "--missing--applicationUri--"
         });
 
+        // Initialize pushManager (this calls initialize on the certificate managers)
         await pushManager.initialize();
+        
+        const { certificate: caCertificate, crl } = await _getFakeAuthorityCertificate(_folder);
+        await applicationGroup.trustCertificate(caCertificate);
+        await applicationGroup.addIssuer(caCertificate);
+        await applicationGroup.addRevocationList(crl);
+        await userTokenGroup.trustCertificate(caCertificate);
+        await userTokenGroup.addIssuer(caCertificate);
+        await userTokenGroup.addRevocationList(crl);
     });
 
     it("should expose support format", async () => {

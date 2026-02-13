@@ -120,7 +120,10 @@ async function _produceCertificate(
     });
 
     const certificatePEM = await readFile(certificate, "utf8");
-    return convertPEMtoDER(certificatePEM);
+    const certificateDER = convertPEMtoDER(certificatePEM);
+    
+    // signCertificateRequest already writes the full chain (cert + CA), so just return it
+    return certificateDER;
 }
 
 export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
