@@ -15,13 +15,14 @@ import {
 } from "node-opcua-address-space";
 import { checkDebugFlag, make_debugLog, make_warningLog } from "node-opcua-debug";
 import { CallbackT, StatusCodes } from "node-opcua-status-code";
-import { CallMethodResultOptions } from "node-opcua-types";
+import { CallMethodResultOptions, TrustListDataType } from "node-opcua-types";
 import { DataType, Variant } from "node-opcua-variant";
 import { AccessRestrictionsFlag } from "node-opcua-data-model";
 import { CertificateManager } from "node-opcua-pki";
 import { AbstractFs, installFileType, OpenFileMode } from "node-opcua-file-transfer";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { split_der, verifyCertificateChain } from "node-opcua-crypto/web";
+import { BinaryStream } from "node-opcua-binary-stream";
 
 import { TrustListMasks, writeTrustList } from "./trust_list_server";
 
@@ -43,7 +44,85 @@ async function _closeAndUpdate(
     inputArguments: Variant[],
     context: ISessionContext
 ): Promise<CallMethodResultOptions> {
-    return { statusCode: StatusCodes.Good };
+    const trustList = context.object as UATrustList;
+    const cm = ((trustList as any).$$certificateManager as OPCUACertificateManager) || null;
+    const filename = (trustList as any).$$filename as string;
+
+    if (!cm || !filename) {
+        return { statusCode: StatusCodes.BadInternalError };
+    }
+
+    // Since we support immediate application (no transactions), read the updated file and persist it
+    try {
+        if (MemFs.existsSync(filename)) {
+            const data = await new Promise<Buffer>((resolve, reject) => {
+                MemFs.readFile(filename, (err, data) => {
+                    if (err) reject(err);
+                    else resolve(data as Buffer);
+                });
+            });
+
+            // Decode the TrustListDataType
+            const stream = new BinaryStream(data);
+            const trustListData = new TrustListDataType();
+            trustListData.decode(stream);
+
+            // Update the certificate manager with new data
+            if (trustListData.trustedCertificates) {
+                for (const cert of trustListData.trustedCertificates) {
+                    await cm.trustCertificate(cert);
+                }
+            }
+            if (trustListData.issuerCertificates) {
+                for (const cert of trustListData.issuerCertificates) {
+                    await cm.addIssuer(cert);
+                }
+            }
+            
+            // Persist CRLs directly to the certificate manager's CRL folders
+            if (trustListData.issuerCrls && trustListData.issuerCrls.length > 0) {
+                const issuerCrlFolder = cm.issuersCrlFolder;
+                if (issuerCrlFolder) {
+                    const fsModule = require("fs") as typeof import("fs");
+                    for (let i = 0; i < trustListData.issuerCrls.length; i++) {
+                        const crlPath = `${issuerCrlFolder}/crl_${Date.now()}_${i}.crl`;
+                        await new Promise<void>((resolve, reject) => {
+                            fsModule.writeFile(crlPath, trustListData.issuerCrls![i], (err) => {
+                                if (err) reject(err);
+                                else resolve();
+                            });
+                        });
+                    }
+                }
+            }
+            
+            if (trustListData.trustedCrls && trustListData.trustedCrls.length > 0) {
+                const trustedCrlFolder = cm.crlFolder;
+                if (trustedCrlFolder) {
+                    const fsModule = require("fs") as typeof import("fs");
+                    for (let i = 0; i < trustListData.trustedCrls.length; i++) {
+                        const crlPath = `${trustedCrlFolder}/crl_${Date.now()}_${i}.crl`;
+                        await new Promise<void>((resolve, reject) => {
+                            fsModule.writeFile(crlPath, trustListData.trustedCrls![i], (err) => {
+                                if (err) reject(err);
+                                else resolve();
+                            });
+                        });
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        errorLog("Error in _closeAndUpdate:", err);
+        return { statusCode: StatusCodes.BadInternalError };
+    }
+
+    return {
+        statusCode: StatusCodes.Good,
+        outputArguments: [
+            new Variant({ dataType: DataType.Boolean, value: false })
+        ]
+    };
 }
 
 // in TrustList
@@ -119,6 +198,9 @@ let counter = 0;
 export async function promoteTrustList(trustList: UATrustList) {
     const filename = `/tmpFile${counter}`;
     counter += 1;
+
+    // Store filename for use in _closeAndUpdate
+    (trustList as any).$$filename = filename;
 
     installFileType(trustList, { filename, fileSystem: MemFs as AbstractFs });
 
