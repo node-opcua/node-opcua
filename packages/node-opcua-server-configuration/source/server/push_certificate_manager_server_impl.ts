@@ -832,6 +832,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         } catch (err) {
             // Certificate is invalid or cannot be parsed
             errorLog("Cannot parse certificate:", (err as Error).message);
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadCertificateInvalid,
                 applyChangesRequired: false
@@ -843,6 +844,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         });
         if ((issuerCertificates || []).length !== issuerCertBuffers.length) {
             warningLog("issuerCertificates contains invalid entries");
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadCertificateInvalid,
                 applyChangesRequired: false
@@ -855,6 +857,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 const nowIssuer = new Date();
                 if (issuerInfo.tbsCertificate.validity.notBefore.getTime() > nowIssuer.getTime()) {
                     warningLog("Issuer certificate is not yet valid");
+                    await this.cleanupPendingFiles();
                     return {
                         statusCode: StatusCodes.BadSecurityChecksFailed,
                         applyChangesRequired: false
@@ -862,6 +865,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 }
                 if (issuerInfo.tbsCertificate.validity.notAfter.getTime() < nowIssuer.getTime()) {
                     warningLog("Issuer certificate is out of date");
+                    await this.cleanupPendingFiles();
                     return {
                         statusCode: StatusCodes.BadSecurityChecksFailed,
                         applyChangesRequired: false
@@ -869,6 +873,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 }
             } catch (err) {
                 errorLog("Cannot parse issuer certificate:", (err as Error).message);
+                await this.cleanupPendingFiles();
                 return {
                     statusCode: StatusCodes.BadCertificateInvalid,
                     applyChangesRequired: false
@@ -880,6 +885,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const chainCheck = await verifyCertificateChain([certificate, ...issuerCertBuffers]);
             if (chainCheck.status !== "Good") {
                 warningLog("Issuer chain validation failed:", chainCheck.status, chainCheck.reason);
+                await this.cleanupPendingFiles();
                 return {
                     statusCode: StatusCodes.BadSecurityChecksFailed,
                     applyChangesRequired: false
@@ -905,6 +911,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 const status = await Promise.resolve(verifyCertificate.call(certificateManager, certificateChain));
                 if (status !== "Good") {
                     warningLog("Certificate trust validation failed:", status);
+                    await this.cleanupPendingFiles();
                     return {
                         statusCode: StatusCodes.BadSecurityChecksFailed,
                         applyChangesRequired: false
@@ -914,6 +921,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 const statusCode = await checkCertificate.call(certificateManager, certificateChain);
                 if (statusCode && statusCode.isNotGood()) {
                     warningLog("Certificate trust validation failed:", statusCode.toString());
+                    await this.cleanupPendingFiles();
                     return {
                         statusCode: StatusCodes.BadSecurityChecksFailed,
                         applyChangesRequired: false
@@ -931,6 +939,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 "now = ",
                 now.toISOString()
             );
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadSecurityChecksFailed,
                 applyChangesRequired: false
@@ -944,6 +953,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 "now = ",
                 now.toISOString()
             );
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadSecurityChecksFailed,
                 applyChangesRequired: false
@@ -971,6 +981,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         if (hasPrivateKeyFormat !== hasPrivateKey) {
             // Only one of the two parameters is provided - this is invalid
             warningLog("privateKeyFormat and privateKey must both be provided or both be omitted");
+            await this.cleanupPendingFiles();
             return {
                 statusCode: StatusCodes.BadInvalidArgument,
                 applyChangesRequired: false
@@ -992,6 +1003,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             if (!certificateMatchesPrivateKey(certificate, privateKey1)) {
                 // certificate doesn't match privateKey
                 warningLog("certificate doesn't match privateKey");
+                await this.cleanupPendingFiles();
                 /* debug code */
                 const certificatePEM = toPem(certificate, "CERTIFICATE");
                 certificatePEM;
@@ -1015,10 +1027,12 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             // Validate privateKeyFormat
             if (privateKeyFormat !== "PEM" && privateKeyFormat !== "PFX") {
                 warningLog(" the private key format is invalid privateKeyFormat =" + privateKeyFormat);
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             if (privateKeyFormat !== "PEM") {
                 warningLog("in NodeOPCUA we only support PEM for the moment privateKeyFormat =" + privateKeyFormat);
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadNotSupported , applyChangesRequired: false };
             }
 
@@ -1032,12 +1046,14 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 privateKey1 = coercePEMorDerToPrivateKey(privateKey);
             }
             if (!privateKey1) {
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadNotSupported, applyChangesRequired: false };
             }
             
             // Verify that the certificate matches the provided private key
             if (!certificateMatchesPrivateKey(certificate, privateKey1)) {
                 warningLog("certificate doesn't match privateKey");
+                await this.cleanupPendingFiles();
                 return { statusCode: StatusCodes.BadSecurityChecksFailed, applyChangesRequired: false };
             }
 
