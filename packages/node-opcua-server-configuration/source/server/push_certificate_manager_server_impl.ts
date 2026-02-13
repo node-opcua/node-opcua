@@ -315,7 +315,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     private _tmpCertificateManager?: CertificateManager;
     private $$actionQueue: ActionQueue = [];
     private fileCounter = 0;
-    private _updateCertificateInProgress = false;
+    // Guard to prevent concurrent updateCertificate and applyChanges operations
+    private _operationInProgress = false;
+    // Track backup files for transaction rollback: maps destination -> backup file path
+    private readonly _backupFiles: Map<string, string> = new Map();
 
     private applicationUri: string;
 
@@ -578,7 +581,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             this._tmpCertificateManager = certificateManager;
 
             this.addPendingTask(async () => {
-                await moveFileWithBackup(certificateManager!.privateKey, destCertificateManager.privateKey);
+                await this.moveFileWithBackupTracked(certificateManager!.privateKey, destCertificateManager.privateKey);
             });
             this.addPendingTask(async () => {
                 await rimraf.rimraf(path.join(location));
@@ -670,14 +673,14 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         privateKeyFormat?: string,
         privateKey?: Buffer | string
     ): Promise<UpdateCertificateResult> {
-        if (this._updateCertificateInProgress) {
+        if (this._operationInProgress) {
             return {
                 statusCode: StatusCodes.BadTooManyOperations,
                 applyChangesRequired: false
             };
         }
 
-        this._updateCertificateInProgress = true;
+        this._operationInProgress = true;
         try {
         // Result Code                Description
         // BadInvalidArgument        The certificateTypeId or certificateGroupId is not valid.
@@ -736,8 +739,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                     pendingFilesCreated.push(pendingIssuerFilePEM);
                     
                     // Stage the move operations to be applied on applyChanges()
-                    self.addPendingTask(() => moveFileWithBackup(pendingIssuerFileDER, finalIssuerFileDER));
-                    self.addPendingTask(() => moveFileWithBackup(pendingIssuerFilePEM, finalIssuerFilePEM));
+                    self.addPendingTask(() => self.moveFileWithBackupTracked(pendingIssuerFileDER, finalIssuerFileDER));
+                    self.addPendingTask(() => self.moveFileWithBackupTracked(pendingIssuerFilePEM, finalIssuerFilePEM));
                     
                     debugLog(`Staged issuer certificate ${i + 1}/${issuerCertificates.length}: ${thumbprint}`);
                 }
@@ -756,8 +759,8 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             const destPEM = path.join(certFolder, "certificate.pem");
 
             // put existing file in security by backing them up
-            self.addPendingTask(() => moveFileWithBackup(certificateFileDER, destDER));
-            self.addPendingTask(() => moveFileWithBackup(certificateFilePEM, destPEM));
+            self.addPendingTask(() => self.moveFileWithBackupTracked(certificateFileDER, destDER));
+            self.addPendingTask(() => self.moveFileWithBackupTracked(certificateFilePEM, destPEM));
         }
 
         async function preInstallPrivateKey(self: PushCertificateManagerServerImpl) {
@@ -770,7 +773,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 const privateKey1 = coercePEMorDerToPrivateKey(privateKey);
                 const privateKeyPEM = await coercePrivateKeyPem(privateKey1);
                 await writeFile(privateKeyFilePEM, privateKeyPEM, "utf-8");
-                self.addPendingTask(() => moveFileWithBackup(privateKeyFilePEM, certificateManager.privateKey));
+                self.addPendingTask(() => self.moveFileWithBackupTracked(privateKeyFilePEM, certificateManager.privateKey));
             }
         }
 
@@ -1052,7 +1055,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             };
         }
         } finally {
-            this._updateCertificateInProgress = false;
+            this._operationInProgress = false;
         }
     }
 
@@ -1100,47 +1103,56 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // If the Server Certificate has changed, Secure Channels using the old Certificate will
         // eventually be interrupted.
 
+        if (this._operationInProgress) {
+            return StatusCodes.BadTooManyOperations;
+        }
+
         // Check if there are any pending tasks
         if (this._pendingTasks.length === 0 && this.$$actionQueue.length === 0) {
             // If ApplyChanges is called and there is no active transaction then return Bad_NothingToDo
             return StatusCodes.BadNothingToDo;
         }
-        
+
+        this._operationInProgress = true;
         try {
-            this.emit("CertificateAboutToChange", this.$$actionQueue);
-        } catch (err) {
-            errorLog("Event listener error:", (err as Error).message);
+            try {
+                this.emit("CertificateAboutToChange", this.$$actionQueue);
+            } catch (err) {
+                errorLog("Event listener error:", (err as Error).message);
+            }
+            await this.flushActionQueue();
+
+            try {
+                await this.applyPendingTasks();
+            } catch (err) {
+                debugLog("err ", (err as Error).message);
+                return StatusCodes.BadInternalError;
+            }
+            try {
+                this.emit("CertificateChanged", this.$$actionQueue);
+            } catch (err) {
+                errorLog("Event listener error:", (err as Error).message);
+            }
+            await this.flushActionQueue();
+
+            // Clear temporary certificate manager after applying changes
+            this._tmpCertificateManager = undefined;
+
+            // The only leeway the Server has is with the timing.
+            // In the best case, the Server can close the TransportConnections for the affected Endpoints and leave any
+            // Subscriptions intact. This should appear no different than a network interruption from the
+            // perspective of the Client. The Client should be prepared to deal with Certificate changes
+            // during its reconnect logic. In the worst case, a full shutdown which affects all connected
+            // Clients will be necessary. In the latter case, the Server shall advertise its intent to interrupt
+            // connections by setting the SecondsTillShutdown and ShutdownReason Properties in the
+            // ServerStatus Variable.
+
+            // If the Secure Channel being used to call this Method will be affected by the Certificate change
+            // then the Server shall introduce a delay long enough to allow the caller to receive a reply.
+            return StatusCodes.Good;
+        } finally {
+            this._operationInProgress = false;
         }
-        await this.flushActionQueue();
-
-        try {
-            await this.applyPendingTasks();
-        } catch (err) {
-            debugLog("err ", (err as Error).message);
-            return StatusCodes.BadInternalError;
-        }
-        try {
-            this.emit("CertificateChanged", this.$$actionQueue);
-        } catch (err) {
-            errorLog("Event listener error:", (err as Error).message);
-        }
-        await this.flushActionQueue();
-
-        // Clear temporary certificate manager after applying changes
-        this._tmpCertificateManager = undefined;
-
-        // The only leeway the Server has is with the timing.
-        // In the best case, the Server can close the TransportConnections for the affected Endpoints and leave any
-        // Subscriptions intact. This should appear no different than a network interruption from the
-        // perspective of the Client. The Client should be prepared to deal with Certificate changes
-        // during its reconnect logic. In the worst case, a full shutdown which affects all connected
-        // Clients will be necessary. In the latter case, the Server shall advertise its intent to interrupt
-        // connections by setting the SecondsTillShutdown and ShutdownReason Properties in the
-        // ServerStatus Variable.
-
-        // If the Secure Channel being used to call this Method will be affected by the Certificate change
-        // then the Server shall introduce a delay long enough to allow the caller to receive a reply.
-        return StatusCodes.Good;
     }
 
     private getCertificateManager(certificateGroupId: NodeId | string): CertificateManager | null {
@@ -1152,20 +1164,80 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         this._pendingTasks.push(functor);
     }
 
+    /**
+     * Move file with backup and track the backup for potential rollback.
+     * This method creates a backup of the destination file and tracks it
+     * so it can be restored if the transaction fails.
+     */
+    private async moveFileWithBackupTracked(source: string, dest: string): Promise<void> {
+        const backupPath = dest + "_old";
+        
+        // Track the backup before creating it
+        this._backupFiles.set(dest, backupPath);
+        
+        // Perform the actual move with backup
+        await moveFileWithBackup(source, dest);
+    }
+
+    /**
+     * Rollback the transaction by restoring all backup files.
+     * This restores files from their *_old backups to recover the previous state.
+     */
+    private async rollbackTransaction(): Promise<void> {
+        debugLog("Rolling back transaction, restoring", this._backupFiles.size, "backup files");
+        
+        const rollbackPromises: Promise<void>[] = [];
+        
+        for (const [dest, backupPath] of this._backupFiles.entries()) {
+            rollbackPromises.push(
+                (async () => {
+                    try {
+                        // Check if backup exists before trying to restore
+                        if (fs.existsSync(backupPath)) {
+                            debugLog("Restoring backup:", backupPath, "to", dest);
+                            await copyFile(backupPath, dest);
+                        }
+                    } catch (err) {
+                        errorLog("Error restoring backup file", backupPath, "to", dest, ":", (err as Error).message);
+                    }
+                })()
+            );
+        }
+        
+        await Promise.all(rollbackPromises);
+        debugLog("Transaction rollback completed");
+    }
+
+    /**
+     * Clean up backup files after successful transaction.
+     * Removes all *_old backup files that were created during the transaction.
+     */
+    private async cleanupBackupFiles(): Promise<void> {
+        debugLog("Cleaning up", this._backupFiles.size, "backup files");
+        
+        const cleanupPromises: Promise<void>[] = [];
+        
+        for (const backupPath of this._backupFiles.values()) {
+            cleanupPromises.push(
+                deleteFile(backupPath).catch(err => {
+                    warningLog("Failed to delete backup file", backupPath, ":", err);
+                })
+            );
+        }
+        
+        await Promise.all(cleanupPromises);
+        this._backupFiles.clear();
+    }
+
     private async applyPendingTasks(): Promise<void> {
         debugLog("start applyPendingTasks");
         const promises: Promise<void>[] = [];
         const t = this._pendingTasks.splice(0);
 
-        // FIXME: Transaction rollback capability
-        // If a task fails partway through, we currently clean up pending files but don't
-        // restore the previous certificate state. For true transaction safety, we should:
-        // 1. Keep backup references to all files being replaced
-        // 2. On error, restore backups atomically (rollback)
-        // 3. Implement a two-phase commit pattern:
-        //    - Phase 1: Validate all operations can succeed (write to _pending files)
-        //    - Phase 2: Commit all changes atomically (move _pending to final)
-        // This would prevent partial certificate updates that leave the server in an inconsistent state.
+        // Transaction safety with two-phase commit:
+        // Phase 1: All operations write to _pending files (already done in updateCertificate)
+        // Phase 2: Commit all changes atomically (this method moves _pending to final)
+        // On error: Rollback restores all backup files to prevent partial updates
         
         try {
             if (false) {
@@ -1181,10 +1253,28 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
             await Promise.all(promises);
             debugLog("end applyPendingTasks");
+            
+            // Transaction successful - clean up backup files
+            await this.cleanupBackupFiles();
         } catch (err) {
-            errorLog("Error during applyPendingTasks, cleaning up pending files:", (err as Error).message);
-            // Clean up any remaining pending files on error
+            errorLog("Error during applyPendingTasks:", (err as Error).message);
+            errorLog("Rolling back transaction to restore previous certificate state");
+            
+            // Rollback: restore all backup files to their original locations
+            try {
+                await this.rollbackTransaction();
+                debugLog("Transaction rollback successful");
+            } catch (rollbackErr) {
+                errorLog("Critical: Rollback failed:", (rollbackErr as Error).message);
+                errorLog("Certificate state may be inconsistent - manual intervention required");
+            }
+            
+            // Clean up any remaining pending files
             await this.cleanupPendingFiles();
+            
+            // Clear backup tracking after rollback
+            this._backupFiles.clear();
+            
             throw err;
         }
     }
