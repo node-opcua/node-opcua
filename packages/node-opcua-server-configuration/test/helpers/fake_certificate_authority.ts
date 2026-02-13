@@ -120,7 +120,10 @@ async function _produceCertificate(
     });
 
     const certificatePEM = await readFile(certificate, "utf8");
-    return convertPEMtoDER(certificatePEM);
+    const certificateDER = convertPEMtoDER(certificatePEM);
+    
+    // signCertificateRequest already writes the full chain (cert + CA), so just return it
+    return certificateDER;
 }
 
 export async function produceOutdatedCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
@@ -208,4 +211,13 @@ export async function createSomeOutdatedCertificate(
     const endDate = new Date(startDate.getTime() + validity * millisecondPerDay);
 
     return await createCertificateWithEndDate(subfolder, certificateManager, certName, endDate, validity);
+}
+
+/**
+ * Produce a certificate that is not yet valid (startDate in the future)
+ */
+export async function produceNotYetValidCertificate(subfolder: string, certificateSigningRequest: Buffer): Promise<Buffer> {
+    const startDate = new Date(Date.now() + 3600 * 24 * 1000); // 1 day in the future
+    const validity = 365;
+    return _produceCertificate(subfolder, certificateSigningRequest, startDate, validity);
 }

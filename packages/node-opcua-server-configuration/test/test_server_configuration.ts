@@ -21,7 +21,7 @@ import { assert } from "node-opcua-assert";
 import { CertificateManager, OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { NodeId } from "node-opcua-nodeid";
 import { StatusCodes } from "node-opcua-status-code";
-import { MessageSecurityMode, UserNameIdentityToken } from "node-opcua-types";
+import { MessageSecurityMode, TrustListDataType, UserNameIdentityToken } from "node-opcua-types";
 import { readCertificate } from "node-opcua-crypto";
 import { SecurityPolicy } from "node-opcua-secure-channel";
 import { describeWithLeakDetector as describe } from "node-opcua-leak-detector";
@@ -301,6 +301,61 @@ describe("ServerConfiguration", () => {
             a.trustedCertificates!.length.should.eql(1);
             a.issuerCertificates!.length.should.eql(0);
             a.issuerCrls!.length.should.eql(0);
+            a.trustedCrls!.length.should.eql(0);
+        });
+
+        it("should write trust list", async () => {
+            //------------------
+            await installPushCertificateManagement(addressSpace, { applicationGroup, userTokenGroup, applicationUri: "SomeUri" });
+
+            const context = new SessionContext({ server: opcuaServer, session });
+            const pseudoSession = new PseudoSession(addressSpace, context);
+
+            const clientPushCertificateManager = new ClientPushCertificateManagement(pseudoSession);
+
+            const defaultApplicationGroup = await clientPushCertificateManager.getCertificateGroup("DefaultApplicationGroup");
+
+            const trustList = await defaultApplicationGroup.getTrustList();
+
+            // now add a certificate
+            {
+                const certificateFile = path.join(__dirname, "../../node-opcua-samples/certificates/client_cert_2048.pem");
+                assert(fs.existsSync(certificateFile));
+                const certificate = await readCertificate(certificateFile);
+                const sc = await trustList.addCertificate(certificate, /*isTrustedCertificate =*/ true);
+                sc.should.eql(StatusCodes.Good);
+            }
+
+            let a = await trustList.readTrustedCertificateList();
+            doDebug && console.log(a.toString());
+            a.trustedCertificates!.length.should.eql(1);
+            a.issuerCertificates!.length.should.eql(1); // the issuer certificate in the chain
+            a.issuerCrls!.length.should.eql(0);
+            a.trustedCrls!.length.should.eql(0);
+
+            // create a new trust list with the same content
+            const newTrustList = new TrustListDataType();
+            newTrustList.specifiedLists = a.specifiedLists;
+            newTrustList.trustedCertificates = a.trustedCertificates;
+            newTrustList.issuerCertificates = a.issuerCertificates;
+            newTrustList.trustedCrls = a.trustedCrls;
+            newTrustList.issuerCrls = [
+                    Buffer.from("dummyCRL", "utf-8"),
+                    Buffer.from("dummyCRL2", "utf-8")
+            ];
+
+            // now write back the same list
+            const rc = await trustList.writeTrustedCertificateList(newTrustList);
+            // https://reference.opcfoundation.org/GDS/v105/docs/7.8.2.5#_Ref374565520
+            // If the Server does not support transactions, it applies the changes immediately and sets applyChangesRequired to FALSE.
+            // If the Server supports transactions, then the Server creates a new transaction or continues an existing transaction and sets applyChangesRequired to TRUE.
+            rc.should.eql(false);
+
+            a = await trustList.readTrustedCertificateList();
+            doDebug && console.log(a.toString());
+            a.trustedCertificates!.length.should.eql(1);
+            a.issuerCertificates!.length.should.eql(1); // the issuer certificate in the chain
+            a.issuerCrls!.length.should.eql(newTrustList.issuerCrls!.length);
             a.trustedCrls!.length.should.eql(0);
         });
     });

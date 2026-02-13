@@ -69,8 +69,8 @@ export interface PushCertificateManager {
       certificateTypeId: NodeId | string,
       certificate: ByteString,
       issuerCertificates: ByteString[],
-      privateKeyFormat: UAString,
-      privateKey: ByteString
+      privateKeyFormat?: UAString,
+      privateKey?: ByteString
     ): Promise<UpdateCertificateResult>;
 
     /**
