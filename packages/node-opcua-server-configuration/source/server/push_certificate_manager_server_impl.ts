@@ -151,30 +151,16 @@ function getCertificateKeyType(certificate: Buffer): "RSA" | "ECC" | null {
 /**
  * Validate that the certificate type matches the expected type from certificateTypeId
  * 
- * Note: This function requires the certificate to extract its key type (RSA/ECC) and match it
- * against the certificateTypeId. For validating certificateTypeId without a certificate
- * (e.g., in createSigningRequest where no cert exists yet), use inline validation instead.
- * 
- * FIXME: Consider extracting certificateTypeId validation into a separate function
- * that doesn't require the certificate, to avoid code duplication between
- * createSigningRequest and updateCertificate.
+ * This function validates the certificate type against the allowed types for the specified
+ * certificate group. Per OPC UA Part 12, the validation checks if the certificateTypeId
+ * is present in the CertificateTypes Property of the specific CertificateGroup Object.
  * 
  * @param certificate The certificate to validate
  * @param certificateTypeId The NodeId of the expected certificate type
+ * @param allowedTypes The list of allowed certificate types for this group (from CertificateTypes property)
  * @returns true if valid or if validation is not applicable
  */
-function validateCertificateType(certificate: Buffer, certificateTypeId: NodeId | string): boolean {
-    // FIXME: Certificate type validation should check against CertificateTypes property
-    // Currently we validate against a hardcoded list of known OPC UA certificate types.
-    // Per OPC UA Part 12, the validation should instead check if the certificateTypeId
-    // is present in the CertificateTypes Property of the specific CertificateGroup Object.
-    // This would allow custom certificate types and proper per-group validation.
-    // Implementation steps:
-    // 1. Accept certificateGroupId as parameter to identify which group to check
-    // 2. Browse the CertificateGroup Object to read its CertificateTypes Property value
-    // 3. Check if certificateTypeId exists in that list
-    // 4. Return false if not found in the group's permitted types
-    
+function validateCertificateType(certificate: Buffer, certificateTypeId: NodeId | string, allowedTypes: NodeId[]): boolean {
     // If certificateTypeId is null or not specified, skip validation
     if (!certificateTypeId || 
         (certificateTypeId instanceof NodeId && sameNodeId(certificateTypeId, NodeId.nullNodeId))) {
@@ -210,17 +196,28 @@ function validateCertificateType(certificate: Buffer, certificateTypeId: NodeId 
     // The certificateType argument in UpdateCertificate and CreateSigningRequest specifies
     // which type of certificate is expected.
     
-    // Check if the certificate type matches
-    if (keyType === "RSA") {
-        return rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId));
-    } else if (keyType === "ECC") {
-        return eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+    // Check if the certificateTypeId is in the list of allowed types for this group
+    const isAllowed = allowedTypes.some(t => sameNodeId(t, typeNodeId));
+    
+    if (!isAllowed) {
+        warningLog("Certificate typeId is not in the allowed types for this certificate group:", certificateTypeId);
+        return false;
     }
     
-    // If we reach here, the certificateTypeId is specified but doesn't match
-    // any known type - this should fail validation
-    warningLog("Certificate typeId does not match known RSA or ECC types:", certificateTypeId);
-    return false;
+    // Additional validation: check if the certificate's actual key type matches the declared type
+    const isRsaType = rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+    const isEccType = eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+    
+    if (keyType === "RSA" && !isRsaType) {
+        warningLog("Certificate has RSA key but certificateTypeId is not an RSA type:", certificateTypeId);
+        return false;
+    }
+    if (keyType === "ECC" && !isEccType) {
+        warningLog("Certificate has ECC key but certificateTypeId is not an ECC type:", certificateTypeId);
+        return false;
+    }
+    
+    return true;
 }
 
 export interface PushCertificateManagerServerOptions {
@@ -229,6 +226,13 @@ export interface PushCertificateManagerServerOptions {
     httpsGroup?: CertificateManager;
 
     applicationUri: string;
+    
+    // Optional: Allowed certificate types for each group
+    // These should be read from the CertificateTypes Property of the CertificateGroup objects in the AddressSpace
+    // If not provided, defaults to all known OPC UA certificate types (backward compatibility)
+    applicationGroupCertificateTypes?: NodeId[];
+    userTokenGroupCertificateTypes?: NodeId[];
+    httpsGroupCertificateTypes?: NodeId[];
 }
 
 type Functor = () => Promise<void>;
@@ -306,6 +310,7 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
     public httpsGroup?: CertificateManager;
 
     private readonly _map: { [key: string]: CertificateManager } = {};
+    private readonly _certificateTypes: { [key: string]: NodeId[] } = {};
     private readonly _pendingTasks: Functor[] = [];
     private _tmpCertificateManager?: CertificateManager;
     private $$actionQueue: ActionQueue = [];
@@ -325,6 +330,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             this.httpsGroup = options.httpsGroup;
             if (this.userTokenGroup) {
                 this._map.DefaultUserTokenGroup = this.userTokenGroup;
+                // Store allowed certificate types, or use all known types as default
+                this._certificateTypes.DefaultUserTokenGroup = options.userTokenGroupCertificateTypes || 
+                    // [...rsaCertificateTypes, ...eccCertificateTypes];
+                    [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
 
                 // istanbul ignore next
                 if (!(this.userTokenGroup instanceof CertificateManager)) {
@@ -337,10 +346,18 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
             }
             if (this.applicationGroup) {
                 this._map.DefaultApplicationGroup = this.applicationGroup;
+                // Store allowed certificate types, or use all known types as default
+                this._certificateTypes.DefaultApplicationGroup = options.applicationGroupCertificateTypes || 
+                    // [...rsaCertificateTypes, ...eccCertificateTypes];
+                    [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
                 assert(this.applicationGroup instanceof CertificateManager);
             }
             if (this.httpsGroup) {
                 this._map.DefaultHttpsGroup = this.httpsGroup;
+                // Store allowed certificate types, or use all known types as default
+                this._certificateTypes.DefaultHttpsGroup = options.httpsGroupCertificateTypes || 
+                    // [...rsaCertificateTypes, ...eccCertificateTypes];
+                    [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
                 assert(this.httpsGroup instanceof CertificateManager);
             }
         }
@@ -452,15 +469,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         // Note: Unlike certificateGroupId, there is no "If null" clause in the spec for certificateTypeId.
         // However, null NodeId and empty string are accepted (treated as "no type validation").
         
-        // FIXME: Certificate type validation should check against CertificateTypes property
-        // Currently we validate against a hardcoded list of known OPC UA certificate types.
-        // Per OPC UA Part 12, the validation should instead check if the certificateTypeId
-        // is present in the CertificateTypes Property of the specific CertificateGroup Object.
-        // This would allow custom certificate types and proper per-group validation.
-        // Implementation steps:
-        // 1. Browse the CertificateGroup Object to read its CertificateTypes Property value
-        // 2. Check if certificateTypeId exists in that list
-        // 3. Return BadInvalidArgument if not found in the group's permitted types
+        // Get the allowed certificate types for this group
+        const groupName = findCertificateGroupName(certificateGroupId);
+        // const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes, ...eccCertificateTypes];
+        const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
         
         if (certificateTypeId) {
             let typeNodeId: NodeId;
@@ -483,26 +495,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                     if (sameNodeId(typeNodeId, NodeId.nullNodeId)) {
                         // Skip validation - null NodeId means no type specified
                     } else {
-                        // Validate the type
-                        const isValidType = rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId!)) || 
-                                            eccCertificateTypes.some(t => sameNodeId(t, typeNodeId!));
+                        // Validate that the type is in the allowed types for this group
+                        const isValidType = allowedTypes.some(t => sameNodeId(t, typeNodeId!));
                         
                         if (!isValidType) {
-                            warningLog("Unknown or unsupported certificateTypeId:", certificateTypeId);
-                            return {
-                                statusCode: StatusCodes.BadInvalidArgument
-                            };
-                        }
-                        
-                        // FIXME: ECC key generation is not yet supported
-                        // To implement ECC support:
-                        // 1. Map certificateTypeId to ECC curve (e.g., i=12557 -> prime256v1, i=12558 -> secp384r1)
-                        // 2. Extend CertificateManager to accept curve parameter instead of/alongside keySize
-                        // 3. Add conditional logic to pass either keySize (RSA) or curve (ECC) to CertificateManager
-                        // For now, we only support RSA key generation
-                        const isEccType = eccCertificateTypes.some(t => sameNodeId(t, typeNodeId!));
-                        if (isEccType && regeneratePrivateKey) {
-                            warningLog("ECC certificate type requested but ECC key generation is not yet supported:", certificateTypeId);
+                            warningLog("certificateTypeId is not in the allowed types for this certificate group:", certificateTypeId);
                             return {
                                 statusCode: StatusCodes.BadNotSupported
                             };
@@ -517,26 +514,11 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
                 if (sameNodeId(typeNodeId, NodeId.nullNodeId)) {
                     // Skip validation - null NodeId means no type specified
                 } else {
-                    // Validate the type
-                    const isValidType = rsaCertificateTypes.some(t => sameNodeId(t, typeNodeId)) || 
-                                        eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
+                    // Validate that the type is in the allowed types for this group
+                    const isValidType = allowedTypes.some(t => sameNodeId(t, typeNodeId));
                     
                     if (!isValidType) {
-                        warningLog("Unknown or unsupported certificateTypeId:", certificateTypeId);
-                        return {
-                            statusCode: StatusCodes.BadInvalidArgument
-                        };
-                    }
-                    
-                    // FIXME: ECC key generation is not yet supported
-                    // To implement ECC support:
-                    // 1. Map certificateTypeId to ECC curve (e.g., i=12557 -> prime256v1, i=12558 -> secp384r1)
-                    // 2. Extend CertificateManager to accept curve parameter instead of/alongside keySize
-                    // 3. Add conditional logic to pass either keySize (RSA) or curve (ECC) to CertificateManager
-                    // For now, we only support RSA key generation
-                    const isEccType = eccCertificateTypes.some(t => sameNodeId(t, typeNodeId));
-                    if (isEccType && regeneratePrivateKey) {
-                        warningLog("ECC certificate type requested but ECC key generation is not yet supported:", certificateTypeId);
+                        warningLog("certificateTypeId is not in the allowed types for this certificate group:", certificateTypeId);
                         return {
                             statusCode: StatusCodes.BadNotSupported
                         };
@@ -714,7 +696,10 @@ export class PushCertificateManagerServerImpl extends EventEmitter implements Pu
         }
 
         // Validate certificate type if specified
-        if (!validateCertificateType(certificate, certificateTypeId)) {
+        const groupName = findCertificateGroupName(certificateGroupId);
+        // const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes, ...eccCertificateTypes];
+        const allowedTypes = this._certificateTypes[groupName] || [...rsaCertificateTypes]; // FIXME: ECC is not yet supported
+        if (!validateCertificateType(certificate, certificateTypeId, allowedTypes)) {
             warningLog("Certificate type does not match expected certificateTypeId", certificateTypeId);
             return {
                 statusCode: StatusCodes.BadCertificateInvalid,

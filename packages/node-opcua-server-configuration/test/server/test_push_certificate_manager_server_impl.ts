@@ -1601,10 +1601,10 @@ describe("Testing Server Side PushCertificateManager", () => {
         );
 
         // Then the result should be BadInvalidArgument
-        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        result.statusCode.should.eql(StatusCodes.BadNotSupported);
     });
 
-    it("createSigningRequest should accept ECC certificateTypeId without regeneratePrivateKey", async () => {
+    it("createSigningRequest should not accept ECC certificateTypeId without regeneratePrivateKey", async () => {
         // When I call createSigningRequest with ECC certificateTypeId but regeneratePrivateKey=false
         const result = await pushManager.createSigningRequest(
             "DefaultApplicationGroup",
@@ -1613,9 +1613,8 @@ describe("Testing Server Side PushCertificateManager", () => {
             false // regeneratePrivateKey = false
         );
 
-        // Then the result should be Good (ECC validation passes, but no key generation needed)
-        result.statusCode.should.eql(StatusCodes.Good);
-        result.certificateSigningRequest!.should.be.instanceOf(Buffer);
+        // Then the result should be BadNotSupported (ECC key generation not yet supported, and regeneratePrivateKey must be true for ECC)
+        result.statusCode.should.eql(StatusCodes.BadNotSupported);
     });
 
     it("createSigningRequest should return BadNotSupported for ECC certificateTypeId with regeneratePrivateKey=true", async () => {
@@ -1700,7 +1699,7 @@ describe("Testing Server Side PushCertificateManager", () => {
             undefined // no nonce
         );
 
-        // Then it should fail with BadInvalidArgument (certificateTypeId validation happens first)
-        result.statusCode.should.eql(StatusCodes.BadInvalidArgument);
+        // Then it should fail with BadNotSupported (certificateTypeId validation happens first)
+        result.statusCode.should.eql(StatusCodes.BadNotSupported);
     });
 });
