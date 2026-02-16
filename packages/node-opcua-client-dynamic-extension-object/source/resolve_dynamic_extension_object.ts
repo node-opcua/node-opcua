@@ -107,6 +107,7 @@ export async function resolveDynamicExtensionObject(
                 } catch (err) {
                     warningLog("resolveDynamicExtensionObjectV: error decoding or resolving inner structures");
                     warningLog("Constructor = ", Constructor.name);
+                    warningLog(" partial object = ", object.toString());
                     warningLog("opaqueStructure = ", value?.nodeId?.toString());
                     warningLog("resolveDynamicExtensionObjectV err = ", (err as Error).message, (err as Error).stack);
                     return value;

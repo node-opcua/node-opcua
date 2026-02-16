@@ -29,6 +29,9 @@ export class ExtraDataTypeManager {
     }
 
     public hasDataTypeFactory(namespaceIndex: number): boolean {
+        if (namespaceIndex === 0) {
+            return true;
+        }
         return !!Object.prototype.hasOwnProperty.call(this.dataTypeFactoryMapByNamespace, namespaceIndex);
     }
 

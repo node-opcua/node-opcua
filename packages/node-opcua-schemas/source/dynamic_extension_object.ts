@@ -436,14 +436,12 @@ function _internal_encodeFields(thisAny: any, schema: IStructuredTypeSchema, str
 }
 interface BitfieldOffset {
     bitField: number;
-    offset: number;
     allOptional: boolean;
 }
 function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldOffset): BitfieldOffset {
     const baseSchema = schema.getBaseSchema();
     const data = baseSchema ? makeBitField(thisAny, baseSchema, bo) : bo;
     let { bitField, allOptional } = data;
-    const { offset } = data;
 
     let nbOptionalFields = 0;
     for (const field of schema.fields) {
@@ -456,9 +454,9 @@ function makeBitField(thisAny: any, schema: IStructuredTypeSchema, bo: BitfieldO
             continue;
         }
         // tslint:disable-next-line:no-bitwise
-        bitField |= 1 << (field.switchBit + offset);
+        bitField |= 1 << (field.switchBit);
     }
-    return { bitField, offset: nbOptionalFields + offset, allOptional };
+    return { bitField, allOptional };
 }
 function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: OutputBinaryStream) {
 
@@ -466,7 +464,7 @@ function encodeFields(thisAny: any, schema: IStructuredTypeSchema, stream: Outpu
 
     // ============ Deal with switchBits
     if (hasOptionalFields) {
-        const { bitField, allOptional } = makeBitField(thisAny, schema, { bitField: 0, offset: 0, allOptional: true });
+        const { bitField, allOptional } = makeBitField(thisAny, schema, { bitField: 0, allOptional: true });
         if (!(bitField === 0 && allOptional)) {
             stream.writeUInt32(bitField >>> 0);
         }
