@@ -368,9 +368,14 @@ async function resolveFieldType(
                 return v3;
             } else {
                 // we could have basic => Variant
+                // Note: Only BaseDataType (i=24) should be normalized to "Variant"
+                // Other abstract basic types (e.g. Number, Integer) must keep their name
+                // for proper subtype validation
+                const isBaseDataType = dataTypeNodeId.namespace === 0
+                    && dataTypeNodeId.value === DataTypeIds.BaseDataType;
                 const v3: CacheForFieldResolution = {
                     category: FieldCategory.basic,
-                    fieldTypeName: fieldTypeName,
+                    fieldTypeName: isBaseDataType ? "Variant" : fieldTypeName,
                     schema: dataTypeManager.getBuiltInType("Variant"),
                     allowSubTypes: true,
                     dataType: dataTypeNodeId
@@ -512,6 +517,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
     return await nonReentrant(cache, "convertDataTypeDefinitionToStructureTypeSchema", dataTypeNodeId, async () => {
 
 
+
         if (definition instanceof StructureDefinition) {
 
             const dataTypeFactory = dataTypeManager.getDataTypeFactoryForNamespace(dataTypeNodeId.namespace);
@@ -546,7 +552,9 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
             }
 
             let switchValue = 1;
-            let switchBit = 0;
+
+            // let's start at fieldCountToIgnore bits 
+            let switchBit = fieldCountToIgnore;
 
             const bitFields: BitField[] | undefined = isUnion ? undefined : [];
 
@@ -585,6 +593,7 @@ export async function convertDataTypeDefinitionToStructureTypeSchema(
                         : undefined;
                     return { fieldD, rt, basicDataType, fieldTypeNameForSelfRef };
                 }));
+
 
                 for (const { fieldD, rt, basicDataType, fieldTypeNameForSelfRef } of results) {
 

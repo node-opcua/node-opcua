@@ -31,7 +31,7 @@ import {
 import { extractRange, sameDataValue, DataValue, DataValueLike, DataValueT } from "node-opcua-data-value";
 import { coerceClock, getCurrentClock, PreciseClock } from "node-opcua-date-time";
 import { checkDebugFlag, make_debugLog, make_errorLog, make_warningLog } from "node-opcua-debug";
-import { ExtensionObject } from "node-opcua-extension-object";
+import { ExtensionObject, OpaqueStructure } from "node-opcua-extension-object";
 import { NodeId, NodeIdLike } from "node-opcua-nodeid";
 import { NumericRange } from "node-opcua-numeric-range";
 import { WriteValue } from "node-opcua-service-write";
@@ -446,10 +446,10 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         ) {
             debugLog(
                 chalk.red(" Warning:  UAVariable#readValue ") +
-                    chalk.cyan(this.browseName.toString()) +
-                    " (" +
-                    chalk.yellow(this.nodeId.toString()) +
-                    ") exists but dataValue has not been defined"
+                chalk.cyan(this.browseName.toString()) +
+                " (" +
+                chalk.yellow(this.nodeId.toString()) +
+                ") exists but dataValue has not been defined"
             );
         }
         return dataValue;
@@ -651,9 +651,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 if (variant.dataType === null || variant.dataType === undefined) {
                     throw new Error(
                         "Variant must provide a valid dataType : variant = " +
-                            variant.toString() +
-                            " this.dataType= " +
-                            this.dataType.toString()
+                        variant.toString() +
+                        " this.dataType= " +
+                        this.dataType.toString()
                     );
                 }
                 if (
@@ -662,9 +662,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 ) {
                     throw new Error(
                         "Variant must provide a valid Boolean : variant = " +
-                            variant.toString() +
-                            " this.dataType= " +
-                            this.dataType.toString()
+                        variant.toString() +
+                        " this.dataType= " +
+                        this.dataType.toString()
                     );
                 }
                 if (
@@ -675,9 +675,9 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
                 ) {
                     throw new Error(
                         "Variant must provide a valid LocalizedText : variant = " +
-                            variant.toString() +
-                            " this.dataType= " +
-                            this.dataType.toString()
+                        variant.toString() +
+                        " this.dataType= " +
+                        this.dataType.toString()
                     );
                 }
             }
@@ -1332,7 +1332,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         const addressSpace = this.addressSpace;
         if (!addressSpace) {
-            
+
             return true;
         }
         const dataType = addressSpace.findDataType(this.dataType);
@@ -1379,14 +1379,30 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
         }
         function checkExtensionObjectIsCorrectScalar(
             this: UAVariableImpl,
-            extObj: ExtensionObject | ExtensionObject[] | null
+            extObj: ExtensionObject | null
         ): boolean {
             // istanbul ignore next
             if (!(extObj && extObj.constructor)) {
                 errorLog(extObj);
                 throw new Error("expecting an valid extension object");
             }
-            return extObj.constructor.name === Constructor.name;
+            
+            if (extObj.constructor.name === Constructor.name) {
+                return true;
+            }
+
+            if (extObj instanceof OpaqueStructure) {
+                throw new Error("An opaque structure is not expected here");
+            }
+            // let's verify that the constructor is a sub-class of Constructor
+            let current: IStructuredTypeSchema | null = extObj.schema;
+            while (current) {
+                if (current.name === Constructor.name) {
+                    return true;
+                }
+                current = current.getBaseSchema();
+            }
+            return false;
         }
 
         function checkExtensionObjectIsCorrectArray(this: UAVariableImpl, extObjArray: ExtensionObject[]): boolean {
@@ -1677,8 +1693,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
             const nbElements = dataValue.value.dimensions.reduce((acc, x) => acc * x, 1);
             if (dataValue.value.value.length !== 0 && dataValue.value.value.length !== nbElements) {
                 throw new Error(
-                    `Internal Error: matrix dimension doesn't match the number of element in the array : ${dataValue.toString()} "\n expecting ${nbElements} elements but got ${
-                        dataValue.value.value.length
+                    `Internal Error: matrix dimension doesn't match the number of element in the array : ${dataValue.toString()} "\n expecting ${nbElements} elements but got ${dataValue.value.value.length
                     }`
                 );
             }
@@ -1859,6 +1874,7 @@ export class UAVariableImpl extends BaseNodeImpl implements UAVariable {
 
 // tslint:disable:no-var-requires
 import { withCallback } from "thenify-ex";
+import { IStructuredTypeSchema } from "node-opcua-factory";
 UAVariableImpl.prototype.asyncRefresh = withCallback(UAVariableImpl.prototype.asyncRefresh);
 UAVariableImpl.prototype.writeValue = withCallback(UAVariableImpl.prototype.writeValue);
 UAVariableImpl.prototype.writeAttribute = withCallback(UAVariableImpl.prototype.writeAttribute);
@@ -1872,7 +1888,7 @@ export interface UAVariableImplExtArray {
     $$extensionObjectArray: ExtensionObject[];
     $$indexPropertyName: string;
 }
-export interface UAVariableImpl extends UAVariableImplExtArray {}
+export interface UAVariableImpl extends UAVariableImplExtArray { }
 function check_valid_array(dataType: DataType, array: any): boolean {
     if (Array.isArray(array)) {
         return true;
@@ -2079,7 +2095,7 @@ function _Variable_bind_with_timestamped_get(
             errorLog(
                 chalk.red(" Bind variable error: "),
                 " the timestamped_get function must return a DataValue or a Promise<DataValue>" +
-                    "\n value_check.constructor.name ",
+                "\n value_check.constructor.name ",
                 dataValue_verify ? dataValue_verify.constructor.name : "null"
             );
 
@@ -2298,7 +2314,7 @@ export interface UAVariableImplT<T, DT extends DataType> extends UAVariableImpl,
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, callback: StatusCodeCallback): void;
     writeValue(context: ISessionContext, dataValue: DataValueT<T, DT>, indexRange?: NumericRange | null): Promise<StatusCode>;
 }
-export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl {}
+export class UAVariableImplT<T, DT extends DataType> extends UAVariableImpl { }
 
 function changeUAVariableDataType(uaVariable: UAVariableImpl, newDataType: NodeIdLike, valueLike?: VariantLike) {
     let value: Variant | null = valueLike ? (valueLike instanceof Variant ? valueLike : new Variant(valueLike)) : null;
